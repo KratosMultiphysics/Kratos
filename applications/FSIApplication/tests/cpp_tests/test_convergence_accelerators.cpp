@@ -123,7 +123,7 @@ namespace Kratos {
             const bool is_converged = SolveProblem(p_constant_relaxation, tol, max_it, end_time);
 
             // Check results
-            KRATOS_CHECK(is_converged);
+            KRATOS_EXPECT_TRUE(is_converged);
 	    }
 
 	    /**
@@ -142,7 +142,7 @@ namespace Kratos {
             const bool is_converged = SolveProblem(p_aitken_relaxation, tol, max_it, end_time);
 
             // Check results
-            KRATOS_CHECK(is_converged);
+            KRATOS_EXPECT_TRUE(is_converged);
 	    }
 
 	    /**
@@ -161,7 +161,7 @@ namespace Kratos {
             const bool is_converged = SolveProblem(p_MVQN);
 
             // Check results
-            KRATOS_CHECK(is_converged);
+            KRATOS_EXPECT_TRUE(is_converged);
 	    }
 
 	    /**
@@ -178,7 +178,7 @@ namespace Kratos {
             const bool is_converged = SolveProblem(p_recursive_MVQN);
 
             // Check results
-            KRATOS_CHECK(is_converged);
+            KRATOS_EXPECT_TRUE(is_converged);
 	    }
 
     } // namespace Testing

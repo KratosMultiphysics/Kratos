@@ -10,6 +10,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 
+
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return AlgorithmSteepestDescent(model, parameters, optimization_problem)
 
@@ -41,6 +42,7 @@ class AlgorithmSteepestDescent(Algorithm):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.master_control = MasterControl() # Need to fill it with controls
+        self._optimization_problem.AddComponent(self.master_control)
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
@@ -58,6 +60,7 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective)
         self.__control_field = None
         self.__obj_val = None
 
@@ -65,21 +68,21 @@ class AlgorithmSteepestDescent(Algorithm):
         return 2
 
     def Check(self):
-        pass
+        self.master_control.Check()
+        self.__objective.Check()
 
     @time_decorator()
     def Initialize(self):
         self.converged = False
         self.__obj_val = None
-        self.__objective.Initialize()
-        self.__objective.Check()
         self.master_control.Initialize()
+        self.__objective.Initialize()
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
     def Finalize(self):
-        self.__objective.Finalize()
         self.master_control.Finalize()
+        self.__objective.Finalize()
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
@@ -88,19 +91,22 @@ class AlgorithmSteepestDescent(Algorithm):
         return search_direction
 
     @time_decorator()
-    def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
-        update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
+    def ComputeControlUpdate(self, alpha):
+        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
+        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
         self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
-        self.__control_field += update
-        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        self.__control_field = KratosOA.ExpressionUtils.Collapse(self.__control_field + update)
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
-        self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
+        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        for process in self._optimization_problem.GetListOfProcesses("output_processes"):
+            if process.IsOutputStep():
+                process.PrintOutput()
 
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val
@@ -112,9 +118,11 @@ class AlgorithmSteepestDescent(Algorithm):
     def Solve(self):
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
+                self._InitializeIteration()
+
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
+                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
                 self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
@@ -126,6 +134,8 @@ class AlgorithmSteepestDescent(Algorithm):
                 alpha = self.__line_search_method.ComputeStep()
 
                 self.ComputeControlUpdate(alpha)
+
+                self._FinalizeIteration()
 
                 self.Output()
 

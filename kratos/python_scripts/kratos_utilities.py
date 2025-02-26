@@ -22,12 +22,19 @@ def DeleteDirectoryIfExisting(directory_name):
     except:
         pass
 
+def DeleteFilesEndingWith(directory_name, *ends_with):
+    """This function deletes all the files in a directory that
+    with the provided argument
+    """
+    for file_name in os.listdir(directory_name):
+        for arg in ends_with:
+            if file_name.endswith(arg):
+                DeleteFileIfExisting(os.path.join(directory_name, file_name))
+
 def DeleteTimeFiles(directory_name):
     """This function deletes all *.time files in a directory
     """
-    for file_name in os.listdir(directory_name):
-        if file_name.endswith(".time"):
-            DeleteFileIfExisting(os.path.join(directory_name, file_name))
+    DeleteFilesEndingWith(directory_name, ".time")
 
 def GetKratosMultiphysicsPath():
     """Returning the path to the KratosMultiphysics-module

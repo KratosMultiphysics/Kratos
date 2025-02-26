@@ -24,12 +24,11 @@ namespace Kratos
 
 class ApplyConstantHydrostaticPressureProcess : public Process
 {
-
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantHydrostaticPressureProcess);
 
-    ApplyConstantHydrostaticPressureProcess(ModelPart &model_part,
-                                            Parameters rParameters) : Process(Flags()), mrModelPart(model_part)
+    ApplyConstantHydrostaticPressureProcess(ModelPart& model_part, Parameters rParameters)
+        : Process(Flags()), mrModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -47,8 +46,8 @@ public:
             "table" : 1
         }  )");
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
+        // Some values need to be mandatorily prescribed since no meaningful default value exist.
+        // For this reason try accessing to them So that an error is thrown if they don't exist
         rParameters["reference_coordinate"];
         rParameters["variable_name"];
         rParameters["model_part_name"];
@@ -57,19 +56,19 @@ public:
         // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mModelPartName       = rParameters["model_part_name"].GetString();
-        mVariableName        = rParameters["variable_name"].GetString();
-        mIsFixed             = rParameters["is_fixed"].GetBool();
-        mIsSeepage           = rParameters["is_seepage"].GetBool();
-        mGravityDirection    = rParameters["gravity_direction"].GetInt();
-        mReferenceCoordinate = rParameters["reference_coordinate"].GetDouble();
-        mSpecificWeight      = rParameters["specific_weight"].GetDouble();
+        mModelPartName         = rParameters["model_part_name"].GetString();
+        mVariableName          = rParameters["variable_name"].GetString();
+        mIsFixed               = rParameters["is_fixed"].GetBool();
+        mIsSeepage             = rParameters["is_seepage"].GetBool();
+        mGravityDirection      = rParameters["gravity_direction"].GetInt();
+        mReferenceCoordinate   = rParameters["reference_coordinate"].GetDouble();
+        mSpecificWeight        = rParameters["specific_weight"].GetDouble();
         mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
 
         KRATOS_CATCH("")
     }
 
-    ApplyConstantHydrostaticPressureProcess &operator=(const ApplyConstantHydrostaticPressureProcess&) = delete;
+    ApplyConstantHydrostaticPressureProcess& operator=(const ApplyConstantHydrostaticPressureProcess&) = delete;
     ~ApplyConstantHydrostaticPressureProcess() override = default;
 
     /// this function is designed for being called at the beginning of the computations
@@ -78,18 +77,21 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents<Variable<double>>::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
         block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
-            const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);
-            rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+            const double pressure = -PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight *
+                                    (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);
 
             if (mIsSeepage) {
-                if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) {  // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
+                if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) { // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
+                    rNode.FastGetSolutionStepValue(var) = pressure;
                     if (mIsFixed) rNode.Fix(var);
                 } else {
                     if (mIsFixedProvided) rNode.Free(var);
                 }
             } else {
+                rNode.FastGetSolutionStepValue(var) =
+                    std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
                 if (mIsFixed) rNode.Fix(var);
                 else if (mIsFixedProvided) rNode.Free(var);
             }
@@ -98,30 +100,23 @@ public:
         KRATOS_CATCH("")
     }
 
-    const std::string& GetName() const
-    {
-        return mModelPartName;
-    }
+    const std::string& GetName() const { return mModelPartName; }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyConstantHydrostaticPressureProcess";
-    }
+    std::string Info() const override { return "ApplyConstantHydrostaticPressureProcess"; }
 
 protected:
     /// Member Variables
-    ModelPart &mrModelPart;
-    std::string mModelPartName;
-    std::string mVariableName;
-    bool mIsFixed;
-    bool mIsFixedProvided;
-    bool mIsSeepage;
+    ModelPart&   mrModelPart;
+    std::string  mModelPartName;
+    std::string  mVariableName;
+    bool         mIsFixed;
+    bool         mIsFixedProvided;
+    bool         mIsSeepage;
     unsigned int mGravityDirection;
-    double mReferenceCoordinate;
-    double mSpecificWeight;
-    double mPressureTensionCutOff;
-
+    double       mReferenceCoordinate;
+    double       mSpecificWeight;
+    double       mPressureTensionCutOff;
 };
 
-}
+} // namespace Kratos

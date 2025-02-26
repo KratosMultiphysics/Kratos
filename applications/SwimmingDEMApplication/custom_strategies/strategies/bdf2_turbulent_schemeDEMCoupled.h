@@ -162,7 +162,7 @@ public:
                 rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
             }
         }
-        //this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
+        this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
     }
 
     void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
@@ -301,6 +301,7 @@ public:
     {
         KRATOS_TRY
 
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
         if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
 
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();

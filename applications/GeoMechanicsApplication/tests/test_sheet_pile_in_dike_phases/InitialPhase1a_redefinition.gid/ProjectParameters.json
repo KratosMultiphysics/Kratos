@@ -11,7 +11,6 @@
         "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
-        "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
             "input_filename":   "InitialPhase1a_redefinition"
@@ -153,7 +152,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.soil_excavation",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             false
         }
     },{
@@ -162,7 +160,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.deactivate_anchor",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             true
         }
     },{
@@ -171,7 +168,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.deactivate_beam",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             true
         }
     },{
@@ -180,7 +176,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.deactivate_strut",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             true
         }
     }],

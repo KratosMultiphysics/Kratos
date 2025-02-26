@@ -15,11 +15,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "spaces/ublas_space.h"
-#include "includes/properties.h"
 #include "containers/model.h"
+#include "includes/properties.h"
 #include "includes/model_part.h"
+
+// Application includes
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
 
 /* Utilities */
 #include "utilities/geometrical_projection_utilities.h"
@@ -409,7 +411,7 @@ static inline void TestDerivatives(
                             const double log_coeff = std::log((static_cast<double>(iter) + 2.0)/(static_cast<double>(iter) + 1.0));
                             const double slope = std::log(delta_normal_0_error[1]/delta_normal_0_error[0])/log_coeff;
                             if (slope >= quadratic_threshold) {
-                                KRATOS_CHECK_GREATER_EQUAL(slope, quadratic_threshold);
+                                KRATOS_EXPECT_GE(slope, quadratic_threshold);
                             } else {
                                 KRATOS_INFO("SLOPE NORMAL 0") << "SLOPE NORMAL 0: " << slope << "\tCurrent:" << delta_normal_0_error[1] << "\tPrevious" << delta_normal_0_error[0] << std::endl;
                             }
@@ -426,8 +428,8 @@ static inline void TestDerivatives(
 
     if (Check == CheckLevel::LEVEL_EXACT) { // CheckLevel::LEVEL_EXACT SOLUTION
         for (IndexType iter = 0; iter < NumberIterations; ++iter) {
-            KRATOS_CHECK_LESS_EQUAL(error_vector_slave[iter], tolerance);
-            KRATOS_CHECK_LESS_EQUAL(error_vector_master[iter], tolerance);
+            KRATOS_EXPECT_LE(error_vector_slave[iter], tolerance);
+            KRATOS_EXPECT_LE(error_vector_master[iter], tolerance);
         }
     } else if (Check == CheckLevel::LEVEL_QUADRATIC_CONVERGENCE) {
             for (IndexType iter = 0; iter < NumberIterations - 1; ++iter) {
@@ -435,11 +437,11 @@ static inline void TestDerivatives(
 
                 // First "exact" check
                 if (error_vector_slave[iter + 1] < tolerance) {
-                    KRATOS_CHECK_LESS_EQUAL(error_vector_slave[iter + 1], tolerance);
+                    KRATOS_EXPECT_LE(error_vector_slave[iter + 1], tolerance);
                 } else {
                     const double slope_slave = std::log(error_vector_slave[iter + 1]/error_vector_slave[iter])/log_coeff;
                     if (slope_slave >= quadratic_threshold) {
-                        KRATOS_CHECK_GREATER_EQUAL(slope_slave, quadratic_threshold);
+                        KRATOS_EXPECT_GE(slope_slave, quadratic_threshold);
                     } else {
                         KRATOS_INFO("SLOPE SLAVE") << "SLOPE SLAVE: " << slope_slave << "\tCurrent: " << error_vector_slave[iter + 1] << "\tPrevious: " << error_vector_slave[iter] << std::endl;
                     }
@@ -447,11 +449,11 @@ static inline void TestDerivatives(
 
                 // First "exact" check
                 if (error_vector_master[iter + 1] < tolerance) {
-                    KRATOS_CHECK_LESS_EQUAL(error_vector_master[iter + 1], tolerance);
+                    KRATOS_EXPECT_LE(error_vector_master[iter + 1], tolerance);
                 } else {
                     const double slope_master = std::log(error_vector_master[iter + 1]/error_vector_master[iter])/log_coeff;
                     if (slope_master >= quadratic_threshold) {
-                        KRATOS_CHECK_GREATER_EQUAL(slope_master, quadratic_threshold);
+                        KRATOS_EXPECT_GE(slope_master, quadratic_threshold);
                     } else {
                         KRATOS_INFO("SLOPE MASTER") << "SLOPE MASTER: " << slope_master << "\tCurrent: " << error_vector_master[iter + 1] << "\tPrevious: " << error_vector_master[iter] << std::endl;
                     }

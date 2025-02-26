@@ -17,11 +17,11 @@
 
 // Project includes
 #include "utilities/communication_coloring_utilities.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
 namespace Kratos::Testing {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = Testing::GetDefaultDataCommunicator();
 
@@ -47,11 +47,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, Krat
 
     for(unsigned int j=0; j<recv_list.size(); ++j)
     {
-        KRATOS_CHECK_EQUAL(recv_list[j], expected_recv_list[current_rank][j]);
+        KRATOS_EXPECT_EQ(recv_list[j], expected_recv_list[current_rank][j]);
     }
 };
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = Testing::GetDefaultDataCommunicator();
 
@@ -77,7 +77,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationS
 
     for(unsigned int j=0; j<colors.size(); ++j)
     {
-        KRATOS_CHECK_EQUAL(colors[j], expected_colors[current_rank][j]);
+        KRATOS_EXPECT_EQ(colors[j], expected_colors[current_rank][j]);
     }
 };
 

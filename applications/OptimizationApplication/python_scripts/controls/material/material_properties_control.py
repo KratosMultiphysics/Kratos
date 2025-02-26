@@ -1,10 +1,12 @@
+from typing import Optional
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
-from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> Control:
     if not parameters.Has("name"):
@@ -27,8 +29,9 @@ class MaterialPropertiesControl(Control):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "model_part_names"     : [""],
-            "control_variable_name": ""
+            "model_part_names"                  : [""],
+            "control_variable_name"             : "",
+            "consider_recursive_property_update": false
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -40,18 +43,21 @@ class MaterialPropertiesControl(Control):
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
         self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
-        controlled_model_parts = [model[model_part_name] for model_part_name in parameters["model_part_names"].GetStringArray()]
-        if len(controlled_model_parts) == 0:
+        controlled_model_part_names = parameters["model_part_names"].GetStringArray()
+        if len(controlled_model_part_names) == 0:
             raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
-        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
+        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_part_names, False)
+        self.model_part: Optional[Kratos.ModelPart] = None
+
+        self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
 
     def Initialize(self) -> None:
-        ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
+        self.model_part = self.model_part_operation.GetModelPart()
 
-        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
-            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+        if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements, self.consider_recursive_property_update)
+            KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
     def Check(self) -> None:
         pass
@@ -59,7 +65,7 @@ class MaterialPropertiesControl(Control):
     def Finalize(self) -> None:
         pass
 
-    def GetPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+    def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
@@ -72,7 +78,7 @@ class MaterialPropertiesControl(Control):
         KratosOA.PropertiesVariableExpressionIO.Read(field, self.controlled_physical_variable)
         return field
 
-    def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
+    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
         if len(keys) != 1:
             raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
@@ -97,8 +103,11 @@ class MaterialPropertiesControl(Control):
         # get the current unfiltered control field
         unfiltered_control_field = self.GetControlField()
 
-        if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
+        if Kratos.Expression.Utils.NormL2(unfiltered_control_field - control_field) > 1e-9:
             KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
+
+            if self.consider_recursive_property_update:
+                KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(control_field.GetContainer(), self.controlled_physical_variable)
             return True
 
         return False

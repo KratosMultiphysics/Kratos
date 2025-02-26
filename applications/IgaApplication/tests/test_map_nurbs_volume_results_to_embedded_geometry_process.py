@@ -30,8 +30,10 @@ class TestMapNurbsVolumeResultsToEmbeddedGeometryProcess(KratosUnittest.TestCase
                 "Parameters": {
                     "model_part_name" : "NurbsMesh",
                     "geometry_name"   : "NurbsVolume",
-                    "lower_point": [-2.1, -2.1,  -2.1],
-                    "upper_point": [2.1, 2.1, 12.1],
+                    "lower_point_xyz": [-2.1, -2.1,  -2.1],
+                    "upper_point_xyz": [2.1, 2.1, 12.1],
+                    "lower_point_uvw": [0.0, 0.0, 0.0],
+                    "upper_point_uvw": [1.0, 1.0, 1.0],
                     "polynomial_order" : [1, 2, 2],
                     "number_of_knot_spans" : [1,2,2]}
             },{

@@ -75,7 +75,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline volumes
+    /// Constructor for B-Spline volumes
     NurbsVolumeGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
@@ -95,8 +95,8 @@ public:
         CheckAndFitKnotVectors();
     }
 
-    /// Attention: Weigths are not yet implemented!
-    /// Conctructor for NURBS volumes
+    /// Attention: Weights are not yet implemented!
+    /// Constructor for NURBS volumes
     // NurbsVolumeGeometry(
     //     const PointsArrayType& rThisPoints,
     //     const SizeType PolynomialDegreeU,
@@ -644,7 +644,7 @@ public:
      * @brief Computes jacobian matrix at the given coordinates.
      * @param rCoordinates Coordinates to be evaluated.
      * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
-     * @todo Refactor such that addional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
+     * @todo Refactor such that additional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
      *       find the correct knotspans and to set the shape_function_member variables 'mFirstNonzeroControlPointU,-V,-W'.
      * @note This function is only required to compute e.g. the volume of the geometry. During an IGA-Analysis the corresponding function
      *       of the base class is called.
@@ -885,6 +885,43 @@ public:
     ///@name Operations
     ///@{
 
+/**
+    * @brief Returns local coordinates in return for a point in physical coordinates.
+    *        This function assumes the initial geometry to be a regular grid. Only linear mapping is applied.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    * @param Tolerance not used.
+    * @return This functions always returns 1 (successful projection).
+    *         Since no Netwon-Raphson is performed, the projection is always considered as successful.
+    */
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const CoordinatesArrayType& lower_point = this->begin()->GetInitialPosition();
+        const CoordinatesArrayType& upper_point = (this->end()-1)->GetInitialPosition();
+
+        const Vector& knots_u = this->KnotsU();
+        const SizeType nb_knots_u = this->NumberOfKnotsU();
+        const Vector& knots_v = this->KnotsV();
+        const SizeType nb_knots_v = this->NumberOfKnotsV();
+        const Vector& knots_w = this->KnotsW();
+        const SizeType nb_knots_w = this->NumberOfKnotsW();
+
+        rProjectedPointLocalCoordinates[0] = ((rPointGlobalCoordinates[0] - lower_point[0]) / std::abs( lower_point[0] - upper_point[0])
+                        * std::abs(knots_u[nb_knots_u-1] - knots_u[0])) + knots_u[0];
+        rProjectedPointLocalCoordinates[1] = ((rPointGlobalCoordinates[1] - lower_point[1]) / std::abs( lower_point[1] - upper_point[1])
+                        * std::abs(knots_v[nb_knots_v-1] - knots_v[0])) + knots_v[0];
+        rProjectedPointLocalCoordinates[2] = ((rPointGlobalCoordinates[2] - lower_point[2]) / std::abs( lower_point[2] - upper_point[2])
+                        * std::abs(knots_w[nb_knots_w-1] - knots_w[0])) + knots_w[0];
+        return 1;
+    }
+
     /**
      * @brief This method maps from local space to working space.
      * @param LocalCoordinates The local coordinates in dimension space.
@@ -1054,11 +1091,21 @@ public:
     ///@name Geometry Family
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;

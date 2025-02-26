@@ -14,9 +14,9 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "custom_utilities/qsvms_data.h"
-#include "custom_utilities/qsvms_dem_coupled_data.h"
-//#include "custom_utilities/time_integrated_qsvms_data.h"
+#include "data_containers/qs_vms/qs_vms_data.h"
+#include "data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
+//#include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
@@ -921,8 +921,12 @@ template class DVMS< QSVMSData<3,4> >;
 
 template class DVMS< QSVMSDEMCoupledData<2,3> >;
 template class DVMS< QSVMSDEMCoupledData<3,4> >;
+template class DVMS< QSVMSDEMCoupledData<3,10> >;
 
 template class DVMS< QSVMSDEMCoupledData<2,4> >;
+template class DVMS< QSVMSDEMCoupledData<2,6> >;
+template class DVMS< QSVMSDEMCoupledData<2,9> >;
 template class DVMS< QSVMSDEMCoupledData<3,8> >;
+template class DVMS< QSVMSDEMCoupledData<3,27> >;
 
 } // namespace Kratos

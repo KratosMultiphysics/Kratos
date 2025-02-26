@@ -6,11 +6,13 @@
     - [Specific Application Dependencies](#specific-application-dependencies)
   - [Basic Configuration](#basic-configuration)
   - [Configuration scripts examples](#configuration-scripts-examples)
-    - [Linux/WSL](#gnulinux)
+    - [GNU/Linux](#gnulinux)
     - [Windows](#windows)
       - [Visual Studio](#visual-studio)
         - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
-    - [MinGW](#mingw)
+      - [MinGW](#mingw)
+        - [Using MINGW64 (legacy)](#using-mingw64-legacy)
+        - [Using UCRT64 (*Universal C Runtime*)](#using-ucrt64-universal-c-runtime)
     - [MacOS](#macos)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
@@ -59,7 +61,7 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 
 Additionaly, Visual Studio is required to compile in *Windows*.
 
-- #### Linux/WSL installation
+- #### GNU/Linux-WSL installation
 
     The command below will install all the packages needed.
 
@@ -74,7 +76,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     - Visual Studio
 
-        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is *Visual Studio 2017*, but we recommend to use *Visual Studio 2019* or higher.
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is *Visual Studio 2019* or higher (please ensure that version is at least 16.8 or MSVC version is at least 19.24).
 
         * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
 
@@ -105,57 +107,152 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
         Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
 
-- #### MinGW
+    - Alternative dependencies installation (Hidden by default to avoid confusion, please click the button below to show them)
+        <details>
 
-  *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
+        - *VCpkg*:
 
-  - MSYS2
+          VCpkg is a cross-platform package manager for C++ libraries, simplifying dependency management by handling installation and integration with different compilers. It supports *Windows*, *Linux*, and *macOS*. See [official website](https://vcpkg.io/en/index.html), [*GitHub*](https://github.com/microsoft/vcpkg) and the [Official VCpkg Documentation](https://vcpkg.io/en/index.html). 
 
-      First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easiy install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
-      ![](https://www.msys2.org/docs/mintty.png) ![](https://www.msys2.org/docs/launchers.png)
+          Open PowerShell and run:
 
-      ```Shell
-      pacman -Syu
-      ```
+          ```powershell
+          git clone https://github.com/microsoft/vcpkg.git
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+          ```
 
-      It is very relevant to add to the *Windows* `PATH` your `msys64\mingw64\bin` folder in order that the system locates the binaries.
+          This initializes *VCpkg* and compiles it for use. To install a package, use:
 
-  - Git
+          ```powershell
+          vcpkg install <package-name>
+          ```
 
-      The first thing you will need is the *Kratos* Multiphysics source code. To download the code you will have to use a git. You can install the default git by using this command:
+          To specify a target architecture (triplet), use:
 
-      ```Shell
-      pacman -S git
-      ```
+          ```powershell
+          vcpkg install boost:x64-windows
+          ```
 
-      Once git is installed you can fetch the code by using these commands:
+          Common triplets:
+          - **x86-windows** (Static CRT)
+          - **x64-windows** (Static CRT, 64-bit)
+          - **x64-linux** (64-bit Linux)
+          - **arm64-windows** (ARM64 Windows)
 
-      ```Shell
-      git clone https://github.com/KratosMultiphysics/Kratos Kratos
-      ```
-  - Dev Packages
+          To integrate VCpkg with CMake:
+          ```powershell
+          cmake -DCMAKE_TOOLCHAIN_FILE=<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake ..
+          ```
 
-      You will need a series of packages with some *Kratos* dependencies. These include the compilers (*GCC*,*Clang/LLVM*), *CMake*, *Blas and Lapack* libraries and the *OpenMP* support. The command below will install all the packages needed. The command below will install all the packages needed.
+          For *Visual Studio/MSBuild*, enable automatic integration:
 
-      ```Shell
-      pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
-      ```
+          ```powershell
+          vcpkg integrate install
+          ```
 
-  - Python 
-      You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+          This makes installed libraries available in all *Visual Studio* projects.
 
-      * [Download Python](http://www.python.org/downloads/)
+          To update the package manager itself:
 
-      Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
+          ```powershell
+          git pull
+          ./bootstrap-vcpkg.bat
+          ```
 
-      Unfortunately, we cannot use right now *MSYS2* directly, as the development files are not available (`python3-dev` equivalent to *GNU/Linux*).
+          To upgrade installed packages:
+      
+          ```powershell
+          vcpkg upgrade
+          ```
 
-  - Boost
-      The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward. For that, we will use `pacman` again:
+          To remove a package:
 
-      ```Shell
-      pacman -S mingw64/mingw-w64-x86_64-boost
-      ```
+          ```powershell
+          vcpkg remove <package-name>
+          ```
+
+          To install some dependencies:
+
+          - *Python*:
+          ```powershell
+          vcpkg install python3:x64-windows
+          ```
+
+          - *Boost*: For example not only *Boost* header, but some precompiled libraries.
+          ```powershell
+          vcpkg install boost-chrono:x64-windows boost-date-time:x64-windows boost-filesystem:x64-windows boost-program-options:x64-windows boost-system:x64-windows boost-thread:x64-windows boost-test:x64-windows boost-ublas:x64-windows
+          ```
+        </details>
+- #### MinGW (Windows Unix like environment)
+  *MingGw* compilation details are hidden by default to avoid confusion, please click the button below to show them.
+  <details>
+    <summary>Show MinGW compilation details</summary>
+
+    *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
+
+    - *MSYS2*
+
+        First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easiy install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
+        ![](https://www.msys2.org/docs/mintty.png) ![](https://www.msys2.org/docs/launchers.png)
+
+        ```Shell
+        pacman -Syu
+        ```
+
+        It is very relevant to add to the *Windows* `PATH` your `msys64\mingw64\bin` folder in order that the system locates the binaries.
+
+    - Git
+
+        The first thing you will need is the *Kratos* Multiphysics source code. To download the code you will have to use a git. You can install the default git by using this command:
+
+        ```Shell
+        pacman -S git
+        ```
+
+        Once git is installed you can fetch the code by using these commands:
+
+        ```Shell
+        git clone https://github.com/KratosMultiphysics/Kratos Kratos
+        ```
+    - Dev Packages
+
+        You will need a series of packages with some *Kratos* dependencies. These include the compilers (*GCC*,*Clang/LLVM*), *CMake*, *Blas and Lapack* libraries and the *OpenMP* support. The command below will install all the packages needed. The command below will install all the packages needed.
+
+        ```Shell
+        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn mingw64/mingw-w64-x86_64-llvm-openmp
+        ```
+
+    - Python
+        You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+
+        * [Download Python](http://www.python.org/downloads/)
+
+        Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
+
+        Unfortunately, we cannot use right now *MSYS2* directly, as the development files are not available (`python3-dev` equivalent to *GNU/Linux*).
+
+    - Boost
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward. For that, we will use `pacman` again:
+
+        ```Shell
+        pacman -S mingw64/mingw-w64-x86_64-boost
+        ```
+
+    ##### Using UCRT64
+
+    **UCRT** (*Universal C Runtime*) is a newer version which is also used by Microsoft Visual Studio by default, see [*MSYS2*](https://www.msys2.org/docs/environments/). It should work and behave as if the code was compiled with **MSVC**.
+
+    - Better compatibility with **MSVC**, both at build time and at run time.
+    - It only ships by default on *Windows 10/11* and for older versions you have to provide it yourself or depend on the user having it installed.
+    - Remember that to properly work, you will need to define the `PATH` for the binary folder of *MSYS2*, usually at `C:\msys2\ucrt64\bin`.
+
+    If using **UCRT64** the dependencies will be like:
+
+    ```Shell
+    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost ucrt64/mingw-w64-ucrt-x86_64-llvm-openmp ucrt64/mingw-w64-ucrt-x86_64-lld
+    ```
+  </details>
 
 ### Specific Application Dependencies
 
@@ -219,7 +316,7 @@ The example scripts for every system are shown next.
 
 ### GNU/Linux
 
-```bash
+```console
 # Function to add apps
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
@@ -328,6 +425,8 @@ cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KR
 ```
 #### MinGW
 
+##### Using MINGW64 (legacy)
+
 In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
 
 ```cmd
@@ -356,7 +455,7 @@ sh %KRATOS_BUILD%\configure_MINGW.sh
 
 And the second is the bash script that will be called by the former script (it is similar to the one in *GNU/Linux*):
 
-```bash
+```console
 # Function to add apps
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
@@ -392,15 +491,115 @@ cmake ..                                                                        
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \
 -DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
--DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   \
 -DUSE_EIGEN_MKL=OFF
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
 ```
+
+##### Using UCRT64 (*Universal C Runtime*)
+
+In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
+
+```cmd
+cls
+
+@REM Set variables
+if not defined KRATOS_SOURCE set KRATOS_SOURCE=%~dp0..
+if not defined KRATOS_BUILD set KRATOS_BUILD=%KRATOS_SOURCE%/build
+
+@REM Set basic configuration
+if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
+@REM Decomment the following in case of considering MKL
+@REM if not defined MKLROOT set MKLROOT=C:\PROGRA~2\Intel\oneAPI\mkl\latest\
+
+@REM rem setting environment variables for using intel MKL
+@REM call "%MKLROOT%\env\vars.bat" intel64 lp64
+
+:: you may want to decomment this the first time you compile
+@REM Clean
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+
+sh %KRATOS_BUILD%\configure_MINGW_UCRT64.sh
+```
+
+And the second is the bash script that will be called by the former script (it is similar to the one in *GNU/Linux*):
+
+```console
+# Function to add apps
+add_app () {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
+# Set compiler
+export CC=${CC:-clang}
+export CXX=${CXX:-clang++}
+
+# Set variables
+export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
+# export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+export KRATOS_SHARED_MEMORY_PARALLELIZATION=${KRATOS_SHARED_MEMORY_PARALLELIZATION:-"OpenMP"}
+
+# Set basic configuration
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"C:/Windows/py.exe"}
+
+export CMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS:-"OFF"}
+#export KRATOS_CMAKE_CXX_FLAGS="-Wno-maybe-uninitialized -Wignored-qualifiers"
+
+# Set applications to compile
+export KRATOS_APPLICATIONS=
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+
+# Set compilation tool
+export COMPILATION_TOOL=${COMPILATION_TOOL:-"Ninja"}
+
+# Determine the folder where the compiler is located
+export MSYS_BIN_FOLDER=$(dirname $(which ${CXX}))
+
+# Set CMake strip
+export CMAKE_STRIP=${CMAKE_STRIP:-"${MSYS_BIN_FOLDER}/strip.exe"}
+
+# Configure
+cmake ..                                                                                            \
+-G "${COMPILATION_TOOL}"                                                                            \
+-DCMAKE_INSTALL_PREFIX="${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}"                                  \
+-DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
+-H"${KRATOS_SOURCE}"                                                                                \
+-B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
+-DCMAKE_STRIP="${CMAKE_STRIP}"                                                                      \
+-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}                                                                    \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"                                    \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}                                    \
+-DKRATOS_BUILD_TESTING=ON                                                                           \
+-DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
+-DUSE_EIGEN_MKL=OFF
+
+# Build
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+
+# Manually install the python ddl, located in the python binary folder
+# Determine the location of the Python DLL
+PYTHON_VERSION=$(${PYTHON_EXECUTABLE} -c "import sys; print(''.join(sys.version.split('.')[:2]))")
+PYTHON_DLL=$(${PYTHON_EXECUTABLE} -c "import sys; print(sys.base_prefix)")/python${PYTHON_VERSION}.dll
+
+# Check if the Python DLL exists
+if [ -f "${PYTHON_DLL}" ]; then
+    # Install the Python DLL to the desired location
+    cp "${PYTHON_DLL}" "${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+    echo "Python DLL ${PYTHON_DLL} installed at ${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+else
+    echo "Python DLL not found at ${PYTHON_DLL}"
+    exit 1
+fi
+```
+
 ### MacOS
 
-```bash
+```console
 # Function to add apps
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
@@ -471,7 +670,7 @@ For *Windows* with *MinGW* it works in the same way as in *GNU/Linux* as it work
 As *Kratos* is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the *Kratos* install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
 
 ### GNU/Linux
-```bash
+```console
 export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
 ```
@@ -501,11 +700,11 @@ from KratosMultiphysics import *
 The result should be:
 
 ```
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.2."0"-4afb88094a-Release-ARM64
+           Multi-Physics 9.X.Y-4afb88094a-Release-ARM64
            Compiled for GNU/Linux and Python3.8 with GCC-8.5
 Compiled with threading and MPI support.
 Maximum number of threads: 1.
@@ -612,9 +811,6 @@ Root directory for boost. Overrided by `BOOST_ROOT` environmental variable if de
 
 `-DPYTHON_EXECUTABLE=String`
 Python executable to be used. It is recommended to set this option if more than one version of python is present in the system (For example while using ubuntu). Overrided by `PYTHON_EXECUTABLE` environmental variable if defined.
-
-`-DINSTALL_RUNKRATOS=ON/OFF`
-Enables(Default) or Disables the compilation of the embedded python interpreter (aka Runkratos).
 
 `-DKRATOS_BUILD_TESTING=ON/OFF`
 Enables(Default) or Disables the compilation of the C++ unitary tests for *Kratos* and Applications.

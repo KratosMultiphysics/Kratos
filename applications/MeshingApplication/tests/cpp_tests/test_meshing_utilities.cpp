@@ -16,7 +16,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "custom_utilities/meshing_utilities.h"
 
 namespace Kratos {
@@ -66,7 +66,7 @@ namespace Kratos {
             MeshingUtilities::BlockThresholdSizeElements(r_model_part, parameters);
 
             for (auto& r_element: r_model_part.Elements()) {
-                KRATOS_CHECK(r_element.Is(BLOCKED));
+                KRATOS_EXPECT_TRUE(r_element.Is(BLOCKED));
 //                 KRATOS_WATCH(r_element.GetValue(ELEMENT_H))
             }
         }
@@ -93,7 +93,7 @@ namespace Kratos {
             MeshingUtilities::BlockThresholdSizeElements(r_model_part, parameters);
 
             for (auto& r_element: r_model_part.Elements()) {
-                KRATOS_CHECK(r_element.Is(BLOCKED));
+                KRATOS_EXPECT_TRUE(r_element.Is(BLOCKED));
 //                 KRATOS_WATCH(r_element.GetValue(ELEMENT_H))
             }
         }

@@ -168,7 +168,7 @@ public:
     ShapeFunctionsSecondDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -329,7 +329,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor don't copy the points and new
@@ -345,14 +345,34 @@ public:
     /// Destructor. Does nothing!!!
     ~Hexahedra3D27() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Hexahedra3D27;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     /**
@@ -457,7 +477,7 @@ public:
 
     /**
      * This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
@@ -476,7 +496,7 @@ public:
     }
 
     /**
-     * @brief This method calculate and return volume of this geometry.
+     * @brief This method calculates and returns volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -489,8 +509,8 @@ public:
     }
 
     /**
-     * This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * This method calculates and returns length, area or volume of
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
@@ -505,6 +525,127 @@ public:
     double DomainSize() const override
     {
         return Volume();
+    }
+
+        /**
+     * Returns a matrix of the local coordinates of all points
+     * @param rResult a Matrix that will be overwritten by the results
+     * @return the coordinates of all points of the current geometry
+     */
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        if ( rResult.size1() != 27 || rResult.size2() != 3 )
+            rResult.resize( 27, 3, false );
+
+        rResult( 0, 0 ) = -1.0;
+        rResult( 0, 1 ) = -1.0;
+        rResult( 0, 2 ) = -1.0;
+
+        rResult( 1, 0 ) = 1.0;
+        rResult( 1, 1 ) = -1.0;
+        rResult( 1, 2 ) = -1.0;
+
+        rResult( 2, 0 ) = 1.0;
+        rResult( 2, 1 ) = 1.0;
+        rResult( 2, 2 ) = -1.0;
+
+        rResult( 3, 0 ) = -1.0;
+        rResult( 3, 1 ) = 1.0;
+        rResult( 3, 2 ) = -1.0;
+
+        rResult( 4, 0 ) = -1.0;
+        rResult( 4, 1 ) = -1.0;
+        rResult( 4, 2 ) = 1.0;
+
+        rResult( 5, 0 ) = 1.0;
+        rResult( 5, 1 ) = -1.0;
+        rResult( 5, 2 ) = 1.0;
+
+        rResult( 6, 0 ) = 1.0;
+        rResult( 6, 1 ) = 1.0;
+        rResult( 6, 2 ) = 1.0;
+
+        rResult( 7, 0 ) = -1.0;
+        rResult( 7, 1 ) = 1.0;
+        rResult( 7, 2 ) = 1.0;
+
+        rResult( 8, 0 ) = 0.0;
+        rResult( 8, 1 ) = -1.0;
+        rResult( 8, 2 ) = -1.0;
+
+        rResult( 9, 0 ) = 1.0;
+        rResult( 9, 1 ) = 0.0;
+        rResult( 9, 2 ) = -1.0;
+
+        rResult( 10, 0 ) = 0.0;
+        rResult( 10, 1 ) = 1.0;
+        rResult( 10, 2 ) = -1.0;
+
+        rResult( 11, 0 ) = -1.0;
+        rResult( 11, 1 ) = 0.0;
+        rResult( 11, 2 ) = -1.0;
+
+        rResult( 12, 0 ) = -1.0;
+        rResult( 12, 1 ) = -1.0;
+        rResult( 12, 2 ) = 0.0;
+
+        rResult( 13, 0 ) = 1.0;
+        rResult( 13, 1 ) = -1.0;
+        rResult( 13, 2 ) = 0.0;
+
+        rResult( 14, 0 ) = 1.0;
+        rResult( 14, 1 ) = 1.0;
+        rResult( 14, 2 ) = 0.0;
+
+        rResult( 15, 0 ) = -1.0;
+        rResult( 15, 1 ) = 1.0;
+        rResult( 15, 2 ) = 0.0;
+
+        rResult( 16, 0 ) = 0.0;
+        rResult( 16, 1 ) = -1.0;
+        rResult( 16, 2 ) = 1.0;
+
+        rResult( 17, 0 ) = 1.0;
+        rResult( 17, 1 ) = 0.0;
+        rResult( 17, 2 ) = 1.0;
+
+        rResult( 18, 0 ) = 0.0;
+        rResult( 18, 1 ) = 1.0;
+        rResult( 18, 2 ) = 1.0;
+
+        rResult( 19, 0 ) = -1.0;
+        rResult( 19, 1 ) = 0.0;
+        rResult( 19, 2 ) = 1.0;
+
+        rResult( 20, 0 ) = 0.0;
+        rResult( 20, 1 ) = 0.0;
+        rResult( 20, 2 ) = -1.0;
+
+        rResult( 21, 0 ) = 0.0;
+        rResult( 21, 1 ) = -1.0;
+        rResult( 21, 2 ) = 0.0;
+
+        rResult( 22, 0 ) = 1.0;
+        rResult( 22, 1 ) = 0.0;
+        rResult( 22, 2 ) = 0.0;
+
+        rResult( 23, 0 ) = 0.0;
+        rResult( 23, 1 ) = 1.0;
+        rResult( 23, 2 ) = 0.0;
+
+        rResult( 24, 0 ) = -1.0;
+        rResult( 24, 1 ) = 0.0;
+        rResult( 24, 2 ) = 0.0;
+
+        rResult( 25, 0 ) = 0.0;
+        rResult( 25, 1 ) = 0.0;
+        rResult( 25, 2 ) = 1.0;
+
+        rResult( 26, 0 ) = 0.0;
+        rResult( 26, 1 ) = 0.0;
+        rResult( 26, 2 ) = 0.0;
+
+        return rResult;
     }
 
     /**
@@ -544,7 +685,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -561,7 +702,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -661,7 +802,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -943,11 +1084,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**

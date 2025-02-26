@@ -56,6 +56,178 @@ public:
     static std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry);
 
     /**
+     * @brief Returns the local coordinates of a given arbitrary point for a given linear tetrahedra
+     * @details Based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch09.d/AFEM.Ch09.pdf. Section 9.1.6
+     * @param rGeometry The geometry to be considered
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    template<class TGeometryType>
+    static inline typename TGeometryType::CoordinatesArrayType& PointLocalCoordinatesPlanarFaceTetrahedra(
+        const TGeometryType& rGeometry,
+        typename TGeometryType::CoordinatesArrayType& rResult,
+        const typename TGeometryType::CoordinatesArrayType& rPoint
+        )
+    {
+        // Debug check that it is at least a tetrahedra
+        KRATOS_DEBUG_ERROR_IF_NOT(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) << "Geometry should be a tetrahedra in order to use PointLocalCoordinatesPlanarFaceTetrahedra" << std::endl;
+
+        // Compute RHS
+        array_1d<double,4> X;
+        X[0] = 1.0;
+        X[1] = rPoint[0];
+        X[2] = rPoint[1];
+        X[3] = rPoint[2];
+
+        // Auxiliary coordinates
+        const auto& r_coordinates_0 = rGeometry[0].Coordinates();
+        const auto& r_coordinates_1 = rGeometry[1].Coordinates();
+        const auto& r_coordinates_2 = rGeometry[2].Coordinates();
+        const auto& r_coordinates_3 = rGeometry[3].Coordinates();
+        const double x1 = r_coordinates_0[0];
+        const double y1 = r_coordinates_0[1];
+        const double z1 = r_coordinates_0[2];
+        const double x2 = r_coordinates_1[0];
+        const double y2 = r_coordinates_1[1];
+        const double z2 = r_coordinates_1[2];
+        const double x3 = r_coordinates_2[0];
+        const double y3 = r_coordinates_2[1];
+        const double z3 = r_coordinates_2[2];
+        const double x4 = r_coordinates_3[0];
+        const double y4 = r_coordinates_3[1];
+        const double z4 = r_coordinates_3[2];
+
+        // Auxiliary diff
+        const double x12 = x1 - x2;
+        const double x13 = x1 - x3;
+        const double x14 = x1 - x4;
+        const double x21 = x2 - x1;
+        const double x24 = x2 - x4;
+        const double x31 = x3 - x1;
+        const double x32 = x3 - x2;
+        const double x34 = x3 - x4;
+        const double x42 = x4 - x2;
+        const double x43 = x4 - x3;
+        const double y12 = y1 - y2;
+        const double y13 = y1 - y3;
+        const double y14 = y1 - y4;
+        const double y21 = y2 - y1;
+        const double y24 = y2 - y4;
+        const double y31 = y3 - y1;
+        const double y32 = y3 - y2;
+        const double y34 = y3 - y4;
+        const double y42 = y4 - y2;
+        const double y43 = y4 - y3;
+        const double z12 = z1 - z2;
+        const double z13 = z1 - z3;
+        const double z14 = z1 - z4;
+        const double z21 = z2 - z1;
+        const double z24 = z2 - z4;
+        const double z31 = z3 - z1;
+        const double z32 = z3 - z2;
+        const double z34 = z3 - z4;
+        const double z42 = z4 - z2;
+        const double z43 = z4 - z3;
+
+        // Compute LHS
+        BoundedMatrix<double, 4,4> invJ;
+        const double aux_volume = 1.0/(6.0*rGeometry.Volume());
+        invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
+        invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
+        invJ(2,0) = aux_volume * (x1*(y2*z4-y4*z2)+x2*(y4*z1-y1*z4)+x4*(y1*z2-y2*z1));
+        invJ(3,0) = aux_volume * (x1*(y3*z2-y2*z3)+x2*(y1*z3-y3*z1)+x3*(y2*z1-y1*z2));
+        invJ(0,1) = aux_volume * (y42*z32 - y32*z42);
+        invJ(1,1) = aux_volume * (y31*z43 - y34*z13);
+        invJ(2,1) = aux_volume * (y24*z14 - y14*z24);
+        invJ(3,1) = aux_volume * (y13*z21 - y12*z31);
+        invJ(0,2) = aux_volume * (x32*z42 - x42*z32);
+        invJ(1,2) = aux_volume * (x43*z31 - x13*z34);
+        invJ(2,2) = aux_volume * (x14*z24 - x24*z14);
+        invJ(3,2) = aux_volume * (x21*z13 - x31*z12);
+        invJ(0,3) = aux_volume * (x42*y32 - x32*y42);
+        invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
+        invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
+        invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
+
+        // Compute result
+        const array_1d<double,4> result = prod(invJ, X);
+
+        // Resize if needed
+        if (rResult.size() != 3) {
+            rResult.resize(3,false);
+        }
+
+        // Copy result
+        rResult[0] = result[1];
+        rResult[1] = result[2];
+        rResult[2] = result[3];
+
+        return rResult;
+    }
+
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point for a given linear triangle
+     * @param rGeometry The geometry to be considered
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    template<class TGeometryType>
+    static inline typename TGeometryType::CoordinatesArrayType& PointLocalCoordinatesStraightEdgesTriangle(
+        const TGeometryType& rGeometry,
+        typename TGeometryType::CoordinatesArrayType& rResult,
+        const typename TGeometryType::CoordinatesArrayType& rPoint
+        )
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
+             "Geometry should be a triangle in order to use PointLocalCoordinatesStraightEdgesTriangle" << std::endl;
+
+        noalias(rResult) = ZeroVector(3);
+
+        array_1d<double, 3> tangent_xi  = rGeometry.GetPoint(1) - rGeometry.GetPoint(0);
+        tangent_xi /= norm_2(tangent_xi);
+        array_1d<double, 3> tangent_eta = rGeometry.GetPoint(2) - rGeometry.GetPoint(0);
+        tangent_eta /= norm_2(tangent_eta);
+
+        const auto center = rGeometry.Center();
+
+        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
+        for (IndexType i = 0; i < 3; ++i) {
+            rotation_matrix(0, i) = tangent_xi[i];
+            rotation_matrix(1, i) = tangent_eta[i];
+        }
+
+        typename TGeometryType::CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
+        noalias(aux_point_to_rotate) = rPoint - center.Coordinates();
+        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
+
+        array_1d<typename TGeometryType::CoordinatesArrayType, 3> points_rotated;
+        for (IndexType i = 0; i < 3; ++i) {
+            noalias(aux_point_to_rotate) = rGeometry.GetPoint(i).Coordinates() - center.Coordinates();
+            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
+        }
+
+        // Compute the Jacobian matrix and its determinant
+        BoundedMatrix<double, 2, 2> J;
+        J(0,0) = points_rotated[1][0] - points_rotated[0][0];
+        J(0,1) = points_rotated[2][0] - points_rotated[0][0];
+        J(1,0) = points_rotated[1][1] - points_rotated[0][1];
+        J(1,1) = points_rotated[2][1] - points_rotated[0][1];
+        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
+
+        const double eta = (J(1,0)*(points_rotated[0][0] - destination_point_rotated[0]) +
+                            J(0,0)*(destination_point_rotated[1] - points_rotated[0][1])) / det_J;
+        const double xi  = (J(1,1)*(destination_point_rotated[0] - points_rotated[0][0]) +
+                            J(0,1)*(points_rotated[0][1] - destination_point_rotated[1])) / det_J;
+
+        rResult(0) = xi;
+        rResult(1) = eta;
+
+        return rResult;
+    }
+
+    /**
      * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
      * @param rGeometry it is the array of nodes. It is expected to be a tetrahedra
      * @param rDN_DX a stack matrix of size 4*3 to store the shape function's derivatives
@@ -675,6 +847,28 @@ public:
         const int Step = 0);
 
     /**
+     * @brief This method gives the transform of shape functions second derivatives from isoparametric to natural coordinates evaluated in all integration points
+     *  @param rResult the transform of the second derivative of the shape function on the integration point
+     */
+    static void ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+        DenseVector<DenseVector<Matrix>>& rResult,
+        const GeometryType& rGeometry,
+        const GeometryType::IntegrationMethod& rIntegrationMethod );
+
+
+    /**
+     * @brief This method gives the transform of shape functions second derivatives from isoparametric to natural coordinates evaluated on an integration point.
+     * @details The method used can be found here. https://scicomp.stackexchange.com/questions/25196/implementing-higher-order-derivatives-for-finite-element
+     *  @param rLocalIntegrationPointCoordinates the local coordinates of the integration point
+     *  @param rResult the transform of the second derivative of the shape function on the integration point
+     */
+    static void ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
+        const Matrix& DN_DX,
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
+        DenseVector<Matrix>& rResult);
+
+    /**
      * @brief Checks if given point in global space coordinates is inside the geometry boundaries.
      * @details This function computes the local coordinates and checks then if this point lays within the boundaries after projecting the points.
      * @param rPointGlobalCoordinates the global coordinates of the external point.
@@ -720,6 +914,103 @@ public:
         const auto min = std::min_element(distances.begin(), distances.end());
         return *min;
     }
+
+    /**
+     * @brief use separating axis theorem to test overlap between triangle and box
+     * @details Need to test for overlap in these directions:
+     * 1) the {x,y,(z)}-directions
+     * 2) normal of the triangle
+     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
+     * @param rBoxCenter The center of the box
+     * @param rBoxHalfSize The half size of the box
+     * @param rVertex0 The first vertex of the triangle
+     * @param rVertex1 The second vertex of the triangle
+     * @param rVertex2 The third vertex of the triangle
+     */
+    static bool TriangleBoxOverlap(
+        const Point& rBoxCenter,
+        const Point& rBoxHalfSize,
+        const Point& rVertex0,
+        const Point& rVertex1,
+        const Point& rVertex2
+        );
+
+    /**
+     * @brief Check if a plane intersects a box
+     * @see TriBoxOverlap
+     * @details Plane equation: rNormal*x+rDist=0
+     * @return bool intersection flag
+     * @param rNormal the plane normal
+     * @param rDist   distance to origin
+     * @param rMaxBox box corner from the origin
+     */
+    static bool PlaneBoxOverlap(
+        const array_1d<double,3>& rNormal,
+        const double Distance,
+        const array_1d<double,3>& rMaxBox
+        );
+
+private:
+
+    /**
+     * @brief AxisTestX
+     * @details This method returns true if there is a separating axis
+     * @param EdgeY, EdgeZ: i-edge coordinates
+     * @param AbsEdgeY, AbsEdgeZ: i-edge abs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestX(
+        const double EdgeY,
+        const double EdgeZ,
+        const double AbsEdgeY,
+        const double AbsEdgeZ,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
+
+    /**
+     * @brief AxisTestY
+     * @details This method returns true if there is a separating axis
+     * @param EdgeX, EdgeY: i-edge coordinates
+     * @param AbsEdgeX, AbsEdgeZ: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestY(
+        const double EdgeX,
+        const double EdgeY,
+        const double AbsEdgeX,
+        const double AbsEdgeZ,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
+
+    /**
+     * @brief AxisTestZ
+     * @details This method returns true if there is a separating axis
+     * @param EdgeX, EdgeY: i-edge coordinates
+     * @param AbsEdgeX, AbsEdgeY: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestZ(
+        const double EdgeX,
+        const double EdgeY,
+        const double AbsEdgeX,
+        const double AbsEdgeY,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
 };
 
 }  // namespace Kratos.

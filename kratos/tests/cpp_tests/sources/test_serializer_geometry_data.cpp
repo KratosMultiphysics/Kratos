@@ -130,20 +130,20 @@ namespace Kratos {
 
             const std::string tag_string("LoadLine");
 
-            KRATOS_CHECK_EQUAL(line_saved->size(), 3);
+            KRATOS_EXPECT_EQ(line_saved->size(), 3);
             serializer.save(tag_string, line_saved);
             serializer.load(tag_string, line_loaded);
 
-            KRATOS_CHECK_NEAR((*line_saved)[0].X(), (*line_loaded)[0].X(), 1e-6);
-            KRATOS_CHECK_NEAR((*line_saved)[0].Y(), (*line_loaded)[0].Y(), 1e-6);
-            KRATOS_CHECK_NEAR((*line_saved)[0].Z(), (*line_loaded)[0].Z(), 1e-6);
+            KRATOS_EXPECT_NEAR((*line_saved)[0].X(), (*line_loaded)[0].X(), 1e-6);
+            KRATOS_EXPECT_NEAR((*line_saved)[0].Y(), (*line_loaded)[0].Y(), 1e-6);
+            KRATOS_EXPECT_NEAR((*line_saved)[0].Z(), (*line_loaded)[0].Z(), 1e-6);
 
-            KRATOS_CHECK_MATRIX_NEAR(line_saved->ShapeFunctionsValues(), line_loaded->ShapeFunctionsValues(), 1e-6);
+            KRATOS_EXPECT_MATRIX_NEAR(line_saved->ShapeFunctionsValues(), line_loaded->ShapeFunctionsValues(), 1e-6);
 
-            KRATOS_CHECK_EQUAL(line_saved->size(), line_loaded->size());
-            KRATOS_CHECK_EQUAL(line_saved->GetDefaultIntegrationMethod(), line_loaded->GetDefaultIntegrationMethod());
+            KRATOS_EXPECT_EQ(line_saved->size(), line_loaded->size());
+            KRATOS_EXPECT_EQ(line_saved->GetDefaultIntegrationMethod(), line_loaded->GetDefaultIntegrationMethod());
 
-            KRATOS_CHECK_EQUAL(&(line_saved->GetGeometryData()), &(line_loaded->GetGeometryData()));
+            KRATOS_EXPECT_EQ(&(line_saved->GetGeometryData()), &(line_loaded->GetGeometryData()));
         }
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerQuadraturePoint, KratosCoreFastSuite)
@@ -162,35 +162,35 @@ namespace Kratos {
 
             // Check coordinates
             for(unsigned int i = 0; i < 3; ++i){
-                KRATOS_CHECK_NEAR((*quadrature_saved)[i].X(), (*quadrature_loaded)[i].X(), 1e-6);
-                KRATOS_CHECK_NEAR((*quadrature_saved)[i].Y(), (*quadrature_loaded)[i].Y(), 1e-6);
-                KRATOS_CHECK_NEAR((*quadrature_saved)[i].Z(), (*quadrature_loaded)[i].Z(), 1e-6);
+                KRATOS_EXPECT_NEAR((*quadrature_saved)[i].X(), (*quadrature_loaded)[i].X(), 1e-6);
+                KRATOS_EXPECT_NEAR((*quadrature_saved)[i].Y(), (*quadrature_loaded)[i].Y(), 1e-6);
+                KRATOS_EXPECT_NEAR((*quadrature_saved)[i].Z(), (*quadrature_loaded)[i].Z(), 1e-6);
             }
             // Check size and dimension
-            KRATOS_CHECK_EQUAL(quadrature_saved->size(), quadrature_loaded->size());
-            KRATOS_CHECK_EQUAL(quadrature_saved->WorkingSpaceDimension(), quadrature_loaded->WorkingSpaceDimension());
-            KRATOS_CHECK_EQUAL(quadrature_saved->GetDefaultIntegrationMethod(), quadrature_loaded->GetDefaultIntegrationMethod());
+            KRATOS_EXPECT_EQ(quadrature_saved->size(), quadrature_loaded->size());
+            KRATOS_EXPECT_EQ(quadrature_saved->WorkingSpaceDimension(), quadrature_loaded->WorkingSpaceDimension());
+            KRATOS_EXPECT_EQ(quadrature_saved->GetDefaultIntegrationMethod(), quadrature_loaded->GetDefaultIntegrationMethod());
 
             // Check integration point
             IntegrationPoint<3> point_loaded = quadrature_loaded->GetGeometryData().IntegrationPoints()[0];
             IntegrationPoint<3> point_saved = quadrature_saved->GetGeometryData().IntegrationPoints()[0];
-            KRATOS_CHECK_NEAR(point_saved.X(), point_loaded.X(), 1e-6);
-            KRATOS_CHECK_NEAR(point_saved.Y(), point_loaded.Y(), 1e-6);
-            KRATOS_CHECK_NEAR(point_saved.Z(), point_loaded.Z(), 1e-6);
-            KRATOS_CHECK_NEAR(point_saved.Weight(), point_loaded.Weight(),1e-6);
+            KRATOS_EXPECT_NEAR(point_saved.X(), point_loaded.X(), 1e-6);
+            KRATOS_EXPECT_NEAR(point_saved.Y(), point_loaded.Y(), 1e-6);
+            KRATOS_EXPECT_NEAR(point_saved.Z(), point_loaded.Z(), 1e-6);
+            KRATOS_EXPECT_NEAR(point_saved.Weight(), point_loaded.Weight(),1e-6);
 
             // Check shape functions values
-            KRATOS_CHECK_MATRIX_NEAR(quadrature_saved->ShapeFunctionsValues(),
+            KRATOS_EXPECT_MATRIX_NEAR(quadrature_saved->ShapeFunctionsValues(),
                                      quadrature_loaded->ShapeFunctionsValues(), 1e-6);
 
             // Check shape functions local gradients
-            KRATOS_CHECK_EQUAL(quadrature_loaded->GetGeometryData().ShapeFunctionsLocalGradients().size(),1);
-            KRATOS_CHECK_MATRIX_NEAR(quadrature_saved->GetGeometryData().ShapeFunctionsLocalGradients()[0],
+            KRATOS_EXPECT_EQ(quadrature_loaded->GetGeometryData().ShapeFunctionsLocalGradients().size(),1);
+            KRATOS_EXPECT_MATRIX_NEAR(quadrature_saved->GetGeometryData().ShapeFunctionsLocalGradients()[0],
                                      quadrature_loaded->GetGeometryData().ShapeFunctionsLocalGradients()[0], 1e-6);
 
             // Check Dimensions of geometry data
-            KRATOS_CHECK_EQUAL(quadrature_saved->GetGeometryData().WorkingSpaceDimension(), quadrature_loaded->GetGeometryData().WorkingSpaceDimension());
-            KRATOS_CHECK_EQUAL(quadrature_saved->GetGeometryData().LocalSpaceDimension(), quadrature_loaded->GetGeometryData().LocalSpaceDimension());
+            KRATOS_EXPECT_EQ(quadrature_saved->GetGeometryData().WorkingSpaceDimension(), quadrature_loaded->GetGeometryData().WorkingSpaceDimension());
+            KRATOS_EXPECT_EQ(quadrature_saved->GetGeometryData().LocalSpaceDimension(), quadrature_loaded->GetGeometryData().LocalSpaceDimension());
         }
     } // namespace Testing
 }  // namespace Kratos.

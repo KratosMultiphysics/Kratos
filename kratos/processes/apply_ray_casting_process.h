@@ -51,8 +51,8 @@ public:
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
-    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.KratosMultiphysics", ApplyRayCastingProcess, TDim)
-    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.All", ApplyRayCastingProcess, TDim)
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.KratosMultiphysics", Process, ApplyRayCastingProcess, TDim)
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.All", Process, ApplyRayCastingProcess, TDim)
 
     //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
@@ -99,7 +99,7 @@ public:
         const double RelativeTolerance);
 
     /**
-     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     * @brief Construct a new Apply Ray Casting Process object using an already created search structure
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
      * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
@@ -108,8 +108,8 @@ public:
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
         Parameters ThisParameters = Parameters());
 
-	/**
-     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+    /**
+     * @brief Construct a new Apply Ray Casting Process object using an already created search structure
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
      * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size

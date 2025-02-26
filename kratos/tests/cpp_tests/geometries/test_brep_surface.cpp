@@ -151,33 +151,33 @@ namespace Testing {
         auto p_curve_2 = GenerateReference2Curve2dPointer();
         auto p_curve_3 = GenerateReference3Curve2dPointer();
 
-        auto p_brep_curve_on_surface_1 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_1 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_1);
-        auto p_brep_curve_on_surface_2 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_2 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_2);
-        auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_3);
 
-        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(3);
+        BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(3);
         outer_loop[0] = p_brep_curve_on_surface_1;
         outer_loop[1] = p_brep_curve_on_surface_2;
         outer_loop[2] = p_brep_curve_on_surface_3;
 
-        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType outer_loops(1);
+        BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType outer_loops(1);
         outer_loops[0] = outer_loop;
-        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
+        BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
 
-        auto brep_surface = BrepSurface<PointerVector<NodeType>, PointerVector<Point>>(
+        auto brep_surface = BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>(
             p_surface, outer_loops, inner_loops);
 
         //// Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(brep_surface.WorkingSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(brep_surface.LocalSpaceDimension(), 2);
+        KRATOS_EXPECT_EQ(brep_surface.WorkingSpaceDimension(), 3);
+        KRATOS_EXPECT_EQ(brep_surface.LocalSpaceDimension(), 2);
 
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Surface;
-        KRATOS_CHECK_EQUAL(brep_surface.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(brep_surface.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(brep_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(brep_surface.GetGeometryType(), geometry_type);
         //array_1d<double, 3> coords(3, 0.0);
         //coords[0] = 1.0;
         //Vector N;
@@ -194,6 +194,63 @@ namespace Testing {
 
         //auto results = p_brep_curve_on_surface.GlobalDerivatives(coords, 3);
         //KRATOS_WATCH(results[0])
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(NurbsBrepSurfaceSurrogate, KratosCoreGeometriesFastSuite)
+    {
+        auto p_surface = GenerateReferenceNodeSurfaceHalfCirclePointer();
+
+        using BrepSurfaceType = BrepSurface<PointerVector<Node>, true, PointerVector<Point>>;
+        using BrepCurveOnSurfaceLoopArrayType = typename BrepSurfaceType::BrepCurveOnSurfaceLoopArrayType;
+
+        using GeometrySurrogateArrayType = typename BrepSurfaceType::GeometrySurrogateArrayType;
+        
+
+        BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
+        
+        Model model;
+        ModelPart& rSurrogateModelPartOuter = model.CreateModelPart("surrogate_model_part_outer");
+        rSurrogateModelPartOuter.CreateNewProperties(0);
+        rSurrogateModelPartOuter.CreateNewNode(1, 0.0, 0.0, 0.0);
+        rSurrogateModelPartOuter.CreateNewNode(2, 2.0, 0.0, 0.0);
+        rSurrogateModelPartOuter.CreateNewNode(3, 2.0, 2.0, 0.0);
+        rSurrogateModelPartOuter.CreateNewNode(4, 0.0, 2.0, 0.0);
+
+        Properties::Pointer p_prop = rSurrogateModelPartOuter.pGetProperties(0);
+        rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_prop);
+        rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", 2, {{2, 3}}, p_prop);
+        rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", 3, {{3, 4}}, p_prop);
+        rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", 4, {{4, 1}}, p_prop);
+
+        GeometrySurrogateArrayType surrogate_outer_loop_geometries(rSurrogateModelPartOuter.NumberOfConditions());
+        GeometrySurrogateArrayType surrogate_inner_loop_geometries(rSurrogateModelPartOuter.NumberOfConditions());
+
+        int count = 0;
+        for (auto i_cond : rSurrogateModelPartOuter.Conditions())
+        {
+            surrogate_outer_loop_geometries[count] = i_cond.pGetGeometry();
+            count++;
+        }
+
+        count = 0;
+        for (auto i_cond : rSurrogateModelPartOuter.Conditions())
+        {
+            surrogate_inner_loop_geometries[count] = i_cond.pGetGeometry();
+            count++;
+        }
+
+        auto p_brep_surface =
+            Kratos::make_shared<BrepSurfaceType>(
+                p_surface, 
+                outer_loops,
+                inner_loops);
+        
+        p_brep_surface->SetSurrogateInnerLoopGeometries(surrogate_inner_loop_geometries);
+        p_brep_surface->SetSurrogateOuterLoopGeometries(surrogate_outer_loop_geometries);
+
+        KRATOS_EXPECT_EQ(p_brep_surface->GetSurrogateInnerLoopGeometries().size(), 4);
+        KRATOS_EXPECT_EQ(p_brep_surface->GetSurrogateOuterLoopGeometries().size(), 4);
+
     }
 } // namespace Testing.
 } // namespace Kratos.

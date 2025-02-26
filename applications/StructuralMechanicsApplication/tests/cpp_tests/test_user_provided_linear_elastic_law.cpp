@@ -16,7 +16,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -75,7 +75,7 @@ namespace Testing
 
         // Check results
         const double tolerance = 1.0e-12;
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(cl_parameters.GetStressVector(), strain_vect, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(cl_parameters.GetStressVector(), strain_vect, tolerance)
     }
 
     /**
@@ -128,7 +128,7 @@ namespace Testing
 
         // Check results
         const double tolerance = 1.0e-12;
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(cl_parameters.GetStressVector(), strain_vect, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(cl_parameters.GetStressVector(), strain_vect, tolerance)
     }
 
 } // namespace Testing

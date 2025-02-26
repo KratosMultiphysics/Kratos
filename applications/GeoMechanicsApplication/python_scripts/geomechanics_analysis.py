@@ -11,72 +11,49 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
 
-from importlib import import_module
 
-class GeoMechanicsAnalysisBase(AnalysisStage):
-    '''Main script for geomechanics simulations.'''
-
-    def __init__(self,model,parameters):
+class GeoMechanicsAnalysis(AnalysisStage):
+    def __init__(self, model, project_parameters):
         # Time monitoring
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
         self.initial_time = timer.perf_counter()
 
-        # Set number of OMP threads
-        parallel=Kratos.OpenMPUtils()
-        problem_data_settings = parameters["problem_data"]
-        if problem_data_settings.Has("number_of_threads"):
-          parallel.SetNumThreads(parameters["problem_data"]["number_of_threads"].GetInt())
-        else:
-          parallel.SetNumThreads(1)
+        problem_data_settings = project_parameters["problem_data"]
+        number_of_threads = problem_data_settings["number_of_threads"].GetInt() if problem_data_settings.Has("number_of_threads") else 1
+        Kratos.ParallelUtilities.SetNumThreads(number_of_threads)
 
-        ## Import parallel modules if needed
-        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
-        else:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+        parallel_configuration = problem_data_settings["parallel_type"].GetString()
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), f"{parallel_configuration} parallel configuration | number of threads = {Kratos.ParallelUtilities.GetNumThreads()}")
 
         # Creating solver and model part and adding variables
-        super().__init__(model,parameters)
+        super().__init__(model, project_parameters)
 
-    def _CreateSolver(self):
-        solver = geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
-        return solver
+        # time step related stuff
+        self.start_time          = problem_data_settings["start_time"].GetDouble()
+        self.end_time            = problem_data_settings["end_time"].GetDouble()
 
-    def _GetOrderOfProcessesInitialization(self):
-        return ["constraints_process_list",
-                "loads_process_list",
-                "auxiliar_process_list"]
-
-    def _GetSimulationName(self):
-        return "GeoMechanics Analysis"
-
-    def _CalculateTotalDisplacement(self,node, old_total_displacement):
-        """
-        Calculates total displacement
-        :param node:
-        :return:
-        """
-        stage_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-        total_displacement = old_total_displacement + stage_displacement
-        node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
+        solver_settings = project_parameters["solver_settings"]
+        self.delta_time          = min(solver_settings["time_stepping"]["time_step"].GetDouble(), self.end_time - self.start_time)
+        self.reduction_factor    = solver_settings["reduction_factor"].GetDouble()
+        self.increase_factor     = solver_settings["increase_factor"].GetDouble()
+        self.min_iterations      = solver_settings["min_iterations"].GetInt()
+        self.max_delta_time_factor = solver_settings["time_stepping"]["max_delta_time_factor"].GetDouble() if solver_settings["time_stepping"].Has("max_delta_time_factor") else 1000.0
+        self.max_delta_time      = self.delta_time * self.max_delta_time_factor
+        self.number_cycles       = solver_settings["number_cycles"].GetInt()
+        self.max_iterations      = solver_settings["max_iterations"].GetInt()
+        self.solution_type       = solver_settings["solution_type"].GetString()
+        self.reset_displacements = solver_settings["reset_displacements"].GetBool()
+        self.rebuild_level       = solver_settings["rebuild_level"].GetInt()
 
     def Initialize(self):
-        self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
-
         super().Initialize()
 
-        if (self.reset_displacements):
-            KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT,self._GetSolver().GetComputingModelPart().Nodes)
-            KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.ROTATION,self._GetSolver().GetComputingModelPart().Nodes)
-
-            for node in self._GetSolver().GetComputingModelPart().Nodes:
-                dNew = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
-                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1, dNew)
-                rotNew = node.GetSolutionStepValue(KratosMultiphysics.ROTATION,0)
-                node.SetSolutionStepValue(KratosMultiphysics.ROTATION, 1, rotNew)
+        self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
+        if self.reset_displacements:
+            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
-
 
     def Finalize(self):
         super().Finalize()
@@ -89,48 +66,18 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
 
-    def KeepAdvancingSolutionLoop(self):
-        return self._GetSolver().KeepAdvancingSolutionLoop(self.end_time)
-
-    def PrintAnalysisStageProgressInformation(self):
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
-
-class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
-
-    def __init__(self, model, project_parameters):
-        super().__init__(model, project_parameters)
-
-        self.reduction_factor    = project_parameters["solver_settings"]["reduction_factor"].GetDouble()
-        self.increase_factor     = project_parameters["solver_settings"]["increase_factor"].GetDouble()
-        self.delta_time          = project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
-
-        self.max_delta_time_factor = 1000.0
-        if project_parameters["solver_settings"]["time_stepping"].Has("max_delta_time_factor"):
-            self.max_delta_time_factor = \
-                project_parameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble()
-
-        self.max_delta_time      = self.delta_time * self.max_delta_time_factor
-        self.max_iterations      = project_parameters["solver_settings"]["max_iterations"].GetInt()
-        self.min_iterations      = project_parameters["solver_settings"]["min_iterations"].GetInt()
-        self.number_cycles       = project_parameters["solver_settings"]["number_cycles"].GetInt()
-        self.solution_type       = project_parameters["solver_settings"]["solution_type"].GetString()
-        self.reset_displacements = project_parameters["solver_settings"]["reset_displacements"].GetBool()
-        self.start_time          = project_parameters["solver_settings"]["start_time"].GetDouble()
-        self.end_time            = project_parameters["problem_data"]["end_time"].GetDouble()
-        self.rebuild_level       = project_parameters["solver_settings"]["rebuild_level"].GetInt()
-
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
-        if(self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations):
+        if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations:
             raise Exception("max_number_of_iterations_exceeded")
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
+
+        # store total displacement field for reset_displacements
         if self._GetSolver().settings["reset_displacements"].GetBool():
             old_total_displacements = [node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT)
                                        for node in self._GetSolver().GetComputingModelPart().Nodes]
@@ -138,14 +85,24 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         self._GetSolver().solver.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
-            if (self.delta_time > self.max_delta_time):
+            # check against max_delta_time should only be necessary here when the very first increment exceeds the maximum increment.
+            if self.delta_time > self.max_delta_time:
                 self.delta_time = self.max_delta_time
-                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to max_delta_time: ", self.max_delta_time)
-            t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-            new_time = t + self.delta_time
-            if (new_time > self.end_time):
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Reducing delta_time to max_delta_time: ", self.max_delta_time)
+
+            # maximize delta_time to avoid exceeding the end_time
+            t               = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+            self.delta_time = min(self.delta_time, self.end_time - t)
+            new_time        = t + self.delta_time
+
+            # avoid very small remaining time steps
+            small_time_increment = 1.E-3 * self.delta_time
+            if self.end_time - new_time < small_time_increment:
                 new_time = self.end_time
                 self.delta_time = new_time - t
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time without small increments: ", self.delta_time)
+
+            # start the new step
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
             self._GetSolver().main_model_part.CloneTimeStep(new_time)
 
@@ -153,40 +110,47 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
             converged = False
             number_cycle = 0
-            while (not converged and number_cycle < self.number_cycles):
+            while not converged and number_cycle < self.number_cycles:
 
-                number_cycle +=1
+                number_cycle += 1
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "cycle: ", number_cycle)
-                t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-                new_time = t - self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] + self.delta_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = new_time
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.delta_time
 
+                # set new_time and delta_time in the nonlinear solver
+                new_time = t + self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]             = new_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]       = self.delta_time
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NUMBER_OF_CYCLES] = number_cycle
+
+                # do the nonlinear solver iterations
                 self.InitializeSolutionStep()
                 self._GetSolver().Predict()
                 converged = self._GetSolver().SolveSolutionStep()
                 self._GetSolver().solver.SetStiffnessMatrixIsBuilt(True)
 
-                if (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] >= self.max_iterations or not converged):
+                if converged:
+                    # scale next step if desired
+                    if new_time < self.end_time:
+                        if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] < self.min_iterations:
+                            # scale up next step
+                            self.delta_time = min(self.increase_factor * self.delta_time, self.max_delta_time)
+                            if new_time + self.delta_time <= self.end_time:
+                                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to delta time: ", self.delta_time)
+                            else:
+                                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time: ", self.delta_time)
+                                self.delta_time = self.end_time - new_time
+                        elif self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] == self.max_iterations:
+                            # converged, but max_iterations reached, scale down next step
+                            self.delta_time *= self.reduction_factor
+                            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
+                else:
+                    # scale down step and restart
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                     self.delta_time *= self.reduction_factor
-
-                    #converged = False
                     # Reset displacements to the initial
                     KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
                     for node in self._GetSolver().GetComputingModelPart().Nodes:
                         dold = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1)
-                        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,dold)
-
-                elif (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] < self.min_iterations):
-                    KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling with factor: ", self.increase_factor)
-                    #converged = True
-                    self.delta_time *= self.increase_factor
-                    t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-                    new_time = t + self.delta_time
-                    if (new_time > self.end_time):
-                        new_time = self.end_time
-                        self.delta_time = new_time - t
+                        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, dold)
 
             if not converged:
                 raise Exception('The maximum number of cycles is reached without convergence!')
@@ -195,9 +159,46 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                 for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
                     self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 
+            if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
+                incr_process = KratosGeo.CalculateIncrementalDisplacementProcess(
+                    self._GetSolver().GetComputingModelPart(), Kratos.Parameters())
+
+                incr_process.Execute()
+
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
+    def KeepAdvancingSolutionLoop(self):
+        return self._GetSolver().KeepAdvancingSolutionLoop(self.end_time)
+
+    def ResetIfHasNodalSolutionStepVariable(self, variable):
+        if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(variable):
+            zero_vector = Kratos.Array3([0.0, 0.0, 0.0])
+            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+                self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 0)
+            KratosGeo.NodeUtilities.AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+                self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 1)
+
+    def PrintAnalysisStageProgressInformation(self):
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
+
+    def _CreateSolver(self):
+        return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
+
+    def _CalculateTotalDisplacement(self, node, old_total_displacement):
+        stage_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+        total_displacement = old_total_displacement + stage_displacement
+        node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
+
+    def _GetOrderOfProcessesInitialization(self):
+        return ["constraints_process_list",
+                "loads_process_list",
+                "auxiliar_process_list"]
+
+    def _GetSimulationName(self):
+        return "GeoMechanics Analysis"
 
 if __name__ == '__main__':
     from sys import argv

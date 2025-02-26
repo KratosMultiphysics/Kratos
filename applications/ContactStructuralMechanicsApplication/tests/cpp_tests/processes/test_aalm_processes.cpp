@@ -15,11 +15,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
-#include "contact_structural_mechanics_application_variables.h"
 
-/* Processes */
+// Application includes
+#include "contact_structural_mechanics_application_variables.h"
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
+
+// Processes
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
 
 namespace Kratos::Testing 
@@ -59,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(AALMProcess1, KratosContactStructuralMechanicsFastSuit
     //KRATOS_WATCH(p_node_1->GetValue(INITIAL_PENALTY))
     
     const double tolerance = 1.0e-6;
-    KRATOS_CHECK_NEAR(p_node_1->GetValue(INITIAL_PENALTY), 0.2 * penalty_parameter, tolerance);
+    KRATOS_EXPECT_NEAR(p_node_1->GetValue(INITIAL_PENALTY), 0.2 * penalty_parameter, tolerance);
 }
 
 }  // namespace Kratos::Testing.

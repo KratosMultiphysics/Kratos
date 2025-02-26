@@ -10,15 +10,10 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_LINEAR_ELASTIC_2D_BEAM_LAW_GEO_H_INCLUDED)
-#define  KRATOS_LINEAR_ELASTIC_2D_BEAM_LAW_GEO_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 
 namespace Kratos
 {
@@ -48,48 +43,30 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearElastic2DBeamLaw
-    : public GeoLinearElasticPlaneStrain2DLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearElastic2DBeamLaw : public GeoIncrementalLinearElasticLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// The base class ConstitutiveLaw type definition
     using CLBaseType = ConstitutiveLaw;
 
-    /// The base class ElasticIsotropicK03DLaw type definition
-    using BaseType = GeoLinearElasticPlaneStrain2DLaw;
+    /// The base class GeoIncrementalLinearElasticLaw type definition
+    using BaseType = GeoIncrementalLinearElasticLaw;
 
     /// The size type definition
     using SizeType = std::size_t;
 
     /// Counted pointer of GeoLinearElasticPlaneStrain2DLaw
-    KRATOS_CLASS_POINTER_DEFINITION( LinearElastic2DBeamLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(LinearElastic2DBeamLaw);
 
     ///@name Life Cycle
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    LinearElastic2DBeamLaw();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    LinearElastic2DBeamLaw (const LinearElastic2DBeamLaw& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~LinearElastic2DBeamLaw() override;
 
     ///@}
     ///@name Operators
@@ -109,19 +86,13 @@ public:
      * @brief Dimension of the law:
      * @return The dimension were the law is working
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return N_DIM_2D;
-    }
+    SizeType WorkingSpaceDimension() override { return N_DIM_2D; }
 
     /**
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() const override
-    {
-        return VOIGT_SIZE_2D_PLANE_STRESS;
-    }
+    SizeType GetStrainSize() const override { return VOIGT_SIZE_2D_PLANE_STRESS; }
 
     ///@}
     ///@name Access
@@ -142,7 +113,6 @@ public:
     ///@}
 
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -158,21 +128,20 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // /**
-    //  * @brief It calculates the constitutive matrix C
-    //  * @param C The constitutive matrix
-    //  * @param rValues Parameters of the constitutive law
-    //  */
+    /**
+     * @brief It calculates the constitutive matrix C
+     * @param C The constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     */
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
 
-    void CalculatePK2Stress(const Vector& rStrainVector,
-                            Vector& rStressVector,
+    void CalculatePK2Stress(const Vector&                rStrainVector,
+                            Vector&                      rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
 
@@ -201,13 +170,13 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeoLinearElasticPlaneStrain2DLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeoLinearElasticPlaneStrain2DLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     }
-}; // Class GeoLinearElasticPlaneStrain2DLaw
-}  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined
+}; // Class LinearElastic2DBeamLaw
+
+} // namespace Kratos

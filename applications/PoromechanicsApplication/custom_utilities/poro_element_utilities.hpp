@@ -995,6 +995,57 @@ public:
         rExtrapolationMatrix(7,4) = -0.6830127018922192; rExtrapolationMatrix(7,5) = 0.18301270189221927; rExtrapolationMatrix(7,6) = -0.6830127018922192; rExtrapolationMatrix(7,7) = 2.549038105676658;
     }
 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    /// AddInitialStresses
+    /// Utility to impose the initial stresses already computed
+    /// It checks the dimension and interpolates the contribution of each node to the corresponding GP
+
+    static inline void AddInitialStresses(Vector& rStressVector,
+                                                    ConstitutiveLaw::Parameters& rValues,
+                                                    const Element::GeometryType& geometry)
+    {
+        // Obtain necessary variables
+        const Vector& N = rValues.GetShapeFunctionsValues();
+        const unsigned int number_of_nodes = geometry.size(); 
+        unsigned int dimension = 0;
+        unsigned int voigt_size = 0;   
+
+        if (rStressVector.size() == 3) {
+            dimension = 2;
+            voigt_size = rStressVector.size();
+        } else if (rStressVector.size() == 6) {
+            dimension = 3;
+            voigt_size = rStressVector.size();
+        }
+
+        // Create components to initialise the stresses
+        Vector nodal_initial_stress_vector(voigt_size);
+        Matrix nodal_initial_stress_tensor(dimension, dimension); 
+        Vector gp_initial_stress_vector(voigt_size);
+        noalias(gp_initial_stress_vector) = ZeroVector(voigt_size);
+
+        // Contribution of each of the nodal values to the corresponding GP
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+            const Matrix& r_initial_stress_tensor = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            for(unsigned int j=0; j < dimension; j++) {
+                for(unsigned int k=0; k < dimension; k++) {
+                    nodal_initial_stress_tensor(j,k) = r_initial_stress_tensor(j,k);
+                }
+            }
+            noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
+
+            for(unsigned int j=0; j < voigt_size; j++){
+                gp_initial_stress_vector[j] += N[i] * nodal_initial_stress_vector[j];
+            }
+        }
+        
+        noalias(rStressVector) += gp_initial_stress_vector;
+
+    }
+
+
 }; /* Class PoroElementUtilities*/
 } /* namespace Kratos.*/
 

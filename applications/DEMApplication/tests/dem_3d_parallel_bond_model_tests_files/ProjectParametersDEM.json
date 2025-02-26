@@ -88,6 +88,6 @@
     "PostGroupId"                      : false,
     "PostExportId"                     : false,
     "post_vtk_option"                  : false,
-    "PostBrokenRatio"                  : true
+    "PostDamageRatio"                  : true
 }
 

@@ -123,7 +123,7 @@ public:
 
     /**
      * @brief Construct a new Level Set Convection Process object
-     * Level set convection proces model constructor
+     * Level set convection process model constructor
      * @param rModel Model container
      * @param pLinearSolver Linear solver to be used in the level set convection problem
      * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
@@ -141,7 +141,7 @@ public:
 
     /**
      * @brief Construct a new Level Set Convection Process object
-     * Level set convection proces model part constructor
+     * Level set convection process model part constructor
      * @param rBaseModelPart Origin model part
      * @param pLinearSolver Linear solver to be used in the level set convection problem
      * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)

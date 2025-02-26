@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TRIANGLE_2D_3_H_INCLUDED )
-#define  KRATOS_TRIANGLE_2D_3_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -26,6 +25,7 @@
 #include "geometries/line_2d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "integration/triangle_gauss_lobatto_integration_points.h"
 #include "utilities/intersection_utilities.h"
 
 namespace Kratos
@@ -270,7 +270,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor does not copy the points and new
@@ -288,14 +288,34 @@ public:
      */
     ~Triangle2D3() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Triangle2D3;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
 
     ///@}
@@ -466,7 +486,7 @@ public:
 
 
     /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
@@ -554,7 +574,7 @@ public:
     }
 
     /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
@@ -703,7 +723,7 @@ public:
      * @return The inradius to longest edge quality metric.
      */
     double InradiusToLongestEdgeQuality() const override {
-      constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+      constexpr double normFactor = 1.0; // TODO: This normalization coefficient is not correct.
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
@@ -861,7 +881,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -878,7 +898,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -1118,7 +1138,7 @@ public:
 
     /**
      * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
+     * given integration method. This method calculates determinant
      * of jacobian in given integration point of given integration
      * method.
      *
@@ -1143,7 +1163,7 @@ public:
 
     /**
      * Determinant of jacobian in given point.
-     * This method calculate determinant of jacobian
+     * This method calculates determinant of jacobian
      * matrix in given point.
      * @param rPoint point which determinant of jacobians has to
      * be calculated in it.
@@ -1164,6 +1184,12 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Triangle2D3N";
+    }
 
     /**
      * Turn back information as a string.
@@ -1204,12 +1230,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
-        PrintInfo( rOStream );
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -1525,7 +1555,8 @@ private:
                 Quadrature<TriangleCollocationIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleCollocationIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleCollocationIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -1559,6 +1590,8 @@ private:
                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
@@ -1583,6 +1616,7 @@ private:
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;
@@ -1980,7 +2014,7 @@ private:
                       const Point& U2) const
     {
         double a,b,c,d0,d1,d2;
-        // is T1 completly inside T2? //
+        // is T1 completely inside T2? //
         // check if V0 is inside tri(U0,U1,U2) //
         a=U1[i1]-U0[i1];
         b=-(U1[i0]-U0[i0]);
@@ -2075,7 +2109,7 @@ private:
     /** AxisTestZ
      * This method returns true if there is a separating axis
      *
-     * @param rEdgeX, rEdgeY i-edge corrdinates
+     * @param rEdgeX, rEdgeY i-edge coordinates
      * @param rAbsEdgeX, rAbsEdgeY i-edge abs coordinates
      * @param rVertA i   vertex
      * @param rVertB i+1 vertex (omitted, proj_a = proj_b)
@@ -2243,5 +2277,3 @@ template<class TPointType> const
 GeometryDimension Triangle2D3<TPointType>::msGeometryDimension(2, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_2D_3_H_INCLUDED  defined

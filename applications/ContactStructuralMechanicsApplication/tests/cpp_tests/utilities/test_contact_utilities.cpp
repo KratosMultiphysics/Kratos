@@ -15,11 +15,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "utilities/variable_utils.h"
-#include "utilities/cpp_tests_utilities.h"
+
+// Application includes
 #include "custom_utilities/contact_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
@@ -46,13 +48,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckModelPartHasRotationDoF, KratosContactStructuralM
     VariableUtils().AddDof(DISPLACEMENT_Z, r_model_part);
 
     // Check there is not rotation
-    KRATOS_CHECK_IS_FALSE(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
+    KRATOS_EXPECT_FALSE(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
 
     VariableUtils().AddDof(ROTATION_X, r_model_part);
     VariableUtils().AddDof(ROTATION_Y, r_model_part);
     VariableUtils().AddDof(ROTATION_Z, r_model_part);
 
     // Check there is not rotation
-    KRATOS_CHECK(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
+    KRATOS_EXPECT_TRUE(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
 }
 }  // namespace Kratos::Testing.

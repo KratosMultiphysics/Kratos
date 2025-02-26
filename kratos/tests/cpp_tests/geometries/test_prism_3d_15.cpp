@@ -57,7 +57,7 @@ Prism15GeometryPtrType GenerateRegularPrism3D15() {
 KRATOS_TEST_CASE_IN_SUITE(Prism3D15EdgesNumber, KratosCoreGeometriesFastSuite) {
     auto geomRegular = GenerateRegularPrism3D15();
 
-    KRATOS_CHECK_EQUAL(geomRegular->EdgesNumber(), 9);
+    KRATOS_EXPECT_EQ(geomRegular->EdgesNumber(), 9);
 }
 
 /** Checks if the number of faces is correct.
@@ -66,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15EdgesNumber, KratosCoreGeometriesFastSuite) {
 KRATOS_TEST_CASE_IN_SUITE(Prism3D15FacesNumber, KratosCoreGeometriesFastSuite) {
     auto geomRegular = GenerateRegularPrism3D15();
 
-    KRATOS_CHECK_EQUAL(geomRegular->FacesNumber(), 5);
+    KRATOS_EXPECT_EQ(geomRegular->FacesNumber(), 5);
 }
 
 /** Checks if the characteristic length of the prism is calculated correctly.
@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15FacesNumber, KratosCoreGeometriesFastSuite) {
 KRATOS_TEST_CASE_IN_SUITE(Prism3D15Length, KratosCoreGeometriesFastSuite) {
     auto geomRegular = GenerateRegularPrism3D15();
 
-    KRATOS_CHECK_NEAR(geomRegular->Length(), 0.264567, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geomRegular->Length(), 0.264567, TOLERANCE);
 }
 
 /** Checks if the area of the prism is calculated correctly.
@@ -84,7 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15Length, KratosCoreGeometriesFastSuite) {
 KRATOS_TEST_CASE_IN_SUITE(Prism3D15Area, KratosCoreGeometriesFastSuite) {
     auto geomRegular = GenerateRegularPrism3D15();
 
-    KRATOS_CHECK_NEAR(geomRegular->Area(),  0.5, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geomRegular->Area(),  0.5, TOLERANCE);
 }
 
 /** Checks if the volume of the prism is calculated correctly.
@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15Area, KratosCoreGeometriesFastSuite) {
  */
 KRATOS_TEST_CASE_IN_SUITE(Prism3D15Volume, KratosCoreGeometriesFastSuite) {
     auto geomRegular = GenerateRegularPrism3D15();
-    KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
 }
 
 /** Checks the inside test for a given point respect to the prism
@@ -114,10 +114,10 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15IsInside, KratosCoreGeometriesFastSuite) {
 
     Point LocalCoords;
 
-    KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-    KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
 }
 
 /** Checks the point local coordinates for a given point respect to the
@@ -136,9 +136,9 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15PointLocalCoordinates, KratosCoreGeometriesFa
     array_1d<double, 3> centre_local_coords;
     geom->PointLocalCoordinates(centre_local_coords, centre);
 
-    KRATOS_CHECK_NEAR(centre_local_coords(0), 1.0/3.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(1), 1.0/3.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(0), 1.0/3.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(1), 1.0/3.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
 }
 
 /** Tests the area using 'GI_GAUSS_1' integration method.
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint1, KratosCoreGeometriesFastSuite) {
 
     const double expected_vol = 0.5;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1);
 }
 
@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint2, KratosCoreGeometriesFastSuite) {
 
     const double expected_vol = 0.5;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
@@ -173,7 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint3, KratosCoreGeometriesFastSuite) {
 
     const double expected_vol = 0.5;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3);
 }
 
@@ -185,7 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint4, KratosCoreGeometriesFastSuite) {
 
     const double expected_vol = 0.5;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
@@ -197,7 +197,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint5, KratosCoreGeometriesFastSuite) {
 
     const double expected_vol = 0.5;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
 }
 
@@ -223,7 +223,7 @@ void ShapeFunctionSanityCheck(
         for (unsigned int i = 0; i < numPoints; i++) {
             shapeFuncSum += shapeFunctions(g, i);
         }
-        KRATOS_CHECK_NEAR(shapeFuncSum, 1.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shapeFuncSum, 1.0, TOLERANCE);
     }
 
     // Shape function gradients shoud sum to 0
@@ -248,12 +248,12 @@ void ShapeFunctionSanityCheck(
                 }
             }
         }
-        KRATOS_CHECK_NEAR(gradSumX, 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradSumY, 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(gradSumZ, 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradSumX, 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradSumY, 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(gradSumZ, 0.0, TOLERANCE);
         for (unsigned int i = 0; i < 3; i++) {
             for (unsigned int j = 0; j < 3; j++) {
-                KRATOS_CHECK_NEAR(coordinateGradients(i, j), (i == j ? 1.0 : 0.0), TOLERANCE);
+                KRATOS_EXPECT_NEAR(coordinateGradients(i, j), (i == j ? 1.0 : 0.0), TOLERANCE);
             }
         }
     }
@@ -269,8 +269,8 @@ void ShapeFunctionSanityCheck(
             totalWeight += integrationPoints[g].Weight();
         }
 
-        KRATOS_CHECK_NEAR(volume, 0.5, TOLERANCE);
-        KRATOS_CHECK_NEAR(totalWeight, 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(volume, 0.5, TOLERANCE);
+        KRATOS_EXPECT_NEAR(totalWeight, 0.5, TOLERANCE);
     }
 
 }

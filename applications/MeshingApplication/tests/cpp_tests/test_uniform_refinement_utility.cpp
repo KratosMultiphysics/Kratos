@@ -114,40 +114,40 @@ namespace Kratos
 
             // Check the number of entities in the main model part
             unsigned int final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[0]-1)*std::pow(2,refinement_level)+1);
-            KRATOS_CHECK_EQUAL(final_nodes, r_model_part.NumberOfNodes());
+            KRATOS_EXPECT_EQ(final_nodes, r_model_part.NumberOfNodes());
 
             unsigned int final_elems = initial_elems[0] * std::pow(4,refinement_level);
-            KRATOS_CHECK_EQUAL(final_elems, r_model_part.NumberOfElements());
+            KRATOS_EXPECT_EQ(final_elems, r_model_part.NumberOfElements());
 
             unsigned int final_conds = initial_conds[0] * std::pow(2,refinement_level);
-            KRATOS_CHECK_EQUAL(final_conds, r_model_part.NumberOfConditions());
+            KRATOS_EXPECT_EQ(final_conds, r_model_part.NumberOfConditions());
 
             // Check the number of entities in the first sub model part
             final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[1]-1)*std::pow(2,refinement_level)+1);
-            KRATOS_CHECK_EQUAL(final_nodes, r_sub_model_part_1.NumberOfNodes());
+            KRATOS_EXPECT_EQ(final_nodes, r_sub_model_part_1.NumberOfNodes());
 
             final_elems = initial_elems[1] * std::pow(4,refinement_level);
-            KRATOS_CHECK_EQUAL(final_elems, r_sub_model_part_1.NumberOfElements());
+            KRATOS_EXPECT_EQ(final_elems, r_sub_model_part_1.NumberOfElements());
 
             final_conds = initial_conds[1] * std::pow(2,refinement_level);
-            KRATOS_CHECK_EQUAL(final_conds, r_sub_model_part_1.NumberOfConditions());
+            KRATOS_EXPECT_EQ(final_conds, r_sub_model_part_1.NumberOfConditions());
 
             // Check the number of entities in the second sub model part
             final_nodes = (std::pow(2,refinement_level)+1);
-            KRATOS_CHECK_EQUAL(final_nodes, r_sub_model_part_2.NumberOfNodes());
+            KRATOS_EXPECT_EQ(final_nodes, r_sub_model_part_2.NumberOfNodes());
 
             final_elems = initial_elems[2] * std::pow(4,refinement_level);
-            KRATOS_CHECK_EQUAL(final_elems, r_sub_model_part_2.NumberOfElements());
+            KRATOS_EXPECT_EQ(final_elems, r_sub_model_part_2.NumberOfElements());
 
             final_conds = initial_conds[2] * std::pow(2,refinement_level);
-            KRATOS_CHECK_EQUAL(final_conds, r_sub_model_part_2.NumberOfConditions());
+            KRATOS_EXPECT_EQ(final_conds, r_sub_model_part_2.NumberOfConditions());
 
             // Check the variables interpolation
             for (std::size_t i_node = 0; i_node < r_model_part.Nodes().size(); ++i_node) {
                 auto it_node = r_model_part.Nodes().begin() + i_node;
                 double& distance = it_node->FastGetSolutionStepValue(DISTANCE);
                 double value = DistanceFunction(it_node);
-                KRATOS_CHECK_NEAR(value, distance, Tolerance);
+                KRATOS_EXPECT_NEAR(value, distance, Tolerance);
             }
         } // UniformRefineTrianglesUtility
 
@@ -213,17 +213,17 @@ namespace Kratos
 
             // Check the number of entities in the main model part
             unsigned int final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[0]-1)*std::pow(2,refinement_level)+1);
-            KRATOS_CHECK_EQUAL(final_nodes, r_model_part.NumberOfNodes());
+            KRATOS_EXPECT_EQ(final_nodes, r_model_part.NumberOfNodes());
 
             unsigned int final_elems = initial_elems[0] * std::pow(4,refinement_level);
-            KRATOS_CHECK_EQUAL(final_elems, r_model_part.NumberOfElements());
+            KRATOS_EXPECT_EQ(final_elems, r_model_part.NumberOfElements());
 
             // Check the number of entities in the first sub model part
             // final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[1]-1)*std::pow(2,refinement_level)+1);
-            // KRATOS_CHECK_EQUAL(final_nodes, r_sub_model_part_1.NumberOfNodes());
+            // KRATOS_EXPECT_EQ(final_nodes, r_sub_model_part_1.NumberOfNodes());
 
             final_elems = initial_elems[1] * std::pow(4,refinement_level);
-            KRATOS_CHECK_EQUAL(final_elems, r_sub_model_part_1.NumberOfElements());
+            KRATOS_EXPECT_EQ(final_elems, r_sub_model_part_1.NumberOfElements());
 
             // Check the variables interpolation
             for (std::size_t i_node = 0; i_node < r_model_part.Nodes().size(); ++i_node) {
@@ -231,8 +231,8 @@ namespace Kratos
                 const double& velocity_x = it_node->FastGetSolutionStepValue(VELOCITY_X);
                 const double& velocity_y = it_node->FastGetSolutionStepValue(VELOCITY_Y);
                 double value = DistanceFunction(it_node);
-                KRATOS_CHECK_NEAR(value, velocity_x, Tolerance);
-                KRATOS_CHECK_NEAR(value, velocity_y, Tolerance);
+                KRATOS_EXPECT_NEAR(value, velocity_x, Tolerance);
+                KRATOS_EXPECT_NEAR(value, velocity_y, Tolerance);
             }
         } // UniformRefineQuadrilateralsUtility
 
@@ -283,11 +283,11 @@ namespace Kratos
 
             // Check the number of elements (tetrahedrons)
             unsigned int final_elements = initial_elements * std::pow(8, refinement_level);
-            KRATOS_CHECK_EQUAL(final_elements, r_sub_model_part_1.NumberOfElements());
+            KRATOS_EXPECT_EQ(final_elements, r_sub_model_part_1.NumberOfElements());
 
             // Check the number of conditions (quadrilaterals)
             unsigned int final_conditions = initial_conditions * std::pow(4, refinement_level);
-            KRATOS_CHECK_EQUAL(final_conditions, r_sub_model_part_2.NumberOfConditions());
+            KRATOS_EXPECT_EQ(final_conditions, r_sub_model_part_2.NumberOfConditions());
         } // UniformRefineHexahedronsUtility
 
 
@@ -346,11 +346,11 @@ namespace Kratos
 
             // Check the number of elements (tetrahedrons)
             unsigned int final_elements = initial_elements * std::pow(8, refinement_level);
-            KRATOS_CHECK_EQUAL(final_elements, r_sub_model_part_1.NumberOfElements());
+            KRATOS_EXPECT_EQ(final_elements, r_sub_model_part_1.NumberOfElements());
 
             // Check the number of conditions (quadrilaterals)
             unsigned int final_conditions = initial_conditions * std::pow(4, refinement_level);
-            KRATOS_CHECK_EQUAL(final_conditions, r_sub_model_part_2.NumberOfConditions());
+            KRATOS_EXPECT_EQ(final_conditions, r_sub_model_part_2.NumberOfConditions());
         } // UniformRefineTetrahedronsUtility
 
     } // namespace Testing

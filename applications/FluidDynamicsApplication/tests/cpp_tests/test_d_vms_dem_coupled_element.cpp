@@ -13,14 +13,14 @@
 #include <iomanip> // for std::setprecision
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
-#include "fluid_dynamics_application_variables.h"
 
 // Application includes
+#include "fluid_dynamics_application_variables.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     model_part.AddNodalSolutionStepVariable(PERMEABILITY);
 
     // Process info creation
-    double delta_time = 0.1;
+    double delta_time = 1e15;
     model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 
     // Set the element properties
@@ -75,9 +75,6 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
         r_fluid_fraction = 1.0;
         Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
         r_permeability = ZeroMatrix(Dim, Dim);
-        for (unsigned int d = 0; d < Dim; ++d){
-            r_permeability(d,d) = 1.0e+30;
-        }
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 4, 3};
@@ -114,21 +111,43 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {6.286527961,8.056113874,-0.05929579635,-6.100463608,5.687177253,-0.04745013508,-8.286558938,-7.630094687,-0.04034752758,5.077121113,-9.136569912,-0.05290654099}; // DVMSDEMCoupled2D4N
+    std::vector<double> output = {17.1162561,20.84678457,0.02985600197,-17.46267619,7.404904014,-0.05378241615,-40.00403206,-38.62206933,-0.1104570405,-7.316214511,-37.29628592,-0.06561654529}; // DVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
         i->Initialize(r_process_info); // Initialize constitutive law
-
         const auto& rElem = *i;
         rElem.Check(r_process_info);
+        i->InitializeNonLinearIteration(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-        std::cout.precision(10);
-        //std::cout << i->Info() << RHS << std::endl;
-        //KRATOS_WATCH(RHS);
+
+        // std::cout << i->Info() << std::setprecision(10) << std::endl;
+        // KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-6);
+            KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-5);
+        }
+    }
+    double porosity = 0.5;
+    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
+        double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
+        r_fluid_fraction = porosity;
+    }
+
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        const auto& r_process_info = model_part.GetProcessInfo();
+        i->Initialize(r_process_info); // Initialize constitutive law
+        const auto& rElem = *i;
+        rElem.Check(r_process_info);
+        i->InitializeNonLinearIteration(r_process_info);
+        i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
+
+        for (unsigned int j = 0; j < output.size(); j++) {
+            if ((j+1) % (Dim+1) == 0){
+                KRATOS_CHECK_NEAR(RHS[j], porosity*output[j], 1e-4);}
+            else{
+                KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-4);}
+
         }
     }
 }

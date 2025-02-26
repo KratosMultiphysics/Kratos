@@ -19,6 +19,7 @@
 // System includes
 #include <cmath>
 #include <type_traits>
+#include <numeric>
 
 // External includes
 
@@ -26,6 +27,7 @@
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 #include "includes/global_variables.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -40,6 +42,20 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
+
+/**
+ * @brief Enum class that defines the possible scenarios for the clamp function
+ * @details This enum class defines the possible scenarios for the clamp function
+ * WITHIN: The value is within the limits
+ * MINIMUM: The value is below the minimum
+ * MAXIMUM: The value is above the maximum
+ */
+enum class ClampScenario
+{
+    WITHIN_BOUNDS,
+    BELOW_MINIMUM,
+    ABOVE_MAXIMUM
+};
 
 ///@}
 ///@name  Functions
@@ -227,7 +243,7 @@ public:
     }
 
     /**
-     * @brief This method checks the condition number of  amtrix
+     * @brief This method checks the condition number of matrix
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param Tolerance The maximum tolerance considered
@@ -236,7 +252,7 @@ public:
     static inline bool CheckConditionNumber(
         const TMatrix1& rInputMatrix,
         TMatrix2& rInvertedMatrix,
-        const double Tolerance = std::numeric_limits<double>::epsilon(),
+        const double Tolerance = ZeroTolerance,
         const bool ThrowError = true
         )
     {
@@ -656,7 +672,23 @@ public:
         const Vector& b
         )
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(a.size() == 3) << "The size of the first vector is not 3. Size: " << a.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(b.size() == 3) << "The size of the second vector is not 3. Size: " << b.size() << std::endl;
         return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
+    }
+
+    /**
+     * @brief Computes the dot product of two 1D arrays of doubles with size 3.
+     * @param rA The first array.
+     * @param rB The second array.
+     * @return double The dot product of the two arrays.
+     */
+    static inline double Dot3(
+        const array_1d<double, 3>& rA,
+        const array_1d<double, 3>& rB
+        )
+    {
+        return (rA[0]*rB[0] + rA[1]*rB[1] + rA[2]*rB[2]);
     }
 
     /**
@@ -671,14 +703,76 @@ public:
         const Vector& rSecondVector
         )
     {
-        Vector::const_iterator i = rFirstVector.begin();
-        Vector::const_iterator j = rSecondVector.begin();
         double temp = 0.0;
-        while(i != rFirstVector.end()) {
-            temp += *i++ * *j++;
+        for (std::size_t i=0; i<rFirstVector.size(); ++i){
+            temp += rFirstVector[i] * rSecondVector[i];
         }
         return temp;
-        //return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), 0.0);
+    }
+
+    /**
+    * @brief Clamps a value between a minimum and maximum range.
+    * @details This function ensures that the given value `rX` lies within the specified
+    * range `[rMinimum, rMaximum]`. If `rX` is less than `rMinimum`, it returns
+    * `rMinimum`. If `rX` is greater than `rMaximum`, it returns `rMaximum`.
+    * Otherwise, it returns `rX`.
+    * @tparam T The type of the value and bounds, typically a numeric type.
+    * @param rX The value to clamp.
+    * @param rMinimum The minimum bound.
+    * @param rMaximum The maximum bound.
+    * @param Tolerance The tolerance value to consider for clamping, defaults to 0.
+    * @return The clamped value.
+    */
+    template <typename T>
+    static T Clamp(
+        const T& rX,
+        const T& rMinimum,
+        const T& rMaximum,
+        const T Tolerance = 0.0
+        )
+    {
+        if (rX < rMinimum - Tolerance) {
+            return rMinimum;
+        } else if (rX > rMaximum + Tolerance) {
+            return rMaximum;
+        } else {
+            return rX;
+        }
+    }
+
+    /**
+    * @brief Clamps a value between a minimum and maximum range with a scenario.
+    * @details This function ensures that the given value `rX` lies within the specified
+    * range `[rMinimum, rMaximum]`. If `rX` is less than `rMinimum`, it returns
+    * `rMinimum`. If `rX` is greater than `rMaximum`, it returns `rMaximum`.
+    * Otherwise, it returns `rX`. It also returns a scenario indicating if the value is below the minimum, above the maximum or within the bounds.
+    * @tparam T The type of the value and bounds, typically a numeric type.
+    * @param rX The value to clamp.
+    * @param rMinimum The minimum bound.
+    * @param rMaximum The maximum bound.
+    * @param rScenario The scenario where the value is clamped. It can be BELOW_MINIMUM, ABOVE_MAXIMUM or WITHIN_BOUNDS.
+    * @param Tolerance The tolerance value to consider for clamping, defaults to 0.
+    * @return The clamped value.
+    */
+    template <typename T>
+    static T Clamp(
+        const T& rX,
+        const T& rMinimum,
+        const T& rMaximum,
+        ClampScenario& rScenario,
+        const T Tolerance = 0.0
+        )
+    {
+        if (rX < rMinimum - Tolerance) {
+            rScenario = ClampScenario::BELOW_MINIMUM;
+            return rMinimum;
+        } else if (rX > rMaximum + Tolerance) {
+            rScenario = ClampScenario::ABOVE_MAXIMUM;
+            return rMaximum;
+        } else {
+            rScenario = ClampScenario::WITHIN_BOUNDS;
+            return rX;
+        }
     }
 
     /**

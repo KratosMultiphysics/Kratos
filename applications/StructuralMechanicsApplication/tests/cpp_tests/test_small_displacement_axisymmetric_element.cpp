@@ -11,9 +11,9 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_elements/axisym_small_displacement.h"
+#include "custom_elements/solid_elements/axisym_small_displacement.h"
 
 namespace Kratos
 {
@@ -89,9 +89,9 @@ namespace Testing
         std::vector<double> output_von_mises(1);
         p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS, output_von_mises, r_model_part.GetProcessInfo());
 
-        KRATOS_CHECK_VECTOR_NEAR(output_strains[0], reference_strain, 1.0e-6);
-        KRATOS_CHECK_VECTOR_NEAR(output_stress[0], reference_stress, 1.0e-4*reference_stress[0]);
-        KRATOS_CHECK_NEAR((output_von_mises[0]-reference_von_mises_pk2)/reference_von_mises_pk2, 0.0,1e-6*reference_von_mises_pk2);
+        KRATOS_EXPECT_VECTOR_NEAR(output_strains[0], reference_strain, 1.0e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(output_stress[0], reference_stress, 1.0e-4*reference_stress[0]);
+        KRATOS_EXPECT_NEAR((output_von_mises[0]-reference_von_mises_pk2)/reference_von_mises_pk2, 0.0,1e-6*reference_von_mises_pk2);
     }
 }
 }

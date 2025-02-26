@@ -325,6 +325,26 @@ namespace Kratos
     };
 
     /**
+     * @brief This is a key comparer between two pointers
+     * @details This compares two pointers by using its value comparison operators.
+     */
+    template<class TDataType>
+    struct PointerComparor
+    {
+        // Data type used in the comparison
+        using data_type = TDataType;
+        /**
+         * @brief The () operator
+         * @param first  The first pointer
+         * @param second The second pointer
+         */
+        bool operator()(TDataType const * first, TDataType const * second) const
+        {
+            return (*first) == (*second);
+        }
+    };    
+
+    /**
      * @brief This is a hasher between two vectors of indexes
      * @tparam TVectorIndex The type of vector indexes to be compared
      */
@@ -387,23 +407,6 @@ namespace Kratos
     };
 
     /**
-     * @brief This is a key comparer between two dof pointers
-     * @details Used for example for the B&S
-     */
-    struct DofPointerComparor
-    {
-        /**
-         * @brief The () operator
-         * @param pDoF1 The first DoF pointer
-         * @param pDoF2 The second DoF pointer
-         */
-        bool operator()(const Dof<double>::Pointer& pDoF1, const Dof<double>::Pointer& pDoF2) const
-        {
-            return (((pDoF1->Id() == pDoF2->Id() && (pDoF1->GetVariable()).Key()) == (pDoF2->GetVariable()).Key()));
-        }
-    };
-
-    /**
      * @brief This is a hasher for pairs
      * @details Used for example for edges ids
      */
@@ -446,3 +449,35 @@ namespace Kratos
 ///@{
 
 } // namespace Kratos.
+
+/**
+ * @brief This defines the missing hashs for the std namespace
+*/
+namespace std 
+{
+    /**
+     * @brief This is a hasher for pairs
+     * @details Used for example for edges ids
+     * @tparam T1 The first type of the pair
+     * @tparam T2 The second type of the pair
+     * @note This is needed to use pairs as keys in unordered maps
+     */
+    template<typename T1, typename T2>
+    struct hash<std::pair<T1, T2>> 
+    {
+        /**
+         * @brief Calculates the hash value of a given pair of values in a way that combines the hash values of the individual elements
+         * @param p the pair of values to be hashed.
+         * @return the resulting hash value.
+         */
+        size_t operator()(const std::pair<T1, T2>& p) const 
+        {
+            size_t seed = 0;
+            const size_t h1 = std::hash<T1>()(p.first);
+            const size_t h2 = std::hash<T2>()(p.second);
+            Kratos::HashCombine(seed, h1);
+            Kratos::HashCombine(seed, h2);
+            return seed;
+        }
+    };
+} // namespace std.

@@ -24,7 +24,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
-#include "custom_utilities/geometrical/model_part_utils.h"
+#include "custom_utilities/geometrical/opt_app_model_part_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -84,7 +84,7 @@ double MaxOverhangAngleResponseUtils::CalculateConditionValue(
     const double area = rCondition.GetGeometry().Area();
     const double ratio = -inner_prod(print_direction, normal)/sin_max_angle;
     double pow_val = -2.0 * heaviside_beta * (ratio-1);
-    std::clamp(pow_val, -700.0, 700.0);
+    pow_val = std::clamp(pow_val, -700.0, 700.0);
 
     return area * (1.0/(1+std::exp(pow_val))) * std::pow(ratio,penalty_factor);
 }
@@ -99,7 +99,7 @@ void MaxOverhangAngleResponseUtils::CalculateSensitivity(
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
     for (const auto& it : rSensitivityVariableModelPartInfo) {
         std::visit([&](auto&& r_variable) {
-            const auto& r_sensitivity_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
+            const auto& r_sensitivity_model_parts = OptAppModelPartUtils::GetModelPartsWithCommonReferenceEntities(
                 it.second, rEvaluatedModelParts, false, true, false, false, 0);
 
             // reset nodal common interface values

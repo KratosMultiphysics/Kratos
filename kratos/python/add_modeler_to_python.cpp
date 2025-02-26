@@ -21,15 +21,15 @@
 #include "modeler/modeler_factory.h"
 #include "modeler/edge_swapping_2d_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
+#include "modeler/create_entities_from_geometries_modeler.h"
 #include "modeler/serial_model_part_combinator_modeler.h"
 #include "modeler/duplicate_mesh_modeler.h"
 #include "modeler/copy_properties_modeler.h"
 #include "modeler/combine_model_part_modeler.h"
+#include "modeler/voxel_mesh_generator_modeler.h"
+#include "modeler/clean_up_problematic_triangles_modeler.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -63,6 +63,7 @@ void  AddModelerToPython(pybind11::module& m)
     py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
     .def(py::init<>())
     .def(py::init<Model&, Parameters>())
+    .def("Create", &Modeler::Create)
     // Modeler Stages Initialize
     .def("SetupGeometryModel", &Modeler::SetupGeometryModel)
     .def("PrepareGeometryModel", &Modeler::PrepareGeometryModel)
@@ -109,8 +110,17 @@ void  AddModelerToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters>())
     ;
 
+    py::class_< CreateEntitiesFromGeometriesModeler, CreateEntitiesFromGeometriesModeler::Pointer, Modeler >(m, "CreateEntitiesFromGeometriesModeler")
+        .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<VoxelMeshGeneratorModeler, VoxelMeshGeneratorModeler::Pointer, Modeler>(m, "VoxelMeshGeneratorModeler")
+        .def(py::init<Model &, Parameters>())
+    ;
+
+    py::class_<CleanUpProblematicTrianglesModeler, CleanUpProblematicTrianglesModeler::Pointer, Modeler>(m, "CleanUpProblematicTrianglesModeler")
+        .def(py::init<Model&, Parameters>())
+    ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

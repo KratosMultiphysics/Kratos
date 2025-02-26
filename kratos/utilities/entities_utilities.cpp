@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Philipp Bucher (https://github.com/philbucher)
@@ -54,7 +54,7 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
 /***********************************************************************************/
 
 template<class TEntity>
-bool EntitityIdentifier<TEntity>::IsInitialized()
+bool EntitityIdentifier<TEntity>::IsInitialized() const
 {
     return mIsInitialized;
 }
@@ -63,9 +63,29 @@ bool EntitityIdentifier<TEntity>::IsInitialized()
 /***********************************************************************************/
 
 template<class TEntity>
-const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename GeometryType::Pointer pGeometry)
+bool EntitityIdentifier<TEntity>::HasPrototypeEntity(const GeometryType& rGeometry) const
 {
+    return mTypes[static_cast<std::size_t>(rGeometry.GetGeometryType())] != nullptr;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename GeometryType::Pointer pGeometry) const
+{
+    KRATOS_DEBUG_ERROR_IF(mTypes[static_cast<std::size_t>(pGeometry->GetGeometryType())] == nullptr) << "Prototype not initialized for " << GeometryUtils::GetGeometryName(pGeometry->GetGeometryType()) << std::endl;
     return *mTypes[static_cast<std::size_t>(pGeometry->GetGeometryType())];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(const GeometryType& rGeometry) const
+{
+    KRATOS_DEBUG_ERROR_IF(mTypes[static_cast<std::size_t>(rGeometry.GetGeometryType())] == nullptr) << "Prototype not initialized for " << GeometryUtils::GetGeometryName(rGeometry.GetGeometryType()) << std::endl;
+    return *mTypes[static_cast<std::size_t>(rGeometry.GetGeometryType())];
 }
 
 /***********************************************************************************/
