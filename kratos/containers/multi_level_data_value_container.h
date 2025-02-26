@@ -30,6 +30,9 @@ public:
     virtual std::size_t size() const;
 
     virtual MultiLevelDataValueAccesor::UniquePointer Clone() const;
+
+    virtual ~MultiLevelDataValueAccesor() = default;
+
 private:
 
     friend class Serializer;
