@@ -22,7 +22,6 @@
 
 namespace Kratos
 {
-// MohrCoulombConstitutiveLaw::MohrCoulombConstitutiveLaw() = default;
 
 MohrCoulombConstitutiveLaw::MohrCoulombConstitutiveLaw(
     std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)

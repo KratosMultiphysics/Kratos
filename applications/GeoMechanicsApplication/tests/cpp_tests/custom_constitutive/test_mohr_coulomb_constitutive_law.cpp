@@ -301,10 +301,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnStressAtRegularFailur
 
     double friction_angle = 35.0 * Globals::Pi / 180.0;
     double cohesion = 10.0;
-    double tension_cutoff = 1.0;
     double dilation_angle = 0.0;
 
-    CoulombYieldFunction coulomb_yield_function = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
+    auto coulomb_yield_function = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
 
     Vector principal_stress_vector(3);
     principal_stress_vector <<= 12.0, 10.0, -6.0;

@@ -176,7 +176,9 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     return result;
 }
 
-void StressStrainUtilities::CalculatePrincipalStresses(Vector& rCauchyStressVector, Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix)
+void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStressVector,
+                                                       Vector&       rPrincipalStressVector,
+                                                       Matrix&       rEigenVectorsMatrix)
 {
     auto   stress_tensor = MathUtils<double>::StressVectorToTensor(rCauchyStressVector);
     Matrix PrincipalStressMatrix;
