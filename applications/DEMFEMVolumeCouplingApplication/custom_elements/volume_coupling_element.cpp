@@ -189,7 +189,7 @@ void VolumeCouplingElement::CalculateOnIntegrationPoints(
                 //    {
                     coupling_weight_on_this_integration_point += N[i] * this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT); 
                 //    } 
-                //    coupling_weight_on_this_integration_point += this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT)/8;  // same weight on all integration points in the element  
+                //    coupling_weight_on_this_integration_point += this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT)/8;  // //same weight on all integration points in the element  
             }
             
 
