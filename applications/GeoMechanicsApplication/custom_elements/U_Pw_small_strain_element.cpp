@@ -1376,7 +1376,7 @@ array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculatePer
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
         rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
 
-    return -prod(permeability_matrix, rVariables.PressureVector);
+    return -rVariables.BishopCoefficient * prod(permeability_matrix, rVariables.PressureVector);
 
     KRATOS_CATCH("")
 }
@@ -1551,10 +1551,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 
     rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
-
     rVariables.ConsiderGeometricStiffness =
         r_properties.Has(CONSIDER_GEOMETRIC_STIFFNESS) ? r_properties[CONSIDER_GEOMETRIC_STIFFNESS] : false;
-
     rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
     GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
 

@@ -1292,7 +1292,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType&
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
         prod(rVariables.DNp_DX, Matrix(prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)))) *
         rVariables.IntegrationCoefficient;
-    const Vector permeability_flow = -prod(permeability_matrix, rVariables.PressureVector);
+    const Vector permeability_flow =
+        -rVariables.BishopCoefficient * prod(permeability_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, permeability_flow);
 
     KRATOS_CATCH("")
