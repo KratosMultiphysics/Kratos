@@ -25,87 +25,83 @@
 
 namespace Kratos
 {
+    class ConstitutiveLawDimension;
 
-class ConstitutiveLawDimension;
-
-class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombConstitutiveLaw : public ConstitutiveLaw
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombConstitutiveLaw);
-
-    // MohrCoulombConstitutiveLaw();
-    explicit MohrCoulombConstitutiveLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
-
-    ~MohrCoulombConstitutiveLaw() override;
-
-    // Copying is not allowed. Use member `Clone` instead.
-    MohrCoulombConstitutiveLaw(const MohrCoulombConstitutiveLaw&)            = delete;
-    MohrCoulombConstitutiveLaw& operator=(const MohrCoulombConstitutiveLaw&) = delete;
-
-    // Moving is supported
-    MohrCoulombConstitutiveLaw(MohrCoulombConstitutiveLaw&&) noexcept            = default;
-    MohrCoulombConstitutiveLaw& operator=(MohrCoulombConstitutiveLaw&&) noexcept = default;
-
-    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
-
-    int Check(const Properties&   rMaterialProperties,
-              const GeometryType& rElementGeometry,
-              const ProcessInfo&  rCurrentProcessInfo) const override;
-
-    using ConstitutiveLaw::GetValue;
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-
-    using ConstitutiveLaw::SetValue;
-    void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateMohrCoulomb(ConstitutiveLaw::Parameters& parameters);
-
-    void CalculateTrialStressVector(const Vector& rStrainVector, Vector& rStressVector, ConstitutiveLaw::Parameters& rValues);
-    Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues);
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    Vector NormalizeVector(Vector& rVector);
-    Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector);
-    Matrix CalculateRotationMatrix(const Matrix& eigenVectorsMatrix);
-    Vector RotatePrincipalStresses(Vector& rPrincipalStressVector, Matrix& rRotationMatrix);
-    //Vector RotatePrincipalStresses(Matrix& rPrincipalStressMatrix, Matrix& rRotationMatrix);
-    Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector);
-    Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, const double TensionCutoff);
-    Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
-                                          const Vector& rCornerPoint);
-    Vector ReturnStressAtRegularFailureZone(const Vector&                     rPrincipalTrialStressVector,
-                                            const CoulombYieldFunction& rCoulombYieldFunction,
-                                            const double                      FrictionAngle,
-                                            const double                      Cohesion);
-
-    double CalculateApex(const double FrictionAngle, const double Cohesion);
-    Vector CalculateCornerPoint(const double FrictionAngle, const double Cohesion, const double TensionCutoff, const double Apex);
-
-
-    int FindReturnRegion(const Properties& rProp, Vector& principalTrialStressVector);
-
-    // Member Variables
-    double mStateVariable;
-
-private:
-    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
-    Vector                                    mStressVector;
-    Vector                                    mStressVectorFinalized;
-    Vector                                    mStrainVectorFinalized;
-
-    // Serialization
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
+    class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombConstitutiveLaw : public ConstitutiveLaw
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombConstitutiveLaw);
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+        // MohrCoulombConstitutiveLaw();
+        explicit MohrCoulombConstitutiveLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
-}; // Class MohrCoulombConstitutiveLaw
+        ~MohrCoulombConstitutiveLaw() override;
 
+        // Copying is not allowed. Use member `Clone` instead.
+        MohrCoulombConstitutiveLaw(const MohrCoulombConstitutiveLaw&) = delete;
+        MohrCoulombConstitutiveLaw& operator=(const MohrCoulombConstitutiveLaw&) = delete;
+
+        // Moving is supported
+        MohrCoulombConstitutiveLaw(MohrCoulombConstitutiveLaw&&) noexcept = default;
+        MohrCoulombConstitutiveLaw& operator=(MohrCoulombConstitutiveLaw&&) noexcept = default;
+
+        [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
+
+        int Check(const Properties& rMaterialProperties,
+                  const GeometryType& rElementGeometry,
+                  const ProcessInfo& rCurrentProcessInfo) const override;
+
+        using ConstitutiveLaw::GetValue;
+        double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+
+        using ConstitutiveLaw::SetValue;
+        void SetValue(const Variable<double>& rVariable, const double& rValue,
+                      const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateMohrCoulomb(ConstitutiveLaw::Parameters& parameters);
+
+        void CalculateTrialStressVector(const Vector& rStrainVector, Vector& rStressVector,
+                                        ConstitutiveLaw::Parameters& rValues);
+        Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues);
+        void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+        Vector NormalizeVector(Vector& rVector);
+        Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector);
+        Matrix CalculateRotationMatrix(const Matrix& eigenVectorsMatrix);
+        Vector RotatePrincipalStresses(Vector& rPrincipalStressVector, Matrix& rRotationMatrix);
+        Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector);
+        Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, const double TensionCutoff);
+        Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
+                                              const Vector& rCornerPoint);
+        Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
+                                                const CoulombYieldFunction& rCoulombYieldFunction,
+                                                const double FrictionAngle,
+                                                const double Cohesion);
+
+        double CalculateApex(const double FrictionAngle, const double Cohesion);
+        Vector CalculateCornerPoint(const double FrictionAngle, const double Cohesion, const double TensionCutoff,
+                                    const double Apex);
+
+        // Member Variables
+        double mStateVariable;
+
+    private:
+        std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
+        Vector mStressVector;
+        Vector mStressVectorFinalized;
+        Vector mStrainVectorFinalized;
+
+        // Serialization
+        friend class Serializer;
+
+        void save(Serializer& rSerializer) const override
+        {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        }
+
+        void load(Serializer& rSerializer) override
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        }
+    }; // Class MohrCoulombConstitutiveLaw
 } // namespace Kratos
