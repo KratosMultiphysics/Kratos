@@ -42,14 +42,6 @@ public:
     ///@name Type definitions
     ///@{
 
-    enum Term
-    {
-        MASS,
-        DAMPING,
-        STIFFNESS,
-        FORCE
-    };
-
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EntityAdjointExtension);
 
     using DofType = Dof<double>;
@@ -139,8 +131,8 @@ public:
      * @param rEntity           Entity to be used to compute the derivatives of the residual.
      * @param rProcessInfo      Current Processinfo.
      */
-    virtual void CalculatePartialStateVariableDerivatives(
-        std::vector<TermSensitivityMatrixType>&& rOutput,
+    virtual void GetStateDerivativeTerms(
+        std::array<DerivativeTerm, 4>&& rDerivativeTerms
         TEntity& rEntity,
         const ProcessInfo& rProcessInfo) const {}
 
@@ -170,8 +162,8 @@ public:
      * @param rEntity           Entity to be used to compute the derivatives of the residual.
      * @param rProcessInfo      Current Processinfo.
      */
-    virtual void CalculatePartialDesignVariableDerivatives(
-        std::vector<TermSensitivityMatrixType>&& rOutput,
+    virtual void GetDesignDerivativeTerms(
+        std::array<DerivativeTerm, 4>&& rDerivativeTerms
         TEntity& rEntity,
         const ProcessInfo& rProcessInfo) const {}
 
