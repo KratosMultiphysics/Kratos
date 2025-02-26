@@ -103,20 +103,51 @@ public:
     /**
      * @brief @brief Default constructor.
      */
-    Node();
+    Node()
+        : BaseType()
+        , Flags()
+        , mNodalData(0)
+        , mDofs()
+        , mData()
+        , mInitialPosition()
+        , mNodeLock()
+    {
+        CreateSolutionStepData();
+    }
 
     /**
      * @brief Constructor with a given node ID.
      * @param NewId The unique index identifier of the node.
      */
-    explicit Node(IndexType NewId);
+    explicit Node(IndexType NewId)
+        : BaseType()
+        , Flags()
+        , mNodalData(NewId)
+        , mDofs()
+        , mData()
+        , mInitialPosition()
+        , mNodeLock()
+    {
+        KRATOS_ERROR <<  "Calling the default constructor for the node ... illegal operation!!" << std::endl;
+        CreateSolutionStepData();
+    }
 
     /**
      * @brief Constructor for a 1D node.
      * @param NewId The unique index identifier of the node.
      * @param NewX The X-coordinate of the node.
      */
-    Node(IndexType NewId, const double NewX);
+    Node(IndexType NewId, const double NewX)
+        : BaseType(NewX)
+        , Flags()
+        , mNodalData(NewId)
+        , mDofs()
+        , mData()
+        , mInitialPosition(NewX)
+        , mNodeLock()
+    {
+        CreateSolutionStepData();
+    }
 
     /**
      * @brief Constructor for a 2D node.
@@ -124,7 +155,17 @@ public:
      * @param NewX The X-coordinate of the node.
      * @param NewY The Y-coordinate of the node.
      */
-    Node(IndexType NewId, const double NewX, const double NewY);
+    Node(IndexType NewId, const double NewX, const double NewY)
+        : BaseType(NewX, NewY)
+        , Flags()
+        , mNodalData(NewId)
+        , mDofs()
+        , mData()
+        , mInitialPosition(NewX, NewY)
+        , mNodeLock()
+    {
+        CreateSolutionStepData();
+    }
 
     /**
      * @brief Constructor for a 3D node.
@@ -133,14 +174,34 @@ public:
      * @param NewY The Y-coordinate of the node.
      * @param NewZ The Z-coordinate of the node.
      */
-    Node(IndexType NewId, const double NewX, const double NewY, const double NewZ);
+    Node(IndexType NewId, const double NewX, const double NewY, const double NewZ)
+        : BaseType(NewX, NewY, NewZ)
+        , Flags()
+        , mNodalData(NewId)
+        , mDofs()
+        , mData()
+        , mInitialPosition(NewX, NewY, NewZ)
+        , mNodeLock()
+    {
+        CreateSolutionStepData();
+    }
 
     /**
      * @brief Constructor from an existing point.
      * @param NewId The unique index identifier of the node.
      * @param rThisPoint The point from which to initialize the node.
      */
-    Node(IndexType NewId, Point const& rThisPoint);
+    Node(IndexType NewId, Point const& rThisPoint)
+        : BaseType(rThisPoint)
+        , Flags()
+        , mNodalData(NewId)
+        , mDofs()
+        , mData()
+        , mInitialPosition(rThisPoint)
+        , mNodeLock()
+    {
+        CreateSolutionStepData();
+    }
 
     /**
      * @brief Deleted copy constructor to prevent copying.
@@ -173,7 +234,17 @@ public:
      * @param NewId The unique index identifier of the node.
      * @param rOtherCoordinates The std::vector containing the node coordinates.
      */
-    Node(IndexType NewId, std::vector<double> const& rOtherCoordinates);
+    Node(IndexType NewId, std::vector<double> const& rOtherCoordinates)
+        : BaseType(rOtherCoordinates)
+        , Flags()
+        , mNodalData(NewId)
+        , mDofs()
+        , mData()
+        , mInitialPosition()
+        , mNodeLock()
+    {
+        CreateSolutionStepData();
+    }
 
     /**
      * @brief Constructor for a 3D node with variables list and data.
@@ -186,7 +257,16 @@ public:
      * @param NewQueueSize The queue size for storing historical data (default = 1).
      */
     Node(IndexType NewId, const double NewX, const double NewY, const double NewZ, 
-         VariablesList::Pointer pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
+         VariablesList::Pointer pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
+         : BaseType(NewX, NewY, NewZ)
+         , Flags()
+         , mNodalData(NewId, pVariablesList,ThisData,NewQueueSize)
+         , mDofs()
+         , mData()
+         , mInitialPosition(NewX, NewY, NewZ)
+         , mNodeLock()
+     {
+     }
 
     /**
      * @brief Creates a clone of the current node.
@@ -194,13 +274,32 @@ public:
      * the current node, copies its nodal data, DOFs, and flags.
      * @return Pointer to the cloned node.
      */
-    typename Node::Pointer Clone();
+    typename Node::Pointer Clone()
+    {
+        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        p_new_node->mNodalData = this->mNodalData;
+    
+        Node::DofsContainerType& my_dofs = (this)->GetDofs();
+        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++) {
+            p_new_node->pAddDof(**it_dof);
+        }
+    
+        p_new_node->mData = this->mData;
+        p_new_node->mInitialPosition = this->mInitialPosition;
+    
+        p_new_node->Set(Flags(*this));
+    
+        return p_new_node;
+    }
 
     /**
      * @brief Destructor for the Node class.
      * @details Clears any stored solution step data before destruction.
      */
-    ~Node() override;
+    ~Node() override
+    {
+        ClearSolutionStepsData();
+    }
 
     /**
      * @brief Gets the reference count of the node.
@@ -274,7 +373,23 @@ public:
      * @param rOther The node to copy from.
      * @return A reference to the copied node.
      */
-    Node& operator=(const Node& rOther);
+    Node& operator=(const Node& rOther)
+    {
+        BaseType::operator=(rOther);
+        Flags::operator =(rOther);
+    
+        mNodalData = rOther.mNodalData;
+    
+        // Deep copying the dofs
+        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++) {
+            pAddDof(**it_dof);
+        }
+    
+        mData = rOther.mData;
+        mInitialPosition = rOther.mInitialPosition;
+    
+        return *this;
+    }
 
     /**
      * @brief Equality operator.
@@ -282,7 +397,10 @@ public:
      * @param rOther The node to compare with.
      * @return True if nodes are equal, false otherwise.
      */
-    bool operator==(const Node& rOther);
+    bool operator==(const Node& rOther)
+    {
+        return Point::operator ==(rOther);
+    }    
 
     /**
      * @brief Accesses a solution step value for a given variable and step index.
@@ -338,14 +456,20 @@ public:
      * @param ThisIndex The index of the coordinate (0 = X, 1 = Y, 2 = Z).
      * @return Reference to the coordinate value.
      */
-    double& operator[](IndexType ThisIndex);
+    double& operator[](IndexType ThisIndex)
+    {
+        return BaseType::operator[](ThisIndex);
+    }    
 
     /**
      * @brief Const accessor for node coordinates.
      * @param ThisIndex The index of the coordinate (0 = X, 1 = Y, 2 = Z).
      * @return The coordinate value.
      */
-    double operator[](IndexType ThisIndex) const;
+    double operator[](IndexType ThisIndex) const
+    {
+        return BaseType::operator[](ThisIndex);
+    }
 
     ///@}
     ///@name Nodal Data
@@ -355,13 +479,19 @@ public:
      * @brief Creates a new solution step data entry.
      * @details Adds a new solution step at the front of the solution step data container.
      */
-    void CreateSolutionStepData();
+    void CreateSolutionStepData()
+    {
+        SolutionStepData().PushFront();
+    }
 
     /**
      * @brief Clones the current solution step data.
      * @details Copies the front solution step data to create a new step.
      */
-    void CloneSolutionStepData();
+    void CloneSolutionStepData()
+    {
+        SolutionStepData().CloneFront();
+    }
 
     /**
      * @brief Overwrites solution step data at a given index.
@@ -369,32 +499,47 @@ public:
      * @param SourceSolutionStepIndex The index of the source solution step.
      * @param DestinationSourceSolutionStepIndex The index of the destination step where the data will be assigned.
      */
-    void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
+    void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
+    {
+        SolutionStepData().AssignData(SolutionStepData().Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
+    }
 
     /**
      * @brief Clears all stored solution step data.
      * @details Removes all solution step data entries.
      */
-    void ClearSolutionStepsData();
+    void ClearSolutionStepsData()
+    {
+        SolutionStepData().Clear();
+    }
 
     /**
      * @brief Sets the list of solution step variables.
      * @details Assigns a new variables list to the solution step data.
      * @param pVariablesList Pointer to the new list of variables.
      */
-    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList);
+    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList)
+    {
+        SolutionStepData().SetVariablesList(pVariablesList);
+    }
 
     /**
      * @brief Retrieves the solution step data container.
      * @return Reference to the solution step data container.
      */
-    VariablesListDataValueContainer& SolutionStepData();
+    VariablesListDataValueContainer& SolutionStepData()
+    {
+        return mNodalData.GetSolutionStepData();
+    }
 
     /**
      * @brief Retrieves the solution step data container (const version).
      * @return Const reference to the solution step data container.
      */
-    const VariablesListDataValueContainer& SolutionStepData() const;
+    const VariablesListDataValueContainer& SolutionStepData() const
+    {
+        return mNodalData.GetSolutionStepData();
+    }
 
     /**
      * @deprecated This method is deprecated. Use GetData() instead.
@@ -480,7 +625,10 @@ public:
      * @param rThisVariable The variable to check.
      * @return True if the variable exists in the solution step data, false otherwise.
      */
-    bool SolutionStepsDataHas(const VariableData& rThisVariable) const;
+    bool SolutionStepsDataHas(const VariableData& rThisVariable) const
+    {
+        return SolutionStepData().Has(rThisVariable);
+    }
 
     /**
      * @brief Retrieves the solution step value for a given variable quickly.
@@ -704,7 +852,10 @@ public:
      * solution step data.
      * @return IndexType The size of the buffer.
      */
-    IndexType GetBufferSize() const;
+    IndexType GetBufferSize() const
+    {
+        return SolutionStepData().QueueSize();
+    }
 
     /**
      * @brief Set the buffer size.
@@ -712,7 +863,10 @@ public:
      * to the given size @p NewBufferSize.
      * @param NewBufferSize New size for the buffer.
      */
-    void SetBufferSize(IndexType NewBufferSize);
+    void SetBufferSize(IndexType NewBufferSize)
+    {
+        SolutionStepData().Resize(NewBufferSize);
+    }
 
     ///@}
     ///@name Access
@@ -803,7 +957,12 @@ public:
      * @details This function sets the initial position of the node by copying the values from the given `NewInitialPosition`.
      * @param NewInitialPosition The new initial position to be set.
      */
-    void SetInitialPosition(const Point& NewInitialPosition);
+    void SetInitialPosition(const Point& NewInitialPosition)
+    {
+        mInitialPosition.X() = NewInitialPosition.X();
+        mInitialPosition.Y() = NewInitialPosition.Y();
+        mInitialPosition.Z() = NewInitialPosition.Z();
+    }
 
     /**
      * @brief Sets the initial position of the node using X, Y, and Z coordinates.
@@ -812,21 +971,32 @@ public:
      * @param Y The Y coordinate of the new initial position.
      * @param Z The Z coordinate of the new initial position.
      */
-    void SetInitialPosition(double X,double Y, double Z);
+    void SetInitialPosition(double X,double Y, double Z)    
+    {
+        mInitialPosition.X() = X;
+        mInitialPosition.Y() = Y;
+        mInitialPosition.Z() = Z;
+    }
 
     /**
      * @brief Returns the pointer to the list of variables associated with the node.
      * @details This function provides access to the list of variables for the current solution step.
      * @return A pointer to the list of variables.
      */
-    VariablesList::Pointer pGetVariablesList();
+    VariablesList::Pointer pGetVariablesList()
+    {
+        return SolutionStepData().pGetVariablesList();
+    }    
 
     /**
      * @brief Returns the pointer to the list of variables associated with the node (const version).
      * @details This function provides read-only access to the list of variables for the current solution step.
      * @return A const pointer to the list of variables.
      */
-    const VariablesList::Pointer pGetVariablesList() const;
+    const VariablesList::Pointer pGetVariablesList() const
+    {
+        return SolutionStepData().pGetVariablesList();
+    }
 
     ///@}
     ///@name Dofs
@@ -907,7 +1077,10 @@ public:
      * (DOFs) for the node. The returned container is mutable, allowing modifications to the DOFs.
      * @return A reference to the container of DOFs.
      */
-    DofsContainerType& GetDofs();
+    DofsContainerType& GetDofs()
+    {
+        return mDofs;
+    }
 
     /**
      * @brief Returns all the degrees of freedom (DOFs) associated with the node (const version).
@@ -915,7 +1088,10 @@ public:
      * (DOFs) for the node. The returned container cannot be modified.
      * @return A const reference to the container of DOFs.
      */
-    const DofsContainerType& GetDofs() const;
+    const DofsContainerType& GetDofs() const
+    {
+        return mDofs;
+    }
 
     /**
      * @brief Get DoF counted pointer for a given variable
@@ -1184,13 +1360,28 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Node #" << Id();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        BaseType::PrintData(rOStream);
+        if(!mDofs.empty())
+            rOStream << std::endl << "    Dofs :" << std::endl;
+        for(typename DofsContainerType::const_iterator i = mDofs.begin() ; i != mDofs.end() ; i++)
+            rOStream << "        " << (*i)->Info() << std::endl;
+    }
 
     ///@}
     ///@name Friends
@@ -1288,7 +1479,12 @@ private:
      * in ascending order of the keys of their associated variables. The sorting is done using
      * the `std::sort` algorithm and compares the `Key()` of the `GetVariable()` for each DOF.
      */
-    void SortDofs();
+    void SortDofs()
+    {
+        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType> const& First, Kratos::unique_ptr<DofType> const& Second)->bool{
+            return First->GetVariable().Key() < Second->GetVariable().Key();
+        });
+    }
 
     ///@}
     ///@name Private Operations
@@ -1304,13 +1500,30 @@ private:
      * @brief The save operation which copies the database of the class
      * @param rSerializer The serializer used to preserve the information
      */
-    void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
+        rSerializer.save("NodalData", &mNodalData); // Storing it as pointer to be shared by Dof pointer
+        rSerializer.save("Data", mData);
+        rSerializer.save("Initial Position", mInitialPosition);
+        rSerializer.save("Data", mDofs);
+    }    
 
     /**
      * The load operation which restores the database of the class
      * @param rSerializer The serializer used to preserve the information
      */
-    void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
+        NodalData* p_nodal_data = &mNodalData;
+        rSerializer.load("NodalData", p_nodal_data);
+        rSerializer.load("Data", mData);
+        rSerializer.load("Initial Position", mInitialPosition);
+        rSerializer.load("Data", mDofs);
+    }
 
     ///@}
     ///@name Private  Access
