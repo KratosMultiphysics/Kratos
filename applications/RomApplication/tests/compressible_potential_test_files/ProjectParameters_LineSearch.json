@@ -18,11 +18,25 @@
         "material_import_settings" : {
             "materials_filename" : "FluidMaterials.json"
         },
+        // "solving_strategy_settings": {
+            // "type" : "newton_raphson",
+            // "advanced_settings" : {}
+        "solving_strategy_settings": {
+                "type" : "line_search",
+                "advanced_settings" : {
+                    "max_line_search_iterations" : 2,
+                    "first_alpha_value"          : 1.4,
+                    "second_alpha_value"         : 1.8,
+                    "min_alpha"                  : 1.2,
+                    "max_alpha"                  : 2.0,
+                    "line_search_tolerance"      : 0.5
+            }
+        },
         "formulation" :{
             "element_type" : "perturbation_compressible"
         },
         "maximum_iterations"       : 10,
-        "echo_level"               : 0,
+        "echo_level"               : 1,
         "volume_model_part_name"   : "Parts_Parts_Auto1",
         "skin_parts"               : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
         "no_skin_parts"            : [],

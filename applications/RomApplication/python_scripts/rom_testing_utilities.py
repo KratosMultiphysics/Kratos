@@ -23,6 +23,8 @@ def SetUpSimulationInstance(model, parameters, nn_rom_interface=None):
         model,
         parameters,
         nn_rom_interface=nn_rom_interface)
+    
+    print(parameters)
 
     return simulation
 

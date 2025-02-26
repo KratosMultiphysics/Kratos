@@ -19,6 +19,7 @@ class StaticMechanicalSolver(MechanicalSolver):
         # Construct the base solver.
         super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[StaticMechanicalSolver]:: ", "Construction finished")
+        print('YOLOYOYOY')
 
     def _CreateScheme(self):
         scheme_settings = KratosMultiphysics.Parameters("""{

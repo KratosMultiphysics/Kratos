@@ -453,6 +453,8 @@ protected:
         int it = 0;
         double xprevious = 0.0;
 
+        KRATOS_INFO("LineSearchStrategy") << "Min = " << mMinAlpha << " Max = " << mMaxAlpha <<  " Ini1 = " << mFirstAlphaValue << " Ini2 = " << mSecondAlphaValue << std::endl;
+
         //Compute residual with 1 coefficient update (x1)
         //since no update was performed yet, this includes an increment wrt the previous
         //solution of x1*Dx

@@ -51,6 +51,24 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         # Initialize cumulative rom state
         self.cumulative_rom_state = None
 
+        # # Retrieve list of varaibles composing the nodal unknowns
+        # nodal_unknowns = settings["nodal_unknowns"].GetStringArray()
+        # if len(nodal_unknowns) == 0:
+        #     err_msg = "The snapshots matrix variables need to be specified by the user in the \'nodal_unknowns\' string array."
+        #     raise Exception(err_msg)
+        # if any(nodal_unknowns.count(var_name) > 1 for var_name in nodal_unknowns):
+        #     err_msg = "There are repeated variables in the \'nodal_unknowns\' string array."
+        #     raise Exception(err_msg)
+        # nodal_unknowns.sort()
+
+        # self.snapshot_variables_list = []
+        # for var_name in nodal_unknowns:
+        #     if not KratosMultiphysics.KratosGlobals.HasVariable(var_name):
+        #         err_msg = "\'{}\' variable in \'nodal_unknowns\' is not in KratosGlobals. Please check provided value.".format(var_name)
+        #     if not KratosMultiphysics.KratosGlobals.GetVariableType(var_name):
+        #         err_msg = "\'{}\' variable in \'nodal_unknowns\' is not double type. Please check provide double type variables (e.g. [\"DISPLACEMENT_X\",\"DISPLACEMENT_Y\"]).".format(var_name)
+        #     self.snapshot_variables_list.append(KratosMultiphysics.KratosGlobals.GetVariable(var_name))
+
         # Retrieve the user's preference for saving the ROM solution and ensure it's either 'total' or 'incremental'.
         self.snapshot_solution_type = settings["snapshot_solution_type"].GetString()
         if self.snapshot_solution_type not in ["total", "incremental"]:
@@ -87,12 +105,20 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         If 'snapshot_solution_type' is set to 'total', the cumulative sum of q is saved, representing the total solution up to the current time step.
         If 'snapshot_solution_type' is 'incremental', only the solution increment (Δq) for the current time step is saved.
         """
-        delta_q = self.model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT)
+
+        # full_snapshot = []
+        # for node in self.model_part.Nodes:
+        #     for nodal_var in self.snapshot_variables_list:
+        #         full_snapshot.append(node.GetSolutionStepValue(nodal_var))
+        
+        # print(full_snapshot)
+
+        delta_q = numpy.copy(self.model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT))
         if self.snapshot_solution_type == "total":
             if self.cumulative_rom_state is None:
                 self.cumulative_rom_state = numpy.zeros_like(delta_q)
             self.cumulative_rom_state += delta_q
-            self.rom_snapshots.append(numpy.copy(self.cumulative_rom_state))
+            self.rom_snapshots.append(self.cumulative_rom_state)
         elif self.snapshot_solution_type=="incremental":
             self.rom_snapshots.append(delta_q)
 
