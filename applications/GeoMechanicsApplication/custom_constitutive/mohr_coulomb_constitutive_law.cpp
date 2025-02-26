@@ -91,8 +91,9 @@ void MohrCoulombConstitutiveLaw::SetValue(const Variable<double>& rThisVariable,
     if (rThisVariable == STATE_VARIABLE) mStateVariable = rValue;
 }
 
-void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, Vector& rCauchyStressVector)
+void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(ConstitutiveLaw::Parameters& parameters)
 {
+    const Properties& rProp = parameters.GetMaterialProperties();
     const auto friction_angle = rProp[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
     const auto cohesion       = rProp[GEO_COHESION];
     const auto dilation_angle = rProp[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
@@ -101,28 +102,23 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     const auto coulombYieldFunction = CoulombYieldFunction(friction_angle, cohesion, dilation_angle);
     const auto tensionCutoffFunction = TensionCutoffFunction(tension_cutoff);
 
-    ConstitutiveLaw::Parameters rValues ;
-    rValues.SetMaterialProperties(rProp);
-    Vector                       trailStressVector;
-    Vector                       strainVector(mpConstitutiveDimension->GetStrainSize());
-    rValues.SetStrainVector(strainVector);
+    Vector trailStressVector;
+    Vector strainVector = parameters.GetStrainVector();
 
-    this->CalculateTrialStressVector(strainVector, trailStressVector, rValues);
+    this->CalculateTrialStressVector(strainVector, trailStressVector, parameters);
     Vector principalTrialStressVector;
     Matrix eigenVectorsMatrix;
     StressStrainUtilities::CalculatePrincipalStresses(trailStressVector, principalTrialStressVector, eigenVectorsMatrix);
-
     Matrix rotationMatrix = this->CalculateRotationMatrix(eigenVectorsMatrix);
-    this->CheckRotationMatrix(rotationMatrix);
 
-    double fme = coulombYieldFunction.CalculateYieldFunction(principalTrialStressVector);
-    double fte = tensionCutoffFunction.CalculateYieldFunction(principalTrialStressVector);
+    double coulomb = coulombYieldFunction.CalculateYieldFunction(principalTrialStressVector);
+    double cutoff = tensionCutoffFunction.CalculateYieldFunction(principalTrialStressVector);
 
     double trailStress = 0.5 * (principalTrialStressVector(0) + principalTrialStressVector(2));
     double trialShear  = 0.5 * (principalTrialStressVector(0) - principalTrialStressVector(2));
 
     // Elastic region
-    if (fme <= 0.0 && fte >= 0.0) {
+    if (coulomb <= 0.0 && cutoff >= 0.0) {
         mStressVector = this->ReturnStressAtElasticZone(trailStressVector);
         return;
     }
@@ -131,22 +127,22 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     double apex        = this->CalculateApex(friction_angle,cohesion);
     Vector cornerPoint = this->CalculateCornerPoint(friction_angle, cohesion, tension_cutoff, apex);
 
-    if (tension_cutoff < apex && trialShear <= cornerPoint(1) && fte <= 0.0) {
+    if (tension_cutoff < apex && trialShear <= cornerPoint(1) && cutoff <= 0.0) {
         Vector modified_principal = this->ReturnStressAtAxialZone(principalTrialStressVector, tension_cutoff);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotationMatrix);
         return;
     }
 
     // Zone of tensile corner return
-    double flow = (trialShear - cornerPoint(1)) * std::sin(dilation_angle) - (trailStress - cornerPoint(0));
-    if (flow <= 0.0 ) {    //&& trialShear > cornerPoint(1)
+    double derivativeFlowFunction = (trialShear - cornerPoint(1)) * std::sin(dilation_angle) - (trailStress - cornerPoint(0));
+    if (derivativeFlowFunction <= 0.0 ) {
         Vector modified_principal = this->ReturnStressAtCornerReturnZone(principalTrialStressVector, cornerPoint);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotationMatrix);
         return;
     }
 
     // Regular failure region
-    if (fme > 0.0) { //&& flow > 0.0
+    if (coulomb > 0.0) {
         Vector modified_principal = this->ReturnStressAtRegularFailureZone(
             principalTrialStressVector, coulombYieldFunction, friction_angle, cohesion);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotationMatrix);
@@ -154,14 +150,11 @@ void MohrCoulombConstitutiveLaw::CalculateMohrCoulomb(const Properties& rProp, V
     }
 }
 
-
-// ================================================================================================
 Vector MohrCoulombConstitutiveLaw::ReturnStressAtElasticZone(const Vector& rTrailStressVector)
 {
     return rTrailStressVector;
 }
 
-// ================================================================================================
 Vector MohrCoulombConstitutiveLaw::ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector,
                                                            const double TensionCutoff)
 {
@@ -171,7 +164,6 @@ Vector MohrCoulombConstitutiveLaw::ReturnStressAtAxialZone(const Vector& rPrinci
     return result;
 }
 
-// ================================================================================================
 Vector MohrCoulombConstitutiveLaw::ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
                                                                   const Vector& rCornerPoint)
 {
@@ -181,7 +173,6 @@ Vector MohrCoulombConstitutiveLaw::ReturnStressAtCornerReturnZone(const Vector& 
     return result;
 }
 
-// ================================================================================================
 Vector MohrCoulombConstitutiveLaw::ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
                                                                     const CoulombYieldFunction& rCoulombYieldFunction,
                                                                     const double FrictionAngle,
@@ -199,13 +190,11 @@ Vector MohrCoulombConstitutiveLaw::ReturnStressAtRegularFailureZone(const Vector
     return result;
 }
 
-// ================================================================================================
 double MohrCoulombConstitutiveLaw::CalculateApex(const double FrictionAngle, const double Cohesion)
 {
     return Cohesion / std::tan(FrictionAngle);
 }
 
-// ================================================================================================
 Vector MohrCoulombConstitutiveLaw::CalculateCornerPoint(const double FrictionAngle, const double Cohesion, const double TensionCutoff, const double Apex)
 {
     Vector result = ZeroVector(2);
@@ -219,7 +208,6 @@ Vector MohrCoulombConstitutiveLaw::CalculateCornerPoint(const double FrictionAng
     return result;
 }
 
-// ================================================================================================
 Vector MohrCoulombConstitutiveLaw::RotatePrincipalStresses(Vector& rPrincipalStressVector, Matrix& rRotationMatrix)
 {
     Matrix principalStressMatrix = this->ConvertVectorToDiagonalMatrix(rPrincipalStressVector);
@@ -228,7 +216,6 @@ Vector MohrCoulombConstitutiveLaw::RotatePrincipalStresses(Vector& rPrincipalStr
     return MathUtils<double>::StressTensorToVector(stressMatrix);
 }
 
-// ================================================================================================
 void MohrCoulombConstitutiveLaw::CalculateTrialStressVector(const Vector&                rStrainVector,
                                                     Vector&                      rStressVector,
                                                     ConstitutiveLaw::Parameters& rValues)
@@ -238,7 +225,6 @@ void MohrCoulombConstitutiveLaw::CalculateTrialStressVector(const Vector&       
     rStressVector = mStressVectorFinalized + prod(elastic_matrix, deltaStrainVector);
 }
 
-// ================================================================================================
 Matrix MohrCoulombConstitutiveLaw::CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -253,21 +239,18 @@ Matrix MohrCoulombConstitutiveLaw::CalculateElasticMatrix(ConstitutiveLaw::Param
     return mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
 }
 
-// ================================================================================================
 void MohrCoulombConstitutiveLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
 }
 
-// ================================================================================================
 Vector MohrCoulombConstitutiveLaw::NormalizeVector(Vector& vector)
 { 
     double norm = MathUtils<>::Norm(vector);
     return vector / norm;
 }
 
-// ================================================================================================
 Matrix MohrCoulombConstitutiveLaw::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix)
 {
     Matrix result(eigenVectorsMatrix.size1(), eigenVectorsMatrix.size2());
@@ -279,24 +262,6 @@ Matrix MohrCoulombConstitutiveLaw::CalculateRotationMatrix(const Matrix& eigenVe
     return result;
 }
 
-// ================================================================================================
-void MohrCoulombConstitutiveLaw::CheckRotationMatrix(const Matrix& rRotationMatrix)
-{
-    Matrix result = prod(rRotationMatrix, trans(rRotationMatrix));
-    for (int i = 0; i < rRotationMatrix.size1(); ++i) {
-        KRATOS_ERROR_IF_NOT(result(i, i) == 1.0) << "The rotation matrix is not orthogonal" << std::endl;
-    }
-
-    for (std::size_t i = 0; i < rRotationMatrix.size1(); ++i) {
-        for (std::size_t j = 0; j < rRotationMatrix.size2(); ++j) {
-            if (i != j)
-                KRATOS_ERROR_IF_NOT(result(i, j) == 0.0)
-                    << "The rotation matrix is not orthogonal" << std::endl;
-        }
-    }
-}
-
-// ================================================================================================
 Matrix MohrCoulombConstitutiveLaw::ConvertVectorToDiagonalMatrix(const Vector& rVector)
 {
     Matrix result = ZeroMatrix(rVector.size(), rVector.size());

@@ -58,7 +58,7 @@ public:
     using ConstitutiveLaw::SetValue;
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMohrCoulomb(const Properties& rProp, Vector& rCautchyStressVector);
+    void CalculateMohrCoulomb(ConstitutiveLaw::Parameters& parameters);
 
     void CalculateTrialStressVector(const Vector& rStrainVector, Vector& rStressVector, ConstitutiveLaw::Parameters& rValues);
     Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues);
@@ -67,7 +67,6 @@ public:
     Vector NormalizeVector(Vector& rVector);
     Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector);
     Matrix CalculateRotationMatrix(const Matrix& eigenVectorsMatrix);
-    void CheckRotationMatrix(const Matrix& rRotationMatrix);
     Vector RotatePrincipalStresses(Vector& rPrincipalStressVector, Matrix& rRotationMatrix);
     //Vector RotatePrincipalStresses(Matrix& rPrincipalStressMatrix, Matrix& rRotationMatrix);
     Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector);

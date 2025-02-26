@@ -12,7 +12,9 @@
 
 #include "custom_constitutive/mohr_coulomb_constitutive_law.hpp"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/coulomb_yield_function.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -99,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_SetValueAndGetValue, Kratos
     KRATOS_EXPECT_DOUBLE_EQ(law.GetValue(DAMAGE_VARIABLE, zero_value), set_value);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculatePK2Stress, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateTrialStressVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
     auto plane_strain = std::make_unique<PlaneStrain>();
@@ -123,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculatePK2Stress, KratosG
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(stress_vector, expected_stress_vector, Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateElasticMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateElasticMatrix2D, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
     auto plane_strain = std::make_unique<PlaneStrain>();
@@ -142,10 +144,39 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateElasticMatrix, Kra
     // Assert
     Matrix expected_elastic_matrix(plane_strain->GetStrainSize(), plane_strain->GetStrainSize());
     //clang-format off
-    expected_elastic_matrix <<=13461538.461538462,5769230.769230769,5769230.769230769,0,
-                               5769230.769230769,13461538.461538462,5769230.769230769,0,
-                               5769230.769230769,5769230.769230769,13461538.461538462,0,
-                               0,0,0,3846153.8461538465;
+    expected_elastic_matrix <<= 13461538.461538462, 5769230.769230769, 5769230.769230769, 0.0,
+                                5769230.769230769, 13461538.461538462, 5769230.769230769, 0.0,
+                                5769230.769230769, 5769230.769230769, 13461538.461538462, 0.0,
+                                0.0, 0.0, 0.0, 3846153.8461538465;
+    //clang-format on
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(elastic_matrix, expected_elastic_matrix, Defaults::relative_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateElasticMatrix3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto three_dimensional = std::make_unique<ThreeDimensional>();
+    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<ThreeDimensional>());
+
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0e7);
+    properties.SetValue(POISSON_RATIO, 0.3);
+    parameters.SetMaterialProperties(properties);
+
+    // Act
+    // Matrix elastic_matrix;
+    Matrix elastic_matrix = law.CalculateElasticMatrix(parameters);
+
+    // Assert
+    Matrix expected_elastic_matrix(three_dimensional->GetStrainSize(), three_dimensional->GetStrainSize());
+    //clang-format off
+    expected_elastic_matrix <<= 13461538.461538462, 5769230.769230769, 5769230.769230769, 0.0, 0.0, 0.0,
+                                5769230.769230769, 13461538.461538462, 5769230.769230769, 0.0, 0.0, 0.0,
+                                5769230.769230769, 5769230.769230769, 13461538.461538462, 0.0, 0.0, 0.0,
+                                 0.0, 0.0, 0.0, 3846153.8461538465, 0.0, 0.0,
+                                 0.0, 0.0, 0.0, 0.0, 3846153.8461538465, 0.0,
+                                 0.0, 0.0, 0.0, 0.0, 0.0, 3846153.8461538465;
     //clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(elastic_matrix, expected_elastic_matrix, Defaults::relative_tolerance);
 }
@@ -166,7 +197,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateMohrCoulomb, Krato
 
     // Act
     Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
-    law.CalculateMohrCoulomb(properties, cauchy_stress_vector);
+    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.CalculateMohrCoulomb(parameters);
 
     // Assert
     Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
@@ -346,4 +380,55 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnRegion, KratosGeoMech
     KRATOS_EXPECT_EQ(region_index, expected_region_index);
 }
 
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateRotationMatrix2D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
+
+    Vector stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    stress_vector <<= -6.0, -7.0, -14.0, 1.0;
+
+    Vector eigenvalues_vector;
+    Matrix eigenvectors_matrix;
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, eigenvalues_vector, eigenvectors_matrix);
+
+    Matrix rotation_matrix = law.CalculateRotationMatrix(eigenvectors_matrix);
+    Matrix unit_matrix = prod(rotation_matrix, trans(rotation_matrix));
+
+    Matrix expected_unit_matrix = ZeroMatrix(3, 3);
+    expected_unit_matrix <<= 1.0, 0.0, 0.0,
+                             0.0, 1.0, 0.0,
+                             0.0, 0.0, 1.0;
+    KRATOS_EXPECT_MATRIX_NEAR(unit_matrix, expected_unit_matrix, 1.0e-15);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateRotationMatrix3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<ThreeDimensional>();
+    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<ThreeDimensional>());
+
+    Vector stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    stress_vector <<= 10.0, 50.0, 20.0, 40.0, 35.0, 45.0;
+
+    Vector eigenvalues_vector;
+    Matrix eigenvectors_matrix;
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, eigenvalues_vector, eigenvectors_matrix);
+
+    Matrix rotation_matrix = law.CalculateRotationMatrix(eigenvectors_matrix);
+    Matrix unit_matrix = prod(rotation_matrix, trans(rotation_matrix));
+
+    Matrix expected_unit_matrix = ZeroMatrix(3, 3);
+    expected_unit_matrix <<= 1.0, 0.0, 0.0,
+                             0.0, 1.0, 0.0,
+                             0.0, 0.0, 1.0;
+    KRATOS_EXPECT_MATRIX_NEAR(unit_matrix, expected_unit_matrix, 1.0e-15);
+}
+
 } // namespace Kratos::Testing
+
+
+
+
