@@ -110,7 +110,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTrussBackboneMaterialTests,
                         KratosGeoMechanicsInterfaceElementTests,
                         KratosGeoMechanicsMasterSlaveConstraints,
-                        KratosGeoMechanicsDeactivationWithStructuralTest
+                        KratosGeoMechanicsDeactivationWithStructuralTest,
                         KratosGeoMechanicsDirichletReleaseTests
     ]
 
