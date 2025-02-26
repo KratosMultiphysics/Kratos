@@ -5,14 +5,23 @@
         "echo_level" : 0,
         "execution_list" : ["stage_1", "stage_2"],
         "load_from_checkpoint" : null,
-        "stage_checkpoints" : true,
-        "stage_checkpoints_folder" : "auxiliar_files_for_python_unittest/orchestrators_files/checkpoints",
-        "output_validated_settings" : "test_sequential_orchestrator"
+        "stage_checkpoints" : false
     }
 },
 "stages" : {
     "stage_1" : {
-		"stage_settings" : {
+        "stage_preprocess": {
+            "modelers": [
+                {
+                    "name": "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
+                    "Parameters": {
+                        "input_filename": "../Common/test",
+                        "model_part_name": "PorousDomain"
+                    }
+                }
+            ]
+        },
+        "stage_settings" : {
             "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
             "problem_data": {
             "problem_name":         "test",
@@ -27,8 +36,7 @@
             "model_part_name":                    "PorousDomain",
             "domain_size":                        2,
             "model_import_settings":              {
-                "input_type":       "mdpa",
-                "input_filename":   "../Common/test"
+                "input_type":       "use_input_model_part"
             },
             "material_import_settings":              {
                 "materials_filename":       "../Common/MaterialParameters.json"
@@ -189,21 +197,12 @@
             "parallel_type":        "OpenMP",
             "number_of_threads":    1
         },
-		"problem_data": {
-            "problem_name":         "test",
-            "start_time":           0.0,
-            "end_time":             1.0,
-            "echo_level":           1,
-            "parallel_type":        "OpenMP",
-            "number_of_threads":    1
-        },
         "solver_settings": {
             "solver_type":                        "U_Pw",
             "model_part_name":                    "PorousDomain",
             "domain_size":                        2,
             "model_import_settings":              {
-                "input_type":       "mdpa",
-                "input_filename":   "../Common/test"
+                "input_type":       "use_input_model_part"
             },
             "material_import_settings":              {
                 "materials_filename":       "../Common/MaterialParameters.json"
