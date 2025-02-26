@@ -15,7 +15,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
+    Populates the test suites to run. At least, it should populate the suites:
     "small", "nighlty" and "all"
 
     Return

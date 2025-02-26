@@ -66,7 +66,7 @@ namespace error {
 enum basic_errors
 {
   /// Permission denied.
-  access_denied = ASIO_SOCKET_ERROR(EACCES),
+  access_denied = ASIO_SOCKET_ERROR(EACCESS),
 
   /// Address family not supported by protocol.
   address_family_not_supported = ASIO_SOCKET_ERROR(EAFNOSUPPORT),

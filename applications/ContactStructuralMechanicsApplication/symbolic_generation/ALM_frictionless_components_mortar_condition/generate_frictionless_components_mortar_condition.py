@@ -79,7 +79,7 @@ for normalvar in range(normal_combs):
             MOperator = custom_sympy_fe_utilities.DefineMatrix('MOperator',nnodes,nnodes_master)
 
             # Define other parameters
-            # Normal and tangets of the slave
+            # Normal and tangents of the slave
             NormalSlave = custom_sympy_fe_utilities.DefineMatrix('NormalSlave',nnodes,dim)
 
             X1 = custom_sympy_fe_utilities.DefineMatrix('X1',nnodes,dim)

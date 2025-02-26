@@ -66,7 +66,7 @@ namespace Kratos
     mpModel = rOther.mpModel->Clone();
   }
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   LargeStrain3DLaw& LargeStrain3DLaw::operator=(const LargeStrain3DLaw& rOther)
