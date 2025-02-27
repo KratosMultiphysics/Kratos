@@ -13,19 +13,18 @@ from pathlib import Path
 class TestRomManager(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.work_folder = "test_rom_manager"
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            original_rom_parameters = 'rom_data/RomParameters_test.json'
-            with open(original_rom_parameters, 'r') as file:
+        self.work_folder_structural = "test_rom_manager/structural_case/"
+        with KratosUnittest.WorkFolderScope(self.work_folder_structural, __file__):
+            original_structural_rom_parameters = 'rom_data/RomParameters_test.json'
+            with open(original_structural_rom_parameters, 'r') as file:
                 data = json.load(file)
-            rom_parameters_to_erase = 'rom_data/RomParameters_test_to_erase.json'
-            with open(rom_parameters_to_erase, 'w') as file:
+            structural_rom_parameters_to_erase = 'rom_data/RomParameters_test_to_erase.json'
+            with open(structural_rom_parameters_to_erase, 'w') as file:
                 json.dump(data, file, indent=4)
-
-
+        self.work_folder_compressible_potential = "test_rom_manager/compressible_potential_case/"
 
     def test_initialization(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+        with KratosUnittest.WorkFolderScope(self.work_folder_structural, __file__):
             rom_manager = RomManager()
             self.assertIsNotNone(rom_manager.general_rom_manager_parameters)
             self.assertIsInstance(rom_manager.general_rom_manager_parameters, KratosMultiphysics.Parameters)
@@ -40,7 +39,7 @@ class TestRomManager(KratosUnittest.TestCase):
 
 
     def test_setup_parameters(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+        with KratosUnittest.WorkFolderScope(self.work_folder_structural, __file__):
             parameters = KratosMultiphysics.Parameters("""{
                 "rom_stages_to_train" : ["HROM"],
                 "projection_strategy": "lspg",
@@ -61,7 +60,7 @@ class TestRomManager(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_orchestration(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+        with KratosUnittest.WorkFolderScope(self.work_folder_structural, __file__):
 
             #We do not check for specific entries. The generated npy files depend heavily on the SVD, which contains randomization.
             # Here we are checking the generation of the files and their sizes, number of rom modes, number of selected hrom elements, etc.
@@ -122,11 +121,39 @@ class TestRomManager(KratosUnittest.TestCase):
             self.assertEqual(np.load(f'rom_data/{cond_weights}.npy').size,np.load(f'ExpectedOutputs/petrov_galerkin/{cond_weights}.npy').size)
             self.assertEqual(np.load(f'rom_data/{cond_ids}.npy').size,np.load(f'ExpectedOutputs/petrov_galerkin/{cond_ids}.npy').size)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
+    def test_remove_dofs(self):
+        with KratosUnittest.WorkFolderScope(self.work_folder_compressible_potential, __file__):
 
+            def UpdateProjectParameters(parameters, mu=None):
+                """
+                Customize ProjectParameters here for imposing different conditions to the simulations as needed
+                """
+                parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mu[0])
+                return parameters
+
+            parameters = KratosMultiphysics.Parameters("""{
+                "projection_strategy": "galerkin",
+                "rom_stages_to_train" : ["ROM"],
+                "ROM":{
+                    "model_part_name": "FluidModelPart",
+                    "nodal_unknowns": ["AUXILIARY_VELOCITY_POTENTIAL","VELOCITY_POTENTIAL"],
+                    "remove_fixed_dofs": true
+                }
+                }""")
+            rom_manager_object = RomManager(general_rom_manager_parameters=parameters, UpdateProjectParameters = UpdateProjectParameters)
+            train_mu = [[0.01],[0.02]]
+            rom_manager_object.Fit(train_mu)
+
+            fixed_dofs_list = np.load('rom_data/FixedDoFs.npy').tolist()
+            self.assertListEqual(fixed_dofs_list,np.load('ExpectedOutputs/FixedDoFs.npy').tolist())
+
+            right_basis_array = np.load('rom_data/RightBasisMatrix.npy')
+            self.assertListEqual(right_basis_array[fixed_dofs_list].tolist(),np.zeros((len(fixed_dofs_list),right_basis_array.shape[1])).tolist())
 
 
     def test_error_raising(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+        with KratosUnittest.WorkFolderScope(self.work_folder_structural, __file__):
             #unavailable projection strategy
             parameters = KratosMultiphysics.Parameters("""{
                         "projection_strategy": "unavailable_strategy"
@@ -153,7 +180,7 @@ class TestRomManager(KratosUnittest.TestCase):
 
 
     def test_flag_changes(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+        with KratosUnittest.WorkFolderScope(self.work_folder_structural, __file__):
             rom_parameters_to_erase = 'rom_data/RomParameters_test_to_erase.json'
             parameters = KratosMultiphysics.Parameters("""{
                 "ROM":{
@@ -253,6 +280,7 @@ class TestRomManager(KratosUnittest.TestCase):
                 # what to do with self._SetPetrovGalerkinBnSParameters()
 
 
+
     def clear_npys(self):
         #this should be called from the rom_data scope
         for file_name in os.listdir():
@@ -262,16 +290,18 @@ class TestRomManager(KratosUnittest.TestCase):
 
 
     def tearDown(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+        with KratosUnittest.WorkFolderScope(self.work_folder_structural, __file__):
             for file_name in os.listdir():
                 if file_name.endswith(".time") or file_name.endswith("HROM.mdpa") or file_name.endswith("HROMVisualization.mdpa"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
-        with KratosUnittest.WorkFolderScope(self.work_folder+'/rom_data', __file__):
+        with KratosUnittest.WorkFolderScope(self.work_folder_structural+'/rom_data', __file__):
             kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_database/'))
             for file_name in os.listdir():
                 if file_name.endswith("test_to_erase.json"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
             self.clear_npys()
+        with KratosUnittest.WorkFolderScope(self.work_folder_compressible_potential, __file__):
+            kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data/'))
 
 
 if __name__ == '__main__':
