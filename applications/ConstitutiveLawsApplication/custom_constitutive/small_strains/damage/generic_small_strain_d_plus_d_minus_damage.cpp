@@ -156,7 +156,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         ConstitutiveLaw::Parameters& rValues)
 {
     bool is_damaging = false;
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
     if (F_tension <= tolerance) { // Elastic case
         rIntegratedStressVectorTension *= (1.0 - rParameters.DamageTension);
     } else { // Increasing damage...
@@ -171,7 +170,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
             rValues, characteristic_length);
         is_damaging = true;
     }
-
     return is_damaging;
 }
 
@@ -187,7 +185,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         ConstitutiveLaw::Parameters& rValues)
 {
     bool is_damaging = false;
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
     if (F_compression <= tolerance) { // Elastic case
         rIntegratedStressVectorCompression *= (1.0 - rParameters.DamageCompression);
     } else { // Increasing damage...
@@ -200,10 +197,8 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
             rParameters.DamageCompression,
             rParameters.ThresholdCompression,
             rValues, characteristic_length);
-
         is_damaging =  true;
     }
-
     return is_damaging;
 }
 
