@@ -620,6 +620,26 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
     } else if (r_properties.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
         std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
+    } else if (rVariable == SHEAR_CAPACITY) {
+        KRATOS_INFO("Shear capacity calculation")
+            << "Number of stress vectors = " << mStressVector.size() << std::endl;
+        for (const auto& rStressVector : mStressVector) {
+            KRATOS_INFO("Stress vector") << rStressVector << std::endl;
+        }
+        KRATOS_INFO("properties") << r_properties << std::endl;
+
+        if (r_properties.Has(UMAT_PARAMETERS)) {
+            const auto c = r_properties[UMAT_PARAMETERS][r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
+            KRATOS_INFO("Shear capacity calculation") << "c = " << c << std::endl;
+            const double phi = r_properties[UMAT_PARAMETERS][r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
+            KRATOS_INFO("Shear capacity calculation") << "phi = " << phi << std::endl;
+            std::transform(mStressVector.cbegin(), mStressVector.cend(), rOutput.begin(),
+                           [&c, &phi](const auto& rStressTensor) {
+                return StressStrainUtilities::CalculateMohrCoulombShearCapacity(
+                    rStressTensor, c, MathUtils<>::DegreesToRadians(phi));
+            });
+        }
+
     } else {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
@@ -964,6 +984,29 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+
+    if (CalculateResidualVectorFlag && CalculateStiffnessMatrixFlag) {
+        std::vector<double> shear_capacities;
+        shear_capacities.reserve(mStressVector.size());
+        if (r_properties.Has(UMAT_PARAMETERS)) {
+            const auto c = r_properties[UMAT_PARAMETERS][r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
+            const double phi = r_properties[UMAT_PARAMETERS][r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
+            std::transform(mStressVector.cbegin(), mStressVector.cend(),
+                           std::back_inserter(shear_capacities), [&c, &phi](const auto& rStressTensor) {
+                return StressStrainUtilities::CalculateMohrCoulombShearCapacity(
+                    rStressTensor, c, MathUtils<>::DegreesToRadians(phi));
+            });
+        }
+
+        if (std::any_of(shear_capacities.cbegin(), shear_capacities.cend(),
+                        [](auto capacity) { return capacity > 1.0 + 1e-12; })) {
+            KRATOS_INFO("Shear capacity too high") << shear_capacities << " for element " << this->GetId() << std::endl;
+            KRATOS_INFO("Stress vectors") << mStressVector << std::endl;
+            KRATOS_INFO("Strain vectors") << strain_vectors << std::endl;
+            KRATOS_INFO("Constitutive matrices") << constitutive_matrices << std::endl;
+        }
+    }
+
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
