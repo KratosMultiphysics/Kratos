@@ -115,23 +115,47 @@ class TestModelersSbm(KratosUnittest.TestCase):
         skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 4, [4, 1], skin_model_part_outer_initial.GetProperties()[1])
 
         run_modelers(current_model, modeler_settings)
-        
+
+        expected_nodes = [
+            [0, 0.4, 0],
+            [2, 0.4, 0],
+            [0, 0.8, 0],
+            [2, 0.8, 0],
+            [0, 1.2, 0],
+            [2, 1.2, 0],
+            [0, 1.6, 0],
+            [2, 1.6, 0],
+            [0, 2, 0],
+            [2, 2, 0],
+            [0.4, 0, 0],
+            [0.4, 2, 0],
+            [0.8, 0, 0],
+            [0.8, 2, 0],
+            [1.2, 0, 0],
+            [1.2, 2, 0],
+            [1.6, 0, 0],
+            [1.6, 2, 0],
+            [2, 0, 0],
+            [2, 2, 0]
+        ]
+
         # test surrogate nodes
-        self.assertEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[43].X, 0.4)
-        self.assertEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[43].Y, 2.0)
-        self.assertEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[43].Z, 0.0)
-
-        self.assertEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[51].X, 2.0)
-        self.assertEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[51].Y, 0.4)
-        self.assertEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[51].Z, 0.0)
-
+        i = 0
+        for cond in current_model["IgaModelPart.surrogate_outer"].Conditions:
+            expected_boundary = (i%2==0) #should be alternate between true and false
+            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
+            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
+            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
+            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
+            i += 1
+        
         # test the creation of the breps
         self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 21)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().X, 1.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Y, 1.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Z, 0.0)
 
-    
+
     # inner boundary single inner loop
     def test_nurbs_geometry_2d_modeler_sbm_inner_skin_boundary(self):
         current_model = KratosMultiphysics.Model()
@@ -173,14 +197,29 @@ class TestModelersSbm(KratosUnittest.TestCase):
 
         run_modelers(current_model, modeler_settings)
 
+        expected_nodes = [
+            [2/3, 4/3, 0],
+            [2, 4/3, 0],
+            [2/3, 2, 0],
+            [2, 2, 0],
+            [2/3, 8/3, 0],
+            [2, 8/3, 0],
+            [2/3, 10/3, 0],
+            [2, 10/3, 0],
+            [4/3, 2/3, 0],
+            [4/3, 10/3, 0],
+            [2, 2/3, 0],
+            [2, 10/3, 0]
+        ]
         # test surrogate nodes
-        self.assertEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[92].X, 2/3)
-        self.assertEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[92].Y, 8/3)
-        self.assertEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[92].Z, 0.0)
-
-        self.assertEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[98].X, 2.0)
-        self.assertEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[98].Y, 4/3)
-        self.assertEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[98].Z, 0.0)
+        i = 0
+        for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
+            expected_boundary = (i%2==0) #should be alternate between true and false
+            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
+            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
+            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
+            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
+            i += 1
 
         # test the creation of the breps
         self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 17)
@@ -239,19 +278,55 @@ class TestModelersSbm(KratosUnittest.TestCase):
         skin_model_part_inner_initial.CreateNewCondition("LineCondition2D2N", 7, [7, 5], skin_model_part_inner_initial.GetProperties()[1])
 
         run_modelers(current_model, modeler_settings)
+        
+        expected_nodes = [
+            [0.4, 0.8, 0],
+            [2, 0.8, 0],
+            [0.4, 1.2, 0],
+            [2, 1.2, 0],
+            [0.4, 1.6, 0],
+            [2, 1.6, 0],
+            [0.4, 2, 0],
+            [2, 2, 0],
+            [0.4, 2.4, 0],
+            [2, 2.4, 0],
+            [0.4, 2.8, 0],
+            [2, 2.8, 0],
+            [0.4, 3.2, 0],
+            [2, 3.2, 0],
+            [0.4, 3.6, 0],
+            [2, 3.6, 0],
+            [0.8, 0.4, 0],
+            [0.8, 3.6, 0],
+            [1.2, 0.4, 0],
+            [1.2, 3.6, 0],
+            [1.6, 0.4, 0],
+            [1.6, 3.6, 0],
+            [2, 0.4, 0],
+            [2, 3.6, 0],
+            [2, 5.2, 0],
+            [3.6, 5.2, 0],
+            [2.8, 5.6, 0],
+            [3.2, 5.6, 0],
+            [2.4, 4.8, 0],
+            [2.4, 5.2, 0],
+            [2.8, 4.8, 0],
+            [2.8, 5.2, 0],
+            [3.2, 4.8, 0],
+            [3.2, 5.6, 0],
+            [3.6, 4.8, 0],
+            [3.6, 5.2, 0]
+        ]
 
         # test surrogate nodes
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[226].X, 1.6)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[226].Y, 0.4)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[226].Z, 0.0)
-
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[235].X, 3.2)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[235].Y, 5.2)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[235].Z, 0.0)
-
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[213].X, 0.4)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[213].Y, 3.6)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[213].Z, 0.0)
+        i = 0
+        for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
+            expected_boundary = (i%2==0) #should be alternate between true and false
+            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
+            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
+            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
+            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
+            i += 1
 
         # test the creation of the breps
         self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 41)
@@ -314,22 +389,102 @@ class TestModelersSbm(KratosUnittest.TestCase):
 
         run_modelers(current_model, modeler_settings)
 
+        expected_nodes_inner = [
+            [1.6, 1.2, 0],
+            [3, 1.2, 0],
+            [1.6, 1.8, 0],
+            [3, 1.8, 0],
+            [1.6, 2.4, 0],
+            [3, 2.4, 0],
+            [1.6, 3, 0],
+            [3, 3, 0],
+            [1.8, 0.6, 0],
+            [1.8, 3, 0],
+            [2, 0.6, 0],
+            [2, 3, 0],
+            [2.2, 0.6, 0],
+            [2.2, 3, 0],
+            [2.4, 0.6, 0],
+            [2.4, 3, 0],
+            [2.6, 0.6, 0],
+            [2.6, 3, 0],
+            [2.8, 0.6, 0],
+            [2.8, 3, 0],
+            [3, 0.6, 0],
+            [3, 3, 0]
+        ]
+
+        expected_nodes_outer = [
+            [0.4, 0.6, 0],
+            [3.6, 0.6, 0],
+            [0.4, 1.2, 0],
+            [3.4, 1.2, 0],
+            [0.6, 1.8, 0],
+            [3.4, 1.8, 0],
+            [0.6, 2.4, 0],
+            [3.4, 2.4, 0],
+            [0.6, 3, 0],
+            [3.4, 3, 0],
+            [0.8, 3.6, 0],
+            [3.4, 3.6, 0],
+            [0.8, 4.2, 0],
+            [3.2, 4.2, 0],
+            [0.8, 4.8, 0],
+            [3.2, 4.8, 0],
+            [1, 5.4, 0],
+            [2.8, 5.4, 0],
+            [0.6, 0, 0],
+            [0.6, 1.2, 0],
+            [0.8, 0, 0],
+            [0.8, 3, 0],
+            [1, 0, 0],
+            [1, 4.8, 0],
+            [1.2, 0, 0],
+            [1.2, 5.4, 0],
+            [1.4, 0, 0],
+            [1.4, 5.4, 0],
+            [1.6, 0, 0],
+            [1.6, 5.4, 0],
+            [1.8, 0, 0],
+            [1.8, 5.4, 0],
+            [2, 0, 0],
+            [2, 5.4, 0],
+            [2.2, 0, 0],
+            [2.2, 5.4, 0],
+            [2.4, 0, 0],
+            [2.4, 5.4, 0],
+            [2.6, 0, 0],
+            [2.6, 5.4, 0],
+            [2.8, 0, 0],
+            [2.8, 5.4, 0],
+            [3, 0, 0],
+            [3, 4.8, 0],
+            [3.2, 0, 0],
+            [3.2, 4.8, 0],
+            [3.4, 0, 0],
+            [3.4, 3.6, 0],
+            [3.6, 0, 0],
+            [3.6, 0.6, 0]
+        ]
+
         # test surrogate nodes
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[281].X, 2.8)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[281].Y, 0.6)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[281].Z, 0.0)
-
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[269].X, 1.6)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[269].Y, 3.0)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_inner"].GetNodes()[269].Z, 0.0)
-
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[295].X, 0.8)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[295].Y, 3.6)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[295].Z, 0.0)
-
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[320].X, 3.6)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[320].Y, 0.6)
-        self.assertAlmostEqual(current_model["IgaModelPart.surrogate_outer"].GetNodes()[320].Z, 0.0)
+        i = 0
+        for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
+            expected_boundary = (i%2==0) #should be alternate between true and false
+            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes_inner[i][0])
+            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes_inner[i][1])
+            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes_inner[i][2])
+            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
+            i += 1
+            
+        i = 0
+        for cond in current_model["IgaModelPart.surrogate_outer"].Conditions:
+            expected_boundary = (i%2==0) #should be alternate between true and false
+            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes_outer[i][0])
+            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes_outer[i][1])
+            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes_outer[i][2])
+            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
+            i += 1
 
         # test the creation of the breps
         self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 73)
