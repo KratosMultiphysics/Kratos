@@ -325,11 +325,6 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
-
-    // Integrate Stress Damage
-    Vector& integrated_stress_vector = rValues.GetStressVector();
-    array_1d<double, VoigtSize> auxiliary_integrated_stress_vector = integrated_stress_vector;
-    Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
@@ -338,12 +333,6 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
-    }
-
-    // Elastic Matrix
-    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
 
     // We compute the stress
@@ -474,10 +463,6 @@ double& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
     )
 {
     if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION || rThisVariable == UNIAXIAL_STRESS_TENSION) {
-        // Integrate Stress Damage
-        Vector& integrated_stress_vector = rValues.GetStressVector();
-        array_1d<double, VoigtSize> auxiliary_integrated_stress_vector = integrated_stress_vector;
-        Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
         const Flags& r_constitutive_law_options = rValues.GetOptions();
 
         // We get the strain vector
