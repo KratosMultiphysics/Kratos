@@ -222,7 +222,7 @@ Vector MohrCoulombConstitutiveLaw::CalculateCornerPoint(const double FrictionAng
 }
 
 Vector MohrCoulombConstitutiveLaw::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
-                                                           Matrix& rRotationMatrix)
+                                                           const Matrix& rRotationMatrix) const
 {
     Matrix principalStressMatrix = this->ConvertVectorToDiagonalMatrix(rPrincipalStressVector);
     Matrix temp                  = prod(principalStressMatrix, trans(rRotationMatrix));
@@ -232,7 +232,7 @@ Vector MohrCoulombConstitutiveLaw::RotatePrincipalStresses(const Vector& rPrinci
 
 void MohrCoulombConstitutiveLaw::CalculateTrialStressVector(const Vector& rStrainVector,
                                                             Vector& rStressVector,
-                                                            ConstitutiveLaw::Parameters& rValues)
+                                                            ConstitutiveLaw::Parameters& rValues) const
 {
     Vector deltaStrainVector = rValues.GetStrainVector() - mStrainVectorFinalized;
     Matrix elastic_matrix    = this->CalculateElasticMatrix(rValues);
@@ -266,7 +266,7 @@ Vector MohrCoulombConstitutiveLaw::NormalizeVector(const Vector& vector) const
     return vector / norm;
 }
 
-Matrix MohrCoulombConstitutiveLaw::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix)
+Matrix MohrCoulombConstitutiveLaw::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix) const
 {
     Matrix result(eigenVectorsMatrix.size1(), eigenVectorsMatrix.size2());
     for (std::size_t i = 0; i < eigenVectorsMatrix.size1(); ++i) {

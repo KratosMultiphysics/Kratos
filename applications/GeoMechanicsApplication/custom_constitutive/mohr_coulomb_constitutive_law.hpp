@@ -58,14 +58,14 @@ namespace Kratos
         void CalculateMohrCoulomb(ConstitutiveLaw::Parameters& parameters);
 
         void CalculateTrialStressVector(const Vector& rStrainVector, Vector& rStressVector,
-                                        ConstitutiveLaw::Parameters& rValues);
+                                        ConstitutiveLaw::Parameters& rValues) const;
         Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues) const;
         void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
         Vector NormalizeVector(const Vector& rVector) const;
         Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector) const;
-        Matrix CalculateRotationMatrix(const Matrix& eigenVectorsMatrix);
-        Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector, Matrix& rRotationMatrix);
+        Matrix CalculateRotationMatrix(const Matrix& eigenVectorsMatrix) const;
+        Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector, const Matrix& rRotationMatrix) const;
         Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector) const;
         Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, const double TensionCutoff) const;
         Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
