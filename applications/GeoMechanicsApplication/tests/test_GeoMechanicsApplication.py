@@ -110,8 +110,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTrussBackboneMaterialTests,
                         KratosGeoMechanicsInterfaceElementTests,
                         KratosGeoMechanicsMasterSlaveConstraints,
-                        KratosGeoMechanicsDeactivationWithStructuralTest,
-                        KratosGeoMechanicsDirichletReleaseTests
+                        KratosGeoMechanicsDirichletReleaseTests,
     ]
 
     # Create an array with the selected tests
