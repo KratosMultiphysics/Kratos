@@ -980,8 +980,6 @@ private:
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
 
-    // const MohrCoulombConstitutiveLaw mMohrCoulombConstitutiveLaw;
-
     ///@}
 
 }; // Class KratosGeoMechanicsApplication

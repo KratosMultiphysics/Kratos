@@ -32,10 +32,7 @@ namespace Kratos
     public:
         KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombConstitutiveLaw);
 
-        // MohrCoulombConstitutiveLaw();
         explicit MohrCoulombConstitutiveLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
-
-        ~MohrCoulombConstitutiveLaw() override;
 
         // Copying is not allowed. Use member `Clone` instead.
         MohrCoulombConstitutiveLaw(const MohrCoulombConstitutiveLaw&) = delete;
@@ -62,30 +59,28 @@ namespace Kratos
 
         void CalculateTrialStressVector(const Vector& rStrainVector, Vector& rStressVector,
                                         ConstitutiveLaw::Parameters& rValues);
-        Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues);
+        Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues) const;
         void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-        Vector NormalizeVector(Vector& rVector);
-        Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector);
+        Vector NormalizeVector(const Vector& rVector) const;
+        Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector) const;
         Matrix CalculateRotationMatrix(const Matrix& eigenVectorsMatrix);
-        Vector RotatePrincipalStresses(Vector& rPrincipalStressVector, Matrix& rRotationMatrix);
-        Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector);
-        Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, const double TensionCutoff);
+        Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector, Matrix& rRotationMatrix);
+        Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector) const;
+        Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, const double TensionCutoff) const;
         Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
-                                              const Vector& rCornerPoint);
+                                              const Vector& rCornerPoint) const;
         Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
                                                 const CoulombYieldFunction& rCoulombYieldFunction,
                                                 const double FrictionAngle,
-                                                const double Cohesion);
+                                                const double Cohesion) const ;
 
-        double CalculateApex(const double FrictionAngle, const double Cohesion);
+        double CalculateApex(const double FrictionAngle, const double Cohesion) const;
         Vector CalculateCornerPoint(const double FrictionAngle, const double Cohesion, const double TensionCutoff,
-                                    const double Apex);
-
-        // Member Variables
-        double mStateVariable;
+                                    const double Apex) const;
 
     private:
+        double mStateVariable;
         std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
         Vector mStressVector;
         Vector mStressVectorFinalized;
