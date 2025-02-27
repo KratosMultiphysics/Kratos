@@ -110,6 +110,7 @@ namespace Kratos
             bool IsTimeToPrintResults (int time_step) {return (time_step != 0 && mWriteFreq != 0 && time_step % mWriteFreq == 0.0);}
 
             virtual void   InitializeVariables             (ModelPart& dem_model_part, ModelPart& fem_model_part);
+            virtual double ComputeAverageRadius            (void);
             virtual void   AssembleWallElementVectors      (void) {}
             virtual void   SetVertexCoordinates            (void) {}
             virtual void   SetVertexCoordinatesInner       (void) {}

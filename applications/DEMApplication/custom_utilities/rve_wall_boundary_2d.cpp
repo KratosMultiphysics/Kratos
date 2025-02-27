@@ -815,9 +815,9 @@ namespace Kratos
 
         // Find the "lower-left" vertex (northeast-facing angle closest to 45°)
         int lower_left_idx = 0;
-        double closest_angle = std::atan2(points[0].y - cy, points[0].x - cx);
+        double closest_angle = std::atan2(cy - points[0].y, cx - points[0].x);
         for (int i = 1; i < 4; ++i) {
-            double angle = std::atan2(points[i].y - cy, points[i].x - cx);
+            double angle = std::atan2(cy - points[i].y, cx - points[i].x);
             if (std::abs(angle - Globals::Pi/4) < std::abs(closest_angle - Globals::Pi/4)) {
                 lower_left_idx = i;
                 closest_angle = angle;
@@ -829,9 +829,9 @@ namespace Kratos
         points[lower_left_idx] = points[0];
         points[0] = temp;
 
-        // Sort the other vertices by their angle with respect to the centroid
-        std::sort(points+1, points+4, [cx,cy](const Point& a, const Point& b) {
-            return std::atan2(a.y-cy, a.x-cx) < std::atan2(b.y-cy, b.x-cx);
+        // Sort the other vertices by their angle with respect to the "lower-left" vertex
+        std::sort(points+1, points+4, [&](const Point& p1, const Point& p2) {
+            return atan2(p1.y - points[0].y, p1.x - points[0].x) < atan2(p2.y - points[0].y, p2.x - points[0].x);
         });
 
         // Assign the sorted vertices back to the original coordinates

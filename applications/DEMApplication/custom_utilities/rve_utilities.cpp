@@ -22,8 +22,7 @@ namespace Kratos
 
     //------------------------------------------------------------------------------------------------------------
     void RVEUtilities::FinalizeSolutionStep(void) {
-        if (!IsTimeToEvaluateRVE(mDemModelPart->GetProcessInfo()[TIME_STEPS]))
-            return;
+        if (!IsTimeToEvaluateRVE(mDemModelPart->GetProcessInfo()[TIME_STEPS])) return;
         const double prev_eff_stress = mEffStress;
         SetVertexCoordinates();
         SetVertexCoordinatesInner();
@@ -43,15 +42,29 @@ namespace Kratos
     //------------------------------------------------------------------------------------------------------------
     // Initialize variables that remain constant during RVE analysis, or that need initial value/memory allocation.
     void RVEUtilities::InitializeVariables(ModelPart& dem_model_part, ModelPart& fem_model_part) {
-        mDemModelPart     = &dem_model_part;
-        mFemModelPart     = &fem_model_part;
-        mNumParticles     = mDemModelPart->GetCommunicator().LocalMesh().Elements().size();
-        mNumWallElems     = mFemModelPart->GetCommunicator().LocalMesh().Conditions().size();
-        mDim              = mDemModelPart->GetProcessInfo()[DOMAIN_SIZE];
-        mVertexCoords     = ZeroMatrix(mDim,4*(mDim-1));
-        mIsMoving         = true;
-        mIsEquilibrium    = false;
-        mEquilibriumSteps = 0;
+        mDemModelPart      = &dem_model_part;
+        mFemModelPart      = &fem_model_part;
+        mNumParticles      = mDemModelPart->GetCommunicator().LocalMesh().Elements().size();
+        mNumWallElems      = mFemModelPart->GetCommunicator().LocalMesh().Conditions().size();
+        mDim               = mDemModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        mAvgRadius         = ComputeAverageRadius();
+        mVertexCoords      = ZeroMatrix(mDim,4*(mDim-1));
+        mVertexCoordsInner = ZeroMatrix(mDim,4*(mDim-1));
+        mIsMoving          = true;
+        mIsEquilibrium     = false;
+        mEquilibriumSteps  = 0;
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // Full computation of average radius of all particles (should be called only once).
+    double RVEUtilities::ComputeAverageRadius(void) {
+        double avgRadius = 0.0; 
+        for (unsigned int i = 0; i < mNumParticles; i++) {
+            ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
+            SphericParticle& particle = dynamic_cast<SphericParticle&>(*it);
+            avgRadius += particle.GetRadius();
+        }
+        return avgRadius /= mNumParticles;
     }
 
     //------------------------------------------------------------------------------------------------------------
