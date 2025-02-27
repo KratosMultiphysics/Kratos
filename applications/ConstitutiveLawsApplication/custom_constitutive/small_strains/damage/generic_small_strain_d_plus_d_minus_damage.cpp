@@ -139,7 +139,7 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
                 this->CalculateSecantTensor(rValues, r_tangent_tensor);
             }
         }
-		this->CalculateIntegratedStressVector(integrated_stress_vector, damage_parameters, rValues);
+        this->CalculateIntegratedStressVector(integrated_stress_vector, damage_parameters, rValues);
     }
     KRATOS_CATCH("")
 }
@@ -158,10 +158,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     bool is_damaging = false;
     const Flags& r_constitutive_law_options = rValues.GetOptions();
     if (F_tension <= tolerance) { // Elastic case
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            this->SetNonConvTensionDamage(rParameters.DamageTension);
-            this->SetNonConvTensionThreshold(rParameters.ThresholdTension);
-        }
         rIntegratedStressVectorTension *= (1.0 - rParameters.DamageTension);
     } else { // Increasing damage...
         const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
@@ -173,19 +169,8 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
             rParameters.DamageTension,
             rParameters.ThresholdTension,
             rValues, characteristic_length);
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            this->SetNonConvTensionDamage(rParameters.DamageTension);
-            this->SetNonConvTensionThreshold(rParameters.UniaxialTensionStress);
-        }
         is_damaging = true;
     }
-
-    // Just for plotting...
-    double uniaxial_stress_tension = 0.0;
-    TConstLawIntegratorTensionType::YieldSurfaceType::CalculateEquivalentStress(rIntegratedStressVectorTension, rValues.GetStrainVector(),
-                                                                                uniaxial_stress_tension, rValues);
-    uniaxial_stress_tension /= TConstLawIntegratorTensionType::YieldSurfaceType::GetScaleFactorTension(rValues.GetMaterialProperties());
-    this->SetTensionStress(uniaxial_stress_tension);
 
     return is_damaging;
 }
@@ -204,10 +189,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     bool is_damaging = false;
     const Flags& r_constitutive_law_options = rValues.GetOptions();
     if (F_compression <= tolerance) { // Elastic case
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            this->SetNonConvCompressionDamage(rParameters.DamageCompression);
-            this->SetNonConvCompressionThreshold(rParameters.ThresholdCompression);
-        }
         rIntegratedStressVectorCompression *= (1.0 - rParameters.DamageCompression);
     } else { // Increasing damage...
         const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
@@ -219,19 +200,9 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
             rParameters.DamageCompression,
             rParameters.ThresholdCompression,
             rValues, characteristic_length);
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            this->SetNonConvCompressionDamage(rParameters.DamageCompression);
-            this->SetNonConvCompressionThreshold(rParameters.UniaxialCompressionStress);
-        }
 
         is_damaging =  true;
     }
-
-    // Just for plotting...
-    double uniaxial_stress_compression = 0.0;
-    TConstLawIntegratorCompressionType::YieldSurfaceType::CalculateEquivalentStress(rIntegratedStressVectorCompression, rValues.GetStrainVector(),
-                                                                                uniaxial_stress_compression, rValues);
-    this->SetCompressionStress(uniaxial_stress_compression);
 
     return is_damaging;
 }
@@ -358,11 +329,72 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    this->SetTensionDamage(this->GetNonConvTensionDamage());
-    this->SetTensionThreshold(this->GetNonConvTensionThreshold());
+    KRATOS_TRY
 
-    this->SetCompressionDamage(this->GetNonConvCompressionDamage());
-    this->SetCompressionThreshold(this->GetNonConvCompressionThreshold());
+    // Integrate Stress Damage
+    Vector& integrated_stress_vector = rValues.GetStressVector();
+    array_1d<double, VoigtSize> auxiliary_integrated_stress_vector = integrated_stress_vector;
+    Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
+
+    // We get the strain vector
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
+    if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+    }
+
+    // Elastic Matrix
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    }
+
+    // We compute the stress
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Elastic Matrix
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+
+        DamageParameters damage_parameters;
+        damage_parameters.ThresholdTension     = GetTensionThreshold();
+        damage_parameters.DamageTension        = GetTensionDamage();
+        damage_parameters.ThresholdCompression = GetCompressionThreshold();
+        damage_parameters.DamageCompression    = GetCompressionDamage();
+
+        // S0 = C0:E
+        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+
+        // Perform the separation of the Stress in tension and compression
+        array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
+
+        damage_parameters.TensionStressVector     = predictive_stress_vector_tension;
+        damage_parameters.CompressionStressVector = predictive_stress_vector_compression;
+
+        TConstLawIntegratorTensionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_tension, r_strain_vector,
+            damage_parameters.UniaxialTensionStress, rValues);
+        TConstLawIntegratorCompressionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_compression, r_strain_vector,
+            damage_parameters.UniaxialCompressionStress, rValues);
+
+        const double F_tension = damage_parameters.UniaxialTensionStress - damage_parameters.ThresholdTension;
+        const double F_compression = damage_parameters.UniaxialCompressionStress - damage_parameters.ThresholdCompression;
+
+        const bool is_damaging_tension     = IntegrateStressTensionIfNecessary(F_tension, damage_parameters, predictive_stress_vector_tension, rValues);
+        const bool is_damaging_compression = IntegrateStressCompressionIfNecessary(F_compression, damage_parameters, predictive_stress_vector_compression, rValues);
+
+        if (is_damaging_tension) {
+            SetTensionDamage(damage_parameters.DamageTension);
+            SetTensionThreshold(damage_parameters.ThresholdTension);
+        }
+        if (is_damaging_compression) {
+            SetCompressionDamage(damage_parameters.DamageCompression);
+            SetCompressionThreshold(damage_parameters.ThresholdCompression);
+        }
+
+    }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -409,10 +441,6 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
        mCompressionDamage = rValue;
     } else if (rThisVariable == THRESHOLD_COMPRESSION) {
        mCompressionThreshold = rValue;
-    } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
-       mCompressionUniaxialStress = rValue;
-    } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
-       mTensionUniaxialStress = rValue;
     } else {
        return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -436,10 +464,6 @@ double& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
        rValue = mCompressionDamage;
     } else if (rThisVariable == THRESHOLD_COMPRESSION) {
        rValue = mCompressionThreshold;
-    } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
-       rValue = mCompressionUniaxialStress;
-    } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
-       rValue = mTensionUniaxialStress;
     } else {
        return BaseType::GetValue(rThisVariable, rValue);
     }
