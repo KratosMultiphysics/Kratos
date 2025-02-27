@@ -79,7 +79,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.test_path = test_helper.get_file_path(os.path.join('test_partially_saturated', 'rising_water_quad4N'))
+        self.test_path = test_helper.get_file_path(os.path.join('test_partially_saturated', 'rising_water_pw_quad4N'))
 
         # The expected values are analitical results
         self.define_expected_water_pressures()
