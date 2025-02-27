@@ -43,8 +43,8 @@ namespace Kratos
         MohrCoulombWithTensionCutOff& operator=(MohrCoulombWithTensionCutOff&&) noexcept = default;
 
         [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
-        SizeType               WorkingSpaceDimension() override;
-        bool          IsIncremental() override;
+        SizeType WorkingSpaceDimension() override;
+        bool IsIncremental() override;
         bool RequiresInitializeMaterialResponse() override;
         StressMeasure GetStressMeasure() override;
         SizeType GetStrainSize() const override;
@@ -53,7 +53,7 @@ namespace Kratos
         int Check(const Properties& rMaterialProperties,
                   const GeometryType& rElementGeometry,
                   const ProcessInfo& rCurrentProcessInfo) const override;
-        void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& parameters) override;
+        void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& parameters) override;
         void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
         Vector NormalizeVector(const Vector& rVector) const;
         Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector) const;
@@ -67,11 +67,11 @@ namespace Kratos
         Vector mStrainVectorFinalized;
 
         void CalculateTrialStressVector(const Vector& rStrainVector, Vector& rStressVector,
-                                ConstitutiveLaw::Parameters& rValues) const;
+                                        ConstitutiveLaw::Parameters& rValues) const;
         Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues) const;
         double CalculateApex(const double FrictionAngle, const double Cohesion) const;
-        Vector CalculateCornerPoint(const double FrictionAngle, const double Cohesion, const double TensionCutoff,
-                                    const double Apex) const;
+        Vector CalculateCornerPoint(const double FrictionAngle, const double Cohesion,
+                                    const double TensionCutoff) const;
         Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector) const;
         Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, const double TensionCutoff) const;
         Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
@@ -79,7 +79,7 @@ namespace Kratos
         Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
                                                 const CoulombYieldSurface& rCoulombYieldFunction,
                                                 const double FrictionAngle,
-                                                const double Cohesion) const ;
+                                                const double Cohesion) const;
 
         // Serialization
         friend class Serializer;

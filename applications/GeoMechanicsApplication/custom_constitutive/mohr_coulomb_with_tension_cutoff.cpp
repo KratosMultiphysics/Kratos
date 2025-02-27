@@ -126,9 +126,6 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(
     double coulomb = coulombYieldFunction.YieldFunctionValue(principalTrialStressVector);
     double cutoff  = tensionCutoffFunction.YieldFunctionValue(principalTrialStressVector);
 
-    double trailStress = 0.5 * (principalTrialStressVector(0) + principalTrialStressVector(2));
-    double trialShear  = 0.5 * (principalTrialStressVector(0) - principalTrialStressVector(2));
-
     // Elastic region
     if (coulomb <= 0.0 && cutoff >= 0.0) {
         mStressVector = this->ReturnStressAtElasticZone(trailStressVector);
@@ -136,8 +133,10 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(
     }
 
     // Zone of axial return
+    double trailStress = 0.5 * (principalTrialStressVector(0) + principalTrialStressVector(2));
+    double trialShear  = 0.5 * (principalTrialStressVector(0) - principalTrialStressVector(2));
     double apex        = this->CalculateApex(friction_angle, cohesion);
-    Vector cornerPoint = this->CalculateCornerPoint(friction_angle, cohesion, tension_cutoff, apex);
+    Vector cornerPoint = this->CalculateCornerPoint(friction_angle, cohesion, tension_cutoff);
 
     if (tension_cutoff < apex && trialShear <= cornerPoint(1) && cutoff <= 0.0) {
         Vector modified_principal = this->ReturnStressAtAxialZone(
@@ -218,13 +217,11 @@ double MohrCoulombWithTensionCutOff::CalculateApex(const double FrictionAngle,
 
 Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(const double FrictionAngle,
                                                           const double Cohesion,
-                                                          const double TensionCutoff,
-                                                          const double Apex) const
+                                                          const double TensionCutoff) const
 {
     Vector result = ZeroVector(2);
-    result(1)     = 0.0;
-    result(0)     = Apex;
-    if (TensionCutoff < Apex) {
+    result(0)     = this->CalculateApex(FrictionAngle, Cohesion);
+    if (TensionCutoff < result(0)) {
         result(1) = (Cohesion * std::cos(FrictionAngle) - TensionCutoff * std::sin(FrictionAngle)) /
                     (1.0 + std::sin(FrictionAngle));
         result(0) = (TensionCutoff + Cohesion * std::cos(FrictionAngle)) / (
