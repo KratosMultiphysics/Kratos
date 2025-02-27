@@ -102,9 +102,19 @@ class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalys
         else:
             print("\n ERROR: _PrepareTransportSettings in the wrong topology optimization stage.\n")
 
-    def _DefineTransportProperties(self, decay=0.0, convection_coefficient=1.0):
-        self._GetPhysicsSolver()._DefineTransportProperties(decay, convection_coefficient)
-        self._GetAdjointSolver()._DefineTransportProperties(decay, convection_coefficient)
+    def _DefineTransportProperties(self, decay = 0.0, convection_coefficient = 1.0):
+        self._DefineDecay(decay)
+        self._DefineConvectionCoefficient(convection_coefficient)  
+    
+    def _DefineDecay(self, decay):
+        self.decay = decay
+
+    def _DefineConvectionCoefficient(self, convection_coefficient):
+        self.convection_coefficient = convection_coefficient
+
+    def _DefineConvectiveVelocity(self, const_convective_vel, velocity=[0,0,0]):
+        self._GetTransportSolver()._DefineConvectionVelocity(const_convective_vel, velocity)
+        self._GetAdjointTransportSolver()._DefineConvectionVelocity(const_convective_vel, velocity)
         
     def _GetPhysicsMainModelPartsList(self):
         return [self._GetPhysicsSolver()._GetFluidSolver().main_model_part, self._GetPhysicsSolver()._GetTransportSolver().main_model_part]
@@ -405,6 +415,42 @@ class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalys
 
     def _GetTransportModelPart(self):
         return self._GetPhysicsSolver()._GetTransportSolver().GetMainModelPart()
+    
+    def PreparePhysicsSolver(self):
+        super().PreparePhysicsSolver()
+        self._SetDecay()
+        self._SetConvection()
+    
+    def PrepareAdjointSolver(self):
+        super().PrepareAdjointSolver()
+        self._SetDecay()
+        self._SetConvection()
+
+    def _SetDecay(self):
+        mp = self._GetTransportModelPart()
+        for el in mp.Elements:
+            el.Properties.SetValue(KratosCD.DECAY, self.decay)
+
+    def _SetConvection(self):
+        self._SetConvectiveVelocity()
+        self._SetConvectionCoefficient()
+
+    def _SetConvectionCoefficient(self):
+        mp = self._GetTransportModelPart()
+        for el in mp.Elements:
+            el.Properties.SetValue(KratosMultiphysics.CONVECTION_COEFFICIENT, self.convection_coefficient)
+
+    def _SetConvectiveVelocity(self):
+        if (self._GetTransportSolver().IsConstantVelocity()):
+            self._GetTransportSolver()._SetConstantConvectiveVelocity()
+        else:
+            self._GetTransportSolver()._SetNonConstantConvectiveVelocity()
+
+    def _GetTransportSolver(self):
+        if (self.IsAdjointStage()):
+            return self._GetPhysicsSolver()._GetTransportSolver()
+        else:
+            return self._GetAdjointSolver()._GetTransportSolver()
 
 
 

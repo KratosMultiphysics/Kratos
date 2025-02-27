@@ -24,9 +24,13 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
     const Properties& r_properties = rElement.GetProperties();
 
     // COMMON PHYSICAL QUANTITIES
-    this->FillFromProperties(Conductivity,CONDUCTIVITY,r_properties);
-    this->FillFromProperties(Decay,DECAY,r_properties);
-    this->FillFromProperties(ConvectionCoefficient,CONVECTION_COEFFICIENT,r_properties);
+    // this->FillFromProperties(Conductivity,CONDUCTIVITY,r_properties);
+    // this->FillFromProperties(Decay,DECAY,r_properties);
+    // this->FillFromProperties(ConvectionCoefficient,CONVECTION_COEFFICIENT,r_properties);
+    this->FillFromNonHistoricalNodalData(Conductivity,CONDUCTIVITY,r_geometry); 
+    this->FillFromNonHistoricalNodalData(Decay,DECAY,r_geometry); 
+    this->FillFromNonHistoricalNodalData(ConvectionCoefficient,CONVECTION_COEFFICIENT,r_geometry); 
+
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     // Calculate element characteristic size
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);

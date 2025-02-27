@@ -851,9 +851,9 @@ void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementD
     TransportTopologyOptimizationElementData<2,3,true> & rData,
     MatrixType& rLHS)
 {
-    const double D = rData.Conductivity;
-    const double k = rData.Decay;
-    const double c = rData.ConvectionCoefficient;
+    const array_1d<double,3> D = rData.Conductivity;
+    const array_1d<double,3> k = rData.Decay;
+    const array_1d<double,3> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -884,9 +884,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     TransportTopologyOptimizationElementData<3,4,true>& rData,
     MatrixType& rLHS)
 {
-    const double D = rData.Conductivity;
-    const double k = rData.Decay;
-    const double c = rData.ConvectionCoefficient;
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -916,9 +916,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     TransportTopologyOptimizationElementData<2,3,true>& rData,
     VectorType& rRHS)
 {
-    const double D = rData.Conductivity;
-    const double k = rData.Decay;
-    const double c = rData.ConvectionCoefficient;
+    const array_1d<double,3> D = rData.Conductivity;
+    const array_1d<double,3> k = rData.Decay;
+    const array_1d<double,3> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -953,9 +953,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     TransportTopologyOptimizationElementData<3,4,true>& rData,
     VectorType& rRHS)
 {
-    const double D = rData.Conductivity;
-    const double k = rData.Decay;
-    const double c = rData.ConvectionCoefficient;
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -991,9 +991,9 @@ void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementD
     TransportTopologyOptimizationElementData<2,3,true> & rData,
     MatrixType& rLHS)
 {
-    const double D = rData.Conductivity;
-    const double k = rData.Decay;
-    const double c = rData.ConvectionCoefficient;
+    const array_1d<double,3> D = rData.Conductivity;
+    const array_1d<double,3> k = rData.Decay;
+    const array_1d<double,3> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -1023,9 +1023,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     TransportTopologyOptimizationElementData<3,4,true>& rData,
     MatrixType& rLHS)
 {
-    const double D = rData.Conductivity;
-    const double k = rData.Decay;
-    const double c = rData.ConvectionCoefficient;
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -1055,9 +1055,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     TransportTopologyOptimizationElementData<2,3,true>& rData,
     VectorType& rRHS)
 {
-    const double D = rData.Conductivity;
-    const double k = rData.Decay;
-    const double c = rData.ConvectionCoefficient;
+    const array_1d<double,3> D = rData.Conductivity;
+    const array_1d<double,3> k = rData.Decay;
+    const array_1d<double,3> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;
@@ -1095,9 +1095,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     TransportTopologyOptimizationElementData<3,4,true>& rData,
     VectorType& rRHS)
 {
-    const double D = rData.Conductivity;
-    const double k = rData.Decay;
-    const double c = rData.ConvectionCoefficient;
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     // const double dt = rData.DeltaTime;

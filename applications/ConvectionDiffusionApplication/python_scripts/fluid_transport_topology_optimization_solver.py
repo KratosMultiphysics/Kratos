@@ -118,7 +118,6 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
         # print(default_settings.PrettyPrintJsonString())
         # print(self.settings.PrettyPrintJsonString())
         self.settings.ValidateAndAssignDefaults(default_settings)
-
     
     def PrepareModelPart(self):
         self.fluid_solver.PrepareModelPart()
@@ -267,5 +266,21 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
 
     def _GetFluidTopologyOptimizationStage(self):
         self._GetTransportSolver()._GetTopologyOptimizationStage()
+
+    def _CheckMaterialProperties(self):
+        self._GetFluidSolver()._CheckMaterialProperties()
+        self._GetTransportSolver()._CheckMaterialProperties()
+
+    def _UpdateResistanceVariable(self, resistance):
+        self._GetFluidSolver()._UpdateResistanceVariable(resistance)
+
+    def _UpdateConductivityVariable(self, conductivity):
+        self._GetTransportSolver()._UpdateConductivityVariable(conductivity)
+
+    def _UpdateDecayVariable(self, decay):
+        self._GetTransportSolver()._UpdateDecayVariable(decay)
+
+    def _UpdateConvectionCoefficientVariable(self, convection_coefficient):
+        self._GetTransportSolver()._UpdateConvectionCoefficientVariable(convection_coefficient)
 
     

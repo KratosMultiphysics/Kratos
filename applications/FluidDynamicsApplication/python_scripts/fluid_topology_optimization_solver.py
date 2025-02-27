@@ -2,6 +2,9 @@
 import KratosMultiphysics
 from importlib import import_module
 
+import numpy as np #import the numpy library
+import scipy as sp #import the scipy library
+
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -158,6 +161,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
             problem_phase_str = "ADJ-F"
         else: 
             problem_phase_str = "ERROR|"
+        self.PrintPhysicsParametersUpdateStatus(problem_phase_str)
         print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
         # Call the base fluid solver to solve current time step
         is_converged = super().SolveSolutionStep()
@@ -201,3 +205,30 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         else:
             fluid_mp = model_parts[0]
             self.main_model_part = fluid_mp
+
+    def _UpdateResistanceVariable(self, resistance):
+        self.is_resistance_updated = True
+        mp = self.GetComputingModelPart()
+        if isinstance(resistance, (int, float)): 
+            for node in mp.Nodes:
+             node.SetValue(KratosCFD.RESISTANCE, resistance)
+        elif isinstance(resistance, (np.ndarray, list)): 
+            for node in mp.Nodes:
+                node.SetValue(KratosCFD.RESISTANCE, resistance[node.Id-1])
+        else:
+            raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(resistance)}")
+    
+    def InitializeSolutionStep(self):
+        self.is_resistance_updated = False
+        self._GetSolutionStrategy().InitializeSolutionStep()
+
+    def PrintPhysicsParametersUpdateStatus(self, problem_phase_str):
+        if (not self.is_resistance_updated):
+            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating RESISTANCE variable")
+
+    def _CheckMaterialProperties(self):
+        print("--|--> Resistance:", self.main_model_part.Nodes[1].GetValue(KratosCFD.RESISTANCE))
+
+        
+
+

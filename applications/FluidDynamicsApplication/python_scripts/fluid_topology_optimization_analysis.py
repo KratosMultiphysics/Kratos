@@ -171,7 +171,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         Prepare Solvers : ImportModelPart -> PrepareModelPart -> AddDofs
         """
         self.PreparePhysicsSolver()
-        self.PrepareAdjointSolver()
+        self.PrepareAdjointSolver()        
     
     def PreparePhysicsSolver(self):
         """This method prepares the Navier-Stokes primal problem Solver in the AnalysisStage 
@@ -305,9 +305,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """     
         ## Current Optimization Step Solutions 
         self._InitializeTopologyOptimizationStepPhysicsSolution()
-        self._UpdateRelevantPhysicsVariables()
         self._SolvePhysicsProblem() # NAVIER-STOKES PROBLEM SOLUTION
-        self._UpdateRelevantAdjointVariables()
         if (self.first_iteration):
             self._SetFunctionalWeights()
             self._ResetFunctionalOutput()
@@ -346,7 +344,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE DOMAIN DESIGN")
         self._SetMaxDomainVolumeFraction()
         self._InitializeDomainDesignParameter()
-        self._InitializeResistance()
+        self._InitializePhysicsParameters()
+
+    def _InitializePhysicsParameters(self, resistance_parameters=[1e4, 0.0, 1.0]):
+        self._InitializeResistance(resistance_parameters)
 
     def _SetMaxDomainVolumeFraction(self, volume_fraction = 1.0):
         self.max_volume_fraction = volume_fraction
@@ -523,11 +524,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._SetTopologyOptimizationStage(0)
         if (not self.first_iteration):
                 self._ReInitializePhysics()
-        self._UpdateDesignParameterAndResistance(self.design_parameter)
-    
-    def _UpdateDesignParameterAndResistance(self, design_parameter):
+        self._UpdateDesignParameterAndPhysicsParameters(self.design_parameter)
+
+    def _UpdateDesignParameterAndPhysicsParameters(self, design_parameter):
         self._UpdateDesignParameter(design_parameter)
+        self._UpdatePhysicsParameters()
+    
+    def _UpdatePhysicsParameters(self):
         self._UpdateResistance()
+
+    def UpdatePhysicsParametersVariables(self):
+        self._UpdateResistanceVariable()
 
     def _UpdateDesignParameter(self, design_parameter):
         print("--|" + self.topology_optimization_stage_str + "| UPDATE DESIGN PARAMETER")
@@ -545,15 +552,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             distance = design-self.remeshing_levelset
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, distance)
 
-    def _InitializeResistance(self, min_value = 0.0, max_value = 1000.0, interpolation_slope = 1.0):
-        print("--|" + self.topology_optimization_stage_str + "| INITIALIZE RESISTANCE")
-        self.alpha_min = min_value
-        self.alpha_max = max_value
-        self.q = interpolation_slope
+    def _ResetPhysicsParameters(self):
         self._ResetResistance()
-        mp = self._GetComputingModelPart()
-        for node in mp.Nodes:
-            node.SetValue(KratosCFD.RESISTANCE, 0.0)
+
+    def _InitializeResistance(self, resistance_parameters_values):
+        print("--|" + self.topology_optimization_stage_str + "| INITIALIZE RESISTANCE")
+        self.resistance_parameters = resistance_parameters_values
+        self._ResetResistance()
+        self._UpdateResistanceVariable()
 
     def _ResetResistance(self):
         self.resistance = np.zeros(self.n_nodes)
@@ -561,8 +567,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _UpdateResistance(self):
         """
-        This method will handle the resistance update, that will be based on the value of the design parameter.
-        Now it is used to "play" with the resistance
+        This method handles the resistance update.
         """
         print("--|" + self.topology_optimization_stage_str + "| UPDATE RESISTANCE")
         self.resistance, self.resistance_derivative_wrt_design_base = self._ComputeResistance(self.design_parameter)
@@ -570,12 +575,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._UpdateResistanceVariable()
 
     def _ComputeResistance(self, design_parameter):
-        return self._ComputeConvexResistance(design_parameter)
+        return self._ComputeConvexPhysicsParameter(self.resistance_parameters, design_parameter)
 
-    def _ComputeConvexResistance(self, design_parameter):
-        # resistance = a_min + (a_max-a_min)*q*design_parameter/(q+1-design_parameter)
-        resistance = self.alpha_min + (self.alpha_max-self.alpha_min)*(self.q*design_parameter)/(self.q+1-design_parameter)
-        resistance_derivative_wrt_design_base = (self.alpha_max-self.alpha_min)*(self.q*(self.q+1))/((self.q+1-design_parameter)**2)
+    def _ComputeConvexPhysicsParameter(self, physics_parameter_values, design_parameter):
+        value_fluid = physics_parameter_values[0]
+        value_solid = physics_parameter_values[1]
+        slope       = physics_parameter_values[2]
+        resistance = value_fluid + (value_solid-value_fluid)*(slope*design_parameter)/(slope+1-design_parameter)
+        resistance_derivative_wrt_design_base = (value_solid-value_fluid)*(slope*(slope+1))/((slope+1-design_parameter)**2)
         return resistance, resistance_derivative_wrt_design_base
     
     def _UpdateResistanceDesignDerivative(self):
@@ -585,9 +592,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.resistance_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(resistance_derivative_wrt_design_projected)[mask]
     
     def _UpdateResistanceVariable(self):
-        mp = self._GetComputingModelPart()
-        for node in mp.Nodes:
-                node.SetValue(KratosCFD.RESISTANCE, self.resistance[node.Id-1])
+        self._GetSolver()._UpdateResistanceVariable(self.resistance)
 
     def _SolvePhysicsProblem(self):  
         """
@@ -624,6 +629,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.time = self._AdvanceTime()
             print("--|" + top_opt_stage_str + "| INITIALIZE SOLUTION STEP")
             self.InitializeSolutionStep()
+            print("--|" + top_opt_stage_str + "| UPDATE PHYSICS PARAMETERS STEP")
+            self.UpdatePhysicsParametersVariables()
             print("--|" + top_opt_stage_str + "| PREDICT")
             self._GetSolver().Predict()
             print("--|" + top_opt_stage_str + "| SOLVE SOLUTION STEP")
@@ -713,12 +720,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             # outvector1 = np.array([outeriter, innerit, f0val, fval])
             # outvector2 = xval.flatten()
         new_design_parameter = self._InsertDesignParameterFromOptimizationDomain(xval.flatten())
-        self._UpdateDesignParameterAndResistance(new_design_parameter)
+        self._UpdateDesignParameterAndPhysicsParameters(new_design_parameter)
 
     def _EvaluateOptimizationProblem(self, design_parameter = [], print_results = False):
         print("\n--|EVALUATE OPTIMIZATION PROBLEM|")
         if (len(design_parameter) != 0):
-            self._UpdateDesignParameterAndResistance(design_parameter)
+            self._UpdateDesignParameterAndPhysicsParameters(design_parameter)
         self._EvaluateFunctionalAndDerivatives(print_results)
         self._EvaluateConstraintsAndDerivatives()
         if (print_results):
@@ -1172,7 +1179,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._OptimizationGeometricalPreprocessing()
         self._ResetConstraints()
         self.design_parameter = self._GetDesignParameterVariable()
-        self._ResetResistance()
+        self._ResetPhysicsParameters()
         self.resistance, self.resistance_derivative_wrt_design_base = self._ComputeResistance(self.design_parameter)
         self._UpdateResistanceDesignDerivative()
         self._PreprocessDerivatives() 
@@ -1190,9 +1197,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (abs(self.functional_weights[2]) > 1e-10):
             self._EvaluateVorticityFunctional(velocity, print_functional)
 
-    def _UpdateRelevantPhysicsVariables(self):
-        pass
-
-    def _UpdateRelevantAdjointVariables(self):
-        pass
+    def _CheckMaterialProperties(self):
+        print("--|CHECK| Check Fluid Properties")
+        self._GetSolver()._CheckMaterialProperties()
         
