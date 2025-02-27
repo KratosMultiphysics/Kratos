@@ -225,7 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_FinalizeMaterialResponseCau
 
     // Act
     law.FinalizeMaterialResponseCauchy(parameters); // set mStrainVectorFinalized as strain_vector
-    auto stress_vector = Vector(0.0, static_cast<int>(plane_strain->GetStrainSize()));
+    Vector stress_vector = ScalarVector(plane_strain->GetStrainSize(), 0.0);
     law.CalculateTrialStressVector(strain_vector, stress_vector, parameters); // use mStrainVectorFinalized and update mStressVector
     law.FinalizeMaterialResponseCauchy(parameters); // update mStrainVectorFinalized and mStressVectorFinalized
     law.CalculateTrialStressVector(strain_vector, stress_vector, parameters); // use mStrainVectorFinalized and mStressVectorFinalized
