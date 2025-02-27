@@ -76,14 +76,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         result = gravity * water_density * (phreatic_level - y_coord)
         return min([result, 0.0])
 
-    def setUp(self):
-        super().setUp()
 
-        self.test_path = test_helper.get_file_path(os.path.join('test_partially_saturated', 'rising_water_pw_quad4N'))
-
-        # The expected values are analitical results
-        self.define_expected_water_pressures()
-        self.define_expected_bishop_coefficients()
 
     def define_expected_water_pressures(self):
         self.expected_water_pressures = [{"output_filename": "saturatedbelowphreaticlevel.post.res",
@@ -156,7 +149,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
                                                   {"element": 4, "BISHOP_COEFFICIENT": [1.0, 1.0, 1.0, 1.0]},
                                                   {"element": 5, "BISHOP_COEFFICIENT": [0.0, 0.0, 0.0, 0.0]}
                                               ]}]
-    def check_water_pressures(self):
+    def check_water_pressures(self, test_path):
         reader = test_helper.GiDOutputFileReader()
 
         for item in self.expected_water_pressures:
@@ -164,30 +157,35 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             node_ids = [sub_item["node"] for sub_item in item["expected_values"]]
             expected_water_pressures = [sub_item["WATER_PRESSURE"] for sub_item in item["expected_values"]]
 
-            actual_data = reader.read_output_from(os.path.join(self.test_path, item["output_filename"]))
+            actual_data = reader.read_output_from(os.path.join(test_path, item["output_filename"]))
             actual_water_pressures = reader.nodal_values_at_time("WATER_PRESSURE", time, actual_data, node_ids)
 
             self.assertEqual(len(actual_water_pressures), len(expected_water_pressures))
             for actual_water_pressure, expected_water_pressure in zip(actual_water_pressures, expected_water_pressures):
                 self.assertAlmostEqual(actual_water_pressure, expected_water_pressure, 1)
 
-    def check_Bishop_coefficients(self):
+    def check_Bishop_coefficients(self, test_path):
         reader = test_helper.GiDOutputFileReader()
 
         for item in self.expected_bishop_coefficients:
             time = item["time"]
             expected_bishop_coefficients = [sub_item["BISHOP_COEFFICIENT"] for sub_item in item["expected_values"]]
 
-            actual_data = reader.read_output_from(os.path.join(self.test_path, item["output_filename"]))
+            actual_data = reader.read_output_from(os.path.join(test_path, item["output_filename"]))
             actual_bishop_coefficients = reader.element_integration_point_values_at_time("BISHOP_COEFFICIENT", time, actual_data, [1,2,3,4,5], [0,1,2,3])
             self.assertEqual(len(actual_bishop_coefficients), len(expected_bishop_coefficients))
             for actual_bishop_coefficient, expected_bishop_coefficient in zip(actual_bishop_coefficients, expected_bishop_coefficients):
                 self.assertVectorAlmostEqual(actual_bishop_coefficient, expected_bishop_coefficient)
 
     def test_rising_water_quad4N(self):
-        test_helper.run_kratos(self.test_path)
-        self.check_water_pressures()
-        self.check_Bishop_coefficients()
+        test_path = test_helper.get_file_path(os.path.join('test_partially_saturated', 'rising_water_pw_quad4N'))
+
+        # The expected values are analytical results
+        self.define_expected_water_pressures()
+        self.define_expected_bishop_coefficients()
+        test_helper.run_kratos(test_path)
+        self.check_water_pressures(test_path)
+        self.check_Bishop_coefficients(test_path)
 
 if __name__ == '__main__':
     KratosUnittest.main()
