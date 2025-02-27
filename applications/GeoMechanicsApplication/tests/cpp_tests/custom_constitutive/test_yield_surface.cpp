@@ -10,8 +10,8 @@
 //  Main authors:    Mohamed Nabi
 //
 
-#include "custom_constitutive/coulomb_yield_function.hpp"
-#include "custom_constitutive/tension_cutoff_function.hpp"
+#include "custom_constitutive/coulomb_yield_surface.hpp"
+#include "custom_constitutive/tension_cutoff.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -19,7 +19,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldFunction, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     double friction_angle = 45.0 * Globals::Pi / 180.0;
     double cohesion       = 2.0;
@@ -29,13 +29,13 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldFunction, KratosGeoMechanicsFastSuiteW
 
     constexpr double tolerance{1.0e-12};
 
-    CoulombYieldFunction coulombYieldFunction(friction_angle, cohesion, 0.0);
-    double yield_value       = coulombYieldFunction.CalculateYieldFunction(principal_stress);
+    CoulombYieldSurface coulombYieldSurface(friction_angle, cohesion, 0.0);
+    double yield_value       = coulombYieldSurface.YieldFunctionValue(principal_stress);
     double expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(yield_value, expected_solution, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoffFunction, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     double tension_cutoff = 2.0;
 
@@ -44,8 +44,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoffFunction, KratosGeoMechanicsFastSuite
 
     constexpr double tolerance{1.0e-12};
 
-    TensionCutoffFunction tensionCutoffFunction(tension_cutoff);
-    double tension_value     = tensionCutoffFunction.CalculateYieldFunction(principal_stress);
+    TensionCutoff tensionCutoff(tension_cutoff);
+    double tension_value     = tensionCutoff.YieldFunctionValue(principal_stress);
     double expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(tension_value, expected_solution, tolerance);
 }

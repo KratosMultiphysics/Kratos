@@ -10,26 +10,26 @@
 //
 //  Main authors:    Mohame Nabi,
 //                   Wijtze Pieter Kikstra
-// //
+//
 
 #pragma once
 
-#include "custom_constitutive/evaluate_yield_function.h"
+#include "custom_constitutive/yield_surface.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldFunction : public EvaluateYieldFunction
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSurface
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
 
-    CoulombYieldFunction() = default;
+    CoulombYieldSurface() = default;
 
-    CoulombYieldFunction(double frictionAngle, double cohesion, double dilatationAngle);
+    CoulombYieldSurface(double frictionAngle, double cohesion, double dilatationAngle);
 
-    double CalculateYieldFunction(const Vector& rPrincipalStress) const override;
-    Vector CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const override;
+    double YieldFunctionValue(const Vector& rPrincipalStress) const override;
+    Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const override;
 
 private:
     // Member Variables

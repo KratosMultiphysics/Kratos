@@ -14,22 +14,22 @@
 
 #pragma once
 
-#include "custom_constitutive/evaluate_yield_function.h"
+#include "custom_constitutive/yield_surface.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TensionCutoffFunction : public EvaluateYieldFunction
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TensionCutoff : public YieldSurface
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TensionCutoffFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(TensionCutoff);
 
-    TensionCutoffFunction() = default;
+    TensionCutoff() = default;
 
-    explicit TensionCutoffFunction(double tensileStrength);
+    explicit TensionCutoff(double tensileStrength);
 
-    double CalculateYieldFunction(const Vector& rPrincipalStress) const override;
-    Vector CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const override;
+    double YieldFunctionValue(const Vector& rPrincipalStress) const override;
+    Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const override;
 
 private:
     // Member Variables

@@ -18,12 +18,12 @@
 namespace Kratos
 {
 
-class EvaluateYieldFunction
+class YieldSurface
 {
 public:
-    virtual ~EvaluateYieldFunction() = default;
+    virtual ~YieldSurface() = default;
 
-    virtual double CalculateYieldFunction(const Vector& rPrincipalStress) const        = 0;
-    virtual Vector CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const = 0;
+    virtual double YieldFunctionValue(const Vector& rPrincipalStress) const = 0;
+    virtual Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const = 0;
 };
 } // namespace Kratos.

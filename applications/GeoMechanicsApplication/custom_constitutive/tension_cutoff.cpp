@@ -11,23 +11,23 @@
 //                   Wijtze Pieter Kikstra
 //
 
-#include "custom_constitutive/tension_cutoff_function.hpp"
+#include "custom_constitutive/tension_cutoff.hpp"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos
 {
-TensionCutoffFunction::TensionCutoffFunction(double tensileStrength)
+TensionCutoff::TensionCutoff(double tensileStrength)
     : mTensileStrength{tensileStrength}
 {
 }
 
-double TensionCutoffFunction::CalculateYieldFunction(const Vector& rPrincipalStress) const
+double TensionCutoff::YieldFunctionValue(const Vector& rPrincipalStress) const
 {
     return mTensileStrength - rPrincipalStress(2);
 }
 
-Vector TensionCutoffFunction::CalculateFlowFunctionDerivate(const Vector& rPrincipalStress) const
+Vector TensionCutoff::DerivateOfFlowFunction(const Vector& rPrincipalStress) const
 {
     Vector result(3);
     result <<= 0.0, 0.0, -1.0;
