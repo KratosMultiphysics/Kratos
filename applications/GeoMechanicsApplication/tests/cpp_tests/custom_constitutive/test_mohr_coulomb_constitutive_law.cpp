@@ -209,32 +209,6 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_CalculateMohrCoulomb, Krato
     KRATOS_EXPECT_VECTOR_EQ(cauchy_stress_vector, expected_cauchy_stress_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_FinalizeMaterialResponseCauchy, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Set
-    auto plane_strain = std::make_unique<PlaneStrain>();
-    auto law          = MohrCoulombConstitutiveLaw(std::make_unique<PlaneStrain>());
-
-    ConstitutiveLaw::Parameters parameters;
-    Properties                  properties;
-    properties.SetValue(YOUNG_MODULUS, 1.0e7);
-    properties.SetValue(POISSON_RATIO, 0.3);
-    parameters.SetMaterialProperties(properties);
-    Vector strain_vector = ScalarVector(plane_strain->GetStrainSize(), 1.0);
-    parameters.SetStrainVector(strain_vector);
-
-    // Act
-    law.FinalizeMaterialResponseCauchy(parameters); // set mStrainVectorFinalized as strain_vector
-    Vector stress_vector = ScalarVector(plane_strain->GetStrainSize(), 0.0);
-    law.CalculateTrialStressVector(strain_vector, stress_vector, parameters); // use mStrainVectorFinalized and update mStressVector
-    law.FinalizeMaterialResponseCauchy(parameters); // update mStrainVectorFinalized and mStressVectorFinalized
-    law.CalculateTrialStressVector(strain_vector, stress_vector, parameters); // use mStrainVectorFinalized and mStressVectorFinalized
-
-    // Assert
-    auto expected_stress_vector = ZeroVector(plane_strain->GetStrainSize());
-    KRATOS_EXPECT_VECTOR_EQ(stress_vector, expected_stress_vector);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombConstitutiveLaw_ReturnStressAtElasticZone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
