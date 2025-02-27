@@ -205,8 +205,6 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
         total_forced_dirichlet_dof_count += forced_dirichlet_dof_count;
     } while (forced_dirichlet_dof_count);
 
-    TSparse::WriteMatrixMarketMatrix("modified.mm", rRelationMatrix, false);
-
     if (2 <= Verbosity and total_forced_dirichlet_dof_count) {
         std::cout << "AugmentedLagrangeConstraintAssembler: "
                   << "propagated Dirichlet conditions to " << total_forced_dirichlet_dof_count << " DoFs "
