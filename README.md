@@ -148,6 +148,8 @@ Some users of the technologies developed in Kratos are:
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [ZLib](https://zlib.net/) The compression library
+- [Google Test](https://github.com/google/googletest) for unit testing C++ code
+- [Google Benchmark](https://github.com/google/benchmark) for microbenchmarking and performance testing
 
 ## In applications:
 - [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)
