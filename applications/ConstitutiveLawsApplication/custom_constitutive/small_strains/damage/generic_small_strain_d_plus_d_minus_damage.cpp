@@ -89,12 +89,12 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // Elastic Matrix
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
@@ -319,11 +319,6 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    this->SetTensionDamage(this->GetNonConvTensionDamage());
-    this->SetTensionThreshold(this->GetNonConvTensionThreshold());
-
-    this->SetCompressionDamage(this->GetNonConvCompressionDamage());
-    this->SetCompressionThreshold(this->GetNonConvCompressionThreshold());
 }
 
 /***********************************************************************************/
@@ -333,6 +328,7 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -340,8 +336,9 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
-	FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+    FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -351,6 +348,7 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -360,6 +358,11 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    this->SetTensionDamage(this->GetNonConvTensionDamage());
+    this->SetTensionThreshold(this->GetNonConvTensionThreshold());
+
+    this->SetCompressionDamage(this->GetNonConvCompressionDamage());
+    this->SetCompressionThreshold(this->GetNonConvCompressionThreshold());
 }
 
 /***********************************************************************************/
@@ -385,26 +388,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         return BaseType::Has(rThisVariable);
     }
     return false;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
-bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
-    Has(const Variable<Vector>& rThisVariable)
-{
-    return BaseType::Has(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
-bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
-    Has(const Variable<Matrix>& rThisVariable)
-{
-    return BaseType::Has(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -461,46 +444,6 @@ double& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
        return BaseType::GetValue(rThisVariable, rValue);
     }
     return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
-Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
-    GetValue(
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
-    )
-{
-    return BaseType::GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
-Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
-    GetValue(
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    )
-{
-    return BaseType::GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
-double& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
-    CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
-{
-    return this->GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -601,8 +544,6 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         return rValue;
-    } else if (this->Has(rThisVariable)) {
-        return this->GetValue(rThisVariable, rValue);
     } else {
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
@@ -666,8 +607,6 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         return rValue;
 
-    } else if (this->Has(rThisVariable)) {
-        return this->GetValue(rThisVariable, rValue);
     } else {
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }

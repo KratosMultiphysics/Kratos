@@ -256,20 +256,6 @@ public:
     bool Has(const Variable<double> &rThisVariable) override;
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (Vector)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Vector> &rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Matrix)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Matrix> &rThisVariable) override;
-
-    /**
      * @brief Sets the value of a specified variable (double)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
@@ -293,28 +279,6 @@ public:
         ) override;
 
     /**
-     * @brief Returns the value of a specified variable (Vector)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& GetValue(
-        const Variable<Vector> &rThisVariable,
-        Vector& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
-    /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
      */
     bool RequiresFinalizeMaterialResponse() override
@@ -329,18 +293,6 @@ public:
     {
         return false;
     }
-
-    /**
-     * @brief Returns the value of a specified variable (double)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    double& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<double>& rThisVariable,
-        double& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (vector)
