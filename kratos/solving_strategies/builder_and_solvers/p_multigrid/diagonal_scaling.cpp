@@ -54,35 +54,41 @@ GetDiagonalScaleFactor(const typename TSparse::MatrixType& rMatrix,
             return 1;
 
         case DiagonalScaling::AbsMax:
-            return IndexPartition(rMatrix.size1()).template for_each<MaxReduction<typename TSparse::DataType>>(
-                [&rMatrix](std::size_t iRow) -> typename TSparse::DataType {
-                    const auto itBegin = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow];
-                    const auto itEnd = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow + 1];
+            return IndexPartition(rMatrix.size1()).template for_each<AbsMaxReduction<typename TSparse::DataType>>(
+                [&rMatrix](std::size_t i_row) -> typename TSparse::DataType {
+                    const auto i_entry_begin = rMatrix.index1_data()[i_row];
+                    const auto i_entry_end   = rMatrix.index1_data()[i_row + 1];
+
+                    const auto it_column_begin = rMatrix.index2_data().begin() + i_entry_begin;
+                    const auto it_column_end = rMatrix.index2_data().begin() + i_entry_end;
 
                     // Look for the diagonal entry in the current row.
-                    const auto itColumnIndex = std::lower_bound(itBegin, itEnd, iRow);
-                    KRATOS_ERROR_IF(itBegin == itEnd || *itColumnIndex != iRow)
-                        << "row " << iRow << " has no diagonal entry";
+                    const auto it_column = std::lower_bound(it_column_begin, it_column_end, i_row);
+                    KRATOS_ERROR_IF(it_column == it_column_end or *it_column != i_row)
+                        << "row " << i_row << " has no diagonal entry";
 
-                    const auto diagonal_entry = rMatrix.value_data()[std::distance(itBegin, itColumnIndex)];
-                    return std::abs(diagonal_entry);
+                    const auto diagonal_entry = rMatrix.value_data()[rMatrix.index1_data()[i_row] + std::distance(it_column_begin, it_column)];
+                    return diagonal_entry;
             });
 
         case DiagonalScaling::Norm: {
-            typename TSparse::DataType output = IndexPartition(rMatrix.size1()).template for_each<AbsMaxReduction<typename TSparse::DataType>>(
-                [&rMatrix](std::size_t iRow) -> typename TSparse::DataType {
-                    const auto itBegin = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow];
-                    const auto itEnd = rMatrix.index2_data().begin() + rMatrix.index1_data()[iRow + 1];
+            typename TSparse::DataType output = IndexPartition(rMatrix.size1()).template for_each<SumReduction<typename TSparse::DataType>>(
+                [&rMatrix](std::size_t i_row) -> typename TSparse::DataType {
+                    const auto i_entry_begin = rMatrix.index1_data()[i_row];
+                    const auto i_entry_end   = rMatrix.index1_data()[i_row + 1];
+
+                    const auto it_column_begin = rMatrix.index2_data().begin() + i_entry_begin;
+                    const auto it_column_end = rMatrix.index2_data().begin() + i_entry_end;
 
                     // Look for the diagonal entry in the current row.
-                    const auto itColumnIndex = std::lower_bound(itBegin, itEnd, iRow);
-                    KRATOS_ERROR_IF(itBegin == itEnd || *itColumnIndex != iRow)
-                        << "row " << iRow << " has no diagonal entry";
+                    const auto it_column = std::lower_bound(it_column_begin, it_column_end, i_row);
+                    KRATOS_ERROR_IF(it_column == it_column_end or *it_column != i_row)
+                        << "row " << i_row << " has no diagonal entry";
 
-                    const auto diagonal_entry = rMatrix.value_data()[std::distance(itBegin, itColumnIndex)];
+                    const auto diagonal_entry = rMatrix.value_data()[rMatrix.index1_data()[i_row] + std::distance(it_column_begin, it_column)];
                     return diagonal_entry * diagonal_entry;
             });
-            return std::sqrt(output);
+            return std::sqrt(output) / rMatrix.size1();
         }
 
         default: {
