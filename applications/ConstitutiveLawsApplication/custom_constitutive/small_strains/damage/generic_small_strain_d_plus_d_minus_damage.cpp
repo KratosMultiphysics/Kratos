@@ -377,13 +377,13 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     } else if (rThisVariable == THRESHOLD_TENSION) {
         return true;
     } else if (rThisVariable == DAMAGE_COMPRESSION) {
-		return true;
+        return true;
     } else if (rThisVariable == THRESHOLD_COMPRESSION) {
-		return true;
+        return true;
     } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
-		return true;
+        return true;
     } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
-		return true;
+        return true;
     } else {
         return BaseType::Has(rThisVariable);
     }
