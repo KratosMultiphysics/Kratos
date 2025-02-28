@@ -101,15 +101,16 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& C, Constitut
     KRATOS_TRY
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const auto        E                     = r_material_properties[YOUNG_MODULUS];
-    const auto        NU                    = r_material_properties[POISSON_RATIO];
+    C = mpConstitutiveDimension->CalculateElasticMatrix(r_material_properties[YOUNG_MODULUS],
+                                                        r_material_properties[POISSON_RATIO]);
 
-    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    const double c1 = (1.0 - NU) * c0;
-    const double c2 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : c0 * NU;
-    const double c3 = this->GetConsiderDiagonalEntriesOnlyAndNoShear() ? 0.0 : (0.5 - NU) * c0;
-
-    C = mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
+    if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
+        auto result = Matrix{C.size1(), C.size2(), 0.0};
+        for (auto i = std::size_t{0}; i < 3; ++i) {
+            result(i, i) = C(i, i);
+        }
+        noalias(C) = result;
+    }
 
     KRATOS_CATCH("")
 }
