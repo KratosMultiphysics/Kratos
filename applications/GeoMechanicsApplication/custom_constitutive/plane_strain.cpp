@@ -22,7 +22,7 @@ Matrix PlaneStrain::CalculateElasticMatrix(double YoungsModulus, double Poissons
 {
     const auto c0 = YoungsModulus / ((1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio));
     const auto c1 = (1.0 - PoissonsRatio) * c0;
-    const auto c2 = c0 * PoissonsRatio;
+    const auto c2 = PoissonsRatio * c0;
     const auto c3 = (0.5 - PoissonsRatio) * c0;
 
     Matrix result = ZeroMatrix(4, 4);
