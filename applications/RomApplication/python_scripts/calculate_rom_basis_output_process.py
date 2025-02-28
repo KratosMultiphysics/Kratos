@@ -171,12 +171,13 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
 
     def _ComputeSVD(self, snapshots_matrix):
+
         # Calculate the randomized SVD of the snapshots matrix
         u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
         return u, sigma
 
 
-    def _PrintRomBasis(self, u, sigma, fixed_dofs_list):
+    def _PrintRomBasis(self, u, sigma, fixed_dofs_list = []):
         # Initialize the Python dictionary with the default settings
         # Note that this order is kept if Python 3.6 onwards is used
         rom_basis_dict = {
