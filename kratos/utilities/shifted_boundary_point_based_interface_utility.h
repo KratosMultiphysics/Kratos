@@ -174,9 +174,16 @@ public:
     void FixEnclosedVolumesPressure();
 
     //TODO
-    void CalculateTraction(
-        const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput);
+    // Calculate positive and negative side velocity and pressure at the nodes of the skin model part
+    // Result is stored in POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE
+    template <std::size_t TDim>
+    void CalculatePressureAtSkinNodesTemplated();
+    void CalculatePressureAtSkinNodes();
+    //void CalculateVelocityAtSkinNodes(); 
+    //void CalculateDragForceAtSkinPoints(); 
+    void CalculateSkinDrag();
+    //     const Variable<array_1d<double, 3>>& rVariable,
+    //     array_1d<double, 3>& rOutput);
 
     ///@}
     ///@name Access
@@ -223,13 +230,17 @@ protected:
     ///@{
 
     ModelPart* mpModelPart = nullptr;
-    ModelPart* mpSkinModelPart = nullptr;
+    //TODO needs to be discretized to be used for FindIntersectedGeometricalObjectsProcess. 
+    // Also right now integration points of mpSkinModelPart (1 GP) are taken as skin points with area and normal.
+    ModelPart* mpSkinModelPart = nullptr;  
     ModelPart* mpBoundarySubModelPart = nullptr;
 
     std::string mSkinModelPartName = "";
-
-    SkinPointsToElementsMapType mSkinPointsMap;  //TODO too big to store??
-    NodesCloudMapType mExtensionMap;  //TODO top big to store??
+    
+    SkinPointsToElementsMapType mSkinPointsMap;
+    //TODO too big to store - (only) necessary for calculation of values at skin
+    SidesVectorToElementsMapType mSidesVectorMap;
+    NodesCloudMapType mExtensionOperatorMap;
 
     bool mConformingBasis;
     ExtensionOperator mExtensionOperator;
@@ -380,6 +391,21 @@ protected:
         const Vector& rSidesVector,
         const array_1d<double,3>& rAvgSkinPosition,
         const array_1d<double,3>& rAvgSkinNormal);
+
+    //TODO
+    // Calculate positive and negative side pressure inside a given SBM_BOUNDARY element using given shape function values.
+    // returns true if pressure of point was calculated successfully
+    bool CalculatePressureInBoundaryElement(
+        const ElementType::Pointer pElement,
+        const Vector& rPointShapeFunctionValues,
+        double& rPositiveSidePressure,
+        double& rNegativeSidePressure);
+
+    bool CalculateVelocityInBoundaryElement(
+        const ElementType::Pointer pElement,
+        const Vector& rPointShapeFunctionValues,
+        array_1d<double,3>& rPositiveSideVelocity,
+        array_1d<double,3>& rNegativeSideVelocity);
 
     /**
      * @brief Get the MLS shape functions factory object
