@@ -34,7 +34,7 @@ namespace Kratos
     ///@}
     ///@name Private Operations
     ///@{
-    void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
+    void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
         const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part)
     {   
 
@@ -66,12 +66,17 @@ namespace Kratos
                          << "The skin_model_part '" << skin_model_part_outer_initial_name << "' was not created in the model.\n" 
                          << "Check the reading of the mdpa file in the import mdpa modeler."<< std::endl;
         }
+
+        // Create the surrogate sub model parts inner and outer
+        ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
+        ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
+
         // If there is not neither skin_inner nor skin_outer throw an error since you are using the sbm modeler
         if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
         
             // Create the breps for the outer sbm boundary
             CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
-            CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, r_model_part, A_uvw, B_uvw);
+            CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, r_model_part);
             
             KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
                             "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
@@ -91,10 +96,6 @@ namespace Kratos
         ModelPart& skin_model_part_outer_initial = mpModel->HasModelPart(skin_model_part_outer_initial_name)
             ? mpModel->GetModelPart(skin_model_part_outer_initial_name)
             : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
-
-        // Create the surrogate sub model parts inner and outer
-        ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
-        ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
 
         // Skin model part refined after Snake Process
         ModelPart& skin_model_part = mpModel->CreateModelPart(skin_model_part_name);

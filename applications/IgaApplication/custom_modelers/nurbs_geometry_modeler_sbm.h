@@ -114,8 +114,6 @@ private:
      **/
     void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
        SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
-
-    Parameters ReadParamatersFile(const std::string& rDataFileName) const;   
 };
 
 } // End namesapce Kratos
