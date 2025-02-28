@@ -258,87 +258,158 @@ namespace Kratos
 
         SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
         //-----------------------------------------------------------------------------------
+        if (candidateClosestSkinSegment1.GetGeometry()[0].Has(DIRECTION)){
+            // ASSIGN BC BY DIRECTION
+            //--------------------------------------------------------------------------------------------
+            Vector direction = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DIRECTION);
+            
+            Matrix DB = prod(r_D,B);
+            double integration_factor = IntToReferenceWeight;
+            for (IndexType i = 0; i < number_of_nodes; i++) {
+                for (IndexType j = 0; j < number_of_nodes; j++) {
+                    for (IndexType idim = 0; idim < 2; idim++) {
+                        const int id1 = 2*idim;
+                        const int iglob = 2*i+idim;
 
-        Matrix DB = prod(r_D,B);
-        double integration_factor = IntToReferenceWeight;
-        for (IndexType i = 0; i < number_of_nodes; i++) {
-            for (IndexType j = 0; j < number_of_nodes; j++) {
+                        for (IndexType jdim = 0; jdim < 2; jdim++) {
+                            // PENALTY TERM
+                            rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H_sum(0,i)*H_sum(0,j)* penalty_integration * direction[idim] * direction[jdim];
+
+                            const int id2 = (id1+2)%3;
+                            const int jglob = 2*j+jdim;
+                            // FLUX 
+                            // [sigma(u) \dot n] \dot n * (-w \dot n)
+                            //*********************************************** */
+                            Vector sigma_u_n = ZeroVector(3);
+                            sigma_u_n[0] = DB(0, jglob)*normal_parameter_space[0] + DB(2, jglob)*normal_parameter_space[1];
+                            sigma_u_n[1] = DB(2, jglob)*normal_parameter_space[0] + DB(1, jglob)*normal_parameter_space[1];
+
+                            double sigma_u_n_dot_direction = inner_prod(sigma_u_n, direction);
+                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*sigma_u_n_dot_direction * integration_factor * direction[idim];
+
+                            // // PENALTY FREE g_n = 0
+                            // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                            // //*********************************************** */
+                            Vector sigma_w_n = ZeroVector(3);
+                            sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
+                            sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+
+                            double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
+
+                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H_sum(0,j) * sigma_w_n_dot_direction * direction[jdim] * integration_factor;
+                        }
+
+                    }
+                }
+            }
+            
+            // // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
+            // // Of the Dirichlet BCs -(GRAD_w* n,u) 
+            if (CalculateResidualVectorFlag) {
                 
-                for (IndexType idim = 0; idim < 2; idim++) {
-                    rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H_sum(0,i)*H_sum(0,j)* penalty_integration;
-                    const int id1 = 2*idim;
-                    const int iglob = 2*i+idim;
+                double displacement_module = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(MODULE);
 
-                    for (IndexType jdim = 0; jdim < 2; jdim++) {
-                        const int id2 = (id1+2)%3;
-                        const int jglob = 2*j+jdim;
-                        rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
+                for (IndexType i = 0; i < number_of_nodes; i++) {
+                    for (IndexType idim = 0; idim < 2; idim++) {
 
-                        rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H_sum(0,j)*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                        const int iglob = 2*i+idim;
+
+                        rRightHandSideVector(iglob) -= H_sum(0,i) * direction[idim] * displacement_module * penalty_integration;
+
+                        // // PENALTY FREE g_n = 0
+                        // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
+                        // //*********************************************** */
+                        Vector sigma_w_n = ZeroVector(3);
+                        sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
+                        sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+
+                        double sigma_w_n_dot_n = inner_prod(sigma_w_n, direction);
+
+                        rRightHandSideVector(iglob) -= Guglielmo_innovation*sigma_w_n_dot_n * integration_factor *displacement_module;
                     }
 
+
                 }
+
+                // RHS = ExtForces - K*temp;
+                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,old_displacement);
+                
+                // exit(0);
             }
         }
-        
-        // // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-        // // Of the Dirichlet BCs -(GRAD_w* n,u) 
-        
-        if (CalculateResidualVectorFlag) {
-            
-            // const double& temperature = Has(TEMPERATURE)
-            //     ? this->GetValue(TEMPERATURE)
-            //     : 0.0;
-            
-            Vector u_D = ZeroVector(2); //->GetValue(DISPLACEMENT);
-            
-
-            u_D[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DISPLACEMENT_X);
-            u_D[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DISPLACEMENT_Y);
-
-            // double x = GetGeometry().Center().X(); double y = GetGeometry().Center().Y();
-
-            // u_D[0] = -cos(x)*sinh(y);
-            // u_D[1] = sin(x)*cosh(y);
-            
-
-
+        else {
+            // ASSIGN BC BY COMPONENTS 
+            //--------------------------------------------------------------------------------------------
+            Matrix DB = prod(r_D,B);
+            double integration_factor = IntToReferenceWeight;
             for (IndexType i = 0; i < number_of_nodes; i++) {
+                for (IndexType j = 0; j < number_of_nodes; j++) {
+                    
+                    for (IndexType idim = 0; idim < 2; idim++) {
+                        rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H_sum(0,i)*H_sum(0,j)* penalty_integration;
+                        const int id1 = 2*idim;
+                        const int iglob = 2*i+idim;
 
-                for (IndexType idim = 0; idim < 2; idim++) {
+                        for (IndexType jdim = 0; jdim < 2; jdim++) {
+                            const int id2 = (id1+2)%3;
+                            const int jglob = 2*j+jdim;
 
-                    rRightHandSideVector[2*i+idim] -= H_sum(0,i)*u_D[idim]* penalty_integration;
-                    const int id1 = idim*2;
+                            // // FLUX 
+                            // // [sigma(u) \dot n] \dot n * (-w \dot n)
+                            // //*********************************************** */
+                            // Vector sigma_u_n = ZeroVector(3);
+                            // sigma_u_n[0] = DB(0, jglob)*normal_parameter_space[0] + DB(2, jglob)*normal_parameter_space[1];
+                            // sigma_u_n[1] = DB(2, jglob)*normal_parameter_space[0] + DB(1, jglob)*normal_parameter_space[1];
 
-                    for (IndexType jdim = 0; jdim < 2; jdim++) {
-                        const int id2 = (id1+2)%3;
-                        rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                            // double sigma_u_n_dot_direction = inner_prod(sigma_u_n, direction);
+                            // rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*sigma_u_n[jdim] * integration_factor;
+                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
+
+                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H_sum(0,j)*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                        }
+
                     }
+                }
+            }
+            
+            // // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
+            // // Of the Dirichlet BCs -(GRAD_w* n,u) 
+            
+            if (CalculateResidualVectorFlag) {
+                
+                Vector u_D = ZeroVector(2); //->GetValue(DISPLACEMENT);
+                
+                u_D[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DISPLACEMENT_X);
+                u_D[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(DISPLACEMENT_Y);
+
+
+                for (IndexType i = 0; i < number_of_nodes; i++) {
+
+                    for (IndexType idim = 0; idim < 2; idim++) {
+
+                        rRightHandSideVector[2*i+idim] -= H_sum(0,i)*u_D[idim]* penalty_integration;
+                        const int id1 = idim*2;
+
+                        for (IndexType jdim = 0; jdim < 2; jdim++) {
+                            const int id2 = (id1+2)%3;
+                            rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                        }
+
+                    }
+
 
                 }
 
+                // RHS = ExtForces - K*temp;
+                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,old_displacement);
 
+                // for (unsigned int i = 0; i < number_of_nodes; i++) {
+
+                //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+                //     outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+                //     outputFile.close();
+                // }
             }
-            
-            // noalias(rRightHandSideVector) += prod(prod(trans(H), H), u_D) * penalty_integration;
-            // // Of the Dirichlet BCs
-            // noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
-            
-            // Vector temp = ZeroVector(number_of_nodes);
-
-            // GetValuesVector(temp);
-
-            // RHS = ExtForces - K*temp;
-            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,old_displacement);
-
-            for (unsigned int i = 0; i < number_of_nodes; i++) {
-
-                std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-                outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-                outputFile.close();
-            }
-            
-            // exit(0);
         }
         KRATOS_CATCH("")
     }

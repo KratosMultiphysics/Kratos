@@ -199,6 +199,8 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
         void GetValuesVector(Vector& rValues) const;
 
         unsigned long long factorial(int n); 
@@ -264,6 +266,9 @@ namespace Kratos
         };
 
     private:
+
+        Vector mDistance;
+        Vector mTrueNormal;
         ///@name Serialization
         ///@{
 

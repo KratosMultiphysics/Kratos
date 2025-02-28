@@ -40,10 +40,24 @@ namespace Kratos
 
         mDistanceMaster[0] = projection_node_master.X() - r_geometry_master.Center().X();   mDistanceSlave[0] = projection_node_slave.X() - r_geometry_slave.Center().X();             
         mDistanceMaster[1] = projection_node_master.Y() - r_geometry_master.Center().Y();   mDistanceSlave[1] = projection_node_slave.Y() - r_geometry_slave.Center().Y();
+        
+        Vector normal_true_master = projection_node_master.GetValue(NORMAL);
+        Vector normal_true_slave = projection_node_slave.GetValue(NORMAL);
+        
+        this->SetValue(NORMAL_MASTER, normal_true_master);
+        this->SetValue(NORMAL_SLAVE, normal_true_slave);
+
+        this->SetValue(NORMAL, normal_true_master);
+        
         // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-        outputFile << projection_node_master.X() << " " << projection_node_master.Y() << " "  << r_geometry_master.Center().X() << " " << r_geometry_master.Center().Y() <<"\n";
-        outputFile << projection_node_slave.X() << " " << projection_node_slave.Y() << " "  << r_geometry_slave.Center().X() << " " << r_geometry_slave.Center().Y() <<"\n";
+        // std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::app);
+        // outputFile << projection_node_master.X() << " " << projection_node_master.Y() << " " 
+        //            << projection_node_slave.X() << " " << projection_node_slave.Y() <<"\n";
+
+
+        std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::app);
+        outputFile << projection_node_master.X() << " " << projection_node_master.Y() << " " 
+                   << r_geometry_master.Center().X() << " " << r_geometry_master.Center().Y() <<"\n";
         outputFile.close();
 
         // this->Set(ACTIVE, false);
@@ -136,7 +150,8 @@ namespace Kratos
         // // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian,InvJ0_master,DetJ0_master);
 
-        KRATOS_ERROR_IF(std::abs(DetJ0_master -1.0) > 1e-13) << ":::[SbmContact2DCondition]::: Error. Master: Not coincident physical and parameter spaces" << std::endl;
+        KRATOS_ERROR_IF(std::abs(DetJ0_master -1.0) > 1e-11) << ":::[SbmContact2DCondition]::: Error. Master: Not coincident physical and parameter spaces" 
+                        << "detJ" << DetJ0_master << std::endl;
 
         const Matrix& N_master = r_geometry_master.ShapeFunctionsValues(this->GetIntegrationMethod());
 
@@ -161,7 +176,8 @@ namespace Kratos
         // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(Jacobian_slave,InvJ0_slave,DetJ0_slave);  //DetJ0 is not the true one for NURBS geometries
 
-        KRATOS_ERROR_IF(std::abs(DetJ0_master -1.0) > 1e-13) << ":::[SbmContact2DCondition]::: Error. Slave: Not coincident physical and parameter spaces" << std::endl;
+        KRATOS_ERROR_IF(std::abs(DetJ0_master -1.0) > 1e-11) << ":::[SbmContact2DCondition]::: Error. Slave: Not coincident physical and parameter spaces" 
+                        << "detJ" << DetJ0_slave << std::endl;
 
         const Matrix& N_slave = r_geometry_slave.ShapeFunctionsValues(this->GetIntegrationMethod());
 
@@ -177,7 +193,7 @@ namespace Kratos
 
         const double IntToReferenceWeight = GetValue(INTEGRATION_WEIGHT);
 
-        const Vector normal_surrogate_master_3D = mNormalMaster; SetValue(NORMAL, normal_surrogate_master_3D);
+        const Vector normal_surrogate_master_3D = mNormalMaster; 
 
         Vector normal_surrogate_master_2D(2); normal_surrogate_master_2D[0] = normal_surrogate_master_3D[0]; normal_surrogate_master_2D[1] = normal_surrogate_master_3D[1];
 
@@ -232,7 +248,8 @@ namespace Kratos
         // Compute all the derivatives of the basis functions involved
         std::vector<Matrix> n_shape_function_derivatives_master; std::vector<Matrix> n_shape_function_derivatives_slave;
         int basis_functions_order_master = std::sqrt(DN_De_master[0].size1()) - 1;
-        int basis_functions_order_slave = std::sqrt(DN_De_slave[0].size1()) - 1;;
+        int basis_functions_order_slave = std::sqrt(DN_De_slave[0].size1()) - 1;
+
 
         for (int n = 1; n <= basis_functions_order_master; n++) {
             n_shape_function_derivatives_master.push_back(r_geometry_master.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
@@ -592,51 +609,24 @@ namespace Kratos
 
                             rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*extension_sigma_u_n[idim] * IntToReferenceWeight * n_ntilde_master;
 
+
+
+
+
+                            // Vector sigma_u_n(2);
+                            // sigma_u_n[0] = (DB_master(0, jglob)* tau_true_master[0] + DB_master(2, jglob)* tau_true_master[1]);
+                            // sigma_u_n[1] = (DB_master(2, jglob)* tau_true_master[0] + DB_master(1, jglob)* tau_true_master[1]);
+
+                            // double tau_n_tilde = normal_surrogate_master_2D[0]*tau_true_master[0] + normal_surrogate_master_2D[1]*tau_true_master[1];
+
+                            // rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_n[idim]* tau_n_tilde * IntToReferenceWeight;
+
                         }
 
                     }
                 }
             }
-
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            // INTEGRATION ON SLAVE
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            // MASTER
-            // for (IndexType i = 0; i < number_of_nodes_slave; i++) {
-            //     for (IndexType j = 0; j < number_of_nodes_master; j++) {
-                    
-            //         for (IndexType idim = 0; idim < 2; idim++) {
-            //             const int iglob = 2*i+idim +2*number_of_nodes_master;
-
-            //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-            //                 const int jglob = 2*j+jdim;
-
-            //                 // FLUX 
-            //                 // [sigma_1(u) \dot n_tilde] \dot * w_1)
-            //                 //*********************************************** */
-            //                 Vector sigma_u_n(2);
-            //                 sigma_u_n[0] = (DB_master(0, jglob)* normal_surrogate_master_2D[0] + DB_master(2, jglob)* normal_surrogate_master_2D[1]);
-            //                 sigma_u_n[1] = (DB_master(2, jglob)* normal_surrogate_master_2D[0] + DB_master(1, jglob)* normal_surrogate_master_2D[1]);
-
-            //                 rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*sigma_u_n[idim] * IntToReferenceWeight;
-
-
-            //                 // SBM FLUX CORRECTION
-            //                 // -([{sigma_N} - E(sigma \dot n \dot n)](n \dot n_tilde) (n\dot w)) + 
-            //                 // - ([{0} - E(sigma \dot n \dot tau)](n \dot n_tilde) (tau\dot w))
-
-            //                 // 1) [E(sigma_1(u)) \dot n] (n \dot n_tilde) \dot * w_1
-            //                 //*********************************************** */
-            //                 Vector extension_sigma_u_n(2);
-            //                 extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* normal_true_master[0] + DB_sum_master(2, jglob)* normal_true_master[1]);
-            //                 extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* normal_true_master[0] + DB_sum_master(1, jglob)* normal_true_master[1]);
-
-            //                 rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*extension_sigma_u_n[idim] * IntToReferenceWeight * n_ntilde_master;
-            //             }
-
-            //         }
-            //     }
-            // }
+            
             // SLAVE
             Matrix DB_slave = prod(r_D_slave,B_slave);
             Matrix DB_sum_slave = prod(r_D_slave,B_sum_slave);
@@ -688,6 +678,13 @@ namespace Kratos
             // RHS = ExtForces - K*temp;
             noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
         }
+
+        // for (unsigned int i = 0; i < number_of_nodes_master; i++) {
+
+        //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+        //     outputFile << r_geometry_master[i].GetId() << "  " <<r_geometry_master[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+        //     outputFile.close();
+        // }
 
         // /////////////////////////////////////////////////////////////////////////////////////////
      
@@ -910,7 +907,7 @@ namespace Kratos
         Values.SetStressVector(this_constitutive_variables.StressVector);
 
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        rpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        rpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
         if (index == 0) {
             this->SetValue(CONSTITUTIVE_MATRIX_MASTER, Values.GetConstitutiveMatrix());
@@ -926,7 +923,6 @@ namespace Kratos
 
     void SbmContact2DCondition::SetGap() 
     {
-
         NodeType projection_node_master;         NodeType projection_node_slave;
         //
         projection_node_master = GetMasterGeometry().GetValue(NEIGHBOUR_NODES)[0];
@@ -936,11 +932,11 @@ namespace Kratos
 
         Vector skin_master_coord_deformed = projection_node_master + GetValue(DISPLACEMENT_MASTER);
         Vector skin_slave_coord_deformed  = projection_node_slave + GetValue(DISPLACEMENT_SLAVE);
+        
+        SetValue(SKIN_MASTER_COORDINATES, projection_node_master);
+        SetValue(SKIN_SLAVE_COORDINATES, projection_node_slave);
 
-        Vector true_normal_master = projection_node_master.GetValue(NORMAL);
-
-
-
+        Vector true_normal_master = (projection_node_master.GetValue(NORMAL));//-projection_node_slave.GetValue(NORMAL))/2;
         double normal_gap = inner_prod(skin_slave_coord_deformed - skin_master_coord_deformed, true_normal_master);
 
         SetValue(NORMAL_GAP, normal_gap);
@@ -957,7 +953,6 @@ namespace Kratos
         //     KRATOS_WATCH(normal_gap)
         //     KRATOS_WATCH(true_normal_master)
         // }
-        
         SetValue(GAP, gap_deformed);
     }
 
@@ -991,23 +986,39 @@ namespace Kratos
         ConstitutiveLaw::Parameters constitutive_law_parameters_master(
             GetMasterGeometry(), *mpPropMaster, rCurrentProcessInfo);
 
-        mpConstitutiveLawMaster->FinalizeMaterialResponse(constitutive_law_parameters_master, ConstitutiveLaw::StressMeasure_Cauchy);
+        mpConstitutiveLawMaster->FinalizeMaterialResponse(constitutive_law_parameters_master, ConstitutiveLaw::StressMeasure_PK2);
 
         ConstitutiveLaw::Parameters constitutive_law_parameters_slave(
             GetSlaveGeometry(), *mpPropSlave, rCurrentProcessInfo);
 
-        mpConstitutiveLawSlave->FinalizeMaterialResponse(constitutive_law_parameters_slave, ConstitutiveLaw::StressMeasure_Cauchy);
+        mpConstitutiveLawSlave->FinalizeMaterialResponse(constitutive_law_parameters_slave, ConstitutiveLaw::StressMeasure_PK2);
 
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
-        Vector normal_physical_space = GetValue(NORMAL);
+        Vector normal_true_master = GetValue(NORMAL_MASTER);
         Vector stress_vector_master = GetValue(STRESS_MASTER);
 
         Vector sigma_n(2);
 
-        sigma_n[0] = stress_vector_master[0]*normal_physical_space[0] + stress_vector_master[2]*normal_physical_space[1];
-        sigma_n[1] = stress_vector_master[2]*normal_physical_space[0] + stress_vector_master[1]*normal_physical_space[1];
+        sigma_n[0] = stress_vector_master[0]*normal_true_master[0] + stress_vector_master[2]*normal_true_master[1];
+        sigma_n[1] = stress_vector_master[2]*normal_true_master[0] + stress_vector_master[1]*normal_true_master[1];
 
         SetValue(NORMAL_STRESS, sigma_n);
+
+
+        const auto& r_geometry_master = GetMasterGeometry();
+        NodeType projection_node_master;      
+        //
+        projection_node_master = r_geometry_master.GetValue(NEIGHBOUR_NODES)[0];
+
+        // if (projection_node_master[1] < 7.335 && projection_node_master[1] > 7.332)
+        // {
+        //     KRATOS_WATCH("----------------------")
+        //     KRATOS_WATCH(projection_node_master)
+        //     KRATOS_WATCH(sigma_n)
+        //     KRATOS_WATCH(inner_prod(sigma_n, normal_true_master))
+        //     KRATOS_WATCH(normal_true_master)
+        //     KRATOS_WATCH("----------------------")
+        // }
         // //---------------------
     }
 
@@ -1017,14 +1028,13 @@ namespace Kratos
         ConstitutiveLaw::Parameters constitutive_law_parameters_master(
             GetMasterGeometry(), (*mpPropMaster), rCurrentProcessInfo);
 
-        mpConstitutiveLawMaster->InitializeMaterialResponse(constitutive_law_parameters_master, ConstitutiveLaw::StressMeasure_Cauchy);
+        mpConstitutiveLawMaster->InitializeMaterialResponse(constitutive_law_parameters_master, ConstitutiveLaw::StressMeasure_PK2);
 
         // InitializeMaterial(); //slave
         ConstitutiveLaw::Parameters constitutive_law_parameters_slave(
             GetSlaveGeometry(), (*mpPropSlave), rCurrentProcessInfo);
 
-        mpConstitutiveLawSlave->InitializeMaterialResponse(constitutive_law_parameters_slave, ConstitutiveLaw::StressMeasure_Cauchy);
-
+        mpConstitutiveLawSlave->InitializeMaterialResponse(constitutive_law_parameters_slave, ConstitutiveLaw::StressMeasure_PK2);
 
         this->InitializeNonLinearIteration(rCurrentProcessInfo);
 
@@ -1333,7 +1343,7 @@ namespace Kratos
         Values.SetStressVector(this_constitutive_variables.StressVector);
 
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        rpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        rpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
         
         stress_vector = Values.GetStressVector();

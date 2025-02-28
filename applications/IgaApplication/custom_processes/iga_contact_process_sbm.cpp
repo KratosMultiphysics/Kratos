@@ -22,7 +22,10 @@ namespace Kratos
 {
 
     IgaContactProcessSbm::IgaContactProcessSbm(
-        Model& rModel, Parameters ThisParameters) : mpModel(&rModel), mParameters(ThisParameters)
+        Model& rModel, Parameters ThisParameters) : 
+        Process(), 
+        mpModel(&rModel), 
+        mParameters(ThisParameters)
     {
         KRATOS_WATCH("inittttttttttttttttttttttttttttttttttttttttttttt")
         // TODO: SBM->Body Fitted case or viceversa
@@ -166,16 +169,18 @@ namespace Kratos
 
     void IgaContactProcessSbm::Execute(){
 
+        std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::trunc);
+
         const std::string master_layer_name = mParameters["contact_parameters"]["master_model_part"]["layer_name"].GetString();
         const std::string slave_layer_name = mParameters["contact_parameters"]["slave_model_part"]["layer_name"].GetString();
 
-        ConditionsArrayType& r_conditions_array = mrContactModelPart->Conditions();
+        ConditionsArrayType& r_conditions_array = mrContactModelPart->GetParentModelPart().Conditions();
         KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
         block_for_each(r_conditions_array, [&](Condition& rCond) {
                 rCond.Set(TO_ERASE, true);
         });
 
-        mrContactModelPart->RemoveConditionsFromAllLevels(TO_ERASE);
+        mrContactModelPart->GetParentModelPart().RemoveConditionsFromAllLevels(TO_ERASE);
         SizeType id = 1;
         if (mrContactModelPart->GetRootModelPart().Conditions().size() > 0)
             id = mrContactModelPart->GetRootModelPart().Conditions().back().Id() + 1;
@@ -205,8 +210,11 @@ namespace Kratos
             p_slave_geometry->GlobalCoordinates(brep_center, brep_center_local_coords);
 
             points.push_back(PointTypePointer(new PointType(p_slave_geometry->Id(), brep_center)));
+
             count_slave_brep++;
         }
+
+        
         
         DynamicBins testBins(points.begin(), points.end());
         const int numberOfResults = 1e2; 
@@ -214,7 +222,12 @@ namespace Kratos
         std::vector<double> list_of_distances(numberOfResults);
         double meshSize = meshSizes_uv[0];
         if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
-        double radius = sqrt(3)*(meshSize); 
+        double radius = 3*sqrt(3)*(meshSize); 
+
+        PointerType pointToSearch = PointerType(new PointType(1, 0.0195833, 0, 0));
+
+        int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
+
         //********************************************************
         // ********************************************************** */
         for (auto& r_geometry_master : mrMasterModelPart->Geometries()) {
@@ -245,6 +258,10 @@ namespace Kratos
                 CoordinatesArrayType best_curve_projection_local_coord;
                 bool is_converged_at_least_once = false;
                 IndexType best_slave_curve_id;
+
+                CoordinatesArrayType skin_node_deformed_coordinates;
+                GetDeformedPosition(skin_node, *mrMasterModelPart, mSparseBrepMatrixMaster, skin_node_deformed_coordinates);
+
                 for (auto &i_slave_curve : mrSlaveSkinModelPart->Geometries())
                 { 
                     if (i_slave_curve.GetValue(IDENTIFIER) != slave_layer_name) continue;
@@ -253,37 +270,32 @@ namespace Kratos
                     CoordinatesArrayType projected_point;
                     double distance;
 
-                    CoordinatesArrayType skin_node_deformed_coordinates;
-                    GetDeformedPosition(skin_node, *mrMasterModelPart, mSparseBrepMatrixMaster, skin_node_deformed_coordinates);
-
-                    // KRATOS_WATCH(skin_node)
-                    // KRATOS_WATCH(skin_node_deformed_coordinates)
-                    bool is_converged = ProjectionNurbsContactUtilities<PointType, PointerVector<NodeType>>::NewtonRaphsonCurve(
-                                        local_coord,
-                                        skin_node,
-                                        projected_point,
-                                        i_slave_curve,
-                                        distance,
-                                        20,
-                                        1e-9);
-
-
-                    // int slave_nurbs_curve_id = i_slave_curve.Id();
-                    // auto p_slave_nurbs_curve_geometry = mrSlaveSkinModelPart->pGetGeometry(slave_nurbs_curve_id);
-                    // auto slave_nurbs_curve_geometry = std::dynamic_pointer_cast<NurbsCurveGeometryType>(p_slave_nurbs_curve_geometry);
-
-                    // KRATOS_ERROR_IF(!slave_nurbs_curve_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << slave_nurbs_curve_id 
-                    //                         << " is not a NurbsCurveGeometryType." << std::endl;
-
-                    // bool is_converged = NewtonRaphsonCurveOnDeformed(
+                    // bool is_converged = ProjectionNurbsContactUtilities<PointType, PointerVector<NodeType>>::NewtonRaphsonCurve(
                     //                     local_coord,
                     //                     skin_node_deformed_coordinates,
                     //                     projected_point,
-                    //                     *slave_nurbs_curve_geometry,
+                    //                     i_slave_curve,
                     //                     distance,
-                    //                     5,
                     //                     20,
                     //                     1e-9);
+
+
+                    int slave_nurbs_curve_id = i_slave_curve.Id();
+                    auto p_slave_nurbs_curve_geometry = mrSlaveSkinModelPart->pGetGeometry(slave_nurbs_curve_id);
+                    auto slave_nurbs_curve_geometry = std::dynamic_pointer_cast<NurbsCurveGeometryType>(p_slave_nurbs_curve_geometry);
+
+                    KRATOS_ERROR_IF(!slave_nurbs_curve_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << slave_nurbs_curve_id 
+                                            << " is not a NurbsCurveGeometryType." << std::endl;
+
+                    bool is_converged = NewtonRaphsonCurveOnDeformed(
+                                        local_coord,
+                                        skin_node_deformed_coordinates,
+                                        projected_point,
+                                        *slave_nurbs_curve_geometry,
+                                        distance,
+                                        20,
+                                        10,
+                                        1e-9);
 
                     if (is_converged || distance < 1e-2) is_converged_at_least_once = true;
                     
@@ -292,6 +304,11 @@ namespace Kratos
                         best_curve_projection = projected_point;
                         best_curve_projection_local_coord = local_coord; 
                         best_slave_curve_id = i_slave_curve.Id();
+
+                        std::vector<array_1d<double, 3>> ppp;
+                        //FIXME:
+                        slave_nurbs_curve_geometry->GlobalSpaceDerivatives(ppp, best_curve_projection_local_coord, 1);
+                        best_curve_projection = ppp[0];
                     }
                 }
                 if (!is_converged_at_least_once) continue;
@@ -325,7 +342,7 @@ namespace Kratos
 
 
                 // find the closest slave gauss point to the projected skin node on the slave boundary
-                PointerType pointToSearch = PointerType(new PointType(10000, new_slave_skin_node->Coordinates()));
+                PointerType pointToSearch = PointerType(new PointType(1, new_slave_skin_node->Coordinates()));
 
                 int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
 
@@ -338,12 +355,15 @@ namespace Kratos
                         nearestNodeId = i_distance;
                         }
                 }
+                
+                KRATOS_ERROR_IF(obtainedResults == 0) << "::[IgaContactProcessSbm]:: Zero points found in search!!" 
+                    << *new_slave_skin_node <<  best_skin_node << std::endl;
 
                 IndexType best_brep_surrogate_slave_id = Results[nearestNodeId]->Id();
                 auto best_slave_brep_geometry = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(mrSlaveModelPart->pGetGeometry(best_brep_surrogate_slave_id));
-
-                best_slave_brep_geometry->SetValue(IDENTIFIER, "active");
                 KRATOS_ERROR_IF(!best_slave_brep_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << best_brep_surrogate_slave_id << "is not a Brep." << std::endl;
+                best_slave_brep_geometry->SetValue(IDENTIFIER, "active");
+                master_brep_geometry->SetValue(IDENTIFIER, "active");
 
                 // find the closest integration point in the brep
                 GeometriesArrayType gp_list_slave;
@@ -361,7 +381,6 @@ namespace Kratos
                     }
                     count_gp_slave++;
                 }
-
                 new_slave_skin_node->SetValue(NEIGHBOUR_GEOMETRY, gp_list_slave(best_surrogate_node_array_position));
 
                 rResultGeometries(count_gp_master) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCouplingGeometry2D(
@@ -385,8 +404,8 @@ namespace Kratos
         // Set non active slave breps to SBM load condition to zero
         std::string default_condition_name = "SBMLoadSolid2DCondition";
         SizeType rIdCounter = 1;
-        if (mrSlaveModelPart->GetRootModelPart().Conditions().size() > 0)
-            rIdCounter = mrSlaveModelPart->GetRootModelPart().Conditions().back().Id() + 1;
+        if (mrContactModelPart->GetRootModelPart().Conditions().size() > 0)
+            rIdCounter = mrContactModelPart->GetRootModelPart().Conditions().back().Id() + 1;
 
         for (auto& r_geometry_slave : mrSlaveModelPart->Geometries()) {
 
@@ -408,7 +427,7 @@ namespace Kratos
 
             KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
                 << "Creating conditions of type " << default_condition_name
-                << " in " << mrSlaveModelPart->Name() << "-SubModelPart." << std::endl;
+                << " in " << mrContactModelPart->GetParentModelPart().Name() << "-SubModelPart." << std::endl;
 
             IndexType count_cond = 0;
             for (auto it = gp_list_slave.ptr_begin(); it != gp_list_slave.ptr_end(); ++it) {
@@ -427,16 +446,61 @@ namespace Kratos
                 for (SizeType i = 0; i < (*it)->size(); ++i) {
                     // These are the control points associated with the basis functions involved in the condition we are creating
                     // rModelPart.AddNode((*it)->pGetPoint(i));
-                    mrSlaveModelPart->Nodes().push_back((*it)->pGetPoint(i));
+                    mrContactModelPart->GetParentModelPart().Nodes().push_back((*it)->pGetPoint(i));
+                }
+                rIdCounter++;
+                count_cond++;
+            }
+            mrContactModelPart->GetParentModelPart().AddConditions(new_condition_list.begin(), new_condition_list.end());
+        }
+            //-----------------------------------------------------------------------------------------------------
+            // master inactive breps
+
+        for (auto& r_geometry_master : mrMasterModelPart->Geometries()) {
+
+            int master_brep_id = r_geometry_master.Id();
+            auto p_master_geometry = mrMasterModelPart->pGetGeometry(master_brep_id);
+
+            if (p_master_geometry->GetValue(IDENTIFIER) == "active") continue;
+
+
+            auto master_brep_geometry = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_master_geometry);
+
+            KRATOS_ERROR_IF(!master_brep_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << master_brep_id << "is not a Brep." << std::endl;
+
+            GeometriesArrayType gp_list_master;
+            master_brep_geometry->GetQuadraturePointGeometries(gp_list_master);
+
+            // CREATE SBM LOAD CONDITIONS 
+            const Condition& rReferenceCondition = KratosComponents<Condition>::Get(default_condition_name);
+            ModelPart::ConditionsContainerType new_condition_list;
+
+            KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
+                << "Creating conditions of type " << default_condition_name
+                << " in " << mrContactModelPart->GetParentModelPart().Name() << "-SubModelPart." << std::endl;
+
+            IndexType count_cond = 0;
+            for (auto it = gp_list_master.ptr_begin(); it != gp_list_master.ptr_end(); ++it) {
+                new_condition_list.push_back(rReferenceCondition.Create(rIdCounter, (*it), mpPropMaster));
+                
+                new_condition_list.GetContainer()[count_cond]->SetValue(MARKER_MESHES, meshSizes_uv);
+                new_condition_list.GetContainer()[count_cond]->SetValue(IDENTIFIER, "outer");
+                                
+                for (SizeType i = 0; i < (*it)->size(); ++i) {
+                    // These are the control points associated with the basis functions involved in the condition we are creating
+                    // rModelPart.AddNode((*it)->pGetPoint(i));
+                    mrContactModelPart->GetParentModelPart().Nodes().push_back((*it)->pGetPoint(i));
                 }
                 rIdCounter++;
                 count_cond++;
             }
 
-            mrSlaveModelPart->AddConditions(new_condition_list.begin(), new_condition_list.end());
+            mrContactModelPart->GetParentModelPart().AddConditions(new_condition_list.begin(), new_condition_list.end());
         }
-        EntitiesUtilities::InitializeEntities<Condition>(*mrSlaveModelPart);
+
+        EntitiesUtilities::InitializeEntities<Condition>(mrContactModelPart->GetParentModelPart());
     }
+    
 
 
 
@@ -510,23 +574,14 @@ namespace Kratos
             }
             if (index_found) break;
         }
-        if (!index_found)
+        int first_i = 0; int first_j = 0;
+        while (!index_found)
         {
-            int i = -1;
-            for (int j = 0; j < 2; j++)
+            first_i--; first_j--;
+            for (int i = first_i; i < 2; i++)
             {
-                if (knot_span_surrounded_v_id+j < 0) continue;
-                if (SparseBrepMatrix(knot_span_surrounded_u_id+i, knot_span_surrounded_v_id+j) != 0)
-                {
-                    brep_id = SparseBrepMatrix(knot_span_surrounded_u_id+i, knot_span_surrounded_v_id+j);
-                    index_found = true;
-                    break;
-                }
-            }
-            if (!index_found)
-            {
-                int j = -1;
-                for (int i = 0; i < 2; i++)
+                if (knot_span_surrounded_u_id+i < 0) continue;
+                for (int j = first_j; j < 2; j++)
                 {
                     if (knot_span_surrounded_v_id+j < 0) continue;
                     if (SparseBrepMatrix(knot_span_surrounded_u_id+i, knot_span_surrounded_v_id+j) != 0)
@@ -536,6 +591,7 @@ namespace Kratos
                         break;
                     }
                 }
+                if (index_found) break;
             }
         }
         KRATOS_ERROR_IF(brep_id == 0) << "::[IgaContactProcessSbm]:: no boundary surrogate brep around true point: " <<
@@ -637,23 +693,14 @@ namespace Kratos
             }
             if (index_found) break;
         }
-        if (!index_found)
+        int first_i = 0; int first_j = 0;
+        while (!index_found)
         {
-            int i = -1;
-            for (int j = 0; j < 2; j++)
+            first_i--; first_j--;
+            for (int i = first_i; i < 2; i++)
             {
-                if (knot_span_surrounded_v_id+j < 0) continue;
-                if (SparseBrepMatrix(knot_span_surrounded_u_id+i, knot_span_surrounded_v_id+j) != 0)
-                {
-                    brep_id = SparseBrepMatrix(knot_span_surrounded_u_id+i, knot_span_surrounded_v_id+j);
-                    index_found = true;
-                    break;
-                }
-            }
-            if (!index_found)
-            {
-                int j = -1;
-                for (int i = 0; i < 2; i++)
+                if (knot_span_surrounded_u_id+i < 0) continue;
+                for (int j = first_j; j < 2; j++)
                 {
                     if (knot_span_surrounded_v_id+j < 0) continue;
                     if (SparseBrepMatrix(knot_span_surrounded_u_id+i, knot_span_surrounded_v_id+j) != 0)
@@ -663,6 +710,7 @@ namespace Kratos
                         break;
                     }
                 }
+                if (index_found) break;
             }
         }
         
@@ -865,6 +913,8 @@ namespace Kratos
         Matrix projected_point_gradient_deformation = ZeroMatrix(2,2);
         Matrix projected_point_hessian_deformation = ZeroMatrix(2,3);
 
+        CoordinatesArrayType current_point_global_coordinates(3);
+
         Vector curve_interval(2);
         auto interval = rPairedGeometry.DomainInterval();
         curve_interval[0] = interval.GetT0();
@@ -887,13 +937,13 @@ namespace Kratos
                     t,
                     2);
                     
-                rProjectedPointGlobalCoordinates = curve_derivatives[0]; // undeformed
+                current_point_global_coordinates = curve_derivatives[0]; // undeformed
 
                 // deformed position
-                GetDeformedPosition(rProjectedPointGlobalCoordinates, *mrSlaveModelPart, mSparseBrepMatrixSlave, projected_point_deformed_global_coordinates);
+                GetDeformedPosition(current_point_global_coordinates, *mrSlaveModelPart, mSparseBrepMatrixSlave, projected_point_deformed_global_coordinates);
 
                 // // NEW
-                GetDeformedGradient(rProjectedPointGlobalCoordinates, *mrSlaveModelPart, mSparseBrepMatrixSlave, projected_point_gradient_deformation, projected_point_hessian_deformation);
+                GetDeformedGradient(current_point_global_coordinates, *mrSlaveModelPart, mSparseBrepMatrixSlave, projected_point_gradient_deformation, projected_point_hessian_deformation);
 
                 for (int i_dim = 0; i_dim < 2; i_dim++) {
                     gradient_derivatives_updated[i_dim] = curve_derivatives[1][i_dim] +
@@ -919,6 +969,7 @@ namespace Kratos
                 if (distance < Acc) // Acc
                 {
                     rProjectedPointLocalCoordinates = t;
+                    rProjectedPointGlobalCoordinates = current_point_global_coordinates;
                     return true;
                 }
 
@@ -933,6 +984,7 @@ namespace Kratos
 
                         if (distance < best_distance) {
                             best_distance = distance;
+                            rProjectedPointGlobalCoordinates = current_point_global_coordinates;
                             rProjectedPointLocalCoordinates = t;
                         }
                         break;
@@ -952,8 +1004,12 @@ namespace Kratos
                     if (std::isnan(to_check)) break;
                     else 
                     {
-                        rProjectedPointLocalCoordinates = t;
-                        return true;
+                        if (distance < best_distance) {
+                            best_distance = distance;
+                            rProjectedPointLocalCoordinates = t;
+                            rProjectedPointGlobalCoordinates = current_point_global_coordinates;
+                        }
+                        break;
                     }
                 }
                     

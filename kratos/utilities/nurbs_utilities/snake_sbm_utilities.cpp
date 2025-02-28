@@ -247,7 +247,7 @@ namespace Kratos
                 {
                     const int last_node_id = skin_model_part.GetRootModelPart().NumberOfNodes();
                     Node& last_node = skin_sub_model_part.GetNode(last_node_id);
-                    KRATOS_ERROR_IF(norm_2(first_point_coords - last_node) > 1e-15)
+                    KRATOS_ERROR_IF(norm_2(first_point_coords - last_node) > 1e-7)
                                     << "ImportNurbsSbmModeler: error in the json NURBS file. The boundary curves" 
                                     << " are not correctly ordered." << std::endl;
 

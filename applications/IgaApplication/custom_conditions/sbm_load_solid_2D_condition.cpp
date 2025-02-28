@@ -102,7 +102,7 @@ namespace Kratos
         // }
         if (this->GetValue(NEIGHBOUR_NODES).size() != 0) 
         {
-            projection_node = this->GetValue(NEIGHBOUR_NODES)[0];
+            projection_node = r_geometry.GetValue(NEIGHBOUR_NODES)[0];
 
             true_n = projection_node.GetValue(NORMAL);
             true_tau = projection_node.GetValue(LOCAL_TANGENT);
@@ -137,16 +137,18 @@ namespace Kratos
         } else
             KRATOS_ERROR << ":::[SBMLoadSolid2DCondition]::: Error, no NEIGHBOUR NODE OR CONDITIONS SPECIFIED" << std::endl;
         
-
+        mTrueNormal = true_n;
         projection[0] = projection_node.X();                     
         projection[1] = projection_node.Y() ;
         d[0] = projection[0] - r_geometry.Center().X();          
         d[1] = projection[1] - r_geometry.Center().Y();
+        mDistance = d;
         // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
         std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
         outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
         outputFile.close();
-
+        SetValue(SKIN_MASTER_COORDINATES, projection);
+        
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
         // Determine the integration: conservative -> initial; non-conservative -> current
@@ -254,7 +256,6 @@ namespace Kratos
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
@@ -326,6 +327,7 @@ namespace Kratos
 
             g_N[0] = projection_node.GetValue(FORCE_X);
             g_N[1] = projection_node.GetValue(FORCE_Y);
+                
             
             for (IndexType i = 0; i < number_of_nodes; i++) {
                 
@@ -340,12 +342,12 @@ namespace Kratos
             
         }
 
-        for (unsigned int i = 0; i < number_of_nodes; i++) {
+        // for (unsigned int i = 0; i < number_of_nodes; i++) {
 
-                std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-                outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-                outputFile.close();
-            }
+        //         std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+        //         outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+        //         outputFile.close();
+        //     }
         KRATOS_CATCH("")
     }
 
@@ -407,6 +409,113 @@ namespace Kratos
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
         }
     };
+
+    void SBMLoadSolid2DCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+
+        //---------- SET STRESS VECTOR VALUE ---------------------------------------------------------------
+        
+        const auto& r_geometry = GetGeometry();
+        const SizeType nb_nodes = r_geometry.size();
+        const SizeType mat_size = nb_nodes * 2;
+
+        // Shape function derivatives (NEW) 
+        // Initialize Jacobian
+        GeometryType::JacobiansType J0;
+        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+        // Initialize DN_DX
+        const unsigned int dim = 2;
+        Matrix DN_DX(nb_nodes,2);
+        Matrix InvJ0(dim,dim);
+
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+
+        // MODIFIED
+        Vector displacement_coefficients(mat_size);
+        GetValuesVector(displacement_coefficients);
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
+
+        // Calculating inverse jacobian and jacobian determinant
+        double DetJ0;
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+
+        // GET STRESS VECTOR
+        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        Matrix H_grad = ZeroMatrix(nb_nodes, 2); 
+        int basis_functions_order_master = std::sqrt(DN_De[0].size1()) - 1;
+
+        std::vector<Matrix> n_shape_function_derivatives;
+        for (int n = 1; n <= basis_functions_order_master; n++) {
+            n_shape_function_derivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
+        }
+        for (IndexType i = 0; i < nb_nodes; ++i)
+        {
+            double H_taylor_term_X = 0.0; // Reset for each node
+            double H_taylor_term_Y = 0.0; 
+            for (int n = 2; n <= basis_functions_order_master; n++) {
+                // Retrieve the appropriate derivative for the term
+                Matrix& shapeFunctionDerivatives = n_shape_function_derivatives[n-1];
+                for (int k = 0; k <= n-1; k++) {
+                    int n_k = n - 1 - k;
+                    double derivative = shapeFunctionDerivatives(i,k); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term_X += computeTaylorTerm(derivative, mDistance[0], n_k, mDistance[1], k);
+                }
+                for (int k = 0; k <= n-1; k++) {
+                    int n_k = n - 1 - k;
+                    double derivative = shapeFunctionDerivatives(i,k+1); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term_Y += computeTaylorTerm(derivative, mDistance[0], n_k, mDistance[1], k);
+                }
+            }
+            H_grad(i,0) = H_taylor_term_X + DN_DX(i,0);
+            H_grad(i,1) = H_taylor_term_Y + DN_DX(i,1);
+        }                                              
+
+        Matrix B_sum = ZeroMatrix(3, nb_nodes);
+        CalculateB(B_sum, H_grad);
+
+        Vector strain_vector = prod(B_sum, displacement_coefficients);
+
+        // Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        Values.SetStrainVector(strain_vector);
+
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.ConstitutiveMatrix);
+        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+
+        auto stress_vector = Values.GetStressVector();
+        Vector sigma_n(2);
+
+        sigma_n[0] = stress_vector[0]*mTrueNormal[0] + stress_vector[2]*mTrueNormal[1];
+        sigma_n[1] = stress_vector[2]*mTrueNormal[0] + stress_vector[1]*mTrueNormal[1];
+
+        SetValue(NORMAL_STRESS, sigma_n);
+
+        this->SetValue(NORMAL_MASTER, mTrueNormal);
+    }
 
 
     void SBMLoadSolid2DCondition::GetValuesVector(

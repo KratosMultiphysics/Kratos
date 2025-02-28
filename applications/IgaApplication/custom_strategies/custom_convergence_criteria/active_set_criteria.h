@@ -286,7 +286,7 @@ public:
             int n_GP_per_segment = 2*p+1;
             double toll_tangent_distance = 1e-1;
             double toll = 1e-9;
-            double toll_stress = 1e-2;
+            double toll_stress = 1e-4;
             int n_cond = contact_sub_model_part.Conditions().size(); 
 
             Vector length = ZeroVector(n_cond);
@@ -307,6 +307,9 @@ public:
                 Vector normal_stress_master = i_cond->GetValue(STRESS_MASTER);
                 Vector normal_master = i_cond->GetValue(NORMAL_MASTER);
 
+                // //FIXME:
+                // normal_master = (normal_master - normal_slave)/2;
+
                 Vector gap = i_cond->GetValue(GAP);
                 double normal_gap_master = inner_prod(gap, normal_master);
                 double normal_gap_slave = -inner_prod(gap, normal_slave);
@@ -315,7 +318,7 @@ public:
 
                 double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
 
-                double young_modulus = i_cond->GetValue(YOUNG_MODULUS_SLAVE); //TODO:
+                double young_modulus = i_cond->GetValue(YOUNG_MODULUS_MASTER); //TODO:
                 const double gamma = 1; //100/(200+100);
 
                 double true_normal_stress_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
@@ -328,7 +331,7 @@ public:
                 int segment_index = (int) count_cond/n_GP_per_segment;
                 double check_value = -(true_normal_stress_master+young_modulus*normal_gap_master);
 
-                double check_value_gap = -weight*(gamma*normal_gap_master + (1-gamma)* normal_gap_slave);
+                double check_value_gap = -(gamma*normal_gap_master + (1-gamma)* normal_gap_slave);
                 double check_value_stress = -(gamma*true_normal_stress_master + (1-gamma) *true_normal_stress_slave)/young_modulus;
                 // double check_value = -(yound_modulus*normal_gap);
 
@@ -346,9 +349,8 @@ public:
                     n_changes++;
                     }
 
-                } else if (check_value_gap > toll && tangent_gap_master < toll_tangent_distance)
+                } else if ((check_value_gap > toll) && tangent_gap_master < toll_tangent_distance) //|| check_value_gap + check_value_stress > toll
                 {
-                    
                     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
                     {
                         i_cond->SetValue(ACTIVATION_LEVEL, 1);
@@ -356,10 +358,15 @@ public:
                     }
                     n_active ++;
                 }
+                else if ( i_cond->GetValue(ACTIVATION_LEVEL) == 1)
+                    n_active ++;
 
                 count_cond++;
 
             }
+
+            if (n_active == 0) 
+                KRATOS_WATCH("[Warning]:: zero active contact conditions")
                                                                                 
             // count_cond = 0;
             // for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
