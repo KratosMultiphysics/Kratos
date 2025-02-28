@@ -21,7 +21,9 @@ using namespace Kratos;
 
 void SetEntriesAboveDiagonalToZero(Matrix& rMatrix)
 {
-    for (auto i = std::size_t{0}; i < rMatrix.size1(); ++i) {
+    KRATOS_DEBUG_ERROR_IF(rMatrix.size1() != rMatrix.size2()) << "Matrix must be square\n";
+
+    for (auto i = std::size_t{0}; i < rMatrix.size1() - 1; ++i) {
         for (auto j = i + 1; j < rMatrix.size2(); ++j) {
             rMatrix(i, j) = 0.0;
         }
@@ -30,6 +32,8 @@ void SetEntriesAboveDiagonalToZero(Matrix& rMatrix)
 
 void SetEntriesBelowDiagonalToZero(Matrix& rMatrix)
 {
+    KRATOS_DEBUG_ERROR_IF(rMatrix.size1() != rMatrix.size2()) << "Matrix must be square\n";
+
     for (auto i = std::size_t{1}; i < rMatrix.size1(); ++i) {
         for (auto j = std::size_t{0}; j < i; ++j) {
             rMatrix(i, j) = 0.0;
@@ -39,6 +43,8 @@ void SetEntriesBelowDiagonalToZero(Matrix& rMatrix)
 
 void SetShearEntriesToZero(Matrix& rMatrix, std::size_t NumberOfNormalComponents)
 {
+    KRATOS_DEBUG_ERROR_IF(rMatrix.size1() != rMatrix.size2()) << "Matrix must be square\n";
+
     for (auto i = NumberOfNormalComponents; i < rMatrix.size1(); ++i) {
         rMatrix(i, i) = 0.0;
     }
