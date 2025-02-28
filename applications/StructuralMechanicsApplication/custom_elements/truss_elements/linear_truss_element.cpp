@@ -471,10 +471,7 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateLocalSystem(
         strain_vector[0] = inner_prod(B, nodal_values);
         mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
 
-        double pre_stress = 0.0;
-        if (r_props.Has(TRUSS_PRESTRESS_PK2)) {
-            pre_stress = r_props[TRUSS_PRESTRESS_PK2];
-        }
+        const auto pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] :  0.0;
 
         noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
         noalias(rRHS) -= B * (stress_vector[0] + pre_stress) * jacobian_weight;
