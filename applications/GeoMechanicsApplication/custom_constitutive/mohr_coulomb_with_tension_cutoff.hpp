@@ -69,17 +69,16 @@ namespace Kratos
         void CalculateTrialStressVector(const Vector& rStrainVector, Vector& rStressVector,
                                         ConstitutiveLaw::Parameters& rValues) const;
         Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues) const;
-        double CalculateApex(const double FrictionAngle, const double Cohesion) const;
-        Vector CalculateCornerPoint(const double FrictionAngle, const double Cohesion,
-                                    const double TensionCutoff) const;
-        Vector ReturnStressAtElasticZone(const Vector& rTrailStressVector) const;
-        Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, const double TensionCutoff) const;
+        double CalculateApex(double FrictionAngle, double Cohesion) const;
+        Vector CalculateCornerPoint(double FrictionAngle, double Cohesion,
+                                    double TensionCutoff) const;
+        Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, double TensionCutoff) const;
         Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
                                               const Vector& rCornerPoint) const;
         Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
                                                 const CoulombYieldSurface& rCoulombYieldFunction,
-                                                const double FrictionAngle,
-                                                const double Cohesion) const;
+                                                double FrictionAngle,
+                                                double Cohesion) const;
 
         // Serialization
         friend class Serializer;
