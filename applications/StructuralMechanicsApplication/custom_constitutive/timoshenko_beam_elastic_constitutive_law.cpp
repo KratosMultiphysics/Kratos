@@ -139,7 +139,7 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
         AddInitialStressVectorContribution(r_generalized_stress_vector);
 
         if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
-            r_generalized_stress_vector[0] += r_material_properties[BEAM_PRESTRESS_PK2][0] * A;
+            r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
         }
 
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
