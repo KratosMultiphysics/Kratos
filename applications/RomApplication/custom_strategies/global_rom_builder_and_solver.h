@@ -332,54 +332,54 @@ public:
         );
     }
 
-    virtual void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb) override
-    {
-        // Call the base B&S InitializeSolutionStep
-        BaseBuilderAndSolverType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+    // virtual void InitializeSolutionStep(
+    //     ModelPart& rModelPart,
+    //     TSystemMatrixType& rA,
+    //     TSystemVectorType& rDx,
+    //     TSystemVectorType& rb) override
+    // {
+    //     // Call the base B&S InitializeSolutionStep
+    //     BaseBuilderAndSolverType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        // Reset the ROM solution increment in the root modelpart database
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
-    }
-
-
-    virtual void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb) override
-    {   
-        // Once the time step is done, we compute back the increment in reduced space from
-        // the one in the fine basis. This way any modification performed during line search
-        // will be taken into account correctly.
-
-        // Save the ROM solution increment in the root modelpart database
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-
-        TSystemVectorType& rRomUnkowns = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
-
-        const auto& r_dof_set = BaseType::GetDofSet();
-        Vector dofs_values_current = ZeroVector(r_dof_set.size());
-        Vector dofs_values_previous = ZeroVector(r_dof_set.size());
-        block_for_each(r_dof_set, [&](Dof<double>& rDof){
-            const std::size_t id = rDof.EquationId();
-            dofs_values_current[id] = rDof.GetSolutionStepValue();
-            dofs_values_previous[id] = rDof.GetSolutionStepValue(1);
-        });
-        Vector dofs_values_increment = dofs_values_current - dofs_values_previous;
+    //     // Reset the ROM solution increment in the root modelpart database
+    //     auto& r_root_mp = rModelPart.GetRootModelPart();
+    //     r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
+    // }
 
 
-        KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "dofs_values_increment: " << dofs_values_increment << std::endl;
+    // virtual void FinalizeSolutionStep(
+    //     ModelPart& rModelPart,
+    //     TSystemMatrixType& rA,
+    //     TSystemVectorType& rDx,
+    //     TSystemVectorType& rb) override
+    // {   
+    //     // Once the time step is done, we compute back the increment in reduced space from
+    //     // the one in the fine basis. This way any modification performed during line search
+    //     // will be taken into account correctly.
 
-        ProjectToReducedBasis(dofs_values_increment, rRomUnkowns);
+    //     // Save the ROM solution increment in the root modelpart database
+    //     auto& r_root_mp = rModelPart.GetRootModelPart();
+
+    //     TSystemVectorType& rRomUnkowns = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
+
+    //     const auto& r_dof_set = BaseType::GetDofSet();
+    //     Vector dofs_values_current = ZeroVector(r_dof_set.size());
+    //     Vector dofs_values_previous = ZeroVector(r_dof_set.size());
+    //     block_for_each(r_dof_set, [&](Dof<double>& rDof){
+    //         const std::size_t id = rDof.EquationId();
+    //         dofs_values_current[id] = rDof.GetSolutionStepValue();
+    //         dofs_values_previous[id] = rDof.GetSolutionStepValue(1);
+    //     });
+    //     Vector dofs_values_increment = dofs_values_current - dofs_values_previous;
+
+
+    //     KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "dofs_values_increment: " << dofs_values_increment << std::endl;
+
+    //     ProjectToReducedBasis(dofs_values_increment, rRomUnkowns);
         
-        // Proceed to parent's Finalize Solution Step
-        BaseBuilderAndSolverType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-    }
+    //     // Proceed to parent's Finalize Solution Step
+    //     BaseBuilderAndSolverType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+    // }
 
 
     void BuildAndSolve(

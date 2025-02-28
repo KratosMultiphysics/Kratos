@@ -27,6 +27,7 @@
 #include "includes/ublas_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 #include "processes/find_nodal_neighbours_process.h"
+#include "input_output/logger.h"
 
 // Application includes
 #include "rom_application_variables.h"
@@ -63,6 +64,61 @@ public:
         std::pair<bool, GeometryPointerType>,
         KeyHasherRange<std::vector<IndexType>>,
         KeyComparorRange<std::vector<IndexType>>>;
+
+    /**
+    * Thread Local Storage containing dynamically allocated rom solution to avoid reallocating each iteration.
+    */
+    struct RomDxTLS
+    {
+        RomDxTLS(SizeType NRomModes)
+            : romDx(ZeroVector(NRomModes))
+        { }
+        RomDxTLS() = delete;
+
+        Vector romDx;        // reduced solution
+    };
+
+    /**
+     * Class to sum-reduce matrices and vectors.
+     */
+    template <typename T>
+    struct NonTrivialSumReduction
+    {
+        typedef T value_type;
+        typedef T return_type;
+
+        T mValue;
+        bool mInitialized = false;
+
+        void Init(const value_type& first_value)
+        {
+            mValue = first_value;
+            mInitialized = true;
+        }
+
+        /// access to reduced value
+        return_type GetValue() const
+        {
+            return mValue;
+        }
+
+        void LocalReduce(const value_type& value)
+        {
+            if(!mInitialized) {
+                Init(value);
+            } else {
+                noalias(mValue) += value;
+            }
+        }
+
+        void ThreadSafeReduce(const NonTrivialSumReduction& rOther)
+        {
+            if(!rOther.mInitialized) return;
+
+            const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+            LocalReduce(rOther.mValue);
+        }
+    };
 
     ///@}
     ///@name Static Operations
@@ -323,6 +379,20 @@ public:
     static void ProjectRomSolutionIncrementToNodes(
         const std::vector<std::string> &rRomVariableNames,
         ModelPart &rModelPart);
+
+    /**
+     * @brief Project the full solution onto the reduced space
+     * For a given model part this function takes the xDx vector and applies the transpose of the ROM's
+     * right basis matrix. Then outputs it in rRomUnknowns.
+     * @param rModelPart Model part onto which the projection is to be performed
+     * @param rRomVariableNames Names of the variables included in the solution vector (ordering matters)
+     * @param rDx Full snapshot to reduce
+     * @return Vector Result of the projection
+     */
+    static Vector ProjectToReducedBasis(
+        const ModelPart& rModelPart,
+        const std::vector<std::string>& rRomVariableNames,
+        const Vector& rDx);
 
     /**
      * @brief Obtain the elemental basis matrix for a particular element.

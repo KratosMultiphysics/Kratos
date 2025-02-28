@@ -6,6 +6,9 @@ from pathlib import Path
 # Importing the Kratos Library
 import KratosMultiphysics
 
+# Import applications
+import KratosMultiphysics.RomApplication as KratosROM
+
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string.")
@@ -48,26 +51,26 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         # Initialize rom snapshots
         self.rom_snapshots = []
 
-        # Initialize cumulative rom state
-        self.cumulative_rom_state = None
+        # Initialize first reduced snapshot
+        self.init_rom_state = None
 
-        # # Retrieve list of varaibles composing the nodal unknowns
-        # nodal_unknowns = settings["nodal_unknowns"].GetStringArray()
-        # if len(nodal_unknowns) == 0:
-        #     err_msg = "The snapshots matrix variables need to be specified by the user in the \'nodal_unknowns\' string array."
-        #     raise Exception(err_msg)
-        # if any(nodal_unknowns.count(var_name) > 1 for var_name in nodal_unknowns):
-        #     err_msg = "There are repeated variables in the \'nodal_unknowns\' string array."
-        #     raise Exception(err_msg)
-        # nodal_unknowns.sort()
+        # Retrieve list of varaibles composing the nodal unknowns
+        self.nodal_unknowns = settings["nodal_unknowns"].GetStringArray()
+        if len(self.nodal_unknowns) == 0:
+            err_msg = "The snapshots matrix variables need to be specified by the user in the \'nodal_unknowns\' string array."
+            raise Exception(err_msg)
+        if any(self.nodal_unknowns.count(var_name) > 1 for var_name in self.nodal_unknowns):
+            err_msg = "There are repeated variables in the \'nodal_unknowns\' string array."
+            raise Exception(err_msg)
+        self.nodal_unknowns.sort()
 
-        # self.snapshot_variables_list = []
-        # for var_name in nodal_unknowns:
-        #     if not KratosMultiphysics.KratosGlobals.HasVariable(var_name):
-        #         err_msg = "\'{}\' variable in \'nodal_unknowns\' is not in KratosGlobals. Please check provided value.".format(var_name)
-        #     if not KratosMultiphysics.KratosGlobals.GetVariableType(var_name):
-        #         err_msg = "\'{}\' variable in \'nodal_unknowns\' is not double type. Please check provide double type variables (e.g. [\"DISPLACEMENT_X\",\"DISPLACEMENT_Y\"]).".format(var_name)
-        #     self.snapshot_variables_list.append(KratosMultiphysics.KratosGlobals.GetVariable(var_name))
+        self.snapshot_variables_list = []
+        for var_name in self.nodal_unknowns:
+            if not KratosMultiphysics.KratosGlobals.HasVariable(var_name):
+                err_msg = "\'{}\' variable in \'nodal_unknowns\' is not in KratosGlobals. Please check provided value.".format(var_name)
+            if not KratosMultiphysics.KratosGlobals.GetVariableType(var_name):
+                err_msg = "\'{}\' variable in \'nodal_unknowns\' is not double type. Please check provide double type variables (e.g. [\"DISPLACEMENT_X\",\"DISPLACEMENT_Y\"]).".format(var_name)
+            self.snapshot_variables_list.append(KratosMultiphysics.KratosGlobals.GetVariable(var_name))
 
         # Retrieve the user's preference for saving the ROM solution and ensure it's either 'total' or 'incremental'.
         self.snapshot_solution_type = settings["snapshot_solution_type"].GetString()
@@ -86,10 +89,25 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         "snapshots_interval": 1.0,
         "rom_coefficients_output_folder": "rom_data",
         "rom_coefficients_output_name": "RomCoefficientsSnapshots",
-        "snapshot_solution_type": "incremental"  // Options: "total", "incremental"
+        "snapshot_solution_type": "incremental",  // Options: "total", "incremental"
+        "nodal_unknowns": []
         }""")
 
         return default_settings
+    
+
+    # def ExecuteBeforeSolutionLoop(self):
+        # Get dimensions of reduced space
+        # self.rom_dimensions = self.model_part.GetNode(1).GetValue(KratosROM.ROM_BASIS).Size2()
+    
+    def ExecuteInitializeSolutionStep(self):
+        if self.snapshot_solution_type=="incremental" and self.init_rom_state is None:                                      
+            aux_init_snapshot = []
+            for snapshot_var in self.snapshot_variables_list:
+                aux_init_snapshot.append( numpy.array(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self.model_part.Nodes, snapshot_var, 0), copy=False ))
+            init_snapshot = numpy.stack(aux_init_snapshot, axis=1).reshape(-1)
+            self.init_rom_state = KratosROM.RomAuxiliaryUtilities.ProjectToReducedBasis(self.model_part, self.nodal_unknowns, init_snapshot)
+            print('Exec result: ', self.init_rom_state)
 
     def IsOutputStep(self):
         if self.snapshots_control_is_time:
@@ -113,14 +131,27 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         
         # print(full_snapshot)
 
-        delta_q = numpy.copy(self.model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT))
+        aux_final_snapshot = []
+        for snapshot_var in self.snapshot_variables_list:
+            aux_final_snapshot.append( numpy.array(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self.model_part.Nodes, snapshot_var, 0), copy=False ))
+        final_snapshot = numpy.stack(aux_final_snapshot, axis=1).reshape(-1)
+        current_rom_state = KratosROM.RomAuxiliaryUtilities.ProjectToReducedBasis(self.model_part, self.nodal_unknowns, final_snapshot)
+        print('Print result: ', current_rom_state)
+
         if self.snapshot_solution_type == "total":
-            if self.cumulative_rom_state is None:
-                self.cumulative_rom_state = numpy.zeros_like(delta_q)
-            self.cumulative_rom_state += delta_q
-            self.rom_snapshots.append(self.cumulative_rom_state)
+            self.rom_snapshots.append(current_rom_state)
         elif self.snapshot_solution_type=="incremental":
-            self.rom_snapshots.append(delta_q)
+            self.rom_snapshots.append(current_rom_state-self.init_rom_state)
+            self.init_rom_state = current_rom_state
+
+        # delta_q = numpy.copy(self.model_part.GetValue(KratosMultiphysics.RomApplication.ROM_SOLUTION_INCREMENT))
+        # if self.snapshot_solution_type == "total":
+        #     if self.cumulative_rom_state is None:
+        #         self.cumulative_rom_state = numpy.zeros_like(delta_q)
+        #     self.cumulative_rom_state += delta_q
+        #     self.rom_snapshots.append(self.cumulative_rom_state)
+        # elif self.snapshot_solution_type=="incremental":
+        #     self.rom_snapshots.append(delta_q)
 
         # Schedule the next output
         current = self.model_part.ProcessInfo[KratosMultiphysics.TIME if self.snapshots_control_is_time else KratosMultiphysics.STEP]
