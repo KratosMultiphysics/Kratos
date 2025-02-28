@@ -251,6 +251,15 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # Call the base solver InitializeSolutionStep()
         super(NavierStokesShiftedBoundaryMonolithicSolver, self).InitializeSolutionStep()
 
+    def FinalizeSolutionStep(self):
+        # Compute Variables for skin model parts in sbm utilities
+        for sbm_interface_utility in self.sbm_interface_utilities:
+            sbm_interface_utility.CalculatePressureAtSkinNodes()
+            sbm_interface_utility.CalculateSkinDrag()
+
+        # Call the base solver FinalizeSolutionStep()
+        super(NavierStokesShiftedBoundaryMonolithicSolver, self).FinalizeSolutionStep()
+
     def _SetNodalProperties(self):
         set_density = KratosMultiphysics.DENSITY in self.historical_nodal_properties_variables_list
         set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_properties_variables_list
@@ -320,9 +329,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
 
             # Store names and interface utilities for all skin model parts
-            skin_model_part_names = ["Skin"]
+            skin_model_part_names = ["Skin"] #["Cylinder"]  #["Skin"]
             #skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
-            sbm_interface_utilities = []
+            self.sbm_interface_utilities = []
 
             # Create an interface utility for all skin model parts
             for skin_model_part_name in skin_model_part_names:
@@ -338,17 +347,17 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
                 # Create interface utility
                 sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
-                sbm_interface_utilities.append(sbm_interface_utility)
+                self.sbm_interface_utilities.append(sbm_interface_utility)
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created for skin model part '" + skin_model_part_name + "'.")
 
-            if len(sbm_interface_utilities) == 1:
-                sbm_interface_utilities[0].CalculateAndAddPointBasedInterface()
+            if len(self.sbm_interface_utilities) == 1:
+                self.sbm_interface_utilities[0].CalculateAndAddPointBasedInterface()
             else:
                 # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
-                sbm_interface_utilities[0].ResetFlags()
+                self.sbm_interface_utilities[0].ResetFlags()
 
                 # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts
-                for sbm_interface_utility in sbm_interface_utilities:
+                for sbm_interface_utility in self.sbm_interface_utilities:
                     sbm_interface_utility.SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
                     # To be done after setting tessellated boundary because nodes might be relocated
                     sbm_interface_utility.LocateSkinPoints()
@@ -358,11 +367,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 sbm_interface_utility.SetInterfaceFlags()
 
                 # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
-                sbm_interface_utilities[0].DeactivateElementsAndNodes()
+                self.sbm_interface_utilities[0].DeactivateElementsAndNodes()
 
                 # Add Kratos conditions for points at the boundary based on extension operators
                 # NOTE that same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
-                for i_skin, sbm_interface_utility in enumerate(sbm_interface_utilities):
+                for i_skin, sbm_interface_utility in enumerate(self.sbm_interface_utilities):
                     sbm_interface_utility.CalculateAndAddSkinIntegrationPointConditions()
                     KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part '" + skin_model_part_names[i_skin] + "'.")
 

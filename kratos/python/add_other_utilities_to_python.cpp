@@ -821,6 +821,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("DeactivateElementsAndNodes", &ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes)
         .def("CalculateAndAddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddSkinIntegrationPointConditions)
         .def("FixEnclosedVolumesPressure", &ShiftedBoundaryPointBasedInterfaceUtility::FixEnclosedVolumesPressure)
+        .def("CalculatePressureAtSkinNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodes)
+        .def("CalculateSkinDrag", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDrag)
     ;
 
     m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")
