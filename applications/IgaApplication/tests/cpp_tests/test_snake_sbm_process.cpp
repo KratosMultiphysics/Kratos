@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSquareOuter, KratosIgaFastSuite)
 
     Kratos::Parameters snake_parameters(R"(
         {
-            "iga_model_part_name" : "iga_model_part",
+            "model_part_name" : "iga_model_part",
             "skin_model_part_inner_initial_name" : "skin_model_part_inner_initial",
             "skin_model_part_outer_initial_name" : "skin_model_part_outer_initial",
             "skin_model_part_name" : "skin_model_part",
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSquareOuter, KratosIgaFastSuite)
     iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
     iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
     
-    snake_sbm_process.CreateTheSnakeCoordinates() ;
+    snake_sbm_process.Execute() ;
     
     const double tolerance = 1.0e-6;
 
@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessInner, KratosIgaFastSuite)
 
     Kratos::Parameters snake_parameters(R"(
         {
-            "iga_model_part_name" : "iga_model_part",
+            "model_part_name" : "iga_model_part",
             "skin_model_part_inner_initial_name" : "skin_model_part_inner_initial",
             "skin_model_part_outer_initial_name" : "skin_model_part_outer_initial",
             "skin_model_part_name" : "skin_model_part",
@@ -210,7 +210,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessInner, KratosIgaFastSuite)
     iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
     iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
 
-    snake_sbm_process.CreateTheSnakeCoordinates() ;
+    snake_sbm_process.Execute() ;
     
     const double tolerance = 1.0e-6;
 
@@ -348,7 +348,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessInnerOuter, KratosIgaFastSuite)
 
     Kratos::Parameters snake_parameters(R"(
         {
-            "iga_model_part_name" : "iga_model_part",
+            "model_part_name" : "iga_model_part",
             "skin_model_part_inner_initial_name" : "skin_model_part_inner_initial",
             "skin_model_part_outer_initial_name" : "skin_model_part_outer_initial",
             "skin_model_part_name" : "skin_model_part",
@@ -364,7 +364,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessInnerOuter, KratosIgaFastSuite)
     iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
     iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
 
-    snake_sbm_process.CreateTheSnakeCoordinates() ;
+    snake_sbm_process.Execute() ;
 
     const double tolerance = 1.0e-6;
 

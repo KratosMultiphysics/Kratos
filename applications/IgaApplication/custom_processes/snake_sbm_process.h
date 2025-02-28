@@ -58,7 +58,9 @@ public:
     ///@{
 
     void Execute() override
-    {};
+    {
+        CreateTheSnakeCoordinates();
+    };
     
     void ExecuteInitialize() override
     {};
@@ -73,7 +75,7 @@ public:
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "iga_model_part_name" : "IgaModelPart",
+            "model_part_name" : "",
             "skin_model_part_inner_initial_name" : "SkinModelPartInnerInitial",
             "skin_model_part_outer_initial_name" : "SkinModelPartOuterInitial",
             "skin_model_part_name" : "SkinModelPart",
@@ -85,11 +87,6 @@ public:
 
         return default_parameters;
     }
-
-    /**
-    * @brief Creates the initial snake coordinates for 2D skin.
-    */
-    void CreateTheSnakeCoordinates();
     
 private:
 
@@ -113,6 +110,11 @@ private:
     using DistanceIterator = std::vector<double>::iterator;
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using DynamicBinsPointerType = DynamicBins::PointerType;
+
+    /**
+    * @brief Creates the initial snake coordinates for 2D skin.
+    */
+    void CreateTheSnakeCoordinates();
 
     /**
      * @brief Create a The Snake Coordinates object

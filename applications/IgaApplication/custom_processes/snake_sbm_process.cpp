@@ -31,7 +31,7 @@ SnakeSbmProcess::SnakeSbmProcess(
     mLambdaOuter = mThisParameters["lambda_outer"].GetDouble();
     mNumberOfInnerLoops = mThisParameters["number_of_inner_loops"].GetInt();
 
-    std::string iga_model_part_name = mThisParameters["iga_model_part_name"].GetString();
+    std::string iga_model_part_name = mThisParameters["model_part_name"].GetString();
     std::string skin_model_part_inner_initial_name = mThisParameters["skin_model_part_inner_initial_name"].GetString();
     std::string skin_model_part_outer_initial_name = mThisParameters["skin_model_part_outer_initial_name"].GetString();
     std::string skin_model_part_name = mThisParameters["skin_model_part_name"].GetString();
