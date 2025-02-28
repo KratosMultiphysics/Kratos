@@ -19,9 +19,10 @@
 namespace Kratos
 {
 
-AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double      StartTime,
-                                                 double      EndTime,
-                                                 double      StartIncrement,
+AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double StartTime,
+                                                 double EndTime,
+                                                 double StartIncrement,
+                                                 std::pair<std::string, double> MinAllowableDeltaTime,
                                                  std::size_t MaxNumOfCycles,
                                                  double      ReductionFactor,
                                                  double      IncreaseFactor,
@@ -29,8 +30,10 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double      StartTime,
                                                  std::size_t MinNumOfIterations,
                                                  std::size_t MaxNumOfIterations)
     : TimeIncrementor(),
+      mTimeSpan(EndTime - StartTime),
       mEndTime(EndTime),
       mDeltaTime(std::min(StartIncrement, EndTime - StartTime)), // avoid exceeding the end time
+      mMinAllowableDeltaTime(std::move(MinAllowableDeltaTime)),
       mMaxNumOfCycles(MaxNumOfCycles),
       mReductionFactor(ReductionFactor),
       mIncreaseFactor(IncreaseFactor),
@@ -88,6 +91,10 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
     if ((mEndTime - (rResultantState.time + mDeltaTime)) < small_time_increment) {
         mDeltaTime = mEndTime - rResultantState.time;
     }
+
+    KRATOS_ERROR_IF(mDeltaTime < mMinAllowableDeltaTime.second)
+        << "Delta time (" << mDeltaTime << ") is smaller than minimum allowable value "
+        << mMinAllowableDeltaTime.second << std::endl;
 }
 
 } // namespace Kratos

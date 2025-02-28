@@ -22,24 +22,25 @@ namespace
 {
 
 struct AdaptiveTimeIncrementorSettings {
-    double      StartTime{0.0};
-    double      EndTime{8.0};
-    double      StartIncrement{0.5};
-    std::size_t MaxNumOfCycles{8};
-    double      ReductionFactor{0.5};
-    double      IncreaseFactor{2.0};
-    double      MaxDeltaTimeFactor{1000.0};
-    std::size_t MinNumOfIterations{3};
-    std::size_t MaxNumOfIterations{15};
+    double                         StartTime{0.0};
+    double                         EndTime{8.0};
+    double                         StartIncrement{0.5};
+    std::pair<std::string, double> MinAllowableDeltaTime{"set", 1e-06};
+    std::size_t                    MaxNumOfCycles{8};
+    double                         ReductionFactor{0.5};
+    double                         IncreaseFactor{2.0};
+    double                         MaxDeltaTimeFactor{1000.0};
+    std::size_t                    MinNumOfIterations{3};
+    std::size_t                    MaxNumOfIterations{15};
 };
 
 AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncrementorSettings& rSettings)
 {
     return AdaptiveTimeIncrementor{rSettings.StartTime,          rSettings.EndTime,
-                                   rSettings.StartIncrement,     rSettings.MaxNumOfCycles,
-                                   rSettings.ReductionFactor,    rSettings.IncreaseFactor,
-                                   rSettings.MaxDeltaTimeFactor, rSettings.MinNumOfIterations,
-                                   rSettings.MaxNumOfIterations};
+                                   rSettings.StartIncrement,     rSettings.MinAllowableDeltaTime,
+                                   rSettings.MaxNumOfCycles,     rSettings.ReductionFactor,
+                                   rSettings.IncreaseFactor,     rSettings.MaxDeltaTimeFactor,
+                                   rSettings.MinNumOfIterations, rSettings.MaxNumOfIterations};
 }
 
 } // namespace
@@ -428,18 +429,17 @@ KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMech
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IncrementIsCorrectWhenNonConvergedStepIsSameAsEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
-    settings.StartIncrement          = 8.0; // We jump to the end time right away
-    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state              = TimeStepEndState{};
-    previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged; // The jumped step didn't converge
-    previous_state.time = 8.0; // The non-converged step is the same as the end time
+    settings.StartIncrement = 8.0;            // We jump to the end time right away
+    auto time_incrementor   = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state     = TimeStepEndState{};
+    previous_state.time     = 8.0; // to have a zero time step
 
-    time_incrementor.PostTimeStepExecution(previous_state);
-    // The increment should be halved, since the step didn't converge
-    KRATOS_EXPECT_DOUBLE_EQ(4.0, time_incrementor.GetIncrement());
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        time_incrementor.PostTimeStepExecution(previous_state),
+        "Delta time (0) is smaller than minimum allowable value 1e-06");
 }
 
 } // namespace Kratos::Testing

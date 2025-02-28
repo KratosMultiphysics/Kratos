@@ -39,6 +39,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.min_iterations      = solver_settings["min_iterations"].GetInt()
         self.max_delta_time_factor = solver_settings["time_stepping"]["max_delta_time_factor"].GetDouble() if solver_settings["time_stepping"].Has("max_delta_time_factor") else 1000.0
         self.max_delta_time      = self.delta_time * self.max_delta_time_factor
+        self.min_delta_time_set  = solver_settings["time_stepping"].Has("minimum_allowable_value")
+        self.min_delta_time      = solver_settings["time_stepping"]["minimum_allowable_value"].GetDouble() if self.min_delta_time_set else (self.end_time - self.start_time)/100000.0
         self.number_cycles       = solver_settings["number_cycles"].GetInt()
         self.max_iterations      = solver_settings["max_iterations"].GetInt()
         self.solution_type       = solver_settings["solution_type"].GetString()
@@ -72,6 +74,15 @@ class GeoMechanicsAnalysis(AnalysisStage):
         if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations:
             raise Exception("max_number_of_iterations_exceeded")
 
+    def _check_delta_time_size(self):
+        if self.delta_time < self.min_delta_time:
+            if self.min_delta_time_set:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "The time step ", self.delta_time, " is smaller than a given minimum value of ", self.min_delta_time)
+            else:
+                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "The time step ", self.delta_time, " is smaller than a default minimum value of ", self.min_delta_time)
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check the case settings.")
+            raise Exception('The time step is too small!')
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
@@ -101,6 +112,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 new_time = self.end_time
                 self.delta_time = new_time - t
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time without small increments: ", self.delta_time)
+
+            self._check_delta_time_size()
 
             # start the new step
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -146,6 +159,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                     # scale down step and restart
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                     self.delta_time *= self.reduction_factor
+                    self._check_delta_time_size()
                     # Reset displacements to the initial
                     KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
                     for node in self._GetSolver().GetComputingModelPart().Nodes:
@@ -180,9 +194,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 1)
 
     def PrintAnalysisStageProgressInformation(self):
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP       : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME       : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
 
     def _CreateSolver(self):
         return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
