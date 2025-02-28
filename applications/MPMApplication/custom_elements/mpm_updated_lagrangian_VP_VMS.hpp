@@ -642,6 +642,12 @@ protected:
                                         const double& rIntegrationWeight
                                        );
 
+
+    virtual void CalculateAndAddKpp(MatrixType& rK,
+                                        GeneralVariables & rVariables,
+                                        const double& rIntegrationWeight
+                                       );
+
     /**
      * Calculation of the stabilization matrix
      */

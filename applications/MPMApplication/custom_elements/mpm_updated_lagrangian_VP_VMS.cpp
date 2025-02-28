@@ -1225,12 +1225,11 @@ void MPMUpdatedLagrangianVPVMS::CalculateTaus(const int& stabilization_type,
     // Add computations for the tau stabilization
 
     const double constant1=1.0;
-    const double constant2=1.0;
     double characteristic_element_size;
     ComputeElementSize(characteristic_element_size);
 
-    rVariables.tau1 = (pow(characteristic_element_size,2) * mMP.density) / (constant1 * rVariables.ShearModulus);
-    rVariables.tau2 = (pow(characteristic_element_size,2) * constant2) / rVariables.tau1;
+    rVariables.tau1 = constant1 * pow(characteristic_element_size,2) / (rVariables.ShearModulus);
+    rVariables.tau2 = rVariables.ShearModulus;
 
     KRATOS_CATCH( "" )
 }
@@ -1396,7 +1395,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
         rRightHandSideVector[index_i] -= rVariables.tau1 * StabilizedPressure[i];
         index_i += (dimension + 1);
     }
-    KRATOS_WATCH(rVariables.StressVector);
+    //KRATOS_WATCH(rVariables.StressVector);
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
@@ -1425,6 +1424,8 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
     CalculateAndAddBv( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
     //KRATOS_WATCH(rLeftHandSideMatrix);
 
+    CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
     // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
     CalculateAndAddSv( rLeftHandSideMatrix, rVariables, rIntegrationWeight, rCurrentProcessInfo ); //°i termini dinamici o vanno omessi, o si aggiungono altrove
     
@@ -1436,6 +1437,54 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
 
 //************************************************************************************
 //************************************************************************************
+
+void MPMUpdatedLagrangianVPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    double bulk_modulus  = 1.0;
+
+
+   if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
+    {
+        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+        const double& poisson_ratio    = GetProperties()[POISSON_RATIO];
+        bulk_modulus  = young_modulus/(3.0*(1.0-2.0*poisson_ratio));
+        // Check if Bulk Modulus is not NaN
+        if (bulk_modulus != bulk_modulus)
+            bulk_modulus = 1e16;
+    }
+   else if (GetProperties().Has(DYNAMIC_VISCOSITY)) {
+        bulk_modulus  = GetProperties()[BULK_MODULUS];
+    }
+
+
+    //double delta_coefficient = rVariables.detF0 - 1; //FLUID
+
+    unsigned int indexpi = dimension;
+
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        unsigned int indexpj = dimension;
+        for (unsigned int j = 0; j < number_of_nodes; j++)
+        {
+             rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
+	    // FLUID-UP	
+           //rLeftHandSideMatrix(indexpi, indexpj) -= ((1.0) / (bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight / (delta_coefficient * (rVariables.detF0 / rVariables.detF));
+
+            indexpj += (dimension + 1);
+        }
+
+        indexpi += (dimension + 1);
+    }
+
+    KRATOS_CATCH( "" )
+}
 
 void MPMUpdatedLagrangianVPVMS::CalculateAndAddK(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
