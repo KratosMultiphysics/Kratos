@@ -30,7 +30,6 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double StartTime,
                                                  std::size_t MinNumOfIterations,
                                                  std::size_t MaxNumOfIterations)
     : TimeIncrementor(),
-      mTimeSpan(EndTime - StartTime),
       mEndTime(EndTime),
       mDeltaTime(std::min(StartIncrement, EndTime - StartTime)), // avoid exceeding the end time
       mMinAllowableDeltaTime(std::move(MinAllowableDeltaTime)),

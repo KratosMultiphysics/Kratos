@@ -40,7 +40,6 @@ public:
     void                 PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
 
 private:
-    double                         mTimeSpan;
     double                         mEndTime;
     double                         mDeltaTime;
     std::pair<std::string, double> mMinAllowableDeltaTime;
