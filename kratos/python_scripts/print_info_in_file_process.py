@@ -10,7 +10,7 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
-    """This process prints a text file with the required nodal or elemental information
+    """This process prints a text file with the required nodal or elemental or model part information
 
     Only the member variables listed below should be accessed directly.
 
@@ -30,7 +30,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"                     : "This process prints nodal/elemental information ina .txt file",
+            "help"                     : "This process prints nodal/elemental/model_part information in a .txt file",
             "mesh_id"                  : 0,
             "model_part_name"          : "please_specify_model_part_name",
             "variable_name"            : "SPECIFY_VARIABLE_NAME",
@@ -48,9 +48,12 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         self.results_type = settings["results_type"].GetString()
-        if not self.results_type == "nodal_historical" and not self.results_type == "nodal_non_historical" and not self.results_type == "elemental":
-            raise NameError("results_type not correct, must be nodal_historical, nodal_non_historical or elemental")
+        if not self.results_type == "nodal_historical" and not self.results_type == "nodal_non_historical"\
+            and not self.results_type == "elemental"\
+            and not self.results_type == "model_part":
+            raise NameError("results_type not correct, must be 'nodal_historical', 'nodal_non_historical', 'elemental' or 'model_part'")
         self.is_nodal_results_type = "nodal" in self.results_type
+        self.is_elemental_results_type = "elemental" in self.results_type
         self.file_name = settings["file_name"].GetString()
         self.output_control_type = settings["output_control_type"].GetString()
         self.output_interval = settings["output_interval"].GetDouble()
@@ -65,7 +68,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         if not self.sum_results_from_multiple_entites:
             if self.is_nodal_results_type and self.model_part.NumberOfNodes() > 1:
                 raise NameError("The sum_results_from_multiple_entites is false but more than one node is given...")
-            if not self.is_nodal_results_type and self.model_part.NumberOfElements() > 1:
+            if self.is_elemental_results_type and self.model_part.NumberOfElements() > 1:
                 raise NameError("The sum_results_from_multiple_entites is false but more than one element is given...")
 
         ascii_writer_params = KratosMultiphysics.Parameters("""{}""")
@@ -91,7 +94,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
                 if not self.sum_results_from_multiple_entites:
                     break
             self.PrintInFile(array_values)
-        else:
+        elif self.is_elemental_results_type:
             for elem in self.model_part.Elements:
                 array_values = self.GetValueToPrint(elem)[self.integration_point]
                 if not isinstance(array_values, (float, int)): # Can be an scalar entity...
@@ -111,6 +114,9 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
                 else:
                     array_values = self.GetValueToPrint(elem)[self.integration_point]
                     break
+            self.PrintInFile(array_values)
+        else:
+            array_values = self.GetValueToPrint(self.model_part)
             self.PrintInFile(array_values)
 
     def IsOutputStep(self):
@@ -133,8 +139,10 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
                 return Entity.GetValue(self.variable)
             else:
                 raise NameError("results_type not supported")
-        else:
+        elif self.is_elemental_results_type:
             return Entity.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)
+        else:
+            return Entity.GetValue(self.variable)
 
     def __GetTime(self):
         return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
