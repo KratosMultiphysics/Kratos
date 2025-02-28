@@ -81,9 +81,7 @@ std::pair<std::string, double> GetMinAllowableDeltaTimeFrom(const Parameters& rP
         return {"set",
                 rProjectParameters["solver_settings"]["time_stepping"]["minimum_allowable_value"].GetDouble()};
     } else {
-        double minimum_allowable_value = (rProjectParameters["solver_settings"]["end_time"].GetDouble() -
-                                          rProjectParameters["solver_settings"]["start_time"].GetDouble()) /
-                                         100000.0;
+        constexpr auto minimum_allowable_value = 1e-10;
         return {"default", minimum_allowable_value};
     }
 }

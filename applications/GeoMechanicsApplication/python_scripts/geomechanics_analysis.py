@@ -40,7 +40,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.max_delta_time_factor = solver_settings["time_stepping"]["max_delta_time_factor"].GetDouble() if solver_settings["time_stepping"].Has("max_delta_time_factor") else 1000.0
         self.max_delta_time      = self.delta_time * self.max_delta_time_factor
         self.min_delta_time_set  = solver_settings["time_stepping"].Has("minimum_allowable_value")
-        self.min_delta_time      = solver_settings["time_stepping"]["minimum_allowable_value"].GetDouble() if self.min_delta_time_set else (self.end_time - self.start_time)/100000.0
+        self.min_delta_time      = solver_settings["time_stepping"]["minimum_allowable_value"].GetDouble() if self.min_delta_time_set else 1e-10
         self.number_cycles       = solver_settings["number_cycles"].GetInt()
         self.max_iterations      = solver_settings["max_iterations"].GetInt()
         self.solution_type       = solver_settings["solution_type"].GetString()
