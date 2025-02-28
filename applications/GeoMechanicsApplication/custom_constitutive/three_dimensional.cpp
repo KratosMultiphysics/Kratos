@@ -56,6 +56,8 @@ std::size_t ThreeDimensional::GetStrainSize() const { return VOIGT_SIZE_3D; }
 
 std::size_t ThreeDimensional::GetDimension() const { return N_DIM_3D; }
 
+std::size_t ThreeDimensional::GetNumberOfNormalComponents() const { return 3; }
+
 Flags ThreeDimensional::GetSpatialType() const { return ConstitutiveLaw::THREE_DIMENSIONAL_LAW; }
 
 } // namespace Kratos

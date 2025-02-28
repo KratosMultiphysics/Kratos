@@ -106,7 +106,7 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& C, Constitut
 
     if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
         auto result = Matrix{C.size1(), C.size2(), 0.0};
-        for (auto i = std::size_t{0}; i < 3; ++i) {
+        for (auto i = std::size_t{0}; i < mpConstitutiveDimension->GetNumberOfNormalComponents(); ++i) {
             result(i, i) = C(i, i);
         }
         noalias(C) = result;

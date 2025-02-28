@@ -26,10 +26,11 @@ public:
     virtual ~ConstitutiveLawDimension() = default;
 
     [[nodiscard]] virtual Matrix CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const = 0;
-    [[nodiscard]] virtual std::unique_ptr<ConstitutiveLawDimension> Clone() const          = 0;
-    [[nodiscard]] virtual std::size_t                               GetStrainSize() const  = 0;
-    [[nodiscard]] virtual std::size_t                               GetDimension() const   = 0;
-    [[nodiscard]] virtual Flags                                     GetSpatialType() const = 0;
+    [[nodiscard]] virtual std::unique_ptr<ConstitutiveLawDimension> Clone() const         = 0;
+    [[nodiscard]] virtual std::size_t                               GetStrainSize() const = 0;
+    [[nodiscard]] virtual std::size_t                               GetDimension() const  = 0;
+    [[nodiscard]] virtual std::size_t GetNumberOfNormalComponents() const                 = 0;
+    [[nodiscard]] virtual Flags       GetSpatialType() const                              = 0;
 };
 
 } // namespace Kratos
