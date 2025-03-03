@@ -46,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
 
     TensionCutoff tensionCutoff(tension_cutoff);
     double        tension_value     = tensionCutoff.YieldFunctionValue(principal_stress);
-    double        expected_solution = -1.0;
+    double        expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(tension_value, expected_solution, tolerance);
 }
 

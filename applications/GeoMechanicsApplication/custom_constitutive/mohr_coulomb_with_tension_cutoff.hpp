@@ -57,7 +57,8 @@ public:
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
     Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector, const Matrix& rRotationMatrix) const;
 
-public:
+    double FindRegion(ConstitutiveLaw::Parameters& rParameters, const Vector& rPrincipalStressVector);
+private:
     std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
@@ -76,7 +77,7 @@ public:
                                             const CoulombYieldSurface& rCoulombYieldFunction,
                                             double                     FrictionAngle,
                                             double                     Cohesion) const;
-private:
+
     // Serialization
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

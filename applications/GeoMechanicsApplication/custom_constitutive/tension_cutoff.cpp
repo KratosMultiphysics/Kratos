@@ -21,7 +21,7 @@ TensionCutoff::TensionCutoff(double tensileStrength) : mTensileStrength{tensileS
 
 double TensionCutoff::YieldFunctionValue(const Vector& rPrincipalStress) const
 {
-    return mTensileStrength - rPrincipalStress(0);
+    return rPrincipalStress(0) - mTensileStrength;
 }
 
 Vector TensionCutoff::DerivateOfFlowFunction(const Vector& rPrincipalStress) const
