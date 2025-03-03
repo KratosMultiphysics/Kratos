@@ -128,10 +128,12 @@ public:
 
     /**
      * @brief Computes:
-     *           Axial strain: E_l = du/dx
-     *           Torsional curvature: k_x = d theta_x / dx
-     *           Bending curvature y: k_y = d theta_y / dx
-     *           Bending curvature z: k_y = d theta_z / dx
+     * Axial strain: E_l = du/dx
+     * Torsional curvature: k_x = d theta_x / dx
+     * Bending curvature y: k_y = d theta_y / dx
+     * Bending curvature z: k_y = d theta_z / dx
+     * Shear angle xy:    phi_y = dv/dx - theta_z
+     * Shear angle xz:    phi_z = dv/dx + theta_z
      * @param Length The size of the beam element
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
@@ -151,28 +153,28 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const;
+    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const override;
 
     /**
      * @brief Computes the length of the FE and returns it
      */
     double CalculateLength() const
     {
-        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     }
 
     /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
-     * @param rGlobalSizeVector The global size vector including nul values to the axial u terms
-     * @param rLocalSizeVector The 4 local components of v and theta
+     * @param rGlobalSizeVector The global size vector multiplying u components
+     * @param rLocalSizeVector The 2 local components of Nu
      */
-    virtual void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
+    virtual void GlobalSizeVectorLongitudinal(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
     {
-        rGlobalSizeVector.clear();
-        rGlobalSizeVector[1] = rLocalSizeVector[0];
-        rGlobalSizeVector[2] = rLocalSizeVector[1];
-        rGlobalSizeVector[4] = rLocalSizeVector[2];
-        rGlobalSizeVector[5] = rLocalSizeVector[3];
+        // rGlobalSizeVector.clear();
+        // rGlobalSizeVector[1] = rLocalSizeVector[0];
+        // rGlobalSizeVector[2] = rLocalSizeVector[1];
+        // rGlobalSizeVector[4] = rLocalSizeVector[2];
+        // rGlobalSizeVector[5] = rLocalSizeVector[3];
     }
 
     /**
@@ -180,7 +182,7 @@ public:
      * @param rGlobalSizeVector The global size vector including only the axial u terms
      * @param rLocalSizeVector The 2 local components of u
      */
-    virtual void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
+    void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[0] = rLocalSizeVector[0];
