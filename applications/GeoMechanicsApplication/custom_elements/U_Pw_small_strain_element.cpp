@@ -206,12 +206,12 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     }
 
     // Check constitutive law
-    if (mConstitutiveLawVector.size() > 0) {
+    if (!mConstitutiveLawVector.empty()) {
         return mConstitutiveLawVector[0]->Check(r_properties, r_geometry, rCurrentProcessInfo);
     }
 
     // Check retention law
-    if (mRetentionLawVector.size() > 0) {
+    if (!mRetentionLawVector.empty()) {
         return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
     }
 

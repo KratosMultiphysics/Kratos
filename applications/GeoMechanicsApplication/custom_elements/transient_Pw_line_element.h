@@ -25,6 +25,7 @@
 #include "includes/serializer.h"
 #include "permeability_calculator.h"
 #include <numeric>
+#include <optional>
 
 namespace Kratos
 {
@@ -135,16 +136,18 @@ public:
         }
     }
 
-    int Check(const ProcessInfo&) const override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
-        CheckDomainSize();
+        CheckElementLength();
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
+        CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
         CheckForNonZeroZCoordinateIn2D();
+        CheckRetentionLaw(rCurrentProcessInfo);
 
         KRATOS_CATCH("")
 
@@ -155,14 +158,14 @@ private:
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     std::vector<CalculationContribution> mContributions;
 
-    void CheckDomainSize() const
+    void CheckElementLength() const
     {
         constexpr auto min_domain_size = 1.0e-15;
         KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
+            << "Length smaller than " << min_domain_size << " for element " << Id() << std::endl;
     }
 
-    void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
+    void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
     {
         for (const auto& node : GetGeometry()) {
             KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
@@ -183,7 +186,8 @@ private:
     {
         CheckProperty(DENSITY_WATER);
         CheckProperty(DENSITY_SOLID);
-        CheckProperty(POROSITY);
+        constexpr auto max_value = 1.0;
+        CheckProperty(POROSITY, max_value);
         CheckProperty(BULK_MODULUS_SOLID);
         CheckProperty(BULK_MODULUS_FLUID);
         CheckProperty(DYNAMIC_VISCOSITY);
@@ -191,12 +195,25 @@ private:
         CheckProperty(PERMEABILITY_XX);
     }
 
-    void CheckProperty(const Kratos::Variable<double>& rVariable) const
+    void CheckProperty(const Kratos::Variable<double>& rVariable, std::optional<double> MaxValue = std::nullopt) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
-        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
-            << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
+            << rVariable.Name()
+            << " does not exist in the material properties (Id = " << GetProperties().Id()
+            << ") at element " << Id() << std::endl;
+        constexpr auto min_value = 0.0;
+        if (MaxValue.has_value()) {
+            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value ||
+                            GetProperties()[rVariable] > MaxValue.value())
+                << rVariable.Name() << " of material Id = " << GetProperties().Id() << " at element "
+                << Id() << " has an invalid value " << GetProperties()[rVariable] << " which is outside of the range [ "
+                << min_value << ", " << MaxValue.value() << "]" << std::endl;
+        } else {
+            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value)
+                << rVariable.Name() << " of material Id = " << GetProperties().Id()
+                << " at element " << Id() << " has an invalid value " << GetProperties()[rVariable]
+                << " which is below the minimum allowed value of " << min_value << std::endl;
+        }
     }
 
     void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
@@ -215,7 +232,14 @@ private:
             auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
                                                   [](const auto& node) { return node.Z() != 0.0; });
             KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+        }
+    }
+
+    void CheckRetentionLaw(const ProcessInfo& rCurrentProcessInfo) const
+    {
+        if (!mRetentionLawVector.empty()) {
+            mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
         }
     }
 

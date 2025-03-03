@@ -90,6 +90,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
+    KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
@@ -159,6 +160,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
     KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
+    KRATOS_REGISTER_VARIABLE(CONDITION_NAME)
 }
 
 }  // namespace Kratos
