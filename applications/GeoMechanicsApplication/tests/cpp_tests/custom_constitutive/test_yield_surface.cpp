@@ -30,8 +30,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWi
     constexpr double tolerance{1.0e-12};
 
     CoulombYieldSurface coulombYieldSurface(friction_angle, cohesion, 0.0);
-    double yield_value       = coulombYieldSurface.YieldFunctionValue(principal_stress);
-    double expected_solution = 1.0;
+    double              yield_value = coulombYieldSurface.YieldFunctionValue(principal_stress);
+    double              expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(yield_value, expected_solution, tolerance);
 }
 
@@ -45,8 +45,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
     constexpr double tolerance{1.0e-12};
 
     TensionCutoff tensionCutoff(tension_cutoff);
-    double tension_value     = tensionCutoff.YieldFunctionValue(principal_stress);
-    double expected_solution = 1.0;
+    double        tension_value     = tensionCutoff.YieldFunctionValue(principal_stress);
+    double        expected_solution = 1.0;
     KRATOS_EXPECT_NEAR(tension_value, expected_solution, tolerance);
 }
 

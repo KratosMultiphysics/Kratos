@@ -17,10 +17,7 @@
 
 namespace Kratos
 {
-TensionCutoff::TensionCutoff(double tensileStrength)
-    : mTensileStrength{tensileStrength}
-{
-}
+TensionCutoff::TensionCutoff(double tensileStrength) : mTensileStrength{tensileStrength} {}
 
 double TensionCutoff::YieldFunctionValue(const Vector& rPrincipalStress) const
 {

@@ -23,7 +23,7 @@ class YieldSurface
 public:
     virtual ~YieldSurface() = default;
 
-    virtual double YieldFunctionValue(const Vector& rPrincipalStress) const = 0;
+    virtual double YieldFunctionValue(const Vector& rPrincipalStress) const     = 0;
     virtual Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const = 0;
 };
 } // namespace Kratos.

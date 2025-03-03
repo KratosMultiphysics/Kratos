@@ -16,13 +16,12 @@
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.hpp"
 #include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/tension_cutoff.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {
-MohrCoulombWithTensionCutOff::MohrCoulombWithTensionCutOff(
-    std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+MohrCoulombWithTensionCutOff::MohrCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStressVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
@@ -32,8 +31,7 @@ MohrCoulombWithTensionCutOff::MohrCoulombWithTensionCutOff(
 
 ConstitutiveLaw::Pointer MohrCoulombWithTensionCutOff::Clone() const
 {
-    auto p_result = std::make_shared<
-        MohrCoulombWithTensionCutOff>(mpConstitutiveDimension->Clone());
+    auto p_result = std::make_shared<MohrCoulombWithTensionCutOff>(mpConstitutiveDimension->Clone());
     p_result->mStressVector          = mStressVector;
     p_result->mStressVectorFinalized = mStressVectorFinalized;
     p_result->mStrainVectorFinalized = mStrainVectorFinalized;
@@ -56,18 +54,15 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
         KRATOS_ERROR << "GEO_COHESION is not defined or has an invalid value for property: "
                      << rMaterialProperties.Id() << std::endl;
 
-    if (!rMaterialProperties.Has(GEO_FRICTION_ANGLE) || rMaterialProperties[GEO_FRICTION_ANGLE] <=
-        0.0)
+    if (!rMaterialProperties.Has(GEO_FRICTION_ANGLE) || rMaterialProperties[GEO_FRICTION_ANGLE] <= 0.0)
         KRATOS_ERROR << "GEO_FRICTION_ANGLE is not defined or has an invalid value for property: "
                      << rMaterialProperties.Id() << std::endl;
 
-    if (!rMaterialProperties.Has(GEO_DILATION_ANGLE) || rMaterialProperties[GEO_DILATION_ANGLE] <=
-        0.0)
+    if (!rMaterialProperties.Has(GEO_DILATION_ANGLE) || rMaterialProperties[GEO_DILATION_ANGLE] <= 0.0)
         KRATOS_ERROR << "GEO_DILATION_ANGLE is not defined or has an invalid value for property: "
                      << rMaterialProperties.Id() << std::endl;
 
-    if (!rMaterialProperties.Has(GEO_TENSION_CUTOFF) || rMaterialProperties[GEO_TENSION_CUTOFF] <=
-        0.0)
+    if (!rMaterialProperties.Has(GEO_TENSION_CUTOFF) || rMaterialProperties[GEO_TENSION_CUTOFF] <= 0.0)
         KRATOS_ERROR << "GEO_TENSION_CUTOFF is not defined or has an invalid value for property: "
                      << rMaterialProperties.Id() << std::endl;
 
@@ -102,8 +97,7 @@ bool MohrCoulombWithTensionCutOff::IsIncremental() { return true; }
 
 bool MohrCoulombWithTensionCutOff::RequiresInitializeMaterialResponse() { return true; }
 
-void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters& rParameters)
+void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     const Properties& r_prop         = rParameters.GetMaterialProperties();
     const auto        friction_angle = r_prop[GEO_FRICTION_ANGLE] * Globals::Pi / 180.0;
@@ -111,8 +105,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(
     const auto        dilation_angle = r_prop[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
     const auto        tension_cutoff = r_prop[GEO_TENSION_CUTOFF];
 
-    const auto coulomb_yield_surface =
-        CoulombYieldSurface(friction_angle, cohesion, dilation_angle);
+    const auto coulomb_yield_surface = CoulombYieldSurface(friction_angle, cohesion, dilation_angle);
     const auto tension_cut_off = TensionCutoff(tension_cutoff);
 
     Vector trail_stress_vector;
@@ -121,9 +114,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(
     this->CalculateTrialStressVector(strain_vector, trail_stress_vector, rParameters);
     Vector principal_trial_stress_vector;
     Matrix eigenvectors_matrix;
-    StressStrainUtilities::CalculatePrincipalStresses(trail_stress_vector,
-                                                      principal_trial_stress_vector,
-                                                      eigenvectors_matrix);
+    StressStrainUtilities::CalculatePrincipalStresses(
+        trail_stress_vector, principal_trial_stress_vector, eigenvectors_matrix);
     Matrix rotation_matrix = this->CalculateRotationMatrix(eigenvectors_matrix);
 
     double coulomb = coulomb_yield_surface.YieldFunctionValue(principal_trial_stress_vector);
@@ -136,25 +128,23 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(
     }
 
     // Zone of axial return
-    double trail_sigma = 0.5 * (principal_trial_stress_vector(0) +
-                                principal_trial_stress_vector(2));
+    double trail_sigma = 0.5 * (principal_trial_stress_vector(0) + principal_trial_stress_vector(2));
     double trial_tau = 0.5 * (principal_trial_stress_vector(0) - principal_trial_stress_vector(2));
-    double apex = this->CalculateApex(friction_angle, cohesion);
+    double apex      = this->CalculateApex(friction_angle, cohesion);
     Vector corner_point = this->CalculateCornerPoint(friction_angle, cohesion, tension_cutoff);
 
     if (tension_cutoff < apex && trial_tau <= corner_point(1) && cutoff <= 0.0) {
-        Vector modified_principal = this->ReturnStressAtAxialZone(
-            principal_trial_stress_vector, tension_cutoff);
+        Vector modified_principal = this->ReturnStressAtAxialZone(principal_trial_stress_vector, tension_cutoff);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
         return;
     }
 
     // Zone of tensile corner return
-    double derivative_flow_function = (trial_tau - corner_point(1)) * std::sin(dilation_angle) - (
-                                          trail_sigma - corner_point(0));
+    double derivative_flow_function =
+        (trial_tau - corner_point(1)) * std::sin(dilation_angle) - (trail_sigma - corner_point(0));
     if (derivative_flow_function <= 0.0) {
-        Vector modified_principal = this->ReturnStressAtCornerReturnZone(
-            principal_trial_stress_vector, corner_point);
+        Vector modified_principal =
+            this->ReturnStressAtCornerReturnZone(principal_trial_stress_vector, corner_point);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
         return;
     }
@@ -165,9 +155,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(
     mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
 }
 
-Vector MohrCoulombWithTensionCutOff::ReturnStressAtAxialZone(
-    const Vector& rPrincipalTrialStressVector,
-    double        TensionCutoff) const
+Vector MohrCoulombWithTensionCutOff::ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector,
+                                                             double TensionCutoff) const
 {
     Vector result = rPrincipalTrialStressVector;
     result(0)     = TensionCutoff + rPrincipalTrialStressVector(0) - rPrincipalTrialStressVector(2);
@@ -175,9 +164,8 @@ Vector MohrCoulombWithTensionCutOff::ReturnStressAtAxialZone(
     return result;
 }
 
-Vector MohrCoulombWithTensionCutOff::ReturnStressAtCornerReturnZone(
-    const Vector& rPrincipalTrialStressVector,
-    const Vector& rCornerPoint) const
+Vector MohrCoulombWithTensionCutOff::ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
+                                                                    const Vector& rCornerPoint) const
 {
     Vector result = rPrincipalTrialStressVector;
     result(0)     = rCornerPoint(0) + rCornerPoint(1);
@@ -185,15 +173,13 @@ Vector MohrCoulombWithTensionCutOff::ReturnStressAtCornerReturnZone(
     return result;
 }
 
-Vector MohrCoulombWithTensionCutOff::ReturnStressAtRegularFailureZone(
-    const Vector&              rPrincipalTrialStressVector,
-    const CoulombYieldSurface& rCoulombYieldSurface,
-    double                     FrictionAngle,
-    double                     Cohesion) const
+Vector MohrCoulombWithTensionCutOff::ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
+                                                                      const CoulombYieldSurface& rCoulombYieldSurface,
+                                                                      double FrictionAngle,
+                                                                      double Cohesion) const
 {
-    Vector result         = rPrincipalTrialStressVector;
-    Vector flowDerivative = rCoulombYieldSurface.DerivateOfFlowFunction(
-        rPrincipalTrialStressVector);
+    Vector result = rPrincipalTrialStressVector;
+    Vector flowDerivative = rCoulombYieldSurface.DerivateOfFlowFunction(rPrincipalTrialStressVector);
     double cof1   = (1.0 + std::sin(FrictionAngle)) / (1.0 - std::sin(FrictionAngle));
     double cof2   = 2.0 * Cohesion * std::cos(FrictionAngle) / (1.0 - std::sin(FrictionAngle));
     double det    = cof1 * flowDerivative(0) - flowDerivative(2);
@@ -204,23 +190,19 @@ Vector MohrCoulombWithTensionCutOff::ReturnStressAtRegularFailureZone(
     return result;
 }
 
-double MohrCoulombWithTensionCutOff::CalculateApex(double FrictionAngle,
-                                                   double Cohesion) const
+double MohrCoulombWithTensionCutOff::CalculateApex(double FrictionAngle, double Cohesion) const
 {
     return Cohesion / std::tan(FrictionAngle);
 }
 
-Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(double FrictionAngle,
-                                                          double Cohesion,
-                                                          double TensionCutoff) const
+Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensionCutoff) const
 {
     Vector result = ZeroVector(2);
     if (TensionCutoff < result(0)) {
         result(0) = this->CalculateApex(FrictionAngle, Cohesion);
         return result;
     }
-    result(0) = (TensionCutoff + Cohesion * std::cos(FrictionAngle)) / (
-                    1.0 + std::sin(FrictionAngle));
+    result(0) = (TensionCutoff + Cohesion * std::cos(FrictionAngle)) / (1.0 + std::sin(FrictionAngle));
     result(1) = (Cohesion * std::cos(FrictionAngle) - TensionCutoff * std::sin(FrictionAngle)) /
                 (1.0 + std::sin(FrictionAngle));
     return result;
@@ -236,41 +218,25 @@ Vector MohrCoulombWithTensionCutOff::RotatePrincipalStresses(const Vector& rPrin
 }
 
 void MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
-                                                              Vector& rStressVector,
-                                                              ConstitutiveLaw::Parameters& rValues)
-const
+                                                              Vector&       rStressVector,
+                                                              ConstitutiveLaw::Parameters& rValues) const
 {
     Vector deltaStrainVector = rValues.GetStrainVector() - mStrainVectorFinalized;
     Matrix elastic_matrix    = this->CalculateElasticMatrix(rValues);
     rStressVector            = mStressVectorFinalized + prod(elastic_matrix, deltaStrainVector);
 }
 
-Matrix MohrCoulombWithTensionCutOff::CalculateElasticMatrix(
-    ConstitutiveLaw::Parameters& rValues) const
+Matrix MohrCoulombWithTensionCutOff::CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues) const
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const auto        E                     = r_material_properties[YOUNG_MODULUS];
-    const auto        NU                    = r_material_properties[POISSON_RATIO];
-
-    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    const double c1 = (1.0 - NU) * c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU) * c0;
-
-    return mpConstitutiveDimension->FillConstitutiveMatrix(c1, c2, c3);
+    return mpConstitutiveDimension->CalculateElasticMatrix(r_material_properties[YOUNG_MODULUS],
+                                                           r_material_properties[POISSON_RATIO]);
 }
 
-void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters& rValues)
+void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
-}
-
-Vector MohrCoulombWithTensionCutOff::NormalizeVector(const Vector& vector) const
-{
-    double norm = MathUtils<>::Norm(vector);
-    return vector / norm;
 }
 
 Matrix MohrCoulombWithTensionCutOff::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix) const
@@ -278,7 +244,7 @@ Matrix MohrCoulombWithTensionCutOff::CalculateRotationMatrix(const Matrix& eigen
     Matrix result(eigenVectorsMatrix.size1(), eigenVectorsMatrix.size2());
     for (std::size_t i = 0; i < eigenVectorsMatrix.size1(); ++i) {
         Vector vec        = column(eigenVectorsMatrix, i);
-        vec               = this->NormalizeVector(vec);
+        vec               = GeoMechanicsMathUtilities::Normalized(vec);
         column(result, i) = vec;
     }
     return result;

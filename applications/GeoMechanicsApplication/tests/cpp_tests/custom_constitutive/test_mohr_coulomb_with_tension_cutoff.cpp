@@ -10,10 +10,10 @@
 //  Main authors:    Gennady Markelov
 //
 
+#include "custom_constitutive/coulomb_yield_surface.hpp"
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.hpp"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
-#include "custom_constitutive/coulomb_yield_surface.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -24,7 +24,6 @@
 #include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
 #include <string>
-
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -84,7 +83,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchy, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchy,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
     auto plane_strain = std::make_unique<PlaneStrain>();
@@ -126,12 +126,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateRotationMatrix2D
     StressStrainUtilities::CalculatePrincipalStresses(stress_vector, eigenvalues_vector, eigenvectors_matrix);
 
     Matrix rotation_matrix = law.CalculateRotationMatrix(eigenvectors_matrix);
-    Matrix unit_matrix = prod(rotation_matrix, trans(rotation_matrix));
+    Matrix unit_matrix     = prod(rotation_matrix, trans(rotation_matrix));
 
     Matrix expected_unit_matrix = ZeroMatrix(3, 3);
-    expected_unit_matrix <<= 1.0, 0.0, 0.0,
-                             0.0, 1.0, 0.0,
-                             0.0, 0.0, 1.0;
+    expected_unit_matrix <<= 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
     KRATOS_EXPECT_MATRIX_NEAR(unit_matrix, expected_unit_matrix, 1.0e-15);
 }
 
@@ -149,12 +147,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateRotationMatrix3D
     StressStrainUtilities::CalculatePrincipalStresses(stress_vector, eigenvalues_vector, eigenvectors_matrix);
 
     Matrix rotation_matrix = law.CalculateRotationMatrix(eigenvectors_matrix);
-    Matrix unit_matrix = prod(rotation_matrix, trans(rotation_matrix));
+    Matrix unit_matrix     = prod(rotation_matrix, trans(rotation_matrix));
 
     Matrix expected_unit_matrix = ZeroMatrix(3, 3);
-    expected_unit_matrix <<= 1.0, 0.0, 0.0,
-                             0.0, 1.0, 0.0,
-                             0.0, 0.0, 1.0;
+    expected_unit_matrix <<= 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
     KRATOS_EXPECT_MATRIX_NEAR(unit_matrix, expected_unit_matrix, 1.0e-15);
 }
 
