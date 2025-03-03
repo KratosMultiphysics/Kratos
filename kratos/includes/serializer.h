@@ -233,7 +233,7 @@ public:
                 {
                     if constexpr (!std::is_abstract_v<TDataType>) {
                         if(!pValue) {
-                            pValue = Kratos::shared_ptr<TDataType>(new TDataType);
+                            pValue = this->MakeShared<TDataType>();
                         }
                     }
                     else {
@@ -1435,6 +1435,17 @@ private:
 
     /// Sets the pointer of the stream buffer at the end
     void SeekEnd();
+
+    template <typename T>
+    std::shared_ptr<T> MakeShared()
+    {
+        if constexpr (std::is_default_constructible_v<T>)
+        {
+            return std::make_shared<T>();
+        } else {
+            return std::shared_ptr<T>(new T);
+        }
+    }
 
     ///@}
     ///@name Private  Access
