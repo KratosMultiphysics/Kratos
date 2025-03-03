@@ -109,7 +109,7 @@ namespace Kratos
         std::vector<std::vector<std::vector<int>>> knot_spans_available;
         knot_spans_available.reserve(numberOfLoops);
 
-        for (int i = 0; i < numberOfLoops; ++i) {
+        for (IndexType i = 0; i < numberOfLoops; ++i) {
             std::vector<std::vector<int>> matrix; 
             matrix.reserve(n_knot_spans_uv[1]);
             for (int j = 0; j <= n_knot_spans_uv[1]-1; ++j) {
@@ -128,15 +128,15 @@ namespace Kratos
         KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && is_inner)  << "Inner :: Starting SnakeStep" << std::endl;
         KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: Starting SnakeStep" << std::endl;
 
-        if (skin_model_part_initial.Conditions().size() > 0) {
-            
-            // CREATE FIRST NODE FOR SKIN SUB MODEL PART
-            auto initial_condition_in = skin_model_part_initial.GetCondition(1);
-            double x_true_boundary0_in = initial_condition_in.GetGeometry()[0].X();
-            double y_true_boundary0_in = initial_condition_in.GetGeometry()[0].Y();
+        if (skin_model_part_initial.NumberOfConditions()> 0) {
 
-            const int id_first_node = skin_model_part.GetRootModelPart().Nodes().size()+1;
-            skin_sub_model_part.CreateNewNode(id_first_node, x_true_boundary0_in, y_true_boundary0_in, 0.0);
+            // CREATE FIRST NODE FOR SKIN SUB MODEL PART
+            auto initial_condition = skin_model_part_initial.ConditionsBegin();
+            const double x_true_boundary0 = initial_condition->GetGeometry()[0].X();
+            const double y_true_boundary0 = initial_condition->GetGeometry()[0].Y();
+
+            const int id_new_node = skin_model_part.GetRootModelPart().NumberOfNodes()+1; 
+            skin_sub_model_part.CreateNewNode(id_new_node, x_true_boundary0, y_true_boundary0, 0.0);
 
             for (auto &i_cond : skin_model_part_initial.Conditions()) {  
                 if (newInnerLoop) {
@@ -144,44 +144,42 @@ namespace Kratos
                     newInnerLoop = false;
                 }
                 // Collect the coordinates of the points of the i_cond
-                double x_true_boundary1 = i_cond.GetGeometry()[0].X();
-                double y_true_boundary1 = i_cond.GetGeometry()[0].Y();
-                double x_true_boundary2 = i_cond.GetGeometry()[1].X();
-                double y_true_boundary2 = i_cond.GetGeometry()[1].Y();
+                const auto& r_coords_true_boundary1 = i_cond.GetGeometry()[0].Coordinates();
+                const auto& r_coords_true_boundary2 = i_cond.GetGeometry()[1].Coordinates();
 
                 std::vector<std::vector<double>> xy_coord_i_cond(2);
                 xy_coord_i_cond[0].resize(2); xy_coord_i_cond[1].resize(2); 
-                
-                xy_coord_i_cond[0][0] = i_cond.GetGeometry()[0].X(); // x_true_boundary1
-                xy_coord_i_cond[1][0] = i_cond.GetGeometry()[0].Y(); // y_true_boundary1
-                xy_coord_i_cond[0][1] = i_cond.GetGeometry()[1].X(); // x_true_boundary2
-                xy_coord_i_cond[1][1] = i_cond.GetGeometry()[1].Y(); // y_true_boundary2
-                
+
+                xy_coord_i_cond[0][0] = r_coords_true_boundary1[0];
+                xy_coord_i_cond[1][0] = r_coords_true_boundary1[1];
+                xy_coord_i_cond[0][1] = r_coords_true_boundary2[0];
+                xy_coord_i_cond[1][1] = r_coords_true_boundary2[1];
+
                 // Collect the intersections of the skin boundary with the knot values
                 std::vector<std::vector<int>> knot_span_uv(2);
                 knot_span_uv[0].resize(2); knot_span_uv[1].resize(2);
 
-                knot_span_uv[0][0] = (x_true_boundary1-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_1st_point
-                knot_span_uv[1][0] = (y_true_boundary1-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_1st_point
-                knot_span_uv[0][1] = (x_true_boundary2-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_2nd_point
-                knot_span_uv[1][1] = (y_true_boundary2-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_2nd_point
+                knot_span_uv[0][0] = (r_coords_true_boundary1[0]-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_1st_point
+                knot_span_uv[1][0] = (r_coords_true_boundary1[1]-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_1st_point
+                knot_span_uv[0][1] = (r_coords_true_boundary2[0]-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_2nd_point
+                knot_span_uv[1][1] = (r_coords_true_boundary2[1]-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_2nd_point
 
-                if (is_inner &&
-                            (knot_span_uv[0][0] < 0 || knot_span_uv[0][0] >= n_knot_spans_uv[0] ||
-                            knot_span_uv[1][0] < 0 || knot_span_uv[1][0] >= n_knot_spans_uv[1] ||
-                            knot_span_uv[0][1] < 0 || knot_span_uv[0][1] >= n_knot_spans_uv[0] ||
-                            knot_span_uv[1][1] < 0 || knot_span_uv[1][1] >= n_knot_spans_uv[1]) )
-                    KRATOS_ERROR << "[SnakeSbmUtilities]:: The skin boundary provided is bigger than the background geometry in the parameter space." << std::endl;
+                // In the inner case : check is the immersed object is inside the rectangular domain
+                if (is_inner && IsInside(knot_span_uv, n_knot_spans_uv))
+                    KRATOS_ERROR << "[SnakeSbmProcess]:: The skin boundary provided is bigger than the background geometry in the parameter space." << std::endl;
 
-                // additional check knot_span_uv computation on the domain border [especially for outer boundary]
-                if (knot_span_uv[0][0] == n_knot_spans_uv[0]) knot_span_uv[0][0]--;
-                if (knot_span_uv[1][0] == n_knot_spans_uv[1]) knot_span_uv[1][0]--;
-                if (knot_span_uv[0][1] == n_knot_spans_uv[0]) knot_span_uv[0][1]--;
-                if (knot_span_uv[1][1] == n_knot_spans_uv[1]) knot_span_uv[1][1]--;
+                // In the outer case : additional check knot_span_uv computation on the domain border 
+                if (!is_inner)
+                {
+                    if (knot_span_uv[0][0] == n_knot_spans_uv[0]) knot_span_uv[0][0]--;
+                    if (knot_span_uv[1][0] == n_knot_spans_uv[1]) knot_span_uv[1][0]--;
+                    if (knot_span_uv[0][1] == n_knot_spans_uv[0]) knot_span_uv[0][1]--;
+                    if (knot_span_uv[1][1] == n_knot_spans_uv[1]) knot_span_uv[1][1]--;
+                }
 
-                SnakeStep(skin_sub_model_part, knot_spans_available, idMatrixKnotSpansAvailable, 
-                         knot_span_uv, xy_coord_i_cond, knot_step_uv, starting_pos_uv);
-                          
+                SnakeStep(idMatrixKnotSpansAvailable, knot_span_uv, xy_coord_i_cond, knot_step_uv, starting_pos_uv, 
+                            skin_sub_model_part, knot_spans_available);
+
                 if (i_cond.GetGeometry()[1].Id() == idFirstNode) {
                     idMatrixKnotSpansAvailable++;
                     newInnerLoop = true;
@@ -392,90 +390,91 @@ namespace Kratos
     }
 
 
-    void SnakeSBMUtilities::SnakeStep(ModelPart& skin_model_part, 
-                            std::vector<std::vector<std::vector<int>>> &knot_spans_available, 
-                            int idMatrix, 
-                            std::vector<std::vector<int>> knot_spans_uv, 
-                            std::vector<std::vector<double>> xy_coord_i_cond, 
-                            Vector knot_step_uv, 
-                            Vector starting_pos_uv)
-                            {
+
+    void SnakeSBMUtilities::SnakeStep(
+        const int IdMatrix, 
+        const std::vector<std::vector<int>>& rKnotSpansUV, 
+        const std::vector<std::vector<double>>& rConditionCoord, 
+        const Vector rKnotStepUV, 
+        const Vector rStartingPosition,
+        ModelPart& rSkinModelPart, 
+        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable)
+    {
         bool isSplitted = false;
 
-        if (knot_spans_uv[0][0] != knot_spans_uv[0][1] || knot_spans_uv[1][0] != knot_spans_uv[1][1]) { // INTERSECTION BETWEEN TRUE AND SURROGATE BOUNDARY
+        if (rKnotSpansUV[0][0] != rKnotSpansUV[0][1] || rKnotSpansUV[1][0] != rKnotSpansUV[1][1]) { // INTERSECTION BETWEEN TRUE AND SURROGATE BOUNDARY
             // Check if we are jumping some cut knot spans. If yes we split the true segment
-            if (std::abs(knot_spans_uv[1][0]-knot_spans_uv[1][1]) > 1 || std::abs(knot_spans_uv[0][0]-knot_spans_uv[0][1]) > 1 || 
-                    (knot_spans_uv[0][0] != knot_spans_uv[0][1] && knot_spans_uv[1][0] != knot_spans_uv[1][1]) ) {
+            if (std::abs(rKnotSpansUV[1][0]-rKnotSpansUV[1][1]) > 1 || std::abs(rKnotSpansUV[0][0]-rKnotSpansUV[0][1]) > 1 || 
+                    (rKnotSpansUV[0][0] != rKnotSpansUV[0][1] && rKnotSpansUV[1][0] != rKnotSpansUV[1][1]) ) {
                 isSplitted = true;
 
                 // Split the segment and do it recursively
-                double x_true_boundary_split = (xy_coord_i_cond[0][0]+xy_coord_i_cond[0][1]) / 2;
-                double y_true_boundary_split = (xy_coord_i_cond[1][0]+xy_coord_i_cond[1][1]) / 2;
-                int knot_span_u_point_split = (x_true_boundary_split-starting_pos_uv[0]) / knot_step_uv[0] ;
-                int knot_span_v_point_split = (y_true_boundary_split-starting_pos_uv[1]) / knot_step_uv[1] ;
+                double x_true_boundary_split = (rConditionCoord[0][0]+rConditionCoord[0][1]) / 2;
+                double y_true_boundary_split = (rConditionCoord[1][0]+rConditionCoord[1][1]) / 2;
+                int knot_span_u_point_split = (x_true_boundary_split-rStartingPosition[0]) / rKnotStepUV[0] ;
+                int knot_span_v_point_split = (y_true_boundary_split-rStartingPosition[1]) / rKnotStepUV[1] ;
 
-                if (knot_span_u_point_split == knot_spans_available[idMatrix][0].size()) knot_span_u_point_split--;
-                if (knot_span_v_point_split == knot_spans_available[idMatrix].size()) knot_span_v_point_split--;
+                if (knot_span_u_point_split == int (rKnotSpansAvailable[IdMatrix][0].size())) knot_span_u_point_split--;
+                if (knot_span_v_point_split == int (rKnotSpansAvailable[IdMatrix].size())) knot_span_v_point_split--;
 
                 // update xy_coord for the first split segment
                 std::vector<std::vector<double>> xy_coord_i_cond_split(2);
                 xy_coord_i_cond_split[0].resize(2); xy_coord_i_cond_split[1].resize(2); 
-                xy_coord_i_cond_split[0][0] = xy_coord_i_cond[0][0]; // x_true_boundary1
-                xy_coord_i_cond_split[1][0] = xy_coord_i_cond[1][0]; // y_true_boundary1
+                xy_coord_i_cond_split[0][0] = rConditionCoord[0][0]; // x_true_boundary1
+                xy_coord_i_cond_split[1][0] = rConditionCoord[1][0]; // y_true_boundary1
                 xy_coord_i_cond_split[0][1] = x_true_boundary_split; // x_true_boundary_split
                 xy_coord_i_cond_split[1][1] = y_true_boundary_split; // y_true_boundary_split
                 // update knot_span_uv for the first split segment
                 std::vector<std::vector<int>> knot_span_uv_split(2);
                 knot_span_uv_split[0].resize(2); knot_span_uv_split[1].resize(2); 
-                knot_span_uv_split[0][0] = knot_spans_uv[0][0]; // knot_span_u_1st_point
-                knot_span_uv_split[1][0] = knot_spans_uv[1][0]; // knot_span_v_1st_point
+                knot_span_uv_split[0][0] = rKnotSpansUV[0][0]; // knot_span_u_1st_point
+                knot_span_uv_split[1][0] = rKnotSpansUV[1][0]; // knot_span_v_1st_point
                 knot_span_uv_split[0][1] = knot_span_u_point_split; // knot_span_u_point_split
                 knot_span_uv_split[1][1] = knot_span_v_point_split; // knot_span_v_point_split
-                
+
                 // __We do it recursively first split__
-                SnakeStep(skin_model_part, knot_spans_available, idMatrix, knot_span_uv_split, 
-                         xy_coord_i_cond_split, knot_step_uv, starting_pos_uv );
+                SnakeStep(IdMatrix, knot_span_uv_split, xy_coord_i_cond_split, rKnotStepUV, rStartingPosition, 
+                            rSkinModelPart, rKnotSpansAvailable);
 
                 // update xy_coord for the second split segment
                 xy_coord_i_cond_split[0][0] = x_true_boundary_split; // x_true_boundary_split
                 xy_coord_i_cond_split[1][0] = y_true_boundary_split; // y_true_boundary_split
-                xy_coord_i_cond_split[0][1] = xy_coord_i_cond[0][1]; // x_true_boundary2
-                xy_coord_i_cond_split[1][1] = xy_coord_i_cond[1][1]; // y_true_boundary2
+                xy_coord_i_cond_split[0][1] = rConditionCoord[0][1]; // x_true_boundary2
+                xy_coord_i_cond_split[1][1] = rConditionCoord[1][1]; // y_true_boundary2
                 // update knot_span_uv for the first split segment
                 knot_span_uv_split[0][0] = knot_span_u_point_split; // knot_span_u_point_split
                 knot_span_uv_split[1][0] = knot_span_v_point_split; // knot_span_v_point_split
-                knot_span_uv_split[0][1] = knot_spans_uv[0][1]; // knot_span_u_2nd_point
-                knot_span_uv_split[1][1] = knot_spans_uv[1][1]; // knot_span_v_2nd_point
+                knot_span_uv_split[0][1] = rKnotSpansUV[0][1]; // knot_span_u_2nd_point
+                knot_span_uv_split[1][1] = rKnotSpansUV[1][1]; // knot_span_v_2nd_point
 
                 // __We do it recursively second split__
-                SnakeStep(skin_model_part, knot_spans_available, idMatrix, knot_span_uv_split, 
-                         xy_coord_i_cond_split, knot_step_uv, starting_pos_uv);
+                SnakeStep(IdMatrix, knot_span_uv_split, xy_coord_i_cond_split, rKnotStepUV, rStartingPosition, 
+                            rSkinModelPart, rKnotSpansAvailable);
             }
             // Check if the true boundary crosses an u or a v knot value
-            else if (knot_spans_uv[0][0] != knot_spans_uv[0][1]) { // u knot value is crossed
-                // Find the "knot_spans_available" using the intersection
-                knot_spans_available[idMatrix][knot_spans_uv[1][0]][knot_spans_uv[0][0]] = 2;
-                knot_spans_available[idMatrix][knot_spans_uv[1][0]][knot_spans_uv[0][1]] = 2;
-
+            else if (rKnotSpansUV[0][0] != rKnotSpansUV[0][1]) { // u knot value is crossed
+                // Find the "rKnotSpansAvailable" using the intersection
+                rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][0]] = 2;
+                rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][1]] = 2;
             }
-            else if (knot_spans_uv[1][0] != knot_spans_uv[1][1]) { // v knot value is crossed
-                // Find the "knot_spans_available" using the intersection (Snake_coordinate classic -> External Boundary)
-                knot_spans_available[idMatrix][knot_spans_uv[1][0]][knot_spans_uv[0][0]] = 2;
-                knot_spans_available[idMatrix][knot_spans_uv[1][1]][knot_spans_uv[0][0]] = 2;
+            else if (rKnotSpansUV[1][0] != rKnotSpansUV[1][1]) { // v knot value is crossed
+                // Find the "rKnotSpansAvailable" using the intersection (Snake_coordinate classic -> External Boundary)
+                rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][0]] = 2;
+                rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][1]][rKnotSpansUV[0][0]] = 2;
             }
         }
         if (!isSplitted) {
             // Call the root model part for the Ids of the node
-            auto idNode1 = skin_model_part.GetRootModelPart().Nodes().size();
+            auto idNode1 = (rSkinModelPart.GetRootModelPart().NodesEnd()-1)->Id();
             auto idNode2 = idNode1+1;
             // Create two nodes and two conditions for each skin condition
-            skin_model_part.CreateNewNode(idNode2, (xy_coord_i_cond[0][0]+xy_coord_i_cond[0][1] ) / 2, (xy_coord_i_cond[1][0]+xy_coord_i_cond[1][1] ) / 2, 0.0);
-            skin_model_part.CreateNewNode(idNode2+1, xy_coord_i_cond[0][1], xy_coord_i_cond[1][1], 0.0);
-            Properties::Pointer p_cond_prop = skin_model_part.pGetProperties(0);
-            Condition::Pointer p_cond1 = skin_model_part.CreateNewCondition("LineCondition2D2N", idNode1, {{idNode1, idNode2}}, p_cond_prop );
-            Condition::Pointer p_cond2 = skin_model_part.CreateNewCondition("LineCondition2D2N", idNode2, {{idNode2, idNode2+1}}, p_cond_prop );
-            skin_model_part.AddCondition(p_cond1);
-            skin_model_part.AddCondition(p_cond2);
+            rSkinModelPart.CreateNewNode(idNode2, (rConditionCoord[0][0]+rConditionCoord[0][1] ) / 2, (rConditionCoord[1][0]+rConditionCoord[1][1] ) / 2, 0.0);
+            rSkinModelPart.CreateNewNode(idNode2+1, rConditionCoord[0][1], rConditionCoord[1][1], 0.0);
+            auto p_cond_prop = rSkinModelPart.pGetProperties(0);
+            auto p_cond1 = rSkinModelPart.CreateNewCondition("LineCondition2D2N", idNode1, {{idNode1, idNode2}}, p_cond_prop );
+            auto p_cond2 = rSkinModelPart.CreateNewCondition("LineCondition2D2N", idNode2, {{idNode2, idNode2+1}}, p_cond_prop );
+            rSkinModelPart.AddCondition(p_cond1);
+            rSkinModelPart.AddCondition(p_cond2);
         }
     }
 
@@ -1117,5 +1116,17 @@ namespace Kratos
         int elem_id = surrogate_model_part_outer.GetRootModelPart().Elements().size()+1;
         // FIXME:
         surrogate_model_part_outer.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
+    }
+
+
+
+    bool SnakeSBMUtilities::IsInside(
+        const std::vector<std::vector<int>>& rKnotSpanUV,
+        const std::vector<int>& NumberKnotSpansUV) 
+    {
+        return (rKnotSpanUV[0][0] < 0 || rKnotSpanUV[0][0] >= NumberKnotSpansUV[0] ||
+                rKnotSpanUV[1][0] < 0 || rKnotSpanUV[1][0] >= NumberKnotSpansUV[1] ||
+                rKnotSpanUV[0][1] < 0 || rKnotSpanUV[0][1] >= NumberKnotSpansUV[0] ||
+                rKnotSpanUV[1][1] < 0 || rKnotSpanUV[1][1] >= NumberKnotSpansUV[1]); 
     }
 }  // namespace Kratos.

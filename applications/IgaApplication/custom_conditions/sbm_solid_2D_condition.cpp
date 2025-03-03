@@ -80,9 +80,6 @@ namespace Kratos
         // Compute basis function order (Note: it is not allow to use different orders in different directions)
         mbasisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
 
-        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-        penalty = mbasisFunctionsOrder * mbasisFunctionsOrder * penalty / h;
-
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
         // Determine the integration: conservative -> initial; non-conservative -> current
@@ -211,14 +208,21 @@ namespace Kratos
         const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
 
         SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
-        double penalty_integration = penalty * IntToReferenceWeight;
+        
 
         // Guglielmo innovaction
-        double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
+        double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
                                                 // = -1 -> Free-penalty approach
-        if (Guglielmo_innovation == -1.0) {
-            penalty_integration = 0.0;
+
+        if (penalty == -1.0) {
+            penalty = 0.0;
+            Guglielmo_innovation = -1.0;
         }
+
+        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+        penalty = mbasisFunctionsOrder * mbasisFunctionsOrder * penalty / h;
+
+        double penalty_integration = penalty * IntToReferenceWeight;
 
         // COMPUTE THE EXTENSIONS OF THE BASIS FUNCTIONS FROM SURROGOGATE -> TRUE
 

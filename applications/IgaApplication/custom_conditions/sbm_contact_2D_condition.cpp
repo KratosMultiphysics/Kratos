@@ -105,7 +105,7 @@ namespace Kratos
 
         // INITIALIZE AND RESIZE 
 
-        const double penalty = (*mpPropMaster)[PENALTY_FACTOR];
+        double penalty = (*mpPropMaster)[PENALTY_FACTOR];
         const SizeType dim = 2;
 
         const auto& r_geometry_master = GetMasterGeometry();
@@ -364,15 +364,23 @@ namespace Kratos
         const double initial_normal_gap_true = inner_prod(projection_node_slave - projection_node_master, normal_true_master);
 
         // Differential area
-        double penalty_integration = penalty * IntToReferenceWeight;
+
+        //FIXME:
+        Vector meshSize_uv = this->GetValue(MARKER_MESHES);
+        double h = std::min(meshSize_uv[0], meshSize_uv[1]);
 
         // Guglielmo innovaction
         double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
                                                 // = -1 -> Free-penalty approach
         if (penalty == -1.0) {
-            penalty_integration = 0.0;
+            penalty = 0.0;
             Guglielmo_innovation = -1.0;
         }
+
+        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+        penalty = basis_functions_order_master * basis_functions_order_master * penalty / h;
+
+        double penalty_integration = penalty * IntToReferenceWeight;
 
         // // Assembly
         const double gamma = 1.0;//(*mpPropSlave)[YOUNG_MODULUS]/((*mpPropSlave)[YOUNG_MODULUS] + (*mpPropMaster)[YOUNG_MODULUS]);
@@ -587,39 +595,39 @@ namespace Kratos
                         for (IndexType jdim = 0; jdim < 2; jdim++) {
                             const int jglob = 2*j+jdim;
 
-                            // FLUX 
-                            // [sigma_1(u) \dot n_tilde] \dot * w_1)
-                            //*********************************************** */
-                            Vector sigma_u_n(2);
-                            sigma_u_n[0] = (DB_master(0, jglob)* normal_surrogate_master_2D[0] + DB_master(2, jglob)* normal_surrogate_master_2D[1]);
-                            sigma_u_n[1] = (DB_master(2, jglob)* normal_surrogate_master_2D[0] + DB_master(1, jglob)* normal_surrogate_master_2D[1]);
-
-                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_n[idim] * IntToReferenceWeight;
-
-
-                            // SBM FLUX CORRECTION
-                            // -([{sigma_N} - E(sigma \dot n \dot n)](n \dot n_tilde) (n\dot w)) + 
-                            // - ([{0} - E(sigma \dot n \dot tau)](n \dot n_tilde) (tau\dot w))
-
-                            // [E(sigma_1(u)) \dot n] (n \dot n_tilde) \dot * w_1
-                            //*********************************************** */
-                            Vector extension_sigma_u_n(2);
-                            extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* normal_true_master[0] + DB_sum_master(2, jglob)* normal_true_master[1]);
-                            extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* normal_true_master[0] + DB_sum_master(1, jglob)* normal_true_master[1]);
-
-                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*extension_sigma_u_n[idim] * IntToReferenceWeight * n_ntilde_master;
-
-
-
-
-
+                            // // FLUX 
+                            // // [sigma_1(u) \dot n_tilde] \dot * w_1)
+                            // //*********************************************** */
                             // Vector sigma_u_n(2);
-                            // sigma_u_n[0] = (DB_master(0, jglob)* tau_true_master[0] + DB_master(2, jglob)* tau_true_master[1]);
-                            // sigma_u_n[1] = (DB_master(2, jglob)* tau_true_master[0] + DB_master(1, jglob)* tau_true_master[1]);
+                            // sigma_u_n[0] = (DB_master(0, jglob)* normal_surrogate_master_2D[0] + DB_master(2, jglob)* normal_surrogate_master_2D[1]);
+                            // sigma_u_n[1] = (DB_master(2, jglob)* normal_surrogate_master_2D[0] + DB_master(1, jglob)* normal_surrogate_master_2D[1]);
 
-                            // double tau_n_tilde = normal_surrogate_master_2D[0]*tau_true_master[0] + normal_surrogate_master_2D[1]*tau_true_master[1];
+                            // rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_n[idim] * IntToReferenceWeight;
 
-                            // rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_n[idim]* tau_n_tilde * IntToReferenceWeight;
+
+                            // // SBM FLUX CORRECTION
+                            // // -([{sigma_N} - E(sigma \dot n \dot n)](n \dot n_tilde) (n\dot w)) + 
+                            // // - ([{0} - E(sigma \dot n \dot tau)](n \dot n_tilde) (tau\dot w))
+
+                            // // [E(sigma_1(u)) \dot n] (n \dot n_tilde) \dot * w_1
+                            // //*********************************************** */
+                            // Vector extension_sigma_u_n(2);
+                            // extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* normal_true_master[0] + DB_sum_master(2, jglob)* normal_true_master[1]);
+                            // extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* normal_true_master[0] + DB_sum_master(1, jglob)* normal_true_master[1]);
+
+                            // rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*extension_sigma_u_n[idim] * IntToReferenceWeight * n_ntilde_master;
+
+
+
+
+
+                            Vector sigma_u_n(2);
+                            sigma_u_n[0] = (DB_master(0, jglob)* tau_true_master[0] + DB_master(2, jglob)* tau_true_master[1]);
+                            sigma_u_n[1] = (DB_master(2, jglob)* tau_true_master[0] + DB_master(1, jglob)* tau_true_master[1]);
+
+                            double tau_n_tilde = normal_surrogate_master_2D[0]*tau_true_master[0] + normal_surrogate_master_2D[1]*tau_true_master[1];
+
+                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_n[idim]* tau_n_tilde * IntToReferenceWeight;
 
                         }
 
@@ -1003,7 +1011,6 @@ namespace Kratos
         sigma_n[1] = stress_vector_master[2]*normal_true_master[0] + stress_vector_master[1]*normal_true_master[1];
 
         SetValue(NORMAL_STRESS, sigma_n);
-
 
         const auto& r_geometry_master = GetMasterGeometry();
         NodeType projection_node_master;      

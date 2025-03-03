@@ -53,15 +53,15 @@ namespace Kratos
                                             const Parameters mParameters,
                                             bool is_inner_loop); // FIXME : 
 
-                                              
-        static void SnakeStep(ModelPart& skin_model_part, 
-                            std::vector<std::vector<std::vector<int>>> &knot_spans_available, 
-                            int idMatrixKnotSpansAvailable, 
-                            std::vector<std::vector<int>> knot_spans_uv, 
-                            std::vector<std::vector<double>> xy_coord_i_cond, 
-                            Vector knot_step_uv, 
-                            Vector starting_pos_uv);
-        
+        static void SnakeStep(
+                    const int IdMatrix, 
+                    const std::vector<std::vector<int>>& rKnotSpansUV, 
+                    const std::vector<std::vector<double>>& rConditionCoord, 
+                    const Vector rKnotStepUV, 
+                    const Vector rStartingPosition,
+                    ModelPart& rSkinModelPart, 
+                    std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable);
+            
         static void SnakeStepNurbs(ModelPart& skin_model_part, 
                             std::vector<std::vector<std::vector<int>>> &knot_spans_available, 
                             int idMatrix, 
@@ -120,6 +120,10 @@ namespace Kratos
                                                             Vector& knot_vector_u, 
                                                             Vector&  knot_vector_v,
                                                             const Vector& starting_pos_uv);
+
+        static bool IsInside(
+            const std::vector<std::vector<int>>& rKnotSpanUV,
+            const std::vector<int>& NumberKnotSpansUV); 
 
     }; // Class DirectorUtilities
 

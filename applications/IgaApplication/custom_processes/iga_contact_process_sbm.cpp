@@ -224,9 +224,11 @@ namespace Kratos
         if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
         double radius = 3*sqrt(3)*(meshSize); 
 
-        PointerType pointToSearch = PointerType(new PointType(1, 0.0195833, 0, 0));
+        // PointerType pointToSearch = PointerType(new PointType(1, 0.0195833, 0, 0));
 
-        int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
+        Vector master_knot_step_uv = mrMasterModelPart->GetParentModelPart().GetValue(MARKER_MESHES);
+
+        // int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
 
         //********************************************************
         // ********************************************************** */
@@ -297,19 +299,22 @@ namespace Kratos
                                         10,
                                         1e-9);
 
-                    if (is_converged || distance < 1e-2) is_converged_at_least_once = true;
+                    if (is_converged || distance < 1e-2)
+                    {
+                        is_converged_at_least_once = true;
                     
-                    if (distance < best_curve_distance) {
-                        best_curve_distance = distance;
-                        best_curve_projection = projected_point;
-                        best_curve_projection_local_coord = local_coord; 
-                        best_slave_curve_id = i_slave_curve.Id();
+                        if (distance < best_curve_distance) {
+                            best_curve_distance = distance;
+                            best_curve_projection = projected_point;
+                            best_curve_projection_local_coord = local_coord; 
+                            best_slave_curve_id = i_slave_curve.Id();
 
-                        std::vector<array_1d<double, 3>> ppp;
-                        //FIXME:
-                        slave_nurbs_curve_geometry->GlobalSpaceDerivatives(ppp, best_curve_projection_local_coord, 1);
-                        best_curve_projection = ppp[0];
-                    }
+                            std::vector<array_1d<double, 3>> ppp;
+                            //FIXME:
+                            slave_nurbs_curve_geometry->GlobalSpaceDerivatives(ppp, best_curve_projection_local_coord, 1);
+                            best_curve_projection = ppp[0];
+                        }
+                    } 
                 }
                 if (!is_converged_at_least_once) continue;
                 else is_converged_at_least_once_in_brep = true;
@@ -385,6 +390,8 @@ namespace Kratos
 
                 rResultGeometries(count_gp_master) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCouplingGeometry2D(
                                                         gp_in_brep, gp_list_slave(best_surrogate_node_array_position));
+
+                rResultGeometries(count_gp_master)->SetValue(MARKER_MESHES, master_knot_step_uv);
                 
                 count_gp_master++;
                 // KRATOS_WATCH(gp_in_brep.Center())
@@ -404,58 +411,61 @@ namespace Kratos
         // Set non active slave breps to SBM load condition to zero
         std::string default_condition_name = "SBMLoadSolid2DCondition";
         SizeType rIdCounter = 1;
-        if (mrContactModelPart->GetRootModelPart().Conditions().size() > 0)
-            rIdCounter = mrContactModelPart->GetRootModelPart().Conditions().back().Id() + 1;
+        if (mrSlaveModelPart->Conditions().size() > 0)
+            rIdCounter = mrSlaveModelPart->Conditions().back().Id() + 1;
+        // FIXME:
+        // for (auto& r_geometry_slave : mrSlaveModelPart->Geometries()) {
 
-        for (auto& r_geometry_slave : mrSlaveModelPart->Geometries()) {
+        //     int slave_brep_id = r_geometry_slave.Id();
+        //     auto p_slave_geometry = mrSlaveModelPart->pGetGeometry(slave_brep_id);
 
-            int slave_brep_id = r_geometry_slave.Id();
-            auto p_slave_geometry = mrSlaveModelPart->pGetGeometry(slave_brep_id);
+        //     if (p_slave_geometry->GetValue(IDENTIFIER) == "active") continue;
 
-            if (p_slave_geometry->GetValue(IDENTIFIER) == "active") continue;
+        //     auto slave_brep_geometry = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_slave_geometry);
 
-            auto slave_brep_geometry = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_slave_geometry);
+        //     KRATOS_ERROR_IF(!slave_brep_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << slave_brep_id << "is not a Brep." << std::endl;
 
-            KRATOS_ERROR_IF(!slave_brep_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << slave_brep_id << "is not a Brep." << std::endl;
+        //     GeometriesArrayType gp_list_slave;
+        //     slave_brep_geometry->GetQuadraturePointGeometries(gp_list_slave);
 
-            GeometriesArrayType gp_list_slave;
-            slave_brep_geometry->GetQuadraturePointGeometries(gp_list_slave);
+        //     // CREATE SBM LOAD CONDITIONS 
+        //     const Condition& rReferenceCondition = KratosComponents<Condition>::Get(default_condition_name);
+        //     ModelPart::ConditionsContainerType new_condition_list;
 
-            // CREATE SBM LOAD CONDITIONS 
-            const Condition& rReferenceCondition = KratosComponents<Condition>::Get(default_condition_name);
-            ModelPart::ConditionsContainerType new_condition_list;
+        //     KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
+        //         << "Creating conditions of type " << default_condition_name
+        //         << " in " << mrSlaveModelPart->Name() << "-SubModelPart." << std::endl;
 
-            KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
-                << "Creating conditions of type " << default_condition_name
-                << " in " << mrContactModelPart->GetParentModelPart().Name() << "-SubModelPart." << std::endl;
+        //     IndexType count_cond = 0;
+        //     for (auto it = gp_list_slave.ptr_begin(); it != gp_list_slave.ptr_end(); ++it) {
+        //         new_condition_list.push_back(
+        //             rReferenceCondition.Create(rIdCounter, (*it), mpPropSlave));
 
-            IndexType count_cond = 0;
-            for (auto it = gp_list_slave.ptr_begin(); it != gp_list_slave.ptr_end(); ++it) {
-                new_condition_list.push_back(
-                    rReferenceCondition.Create(rIdCounter, (*it), mpPropSlave));
-
-                // Add closest projection node
-                // if (norm_2((*it)->GetValue(NORMAL)) > 1e-13)
-                // {
-                //     KRATOS_WATCH((*it)->GetValue(NEIGHBOUR_NODES));
-                // }
-                //---------------------------------------------
+        //         // Add closest projection node
+        //         // if (norm_2((*it)->GetValue(NORMAL)) > 1e-13)
+        //         // {
+        //         //     KRATOS_WATCH((*it)->GetValue(NEIGHBOUR_NODES));
+        //         // }
+        //         //---------------------------------------------
                 
-                new_condition_list.GetContainer()[count_cond]->SetValue(MARKER_MESHES, meshSizes_uv);
+        //         new_condition_list.GetContainer()[count_cond]->SetValue(MARKER_MESHES, meshSizes_uv);
                                 
-                for (SizeType i = 0; i < (*it)->size(); ++i) {
-                    // These are the control points associated with the basis functions involved in the condition we are creating
-                    // rModelPart.AddNode((*it)->pGetPoint(i));
-                    mrContactModelPart->GetParentModelPart().Nodes().push_back((*it)->pGetPoint(i));
-                }
-                rIdCounter++;
-                count_cond++;
-            }
-            mrContactModelPart->GetParentModelPart().AddConditions(new_condition_list.begin(), new_condition_list.end());
-        }
+        //         for (SizeType i = 0; i < (*it)->size(); ++i) {
+        //             // These are the control points associated with the basis functions involved in the condition we are creating
+        //             // rModelPart.AddNode((*it)->pGetPoint(i));
+        //             mrSlaveModelPart->Nodes().push_back((*it)->pGetPoint(i));
+        //         }
+        //         rIdCounter++;
+        //         count_cond++;
+        //     }
+        //     mrSlaveModelPart->AddConditions(new_condition_list.begin(), new_condition_list.end());
+        // }
+        // EntitiesUtilities::InitializeEntities<Condition>(*mrSlaveModelPart);
             //-----------------------------------------------------------------------------------------------------
             // master inactive breps
-
+        rIdCounter = 1;
+        if (mrMasterModelPart->GetParentModelPart().Conditions().size() > 0)
+            rIdCounter = mrMasterModelPart->GetParentModelPart().Conditions().back().Id() + 1;
         for (auto& r_geometry_master : mrMasterModelPart->Geometries()) {
 
             int master_brep_id = r_geometry_master.Id();
@@ -1007,7 +1017,12 @@ namespace Kratos
                         if (distance < best_distance) {
                             best_distance = distance;
                             rProjectedPointLocalCoordinates = t;
-                            rProjectedPointGlobalCoordinates = current_point_global_coordinates;
+
+                            rPairedGeometry.GlobalSpaceDerivatives(
+                                                                    curve_derivatives,
+                                                                    t,
+                                                                    2);
+                            rProjectedPointGlobalCoordinates = curve_derivatives[0];
                         }
                         break;
                     }

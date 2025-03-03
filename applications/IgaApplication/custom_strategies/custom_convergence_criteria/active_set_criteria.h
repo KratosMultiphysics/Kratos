@@ -341,6 +341,17 @@ public:
                 check_per_segment_stress[segment_index] += check_value_stress;
                 check_per_segment_gap[segment_index] += check_value_gap;
 
+                // // FIXME:
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[1] < 1e-2)
+                // {
+                //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+                //     {
+                //         n_changes++;
+                //     }
+                //     n_active ++;
+                // }
+
+                // else 
                 if (check_value_stress< -toll_stress)
                 {   
                     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
