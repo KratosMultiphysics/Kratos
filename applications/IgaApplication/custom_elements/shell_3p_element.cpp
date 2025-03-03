@@ -633,15 +633,21 @@ namespace Kratos
         // e * a_covariant
         double G_00 = inner_prod(e1, rKinematicVariables.a1);
         double G_01 = inner_prod(e1, rKinematicVariables.a2);
+        double G_10 = inner_prod(e2, rKinematicVariables.a1);
         double G_11 = inner_prod(e2, rKinematicVariables.a2);
 
         //Transformation matrix T from covariant to local cartesian coordinate system
         rTCovToCar(0, 0) = pow(G_00, 2);
         rTCovToCar(0, 1) = pow(G_01, 2);
         rTCovToCar(0, 2) = 2 * G_00 * G_01;
+
+        rTCovToCar(1, 0) = pow(G_10, 2);
         rTCovToCar(1, 1) = pow(G_11, 2);
+        rTCovToCar(1, 2) = 2 * G_10 * G_11;
+        
+        rTCovToCar(2, 0) = G_00 * G_10;
         rTCovToCar(2, 1) = G_01 * G_11;
-        rTCovToCar(2, 2) = G_00 * G_11;
+        rTCovToCar(2, 2) = G_00 * G_11 + G_01 * G_10;
     }
 
     void Shell3pElement::CalculateConstitutiveVariables(
@@ -1004,7 +1010,7 @@ namespace Kratos
         T_car_to_cov = trans(m_T_vector[IntegrationPointIndex]);
         for (IndexType i = 0; i < 3; i++)
         {
-            T_car_to_cov(2, i) = T_car_to_cov(i, 2) / 2;
+            T_car_to_cov(2, i) = T_car_to_cov(2, i) / 2;
         }
 
         // Compute Transformation matrix T from covariant basis to local cartesian coordinate system            
