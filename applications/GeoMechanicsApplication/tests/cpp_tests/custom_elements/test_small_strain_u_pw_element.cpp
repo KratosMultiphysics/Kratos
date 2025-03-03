@@ -120,6 +120,27 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_DoFList, KratosGeoMechanicsFastS
     KRATOS_EXPECT_EQ(variable_names, desired_variable_list);
 }
 
+
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
+    const auto                        p_geometry   = std::make_shared<Triangle2D3<Node>>(nodes);
+    const auto                        p_properties = std::make_shared<Properties>();
+    const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
+        std::make_unique<PlaneStrainStressState>());
+
+    // Act
+    const auto p_integration_method = element.GetIntegrationMethod();
+
+    // Assert
+    constexpr auto expected_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    KRATOS_EXPECT_EQ(p_integration_method, expected_integration_method);
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementReturnsTheExpectedLeftHandSideAndRightHandSide,
 //                           KratosGeoMechanicsFastSuiteWithoutKernel)
 // {
