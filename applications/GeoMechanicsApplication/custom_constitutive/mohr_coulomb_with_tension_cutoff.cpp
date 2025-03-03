@@ -122,7 +122,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     double cutoff  = tension_cut_off.YieldFunctionValue(principal_trial_stress_vector);
 
     // Elastic region
-    if (coulomb <= 0.0 && cutoff >= 0.0) {
+    if (coulomb <= 0.0 && cutoff <= 0.0) {
         mStressVector = trail_stress_vector;
         return;
     }
@@ -133,7 +133,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     double apex      = this->CalculateApex(friction_angle, cohesion);
     Vector corner_point = this->CalculateCornerPoint(friction_angle, cohesion, tension_cutoff);
 
-    if (tension_cutoff < apex && trial_tau <= corner_point(1) && cutoff <= 0.0) {
+    if (tension_cutoff < apex && trial_tau <= corner_point(1) && cutoff >= 0.0) {
         Vector modified_principal = this->ReturnStressAtAxialZone(principal_trial_stress_vector, tension_cutoff);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
         return;
@@ -159,8 +159,8 @@ Vector MohrCoulombWithTensionCutOff::ReturnStressAtAxialZone(const Vector& rPrin
                                                              double TensionCutoff) const
 {
     Vector result = rPrincipalTrialStressVector;
-    result(0)     = TensionCutoff + rPrincipalTrialStressVector(0) - rPrincipalTrialStressVector(2);
-    result(2)     = TensionCutoff;
+    result(0)     = TensionCutoff;
+    result(2)     = TensionCutoff - rPrincipalTrialStressVector(0) + rPrincipalTrialStressVector(2);
     return result;
 }
 
@@ -202,9 +202,9 @@ Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(double FrictionAngle, 
         result(0) = this->CalculateApex(FrictionAngle, Cohesion);
         return result;
     }
-    result(0) = (TensionCutoff + Cohesion * std::cos(FrictionAngle)) / (1.0 + std::sin(FrictionAngle));
+    result(0) = (TensionCutoff - Cohesion * std::cos(FrictionAngle)) / (1.0 - std::sin(FrictionAngle));
     result(1) = (Cohesion * std::cos(FrictionAngle) - TensionCutoff * std::sin(FrictionAngle)) /
-                (1.0 + std::sin(FrictionAngle));
+                (1.0 - std::sin(FrictionAngle));
     return result;
 }
 

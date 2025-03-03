@@ -21,13 +21,13 @@ TensionCutoff::TensionCutoff(double tensileStrength) : mTensileStrength{tensileS
 
 double TensionCutoff::YieldFunctionValue(const Vector& rPrincipalStress) const
 {
-    return mTensileStrength - rPrincipalStress(2);
+    return mTensileStrength - rPrincipalStress(0);
 }
 
 Vector TensionCutoff::DerivateOfFlowFunction(const Vector& rPrincipalStress) const
 {
     Vector result(3);
-    result <<= 0.0, 0.0, -1.0;
+    result <<= -1.0, 0.0, 0.0;
     return result;
 }
 
