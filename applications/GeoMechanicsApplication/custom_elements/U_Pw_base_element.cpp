@@ -51,7 +51,7 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << rGeom[i].Id() << std::endl;
 
         if (!rGeom[i].HasDofFor(DISPLACEMENT_X) || !rGeom[i].HasDofFor(DISPLACEMENT_Y) ||
-            !rGeom[i].HasDofFor(DISPLACEMENT_Z))
+            (this->GetGeometry().WorkingSpaceDimension() > 2 && !rGeom[i].HasDofFor(DISPLACEMENT_Z)))
             KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
                          << rGeom[i].Id() << std::endl;
 
