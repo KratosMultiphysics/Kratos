@@ -126,7 +126,7 @@ public:
     typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
-    continer.
+    container.
     */
     typedef typename BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
 
@@ -147,7 +147,7 @@ public:
     */
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
-    /** Type of the normal vector used for normal to edges in geomety.
+    /** Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -209,7 +209,7 @@ public:
     /** Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      * @note This copy constructor don't copy the points and new
      * geometry shares points with given source geometry. It's
@@ -224,14 +224,34 @@ public:
     /// Destructor. Do nothing!!!
     ~Line3D3() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Linear;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Line3D3;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
 
     ///@}
@@ -328,8 +348,8 @@ public:
     ///@name Informations
     ///@{
 
-    /** This method calculate and return Length or charactereistic
-    length of this geometry depending to it's dimension. For one
+    /** This method calculates and returns Length or charactereistic
+    length of this geometry depending on its dimension. For one
     dimensional geometry for example Line it returns length of it
     and for the other geometries it gives Characteristic length
     otherwise.
@@ -346,9 +366,9 @@ public:
         return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
-    /** This method calculate and return area or surface area of
-    this geometry depending to it's dimension. For one dimensional
-    geometry it returns lentgh, for two dimensional it gives area
+    /** This method calculates and returns area or surface area of
+    this geometry depending on its dimension. For one dimensional
+    geometry it returns length, for two dimensional it gives area
     and for three dimensional geometries it gives surface area.
 
     @return double value contains area or surface
@@ -363,8 +383,8 @@ public:
     }
 
 
-    /** This method calculate and return length, area or volume of
-    this geometry depending to it's dimension. For one dimensional
+    /** This method calculates and returns length, area or volume of
+    this geometry depending on its dimension. For one dimensional
     geometry it returns its length, for two dimensional it gives area
     and for three dimensional geometries it gives its volume.
 
@@ -402,7 +422,7 @@ public:
 
     /**
      * @brief Determinant of jacobians for given integration method.
-     * @details This method calculate determinant of jacobian in all integrations points of given integration method.
+     * @details This method calculates determinant of jacobian in all integrations points of given integration method.
      * @return Vector of double which is vector of determinants of jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
      * @see Jacobian
      * @see InverseOfJacobian
@@ -422,7 +442,7 @@ public:
     }
 
     /**
-     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculate determinant of jacobian in given integration point of given integration method.
+     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculates determinant of jacobian in given integration point of given integration method.
      * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
      * @param IntegrationPointIndex index of integration point which determinant of jacobians has to be calculated in it.
      * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
@@ -439,7 +459,7 @@ public:
     }
 
     /**
-     * @brief Determinant of jacobian in given point. This method calculate determinant of jacobian matrix in given point.
+     * @brief Determinant of jacobian in given point. This method calculates determinant of jacobian matrix in given point.
      * @param rPoint point which determinant of jacobians has to be calculated in it.
      * @return Determinamt of jacobian matrix \f$ |J| \f$ in given point.
      * @see DeterminantOfJacobian
@@ -457,7 +477,7 @@ public:
     ///@{
 
     /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
+    @return SizeType contains number of this geometry edges.
     */
     SizeType EdgesNumber() const override
     {
@@ -716,6 +736,12 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Line3D3N";
+    }
 
     /** Turn back information as a string.
 

@@ -714,7 +714,11 @@ public:
     {
         KRATOS_TRY;
 
+        // Call the external utility
         BlockBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, this->GetEchoLevel(), BaseType::GetCalculateReactionsFlag());
+
+        // Set the flag as already initialized
+        BaseType::mDofSetIsInitialized = true;
 
         KRATOS_CATCH("");
     }

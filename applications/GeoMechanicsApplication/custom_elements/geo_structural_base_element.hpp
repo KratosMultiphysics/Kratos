@@ -90,6 +90,7 @@ public:
     void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
+    using Element::SetValuesOnIntegrationPoints;
 
 protected:
     static constexpr SizeType N_DOF_NODE    = (TDim == 2 ? 3 : 6);

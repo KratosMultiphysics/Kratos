@@ -44,6 +44,7 @@ std::vector<Dof<double>*> ExtractDofsFromNodes(InputIt                 NodeRange
                                                const Variable<double>& rDofVariable)
 {
     auto result = std::vector<Dof<double>*>{};
+    result.reserve(static_cast<std::size_t>(std::distance(NodeRangeBegin, NodeRangeEnd)));
     ExtractDofsFromNodes(NodeRangeBegin, NodeRangeEnd, std::back_inserter(result), rDofVariable);
     return result;
 }
@@ -59,11 +60,12 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const DisplacementNodeRange&  
                                                   const WaterPressureNodeRange& rWaterPressureNodes,
                                                   std::size_t                   ModelDimension)
 {
-    auto result = std::vector<Dof<double>*>{};
     auto displacement_variables =
         Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
     if (ModelDimension == 3) displacement_variables.push_back(std::cref(DISPLACEMENT_Z));
 
+    auto result = std::vector<Dof<double>*>{};
+    result.reserve(displacement_variables.size() * std::size(rDisplacementNodes) + std::size(rWaterPressureNodes));
     for (const auto& r_node : rDisplacementNodes) {
         std::transform(std::begin(displacement_variables), std::end(displacement_variables),
                        std::back_inserter(result),
