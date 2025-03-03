@@ -73,8 +73,10 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
                                         eigen_vectors, sigma_princi, 1.0e-16, 20);
     const auto p = CalculateMeanStress(rStressVector);
     const auto numerator = (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
+    // Avoid a domain error when computing the arc sine (which results in a NaN value)
+    const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / (q * q * q), -1.0, 1.0);
 
-    return std::asin((-27. / 2.) * numerator / (q * q * q)) / 3.0;
+    return std::asin(arg_to_asin) / 3.0;
 }
 
 double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double Phi)

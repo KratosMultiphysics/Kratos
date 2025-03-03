@@ -69,6 +69,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateLodeAngle, KratosGeoMechanicsFastSuiteWi
     stress_vector <<= -1.0, 0.0, 1.0, 0.0;
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(0.),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
+
+    // Regression tests with a small perturbation
+    constexpr auto perturbation = 1.0e-8;
+    stress_vector <<= 0.5 + perturbation, -1.0, 0.5 + perturbation, 0.0;
+    KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.),
+                            StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.),
+                            StressStrainUtilities::CalculateLodeAngle(-1. * stress_vector));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityZeroStress, KratosGeoMechanicsFastSuiteWithoutKernel)
