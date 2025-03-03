@@ -58,15 +58,17 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressPureShear, KratosGeoMechan
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateLodeAngle, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Vector stress_vector(4);
+    // Validate Triaxial Extension (TXE)
     stress_vector <<= 0.5, -1.0, 0.5, 0.0;
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    // Validate Triaxial Compression (TXC)
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.),
                             StressStrainUtilities::CalculateLodeAngle(-1. * stress_vector));
-    Vector stress_vector2(4);
-    stress_vector2 <<= -1.0, 0.0, 1.0, 0.0;
+    // Validate Shear (SHR)
+    stress_vector <<= -1.0, 0.0, 1.0, 0.0;
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(0.),
-                            StressStrainUtilities::CalculateLodeAngle(stress_vector2));
+                            StressStrainUtilities::CalculateLodeAngle(stress_vector));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityZeroStress, KratosGeoMechanicsFastSuiteWithoutKernel)
