@@ -162,7 +162,7 @@ public:
     /**
      * @brief Computes the length of the FE and returns it
      */
-    double CalculateLength() const
+    virtual double CalculateLength() const
     {
         return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     }
@@ -337,7 +337,7 @@ public:
      * @param rIntegrationPoints array of IP
      * @param PointNumber tthe IP to be evaluated
     */
-    array_1d<double, 3> GetLocalAxesBodyForce(
+    virtual array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
         const IndexType PointNumber) const;

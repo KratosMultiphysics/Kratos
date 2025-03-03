@@ -74,14 +74,14 @@ public:
     }
 
     // Constructor using an array of nodes
-    LinearTimoshenkoBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    LinearTimoshenkoBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
     }
 
     // Constructor using an array of nodes with properties
     LinearTimoshenkoBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId,pGeometry,pProperties)
+        : BaseType(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
@@ -124,7 +124,7 @@ public:
     /**
      * @brief Returns a 12 component vector including the values of the DoFs in LOCAL beam axes
      */
-    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
+    void GetNodalValuesVector(VectorType& rNodalValue) const override;
 
     /**
      * @brief Computes:
@@ -158,17 +158,31 @@ public:
     /**
      * @brief Computes the length of the FE and returns it
      */
-    double CalculateLength() const
+    double CalculateLength() const override
     {
         return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     }
 
     /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
-     * @param rGlobalSizeVector The global size vector multiplying u components
-     * @param rLocalSizeVector The 2 local components of Nu
+     * @param rGlobalSizeVector The global size vector multiplying v and theta_z components
+     * @param rLocalSizeVector The 4 local components of Nv
      */
-    virtual void GlobalSizeVectorLongitudinal(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
+    virtual void GlobalSizeVectorTransversalY(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
+    {
+        // rGlobalSizeVector.clear();
+        // rGlobalSizeVector[1] = rLocalSizeVector[0];
+        // rGlobalSizeVector[2] = rLocalSizeVector[1];
+        // rGlobalSizeVector[4] = rLocalSizeVector[2];
+        // rGlobalSizeVector[5] = rLocalSizeVector[3];
+    }
+
+    /**
+     * @brief Modifies a vector to include the components of a local size vector to the global size
+     * @param rGlobalSizeVector The global size vector multiplying w and theta_y components
+     * @param rLocalSizeVector The 4 local components of Nw
+     */
+    virtual void GlobalSizeVectorTransversalZ(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
     {
         // rGlobalSizeVector.clear();
         // rGlobalSizeVector[1] = rLocalSizeVector[0];
@@ -186,7 +200,19 @@ public:
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[0] = rLocalSizeVector[0];
-        rGlobalSizeVector[3] = rLocalSizeVector[1];
+        rGlobalSizeVector[6] = rLocalSizeVector[1];
+    }
+
+    /**
+     * @brief Modifies a vector to include the components of a local size vector to the global size
+     * @param rGlobalSizeVector The global size vector including only the axial theta_u terms
+     * @param rLocalSizeVector The 2 local components of theta_x
+     */
+    virtual void GlobalSizeVectorAxialRotation(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
+    {
+        rGlobalSizeVector.clear();
+        rGlobalSizeVector[3] = rLocalSizeVector[0];
+        rGlobalSizeVector[9] = rLocalSizeVector[1];
     }
 
     /**
@@ -228,93 +254,22 @@ public:
         ) const override;
 
     /**
-     * @brief Returns the used integration method
-     * @return default integration method of the used Geometry
-     */
-    IntegrationMethod GetIntegrationMethod() const override
-    {
-        return mThisIntegrationMethod;
-    }
-
-    /**
-    * element can be integrated using the GP provided by the geometry or custom ones
-    * by default, the base element will use the standard integration provided by the geom
-    * @return bool to select if use/not use GPs given by the geometry
-    */
-    bool UseGeometryIntegrationMethod() const
-    {
-        return true;
-    }
-
-    /**
-     * @brief Returns the set of integration points
-     */
-    const GeometryType::IntegrationPointsArrayType IntegrationPoints() const 
-    {
-        return GetGeometry().IntegrationPoints();
-    }
-
-    /**
-     * @brief Returns the set of integration points
-     */
-    const GeometryType::IntegrationPointsArrayType IntegrationPoints(IntegrationMethod ThisMethod) const
-    {
-        return GetGeometry().IntegrationPoints(ThisMethod);
-    }
-
-    /**
-     * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
-     * Also its derivatives
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    virtual void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const {};
-
-    /**
-     * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
-     * Also its derivative
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    virtual void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-
-    /**
-     * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
-     * Also its derivatives
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    virtual void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    virtual void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-
-    /**
      * @brief This function rotates the LHS from local to global coordinates
      * @param rLHS the left hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateLHS(
+    void RotateLHS(
         MatrixType &rLHS,
-        const GeometryType &rGeometry);
+        const GeometryType &rGeometry) override;
 
     /**
      * @brief This function rotates the RHS from local to global coordinates
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateRHS(
+    void RotateRHS(
         VectorType &rRHS,
-        const GeometryType &rGeometry);
+        const GeometryType &rGeometry) override;
 
     /**
      * @brief This function rotates the LHS and RHS from local to global coordinates
@@ -322,10 +277,10 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    virtual void RotateAll(
+    void RotateAll(
         MatrixType &rLHS,
         VectorType &rRHS,
-        const GeometryType &rGeometry);
+        const GeometryType &rGeometry) override;
 
     /**
      * @brief This function retrieves the body forces in local axes
@@ -336,7 +291,7 @@ public:
     array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-        const IndexType PointNumber) const;
+        const IndexType PointNumber) const override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -462,10 +417,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3; /// Currently selected integration methods
-
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -473,24 +424,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief Sets the used integration method
-     * @param ThisIntegrationMethod Integration method used
-     */
-    void SetIntegrationMethod(const IntegrationMethod& rThisIntegrationMethod)
-    {
-        mThisIntegrationMethod = rThisIntegrationMethod;
-    }
-
-    /**
-     * @brief Sets the used constitutive laws
-     * @param ThisConstitutiveLawVector Constitutive laws used
-     */
-    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& rThisConstitutiveLawVector)
-    {
-        mConstitutiveLawVector = rThisConstitutiveLawVector;
-    }
 
     /**
      * @brief It initializes the material
@@ -545,7 +478,7 @@ private:
 
     void load(Serializer &rSerializer) override;
 
-}; // class LinearTimoshenkoBeamElement2D2N.
+}; // class LinearTimoshenkoBeamElement3D2N.
 
 ///@}
 ///@name Type Definitions
