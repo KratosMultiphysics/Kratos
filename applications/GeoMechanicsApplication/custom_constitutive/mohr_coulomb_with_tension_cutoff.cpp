@@ -105,8 +105,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     const auto        dilation_angle = r_prop[GEO_DILATION_ANGLE] * Globals::Pi / 180.0;
     const auto        tension_cutoff = r_prop[GEO_TENSION_CUTOFF];
 
-    const auto coulomb_yield_surface = CoulombYieldSurface(friction_angle, cohesion, dilation_angle);
-    const auto tension_cut_off = TensionCutoff(tension_cutoff);
+    mCoulombYieldSurface = CoulombYieldSurface(friction_angle, cohesion, dilation_angle);
+    mTensionCutOff = TensionCutoff(tension_cutoff);
 
     Vector trail_stress_vector;
     Vector strain_vector = rParameters.GetStrainVector();
@@ -118,8 +118,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         trail_stress_vector, principal_trial_stress_vector, eigenvectors_matrix);
     Matrix rotation_matrix = StressStrainUtilities::CalculateRotationMatrix(eigenvectors_matrix);
 
-    double coulomb = coulomb_yield_surface.YieldFunctionValue(principal_trial_stress_vector);
-    double cutoff  = tension_cut_off.YieldFunctionValue(principal_trial_stress_vector);
+    double coulomb = mCoulombYieldSurface.YieldFunctionValue(principal_trial_stress_vector);
+    double cutoff  = mTensionCutOff.YieldFunctionValue(principal_trial_stress_vector);
 
     // Elastic region
     if (coulomb <= 0.0 && cutoff <= 0.0) {
@@ -151,7 +151,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
     // Regular failure region
     Vector modified_principal = this->ReturnStressAtRegularFailureZone(
-        principal_trial_stress_vector, coulomb_yield_surface, friction_angle, cohesion);
+        principal_trial_stress_vector, mCoulombYieldSurface, friction_angle, cohesion);
     mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
 }
 

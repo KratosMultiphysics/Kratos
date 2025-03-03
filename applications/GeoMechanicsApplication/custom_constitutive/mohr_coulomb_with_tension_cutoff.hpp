@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_constitutive/coulomb_yield_surface.hpp"
+#include "custom_constitutive/tension_cutoff.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
 #include "includes/serializer.h"
@@ -63,6 +64,8 @@ private:
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
     Vector                                    mStrainVectorFinalized;
+    CoulombYieldSurface                       mCoulombYieldSurface;
+    TensionCutoff                             mTensionCutOff;
 
     void   CalculateTrialStressVector(const Vector&                rStrainVector,
                                       Vector&                      rStressVector,
