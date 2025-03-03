@@ -47,11 +47,25 @@ namespace ShiftedBoundaryUtilityInternals {
     //TODO
     template <std::size_t TDim>
     double CalculatePointDistance(
-        const Geometry<Node>& rObjectGeometry,
+        const Geometry<Node>& rObjectGeometry, 
         const Point& rPoint);
 
     template <std::size_t TDim>
     Plane3D CreateIntersectionPlane(const std::vector<array_1d<double,3>>& rIntPtsVector);
+
+    void VoigtTransformForProduct(
+        const array_1d<double,3>& rVector, 
+        BoundedMatrix<double,2,3>& rVoigtMatrix);
+
+    void VoigtTransformForProduct(
+        const array_1d<double,3>& rVector, 
+        BoundedMatrix<double,3,6>& rVoigtMatrix);
+
+    template <std::size_t TDim>
+    void CalculateStrainMatrix(
+        const Matrix& rDN_DX, 
+        const std::size_t& NumNodes, 
+        Matrix& rB);
 
 }  // namespace ShiftedBoundaryUtilityInternals
 
@@ -181,6 +195,8 @@ public:
     void CalculatePressureAtSkinNodes();
     //void CalculateVelocityAtSkinNodes(); 
     //void CalculateDragForceAtSkinPoints(); 
+    template <std::size_t TDim>
+    void CalculateSkinDragTemplated();
     void CalculateSkinDrag();
     //     const Variable<array_1d<double, 3>>& rVariable,
     //     array_1d<double, 3>& rOutput);
@@ -224,6 +240,9 @@ public:
 protected:
     ///@name Static Member Variables
     ///@{
+
+    //static constexpr std::size_t VoigtSize = 3 * (TDim-1);
+    //static constexpr std::size_t BlockSize = TDim + 1;
 
     ///@}
     ///@name Member Variables
@@ -366,7 +385,7 @@ protected:
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide);
 
     /* TODO */
-    void GetDataForSplitElementIntegrationPoint(
+    void GetDataForSplitElementSkinPoint(
         const ElementType& rElement,
         const array_1d<double,3>& rIntPtCoordinates,
         Vector& rIntPtShapeFunctionValues,
@@ -392,16 +411,22 @@ protected:
         const array_1d<double,3>& rAvgSkinPosition,
         const array_1d<double,3>& rAvgSkinNormal);
 
+    template <std::size_t TDim>
+    bool CalculateUnknownsForBothSidesOfSplitElement(
+        const ElementType::Pointer pElement, 
+        Vector& rPositiveSideUnknowns, 
+        Vector& rNegativeSideUnknowns);
+
     //TODO
     // Calculate positive and negative side pressure inside a given SBM_BOUNDARY element using given shape function values.
     // returns true if pressure of point was calculated successfully
-    bool CalculatePressureInBoundaryElement(
+    bool CalculatePressureAtSplitElementSkinPoint(
         const ElementType::Pointer pElement,
         const Vector& rPointShapeFunctionValues,
         double& rPositiveSidePressure,
         double& rNegativeSidePressure);
 
-    bool CalculateVelocityInBoundaryElement(
+    bool CalculateVelocityAtSplitElementSkinPoint(
         const ElementType::Pointer pElement,
         const Vector& rPointShapeFunctionValues,
         array_1d<double,3>& rPositiveSideVelocity,

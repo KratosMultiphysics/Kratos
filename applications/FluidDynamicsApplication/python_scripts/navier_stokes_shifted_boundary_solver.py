@@ -321,6 +321,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
 
         if self.level_set_type == "point-based":
+            #n_dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
             # Calculate the required neighbors
             elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             elemental_neighbors_process.Execute()

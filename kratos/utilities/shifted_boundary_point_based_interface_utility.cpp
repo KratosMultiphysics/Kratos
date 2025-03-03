@@ -45,7 +45,9 @@ namespace Kratos
     namespace ShiftedBoundaryUtilityInternals {
 
     template <>
-    double CalculatePointDistance<2>(const Geometry<Node>& rObjectGeometry, const Point& rPoint)
+    double CalculatePointDistance<2>(
+        const Geometry<Node>& rObjectGeometry, 
+        const Point& rPoint)
     {
         return GeometryUtils::PointDistanceToLineSegment3D(
             rObjectGeometry[0],
@@ -54,7 +56,9 @@ namespace Kratos
     }
 
     template <>
-    double CalculatePointDistance<3>(const Geometry<Node>& rObjectGeometry, const Point& rPoint)
+    double CalculatePointDistance<3>(
+        const Geometry<Node>& rObjectGeometry, 
+        const Point& rPoint)
     {
         return GeometryUtils::PointDistanceToTriangle3D(
             rObjectGeometry[0],
@@ -64,7 +68,7 @@ namespace Kratos
     }
 
     template <>
-    Plane3D CreateIntersectionPlane<2>(const std::vector<array_1d<double,3>>& rIntPtsVector)
+    Plane3D CreateIntersectionPlane<2>(const std::vector< array_1d<double,3> >& rIntPtsVector)
     {
         // Since the Plane3D object only works in 3D, in 2D we define the intersection plane
         // by extruding the intersection point 0 in the z-direction.
@@ -74,9 +78,78 @@ namespace Kratos
     }
 
     template <>
-    Plane3D CreateIntersectionPlane<3>(const std::vector<array_1d<double,3>>& rIntPtsVector)
+    Plane3D CreateIntersectionPlane<3>(const std::vector< array_1d<double,3> >& rIntPtsVector)
     {
         return Plane3D(Point{rIntPtsVector[0]}, Point{rIntPtsVector[1]}, Point{rIntPtsVector[2]});
+    }
+
+    // see FluidElementUtilities
+    void VoigtTransformForProduct(
+        const array_1d<double,3>& rVector, 
+        BoundedMatrix<double,2,3>& rVoigtMatrix) 
+    {
+        rVoigtMatrix.clear();
+
+        rVoigtMatrix(0,0) = rVector(0);
+        rVoigtMatrix(0,2) = rVector(1);
+        rVoigtMatrix(1,1) = rVector(1);
+        rVoigtMatrix(1,2) = rVector(0);
+    }
+
+    // see FluidElementUtilities
+    void VoigtTransformForProduct(
+        const array_1d<double,3>& rVector, 
+        BoundedMatrix<double,3,6>& rVoigtMatrix) 
+    {
+        rVoigtMatrix.clear();
+
+        rVoigtMatrix(0,0) = rVector(0);
+        rVoigtMatrix(0,3) = rVector(1);
+        rVoigtMatrix(0,5) = rVector(2);
+        rVoigtMatrix(1,1) = rVector(1);
+        rVoigtMatrix(1,3) = rVector(0);
+        rVoigtMatrix(1,4) = rVector(2);
+        rVoigtMatrix(2,2) = rVector(2);
+        rVoigtMatrix(2,4) = rVector(1);
+        rVoigtMatrix(2,5) = rVector(0);
+    }
+
+    // see FluidElementUtilities
+    template <>
+    void CalculateStrainMatrix<2>(
+        const Matrix& rDN_DX, 
+        const std::size_t& NumNodes, 
+        Matrix& rB)
+    {
+        rB.clear();
+        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
+            const std::size_t col = 3 * i_node;
+            rB(0, col  ) = rDN_DX(i_node, 0);
+            rB(1, col+1) = rDN_DX(i_node, 1);
+            rB(2, col  ) = rDN_DX(i_node, 1);
+            rB(2, col+1) = rDN_DX(i_node, 0);
+        }
+    }
+
+    template <>
+    void CalculateStrainMatrix<3>(
+        const Matrix& rDN_DX, 
+        const std::size_t& NumNodes, 
+        Matrix& rB)
+    {
+        rB.clear();
+        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
+            const std::size_t col = 4 * i_node;
+            rB(0, col  ) = rDN_DX(i_node, 0);
+            rB(1, col+1) = rDN_DX(i_node, 1);
+            rB(2, col+2) = rDN_DX(i_node, 2);
+            rB(3, col  ) = rDN_DX(i_node, 1);
+            rB(3, col+1) = rDN_DX(i_node, 0);
+            rB(4, col+1) = rDN_DX(i_node, 2);
+            rB(4, col+2) = rDN_DX(i_node, 1);
+            rB(5, col  ) = rDN_DX(i_node, 2);
+            rB(5, col+2) = rDN_DX(i_node, 0);
+        }
     }
 
     }  // namespace ShiftedBoundaryUtilityInternals
@@ -523,19 +596,19 @@ namespace Kratos
 
                 // Get the split element's shape function values and derivatives at the skin/ integration point
                 Vector skin_pt_N(n_nodes);
-                Matrix skin_pt_DNDX = ZeroMatrix(n_nodes, n_dim);
-                GetDataForSplitElementIntegrationPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DNDX);
+                Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, n_dim);
+                GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
                 // NOTE that the boundary normal is negative in order to point outwards (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
                 successfully_added_pos = AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
-                mExtensionOperatorMap, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DNDX, max_cond_id, /*ConsiderPositiveSide=*/true);
+                mExtensionOperatorMap, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
                 // NOTE that boundary normal is opposite (from negative to positive side)
                 successfully_added_neg = AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
-                mExtensionOperatorMap, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DNDX, max_cond_id, /*ConsiderPositiveSide=*/false);
+                mExtensionOperatorMap, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/false);
 
                 if (!successfully_added_pos || !successfully_added_neg) {
                     n_skin_pt_conditions_not_added++;
@@ -743,7 +816,7 @@ namespace Kratos
                 double& r_skin_p_neg = rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
                 
                 // Calculate pressure at skin node for positive and negative side of Gamma
-                const bool p_calculated_successfully = CalculatePressureInBoundaryElement(p_element, skin_node_N, r_skin_p_pos, r_skin_p_neg);
+                const bool p_calculated_successfully = CalculatePressureAtSplitElementSkinPoint(p_element, skin_node_N, r_skin_p_pos, r_skin_p_neg);
                 if (!p_calculated_successfully) {
                     std::scoped_lock<LockObject> lock(mutex_valid_ex);
                     n_skin_nodes_without_correct_extension++;
@@ -756,9 +829,27 @@ namespace Kratos
 
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDrag()
     {
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        switch (n_dim) {
+            case 2:
+                CalculateSkinDragTemplated<2>();
+                break;
+            case 3:
+                CalculateSkinDragTemplated<3>();
+                break;
+            default:
+                KRATOS_ERROR << "Wrong domain size.";
+        }
+    }
+
+    template <std::size_t TDim>
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated()
+    {
+        const std::size_t voigt_size = 3 * (TDim-1);
+
         array_1d<double, 3> skin_drag = ZeroVector(3);
 
-        std::size_t n_skin_points_without_correct_extension = 0;
+        std::size_t n_split_elements_without_correct_extension = 0;
         
         // Loop over all elements containing skin points
         LockObject mutex, mutex_valid_ex;
@@ -767,6 +858,23 @@ namespace Kratos
             const auto& skin_points_data_vector = rKeyData.second;
             const auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
+            const std::size_t local_size = n_nodes * (TDim+1);
+
+            // Calculate unknowns at the nodes of the element for the positive and the negative side of Gamma
+            Vector unknowns_pos(local_size);
+            Vector unknowns_neg(local_size);
+            const bool unknowns_calculated_successfully = CalculateUnknownsForBothSidesOfSplitElement<TDim>(p_element, unknowns_pos, unknowns_neg);
+            if (!unknowns_calculated_successfully) {
+                std::scoped_lock<LockObject> lock(mutex_valid_ex);
+                n_split_elements_without_correct_extension++;
+            }
+
+            // Get constitutive law, see FluidElementData and FluidElement::CalculateMaterialResponse
+            const auto p_constitutive_law =  p_element->GetProperties()[CONSTITUTIVE_LAW];
+            ConstitutiveLaw::Parameters constitutive_law_values(r_geom, p_element->GetProperties(), mpModelPart->GetProcessInfo());
+            Flags& r_cl_options = constitutive_law_values.GetOptions();
+            r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);  // not being used (?)
+            r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
             // Iterate over the element's skin points adding a positive side and a negative side drag contribution
             for (std::size_t i_skin_pt = 0; i_skin_pt < skin_points_data_vector.size(); ++i_skin_pt) {
@@ -775,36 +883,65 @@ namespace Kratos
                 const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
                 const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
 
-                // Get shape function values of the element at the skin point
+                // Get shape function values and derivatives of the element at the skin point
                 Vector skin_pt_N(n_nodes);
+                Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, TDim);
                 array_1d<double,3> int_pt_local_coords = ZeroVector(3);
-                r_geom.PointLocalCoordinates(int_pt_local_coords, skin_pt_position);
-                r_geom.ShapeFunctionsValues(skin_pt_N, int_pt_local_coords);
+                GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
                 // Calculate pressure at skin point for positive and negative side of Gamma
-                //TODO as well as positive and negative side wall stress
-                double p_pos, p_neg;
-                const bool p_calculated_successfully = CalculatePressureInBoundaryElement(p_element, skin_pt_N, p_pos, p_neg);
-                if (!p_calculated_successfully) {
-                    std::scoped_lock<LockObject> lock(mutex_valid_ex);
-                    n_skin_points_without_correct_extension++;
+                double p_pos = 0.0, p_neg = 0.0;
+                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                    const std::size_t row = i_node * TDim;
+                    p_pos += skin_pt_N(i_node) * unknowns_pos(row);
+                    p_neg += skin_pt_N(i_node) * unknowns_neg(row);
                 }
 
-                // Add the pressure drag contribution of the skin point to the skin_drag
-                // The pressure on the positive side of Gamma needs to be multiplied by the negative normal of the skin point, 
-                // so it is pointing outwards of the fluid. The pressure on the negative side points outwards multiplied by the positive normal.
-                //TODO make threadsafe
+                // Get the normal projection matrices for positive and negative side of Gamma in Voigt notation
+                //TODO NOTE that the unit normal is pointing inwards
+                const double skin_pt_weight = norm_2(skin_pt_area_normal);
+                const array_1d<double,3> aux_unit_normal = skin_pt_area_normal / skin_pt_weight;
+                BoundedMatrix<double, TDim, voigt_size> voigt_normal_proj_matrix_pos = ZeroMatrix(TDim, voigt_size);
+                ShiftedBoundaryUtilityInternals::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix_pos);
+                BoundedMatrix<double, TDim, voigt_size> voigt_normal_proj_matrix_neg = ZeroMatrix(TDim, voigt_size);
+                ShiftedBoundaryUtilityInternals::VoigtTransformForProduct(-aux_unit_normal, voigt_normal_proj_matrix_neg);
+
+                //Calculate strain rate for positive and negative side of Gamma
+                Matrix B_matrix = ZeroMatrix(voigt_size, local_size);
+                ShiftedBoundaryUtilityInternals::CalculateStrainMatrix<TDim>(skin_pt_DN_DX, n_nodes, B_matrix);
+                Vector strain_rate_pos = prod(B_matrix, unknowns_pos);
+                Vector strain_rate_neg = prod(B_matrix, unknowns_neg);
+
+                // Set constitutive law values and calculate material response, which sets the shear stress, for positive side
+                Vector shear_stress_pos(voigt_size);
+                constitutive_law_values.SetStrainVector(strain_rate_pos);           //input
+                constitutive_law_values.SetStressVector(shear_stress_pos);          //output
+                p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+
+                // Set constitutive law values and calculate material response, which sets the shear stress, for negative side
+                Vector shear_stress_neg(voigt_size);
+                constitutive_law_values.SetStrainVector(strain_rate_neg);           //input
+                constitutive_law_values.SetStressVector(shear_stress_neg);          //output
+                p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+
+                // Calculate shear stress at skin point for positive and negative side of Gamma
+                const array_1d<double, TDim> shear_proj_pos = skin_pt_weight * prod(voigt_normal_proj_matrix_pos, shear_stress_pos);
+                const array_1d<double, TDim> shear_proj_neg = skin_pt_weight * prod(voigt_normal_proj_matrix_neg, shear_stress_neg);
+
+                // Add the shear stress and pressure drag contribution of the skin point to the skin_drag
                 {
                     std::scoped_lock<LockObject> lock(mutex);
+                    // The pressure on the positive side of Gamma needs to be multiplied by the negative normal of the skin point, 
+                    // so it is pointing outwards of the fluid. The pressure on the negative side points outwards multiplied by the positive normal.
                     skin_drag += (p_neg-p_pos) * skin_pt_area_normal;
+                    for (std::size_t d = 0; d < TDim ; ++d) {
+                        skin_drag(d) += shear_proj_pos(d) + shear_proj_neg(d);
+                    }
                 }
-
-                //TODO Add the shear drag contribution of the skin point to the skin drag
-                //skin_drag += (0.0) * skin_pt_area_normal;
             }
         });
-        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_skin_points_without_correct_extension > 0) 
-        << "The pressure at " << n_skin_points_without_correct_extension << " skin points was calculated without valid extension." << std::endl;
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_split_elements_without_correct_extension > 0) 
+        << "The traction inside " << n_split_elements_without_correct_extension << " split elements was calculated without valid extension." << std::endl;
     
         // Add skin_drag to skin model part
         mpSkinModelPart->GetValue(DRAG_FORCE) = skin_drag;
@@ -838,15 +975,14 @@ namespace Kratos
                 r_geom.ShapeFunctionsValues(skin_pt_N, int_pt_local_coords);
 
                 // Calculate pressure at skin point for positive and negative side of Gamma
-                //TODO as well as positive and negative side wall stress
                 double p_pos, p_neg;
-                const bool p_calculated_successfully = CalculatePressureInBoundaryElement(p_element, skin_pt_N, p_pos, p_neg);
+                const bool p_calculated_successfully = CalculatePressureAtSplitElementSkinPoint(p_element, skin_pt_N, p_pos, p_neg);
                 if (!p_calculated_successfully) {
                     n_skin_points_without_correct_extension++;
                 }
 
                 array_1d<double,3> u_pos, u_neg;
-                const bool u_calculated_successfully = CalculateVelocityInBoundaryElement(p_element, skin_pt_N, u_pos, u_neg);
+                const bool u_calculated_successfully = CalculateVelocityAtSplitElementSkinPoint(p_element, skin_pt_N, u_pos, u_neg);
                 if (!u_calculated_successfully) {
                     n_skin_points_without_correct_extension++;
                 }
@@ -880,7 +1016,108 @@ namespace Kratos
         KRATOS_WATCH(error_p_neg);
     }*/
 
-    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureInBoundaryElement(
+    template <std::size_t TDim>
+    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculateUnknownsForBothSidesOfSplitElement(
+        const ElementType::Pointer pElement, 
+        Vector& rPositiveSideUnknowns, 
+        Vector& rNegativeSideUnknowns)
+    {
+        //TODO ? Check whether the element is actually a part of the boundary
+        // if (!pElement->Is(SBM_BOUNDARY)) {
+        //     return 0;
+        // }
+        const auto& r_geom = pElement->GetGeometry();
+        const std::size_t n_nodes = r_geom.PointsNumber();
+        const std::size_t local_size = n_nodes * (TDim+1);
+
+        // Initialize nodal unknowns
+        rPositiveSideUnknowns = ZeroVector(local_size);
+        rNegativeSideUnknowns = ZeroVector(local_size);
+
+        Vector sides_vector(n_nodes);
+        const std::size_t sides_found = mSidesVectorMap.count(pElement);
+        // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
+        if (!sides_found) {
+            // Create sides vector based on belonging to SBM_BOUNDARY or SBM_INTERFACE of the elements nodes, if possible
+            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                auto& r_node = r_geom[i_node];
+                if (r_node.Is(SBM_BOUNDARY)) {
+                    sides_vector[i_node] =  1.0;
+                } else if (r_node.Is(SBM_INTERFACE)) {
+                    sides_vector[i_node] = -1.0;
+                } else { return false; }
+            }
+            // Store the created sides vector for future calculations
+            mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
+        } else {
+            // Get sides vector for the element the skin node is located in
+            sides_vector = mSidesVectorMap[pElement];
+        }
+
+        // Calculate positive and negative side unknowns at all nodes of the element
+        bool element_is_without_positive_extension = false;
+        bool element_is_without_negative_extension = false;
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto p_node = r_geom(i_node);
+            const std::size_t row = i_node * TDim;
+
+            // Check whether extension exists for node
+            const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
+
+            // Initialize positive and negative side velocity and pressure
+            Vector u_node_pos = ZeroVector(TDim);
+            Vector u_node_neg = ZeroVector(TDim);
+            double p_node_pos = 0.0;
+            double p_node_neg = 0.0;
+
+            // Get unknowns at the node for positive and negative side 
+            // The extension needs to be used for values on the other side on which the node is located
+            if (sides_vector[i_node] > 0.0) {
+                // Get nodal velocity and pressure directly for the positive side
+                u_node_pos = p_node->FastGetSolutionStepValue(VELOCITY);
+                p_node_pos = p_node->FastGetSolutionStepValue(PRESSURE);
+                // Calculate nodal velocity and pressure using the extension operator of the node for the negative side
+                if (extension_found) {
+                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
+                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the value at the support node
+                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+                        const auto p_support_node = std::get<0>(*it_data);
+                        const double weight_support_node = std::get<1>(*it_data);
+                        u_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
+                        p_node_neg += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
+                    }
+                } else { element_is_without_negative_extension = true; }
+            } else {                
+                // Calculate nodal velocity and pressure using the extension operator of the node for the positive side
+                if (extension_found) {
+                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
+                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the value at the support node
+                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+                        const auto p_support_node = std::get<0>(*it_data);
+                        const double weight_support_node = std::get<1>(*it_data);
+                        u_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
+                        p_node_pos += weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
+                    }
+                } else { element_is_without_negative_extension = true; }
+                // Get nodal velocity and pressure directly for the negative side
+                u_node_neg = p_node->FastGetSolutionStepValue(VELOCITY);
+                p_node_neg = p_node->FastGetSolutionStepValue(PRESSURE);
+            }
+
+            // Store positive and negative side unknowns at the node
+            for (std::size_t d; d < TDim; ++d) {
+                rPositiveSideUnknowns(row+d) = u_node_pos(d);
+                rNegativeSideUnknowns(row+d) = u_node_neg(d);
+            }
+            rPositiveSideUnknowns(row+TDim) = p_node_pos;
+            rNegativeSideUnknowns(row+TDim) = p_node_neg;
+        }
+
+        if (element_is_without_positive_extension || element_is_without_negative_extension) { return false; } 
+        else { return true; }
+    }
+
+    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSplitElementSkinPoint(
         const ElementType::Pointer pElement,
         const Vector& rPointShapeFunctionValues,
         double& rPositiveSidePressure,
@@ -918,7 +1155,6 @@ namespace Kratos
         }
 
         // Calculate positive and negative side pressure at skin node
-        //TODO as well as positive and negative side wall stress?
         bool point_is_without_positive_extension = false;
         bool point_is_without_negative_extension = false;
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
@@ -959,7 +1195,7 @@ namespace Kratos
         else { return true; }
     }
 
-    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityInBoundaryElement(
+    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSplitElementSkinPoint(
         const ElementType::Pointer pElement,
         const Vector& rPointShapeFunctionValues,
         array_1d<double,3>& rPositiveSideVelocity,
@@ -997,7 +1233,6 @@ namespace Kratos
         }
 
         // Calculate positive and negative side velocity at skin node
-        //TODO as well as positive and negative side wall stress?
         bool point_is_without_positive_extension = false;
         bool point_is_without_negative_extension = false;
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
@@ -1574,7 +1809,7 @@ namespace Kratos
         std::sort(rCloudNodeVectorNegativeSide.ptr_begin(), rCloudNodeVectorNegativeSide.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
     }
 
-    void ShiftedBoundaryPointBasedInterfaceUtility::GetDataForSplitElementIntegrationPoint(
+    void ShiftedBoundaryPointBasedInterfaceUtility::GetDataForSplitElementSkinPoint(
         const ElementType& rElement,
         const array_1d<double,3>& rIntPtCoordinates,
         Vector& rIntPtShapeFunctionValues,
@@ -1837,6 +2072,18 @@ namespace Kratos
 
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated<2>();
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated<3>();
+
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated<2>();
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated<3>();
+
+    template bool KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateUnknownsForBothSidesOfSplitElement<2>(
+        const ElementType::Pointer pElement, 
+        Vector& rPositiveSideUnknowns, 
+        Vector& rNegativeSideUnknowns);
+    template bool KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateUnknownsForBothSidesOfSplitElement<3>(
+        const ElementType::Pointer pElement, 
+        Vector& rPositiveSideUnknowns, 
+        Vector& rNegativeSideUnknowns);
 
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::MapSkinPointsToElements<2>(SkinPointsToElementsMapType& rSkinPointsMap);
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::MapSkinPointsToElements<3>(SkinPointsToElementsMapType& rSkinPointsMap);

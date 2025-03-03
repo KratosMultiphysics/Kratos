@@ -239,9 +239,8 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     // Set constitutive law flags
     Flags& r_cl_options = constitutive_law_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);  // not being used (?)
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);  //see displ_sbm
 
     // Set constitutive law values
     constitutive_law_values.SetShapeFunctionsValues(r_N);
@@ -251,6 +250,8 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter
 
     // Calculate material response and effective viscosity
+    //NOTE that here we assume that only one constitutive law is employed for all of the integration points.
+    //this is ok under the hypothesis that no history dependent behaviour is employed
     p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
     p_constitutive_law->CalculateValue(constitutive_law_values, EFFECTIVE_VISCOSITY, effective_viscosity);
 
