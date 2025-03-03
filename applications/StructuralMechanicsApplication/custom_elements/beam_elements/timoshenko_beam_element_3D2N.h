@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/element.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "timoshenko_beam_element_2D2N.h"
 
 namespace Kratos
 {
@@ -43,16 +44,13 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearTimoshenkoBeamElement2D2N
+ * @class LinearTimoshenkoBeamElement3D2N
  * @ingroup StructuralMechanicsApplication
- * @brief This is the Timoshenko beam element of 2 nodes. Reference: Felippa and Oñate,
- * "Accurate Timoshenko Beam Elements For Linear Elastostatics and LPB Stability",
- * Archives of Comp. Methods in Eng. (2021) 28:2021-2080
- * DOI: https://doi.org/10.1007/s11831-020-09515-0
+ * @brief This is the 3D Timoshenko beam element of 2 nodes.
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement2D2N
-    : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement3D2N
+    : public LinearTimoshenkoBeamElement2D2N
 {
 
 public:
@@ -61,28 +59,28 @@ public:
     ///@{
 
     /// The base element type
-    using BaseType = Element;
+    using BaseType = LinearTimoshenkoBeamElement2D2N;
 
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoBeamElement2D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoBeamElement3D2N);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    LinearTimoshenkoBeamElement2D2N()
+    LinearTimoshenkoBeamElement3D2N()
     {
     }
 
     // Constructor using an array of nodes
-    LinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    LinearTimoshenkoBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
     }
 
     // Constructor using an array of nodes with properties
-    LinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    LinearTimoshenkoBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
@@ -90,23 +88,21 @@ public:
     }
 
     // Copy constructor
-    LinearTimoshenkoBeamElement2D2N(LinearTimoshenkoBeamElement2D2N const& rOther)
-        : BaseType(rOther),
-        mThisIntegrationMethod(rOther.mThisIntegrationMethod),
-        mConstitutiveLawVector(rOther.mConstitutiveLawVector)
+    LinearTimoshenkoBeamElement3D2N(LinearTimoshenkoBeamElement3D2N const& rOther)
+        : BaseType(rOther)
     {
     }
 
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LinearTimoshenkoBeamElement2D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoBeamElement3D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
     Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
     {
-        return Kratos::make_intrusive<LinearTimoshenkoBeamElement2D2N>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoBeamElement3D2N>(NewId, pGeom, pProperties);
     }
 
     ///@}
@@ -118,37 +114,35 @@ public:
     ///@{
 
     /**
-     * @brief Indicates the amount of DoFs per node (u0, v, theta)
+     * @brief Indicates the amount of DoFs per node (u, v, w, theta_x, theta_y, theta_z)
      */
-    virtual IndexType GetDoFsPerNode() const
+    IndexType GetDoFsPerNode() const override
     {
-        return 3;
+        return 6;
     }
 
     /**
-     * @brief This method returns the angle of the FE axis
-     */
-    double GetAngle() const
-    {
-        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
-    }
-
-    /**
-     * @brief Returns a 6 component vector including the values of the DoFs
-     * in LOCAL beam axes
+     * @brief Returns a 12 component vector including the values of the DoFs in LOCAL beam axes
      */
     virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
 
     /**
-     * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
+     * @brief Computes:
+     *           Axial strain: E_l = du/dx
+     *           Torsional curvature: k_x = d theta_x / dx
+     *           Bending curvature y: k_y = d theta_y / dx
+     *           Bending curvature z: k_y = d theta_z / dx
      * @param Length The size of the beam element
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    virtual double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
-    virtual double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
-    virtual double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    double CalculateAxialStrain(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const override;
+    virtual double CalculateShearStrainXY(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    virtual double CalculateShearStrainXZ(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    virtual double CalculateBendingCurvatureX(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    virtual double CalculateBendingCurvatureY(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    virtual double CalculateBendingCurvatureZ(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
