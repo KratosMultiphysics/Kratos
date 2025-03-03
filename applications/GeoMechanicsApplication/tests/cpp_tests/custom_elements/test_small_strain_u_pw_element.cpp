@@ -46,10 +46,10 @@ intrusive_ptr<UPwSmallStrainElement<TDim, TNumNodes>> UPwSmallStrainElementWithU
     for (auto& r_node : p_result->GetGeometry()) {
         r_node.AddDof(DISPLACEMENT_X);
         r_node.AddDof(DISPLACEMENT_Y);
-        r_node.AddDof(DISPLACEMENT_Z);
+        if constexpr (TDim == 3) r_node.AddDof(DISPLACEMENT_Z);
         r_node.AddDof(VELOCITY_X);
         r_node.AddDof(VELOCITY_Y);
-        r_node.AddDof(VELOCITY_Z);
+        if constexpr (TDim == 3) r_node.AddDof(VELOCITY_Z);
         r_node.AddDof(WATER_PRESSURE);
         r_node.AddDof(DT_WATER_PRESSURE);
     }
@@ -57,8 +57,7 @@ intrusive_ptr<UPwSmallStrainElement<TDim, TNumNodes>> UPwSmallStrainElementWithU
     return p_result;
 }
 
-intrusive_ptr<UPwSmallStrainElement<2, 3>> UPwSmallStrainElementWithUPwDofs(Model& rModel,
-                                                                            const Properties::Pointer& rProperties)
+auto UPwSmallStrainElementWithUPwDofs(Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithUPwSolutionStepVariables(rModel);
 
@@ -98,25 +97,29 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CreateInstanceWithGeometryInput,
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_DoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
-// {
-//     // Arrange
-//     Model      model;
-//     auto&      r_model_part = CreateModelPartWithUPwSolutionStepVariables(model);
-//     // hier nog geen passende voor?
-//     const auto p_element    = UPwSmallStrainElementWithUPwDofs<2, 3>(r_model_part, std::make_shared<Properties>());
-//
-//     // Act
-//     const auto              dummy_process_info = ProcessInfo{};
-//     Element::DofsVectorType degrees_of_freedom;
-//     p_element->GetDofList(degrees_of_freedom, dummy_process_info);
-//
-//     // Assert
-//     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 12);
-//     //KRATOS_EXPECT_TRUE(std::all_of(degrees_of_freedom.begin(), degrees_of_freedom.end(),
-//     //                               [](auto p_dof) { return p_dof->GetVariable() == WATER_PRESSURE; }))
-// }
-//
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_DoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model      model;
+    const auto p_element = UPwSmallStrainElementWithUPwDofs(model, std::make_shared<Properties>());
+
+    // Act
+    const auto              dummy_process_info = ProcessInfo{};
+    Element::DofsVectorType degrees_of_freedom;
+    p_element->GetDofList(degrees_of_freedom, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 9);
+    std::vector<std::string> variable_names;
+    std::transform(degrees_of_freedom.cbegin(), degrees_of_freedom.cend(), std::back_inserter(variable_names),
+                   [](const auto& rpDof) { return rpDof->GetVariable().Name(); });
+    const std::vector<std::string> desired_variable_list{
+        "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_X", "DISPLACEMENT_Y",
+        "WATER_PRESSURE", "WATER_PRESSURE", "WATER_PRESSURE"};
+
+    KRATOS_EXPECT_EQ(variable_names, desired_variable_list);
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementReturnsTheExpectedLeftHandSideAndRightHandSide,
 //                           KratosGeoMechanicsFastSuiteWithoutKernel)
 // {
