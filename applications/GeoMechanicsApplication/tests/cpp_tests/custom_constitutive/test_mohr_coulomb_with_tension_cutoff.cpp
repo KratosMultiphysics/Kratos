@@ -112,46 +112,4 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_VECTOR_EQ(cauchy_stress_vector, expected_cauchy_stress_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateRotationMatrix2D, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Set
-    auto plane_strain = std::make_unique<PlaneStrain>();
-    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    Vector stress_vector = ZeroVector(plane_strain->GetStrainSize());
-    stress_vector <<= -6.0, -7.0, -14.0, 1.0;
-
-    Vector eigenvalues_vector;
-    Matrix eigenvectors_matrix;
-    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, eigenvalues_vector, eigenvectors_matrix);
-
-    Matrix rotation_matrix = law.CalculateRotationMatrix(eigenvectors_matrix);
-    Matrix unit_matrix     = prod(rotation_matrix, trans(rotation_matrix));
-
-    Matrix expected_unit_matrix = ZeroMatrix(3, 3);
-    expected_unit_matrix <<= 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
-    KRATOS_EXPECT_MATRIX_NEAR(unit_matrix, expected_unit_matrix, 1.0e-15);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateRotationMatrix3D, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Set
-    auto plane_strain = std::make_unique<ThreeDimensional>();
-    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<ThreeDimensional>());
-
-    Vector stress_vector = ZeroVector(plane_strain->GetStrainSize());
-    stress_vector <<= 10.0, 50.0, 20.0, 40.0, 35.0, 45.0;
-
-    Vector eigenvalues_vector;
-    Matrix eigenvectors_matrix;
-    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, eigenvalues_vector, eigenvectors_matrix);
-
-    Matrix rotation_matrix = law.CalculateRotationMatrix(eigenvectors_matrix);
-    Matrix unit_matrix     = prod(rotation_matrix, trans(rotation_matrix));
-
-    Matrix expected_unit_matrix = ZeroMatrix(3, 3);
-    expected_unit_matrix <<= 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
-    KRATOS_EXPECT_MATRIX_NEAR(unit_matrix, expected_unit_matrix, 1.0e-15);
-}
-
 } // namespace Kratos::Testing

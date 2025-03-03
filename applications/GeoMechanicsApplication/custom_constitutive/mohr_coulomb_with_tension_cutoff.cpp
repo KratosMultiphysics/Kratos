@@ -116,7 +116,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     Matrix eigenvectors_matrix;
     StressStrainUtilities::CalculatePrincipalStresses(
         trail_stress_vector, principal_trial_stress_vector, eigenvectors_matrix);
-    Matrix rotation_matrix = this->CalculateRotationMatrix(eigenvectors_matrix);
+    Matrix rotation_matrix = StressStrainUtilities::CalculateRotationMatrix(eigenvectors_matrix);
 
     double coulomb = coulomb_yield_surface.YieldFunctionValue(principal_trial_stress_vector);
     double cutoff  = tension_cut_off.YieldFunctionValue(principal_trial_stress_vector);
@@ -127,7 +127,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         return;
     }
 
-    // Zone of axial return
+    // Tension cut-off return
     double trail_sigma = 0.5 * (principal_trial_stress_vector(0) + principal_trial_stress_vector(2));
     double trial_tau = 0.5 * (principal_trial_stress_vector(0) - principal_trial_stress_vector(2));
     double apex      = this->CalculateApex(friction_angle, cohesion);
@@ -211,10 +211,9 @@ Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(double FrictionAngle, 
 Vector MohrCoulombWithTensionCutOff::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
                                                              const Matrix& rRotationMatrix) const
 {
-    Matrix principal_stress_matrix = this->ConvertVectorToDiagonalMatrix(rPrincipalStressVector);
-    Matrix temp                    = prod(principal_stress_matrix, trans(rRotationMatrix));
-    Matrix stress_matrix           = prod(rRotationMatrix, temp);
-    return MathUtils<double>::StressTensorToVector(stress_matrix);
+    Matrix principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
+    Vector result = StressStrainUtilities::RotateStressMatrix(principal_stress_matrix, rRotationMatrix);
+    return result;
 }
 
 void MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
@@ -237,26 +236,6 @@ void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLa
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
-}
-
-Matrix MohrCoulombWithTensionCutOff::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix) const
-{
-    Matrix result(eigenVectorsMatrix.size1(), eigenVectorsMatrix.size2());
-    for (std::size_t i = 0; i < eigenVectorsMatrix.size1(); ++i) {
-        Vector vec        = column(eigenVectorsMatrix, i);
-        vec               = GeoMechanicsMathUtilities::Normalized(vec);
-        column(result, i) = vec;
-    }
-    return result;
-}
-
-Matrix MohrCoulombWithTensionCutOff::ConvertVectorToDiagonalMatrix(const Vector& rVector) const
-{
-    Matrix result = ZeroMatrix(rVector.size(), rVector.size());
-    for (std::size_t i = 0; i < rVector.size(); ++i) {
-        result(i, i) = rVector(i);
-    }
-    return result;
 }
 
 void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const

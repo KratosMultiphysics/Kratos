@@ -12,6 +12,7 @@
 //
 
 #include "stress_strain_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "utilities/math_utils.h"
 #include <cmath>
@@ -223,6 +224,24 @@ void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStre
     noalias(rEigenVectorsMatrix) = tmp_matrix;
     KRATOS_INFO("CalculatePrincipalStresses")
         << "rEigenVectorsMatrix (3): " << rEigenVectorsMatrix << std::endl;
+}
+
+Matrix StressStrainUtilities::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix)
+{
+    Matrix result(eigenVectorsMatrix.size1(), eigenVectorsMatrix.size2());
+    for (std::size_t i = 0; i < eigenVectorsMatrix.size1(); ++i) {
+        Vector vec        = column(eigenVectorsMatrix, i);
+        vec               = GeoMechanicsMathUtilities::Normalized(vec);
+        column(result, i) = vec;
+    }
+    return result;
+}
+
+Vector StressStrainUtilities::RotateStressMatrix(const Matrix& rStressMatrix, const Matrix& rRotationMatrix)
+{
+    Matrix temp                  = prod(rStressMatrix, trans(rRotationMatrix));
+    Matrix rotated_stress_matrix = prod(rRotationMatrix, temp);
+    return MathUtils<double>::StressTensorToVector(rotated_stress_matrix);
 }
 
 } // namespace Kratos

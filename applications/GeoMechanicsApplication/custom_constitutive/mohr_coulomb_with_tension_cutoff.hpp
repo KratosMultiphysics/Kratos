@@ -50,14 +50,11 @@ public:
     SizeType                               GetStrainSize() const override;
     StrainMeasure                          GetStrainMeasure() override;
 
-    int    Check(const Properties&   rMaterialProperties,
-                 const GeometryType& rElementGeometry,
-                 const ProcessInfo&  rCurrentProcessInfo) const override;
-    void   CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& parameters) override;
-    void   FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    Vector NormalizeVector(const Vector& rVector) const;
-    Matrix ConvertVectorToDiagonalMatrix(const Vector& rVector) const;
-    Matrix CalculateRotationMatrix(const Matrix& eigenVectorsMatrix) const;
+    int  Check(const Properties&   rMaterialProperties,
+               const GeometryType& rElementGeometry,
+               const ProcessInfo&  rCurrentProcessInfo) const override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& parameters) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
     Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector, const Matrix& rRotationMatrix) const;
 
 private:
