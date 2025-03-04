@@ -1,0 +1,70 @@
+{
+    "materials"         : [{
+        "material_name" : "Particle",
+        "material_id"   : 1,
+        "Variables"     : {
+            "PARTICLE_DENSITY"              : 1.0,
+            "YOUNG_MODULUS"                 : 10000.0,
+            "POISSON_RATIO"                 : 0.3,
+            "PARTICLE_SPHERICITY"           : 1.0,
+			"THERMAL_CONDUCTIVITY"          : 1.0,
+			"SPECIFIC_HEAT"                 : 0.1,
+			"EMISSIVITY"                    : 1.0,
+			"THERMAL_EXPANSION_COEFFICIENT" : 0.0
+        }
+    },{
+        "material_name" : "Wall",
+        "material_id"   : 2,
+        "Variables"     : {
+            "PARTICLE_DENSITY"              : 1.0,
+            "YOUNG_MODULUS"                 : 10000.0,
+            "POISSON_RATIO"                 : 0.3,
+            "PARTICLE_SPHERICITY"           : 1.0,
+			"THERMAL_CONDUCTIVITY"          : 1.0,
+			"SPECIFIC_HEAT"                 : 0.1,
+			"EMISSIVITY"                    : 1.0,
+			"THERMAL_EXPANSION_COEFFICIENT" : 0.0
+        }
+    }],
+    "material_relations"      : [{
+        "material_names_list" : ["Particle","Wall"],
+        "material_ids_list"   : [1,2],
+        "Variables"           : {
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Hertz_viscous_Coulomb",
+            "STATIC_FRICTION"                        : 0.6,
+            "DYNAMIC_FRICTION"                       : 0.4,
+            "FRICTION_DECAY"                         : 500,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.5,
+            "ROLLING_FRICTION"                       : 0.01,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.01,
+			"DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+        }
+    },{
+        "material_names_list" : ["Particle","Particle"],
+        "material_ids_list"   : [1,1],
+        "Variables"           : {
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Hertz_viscous_Coulomb",
+            "STATIC_FRICTION"                        : 0.0,
+            "DYNAMIC_FRICTION"                       : 0.0,
+            "FRICTION_DECAY"                         : 0.0,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.0,
+            "ROLLING_FRICTION"                       : 0.0,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.0,
+			"DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+        }
+    },{
+        "material_names_list" : ["Wall","Wall"],
+        "material_ids_list"   : [2,2],
+        "Variables"           : {
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Hertz_viscous_Coulomb",
+            "STATIC_FRICTION"                        : 0.0,
+            "DYNAMIC_FRICTION"                       : 0.0,
+            "FRICTION_DECAY"                         : 0.0,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.0,
+            "ROLLING_FRICTION"                       : 0.0,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.0,
+			"DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+        }
+    }],
+    "material_assignation_table" : [["SpheresPart.DEMParts_Particle","Particle"],["RigidFacePart.DEM-FEM-Wall_Wall","Wall"]]
+}
