@@ -111,7 +111,19 @@
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
-    }],
+    },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyVectorConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [false,false,true],
+                "is_fixed":        [false,false,true],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
