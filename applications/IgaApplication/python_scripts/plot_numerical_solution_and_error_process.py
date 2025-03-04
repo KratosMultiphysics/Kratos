@@ -8,7 +8,7 @@ import sympy as sp
 from colorama import Fore, Style, init
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
-from scipy.interpolate import griddata
+from matplotlib.path import Path
 
 # Enable LaTeX rendering in Matplotlib
 plt.rcParams.update({
@@ -91,79 +91,146 @@ class PlotNumericalSolutionAndErrorProcess(KM.Process):
             error_list.append(error)
 
         self.plot_numerical_solution(x_list, y_list, numerical_solution_list)
-        self.plot_error(x_list, y_list, error_list)
+        #self.plot_error(x_list, y_list, error_list)
+
+    # def plot_numerical_solution(self, x_list, y_list, num_sol_list):
+    #     # Example data (replace with your actual lists)
+    #     x = np.array(x_list)
+    #     y = np.array(y_list)
+    #     z = np.array(num_sol_list).flatten()
+
+    #     # # Define the embedded circular region (center: (0.5, 0.5), radius: 0.25)
+    #     # circle_center = np.array([0.5, 0.5])
+    #     # circle_radius = 0.25
+
+    #     # # Generate points along the circle's surface
+    #     # num_circle_points = 50  # Adjust for smoother boundary
+    #     # theta = np.linspace(0, 2 * np.pi, num_circle_points, endpoint=False)
+    #     # circle_x = circle_center[0] + circle_radius * np.cos(theta)
+    #     # circle_y = circle_center[1] + circle_radius * np.sin(theta)
+
+    #     # # Estimate numerical solution at circle points (use interpolation if needed)
+    #     # circle_z = self.analytical_solution_evaluation(circle_x, circle_y, 0.0)
+
+    #     # Append circle points to the main lists
+    #     # x = np.concatenate([x, circle_x])
+    #     # y = np.concatenate([y, circle_y])
+    #     # z = np.concatenate([z.flatten(), circle_z])
+
+    #     # Create the triangulation
+    #     triang = tri.Triangulation(x, y)
+
+    #     # Compute centroids of triangles
+    #     triangles = triang.triangles  # Array of indices (each row is a triangle)
+    #     triangle_x = np.mean(x[triangles], axis=1)  # X-centroid of each triangle
+    #     triangle_y = np.mean(y[triangles], axis=1)  # Y-centroid of each triangle
+
+    #     # # # Compute squared distance from centroids to the circle center
+    #     # distance_squared = (triangle_x - circle_center[0])**2 + (triangle_y - circle_center[1])**2
+
+    #     # # Mask triangles whose centroid is inside the circle
+    #     # mask = distance_squared < circle_radius**2
+    #     # triang.set_mask(mask)
+
+    #     # Create figure and axis
+    #     fig, ax = plt.subplots(figsize=(6, 5))
+
+    #     # # Define contour levels
+    #     levels = np.linspace(min(z), max(z), 50)
+
+    #     # # Plot the solution field using tricontourf
+    #     contour = ax.tricontourf(triang, z, levels=levels, cmap="jet") 
+
+    #     # Set color bar limits explicitly (ensures proper scaling)
+    #     scale_min = 0.0
+    #     scale_max = 3.3
+    #     contour.set_clim(scale_min, scale_max)
+
+    #     # Color bar# Create colorbar with defined levels
+    #     levels = np.linspace(-1, 1, 11)
+    #     cbar = fig.colorbar(contour, ax=ax, boundaries=levels, values=levels)
+    #     cbar.set_label(r"Numerical Solution", fontsize = 14)
+
+
+    #     # Draw a black line around the circle**
+    #     # circle_boundary = plt.Circle(circle_center, circle_radius, color='k', linewidth=1, fill=False, linestyle="-")
+    #     # ax.add_patch(circle_boundary)
+
+    #     # Labels and title (LaTeX formatted)
+    #     ax.set_xlabel(r"$x$", fontsize = 14)
+    #     ax.set_ylabel(r"$y$", fontsize = 14)
+
+    #     # Save as PGF for LaTeX compatibility
+    #     plt.savefig("numerical_solution_plot.pgf", bbox_inches="tight")
+
+    #     # Save as PDF as well for easy viewing
+    #     plt.savefig("numerical_solution_plot.pdf", dpi=300)
+
+    #     plt.show()
 
     def plot_numerical_solution(self, x_list, y_list, num_sol_list):
-        # Example data (replace with your actual lists)
+        # Convert input lists to NumPy arrays
         x = np.array(x_list)
         y = np.array(y_list)
-        z = np.array(num_sol_list)
+        z = np.array(num_sol_list).flatten()
 
-        # # Define the embedded circular region (center: (0.5, 0.5), radius: 0.25)
-        circle_center = np.array([0.5, 0.5])
-        circle_radius = 0.25
-
-        # Generate points along the circle's surface
-        num_circle_points = 50  # Adjust for smoother boundary
-        theta = np.linspace(0, 2 * np.pi, num_circle_points, endpoint=False)
-        circle_x = circle_center[0] + circle_radius * np.cos(theta)
-        circle_y = circle_center[1] + circle_radius * np.sin(theta)
-
-        # Estimate numerical solution at circle points (use interpolation if needed)
-        circle_z = self.analytical_solution_evaluation(circle_x, circle_y, 0.0)
-
-        # Append circle points to the main lists
-        x = np.concatenate([x, circle_x])
-        y = np.concatenate([y, circle_y])
-        z = np.concatenate([z.flatten(), circle_z])
-
-        # Create the triangulation
+        # Create triangulation
         triang = tri.Triangulation(x, y)
+        triangles = triang.triangles  # Array of indices (each row is a triangle)
 
         # Compute centroids of triangles
-        triangles = triang.triangles  # Array of indices (each row is a triangle)
         triangle_x = np.mean(x[triangles], axis=1)  # X-centroid of each triangle
         triangle_y = np.mean(y[triangles], axis=1)  # Y-centroid of each triangle
+        centroids = np.column_stack([triangle_x, triangle_y])
 
-        # # Compute squared distance from centroids to the circle center
-        distance_squared = (triangle_x - circle_center[0])**2 + (triangle_y - circle_center[1])**2
+        # Define the quadrilateral region
+        quad_vertices = np.array([
+            [0.5, 1.0], 
+            [1.0, 0.5], 
+            [1.5, 1.0], 
+            [1.0, 1.5]
+        ])
 
-        # Mask triangles whose centroid is inside the circle
-        mask = distance_squared < circle_radius**2
+        # Create a path object for the quadrilateral
+        quad_path = Path(quad_vertices)
+
+        # Create a mask: True if centroid is inside the quadrilateral
+        mask = quad_path.contains_points(centroids)
+
+        # Apply mask to the triangulation
         triang.set_mask(mask)
 
         # Create figure and axis
         fig, ax = plt.subplots(figsize=(6, 5))
 
-        # # Define contour levels
+        # Define contour levels
         levels = np.linspace(min(z), max(z), 50)
 
-        # # Plot the solution field using tricontourf
+        # Plot the solution field using tricontourf
         contour = ax.tricontourf(triang, z, levels=levels, cmap="jet") 
 
-        # Set color bar limits explicitly (ensures proper scaling)
-        scale_min = -1.0
-        scale_max = 1.0
+        # Set color bar limits explicitly
+        scale_min = 0.0
+        scale_max = 3.3
         contour.set_clim(scale_min, scale_max)
 
-        # Color bar# Create colorbar with defined levels
-        levels = np.linspace(-1, 1, 11)
-        cbar = fig.colorbar(contour, ax=ax, boundaries=levels, values=levels)
-        cbar.set_label(r"Numerical Solution", fontsize = 14)
+        # Create colorbar with defined levels
+        cbar = fig.colorbar(contour, ax=ax)
+        cbar.set_label(r"Numerical Solution", fontsize=14)
 
-
-        # Draw a black line around the circle**
-        circle_boundary = plt.Circle(circle_center, circle_radius, color='k', linewidth=1, fill=False, linestyle="-")
-        ax.add_patch(circle_boundary)
+        # Draw quadrilateral boundary
+        quad_path_closed = np.vstack([quad_vertices, quad_vertices[0]])  # Close the shape
+        ax.plot(quad_path_closed[:, 0], quad_path_closed[:, 1], 'k-', linewidth=1.5)
 
         # Labels and title (LaTeX formatted)
-        ax.set_xlabel(r"$x$", fontsize = 14)
-        ax.set_ylabel(r"$y$", fontsize = 14)
+        ax.set_xlabel(r"$x$", fontsize=14)
+        ax.set_ylabel(r"$y$", fontsize=14)
 
-        # Save as PGF for LaTeX compatibility
+        ax.set_xticks(np.arange(0, 2.1, 0.2))  # Ticks en X cada 0.2 de 0 a 2
+        ax.set_yticks(np.arange(0, 2.1, 0.2))  # Ticks en Y cada 0.2 de 0 a 2
+
+        # Save the figure
         plt.savefig("numerical_solution_plot.pgf", bbox_inches="tight")
-
-        # Save as PDF as well for easy viewing
         plt.savefig("numerical_solution_plot.pdf", dpi=300)
 
         plt.show()
