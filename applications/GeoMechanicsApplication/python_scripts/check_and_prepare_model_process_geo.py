@@ -85,3 +85,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for node in load_sub_model_part.Nodes:
                 list_of_ids.add(node.Id)
             load_sub_sub_model_part.AddNodes(list(list_of_ids))
+
+            list_of_ids = set()
+            for condition in load_sub_model_part.Conditions:
+                list_of_ids.add(condition.Id)
+            load_sub_sub_model_part.AddConditions(list(list_of_ids))
