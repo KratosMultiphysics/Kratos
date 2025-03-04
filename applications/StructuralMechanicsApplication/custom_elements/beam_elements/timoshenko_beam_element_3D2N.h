@@ -47,6 +47,13 @@ namespace Kratos
  * @class LinearTimoshenkoBeamElement3D2N
  * @ingroup StructuralMechanicsApplication
  * @brief This is the 3D Timoshenko beam element of 2 nodes.
+ * This element employs 3rd order locking-free Hermitic polynomials for the vertical deflection (v and w) that satisfy
+ * the kinematic constraints of:
+ *     theta_y = w' - E·Iy/GAsz * w'''
+ *     theta_z = v' + E·Iz/GAsy * v'''
+ * The longitudinal displacements (u) and torsional rotation (theta_x) are discretized wit standard linear shape functions
+ * The elemental nodal unknown vector is:
+ *     a = [u0, v0, w0, thetax_0, thetay_0, thetaz_0,   u1, v1, w1, thetax_1, thetay_1, thetaz_1]
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement3D2N
@@ -128,12 +135,12 @@ public:
 
     /**
      * @brief Computes:
-     * Axial strain: E_l = du/dx
+     * Axial strain:        E_l = du/dx
      * Torsional curvature: k_x = d theta_x / dx
      * Bending curvature y: k_y = d theta_y / dx
      * Bending curvature z: k_y = d theta_z / dx
-     * Shear angle xy:    phi_y = dv/dx - theta_z
-     * Shear angle xz:    phi_z = dv/dx + theta_z
+     * Shear angle xy:      phi_y = dv/dx - theta_z
+     * Shear angle xz:      phi_z = dv/dx + theta_z
      * @param Length The size of the beam element
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
@@ -371,13 +378,6 @@ public:
      */
     int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
-    /**
-     * @brief This function returns a proper measure of the area.
-     * If the strain_size is 3 (standard Timoshenko beam), the area is the CROSS_AREA
-     * Else (plane strain Timoshenko beam), hence the area is per unit length
-     */
-    double GetCrossArea();
-
     ///@}
     ///@name Access
     ///@{
@@ -424,11 +424,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief It initializes the material
-     */
-    void InitializeMaterial();
 
 
     ///@}
