@@ -21,6 +21,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) RegistrationUtilities
 {
 public:
     static void RegisterStressStatePolicies();
+    static void DeregisterStressStatePolicies();
 };
 
 } // namespace Kratos

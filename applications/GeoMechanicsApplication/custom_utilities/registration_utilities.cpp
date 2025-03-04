@@ -16,15 +16,27 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "includes/serializer.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
 
 void RegistrationUtilities::RegisterStressStatePolicies()
 {
-    Serializer::Register("AxisymmetricStressState", AxisymmetricStressState{});
-    Serializer::Register("InterfaceStressState", InterfaceStressState{});
-    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
-    Serializer::Register("ThreeDimensionalStressState", ThreeDimensionalStressState{});
+    Serializer::Register("AxisymmetricStressState"s, AxisymmetricStressState{});
+    Serializer::Register("InterfaceStressState"s, InterfaceStressState{});
+    Serializer::Register("PlaneStrainStressState"s, PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensionalStressState"s, ThreeDimensionalStressState{});
+}
+
+void RegistrationUtilities::DeregisterStressStatePolicies()
+{
+    Serializer::Deregister("AxisymmetricStressState"s);
+    Serializer::Deregister("InterfaceStressState"s);
+    Serializer::Deregister("PlaneStrainStressState"s);
+    Serializer::Deregister("ThreeDimensionalStressState"s);
 }
 
 } // namespace Kratos

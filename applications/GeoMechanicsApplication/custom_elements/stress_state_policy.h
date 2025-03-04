@@ -65,10 +65,8 @@ private:
     }
 
     friend class Serializer;
-
     virtual void save(Serializer& rSerializer) const = 0;
-
-    virtual void load(Serializer& rSerializer) = 0;
+    virtual void load(Serializer& rSerializer)       = 0;
 };
 
 } // namespace Kratos
