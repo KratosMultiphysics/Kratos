@@ -55,7 +55,7 @@ namespace Kratos
                     CurveTessellation<PointerVector<Node>> curve_tesselation;
                     auto geometry_inner = *(rInnerLoops[i_inner_loops][j].get());
                     curve_tesselation.Tessellate(
-                        geometry_inner, 0.001, 1, true);
+                        geometry_inner, 1e-8, 1, true);
                     auto tesselation = curve_tesselation.GetTessellation();
                     for (IndexType u = 0; u < tesselation.size(); ++u) {
                         auto new_int_point = BrepTrimmingUtilities::ToIntPoint(std::get<1>(tesselation[u])[0], std::get<1>(tesselation[u])[1], factor);
