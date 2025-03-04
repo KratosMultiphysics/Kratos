@@ -75,9 +75,6 @@ double AdaptiveTimeIncrementor::GetIncrement() const { return mDeltaTime; }
 
 void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rResultantState)
 {
-    // mDeltaTime = std::min(mDeltaTime, mMaxDeltaTime);
-    auto conv    = rResultantState.Converged();
-    auto nonconv = rResultantState.NonConverged();
     if (rResultantState.Converged()) // it is converged also at the beginning of the cycles
     {
         // # scale next step if desired
