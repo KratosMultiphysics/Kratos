@@ -54,6 +54,7 @@ namespace Kratos
  * The longitudinal displacements (u) and torsional rotation (theta_x) are discretized wit standard linear shape functions
  * The elemental nodal unknown vector is:
  *     a = [u0, v0, w0, thetax_0, thetay_0, thetaz_0,   u1, v1, w1, thetax_1, thetay_1, thetaz_1]
+ * The element is formulated in natural coordinates xi ranging [-1, 1]
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement3D2N
@@ -146,7 +147,7 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    double CalculateAxialStrain(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const override;
+    double         CalculateAxialStrain(  const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const override;
     virtual double CalculateShearStrainXY(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
     virtual double CalculateShearStrainXZ(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
     virtual double CalculateBendingCurvatureX(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
@@ -212,7 +213,7 @@ public:
 
     /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
-     * @param rGlobalSizeVector The global size vector including only the axial theta_u terms
+     * @param rGlobalSizeVector The global size vector including only the axial theta_x terms
      * @param rLocalSizeVector The 2 local components of theta_x
      */
     virtual void GlobalSizeVectorAxialRotation(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
@@ -389,7 +390,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Timoshenko 2N Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "3D Timoshenko 2N Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
