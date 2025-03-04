@@ -102,7 +102,8 @@ public:
 
     bool DoSegmentsIntersect(
         const array_1d<double,3>& p1, const array_1d<double,3>& p2,
-        const array_1d<double,3>& q1, const array_1d<double,3>& q2);
+        const array_1d<double,3>& q1, const array_1d<double,3>& q2,
+        array_1d<double,3>& intersection_point);
 
     bool IsPointInsideRectangle(double x, double y, double u_min, double u_max, double v_min, double v_max);
 

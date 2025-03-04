@@ -114,6 +114,7 @@ namespace Kratos
 
                     // Verify intersection
                     bool intersects = LineIntersectsRectangle(line_p1, line_p2, u_min, u_max, v_min, v_max);
+
                     if (intersects == true){
                         Vector unit_normal = ComputeUnitNormal(line_p1, line_p2);
                         vector_unit_normal.push_back(unit_normal);
@@ -158,16 +159,6 @@ namespace Kratos
                                 }
                             }
                         }
-
-                        // for (auto element_it = background_mesh_model_part.ElementsBegin(); element_it != background_mesh_model_part.ElementsEnd(); element_it ++){
-                        //     array_1d<double,3> quadrature_point_position = element_it->GetGeometry().Center();
-
-                        //     if (IsPointInsideRectangle(quadrature_point_position[0], quadrature_point_position[1], u_min, u_max, v_min, v_max) == true){
-                        //         element_it->Set(ACTIVE, false);
-                        //         intersected_elements_sub_model_part.AddElement(*(element_it.base()));
-                        //         //element_it->SetValue(UNIT_NORMAL, unit_normal);
-                        //     }
-                        // }
                     }
                 }
 
@@ -243,10 +234,10 @@ namespace Kratos
                 double radius = 1.3 * knot_span_diagonal;
 
                 // Define the four corners of the rectangle
-                array_1d<double, 3> p1{u_min, v_min, 0.0};  // Corner 1
-                array_1d<double, 3> p2{u_max, v_min, 0.0};  // Corner 2
-                array_1d<double, 3> p3{u_max, v_max, 0.0};  // Corner 3
-                array_1d<double, 3> p4{u_min, v_max, 0.0};  // Corner 4
+                array_1d<double, 3> p1{u_min, v_min, 0.0}; 
+                array_1d<double, 3> p2{u_max, v_min, 0.0};  
+                array_1d<double, 3> p3{u_max, v_max, 0.0};  
+                array_1d<double, 3> p4{u_min, v_max, 0.0};  
 
                 // Check if the rectangle is inside or outside the polygon using the ray tracing algorithm 
                 auto is_rectangle_inside = IsRectangleInsidePolygon(p1, p2, p3, p4, polygon_vertices);
@@ -291,13 +282,6 @@ namespace Kratos
                             }
                         }
                     }   
-                    // for (auto element_it = background_mesh_model_part.ElementsBegin(); element_it != background_mesh_model_part.ElementsEnd(); element_it ++){
-                    //     array_1d<double,3> quadrature_point_position = element_it->GetGeometry().Center();
-                        
-                    //     if (IsPointInsideRectangle(quadrature_point_position[0], quadrature_point_position[1], u_min, u_max, v_min, v_max) == true){
-                    //         element_it->Set(ACTIVE, false);
-                    //     }
-                    // }
                 }
                 else if (is_rectangle_inside.first == false && keep_external_domain == true){
                     for (IndexType k = 0; k < neighbours_entity_points.size(); k++){
@@ -328,30 +312,6 @@ namespace Kratos
                             }
                         }
                     }   
-                    // for (auto element_it = background_mesh_model_part.ElementsBegin(); element_it != background_mesh_model_part.ElementsEnd(); element_it ++){
-                    //     array_1d<double,3> quadrature_point_position = element_it->GetGeometry().Center();
-
-                    //         if (IsPointInsideRectangle(quadrature_point_position[0], quadrature_point_position[1], u_min, u_max, v_min, v_max) == true){
-                    //             active_elements_sub_model_part.AddElement(*(element_it.base()));
-                    //         }
-
-                    //         if (IsPointInsideRectangle(quadrature_point_position[0], quadrature_point_position[1], u_min, u_max, v_min, v_max) == true && number_of_points_inside == 0){
-                    //             interpolation_sub_model_part.AddElement(*(element_it.base()));
-                    //         }
-
-                    //         if (IsPointInsideRectangle(quadrature_point_position[0], quadrature_point_position[1], u_min, u_max, v_min, v_max) == true && number_of_points_inside == 0){
-                    //             for (auto element_it_2 = intersected_elements_sub_model_part.ElementsBegin(); element_it_2 != intersected_elements_sub_model_part.ElementsEnd(); element_it_2++){
-                    //                 array_1d<double,3> gp_position_intersected_elements = element_it_2->GetGeometry().Center();
-
-                    //                 double distance = norm_2(gp_position_intersected_elements - quadrature_point_position);
-
-                    //                 if (distance > 0.0){
-                    //                     compute_error_sub_model_part.AddElement(*(element_it_2.base()));
-                    //                 }
-                    //             }
-                    //         }
-                        
-                    // }
                 }
             }
         }
@@ -416,7 +376,6 @@ namespace Kratos
             weights[0] = gauss_point_weight;
             element_it->SetValue(INTEGRATION_WEIGHTS, weights);
         }
-    // KRATOS_WATCH("outside classification")
     }
 
     Vector ClassifyElementsExtendedGradientMethodProcess::ComputeUnitNormal(const array_1d<double,3>& line_p1, const array_1d<double,3>& line_p2){
@@ -433,7 +392,9 @@ namespace Kratos
         bool inside = false;
 
         // Loop over each edge of the polygon
-        for (int i = 0, j = n - 1; i < n; j = i++) {
+        for (int i = 0; i < n; i++) {
+            int j = (i == 0) ? (n - 1) : (i - 1);
+
             const array_1d<double, 3>& p1 = polygon_vertices[i];
             const array_1d<double, 3>& p2 = polygon_vertices[j];
 
@@ -466,17 +427,29 @@ namespace Kratos
 
     // Function to verify if a point is inside the rectangle
     bool ClassifyElementsExtendedGradientMethodProcess::IsPointInsideRectangle(double x, double y, double u_min, double u_max, double v_min, double v_max) {
-        return (x > u_min && x < u_max && y > v_min && y < v_max);
+        if (x >= u_min && x <= u_max && y >= v_min && y <= v_max){
+            return true;
+        }
+        return false;
     }
 
     // Function to verify if 2 segments intersect
     bool ClassifyElementsExtendedGradientMethodProcess::DoSegmentsIntersect(
         const array_1d<double,3>& p1, const array_1d<double,3>& p2,
-        const array_1d<double,3>& q1, const array_1d<double,3>& q2) 
+        const array_1d<double,3>& q1, const array_1d<double,3>& q2,
+        array_1d<double,3>& intersection_point) 
     {
-        
-        auto Orientation = [](const array_1d<double,3>& a, const array_1d<double,3>& b, const array_1d<double,3>& c) {
-            return (b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1]);
+        double EPSILON = 1e-7; // Small tolerance for numerical precision
+
+        auto Orientation = [EPSILON](const array_1d<double,3>& a, const array_1d<double,3>& b, const array_1d<double,3>& c) {
+            double val = (b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1]);
+            return (std::abs(val) < EPSILON) ? 0 : (val > 0 ? 1 : -1);
+        };
+
+        // Lambda function to check if a point p is on a given segment defined by a and b
+        auto IsPointOnSegment = [](const array_1d<double,3>& a, const array_1d<double,3>& b, const array_1d<double,3>& p) {
+            return std::min(a[0], b[0]) <= p[0] && p[0] <= std::max(a[0], b[0]) &&
+                std::min(a[1], b[1]) <= p[1] && p[1] <= std::max(a[1], b[1]);
         };
 
         double o1 = Orientation(p1, p2, q1);
@@ -484,10 +457,35 @@ namespace Kratos
         double o3 = Orientation(q1, q2, p1);
         double o4 = Orientation(q1, q2, p2);
 
-        // Comprobar si las orientaciones se cruzan
-        if (o1 * o2 < 0 && o3 * o4 < 0) return true;
+        // Standard intersection check
+        if ((o1 * o2 < 0 && o3 * o4 < 0) || 
+            (o1 == 0 && IsPointOnSegment(p1, p2, q2)) || 
+            (o2 == 0 && IsPointOnSegment(p1, p2, q1)) ||
+            (o3 == 0 && IsPointOnSegment(q1, q2, p1)) || 
+            (o4 == 0 && IsPointOnSegment(q1, q2, p2))) 
+        {
+            // Compute exact intersection point
+            double a1 = p2[1] - p1[1];
+            double b1 = p1[0] - p2[0];
+            double c1 = a1 * p1[0] + b1 * p1[1];
 
-        return false; // No se intersectan
+            double a2 = q2[1] - q1[1];
+            double b2 = q1[0] - q2[0];
+            double c2 = a2 * q1[0] + b2 * q1[1];
+
+            double det = a1 * b2 - a2 * b1;
+            
+            if (std::abs(det) > EPSILON) { // Avoid division by zero
+                intersection_point[0] = (b2 * c1 - b1 * c2) / det;
+                intersection_point[1] = (a1 * c2 - a2 * c1) / det;
+                return true;
+            }
+
+            // Special case: return true if collinear and overlapping
+            return true;
+        }
+
+        return false;
     }
 
     // Main function to verify the line-rectangle intersection
@@ -496,13 +494,29 @@ namespace Kratos
         const array_1d<double,3>& line_p2,
         double u_min, double u_max, double v_min, double v_max) 
     {
+        // Intersetion points between the line and the knot span
+        std::vector<array_1d<double,3>> intersection_points;
+
         // Verify if any of the points defining the line is inside the rectangle
-        if (IsPointInsideRectangle(line_p1[0], line_p1[1], u_min, u_max, v_min, v_max) ||
-            IsPointInsideRectangle(line_p2[0], line_p2[1], u_min, u_max, v_min, v_max)) 
-        {
-            return true;
+        bool is_p1_inside = IsPointInsideRectangle(line_p1[0], line_p1[1], u_min, u_max, v_min, v_max);
+        bool is_p2_inside = IsPointInsideRectangle(line_p2[0], line_p2[1], u_min, u_max, v_min, v_max);
+
+        if (is_p1_inside) {
+            array_1d<double,3> intersection_point;
+            intersection_point[0] = line_p1[0];
+            intersection_point[1] = line_p1[1];
+            intersection_point[2] = 0.0;
+            intersection_points.push_back(intersection_point);
+        }
+        if (is_p2_inside) {
+            array_1d<double,3> intersection_point;
+            intersection_point[0] = line_p2[0];
+            intersection_point[1] = line_p2[1];
+            intersection_point[2] = 0.0;
+            intersection_points.push_back(intersection_point);
         }
 
+        // If no point is inside the rectangle, check if the line intersects any segment of the knot spans
         // Define the boundary of the rectangle as segments
         array_1d<double, 3> p1{u_min, v_min, 0.0};
         array_1d<double, 3> p2{u_max, v_min, 0.0};
@@ -517,14 +531,37 @@ namespace Kratos
             {p4, p1}   // Segment 4
         };
 
-        // Verify intersection with each side of the rectangle
-        for (const auto& edge : rect_edges) {
-            if (DoSegmentsIntersect(line_p1, line_p2, edge.first, edge.second)) {
-                return true;
+        double epsilon = 1e-6;
+        for (auto& edge : rect_edges) {
+            array_1d<double,3> intersection;
+            if (DoSegmentsIntersect(line_p1, line_p2, edge.first, edge.second, intersection)) {
+                // Check if the intersection point already exists
+                bool is_duplicate = false;
+                for (const auto& existing_point : intersection_points) {
+                    if (std::abs(existing_point[0] - intersection[0]) < epsilon &&
+                        std::abs(existing_point[1] - intersection[1]) < epsilon) {
+                        is_duplicate = true;
+                        break;
+                    }
+                }
+
+                // Only add unique intersection points
+                if (!is_duplicate) {
+                    intersection_points.push_back(intersection);
+                }
             }
         }
 
-        return false; // No hay intersección
+        // Check if we have exactly two intersections at the same vertex, and ignore it
+        if (intersection_points.size() == 2) {
+            if (std::abs(intersection_points[0][0] - intersection_points[1][0]) < epsilon &&
+                std::abs(intersection_points[0][1] - intersection_points[1][1]) < epsilon) {
+                return false;
+            }
+            return true;
+        }
+
+        return false; // There is no intersection
     }
 
 } // End namespace Kratos
