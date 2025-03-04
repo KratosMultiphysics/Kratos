@@ -385,13 +385,13 @@ public:
      * For a given model part this function takes the xDx vector and applies the transpose of the ROM's
      * right basis matrix. Then outputs it in rRomUnknowns.
      * @param rModelPart Model part onto which the projection is to be performed
-     * @param rRomVariableNames Names of the variables included in the solution vector (ordering matters)
+     * @param rom_var_list list of Variables included in the solution vector (ordering matters)
      * @param rDx Full snapshot to reduce
      * @return Vector Result of the projection
      */
     static Vector ProjectToReducedBasis(
         const ModelPart& rModelPart,
-        const std::vector<std::string>& rRomVariableNames,
+        const std::vector<const Variable<double>*>& rom_var_list,
         const Vector& rDx);
 
     /**

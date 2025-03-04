@@ -6,6 +6,7 @@ from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+from KratosMultiphysics.RomApplication.save_rom_coefficients_process import SaveRomCoefficientsProcess
 import numpy as np
 
 from glob import glob
@@ -161,67 +162,66 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
             nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
             rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
 
-            if self.ann_enhanced == False:
-                # Set the right nodal ROM basis
-                if self.rom_format == "json":
-                    aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
+            # Set the right nodal ROM basis
+            if self.rom_format == "json":
+                aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
+                for node in computing_model_part.Nodes:
+                    node_id = str(node.Id)
+                    for j in range(nodal_dofs):
+                        for i in range(rom_dofs):
+                            aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
+                    node.SetValue(KratosROM.ROM_BASIS, aux)
+
+                # Set the left nodal ROM basis if it is different than the right nodal ROM basis (i.e. Petrov-Galerkin)
+                if (self.solving_strategy == "petrov_galerkin"):
+                    petrov_galerkin_nodal_modes = self.rom_parameters["petrov_galerkin_nodal_modes"]
+                    petrov_galerkin_nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
+                    aux = KratosMultiphysics.Matrix(petrov_galerkin_nodal_dofs, self.petrov_galerkin_rom_dofs)
                     for node in computing_model_part.Nodes:
                         node_id = str(node.Id)
-                        for j in range(nodal_dofs):
-                            for i in range(rom_dofs):
-                                aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
-                        node.SetValue(KratosROM.ROM_BASIS, aux)
+                        for j in range(petrov_galerkin_nodal_dofs):
+                            for i in range(self.petrov_galerkin_rom_dofs):
+                                aux[j,i] = petrov_galerkin_nodal_modes[node_id][j][i].GetDouble()
+                        node.SetValue(KratosROM.ROM_LEFT_BASIS, aux)
 
-                    # Set the left nodal ROM basis if it is different than the right nodal ROM basis (i.e. Petrov-Galerkin)
-                    if (self.solving_strategy == "petrov_galerkin"):
-                        petrov_galerkin_nodal_modes = self.rom_parameters["petrov_galerkin_nodal_modes"]
-                        petrov_galerkin_nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
-                        aux = KratosMultiphysics.Matrix(petrov_galerkin_nodal_dofs, self.petrov_galerkin_rom_dofs)
-                        for node in computing_model_part.Nodes:
-                            node_id = str(node.Id)
-                            for j in range(petrov_galerkin_nodal_dofs):
-                                for i in range(self.petrov_galerkin_rom_dofs):
-                                    aux[j,i] = petrov_galerkin_nodal_modes[node_id][j][i].GetDouble()
-                            node.SetValue(KratosROM.ROM_LEFT_BASIS, aux)
+            elif self.rom_format == "numpy":
+                # Load node IDs and right modes
+                node_ids = np.load(self.rom_basis_output_folder / "NodeIds.npy")
+                right_modes = np.load(self.rom_basis_output_folder / "RightBasisMatrix.npy")
 
-                elif self.rom_format == "numpy":
-                    # Load node IDs and right modes
-                    node_ids = np.load(self.rom_basis_output_folder / "NodeIds.npy")
-                    right_modes = np.load(self.rom_basis_output_folder / "RightBasisMatrix.npy")
+                # Ensure right_modes is a 2D array
+                if right_modes.ndim == 1:
+                    right_modes = right_modes.reshape(-1, 1)
 
-                    # Ensure right_modes is a 2D array
-                    if right_modes.ndim == 1:
-                        right_modes = right_modes.reshape(-1, 1)
+                # Trim right_modes based on ROM degrees of freedom (DOFs)
+                right_modes = right_modes[:, :rom_dofs]
 
-                    # Trim right_modes based on ROM degrees of freedom (DOFs)
-                    right_modes = right_modes[:, :rom_dofs]
+                # Handle left modes for Petrov-Galerkin strategy
+                if self.solving_strategy == "petrov_galerkin":
+                    petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
+                    left_modes = np.load(self.rom_basis_output_folder / "LeftBasisMatrix.npy")
 
-                    # Handle left modes for Petrov-Galerkin strategy
+                    # Ensure left_modes is a 2D array
+                    if left_modes.ndim == 1:
+                        left_modes = left_modes.reshape(-1, 1)
+
+                    # Trim left_modes based on Petrov-Galerkin ROM DOFs
+                    left_modes = left_modes[:, :petrov_galerkin_rom_dofs]
+
+                # Preprocess to create a mapping from node ID to index
+                node_id_to_index = {nid: idx for idx, nid in enumerate(node_ids)}
+
+                # Loop over each node in computing_model_part
+                for node in computing_model_part.Nodes:
+                    index = node_id_to_index[node.Id]
+                    offset = index * nodal_dofs
+
+                    # Set ROM basis for the node
+                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset + nodal_dofs, :]))
+
+                    # Set Petrov-Galerkin ROM basis if applicable
                     if self.solving_strategy == "petrov_galerkin":
-                        petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
-                        left_modes = np.load(self.rom_basis_output_folder / "LeftBasisMatrix.npy")
-
-                        # Ensure left_modes is a 2D array
-                        if left_modes.ndim == 1:
-                            left_modes = left_modes.reshape(-1, 1)
-
-                        # Trim left_modes based on Petrov-Galerkin ROM DOFs
-                        left_modes = left_modes[:, :petrov_galerkin_rom_dofs]
-
-                    # Preprocess to create a mapping from node ID to index
-                    node_id_to_index = {nid: idx for idx, nid in enumerate(node_ids)}
-
-                    # Loop over each node in computing_model_part
-                    for node in computing_model_part.Nodes:
-                        index = node_id_to_index[node.Id]
-                        offset = index * nodal_dofs
-
-                        # Set ROM basis for the node
-                        node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset + nodal_dofs, :]))
-
-                        # Set Petrov-Galerkin ROM basis if applicable
-                        if self.solving_strategy == "petrov_galerkin":
-                            node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset + nodal_dofs, :]))
+                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset + nodal_dofs, :]))
 
             # Check for HROM stages
             if self.train_hrom:
@@ -261,6 +261,14 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 self.__petrov_galerkin_training_utility = PetrovGalerkinTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)
+                
+            # In case we use the SaveRomCoefficients output process, setup its configuration
+            list_of_output_processes = super()._GetListOfOutputProcesses()
+            for process in list_of_output_processes:
+                if isinstance(process, SaveRomCoefficientsProcess):
+                    computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
+                    nodal_unknowns_list = self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
+                    process.ConfigureOutputProcess(computing_model_part, nodal_unknowns_list)
                 
 
         def ModifyInitialGeometry(self):

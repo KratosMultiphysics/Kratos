@@ -1,0 +1,38 @@
+{
+    "rom_manager": true,
+    "train_hrom": false,
+    "run_hrom": false,
+    "projection_strategy": "galerkin",
+    "assembling_strategy": "global",
+    "rom_format": "numpy",
+    "rom_settings": {
+        "rom_bns_settings": {
+            "monotonicity_preserving": false
+        },
+        "nodal_unknowns": [
+            "AUXILIARY_VELOCITY_POTENTIAL",
+            "VELOCITY_POTENTIAL"
+        ],
+        "number_of_rom_dofs": 3,
+        "petrov_galerkin_number_of_rom_dofs": 0
+    },
+    "hrom_settings": {
+        "hrom_format": "numpy",
+        "element_selection_type": "empirical_cubature",
+        "element_selection_svd_truncation_tolerance": 0.0,
+        "constraint_sum_weights": true,
+        "svd_type": "numpy_rsvd",
+        "create_hrom_visualization_model_part": true,
+        "include_elements_model_parts_list": [],
+        "include_conditions_model_parts_list": [],
+        "initial_candidate_elements_model_part_list": [],
+        "initial_candidate_conditions_model_part_list": [],
+        "include_nodal_neighbouring_elements_model_parts_list": [],
+        "include_minimum_condition": false,
+        "include_condition_parents": false,
+        "echo_level": 0
+    },
+    "nodal_modes": {},
+    "elements_and_weights": {},
+    "fixed_dofs": []
+}

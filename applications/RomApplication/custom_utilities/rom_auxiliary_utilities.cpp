@@ -1014,7 +1014,8 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
 
 Vector RomAuxiliaryUtilities::ProjectToReducedBasis(
     const ModelPart& rModelPart,
-    const std::vector<std::string>& rRomVariableNames,
+    // const std::vector<std::string>& rRomVariableNames,
+    const std::vector<const Variable<double>*>& rom_var_list,
     const Vector& rDx)
 {   
     const SizeType reduced_basis_size = rModelPart.GetNode(1).GetValue(ROM_BASIS).size2();
@@ -1022,14 +1023,14 @@ Vector RomAuxiliaryUtilities::ProjectToReducedBasis(
     const auto& nodes_set = rModelPart.Nodes();
     RomDxTLS rom_unknowns_tls_container(reduced_basis_size);
 
-    // Create an array with pointers to the ROM variables from the provided names
-    // Note that these are assumed to be provided in the same order used to create the basis
-    IndexType i_var = 0;
-    const SizeType n_rom_vars = rRomVariableNames.size();
-    std::vector<const Variable<double>*> rom_var_list(n_rom_vars);
-    for (const auto& r_var_name : rRomVariableNames) {
-        rom_var_list[i_var++] = &(KratosComponents<Variable<double>>::Get(r_var_name));
-    }
+    // // Create an array with pointers to the ROM variables from the provided names
+    // // Note that these are assumed to be provided in the same order used to create the basis
+    // IndexType i_var = 0;
+    // const SizeType n_rom_vars = rRomVariableNames.size();
+    // std::vector<const Variable<double>*> rom_var_list(n_rom_vars);
+    // for (const auto& r_var_name : rRomVariableNames) {
+    //     rom_var_list[i_var++] = &(KratosComponents<Variable<double>>::Get(r_var_name));
+    // }
 
     Vector reduced_snapshot = 
     block_for_each<NonTrivialSumReduction<Vector>>(nodes_set, rom_unknowns_tls_container, 

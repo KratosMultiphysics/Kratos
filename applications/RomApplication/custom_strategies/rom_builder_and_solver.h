@@ -244,121 +244,7 @@ public:
             const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
             const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
             rDx[r_dof.EquationId()] = inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns);
-            KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "Basis Row: " << row(r_rom_nodal_basis, row_id) << "; RomUnk: " << rRomUnkowns << "; EqId: " << r_dof.EquationId() << std::endl;
         });
-    }
-
-    void ProjectToReducedBasis(
-        const ModelPart& rModelPart,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rRomUnkowns)
-    {   
-        const auto& r_dof_set = BaseType::GetDofSet();
-
-        using VectorSumReducer = NonTrivialSumReduction<RomSystemVectorType>;
-        RomDxTLS rom_unknowns_tls_container(GetNumberOfROMModes());
-
-        rRomUnkowns =
-        block_for_each<VectorSumReducer>(r_dof_set, rom_unknowns_tls_container, 
-            [&](const DofType& r_dof, RomDxTLS& r_thread_prealloc)
-        {   
-            if (r_dof.IsFixed())
-            {
-                r_thread_prealloc.romDx = ZeroVector(GetNumberOfROMModes());
-            }
-            else
-            {
-                const auto& r_node = rModelPart.GetNode(r_dof.Id());
-                const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
-                const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
-                r_thread_prealloc.romDx = row(r_rom_nodal_basis, row_id) * rDx[r_dof.EquationId()];
-                KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "Basis Row: " << row(r_rom_nodal_basis, row_id) << "; EqId: " << r_dof.EquationId() << std::endl;
-            }
-            // KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "Eq_Id: " << r_dof.EquationId() << "; Nodal basis row: " << row_id << "; Node Id: " << r_dof.Id() << std::endl;
-            return r_thread_prealloc.romDx;
-        });
-
-        // KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "Final RomDx: " << foo << std::endl;
-
-
-        
-        // Vector foo = rRomUnkowns;
-        // block_for_each(r_dof_set, [&](const DofType& r_dof)
-        // {
-        //     const auto& r_node = rModelPart.GetNode(r_dof.Id());
-        //     const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
-        //     const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
-        //     // foo += row(r_rom_nodal_basis, row_id) * rDx[r_dof.EquationId()];
-        //     // rRomUnkowns += row(r_rom_nodal_basis, row_id) * rDx[r_dof.EquationId()];
-        // });
-
-
-        // ModelPart::NodesContainerType& rNodes = rModelPart.GetNodes()
-        // for(const auto& node : rNodes)
-        // {
-        //     unsigned int node_aux_id = node.GetValue(AUX_ID);
-        //     const auto& nodal_rom_basis = node.GetValue(ROM_BASIS);
-		// 		for (int i = 0; i < GetNumberOfROMModes(); ++i) {
-		// 			for (int j = 0; j < mNodalDofs; ++j) {
-		// 				rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mNodalDofs + j);
-		// 			}
-		// 		}
-        // }
-        // return rom_unknowns;
-	}
-
-    virtual void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb) override
-    {
-        // Call the base B&S InitializeSolutionStep
-        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-        // Reset the ROM solution increment in the root modelpart database
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
-        
-        // Get DoFs at the beginning of the time step
-        const auto& r_dof_set = BaseType::GetDofSet();
-        mDoFValuesInit = ZeroVector(r_dof_set.size());
-        block_for_each(r_dof_set, [&](Dof<double>& rDof){
-            const std::size_t id = rDof.EquationId();
-            mDoFValuesInit[id] = rDof.GetSolutionStepValue();
-        });
-
-    }
-
-    virtual void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb) override
-    {   
-        // Once the time step is done, we compute back the increment in reduced space from
-        // the one in the fine basis. This way any modification performed during line search
-        // will be taken into account correctly.
-
-        // Save the ROM solution increment in the root modelpart database
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-        TSystemVectorType& rRomUnkowns = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
-
-        const auto& r_dof_set = BaseType::GetDofSet();
-        Vector dofs_values_final = ZeroVector(r_dof_set.size());
-        block_for_each(r_dof_set, [&](Dof<double>& rDof){
-            const std::size_t id = rDof.EquationId();
-            dofs_values_final[id] = rDof.GetSolutionStepValue();
-        });
-        Vector dofs_values_increment = dofs_values_final - mDoFValuesInit;
-
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "Final value: " << dofs_values_final << std::endl;
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "Diff: " << dofs_values_increment << std::endl;
-
-        ProjectToReducedBasis(r_root_mp, dofs_values_increment, rRomUnkowns);
-        
-        // Proceed to parent's Finalize Solution Step
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
     }
     
     void BuildAndSolve(
@@ -706,63 +592,6 @@ protected:
         RomSystemMatrixType aux = {};    // Auxiliary: romA = phi.t * (LHS * phi) := phi.t * aux
     };
 
-
-    /**
-    * Thread Local Storage containing dynamically allocated rom solution to avoid reallocating each iteration.
-    */
-    struct RomDxTLS
-    {
-        RomDxTLS(SizeType NRomModes)
-            : romDx(ZeroVector(NRomModes))
-        { }
-        RomDxTLS() = delete;
-
-        RomSystemVectorType romDx;        // reduced solution
-    };
-
-    
-    /**
-     * Class to sum-reduce matrices and vectors.
-     */
-    template<typename T>
-    struct NonTrivialSumReduction
-    {
-        typedef T value_type;
-        typedef T return_type;
-
-        T mValue;
-        bool mInitialized = false;
-
-        void Init(const value_type& first_value)
-        {
-            mValue = first_value;
-            mInitialized = true;
-        }
-
-        /// access to reduced value
-        return_type GetValue() const
-        {
-            return mValue;
-        }
-
-        void LocalReduce(const value_type& value)
-        {
-            if(!mInitialized) {
-                Init(value);
-            } else {
-                noalias(mValue) += value;
-            }
-        }
-
-        void ThreadSafeReduce(const NonTrivialSumReduction& rOther)
-        {
-            if(!rOther.mInitialized) return;
-
-            const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-            LocalReduce(rOther.mValue);
-        }
-    };
-
     /**
      * Resizes a Matrix if it's not the right size
      */
@@ -799,7 +628,7 @@ protected:
         // Assemble all entities
         const auto assembling_timer = BuiltinTimer();
 
-        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<RomSystemMatrixType>, NonTrivialSumReduction<RomSystemVectorType>>;
+        using SystemSumReducer = CombinedReduction<RomAuxiliaryUtilities::NonTrivialSumReduction<RomSystemMatrixType>, RomAuxiliaryUtilities::NonTrivialSumReduction<RomSystemVectorType>>;
         AssemblyTLS assembly_tls_container(GetNumberOfROMModes());
 
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
@@ -851,22 +680,13 @@ protected:
         
         const auto solving_timer = BuiltinTimer();
         MathUtils<double>::Solve(rA, dxrom, rb);
-        // KRATOS_WATCH(dxrom)
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
-
-        // // Save the ROM solution increment in the root modelpart database
-        // auto& r_root_mp = rModelPart.GetRootModelPart();
-        // noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
-
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "dxrom: " << dxrom << std::endl;
-
-    
 
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, rDx);
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
-
+        
         KRATOS_CATCH("")
     }
 
@@ -887,7 +707,6 @@ protected:
 private:
 
     SizeType mNumberOfRomModes;
-    TSystemVectorType mDoFValuesInit;
 
     ///@}
     ///@name Private operations 
