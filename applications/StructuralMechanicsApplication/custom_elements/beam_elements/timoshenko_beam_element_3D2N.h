@@ -170,11 +170,11 @@ public:
      */
     virtual void GlobalSizeVectorTransversalY(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
     {
-        // rGlobalSizeVector.clear();
-        // rGlobalSizeVector[1] = rLocalSizeVector[0];
-        // rGlobalSizeVector[2] = rLocalSizeVector[1];
-        // rGlobalSizeVector[4] = rLocalSizeVector[2];
-        // rGlobalSizeVector[5] = rLocalSizeVector[3];
+        rGlobalSizeVector.clear();
+        rGlobalSizeVector[1]  = rLocalSizeVector[0];
+        rGlobalSizeVector[5]  = rLocalSizeVector[1];
+        rGlobalSizeVector[7]  = rLocalSizeVector[2];
+        rGlobalSizeVector[11] = rLocalSizeVector[3];
     }
 
     /**
@@ -184,11 +184,11 @@ public:
      */
     virtual void GlobalSizeVectorTransversalZ(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
     {
-        // rGlobalSizeVector.clear();
-        // rGlobalSizeVector[1] = rLocalSizeVector[0];
-        // rGlobalSizeVector[2] = rLocalSizeVector[1];
-        // rGlobalSizeVector[4] = rLocalSizeVector[2];
-        // rGlobalSizeVector[5] = rLocalSizeVector[3];
+        rGlobalSizeVector.clear();
+        rGlobalSizeVector[2]  = rLocalSizeVector[0];
+        rGlobalSizeVector[4]  = rLocalSizeVector[1];
+        rGlobalSizeVector[8]  = rLocalSizeVector[2];
+        rGlobalSizeVector[10] = rLocalSizeVector[3];
     }
 
     /**
