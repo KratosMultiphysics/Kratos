@@ -49,33 +49,23 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
 {
     ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    // Verify Properties variables
-    if (!rMaterialProperties.Has(GEO_COHESION) || rMaterialProperties[GEO_COHESION] <= 0.0)
-        KRATOS_ERROR << "GEO_COHESION is not defined or has an invalid value for property: "
-                     << rMaterialProperties.Id() << std::endl;
-
-    if (!rMaterialProperties.Has(GEO_FRICTION_ANGLE) || rMaterialProperties[GEO_FRICTION_ANGLE] <= 0.0)
-        KRATOS_ERROR << "GEO_FRICTION_ANGLE is not defined or has an invalid value for property: "
-                     << rMaterialProperties.Id() << std::endl;
-
-    if (!rMaterialProperties.Has(GEO_DILATION_ANGLE) || rMaterialProperties[GEO_DILATION_ANGLE] <= 0.0)
-        KRATOS_ERROR << "GEO_DILATION_ANGLE is not defined or has an invalid value for property: "
-                     << rMaterialProperties.Id() << std::endl;
-
-    if (!rMaterialProperties.Has(GEO_TENSION_CUTOFF) || rMaterialProperties[GEO_TENSION_CUTOFF] <= 0.0)
-        KRATOS_ERROR << "GEO_TENSION_CUTOFF is not defined or has an invalid value for property: "
-                     << rMaterialProperties.Id() << std::endl;
-
-    if (!rMaterialProperties.Has(YOUNG_MODULUS) || rMaterialProperties[YOUNG_MODULUS] <= 0.0)
-        KRATOS_ERROR
-            << "YOUNG_MODULUS has Key zero, is not defined or has an invalid value for property: "
-            << rMaterialProperties.Id() << std::endl;
-
-    if (!rMaterialProperties.Has(POISSON_RATIO) || rMaterialProperties[POISSON_RATIO] < 0.0)
-        KRATOS_ERROR << "POISSON_RATIO is not defined or has an invalid value for property: "
-                     << rMaterialProperties.Id() << std::endl;
-
+    CheckProperty(rMaterialProperties, GEO_COHESION);
+    CheckProperty(rMaterialProperties, GEO_FRICTION_ANGLE);
+    CheckProperty(rMaterialProperties, GEO_DILATION_ANGLE);
+    CheckProperty(rMaterialProperties, GEO_TENSION_CUTOFF);
+    CheckProperty(rMaterialProperties, YOUNG_MODULUS);
+    CheckProperty(rMaterialProperties, POISSON_RATIO);
     return 0;
+}
+
+void MohrCoulombWithTensionCutOff::CheckProperty(const Properties& rMaterialProperties,
+                                                 const Kratos::Variable<double>& rVariable) const
+{
+    constexpr auto min_value = 0.0;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable) || rMaterialProperties[rVariable] < min_value)
+        << rVariable.Name()
+        << " is not defined or has an invalid value for property: " << rMaterialProperties.Id()
+        << std::endl;
 }
 
 ConstitutiveLaw::StressMeasure MohrCoulombWithTensionCutOff::GetStressMeasure()
@@ -106,7 +96,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     const auto        tension_cutoff = r_prop[GEO_TENSION_CUTOFF];
 
     mCoulombYieldSurface = CoulombYieldSurface(friction_angle, cohesion, dilation_angle);
-    mTensionCutOff = TensionCutoff(tension_cutoff);
+    mTensionCutOff       = TensionCutoff(tension_cutoff);
 
     Vector trail_stress_vector;
     Vector strain_vector = rParameters.GetStrainVector();

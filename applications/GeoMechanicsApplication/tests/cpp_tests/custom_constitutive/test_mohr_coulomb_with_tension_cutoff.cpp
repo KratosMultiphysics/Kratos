@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
     properties.SetValue(GEO_TENSION_CUTOFF, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
-        "Error: YOUNG_MODULUS has Key zero, is not defined or has an invalid value for property: 3")
+        "Error: YOUNG_MODULUS is not defined or has an invalid value for property: 3")
     properties.SetValue(YOUNG_MODULUS, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),

@@ -59,6 +59,7 @@ public:
     Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector, const Matrix& rRotationMatrix) const;
 
     double FindRegion(ConstitutiveLaw::Parameters& rParameters, const Vector& rPrincipalStressVector);
+
 private:
     std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
     Vector                                    mStressVector;
@@ -67,6 +68,7 @@ private:
     CoulombYieldSurface                       mCoulombYieldSurface;
     TensionCutoff                             mTensionCutOff;
 
+    void CheckProperty(const Properties& rMaterialProperties, const Kratos::Variable<double>& rVariable) const;
     void   CalculateTrialStressVector(const Vector&                rStrainVector,
                                       Vector&                      rStressVector,
                                       ConstitutiveLaw::Parameters& rValues) const;
