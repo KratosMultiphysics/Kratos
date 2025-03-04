@@ -139,10 +139,49 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     VectorType& rNodalValues
     ) const
 {
+    KRATOS_TRY
 
+    const auto& r_geom = GetGeometry();
+    const SizeType num_nodes = r_geom.size();
+    const SizeType global_size = GetDoFsPerNode() * num_nodes;
 
+    if (rNodalValues.size() != global_size)
+        rNodalValues.resize(global_size, false);
+    
+    BoundedVector<double, 12> global_values;
+    BoundedMatrix<double, 3, 3> T;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(r_geom);
 
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ROTATION);
 
+    // Here we rotate the vectors to local axes
+    const VectorType& r_local_displ_0 = prod(T, r_displ_0);
+    const VectorType& r_local_rot_0   = prod(T, r_rotation_0);
+
+    global_values[0] = r_local_displ_0[0];
+    global_values[1] = r_local_displ_0[1];
+    global_values[2] = r_local_displ_0[2];
+
+    global_values[3] = r_local_rot_0[0];
+    global_values[4] = r_local_rot_0[1];
+    global_values[5] = r_local_rot_0[2];
+
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ROTATION);
+
+    const VectorType& r_local_displ_1 = prod(T, r_displ_1);
+    const VectorType& r_local_rot_1   = prod(T, r_rotation_1);
+
+    global_values[6] = r_rotation_1[0];
+    global_values[7] = r_rotation_1[1];
+    global_values[8] = r_rotation_1[2];
+
+    global_values[9]  = r_local_rot_1[0];
+    global_values[10] = r_local_rot_1[1];
+    global_values[11] = r_local_rot_1[2];
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
