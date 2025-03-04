@@ -659,6 +659,51 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
 /***********************************************************************************/
 /***********************************************************************************/
 
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry)
+{
+    BoundedMatrix<double, 3, 3> T;
+    T.clear(); // global to local
+
+    array_1d<double, 3> t;
+    array_1d<double, 3> n;
+    array_1d<double, 3> m;
+
+    // t is the axis of the truss
+    noalias(t) = rGeometry[1].GetInitialPosition() - rGeometry[0].GetInitialPosition();
+    t /= norm_2(t);
+
+    n.clear();
+    n[1] = 1.0;
+
+    if (norm_2(t-n) <= 1.0e-8) { // colineal, hence we use another aux vector
+        n.clear();
+        n[2] = 1.0;
+    }
+
+    // Gram-Schmidt ortogonalization
+    n = n - inner_prod(t, n) / inner_prod(t, t) * t;
+    n /= norm_2(n);
+
+    noalias(m) = MathUtils<double>::CrossProduct(t, n);
+
+    T(0, 0) = t[0];
+    T(0, 1) = t[1];
+    T(0, 2) = t[2];
+
+    T(1, 0) = n[0];
+    T(1, 1) = n[1];
+    T(1, 2) = n[2];
+
+    T(2, 0) = m[0];
+    T(2, 1) = m[1];
+    T(2, 2) = m[2];
+
+    return T;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
 

@@ -356,5 +356,12 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
 void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector, Vector& rStressVector);
 
+/**
+ * @brief This function builds a Frenet-Serret rotation matrix from local to global in 3D
+ * This is valid for STRAIGHT lines
+ * @param rGeometry: The geometry of the line element
+ */
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry);
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
