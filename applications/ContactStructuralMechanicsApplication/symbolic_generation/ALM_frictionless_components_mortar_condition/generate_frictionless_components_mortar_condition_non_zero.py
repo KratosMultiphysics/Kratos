@@ -70,7 +70,7 @@ for normalvar in range(normal_combs):
         MOperator = custom_sympy_fe_utilities.DefineMatrix('MOperator',nnodes,nnodes_master)
 
         # Define other parameters
-        # Normal and tangets of the slave
+        # Normal and tangents of the slave
         NormalSlave = custom_sympy_fe_utilities.DefineMatrix('NormalSlave',nnodes,dim)
 
         X1 = custom_sympy_fe_utilities.DefineMatrix('X1',nnodes,dim)
@@ -78,7 +78,7 @@ for normalvar in range(normal_combs):
         x1 = X1 + u1
         x2 = X2 + u2
 
-        #Define other symbols
+        # Define other symbols
         DynamicFactor  = custom_sympy_fe_utilities.DefineVector('DynamicFactor',nnodes)
         PenaltyParameter  = custom_sympy_fe_utilities.DefineVector('PenaltyParameter',nnodes)
         ScaleFactor = sympy.Symbol('ScaleFactor', positive=True)

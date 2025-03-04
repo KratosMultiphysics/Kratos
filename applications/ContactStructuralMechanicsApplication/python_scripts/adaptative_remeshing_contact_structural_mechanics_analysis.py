@@ -175,7 +175,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
 
         # To avoid many prints
         if self.echo_level == 0:

@@ -624,7 +624,7 @@ private:
     /**
      * @brief This method creates a debug file for normals
      * @param rModelPart The corresponding model part
-     * @param rName The begining of the file name
+     * @param rName The beginning of the file name
      */
     void CreateDebugFile(
         ModelPart& rModelPart,

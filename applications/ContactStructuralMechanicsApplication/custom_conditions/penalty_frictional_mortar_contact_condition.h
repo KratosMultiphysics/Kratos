@@ -208,7 +208,7 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Called at the begining of each solution step
+     * @brief Called at the beginning of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;

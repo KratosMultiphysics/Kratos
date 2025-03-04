@@ -21,7 +21,7 @@ def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingContactStaticMechanicalSolver(model, custom_settings)
 
 class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechanics_static_solver.ContactStaticMechanicalSolver):
-    """The structural mechanics static solver. (Fot adaptative remeshing)
+    """The structural mechanics static solver. (For adaptative remeshing)
     See contact_structural_mechanics_static_solver.py for more information.
     """
     def __init__(self, model, custom_settings):

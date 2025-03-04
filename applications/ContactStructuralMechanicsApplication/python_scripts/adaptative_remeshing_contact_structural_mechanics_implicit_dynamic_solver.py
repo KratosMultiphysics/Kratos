@@ -21,7 +21,7 @@ def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingContactImplicitMechanicalSolver(model, custom_settings)
 
 class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mechanics_implicit_dynamic_solver.ContactImplicitMechanicalSolver):
-    """The contact structural mechanics implicit dynamic solver. (Fot adaptative remeshing)
+    """The contact structural mechanics implicit dynamic solver. (For adaptative remeshing)
     See contact_structural_mechanics_implicit_dynamic_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
