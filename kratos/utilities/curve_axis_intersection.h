@@ -157,7 +157,7 @@ namespace Kratos
 
             // linearise polygon
             const auto polygon = CurveTesselationType::ComputePolygon(
-                rGeometry, 500, Start, End);
+                rGeometry, 1000000, Start, End);
 
             KRATOS_ERROR_IF(rAxis1.size() < 2)
                 << "Size of axis vector 1 is: " << rAxis1.size() << ". It needs to be at least of size 2. "
