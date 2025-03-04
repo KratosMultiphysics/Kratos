@@ -87,7 +87,7 @@ remote_*.md
 
 # External downloaded libs (TPL downloaded libs, etc...)
 external_libraries/tetgen/*
-applications/MPMApplication/custom_elements/mpm_updated_lagrangian_UP_VMS.cpp
+# applications/MPMApplication/custom_elements/mpm_updated_lagrangian_UP_VMS.cpp
 applications/MPMApplication/custom_elements/mpm_updated_lagrangian.cpp
 applications/MPMApplication/custom_elements/mpm_updated_lagrangian_UP.cpp
 applications/MPMApplication/custom_conditions/particle_based_conditions/mpm_particle_base_condition.cpp
