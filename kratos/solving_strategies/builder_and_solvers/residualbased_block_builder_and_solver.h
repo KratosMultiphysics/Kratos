@@ -37,6 +37,8 @@
 #include "utilities/atomic_utilities.h"
 #include "spaces/ublas_space.h"
 
+#include "utilities/condition_number_utility.h"
+
 namespace Kratos
 {
 
@@ -125,6 +127,9 @@ public:
     typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
+
+    // ConditionNumberUtilityPointerType pConditionNumberUtility = nullptr
+    using ConditionNumberUtilityPointerType = ConditionNumberUtility::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -224,6 +229,9 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
+        // // TIME
+        // auto start = std::chrono::high_resolution_clock::now();
+
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
             # pragma omp for  schedule(guided, 512) nowait
@@ -254,7 +262,28 @@ public:
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer << std::endl;
+        // // TIME
+        // auto end = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<long double> duration = end - start;
+        // long double elapsedTime = duration.count();
+        // std::ofstream outputFile_time("time_txt_files/assemble_time.txt", std::ios::app);
+        // outputFile_time << std::scientific << std::setprecision(20); // Imposta la precisione a 10^-20
+        // outputFile_time << elapsedTime << "\n";
+        // outputFile_time.close();
+
+        // // CONDITION NUMBER
+        // KRATOS_WATCH(A)
+        //ConditionNumberUtility mpConditionNumberUtility;
+        //const double condition_number = mpConditionNumberUtility.GetConditionNumber(A);
+
+        //std::ofstream outputFile("txt_files/Condition_numbers.txt", std::ios::app);
+        //outputFile << condition_number << "\n";
+        // outputFile << minimum_eigenvalue << "  " << condition_number << "\n";
+        //outputFile.close();
+        //KRATOS_WATCH(minimum_eigenvalue)
+        //KRATOS_WATCH(condition_number)
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building" << std::endl;
 
