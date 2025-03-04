@@ -72,34 +72,4 @@ double FilterCompressibilityCalculator::CalculateElasticCapacity(double Projecte
            1.0 / r_properties[BULK_MODULUS_FLUID];
 }
 
-const Properties& FilterCompressibilityCalculator::InputProvider::GetElementProperties() const
-{
-    return mGetElementProperties();
-}
-
-const Matrix& FilterCompressibilityCalculator::InputProvider::GetNContainer() const
-{
-    return mGetNContainer();
-}
-
-Vector FilterCompressibilityCalculator::InputProvider::GetIntegrationCoefficients() const
-{
-    return mGetIntegrationCoefficients();
-}
-
-Vector FilterCompressibilityCalculator::InputProvider::GetProjectedGravityForIntegrationPoints() const
-{
-    return mGetProjectedGravityForIntegrationPoints();
-}
-
-double FilterCompressibilityCalculator::InputProvider::GetMatrixScalarFactor() const
-{
-    return mGetMatrixScalarFactor();
-}
-
-Vector FilterCompressibilityCalculator::InputProvider::GetNodalValues(const Variable<double>& rVariable) const
-{
-    return mGetNodalValues(rVariable);
-}
-
 } // namespace Kratos
