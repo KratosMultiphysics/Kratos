@@ -93,17 +93,21 @@ void LinearTimoshenkoBeamElement3D2N::GetDofList(
 {
     KRATOS_TRY;
 
-    // const auto& r_geom = GetGeometry();
-    // const SizeType number_of_nodes = r_geom.size();
-    // const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
-    // rElementalDofList.resize(dofs_per_node * number_of_nodes);
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dofs_per_node = GetDoFsPerNode();
+    rElementalDofList.resize(dofs_per_node * number_of_nodes);
 
-    // for (IndexType i = 0; i < number_of_nodes; ++i) {
-    //     const SizeType index = i * dofs_per_node;
-    //     rElementalDofList[index]     = r_geom[i].pGetDof(DISPLACEMENT_X);
-    //     rElementalDofList[index + 1] = r_geom[i].pGetDof(DISPLACEMENT_Y);
-    //     rElementalDofList[index + 2] = r_geom[i].pGetDof(ROTATION_Z    );
-    // }
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        const SizeType index = i * dofs_per_node;
+        rElementalDofList[index]     = r_geom[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[index + 1] = r_geom[i].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[index + 2] = r_geom[i].pGetDof(DISPLACEMENT_Z);
+        rElementalDofList[index + 3] = r_geom[i].pGetDof(ROTATION_X    );
+        rElementalDofList[index + 4] = r_geom[i].pGetDof(ROTATION_Y    );
+        rElementalDofList[index + 5] = r_geom[i].pGetDof(ROTATION_Z    );
+    }
+
     KRATOS_CATCH("")
 }
 
