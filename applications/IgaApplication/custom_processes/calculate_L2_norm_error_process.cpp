@@ -56,16 +56,23 @@ namespace Kratos
 
             // Shape functions evaluated at the GP
             const CompressedMatrix& N = p_gauss_point_geometry->ShapeFunctionsValues();
+            const GeometryType::ShapeFunctionsGradientsType& r_DN_De = p_gauss_point_geometry->ShapeFunctionsLocalGradients(element_it->GetIntegrationMethod());
             auto N_row = row(N, 0);
 
-            // Iterate over the nodes in the geometry and retrieve the numerical solution
+            double gradient_x = 0.0;
+            double gradient_y = 0.0;
+            // Iterate over the nodes in the geometry and retrieve the numerical solution and the numerical gradient
             for (std::size_t i = 0; i < p_gauss_point_geometry->size(); ++i) {
                 auto& node = (*p_gauss_point_geometry)[i]; 
                 double nodal_value = node.FastGetSolutionStepValue(UNKNOWN_VARIABLE, current_time); 
                 value_numerical_solution += N_row[i] * nodal_value; 
+                gradient_x += r_DN_De[0](i, 0) * nodal_value; 
+                gradient_y += r_DN_De[0](i, 1) * nodal_value; 
             }
 
+
             // Compute the local error
+            double analytical_gradient = std::sqrt(std::pow(gradient_x, 2) + std::pow(gradient_y, 2));
             double error = std::pow(value_analytical_solution - value_numerical_solution, 2);
             
             // Contribution to the L2 error 
