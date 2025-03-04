@@ -106,7 +106,8 @@ void LinearTimoshenkoBeamElement2D2N::EquationIdVector(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    const auto& r_geometry = this->GetGeometry();
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
 
@@ -123,6 +124,7 @@ void LinearTimoshenkoBeamElement2D2N::EquationIdVector(
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos ).EquationId();
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
