@@ -115,8 +115,8 @@ void LinearTimoshenkoBeamElement2D2N::EquationIdVector(
     if (rResult.size() != dofs_per_node * number_of_nodes)
         rResult.resize(dofs_per_node * number_of_nodes, false);
 
-    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_Z);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();

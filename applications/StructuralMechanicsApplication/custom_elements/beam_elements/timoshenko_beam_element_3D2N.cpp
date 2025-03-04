@@ -59,23 +59,26 @@ void LinearTimoshenkoBeamElement3D2N::EquationIdVector(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    // const auto& r_geometry = this->GetGeometry();
-    // const SizeType number_of_nodes = r_geometry.size();
-    // const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dofs_per_node = GetDoFsPerNode();
 
-    // IndexType local_index = 0;
+    IndexType local_index = 0;
 
-    // if (rResult.size() != dofs_per_node * number_of_nodes)
-    //     rResult.resize(dofs_per_node * number_of_nodes, false);
+    if (rResult.size() != dofs_per_node * number_of_nodes)
+        rResult.resize(dofs_per_node * number_of_nodes, false);
 
-    // const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-    // const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
 
-    // for (IndexType i = 0; i < number_of_nodes; ++i) {
-    //     rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
-    //     rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
-    //     rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos ).EquationId();
-    // }
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X    , rot_pos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y    , rot_pos + 2).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos + 3).EquationId();
+    }
 }
 
 /***********************************************************************************/
