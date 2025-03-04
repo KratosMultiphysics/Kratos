@@ -246,7 +246,8 @@ int LaplacianIGAElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_DOF_IN_NODE(r_unknown_var, r_node);
     }
 
-    return Element::Check(rCurrentProcessInfo);
+    //return Element::Check(rCurrentProcessInfo);
+    return 0;
 }
 
 
