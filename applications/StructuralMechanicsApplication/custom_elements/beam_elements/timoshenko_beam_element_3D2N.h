@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
+
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "timoshenko_beam_element_2D2N.h"
 
@@ -221,12 +221,6 @@ public:
         rGlobalSizeVector[3] = rLocalSizeVector[0];
         rGlobalSizeVector[9] = rLocalSizeVector[1];
     }
-
-    /**
-     * @brief Called to initialize the element.
-     * @warning Must be called before any calculation is done
-     */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief It creates a new element pointer and clones the previous element data
