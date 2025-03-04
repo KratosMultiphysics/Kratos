@@ -19,9 +19,10 @@
 namespace Kratos
 {
 
-AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double      StartTime,
-                                                 double      EndTime,
-                                                 double      StartIncrement,
+AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double StartTime,
+                                                 double EndTime,
+                                                 double StartIncrement,
+                                                 std::pair<std::string, double> MinAllowableDeltaTime,
                                                  std::size_t MaxNumOfCycles,
                                                  double      ReductionFactor,
                                                  double      IncreaseFactor,
@@ -31,6 +32,7 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double      StartTime,
     : TimeIncrementor(),
       mEndTime(EndTime),
       mDeltaTime(std::min(StartIncrement, EndTime - StartTime)), // avoid exceeding the end time
+      mMinAllowableDeltaTime(std::move(MinAllowableDeltaTime)),
       mMaxNumOfCycles(MaxNumOfCycles),
       mReductionFactor(ReductionFactor),
       mIncreaseFactor(IncreaseFactor),
@@ -73,21 +75,30 @@ double AdaptiveTimeIncrementor::GetIncrement() const { return mDeltaTime; }
 
 void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rResultantState)
 {
-    if (rResultantState.NonConverged() ||
-        (rResultantState.Converged() && (rResultantState.num_of_iterations == mMaxNumOfIterations))) {
+    if (rResultantState.Converged()) // it is converged also at the beginning of the cycles
+    {
+        // scale next step if desired
+        if (rResultantState.time < mEndTime) {
+            if (rResultantState.num_of_iterations < mMinNumOfIterations) {
+                // scale up next step
+                mDeltaTime = std::min(mDeltaTime * mIncreaseFactor, mMaxDeltaTime);
+            } else if (rResultantState.num_of_iterations == mMaxNumOfIterations) {
+                // converged, but max_iterations reached, scale down next step
+                mDeltaTime *= mReductionFactor;
+            }
+        }
+        constexpr auto fraction_to_avoid_too_small_step = 1.0e-3;
+        if (rResultantState.time + mDeltaTime > mEndTime - fraction_to_avoid_too_small_step * mDeltaTime) {
+            mDeltaTime = mEndTime - rResultantState.time;
+        }
+    } else {
+        // non converged, scale down step and restart
         mDeltaTime *= mReductionFactor;
-    } else if (rResultantState.Converged() && (rResultantState.num_of_iterations < mMinNumOfIterations)) {
-        mDeltaTime = std::min(mDeltaTime * mIncreaseFactor, mMaxDeltaTime);
     }
 
-    // Avoid incrementing the time beyond the end time
-    mDeltaTime = std::min(mDeltaTime, mEndTime - rResultantState.time);
-
-    // Avoid very small remaining time steps
-    const auto small_time_increment = 1.E-3 * mDeltaTime;
-    if ((mEndTime - (rResultantState.time + mDeltaTime)) < small_time_increment) {
-        mDeltaTime = mEndTime - rResultantState.time;
-    }
+    KRATOS_ERROR_IF(mDeltaTime < mMinAllowableDeltaTime.second)
+        << "Delta time (" << mDeltaTime << ") is smaller than minimum allowable value "
+        << mMinAllowableDeltaTime.second << std::endl;
 }
 
 } // namespace Kratos
