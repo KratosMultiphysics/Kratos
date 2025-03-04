@@ -167,7 +167,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, dold)
 
             if not converged:
-                raise Exception('The maximum number of cycles is reached without convergence!')
+                raise RuntimeError('The maximum number of cycles is reached without convergence!')
 
             if self._GetSolver().settings["reset_displacements"].GetBool():
                 for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
