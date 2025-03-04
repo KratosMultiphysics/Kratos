@@ -11,6 +11,7 @@
 //
 #include "plane_strain_stress_state.h"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -66,5 +67,15 @@ const Vector& PlaneStrainStressState::GetVoigtVector() const { return VoigtVecto
 SizeType PlaneStrainStressState::GetVoigtSize() const { return GetVoigtSize2D(); }
 
 SizeType PlaneStrainStressState::GetStressTensorSize() const { return GetStressTensorSize2D(); }
+
+void PlaneStrainStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void PlaneStrainStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
+}
 
 } // namespace Kratos
