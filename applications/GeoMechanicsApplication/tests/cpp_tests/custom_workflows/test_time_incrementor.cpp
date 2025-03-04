@@ -432,14 +432,29 @@ KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMech
 KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
-    settings.StartIncrement = 8.0;            // We jump to the end time right away
-    auto time_incrementor   = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state     = TimeStepEndState{};
-    previous_state.time     = 8.0; // to have a zero time step
+    settings.StartIncrement          = 8.0;   // We jump to the end time right away
+    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state              = TimeStepEndState{};
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+    previous_state.time              = 8.0; // to have a zero time step
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         time_incrementor.PostTimeStepExecution(previous_state),
         "Delta time (0) is smaller than minimum allowable value 1e-06");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HalfTimeStepAtNonConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
+    settings.StartIncrement          = 8.0;   // We jump to the end time right away
+    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state              = TimeStepEndState{};
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
+    previous_state.time              = 8.0;
+
+    time_incrementor.PostTimeStepExecution(previous_state);
+    // The increment should be halved, since the step didn't converge
+    KRATOS_EXPECT_DOUBLE_EQ(4.0, time_incrementor.GetIncrement());
 }
 
 } // namespace Kratos::Testing
