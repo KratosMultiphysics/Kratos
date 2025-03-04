@@ -329,6 +329,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InitializeSolutionStep", &WaterDrainResponseFunctionUtility::InitializeSolutionStep)
         .def("CalculateValue", &WaterDrainResponseFunctionUtility::CalculateValue)
         .def("CalculateGradient", &WaterDrainResponseFunctionUtility::CalculateGradient)
+        ;
 
     py::class_<DirectionalDerivativeResponseFunctionUtility >(m, "DirectionalDerivativeResponseFunctionUtility")
         .def(py::init<ModelPart&, Parameters>())
