@@ -167,6 +167,8 @@ private:
 
     StrainType mStrainType;
 
+    IndexType mStrainIndex;
+
     Point mLocalPoint;
 
     const Variable<Matrix>& mrStrainVariable;

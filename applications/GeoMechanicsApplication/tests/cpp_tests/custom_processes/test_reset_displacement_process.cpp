@@ -34,15 +34,16 @@ using namespace Kratos;
 class StubConstitutiveLaw : public ConstitutiveLaw
 {
 public:
-    SizeType GetStrainSize() const override { return 4; }
+    [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
 };
 
-class StubElement : public Element
+class StubElementForResetDisplacementTest : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementForResetDisplacementTest);
 
-    StubElement(IndexType NewId, const GeometryType::Pointer& pGeometry) : Element(NewId, pGeometry)
+    StubElementForResetDisplacementTest(IndexType NewId, const GeometryType::Pointer& pGeometry)
+        : Element(NewId, pGeometry)
     {
         mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
     }
@@ -92,7 +93,7 @@ ModelPart& CreateModelPartWithAStubElement(Model& rModel)
     auto  node_3     = model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
 
     auto geometry = std::make_shared<Triangle2D3<Node>>(node_1, node_2, node_3);
-    model_part.AddElement(make_intrusive<StubElement>(1, geometry));
+    model_part.AddElement(make_intrusive<StubElementForResetDisplacementTest>(1, geometry));
 
     return model_part;
 }

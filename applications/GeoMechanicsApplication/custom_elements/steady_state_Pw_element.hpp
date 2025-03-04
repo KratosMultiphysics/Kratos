@@ -46,7 +46,6 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using BaseType::mConstitutiveLawVector;
-    using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
 
     using ElementVariables = typename BaseType::ElementVariables;

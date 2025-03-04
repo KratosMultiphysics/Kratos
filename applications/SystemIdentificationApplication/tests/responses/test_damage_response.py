@@ -152,5 +152,36 @@ class TestDamageDetectionResponse(kratos_unittest.TestCase):
                 self.assertAlmostEqual(gradients[index], sensitivity, 6)
                 element.Properties[Kratos.YOUNG_MODULUS] -= delta
 
+class TestDamageDetectionResponseStrainSensor(kratos_unittest.TestCase):
+    def test_DamageResponse(self):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("auxiliary_files_2/optimization_parameters_p_norm.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
+
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
+
+            analysis.Initialize()
+            analysis.Check()
+            objective: ResponseRoutine = analysis.optimization_problem.GetComponent("damage_response", ResponseRoutine)
+
+            var = objective.GetRequiredPhysicalGradients()
+            response = objective.GetReponse()
+            model_part = response.GetInfluencingModelPart()
+
+            ref_value = response.CalculateValue()
+            self.assertAlmostEqual(ref_value, 1.9789595600760277e-07, 6)
+
+            response.CalculateGradient(var)
+
+            gradients = var[Kratos.YOUNG_MODULUS].Evaluate()
+
+            delta = 1e-8
+            for index, element in enumerate(model_part.Elements):
+                element.Properties[Kratos.YOUNG_MODULUS] += delta
+                sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                self.assertAlmostEqual(gradients[index], sensitivity, 6)
+                element.Properties[Kratos.YOUNG_MODULUS] -= delta
+
 if __name__ == "__main__":
     kratos_unittest.main()

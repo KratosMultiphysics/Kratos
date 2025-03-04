@@ -1,9 +1,9 @@
 ---
 title: 5 - Analysis stage and Simulation Loop
-keywords: 
+keywords:
 tags: [Kratos Crash Course analysis Stage Simulation Loop]
 sidebar: kratos_for_users
-summary: 
+summary:
 ---
 
 # 1. Introduction
@@ -70,7 +70,7 @@ def Initialize(self):
 
 This may look intimidating at first, but lets go step by step
 
-1) **Modelers**: The first block we encounter is `Modelers` block. We will se what a modeler is in section 4, and in this block we are creating the ones we will need.
+- **Modelers**: The first block we encounter is `Modelers` block. We will se what a modeler is in section 4, and in this block we are creating the ones we will need.
 
 ```python
 # Modelers:
@@ -81,11 +81,11 @@ self._ModelersSetupModelPart()
 ```
 {: data-lang="Python"}
 
-- **Solver**: Next is the `Solvers` block. As with `Modelers`, we will present a preview of solvers in section 3, but we can start to see some interesting things that should ring a bell on us: It Imports and prepares the modelpart.
+- **Solver**: Next is the `Solver` block. As with `Modelers`, we will present a preview of solvers in section 3, but we can start to see some interesting things that should ring a bell on us: It Imports and prepares the modelpart.
 
-    If youu remember, we have stated several times that the solver was in charge of reading modelparts because it has de list of variables, and is here that the code reads our modelpart.
+    If you remember, we have stated several times that the solver was in charge of setting up the modelparts because it has de list of variables.
 
-    Aside from reading, we will also prepare the modelpart making the necessary changes to addapt it to a specific solver, and finally add the correct degrees of freedom.
+    Aside from setting up, it will also prepare the modelpart making the necessary changes to addapt it to a specific solver, and finally add the correct degrees of freedom.
 
 ```python
 # Solver
@@ -209,19 +209,131 @@ def Finalize(self):
 
 # 3. The Solver
 
-The solver is the responsible of building and solving your system given the information of your geometries, variables and configuration. There are many types of solvers inside Kratos, and it goes beyond the scope of this course to explain all details. 
+The solver is the responsible of providing the simulation physics and solving the problem.
 
-Explain interface and _GetComputingPart
+Hence, it can be easily guessed that there are as many solvers as physics and ways to solve such physics.
+
+Some well-established examples are the `structural_mechanics_solver.py`, `fluid_solver` and `convection_diffusion_solver.py` as well as their derived classes (e.g., `structural_mechanics_static_solver.py` or `structural_mechanics_dynamic_implicit_solver.py`).
+
+At this point, we should remark the following points:
+
+- Solvers are always implemented in Python level for the sake of flexibility.
+
+- All solvers in Kratos have `PythonSolver` class, which can be found in `python_solver.py`, as root class. This solver has no physics and its main purpose is to define the solver class API.
+
+- It is a common, and very good by the way, practice to have a base solver for one kind of physics and then deriving several solvers from it to implement the particularities. For instance, there is a unique fluid solver but then there are several derived ones according to the resolution scheme or particular physics (e.g., segregated or monolithic, single phase or two-phase, etc.).
 
 
-# 4. Processes and Modeleres
+It has been already stated that the main purpose of the solver is to define and solve the physics of the simulation.
 
-Processes, Utilities and Modelers are the way we privde our users to make small customizations to the simulation without having to touch any of the core components descrived in this section. Essentially they are pieces of code that will be executed in selected points during the analysis stage. 
+In a nutshell, this boils down to the following
 
-# 5. Utilities
+- Validating the `solver_settings` in the `ProjectParameters.json` with the corresponding defaults in the solver.
 
-Finally utilities play a similar role as processes and modeleres, but there is no fixed entry porints in which they will be called during a simulation inside the analysis stage.
+- Adding the required nodal historical variables to the database. Note that this is done according to the corresponding elements and conditions that actually implement the physics (i.e., the variational form).
 
-The role of utilities is to provide a mechanism to ensure that functions that may be usefull for other users are encapuslated and can be used, but is your responsability as a programmer to call them whenever necessary, for example inside a process, or in a function that you created in your custom analysis stage.
+- Adding the required nodal DOFs similar to what is done with the variables.
 
-Let's make a couple of examples:
+
+Complementary, it is also due mentioning that, historically, the solver also had the purpose of importing the geometry. However, this is a feature that is becoming deprecated in favour of the geometry-based input at the modeler level. Nevertheless, we consider this a technical detail that is out of the scope of this crash course.
+
+Last but important, the solver also creates and holds the strategy (e.g., the Newton-Raphson instance) and linear solver (if required) that actually solve the problem. Again, these are considered more advance features that we prefer to leave out of the scope of the crash course.
+
+
+The solver can be retrieved from the `AnalysisStage` level by calling the `_GetSolver()` function.
+
+This becomes specially handy when combined with the `GetComputingModelPart()`, namely `_GetSolver().GetComputingModelPart()`.
+
+Note that by doing so, we can access (and play around with or customize) the database of the model part that is actually used for the problem resolution, something that enables an easy customization of the simulation when called in the proper access points of the `AnalysisStage`.
+
+# 4. Processes
+
+Processes are one of the ways we provide our users to make customizations to the simulation without having to touch any of the core components described in this section. Essentially, they are pieces of code that will be executed in selected points during the analysis stage.
+
+Processes in particular are the backbone for custom code execution in the analysis stage. As we have seen during the analysis stage they are use in different moments during the simulation execution.
+
+The most important feature of a process is being a class with a fix set of entry points:
+
+- `ExecuteInitialize`: Will be called during the initialize sequence of an `AnalysisStage`, before the initialization of the `Solver`.
+
+- `ExecuteBeforeSolustionLoop`: Will be called during the initialize sequence of an `AnalysisStage`, after the initialization of the `Solver`
+
+- `ExecuteInitializeSolutionStep`: Will be called at the begining of each time step, before executing the preconditioners and solvers
+
+- `ExecuteFinalizeSolutionStep`: Will be called at the end of each time step, after executing the preconditioners and solvers but before the output stage.
+
+- `ExecuteBeforeOutputStep`: Will be called at the begining of the output stage for every process active, before printing the results.
+
+- `ExecuteAfterOutputStep`: Will be called at the end of the output stage for every process active, after printing the results.
+
+- `ExecuteFinalize`: Will be called during the finalize sequence of an `AnalysisStage`, just before existing the stage.
+
+In order to use a process, you have to add it to one of the lists available in the project parameters with the name of the process that you want to use, and the parameters it expects. There are plenty of processes in any of the examples available through kratos, but just to illustrate let's take a look at one in particular from the ones you downloaded:
+
+```json
+"constraints_process_list" : [{
+"python_module" : "assign_vector_variable_process",
+"kratos_module" : "KratosMultiphysics",
+"Parameters"    : {
+    "model_part_name" : "Structure.DISPLACEMENT_Ground",
+    "variable_name"   : "DISPLACEMENT",
+    "constrained"     : [true,true,true],
+    "value"           : [0.0,0.0,0.0],
+    "interval"        : [0.0,"End"]
+}
+}],
+```
+
+As you can see, here we are seeing the `assign_vector_variable_process` which is found in the module `KratosMultiphysics`. If you were to use a process from another application, the `kratos_module` would change.
+We note that these might be substituted by a `name` field thanks to the new `Registry`.
+This is however a novel feature that we will leave out of the crash course for the moment.
+
+The list of `Parameters` are the settings that the process expects, and they may broadly change between processes.
+
+In particular, this process assigns a value to a vector variable, in this case `DISPLACEMENT`. This is typically at operation that you will want to do at each time step during a given amount of time, indicated in the `interval`.
+
+If we look at the implementation of such process in Kratos, we will see that, among the different entry points that we have commented, this process makes use of `ExecuteInitializeSolutionStep`, with a filter for the time:
+
+
+```python
+def ExecuteInitializeSolutionStep(self):
+    for process in self.aux_processes:
+        process.ExecuteInitializeSolutionStep()
+```
+In particular, this process uses a list of subprocesses, which is something that you can also do. The subprocess follows the same logic:
+
+
+```python
+def ExecuteInitializeSolutionStep(self):
+    current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+    if self.interval.IsInInterval(current_time):
+            self.value = self.table.GetValue(current_time)
+            self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
+```
+
+Here we can see a simplified version of its implementation, and as you can see the behavior is the expected.
+
+# 5. Modelers
+
+Similar to processes, modelers are executed in selected points during the analysis stage.
+Specifically, modelers are understood to be executed at the beginning of the simulation (i.e., in the `Initialize` of the `AnalysisStage` or in the stage preprocess when doing multistage simulations) in order to set up the `Model` container, that is to say to prepare the geometry of the computational model.
+
+The `Modeler` class access points, sorted by execution order, are the following
+- `SetupGeometryModel`
+- `PrepareGeometryModel`
+- `SetupModelPart`
+
+About their instantiation, all modelers are expected to have a `Model`-`Parameters` constructror (as processes do).
+This make them standard so we can add them to the simulation `ProjectParameters.json`.
+At the same time, this make possible to leverage the defaults validation mechanism.
+
+It is important to make clear that these methods are executed sequentially for the list of modelers (same as for the list of processes).
+Long story short, this means that we execute the `SetupGeometryModel` of all the modelers in the modelers list, then so for the `PrepareGeometryModel` and so on.
+This is crucial in order to allow the concatenation of operations on top of a same model part by different modelers.
+
+# 6. Utilities
+
+Finally utilities play a similar role as processes and modeleres, but there is no fixed entry points in which they will be called during a simulation.
+
+The role of utilities is to provide a mechanism to ensure that functions that may be useful for other users are encapuslated and can be used, but is your responsability as a programmer to call them whenever necessary, for example inside a process, or in a function that you created in your custom analysis stage.

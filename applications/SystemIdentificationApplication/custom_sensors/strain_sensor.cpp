@@ -41,6 +41,29 @@ StrainSensor::StrainSensor(
         << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
 
+    // if the element is of type 2d
+    if (rElement.GetGeometry().WorkingSpaceDimension() == 2) {
+        switch (mStrainType) {
+            case StrainType::STRAIN_XX:
+                mStrainIndex = 0;
+                break;
+            case StrainType::STRAIN_YY:
+                mStrainIndex = 3;
+                break;
+            case StrainType::STRAIN_XY:
+                mStrainIndex = 1;
+                break;
+            default:
+                KRATOS_ERROR << "The element with id = " << rElement.Id() << " is of 2d type, hence only xx, yy, xy strains are allowed.";
+        }
+    } else if (rElement.GetGeometry().WorkingSpaceDimension() == 3) {
+        mStrainIndex = mStrainType;
+    } else {
+        KRATOS_ERROR << "Unsupported working space dimension = "
+                     << rElement.GetGeometry().WorkingSpaceDimension()
+                     << " in element with id = " << rElement.Id() << ".";
+    }
+
     this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
@@ -110,7 +133,9 @@ double StrainSensor::CalculateValue(ModelPart& rModelPart)
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, strains, rModelPart.GetProcessInfo());
 
         for (const auto& strain : strains) {
-            directional_strain += *(strain.data().begin() + mStrainType);
+            KRATOS_ERROR_IF(strain.data().size() <= mStrainIndex)
+                << "The size of the strain " << strain.data().size() << " does not contain the index = " << mStrainIndex << ".";
+            directional_strain += *(strain.data().begin() + mStrainIndex);
         }
 
         directional_strain /= strains.size();
@@ -138,47 +163,49 @@ void StrainSensor::CalculateGradient(
         std::vector<Matrix> perturbed_strains, ref_strains;
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, ref_strains, rProcessInfo);
 
+        Element::DofsVectorType elemental_dofs;
+        r_element.GetDofList(elemental_dofs, rProcessInfo);
+
         const double delta = rProcessInfo[PERTURBATION_SIZE];
         auto& r_geometry = r_element.GetGeometry();
+
+        // now only keep the dofs of the first node since we only need the variable
+        // type to be checked.
+        const IndexType block_size = elemental_dofs.size() / r_geometry.size();
+        elemental_dofs.erase(elemental_dofs.begin() + block_size, elemental_dofs.end());
 
         IndexType local_index = 0;
         for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
             auto& r_node = r_geometry[i_node];
 
-            if (r_node.HasDofFor(ADJOINT_DISPLACEMENT_X)) {
-                rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
-                    delta, DISPLACEMENT_X, r_node, r_element,
-                    perturbed_strains, ref_strains, rProcessInfo);
-            }
-
-            if (r_node.HasDofFor(ADJOINT_DISPLACEMENT_Y)) {
-                rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
-                    delta, DISPLACEMENT_Y, r_node, r_element,
-                    perturbed_strains, ref_strains, rProcessInfo);
-            }
-
-            if (r_node.HasDofFor(ADJOINT_DISPLACEMENT_Z)) {
-                rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
-                    delta, DISPLACEMENT_Z, r_node, r_element,
-                    perturbed_strains, ref_strains, rProcessInfo);
-            }
-
-            if (r_node.HasDofFor(ADJOINT_ROTATION_X)) {
-                rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
-                    delta, ROTATION_X, r_node, r_element,
-                    perturbed_strains, ref_strains, rProcessInfo);
-            }
-
-            if (r_node.HasDofFor(ADJOINT_ROTATION_Y)) {
-                rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
-                    delta, ROTATION_Y, r_node, r_element,
-                    perturbed_strains, ref_strains, rProcessInfo);
-            }
-
-            if (r_node.HasDofFor(ADJOINT_ROTATION_Z)) {
-                rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
-                    delta, ROTATION_Z, r_node, r_element,
-                    perturbed_strains, ref_strains, rProcessInfo);
+            for (const auto& p_dof : elemental_dofs) {
+                if (p_dof->GetVariable() == ADJOINT_DISPLACEMENT_X) {
+                    rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
+                        delta, DISPLACEMENT_X, r_node, r_element,
+                        perturbed_strains, ref_strains, rProcessInfo);
+                } else if (p_dof->GetVariable() == ADJOINT_DISPLACEMENT_Y) {
+                    rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
+                        delta, DISPLACEMENT_Y, r_node, r_element,
+                        perturbed_strains, ref_strains, rProcessInfo);
+                } else if (p_dof->GetVariable() == ADJOINT_DISPLACEMENT_Z) {
+                    rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
+                        delta, DISPLACEMENT_Z, r_node, r_element,
+                        perturbed_strains, ref_strains, rProcessInfo);
+                } else if (p_dof->GetVariable() == ADJOINT_ROTATION_X) {
+                    rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
+                        delta, ROTATION_X, r_node, r_element,
+                        perturbed_strains, ref_strains, rProcessInfo);
+                } else if (p_dof->GetVariable() == ADJOINT_ROTATION_Y) {
+                    rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
+                        delta, ROTATION_Y, r_node, r_element,
+                        perturbed_strains, ref_strains, rProcessInfo);
+                } else if (p_dof->GetVariable() == ADJOINT_ROTATION_Z) {
+                    rResponseGradient[local_index++] = this->CalculateStrainDirectionalSensitivity(
+                        delta, ROTATION_Z, r_node, r_element,
+                        perturbed_strains, ref_strains, rProcessInfo);
+                } else {
+                    KRATOS_ERROR << "Unsupported dof " << p_dof->GetVariable().Name();
+                }
             }
         }
     }
@@ -285,29 +312,28 @@ void StrainSensor::PrintInfo(std::ostream& rOStream) const
 
 void StrainSensor::PrintData(std::ostream& rOStream) const
 {
-    PrintInfo(rOStream);
     rOStream << "    Location: " << this->GetLocation() << std::endl;
     rOStream << "    Value: " << this->GetSensorValue() << std::endl;
     rOStream << "    Weight: " << this->GetWeight() << std::endl;
     rOStream << "    Element Id: " << mElementId << std::endl;
     switch (mStrainType) {
         case StrainType::STRAIN_XX:
-            rOStream << "    Direction: STRAIN_XX";
+            rOStream << "    Direction: STRAIN_XX" << std::endl;
             break;
         case StrainType::STRAIN_YY:
-            rOStream << "    Direction: STRAIN_YY";
+            rOStream << "    Direction: STRAIN_YY" << std::endl;
             break;
         case StrainType::STRAIN_ZZ:
-            rOStream << "    Direction: STRAIN_ZZ";
+            rOStream << "    Direction: STRAIN_ZZ" << std::endl;
             break;
         case StrainType::STRAIN_XY:
-            rOStream << "    Direction: STRAIN_XY";
+            rOStream << "    Direction: STRAIN_XY" << std::endl;
             break;
         case StrainType::STRAIN_XZ:
-            rOStream << "    Direction: STRAIN_XZ";
+            rOStream << "    Direction: STRAIN_XZ" << std::endl;
             break;
         case StrainType::STRAIN_YZ:
-            rOStream << "    Direction: STRAIN_YZ";
+            rOStream << "    Direction: STRAIN_YZ" << std::endl;
             break;
     }
     DataValueContainer::PrintData(rOStream);
@@ -341,8 +367,8 @@ double StrainSensor::CalculateStrainDirectionalSensitivity(
 
     double strain_sensitivity = 0.0;
     for (IndexType j = 0; j < rPerturbedStrains.size(); ++j) {
-        strain_sensitivity += (*(rPerturbedStrains[j].data().begin() + mStrainType) -
-                               *(rRefStrains[j].data().begin() + mStrainType)) /
+        strain_sensitivity += (*(rPerturbedStrains[j].data().begin() + mStrainIndex) -
+                               *(rRefStrains[j].data().begin() + mStrainIndex)) /
                               Perturbation;
     }
 

@@ -44,11 +44,11 @@ Vector PermeabilityCalculator::RHSContribution(const Matrix& rPermeabilityMatrix
 Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
 {
     RetentionLaw::Parameters retention_parameters(mInputProvider.GetElementProperties());
-    const auto&              r_properties = mInputProvider.GetElementProperties();
-    auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
-    const auto   shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
-    const auto   local_dimension          = shape_function_gradients[0].size2();
-    const Matrix constitutive_matrix =
+    const auto&              r_properties             = mInputProvider.GetElementProperties();
+    auto                     integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+    const auto               shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+    const auto               local_dimension          = shape_function_gradients[0].size2();
+    const Matrix             constitutive_matrix =
         GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
 
     const auto   number_of_nodes           = shape_function_gradients[0].size1();
@@ -63,31 +63,6 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
             relative_permeability, integration_coefficients[integration_point_index]);
     }
     return result;
-}
-
-const Properties& PermeabilityCalculator::InputProvider::GetElementProperties() const
-{
-    return mGetElementProperties();
-}
-
-const std::vector<RetentionLaw::Pointer>& PermeabilityCalculator::InputProvider::GetRetentionLaws() const
-{
-    return mGetRetentionLaws();
-}
-
-Vector PermeabilityCalculator::InputProvider::GetIntegrationCoefficients() const
-{
-    return mGetIntegrationCoefficients();
-}
-
-Vector PermeabilityCalculator::InputProvider::GetNodalValues(const Variable<double>& rVariable) const
-{
-    return mGetNodalValues(rVariable);
-}
-
-Geometry<Node>::ShapeFunctionsGradientsType PermeabilityCalculator::InputProvider::GetShapeFunctionGradients() const
-{
-    return mGetShapeFunctionGradients();
 }
 
 } // namespace Kratos
