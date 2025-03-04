@@ -21,6 +21,14 @@ from itertools import product
 # Interpolation libraries
 from scipy.interpolate import Rbf
 
+# Enable LaTeX rendering in Matplotlib
+plt.rcParams.update({
+    "text.usetex": True,             # Use LaTeX for text
+    "font.family": "serif",          # Use serif font
+    "pgf.texsystem": "pdflatex",     # Use pdflatex
+    "pgf.preamble": r"\usepackage{amsmath, amssymb}",  # Load additional LaTeX packages
+})
+
 class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
     """
     This class is the main-script of the ExtendedGradientConvectionDiffusion method put in a class
@@ -66,10 +74,11 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
         self.numerical_solution_no_iterations = []
         self.exact_solution = []
         self.time_list = []
+        self.number_of_iterations = []
 
         while self.KeepAdvancingSolutionLoop():
             # Initialize the variables for the algorithm
-            epsilon = 5e-3
+            epsilon = 1e-3
             is_not_converged = True
             self.iteration_number = 0
             self.maximum_iterations = 20
@@ -98,47 +107,53 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
 
                 self.iteration_number += 1
 
-                #if self.iteration_number == 1:
-                    #self.numerical_solution_no_iterations.append(self.model_part.GetNode(1926).GetSolutionStepValue(unknown_variable))
+                if self.iteration_number == 1:
+                    self.numerical_solution_no_iterations.append(self.model_part.GetNode(1926).GetSolutionStepValue(unknown_variable))
 
-
+            self.number_of_iterations.append(self.iteration_number)
 
             for element in self._GetSolver().GetComputingModelPart().Elements:
                 for node in element.GetNodes():
                     self.old_solution_field[node.Id - 1] = node.GetSolutionStepValue(unknown_variable) 
 
             # Plot the solution at a specific 
-            #self.time_list.append(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-            #self.numerical_solution_with_iterations.append(self.model_part.GetNode(1926).GetSolutionStepValue(unknown_variable))
-            #self.exact_solution.append(self.BC_value(self.model_part.GetNode(1926).X, self.model_part.GetNode(1926).Y))
+            self.time_list.append(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
+            self.numerical_solution_with_iterations.append(self.model_part.GetNode(1926).GetSolutionStepValue(unknown_variable))
+            self.exact_solution.append(self.BC_value(self.model_part.GetNode(1926).X, self.model_part.GetNode(1926).Y))
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-        plt.plot(self.time_list, self.numerical_solution_with_iterations, color = 'r', label = 'Solution with iterations')
-        plt.plot(self.time_list, self.numerical_solution_no_iterations, color = 'g', label = 'Solution with 1 iteration')
-        plt.plot(self.time_list, self.exact_solution, linestyle='--', color = 'b', label = 'Exact Solution')
-        # Etiquetas y título
-        plt.xlabel('Time [s]')
-        plt.ylabel('Solution Value')
-        plt.title('Solution vs Time for Explicit Diffusion (x = 0.5, y = 0.84)')
+        # First plot
+        plt.figure()  # Create a new figure
+        plt.plot(self.time_list, self.numerical_solution_with_iterations, color='r', label=r'Solution with iterations')
+        plt.plot(self.time_list, self.numerical_solution_no_iterations, color='g', label=r'Solution without iterations')
+        plt.plot(self.time_list, self.exact_solution, linestyle='--', color='b', label=r'Exact Solution')
 
-        # Mostrar la gráfica
+        plt.xlabel(r'Time [s]')
+        plt.ylabel(r'Solution Value')
         plt.grid(True, which="both", ls="--")
-        # Adding the legend
         plt.legend()
-        # Save and show the plot
-        plt.savefig('solution_vs_time.png')
+        plt.savefig("numerical_solution_plot.pdf", dpi=300)
         plt.show()
 
-        
-    
+        # Second plot
+        plt.figure()  # Create a new figure
+        plt.plot(self.time_list, self.number_of_iterations, color='r', label=r'Number of iterations')
+
+        plt.xlabel(r'Time [s]')
+        plt.ylabel(r'Number of iterations for convergence $\mathcal{N}$')
+        plt.grid(True, which="both", ls="--")
+        plt.legend()
+        plt.savefig("iterations_vs_time.pdf", dpi=300)
+        plt.show()
+
     def BC_value(self, x, y):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         # if time <= 0.01:
         #     return np.sin(np.pi * x)* np.cos(np.pi * y)*(time/0.01)
         # else:
-        return np.sin(np.pi * x)* np.cos(np.pi * y) # * np.sin(np.pi * 0.5 * time/0.01)
+        return np.sin(np.pi*x)*np.cos(np.pi*y)*np.tanh(10000.0*(time-0.01))#np.sin(np.pi * x)* np.cos(np.pi * y) * np.sin(np.pi * 0.5 * time/0.01)
     
     # This function implements the MLS approximation
     def mls_interpolation(self, x, y, values, x_query, k=5, scale_factor=1.5, order=2):
@@ -222,6 +237,7 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
         # Get the submodel part containing the intersected elements, the active elements and the embedded body
         self.intersected_elements_sub_model_part = self.model_part.GetSubModelPart("intersected_elements")
         self.active_elements_sub_model_part = self.model_part.GetSubModelPart("active_elements")
+        self.inactive_elements_sub_model_part = self.model_part.GetSubModelPart("inactive_elements")
         self.embedded_body_boundary_model_part = self.model_part.GetModel().GetModelPart("embedded_body_boundary")
 
         # Get the unknown variable for the specific physical problem which is being solved
@@ -250,6 +266,12 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
         for element in self.intersected_elements_sub_model_part.Elements:
             for node in element.GetNodes():
                 solution_value_to_fix = solution_dir[node.Id - 1]
+                node.Fix(unknown_variable)
+                node.SetSolutionStepValue(unknown_variable, solution_value_to_fix)
+
+        for element in self.inactive_elements_sub_model_part.Elements:
+            for node in element.GetNodes():
+                solution_value_to_fix = 0.0
                 node.Fix(unknown_variable)
                 node.SetSolutionStepValue(unknown_variable, solution_value_to_fix)
     
@@ -601,11 +623,11 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
                 # derivative_x_interpolated= solution_derivative_x_rbf_interpolator(x, y)
                 # derivative_y_interpolated = solution_derivative_y_rbf_interpolator(x, y)
                 # Create MLS interpolator
-                # derivative_x_interpolated = self.mls_interpolation(x_coordinates, y_coordinates, solution_derivative_x, (x, y), 200, 1.5, 2)
-                # derivative_y_interpolated = self.mls_interpolation(x_coordinates, y_coordinates, solution_derivative_y, (x, y), 200, 1.5, 2)
+                derivative_x_interpolated = self.mls_interpolation(x_coordinates, y_coordinates, solution_derivative_x, (x, y), 200, 1.5, 2)
+                derivative_y_interpolated = self.mls_interpolation(x_coordinates, y_coordinates, solution_derivative_y, (x, y), 200, 1.5, 2)
                 # Use the exact gradient
-                derivative_x_interpolated= np.pi*np.cos(np.pi*x)*np.cos(np.pi*y)
-                derivative_y_interpolated = -np.pi*np.sin(np.pi*x)*np.sin(np.pi*y)
+                #derivative_x_interpolated= np.pi*np.cos(np.pi*x)*np.cos(np.pi*y)
+                #derivative_y_interpolated = -np.pi*np.sin(np.pi*x)*np.sin(np.pi*y)
                 # print(x, y)
                 # print(derivative_x_interpolated, derivative_y_interpolated)
                 # print(np.pi*np.cos(np.pi*x)*np.cos(np.pi*y), -np.pi*np.sin(np.pi*x)*np.sin(np.pi*y))
