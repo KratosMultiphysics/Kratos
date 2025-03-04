@@ -7,21 +7,18 @@ End Properties
 
 Begin Nodes
 	2	-1.0 -1.0  0.0
-	3	 1.0 -1.0  0.0
-	4	 1.0  1.0  0.0
-	5	-1.0  1.0  0.0
+	3	 1.0  1.0  0.0
+	4	-1.0  1.0  0.0
 End Nodes
 
 Begin Conditions RigidFace3D3N// GUI group identifier: Wall
-	1	0	2  3  4
-	2	0	2  5  4
+	1	0	2  4  3
 End Conditions
 
 Begin NodalData TEMPERATURE
 	2	0	300.0
 	3	0	300.0
 	4	0	300.0
-	5	0	300.0
 End NodalData
 
 Begin SubModelPart DEM-FEM-Wall_Wall // DEM-FEM-Wall - group identifier: Wall
@@ -47,10 +44,8 @@ Begin SubModelPart DEM-FEM-Wall_Wall // DEM-FEM-Wall - group identifier: Wall
 		2
 		3
 		4
-		5
 	End SubModelPartNodes
 	Begin SubModelPartConditions
 		1
-		2
 	End SubModelPartConditions
 End SubModelPart
