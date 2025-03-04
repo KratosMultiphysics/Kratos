@@ -328,6 +328,40 @@ void LinearTimoshenkoBeamElement3D2N::CalculateGeneralizedStrainsVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
+    MatrixType& rLHS,
+    const ProcessInfo& rProcessInfo
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoBeamElement3D2N::save(
     Serializer& rSerializer
     ) const

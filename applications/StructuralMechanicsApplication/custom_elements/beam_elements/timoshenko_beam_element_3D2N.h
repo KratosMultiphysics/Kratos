@@ -333,11 +333,11 @@ public:
      * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    // void CalculateOnIntegrationPoints(
+    //     const Variable<double>& rVariable,
+    //     std::vector<double>& rOutput,
+    //     const ProcessInfo& rCurrentProcessInfo
+    //     ) override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
@@ -345,11 +345,11 @@ public:
      * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    // void CalculateOnIntegrationPoints(
+    //     const Variable<Vector>& rVariable,
+    //     std::vector<Vector>& rOutput,
+    //     const ProcessInfo& rCurrentProcessInfo
+    //     ) override;
 
     /**
      * @brief Get on rVariable Constitutive Law from the element
@@ -357,11 +357,11 @@ public:
      * @param rValues The results in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+    // void CalculateOnIntegrationPoints(
+    //     const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    //     std::vector<ConstitutiveLaw::Pointer>& rValues,
+    //     const ProcessInfo& rCurrentProcessInfo
+    //     ) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -370,7 +370,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo the current process info instance
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
+    // int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
