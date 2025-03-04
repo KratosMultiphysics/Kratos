@@ -13,6 +13,7 @@ from . import mesh_based_packaging
 from . import surface_normal_shape_change
 from . import face_angle
 from . import water_drain
+from . import directional_derivative
 from . import airfoil_2d_responses
 from . import total_volume
 
@@ -29,6 +30,8 @@ def CreateResponseFunction(response_id, response_settings, model):
         return face_angle.FaceAngleResponseFunction(response_id, response_settings, model)
     elif response_type == "water_drain":
         return water_drain.WaterDrainResponseFunction(response_id, response_settings, model)
+    elif response_type == "directional_derivative":
+        return directional_derivative.DirectionalDerivativeResponseFunction(response_id, response_settings, model)
     elif response_type == "airfoil_angle_of_attack":
         return airfoil_2d_responses.AngleOfAttackResponseFunction(response_id, response_settings, model)
     elif response_type == "airfoil_chord_length":

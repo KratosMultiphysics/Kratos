@@ -33,11 +33,13 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_adaptive_radius.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/damping/direction_damping_utilities.h"
+#include "custom_utilities/damping/thickness_damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
 #include "custom_utilities/response_functions/water_drain_response_function_utility.h"
+#include "custom_utilities/response_functions/directional_derivative_response_function_utility.h"
 
 // ==============================================================================
 
@@ -185,6 +187,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("DampNodalVariable", &DirectionDampingUtilities::DampNodalVariable)
         ;
 
+    py::class_<ThicknessDampingUtilities >(m, "ThicknessDampingUtilities")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("DampNodalVariable", &ThicknessDampingUtilities::DampNodalVariable)
+        ;
+
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
@@ -236,6 +243,24 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                                             }
                                             return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
                                         })
+        .def_static("AssembleMatrixScalarVariables", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
+                                    std::size_t list_length = pybind11::len(rVariables);
+                                    std::vector<Variable<double>*> variables_vector(list_length);
+                                    for (std::size_t i = 0; i < list_length; i++)
+                                    {
+                                        variables_vector[i] = (rVariables[i]).cast<Variable<double>*>();
+                                    }
+                                    return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
+                                })
+        .def_static("AssembleMatrixFromGradientVectors", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rGradientVectors){
+                                            std::size_t list_length = pybind11::len(rGradientVectors);
+                                            std::vector<Vector*> gradient_vectors(list_length);
+                                            for (std::size_t i = 0; i < list_length; i++)
+                                            {
+                                                gradient_vectors[i] = (rGradientVectors[i]).cast<Vector*>();
+                                            }
+                                            return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, gradient_vectors);
+                                        })
         .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         .def_static("AssembleBufferMatrix", &OptimizationUtilities::AssembleBufferMatrix)
         .def_static("CalculateRelaxedProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateRelaxedProjectedSearchDirectionAndCorrection)
@@ -258,6 +283,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ConditionsContainerType>)
         .def("ComputeVolume", &GeometryUtilities::ComputeVolume)
         .def("ComputeVolumeShapeDerivatives", &GeometryUtilities::ComputeVolumeShapeDerivatives)
+        .def("CalculateAverageElementSize", &GeometryUtilities::CalculateAverageElementSize)
         ;
 
     // ========================================================================
@@ -266,6 +292,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
         .def(py::init<ModelPart&>())
         .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("UpdateThicknessAccordingInputVariable", &MeshControllerUtilities::UpdateThicknessAccordingInputVariable)
+        .def("UpdateThicknessAccordingInitialAndInputVariable", &MeshControllerUtilities::UpdateThicknessAccordingInitialAndInputVariable)
         .def("RevertMeshUpdateAccordingInputVariable", &MeshControllerUtilities::RevertMeshUpdateAccordingInputVariable)
         .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
@@ -301,6 +329,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InitializeSolutionStep", &WaterDrainResponseFunctionUtility::InitializeSolutionStep)
         .def("CalculateValue", &WaterDrainResponseFunctionUtility::CalculateValue)
         .def("CalculateGradient", &WaterDrainResponseFunctionUtility::CalculateGradient)
+
+    py::class_<DirectionalDerivativeResponseFunctionUtility >(m, "DirectionalDerivativeResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &DirectionalDerivativeResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &DirectionalDerivativeResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &DirectionalDerivativeResponseFunctionUtility::CalculateGradient)
         ;
 
     // ========================================================================

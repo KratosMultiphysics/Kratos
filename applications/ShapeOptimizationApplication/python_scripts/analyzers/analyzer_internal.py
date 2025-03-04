@@ -19,8 +19,10 @@ from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base imp
 from KratosMultiphysics.ShapeOptimizationApplication.response_functions import response_function_factory as sho_response_factory
 try:
     from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory as csm_response_factory
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
 except ImportError:
     csm_response_factory = None
+    KSM = None
 try:
     from KratosMultiphysics.ConvectionDiffusionApplication.response_functions import convection_diffusion_response_function_factory as convdiff_response_factory
 except ImportError:
@@ -92,9 +94,18 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                     communicator.reportValue(identifier, response.GetValue())
 
                 # response gradients
-                if communicator.isRequestingGradientOf(identifier):
+                if communicator.isRequestingGradientOf(identifier) or communicator.isRequestingThicknessGradientOf(identifier):
                     response.CalculateGradient()
+
+                # response shape gradients
+                if communicator.isRequestingGradientOf(identifier):
                     communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
+
+                # response thickness gradients
+                if communicator.isRequestingThicknessGradientOf(identifier):
+                    if KSM is None:
+                        raise RuntimeError(f"ThicknessOpt: {identifier} response function requires StructuralMechanicsApplication.")
+                    communicator.reportThicknessGradient(identifier, response.GetElementalGradient(KSM.THICKNESS_SENSITIVITY))
 
                 response.FinalizeSolutionStep()
 
@@ -122,11 +133,12 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             "surface_normal_shape_change",
             "face_angle",
             "water_drain",
+            "directional_derivative",
             "airfoil_angle_of_attack",
             "airfoil_chord_length",
             "airfoil_perimeter"
         ]
-        csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress", "adjoint_nodal_displacement", "adjoint_linear_strain_energy", "adjoint_nodal_reaction"]
+        csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_linear_strain_energy", "adjoint_local_stress", "adjoint_max_stress"]
         cps_response_functions = ["adjoint_lift_potential_jump", "stochastic_adjoint_lift_potential_jump"]
         convdiff_response_functions = ["point_temperature"]
 

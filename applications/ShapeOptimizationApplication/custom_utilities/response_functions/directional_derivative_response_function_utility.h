@@ -4,12 +4,12 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Geiser Armin, https://github.com/armingeiser
+//  Main authors:    Schmölz David, https://github.com/dschmoelz
 //
 // ==============================================================================
 
-#ifndef FACE_ANGLE_RESPONSE_FUNCTION_UTILITY_H
-#define FACE_ANGLE_RESPONSE_FUNCTION_UTILITY_H
+#ifndef DIRECTIONAL_DERIVATIVE_RESPONSE_FUNCTION_UTILITY_H
+#define DIRECTIONAL_DERIVATIVE_RESPONSE_FUNCTION_UTILITY_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -57,7 +57,7 @@ namespace Kratos
 
  */
 
-class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FaceAngleResponseFunctionUtility
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) DirectionalDerivativeResponseFunctionUtility
 {
 public:
 	///@name Type Definitions
@@ -65,18 +65,21 @@ public:
 
 	typedef array_1d<double, 3> array_3d;
 
-	/// Pointer definition of FaceAngleResponseFunctionUtility
-	KRATOS_CLASS_POINTER_DEFINITION(FaceAngleResponseFunctionUtility);
+    typedef Node < 3 > NodeType;
+    typedef std::vector<std::vector<NodeType::Pointer>> ConditionConnectionVector;
+
+	/// Pointer definition of DirectionalDerivativeResponseFunctionUtility
+	KRATOS_CLASS_POINTER_DEFINITION(DirectionalDerivativeResponseFunctionUtility);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	FaceAngleResponseFunctionUtility(ModelPart& rModelPart, Parameters ResponseSettings);
+	DirectionalDerivativeResponseFunctionUtility(ModelPart& rModelPart, Parameters ResponseSettings);
 
 	/// Destructor.
-	virtual ~FaceAngleResponseFunctionUtility()
+	virtual ~DirectionalDerivativeResponseFunctionUtility()
 	{}
 	///@}
 	///@name Operators
@@ -100,13 +103,13 @@ public:
 	/// Turn back information as a string.
 	std::string Info() const
 	{
-		return "FaceAngleResponseFunctionUtility";
+		return "DirectionalDerivativeResponseFunctionUtility";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const
 	{
-		rOStream << "FaceAngleResponseFunctionUtility";
+		rOStream << "DirectionalDerivativeResponseFunctionUtility";
 	}
 
 	/// Print object's data.
@@ -125,7 +128,9 @@ private:
 	///@name Operations
 	///@{
 
-	double CalculateConditionValue(const Condition& rFace);
+	double CalculateConditionValue(Condition& rFace);
+
+	void FindAdjacentConditions();
 
 	///@}
 	///@name Static Member Variables
@@ -136,20 +141,17 @@ private:
 	///@{
 
 	ModelPart &mrModelPart;
-	double mDelta;
 	array_3d mMainDirection;
-	double mSinMinAngle;
-	double mSinTolerance;
 	double mValue;
-	bool mConsiderOnlyInitiallyFeasible;
-	bool mCheckBothFaceSides;
+	double mTanAngle;
+	double mMaxSearchAngle;
 
 	///@}
 
-}; // Class FaceAngleResponseFunctionUtility
+}; // Class DirectionalDerivativeResponseFunctionUtility
 
 ///@}
 
 } // namespace Kratos.
 
-#endif // FACE_ANGLE_RESPONSE_FUNCTION_UTILITY_H
+#endif // DIRECTIONAL_DERIVATIVE_RESPONSE_FUNCTION_UTILITY_H

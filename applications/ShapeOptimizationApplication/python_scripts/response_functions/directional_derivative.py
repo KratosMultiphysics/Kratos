@@ -25,7 +25,7 @@ def _AddConditionsFromParent(parent, child):
     child.AddConditions(conditions)
 
 # ==============================================================================
-class FaceAngleResponseFunction(ResponseFunctionInterface):
+class DirectionalDerivativeResponseFunction(ResponseFunctionInterface):
     """
     Face angle response function.
     It aggregates the deviation of the face angles of all surface conditions using sqrt(sum(g_i)),
@@ -57,7 +57,7 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
             self.model_part = self.model.CreateModelPart(self._model_part_name, 2)
             domain_size = response_settings["domain_size"].GetInt()
             if domain_size not in [3]:
-                raise Exception("FaceAngleResponseFunction: Invalid 'domain_size': {}".format(domain_size))
+                raise Exception("DirectionalDerivativeResponseFunction: Invalid 'domain_size': {}".format(domain_size))
             self.model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
             self.model_part_needs_to_be_imported = True
         elif input_type == "use_input_model_part":
@@ -67,7 +67,7 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
 
         self.response_function_utility = None  # will be created in Initialize()
 
-        self.model.GetModelPart(self._model_part_name.split(".")[0]).AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
+        # self.model.GetModelPart(self._model_part_name.split(".")[0]).AddNodalSolutionStepVariable(KM.THICKNESS_SENSITIVITY)
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -81,12 +81,10 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
                 "input_filename"    : "UNKNOWN_NAME"
             },
             "main_direction": [0.0, 0.0, 1.0],
+            "gradient_mode": "analytic",
             "min_angle": 0.0,
-            "check_both_face_sides": false,
-            "tolerance": 0.0,
-            "gradient_mode": "finite_differencing",
-            "step_size": 1e-6,
-            "consider_only_initially_feasible": false
+            "neighbour_search_max_angle": 60.0,
+            "step_size": 1e-6
         }""")
         return this_defaults
 
@@ -103,14 +101,14 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
             only_part = self.model.GetModelPart(only)
             if only_part.NumberOfConditions() == 0:
                 _AddConditionsFromParent(self.model_part, only_part)
-                Logger.PrintWarning("FaceAngleResponse", "Automatically added {} conditions to model_part '{}'.".format(only_part.NumberOfConditions(), only_part.Name))
+                Logger.PrintWarning("DirectionalDerivativeResponse", "Automatically added {} conditions to model_part '{}'.".format(only_part.NumberOfConditions(), only_part.Name))
         else:
             only_part = self.model_part
 
         if only_part.NumberOfConditions() == 0:
             raise RuntimeError("The model_part '{}' does not have any surface conditions!".format(only_part.Name))
 
-        self.response_function_utility = KSO.FaceAngleResponseFunctionUtility(only_part, self.response_settings)
+        self.response_function_utility = KSO.DirectionalDerivativeResponseFunctionUtility(only_part, self.response_settings)
 
         self.response_function_utility.Initialize()
 
@@ -118,21 +116,22 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
         self.value = None
 
     def CalculateValue(self):
-        Logger.PrintInfo("FaceAngleResponse", "Starting calculation of response value:", self.identifier)
+        Logger.PrintInfo("DirectionalDerivativeResponse", "Starting calculation of response value:", self.identifier)
 
         startTime = timer.time()
+        # self.value = 0.0
         self.value = self.response_function_utility.CalculateValue()
-        Logger.PrintInfo("FaceAngleResponse", "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("DirectionalDerivativeResponse", "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
     def CalculateGradient(self):
-        Logger.PrintInfo("FaceAngleResponse", "Starting gradient calculation for response", self.identifier)
+        Logger.PrintInfo("DirectionalDerivativeResponse", "Starting gradient calculation for response", self.identifier)
 
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.SHAPE_SENSITIVITY, [0.0, 0.0, 0.0])
+        for condition in self.model_part.Conditions:
+            condition.SetValue(KSO.THICKNESS_SENSITIVITY, 0.0)
 
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
-        Logger.PrintInfo("FaceAngleResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("DirectionalDerivativeResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
         return self.value
@@ -142,7 +141,7 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(variable)
+            gradient[node.Id] = KM.Vector(3, 0.0)
         return gradient
 
     def GetElementalGradient(self, variable):
@@ -150,5 +149,6 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
             raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for condition in self.model_part.Conditions:
-            gradient[condition.Id] = 0.0
+            gradient[condition.Id] = condition.GetValue(KSO.THICKNESS_SENSITIVITY)
+
         return gradient

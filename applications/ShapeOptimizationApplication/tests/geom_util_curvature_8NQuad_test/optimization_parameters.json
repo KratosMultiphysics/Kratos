@@ -19,7 +19,7 @@
             "project_gradient_on_surface_normals" : false
     }],
         "constraints" : [],
-        "design_variables" : {
+        "design_variables" : [{
             "type"                           : "vertex_morphing",
             "filter" : {
                 "matrix_free_filtering"      : true,
@@ -34,7 +34,7 @@
                     "radius_function_parameter": 0.01
                 }
             }
-        },
+        }],
         "optimization_algorithm" : {
             "name": "steepest_descent",
             "max_iterations": 1,

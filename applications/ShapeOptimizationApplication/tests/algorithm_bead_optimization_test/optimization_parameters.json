@@ -28,14 +28,14 @@
             "project_gradient_on_surface_normals" : false
         }],
         "constraints" : [],
-        "design_variables" : {
+        "design_variables" : [{
             "type"                           : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.2,
                 "max_nodes_in_filter_radius" : 1000
             }
-        },
+        }],
         "optimization_algorithm" : {
             "name"                          : "bead_optimization",
             "bead_height"                   : 0.05,

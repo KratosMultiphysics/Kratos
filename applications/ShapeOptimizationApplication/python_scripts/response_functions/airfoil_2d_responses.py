@@ -1,6 +1,9 @@
 import KratosMultiphysics
-from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
+except ImportError:
+    KSM = None
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import math
 
@@ -70,6 +73,14 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         shape_gradient[1] = self.le_y_gradient
         gradient[self.le_node.Id] = shape_gradient
 
+        return gradient
+
+    def GetElementalGradient(self, variable):
+        if variable != KSM.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
         return gradient
 
     def _CalculateAOA(self, te_x, te_y, le_x, le_y):
@@ -142,6 +153,13 @@ class ChordLengthResponseFunction(ResponseFunctionInterface):
 
         return gradient
 
+    def GetElementalGradient(self, variable):
+        if variable != KSM.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
+        return gradient
 
 
 class PerimeterResponseFunction(ResponseFunctionInterface):
@@ -186,4 +204,12 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
 
             gradient[node.Id] = shape_gradient
 
+        return gradient
+
+    def GetElementalGradient(self, variable):
+        if variable != KSM.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
         return gradient
