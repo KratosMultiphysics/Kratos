@@ -48,7 +48,8 @@ target_link_libraries(KratosOptimizationApplication PRIVATE KratosOptimizationCo
 set_target_properties(KratosOptimizationApplication PROPERTIES PREFIX "")
 
 # Compiling the fcpw library
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw)
+add_subdirectory(custom_external_libraries/fcpw)
 # target_link_libraries(KratosOptimizationCore fcpw)
 target_include_directories(KratosOptimizationCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw/include)
 target_include_directories(KratosOptimizationCore PRIVATE ${FCPW_EIGEN_INCLUDES})
