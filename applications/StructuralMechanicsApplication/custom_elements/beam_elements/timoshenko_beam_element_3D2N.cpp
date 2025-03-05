@@ -310,9 +310,12 @@ void LinearTimoshenkoBeamElement3D2N::RotateLHS(
     const SizeType global_size = GetDoFsPerNode() * num_nodes;
     
     BoundedMatrix<double, 3, 3> T;
-    BoundedMatrix<double, 12, 12> global_T;
+    BoundedMatrix<double, 12, 12> global_size_T, aux_product;
     noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
-    AssembleGlobalRotationMatrix(T, global_T);
+    AssembleGlobalRotationMatrix(T, global_size_T);
+
+    noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
@@ -323,17 +326,16 @@ void LinearTimoshenkoBeamElement3D2N::RotateRHS(
     const GeometryType& rGeometry
     )
 {
-    // const double angle = GetAngle();
-    // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-    //     BoundedMatrix<double, 3, 3> T;
-    //     BoundedMatrix<double, 9, 9> global_size_T;
-    //     BoundedVector<double, 9> local_rhs;
-    //     noalias(local_rhs) = rRHS;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-
-    //     noalias(rRHS) = prod(global_size_T, local_rhs);
-    // }
+    const SizeType num_nodes = rGeometry.size();
+    const SizeType global_size = GetDoFsPerNode() * num_nodes;
+    
+    BoundedMatrix<double, 3, 3> T;
+    BoundedMatrix<double, 12, 12> global_size_T;
+    BoundedVector<double, 12> local_rhs;
+    noalias(local_rhs) = rRHS;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
+    AssembleGlobalRotationMatrix(T, global_size_T);
+    noalias(rRHS) = prod(global_size_T, local_rhs);
 }
 
 /***********************************************************************************/
@@ -345,20 +347,20 @@ void LinearTimoshenkoBeamElement3D2N::RotateAll(
     const GeometryType& rGeometry
     )
 {
-    // const double angle = GetAngle();
-    // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-    //     BoundedMatrix<double, 3, 3> T;
-    //     BoundedMatrix<double, 9, 9> global_size_T, aux_product;
-    //     BoundedVector<double, 9> local_rhs;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+    const SizeType num_nodes = rGeometry.size();
+    const SizeType global_size = GetDoFsPerNode() * num_nodes;
+    
+    BoundedMatrix<double, 3, 3> T;
+    BoundedMatrix<double, 12, 12> global_size_T, aux_product;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
+    AssembleGlobalRotationMatrix(T, global_size_T);
 
-    //     noalias(local_rhs) = rRHS;
-    //     noalias(rRHS) = prod(global_size_T, local_rhs);
+    BoundedVector<double, 12> local_rhs;
+    noalias(local_rhs) = rRHS;
+    noalias(rRHS) = prod(global_size_T, local_rhs);
 
-    //     noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    //     noalias(rLHS) = prod(global_size_T, aux_product);
-    // }
+    noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
