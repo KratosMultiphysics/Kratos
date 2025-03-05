@@ -58,4 +58,19 @@ double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
     KRATOS_ERROR << "Material " << rProperties.Id() << "does not have a value for the cohesion\n";
 }
 
+double ConstitutiveLawUtilities::GetFrictionAngle(const Properties& rProperties)
+{
+    // So far, we only support retrieving the friction angle from user-defined material models
+    if (rProperties.Has(UMAT_PARAMETERS) && rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER)) {
+        const auto index = rProperties[INDEX_OF_UMAT_PHI_PARAMETER]; // 1-based index
+        KRATOS_DEBUG_ERROR_IF(index < 1 ||
+                              static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
+            << "Got out-of-bounds INDEX_OF_UMAT_PHI_PARAMETER (material ID: " << rProperties.Id()
+            << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
+        return rProperties[UMAT_PARAMETERS][index - 1];
+    }
+
+    KRATOS_ERROR << "Material " << rProperties.Id() << "does not have a value for the friction angle\n";
+}
+
 } // namespace Kratos
