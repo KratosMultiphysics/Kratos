@@ -100,6 +100,7 @@ import test_obj_io
 import test_import_obj_modeler
 import test_vectorized_interpolation
 import test_clean_up_problematic_triangles_modeler
+import test_search_wrapper
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -226,7 +227,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_import_obj_modeler.TestImportOBJModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vectorized_interpolation.TestVectorizedInterpolation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_clean_up_problematic_triangles_modeler.TestCleanUpProblematicTrianglesModeler]))
-
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_search_wrapper.TestSearchWrapper]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))
