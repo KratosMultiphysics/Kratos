@@ -258,12 +258,10 @@ double LinearTimoshenkoBeamElement3D2N::CalculateBendingCurvatureY(
     const VectorType& rNodalValues
     ) const
 {
-    // VectorType N_theta_derivatives(6);
-    // GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);
-    // return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
-    //        N_theta_derivatives[4] * rNodalValues[4] + N_theta_derivatives[5] * rNodalValues[5] +
-    //        N_theta_derivatives[2] * rNodalValues[7] + N_theta_derivatives[3] * rNodalValues[8];
-    return 0.0;
+    VectorType N_theta_derivatives(4);
+    GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);
+    return N_theta_derivatives[0] * rNodalValues[2] + N_theta_derivatives[1] * rNodalValues[4] +
+           N_theta_derivatives[2] * rNodalValues[8] + N_theta_derivatives[3] * rNodalValues[10];
 }
 
 /***********************************************************************************/
@@ -276,12 +274,10 @@ double LinearTimoshenkoBeamElement3D2N::CalculateBendingCurvatureZ(
     const VectorType& rNodalValues
     ) const
 {
-    // VectorType N_theta_derivatives(6);
-    // GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);
-    // return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
-    //        N_theta_derivatives[4] * rNodalValues[4] + N_theta_derivatives[5] * rNodalValues[5] +
-    //        N_theta_derivatives[2] * rNodalValues[7] + N_theta_derivatives[3] * rNodalValues[8];
-    return 0.0;
+    VectorType N_theta_derivatives(4);
+    GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);
+    return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[5] +
+           N_theta_derivatives[2] * rNodalValues[7] + N_theta_derivatives[3] * rNodalValues[11];
 }
 
 /***********************************************************************************/
