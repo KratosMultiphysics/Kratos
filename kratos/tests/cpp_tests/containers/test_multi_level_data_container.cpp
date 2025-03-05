@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(MultiLevelDataValueContainerSetValueMatrix, KratosCore
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(MultiLevelDataValueSerializer, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MultiLevelDataValueContainerSerializer, KratosCoreFastSuite)
 {
     MultiLevelDataValueContainer container;
     auto p_accesor = Kratos::make_unique<LayeredGaussPointDataAccesor>(3, 4);
