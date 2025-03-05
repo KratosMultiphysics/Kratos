@@ -85,12 +85,13 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         if (rResultantState.time < mEndTime) {
             // Up-scaling to reach end_time without small increments
             constexpr auto small_increment = 1.0e-3;
-            mDeltaTime = (rResultantState.time + mDeltaTime > mEndTime - small_increment * mDeltaTime)
-                             ? mDeltaTime = mEndTime - rResultantState.time
-                             : mDeltaTime;
+            if (rResultantState.time + mDeltaTime > mEndTime - small_increment * mDeltaTime) {
+                mDeltaTime = mEndTime - rResultantState.time;
+            }
         }
+    }
 
-    } else {
+    else {
         // non converged, scale down step and restart
         mDeltaTime *= mReductionFactor;
     }
