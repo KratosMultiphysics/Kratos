@@ -194,8 +194,9 @@ double LinearTimoshenkoBeamElement3D2N::CalculateAxialStrain(
     const VectorType& rNodalValues
     ) const
 {
-    return 0.0;
-
+    VectorType N_u_derivatives(2);
+    GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, Length, Phi, xi);
+    return N_u_derivatives[0] * rNodalValues[0] + N_u_derivatives[1] * rNodalValues[6];
 
 }
 
