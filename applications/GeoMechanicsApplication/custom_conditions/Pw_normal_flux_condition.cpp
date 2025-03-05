@@ -13,88 +13,70 @@
 //                   Aron Noordam
 //
 
-
 // Application includes
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
+
+#include <numeric>
 
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer PwNormalFluxCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer PwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType             NewId,
+                                                                  NodesArrayType const& ThisNodes,
+                                                                  PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new PwNormalFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void PwNormalFluxCondition<TDim,TNumNodes>::
-    CalculateRHS(VectorType& rRightHandSideVector,
-                 const ProcessInfo& CurrentProcessInfo)
-{        
-    //Previous definitions
-    const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
-    const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int LocalDim = Geom.LocalSpaceDimension();
-    
-    //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-    GeometryType::JacobiansType JContainer(NumGPoints);
-    for(unsigned int i = 0; i<NumGPoints; ++i)
-        (JContainer[i]).resize(TDim,LocalDim,false);
-    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
-    
-    //Condition variables
-    array_1d<double,TNumNodes> NormalFluxVector;
-    for(unsigned int i=0; i<TNumNodes; ++i)
-    {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-    }
-    NormalFluxVariables Variables;
-    
-    //Loop over integration points
-    for(unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        //Compute normal flux 
-        Variables.NormalFlux = 0.0;
-        for (unsigned int i=0; i<TNumNodes; ++i) {
-            Variables.NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
-        }
-        
-        //Obtain Np
-        noalias(Variables.Np) = row(NContainer,GPoint);
-                
-        //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = 
-            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
-            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
-                
-        //Contributions to the right hand side
-        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
-    }
-}
-
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void PwNormalFluxCondition<TDim,TNumNodes>::
-    CalculateAndAddRHS( VectorType& rRightHandSideVector,
-                        NormalFluxVariables& rVariables )
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
+                                                          const ProcessInfo& CurrentProcessInfo)
 {
-    noalias(rVariables.PVector) = - rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
+    const auto& r_geometry           = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const unsigned int number_of_integration_points = r_integration_points.size();
 
-    rRightHandSideVector += rVariables.PVector;
+    // Containers of variables at all integration points
+    const Matrix& r_n_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    GeometryType::JacobiansType j_container(number_of_integration_points);
+    for (auto& j : j_container) {
+        j.resize(TDim, r_geometry.LocalSpaceDimension(), false);
+    }
+    r_geometry.Jacobian(j_container, this->GetIntegrationMethod());
+
+    // Condition variables
+    Vector normal_flux_vector(TNumNodes);
+    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+        // Interpolation of nodal normal flux to integration point normal flux.
+        const auto shape_function_values = row(r_n_container, integration_point);
+        const auto normal_flux           = std::inner_product(
+            shape_function_values.begin(), shape_function_values.end(), normal_flux_vector.cbegin(), 0.0);
+
+        // Compute weighting coefficient for integration
+        auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
+            j_container[integration_point], r_integration_points[integration_point].Weight());
+
+        // Contributions to the right hand side
+        rRightHandSideVector -= normal_flux * row(r_n_container, integration_point) * integration_coefficient;
+    }
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string PwNormalFluxCondition<TDim, TNumNodes>::Info() const
+{
+    return "PwNormalFluxCondition";
+}
 
-template class PwNormalFluxCondition<2,2>;
-template class PwNormalFluxCondition<2,3>;
-template class PwNormalFluxCondition<2,4>;
-template class PwNormalFluxCondition<2,5>;
-template class PwNormalFluxCondition<3,3>;
-template class PwNormalFluxCondition<3,4>;
+template class PwNormalFluxCondition<2, 2>;
+template class PwNormalFluxCondition<2, 3>;
+template class PwNormalFluxCondition<2, 4>;
+template class PwNormalFluxCondition<2, 5>;
+template class PwNormalFluxCondition<3, 3>;
+template class PwNormalFluxCondition<3, 4>;
 
 } // Namespace Kratos.

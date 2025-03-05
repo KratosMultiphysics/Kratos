@@ -24,7 +24,6 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    @KratosUnittest.skip("Test test_1d_consolidation skipped temporary.")
     def test_1d_consolidation(self):
         """
         test 1D consolidation on elastic soil.
@@ -45,6 +44,8 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
 
         # set stage parameters
         parameters_stages = [None] * n_stages
+
+        initial_directory = os.getcwd()
         os.chdir(file_path)
         for idx, parameter_file_name in enumerate(parameter_file_names):
             with open(parameter_file_name, 'r') as parameter_file:
@@ -104,6 +105,8 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         accuracy = 0.01
         for rmse_stage in rmse_stages:
             self.assertLess(rmse_stage, accuracy)
+
+        os.chdir(initial_directory)
 
 if __name__ == '__main__':
     KratosUnittest.main()

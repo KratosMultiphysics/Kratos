@@ -12,17 +12,36 @@
 
 #pragma once
 
-#include <string>
 #include <filesystem>
 
 namespace Kratos::Testing
 {
 
+namespace Defaults
+{
+
+constexpr auto absolute_tolerance = 1.0e-12;
+constexpr auto relative_tolerance = 1.0e-6;
+
+} // namespace Defaults
+
 class TestUtilities
 {
 public:
-    static bool CompareFiles(const std::filesystem::path& rPath1,
-                             const std::filesystem::path& rPath2);
+    static bool CompareFiles(const std::filesystem::path& rPath1, const std::filesystem::path& rPath2);
 };
 
-}
+class ScopedSerializerRegistrationOfAllStressStatePolicies
+{
+public:
+    ScopedSerializerRegistrationOfAllStressStatePolicies();
+    ~ScopedSerializerRegistrationOfAllStressStatePolicies();
+    ScopedSerializerRegistrationOfAllStressStatePolicies(const ScopedSerializerRegistrationOfAllStressStatePolicies&) = delete;
+    ScopedSerializerRegistrationOfAllStressStatePolicies& operator=(
+        const ScopedSerializerRegistrationOfAllStressStatePolicies&) = delete;
+    ScopedSerializerRegistrationOfAllStressStatePolicies(ScopedSerializerRegistrationOfAllStressStatePolicies&&) noexcept = default;
+    ScopedSerializerRegistrationOfAllStressStatePolicies& operator=(
+        ScopedSerializerRegistrationOfAllStressStatePolicies&&) noexcept = default;
+};
+
+} // namespace Kratos::Testing

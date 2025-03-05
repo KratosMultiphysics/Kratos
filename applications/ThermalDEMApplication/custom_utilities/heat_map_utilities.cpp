@@ -14,11 +14,11 @@
 #include "heat_map_utilities.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   HeatMapUtilities::HeatMapUtilities() {}
   HeatMapUtilities::~HeatMapUtilities() {}
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void HeatMapUtilities::ExecuteInitialize(ModelPart& rModelPart) {
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     if (!r_process_info[HEAT_MAP_GENERATION_OPTION])
@@ -54,7 +54,7 @@ namespace Kratos {
     }
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   // ATTENTION: IF NUMBER OF PARTICLES IS CONSTANT, THIS COULD BE DONE ONLY ONCE IN THE END OF ANALYSIS
   void HeatMapUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart) {
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -92,7 +92,7 @@ namespace Kratos {
     }
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void HeatMapUtilities::ExecuteFinalize(ModelPart& rModelPart) {
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     if (!r_process_info[HEAT_MAP_GENERATION_OPTION])
@@ -111,17 +111,17 @@ namespace Kratos {
     std::ofstream file_generation_rolling_pw;
 
     file_generation_damping_pp.open("map_generation_damping_pp.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_damping_pp) << "Could not open map file of heat generation due to particle-particle damping!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_damping_pp) << "Could not open file map_generation_damping_pp.txt!" << std::endl;
     file_generation_damping_pw.open("map_generation_damping_pw.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_damping_pw) << "Could not open map file of heat generation due to particle-wall damping!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_damping_pw) << "Could not open file map_generation_damping_pw.txt!" << std::endl;
     file_generation_sliding_pp.open("map_generation_sliding_pp.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_sliding_pp) << "Could not open map file of heat generation due to particle-particle sliding!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_sliding_pp) << "Could not open file map_generation_sliding_pp.txt!" << std::endl;
     file_generation_sliding_pw.open("map_generation_sliding_pw.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_sliding_pw) << "Could not open map file of heat generation due to particle-wall sliding!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_sliding_pw) << "Could not open file map_generation_sliding_pw.txt!" << std::endl;
     file_generation_rolling_pp.open("map_generation_rolling_pp.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_rolling_pp) << "Could not open map file of heat generation due to particle-particle rolling!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_rolling_pp) << "Could not open file map_generation_rolling_pp.txt!" << std::endl;
     file_generation_rolling_pw.open("map_generation_rolling_pw.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(file_generation_rolling_pw) << "Could not open map file of heat generation due to particle-wall rolling!" << std::endl;
+    KRATOS_ERROR_IF_NOT(file_generation_rolling_pw) << "Could not open file map_generation_rolling_pw.txt!" << std::endl;
 
     // Print headers
     file_generation_damping_pp << "MAP - HEAT GENERATION - DAMPING - PARTICLE-PARTICLE" << std::endl;
@@ -190,7 +190,7 @@ namespace Kratos {
     if (file_generation_rolling_pw.is_open()) file_generation_rolling_pw.close();
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   void HeatMapUtilities::ResetMap(std::vector<std::vector<std::vector<double>>>& map) {
     for (int i = 0; i < mDimX; i++) {
       std::vector<std::vector<double>> vv;

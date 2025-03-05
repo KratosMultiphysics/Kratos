@@ -12,12 +12,12 @@
 
 #pragma once
 
+#include "geo_mechanics_application_variables.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "processes/process.h"
 #include <algorithm>
-
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -361,10 +361,10 @@ private:
                                const std::vector<Node*>& rBoundaryNodes,
                                std::vector<Node*>&       rLeftBoundaryNodes) const
     {
-        for (unsigned int i = 0; i < rBoundaryNodes.size(); ++i) {
-            if (rBoundaryNodes[i]->Coordinates()[mHorizontalDirection] <= rNode.Coordinates()[mHorizontalDirection]) {
+        for (auto p_boundary_node : rBoundaryNodes) {
+            if (p_boundary_node->Coordinates()[mHorizontalDirection] <= rNode.Coordinates()[mHorizontalDirection]) {
                 // node is on top boundary
-                rLeftBoundaryNodes.push_back(rBoundaryNodes[i]);
+                rLeftBoundaryNodes.push_back(p_boundary_node);
             }
         }
     }
@@ -373,10 +373,10 @@ private:
                                 const std::vector<Node*>& rBoundaryNodes,
                                 std::vector<Node*>&       rRightBoundaryNodes) const
     {
-        for (unsigned int i = 0; i < rBoundaryNodes.size(); ++i) {
-            if (rBoundaryNodes[i]->Coordinates()[mHorizontalDirection] >= rNode.Coordinates()[mHorizontalDirection]) {
+        for (auto p_boundary_node : rBoundaryNodes) {
+            if (p_boundary_node->Coordinates()[mHorizontalDirection] >= rNode.Coordinates()[mHorizontalDirection]) {
                 // node is on top boundary
-                rRightBoundaryNodes.push_back(rBoundaryNodes[i]);
+                rRightBoundaryNodes.push_back(p_boundary_node);
             }
         }
     }
@@ -490,10 +490,8 @@ private:
     {
         const int ID_UNDEFINED = -1;
         int       nMaxElements = 0;
-        for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
-            int NodeID = rFaceIDs[iPoint];
-            int index  = NodeID - 1;
-            nMaxElements += rELementsOfNodesSize[index];
+        for (auto node_id : rFaceIDs) {
+            nMaxElements += rELementsOfNodesSize[node_id - 1];
         }
 
         if (nMaxElements > 0) {

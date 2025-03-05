@@ -4,13 +4,13 @@
 
 [![Release][release-image]][releases]
 <a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
-<a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-9.5...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
+<a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-10.1...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
 <a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a>
 
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/KratosMultiphysics.svg)](https://pypi.org/project/KratosMultiphysics/)
 [![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics)
 
-[release-image]: https://img.shields.io/badge/release-9.5-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-10.1-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -36,7 +36,7 @@
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
-**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
+**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
 # Main Features
 **Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
@@ -65,19 +65,22 @@ Here you can find the basic documentation of the project:
 * Getting Kratos (Last compiled Release)
     * [Kratos from `pip`](https://pypi.org/project/KratosMultiphysics/): Just simply type on terminal `pip install KratosMultiphysics-all`
     * [Kratos for GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-binaries-(via-GiD))
+<!---
+Rewrite this in the Documentation page
+-->
 * Compiling Kratos
     * [See INSTALL.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)
 
 ## Tutorials
-* [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD)
-* [Kratos input files and I/O](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO)
-* [Data management](https://github.com/KratosMultiphysics/Kratos/wiki/Data-management)
-* [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies)
-* [Manipulating solution values](https://github.com/KratosMultiphysics/Kratos/wiki/Manipulating-solution-values)
-* [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
+* [Running an example from GiD](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Running_An_Example_From_GiD.html)
+* [Kratos input files and I/O](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Kratos_Input_Files_And_Io.html)
+* [Data management](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Data_Management.html)
+* [Solving strategies](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Solving_Strategies.html)
+* [Manipulating solution values](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Developers/Tutorials/Manipulating-solution-values.html)
+* [Multiphysics](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Multiphysics_Example.html)
 
 ## More documentation
-[Wiki](https://github.com/KratosMultiphysics/Kratos/wiki)
+[Documentation](https://kratosmultiphysics.github.io/Kratos/)
 
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
@@ -92,43 +95,43 @@ Kratos has been used for simulation of many different problems in a wide variety
 Organizations contributing to Kratos:
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
-</br></br><p>International Center for Numerical Methods in Engineering</p>
+<br><br><p>International Center for Numerical Methods in Engineering</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
-</br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
+<br><p>Chair of Structural Analysis<br>Technical University of Munich </p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
-</br><p>Altair Engineering</p>
+<br><p>Altair Engineering</p>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
-</br><p>Deltares</p>
+<br><p>Deltares</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUBraunschweig_logo.svg" width="128">
-<p>Institute of Structural Analysis</br>Technische Universität Braunschweig</p>
+<p>Institute of Structural Analysis<br>Technische Universität Braunschweig</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/logo_UNIPD.svg" width="128">
 <p> University of Padova, Italy </p>
 
-</br></br>
+<br><br>
 
 # Our Users
 Some users of the technologies developed in Kratos are:
 
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
-<p>Airbus Defence and Space</br>Stress Methods & Optimisation Department</p>
+<p>Airbus Defence and Space<br>Stress Methods & Optimisation Department</p>
 </span>
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/siemens_logo.png" width="128">
-<p>Siemens AG</br>Corporate Technology</p>
+<p>Siemens AG<br>Corporate Technology</p>
 </span>
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">
@@ -139,12 +142,14 @@ Some users of the technologies developed in Kratos are:
 
 # Special Thanks To
 ## In Kratos Core:
-- [Boost](http://www.boost.org/) for ublas
+- [Boost](http://www.boost.org/) for uBLAS
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
 - [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [ZLib](https://zlib.net/) The compression library
+- [Google Test](https://github.com/google/googletest) for unit testing C++ code
+- [Google Benchmark](https://github.com/google/benchmark) for microbenchmarking and performance testing
 
 ## In applications:
 - [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)
@@ -159,4 +164,4 @@ Some users of the technologies developed in Kratos are:
 Please, use the following references when citing Kratos in your work.
 - [Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2](https://doi.org/10.1007/s11831-010-9045-2)
 - [Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.](10.1016/j.compfluid.2012.02.004)
-- [Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Suneth Warnakulasuriya, Riccardo Rossi, Alejandro Cornejo, jcotela, Carlos Roig, Josep Maria, tteschemacher, Miguel Masó, Guillermo Casas, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, AFranci, Ferran Arrufat, riccardotosi, Aditya Ghantasala, Klaus Bernd Sautter, Peter Wilson, dbaumgaertner, Bodhinanda Chandra, Armin Geiser, Inigo Lopez, lluís, jgonzalezusua, Javi Gárate. (2024). KratosMultiphysics/Kratos: Release 9.5 (v9.5). Zenodo. https://doi.org/10.5281/zenodo.3234644](https://zenodo.org/records/6926179)
+- [Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Suneth Warnakulasuriya, Riccardo Rossi, Alejandro Cornejo, jcotela, Carlos Roig, Josep Maria, tteschemacher, Miguel Masó, Guillermo Casas, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, AFranci, Ferran Arrufat, riccardotosi, Aditya Ghantasala, Klaus Bernd Sautter, Peter Wilson, dbaumgaertner, Bodhinanda Chandra, Armin Geiser, Inigo Lopez, lluís, jgonzalezusua, Javi Gárate. (2024). KratosMultiphysics/Kratos: Release 10.1 (v10.1). Zenodo. https://doi.org/10.5281/zenodo.3234644](https://zenodo.org/records/6926179)

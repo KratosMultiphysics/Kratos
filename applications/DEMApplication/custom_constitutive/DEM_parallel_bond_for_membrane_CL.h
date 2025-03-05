@@ -32,6 +32,11 @@ namespace Kratos{
 
         double ComputeNormalUnbondedForce(double unbonded_indentation) override;
 
+        void CalculateUnbondedViscoDampingForce(double LocalRelVel[3],
+                                                double UnbondedViscoDampingLocalContactForce[3],
+                                                SphericParticle* const element1,
+                                                SphericParticle* const element2) override; 
+
         void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                 SphericContinuumParticle* neighbor,
                                                 double equiv_young,
@@ -41,8 +46,7 @@ namespace Kratos{
                                                 double ElasticLocalRotationalMoment[3],
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
-                                                double indentation,
-                                                double LocalElasticContactForce[3]) override;       
+                                                double indentation) override;       
 
     protected:
 

@@ -1,0 +1,141 @@
+# Doxyfile 1.9.3
+
+# Format
+DOXYFILE_ENCODING      = UTF-8
+INPUT_ENCODING         = UTF-8
+
+# Project header
+PROJECT_NAME           = KratosMultiphysics - KratosCore
+PROJECT_NUMBER         =
+PROJECT_BRIEF          = "Kratos Multiphysics is a framework for building parallel, multi-disciplinary simulation software with a focus on modularity, extensibility, and high performance."
+PROJECT_LOGO           = kratos_small.png
+
+# File system
+OUTPUT_DIRECTORY       = ../documents
+CREATE_SUBDIRS         = YES
+
+# C++
+MULTILINE_CPP_IS_BRIEF = NO
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+SEARCH_INCLUDES        = YES
+PREDEFINED             = KRATOS_API(...)=
+EXPAND_AS_DEFINED      = KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1 \
+                         KRATOS_EXPRESSION_UTILS_CEXP_METHOD_2 \
+                         KRATOS_EXPRESSION_UTILS_CEXP_METHOD_3
+SKIP_FUNCTION_MACROS   = YES
+
+# Python
+PYTHON_DOCSTRING       = NO
+ALIASES                = classname="\class "
+
+# Structure
+GROUP_NESTED_COMPOUNDS = YES
+
+# Build
+NUM_PROC_THREADS       = 1
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+HIDE_IN_BODY_DOCS      = NO     ##< source files are not processed, so put your ToDos in declaration annotations of header files.
+CASE_SENSE_NAMES       = NO     ##< strict setting to work on all operating systems
+HIDE_COMPOUND_REFERENCE= YES
+SHOW_INCLUDE_FILES     = NO     ##< you should not depend on headers included by another header
+SHOW_GROUPED_MEMB_INC  = YES
+SORT_MEMBER_DOCS       = NO     ##< trust devs to define functions in an order that makes sense
+SHOW_FILES             = YES    ##< @todo check what the docs look like with this disabled (matekelemen)
+LAYOUT_FILE            = html_layout.xml
+CITE_BIB_FILES         =        ##< @todo collect used references into a bib file (matekelemen)
+WARN_AS_ERROR          = NO     ##< @todo turn this on and clear up the generated warnings (matekelemen)
+
+# Input
+INPUT                  = ../kratos                      \
+                         ../README.md
+FILE_PATTERNS          = *.h                            \
+                         *.hpp                          \
+                         *.py                           \
+                         *.md
+RECURSIVE              = YES
+EXCLUDE                =
+EXCLUDE_SYMLINKS       = NO
+EXCLUDE_PATTERNS       = */.git/*                       \
+                         */.github/*                    \
+                         */external_libraries/*         \
+                         */cmake_modules/*              \
+                         */scripts/*                    \
+                         */SuperLU_4.3/*                \
+                         */custom_external_libraries/*  \
+                         */tests/* *_test* *test_*
+EXCLUDE_SYMBOLS        =
+IMAGE_PATH             =
+INPUT_FILTER           =
+FILTER_PATTERNS        =
+USE_MDFILE_AS_MAINPAGE = ../README.md
+SOURCE_BROWSER         = YES    ##< @todo check out what this does (matekelemen)
+REFERENCED_BY_RELATION = NO
+REFERENCES_RELATION    = NO
+REFERENCES_LINK_SOURCE = NO
+SOURCE_TOOLTIPS        = YES
+VERBATIM_HEADERS       = NO
+ALPHABETICAL_INDEX     = YES
+
+# Generated formats
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+GENERATE_XML           = NO
+GENERATE_DOCBOOK       = NO
+GENERATE_AUTOGEN_DEF   = NO
+GENERATE_PERLMOD       = NO
+
+# HTML
+HTML_OUTPUT            = html
+HTML_EXTRA_STYLESHEET  = doxygen-awesome.css
+HTML_EXTRA_FILES       =
+HTML_DYNAMIC_MENUS     = YES
+HTML_DYNAMIC_SECTIONS  = YES
+HTML_INDEX_NUM_ENTRIES = 100
+DISABLE_INDEX          = NO     ##< @todo disable when playing around for a custom index (matekelemen)
+GENERATE_TREEVIEW      = YES
+FULL_SIDEBAR           = YES
+TREEVIEW_WIDTH         = 250
+EXT_LINKS_IN_WINDOW    = YES    ##< @todo decide on how the partitioned docs should be handled (matekelemen)
+HTML_FORMULA_FORMAT    = svg
+FORMULA_FONTSIZE       = 10
+USE_MATHJAX            = YES
+MATHJAX_VERSION        = MathJax_3
+MATHJAX_FORMAT         = HTML-CSS
+SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = NO
+EXTERNAL_SEARCH        = NO
+EXTRA_SEARCH_MAPPINGS  =        ##< @todo configure this for partitioned docs (matekelemen)
+
+# Partitioned docs
+TAGFILES               =
+GENERATE_TAGFILE       = KratosCore.tag
+ALLEXTERNALS           = YES
+EXTERNAL_GROUPS        = YES
+EXTERNAL_PAGES         = YES
+
+# Graphs
+HIDE_UNDOC_RELATIONS   = NO
+HAVE_DOT               = YES
+DOT_NUM_THREADS        = 0
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+GROUP_GRAPHS           = YES
+UML_LOOK               = YES
+UML_LIMIT_NUM_FIELDS   = 10
+DOT_UML_DETAILS        = NO
+DOT_WRAP_THRESHOLD     = 17
+TEMPLATE_RELATIONS     = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = NO
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+DOT_GRAPH_MAX_NODES    = 50
+MAX_DOT_GRAPH_DEPTH    = 2
+DOT_MULTI_TARGETS      = YES

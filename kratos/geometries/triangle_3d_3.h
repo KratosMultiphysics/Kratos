@@ -209,7 +209,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -279,7 +279,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor does not copy the points and new
@@ -297,14 +297,34 @@ public:
      */
     ~Triangle3D3() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Triangle3D3;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
 
     ///@}
@@ -471,7 +491,7 @@ public:
     }
 
     /**
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @brief This method calculates and returns area or surface area of this geometry depending on its dimension.
      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area
@@ -505,7 +525,7 @@ public:
     // }
 
     /**
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @brief This method calculates and returns length, area or volume of this geometry depending on its dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -690,7 +710,7 @@ public:
         box_half_size[1] = 0.5 * std::abs(rHighPoint[1] - rLowPoint[1]);
         box_half_size[2] = 0.5 * std::abs(rHighPoint[2] - rLowPoint[2]);
 
-        return TriBoxOverlap(box_center, box_half_size);
+        return GeometryUtils::TriangleBoxOverlap(box_center, box_half_size, this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
     }
 
     /// Quality functions
@@ -728,7 +748,7 @@ public:
      */
     double InradiusToLongestEdgeQuality() const override
     {
-        constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+        constexpr double normFactor = 1.0; // TODO: This normalization coefficient is not correct.
 
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -919,55 +939,7 @@ public:
         const CoordinatesArrayType& rPoint
         ) const override
     {
-        // Initialize
-        noalias(rResult) = ZeroVector(3);
-
-        // Tangent vectors
-        array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
-        tangent_xi /= norm_2(tangent_xi);
-        array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
-        tangent_eta /= norm_2(tangent_eta);
-
-        // The center of the geometry
-        const auto center = this->Center();
-
-        // Computation of the rotation matrix
-        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
-        for (IndexType i = 0; i < 3; ++i) {
-            rotation_matrix(0, i) = tangent_xi[i];
-            rotation_matrix(1, i) = tangent_eta[i];
-        }
-
-        // Destination point rotated
-        CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
-        noalias(aux_point_to_rotate) = rPoint - center.Coordinates();
-        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
-
-        // Points of the geometry
-        array_1d<CoordinatesArrayType, 3> points_rotated;
-        for (IndexType i = 0; i < 3; ++i) {
-            noalias(aux_point_to_rotate) = this->GetPoint(i).Coordinates() - center.Coordinates();
-            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
-        }
-
-        // Compute the Jacobian matrix and its determinant
-        BoundedMatrix<double, 2, 2> J;
-        J(0,0) = points_rotated[1][0] - points_rotated[0][0];
-        J(0,1) = points_rotated[2][0] - points_rotated[0][0];
-        J(1,0) = points_rotated[1][1] - points_rotated[0][1];
-        J(1,1) = points_rotated[2][1] - points_rotated[0][1];
-        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
-
-        // Compute eta and xi
-        const double eta = (J(1,0)*(points_rotated[0][0] - destination_point_rotated[0]) +
-                            J(0,0)*(destination_point_rotated[1] - points_rotated[0][1])) / det_J;
-        const double xi  = (J(1,1)*(destination_point_rotated[0] - points_rotated[0][0]) +
-                            J(0,1)*(points_rotated[0][1] - destination_point_rotated[1])) / det_J;
-
-        rResult(0) = xi;
-        rResult(1) = eta;
-
-        return rResult;
+        return GeometryUtils::PointLocalCoordinatesStraightEdgesTriangle(*this, rResult, rPoint);
     }
 
     ///@}
@@ -1204,7 +1176,7 @@ public:
      */
     /**
      * Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
+     * method. This method calculates jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which jacobians has to
@@ -1238,7 +1210,7 @@ public:
      * TODO: implemented but not yet tested
      */
     /**
-       * Jacobian in given point. This method calculate jacobian
+       * Jacobian in given point. This method calculates jacobian
        * matrix in given point.
        *
        * @param rPoint point which jacobians has to
@@ -1292,7 +1264,7 @@ public:
 
     /**
      * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
+     * given integration method. This method calculates determinant
      * of jacobian in given integration point of given integration
      * method.
      *
@@ -1317,7 +1289,7 @@ public:
 
     /**
      * Determinant of jacobian in given point.
-     * This method calculate determinant of jacobian
+     * This method calculates determinant of jacobian
      * matrix in given point.
      * @param rPoint point which determinant of jacobians has to
      * be calculated in it.
@@ -1340,7 +1312,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -1357,7 +1329,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -1389,7 +1361,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -1510,6 +1482,12 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Triangle3D3N";
+    }
 
     /**
      * Turn back information as a string.
@@ -2298,205 +2276,13 @@ private:
         return false;
     }
 
-    /**
-     * @see HasIntersection
-     * use separating axis theorem to test overlap between triangle and box
-     * need to test for overlap in these directions:
-     * 1) the {x,y,(z)}-directions
-     * 2) normal of the triangle
-     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
-     */
-    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize) const
-    {
-        double abs_ex, abs_ey, abs_ez, distance;
-        array_1d<double,3 > vert0, vert1, vert2;
-        array_1d<double,3 > edge0, edge1, edge2, normal;
-        std::pair<double, double> min_max;
-
-        // move everything so that the boxcenter is in (0,0,0)
-        noalias(vert0) = this->GetPoint(0) - rBoxCenter;
-        noalias(vert1) = this->GetPoint(1) - rBoxCenter;
-        noalias(vert2) = this->GetPoint(2) - rBoxCenter;
-
-        // compute triangle edges
-        noalias(edge0) = vert1 - vert0;
-        noalias(edge1) = vert2 - vert1;
-        noalias(edge2) = vert0 - vert2;
-
-        // Bullet 3:
-        // test the 9 tests first (this was faster)
-        abs_ex = std::abs(edge0[0]);
-        abs_ey = std::abs(edge0[1]);
-        abs_ez = std::abs(edge0[2]);
-        if (AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
-        if (AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
-
-        abs_ex = std::abs(edge1[0]);
-        abs_ey = std::abs(edge1[1]);
-        abs_ez = std::abs(edge1[2]);
-        if (AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
-        if (AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
-
-        abs_ex = std::abs(edge2[0]);
-        abs_ey = std::abs(edge2[1]);
-        abs_ez = std::abs(edge2[2]);
-        if (AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
-        if (AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
-
-        // Bullet 1:
-        //  first test overlap in the {x,y,z}-directions
-        //  find min, max of the triangle for each direction, and test for
-        //  overlap in that direction -- this is equivalent to testing a minimal
-        //  AABB around the triangle against the AABB
-
-        // test in X-direction
-        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
-        if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
-
-        // test in Y-direction
-        min_max = std::minmax({vert0[1], vert1[1], vert2[1]});
-        if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
-
-        // test in Z-direction
-        min_max = std::minmax({vert0[2], vert1[2], vert2[2]});
-        if(min_max.first>rBoxHalfSize[2] || min_max.second<-rBoxHalfSize[2]) return false;
-
-        // Bullet 2:
-        //  test if the box intersects the plane of the triangle
-        //  compute plane equation of triangle: normal*x+distance=0
-        MathUtils<double>::CrossProduct(normal, edge0, edge1);
-        distance = -inner_prod(normal, vert0);
-        if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
-
-        return true;  // box and triangle overlaps
-    }
-
-    /**
-     * Check if a plane intersects a box
-     * @see TriBoxOverlap
-     *
-     * @return bool intersection flagg
-     * @param rNormal the plane normal
-     * @param rDist   distance to origin
-     * @param rMaxBox box corner from the origin
-     *
-     * plane equation: rNormal*x+rDist=0
-     */
-    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox) const
-    {
-        array_1d<double,3> vmin, vmax;
-        for(int q = 0; q < 3; q++)
-        {
-            if(rNormal[q] > 0.00)
-            {
-                vmin[q] = -rMaxBox[q];
-                vmax[q] =  rMaxBox[q];
-            }
-            else
-            {
-                vmin[q] =  rMaxBox[q];
-                vmax[q] = -rMaxBox[q];
-            }
-        }
-        if(inner_prod(rNormal, vmin) + rDist >  0.00) return false;
-        if(inner_prod(rNormal, vmax) + rDist >= 0.00) return true;
-
-        return false;
-    }
-
-    /** AxisTestX
-     * This method returns true if there is a separating axis
-     *
-     * @param rEdgeY, rEdgeZ: i-edge corrdinates
-     * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
-     * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
-     * @param rVertC: i+2 vertex
-     * @param rBoxHalfSize
-     */
-    bool AxisTestX(double& rEdgeY, double& rEdgeZ,
-                   double& rAbsEdgeY, double& rAbsEdgeZ,
-                   array_1d<double,3>& rVertA,
-                   array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize) const
-    {
-        double proj_a, proj_c, rad;
-        proj_a = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
-        proj_c = rEdgeY*rVertC[2] - rEdgeZ*rVertC[1];
-        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
-
-        rad = rAbsEdgeZ*rBoxHalfSize[1] + rAbsEdgeY*rBoxHalfSize[2];
-
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
-    }
-
-    /** AxisTestY
-     * This method returns true if there is a separating axis
-     *
-     * @param rEdgeX, rEdgeZ: i-edge corrdinates
-     * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
-     * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
-     * @param rVertC: i+2 vertex
-     * @param rBoxHalfSize
-     */
-    bool AxisTestY(double& rEdgeX, double& rEdgeZ,
-                   double& rAbsEdgeX, double& rAbsEdgeZ,
-                   array_1d<double,3>& rVertA,
-                   array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize) const
-    {
-        double proj_a, proj_c, rad;
-        proj_a = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
-        proj_c = rEdgeZ*rVertC[0] - rEdgeX*rVertC[2];
-        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
-
-        rad = rAbsEdgeZ*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[2];
-
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
-    }
-
-    /** AxisTestZ
-     * This method returns true if there is a separating axis
-     *
-     * @param rEdgeX, rEdgeY: i-edge corrdinates
-     * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
-     * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
-     * @param rVertC: i+2 vertex
-     * @param rBoxHalfSize
-     */
-    bool AxisTestZ(double& rEdgeX, double& rEdgeY,
-                   double& rAbsEdgeX, double& rAbsEdgeY,
-                   array_1d<double,3>& rVertA,
-                   array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize) const
-    {
-        double proj_a, proj_c, rad;
-        proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
-        proj_c = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
-        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
-
-        rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
-
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
-    }
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Private Friends
@@ -2508,15 +2294,12 @@ private:
     ///@name Un accessible methods
     ///@{
 
-
-
     ///@}
 }; // Class Geometry
 
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output

@@ -12,6 +12,7 @@
 //
 #include "three_dimensional_stress_state.h"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -56,6 +57,25 @@ Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& r
 std::unique_ptr<StressStatePolicy> ThreeDimensionalStressState::Clone() const
 {
     return std::make_unique<ThreeDimensionalStressState>();
+}
+
+const Vector& ThreeDimensionalStressState::GetVoigtVector() const { return VoigtVector3D; }
+
+SizeType ThreeDimensionalStressState::GetVoigtSize() const { return GetVoigtSize3D(); }
+
+SizeType ThreeDimensionalStressState::GetStressTensorSize() const
+{
+    return GetStressTensorSize3D();
+}
+
+void ThreeDimensionalStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void ThreeDimensionalStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
 }
 
 } // namespace Kratos

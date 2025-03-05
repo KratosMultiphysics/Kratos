@@ -12,6 +12,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/registry.h"
 #include "linear_solvers_application.h"
 #include "custom_factories/dense_linear_solver_factory.h"
 
@@ -27,6 +28,11 @@
 #include "mkl_service.h"
 #endif
 
+Kratos::KratosApplication* CreateApplication()
+{
+    return new Kratos::KratosLinearSolversApplication();
+}
+
 namespace Kratos
 {
 
@@ -38,6 +44,11 @@ void KratosLinearSolversApplication::Register()
                     << "           | |___| | | | |  __/ (_| | |   ___) | (_) | |\\ V /  __/ |  \\__ \\\n"
                     << "           |_____|_|_| |_|\\___|\\__,_|_|  |____/ \\___/|_| \\_/ \\___|_|  |___/\n"
                     << "Initializing KratosLinearSolversApplication..." << std::endl;
+
+    // Adding the eigen library to the list of registered libraries
+    if (!Registry::HasItem("libraries.eigen")) {
+        Registry::AddItem<std::string>("libraries.eigen");
+    }
 
     #if defined USE_EIGEN_MKL
     MKLVersion mkl_version;

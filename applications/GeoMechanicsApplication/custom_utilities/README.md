@@ -54,9 +54,17 @@ File transport_equation_utilities.hpp includes
 ### Mass Matrix (M)
 
 The mathematical definition is:
-$$M = \int_\Omega N_{u}^T \rho N_u d\Omega$$
+$$M = \int_\Omega \rho N_{u}^T N_u d\Omega$$
 
-Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho$ is the density matrix that holds density for all directions.
+Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho$ is the density.
+
+### Stiffness Matrix (K)
+
+The mathematical definition is:
+$$K = \int_\Omega B^T C_{constitutive} B d\Omega$$
+
+Where $\Omega$ is the domain, $B$ is the B-matrix and $C_{constitutive}$ is the constitutive matrix.
+
 
 ### Damping Matrix (D)
 
@@ -65,8 +73,10 @@ $$D = \alpha_R M + \beta_R K$$
 
 Where $M$ and $K$ are the mass and stiffness  matrices respectively and $\alpha_R$ and $\beta_R$ are the coefficients from the Rayleigh Method.
 
-File equation_of_motion_utilities.hpp includes 
+File equation_of_motion_utilities.h includes 
 -  CalculateMassMatrix function
+-  CalculateStiffnessMatrixGPoint provides a stiffness matrix for a specific integration point
+-  CalculateStiffnessMatrix provides a stiffness matrix for an element
 -  CalculateDampingMatrix function
 -  CalculateIntegrationCoefficientsInitialConfiguration function that calculates integration coefficient for all integration points
 

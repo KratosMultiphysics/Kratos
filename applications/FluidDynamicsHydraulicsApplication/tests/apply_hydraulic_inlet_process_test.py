@@ -172,5 +172,4 @@ class ApplyHydraulicInletProcessTest(UnitTest.TestCase):
         process.ExecuteFinalizeSolutionStep()
 
 if __name__ == '__main__':
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS)
     UnitTest.main()

@@ -15,7 +15,7 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "includes/stream_serializer.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "utilities/variable_utils.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"

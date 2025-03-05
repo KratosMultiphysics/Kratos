@@ -10,6 +10,143 @@ $$ u_{x,1}, u_{y,1}, u_{x,2}, u_{y,2}, \dots, u_{x,6}, u_{y,6}, p_1, p_2, p_3 $$
 
 where the directions of the displacements are denoted by a suffix (here either $x$ or $y$), and the node number is also added as a suffix. Note that in this case, there are only three pore water pressure DOFs (due to the diff order nature of the element). For a non-diff order quadratic element the above list of DOFs is appended by $p_4$, $p_5$, and $p_6$.
 
+The governing equations for the U-Pw continuum elements in matrix form are:
+
+$$ \begin{bmatrix} M & 0 \\
+0 & 0 \end{bmatrix} \begin{bmatrix} \ddot{u} \\
+\ddot{p} \end{bmatrix}  +
+\begin{bmatrix} D & 0 \\
+Q^T & C \end{bmatrix} \begin{bmatrix} \dot{u} \\
+\dot{p} \end{bmatrix}  +
+\begin{bmatrix} K & -Q \\
+0 & H \end{bmatrix} \begin{bmatrix} u \\
+p \end{bmatrix} =
+\begin{bmatrix} f_u \\
+f_p \end{bmatrix} $$
+
+where the degrees of freedom are displacement $u$ and water pressure $p_w$, their time derivatives velocity $\dot{u}$ and time gradient of pressure $\dot{p}$ and double time derivatives acceleration $\ddot{u}$ and $\ddot{p}$.
+$M$ is the mass matrix, $D$ the damping matrix, $Q$ the coupling matrix, $C$ the compressibility matrix, $K$ the stiffness matrix
+and $H$ the permeability matrix. $f_u$ are forces on boundary and body and $f_p$ are fluxes on boundary and body.
+
+# Pw Elements
+Conservation of mass for saturated soil
+
+```math
+\left( \alpha + n \beta \right) \rho^w \frac{\partial p}{\partial t} + \rho^w \frac{\partial q_i}{\partial x_i} = 0 \quad \quad \text{on} \quad \Omega
+```
+
+where
+
+- $n$				= porosity $\mathrm{\left[ - \right]}$
+- $p$				= pressure $\mathrm{\left[ FL^{-2} \right]}$
+- $t$				= time $\mathrm{\left[ T \right]}$
+- $x$				= global coordinates $\mathrm{\left[ L \right]}$
+- $q_i$				= specific discharge $\mathrm{\left[ LT^{-1} \right]}$
+- $\alpha$			= $\left( 1 - n \right) / K_{soild}$, solid skeleton compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\beta$			= $1 / K_{Fluid}$, liquid phase compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\rho^w$			= fluid density $\mathrm{\left[ M L^{-3} \right]}$
+- $\Omega$			= flow domain $\mathrm{\left[ L^2 \right]}$
+- $K_{solid}$		= bulk modulus of soil $\mathrm{\left[ F L^{-2} \right]}$
+- $K_{Fluid}$		= bulk modulus of water $\mathrm{\left[ F L^{-2} \right]}$
+
+Darcy's law
+
+```math
+q = -\frac{K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \right)
+```
+
+- $g_j$				= gravitational acceleration $\mathrm{\left[ L T^{-2} \right]}$
+- $K_{ij}$			= intrinsic permeability $\mathrm{\left[ L^2 \right]}$
+- $\mu$				= dynamic viscosity $\mathrm{\left[ F T L^{-2} \right]}$
+
+Richard's eqyation for partly saturates soil
+
+```math
+\left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \frac{\partial p}{\partial t} = \frac{\partial}{\partial x_i} \left[ \frac{\rho^w k_r K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \right) \right]  \quad \quad \text{on} \quad \Omega
+```
+
+- $k_r$				= relative permeability $\mathrm{\left[ - \right]}$
+- $S$				= saturation $\mathrm{\left[ - \right]}$
+
+The governing equations in matrix form for the Pw elements are:
+```math
+\boldsymbol{C} \dot{p} + \boldsymbol{H} p = \boldsymbol{f_p}
+```
+
+where the degree of freedom is water pressure $p_w$, their time gradient of pressure. $\boldsymbol{C}$ the compressibility matrix and $\boldsymbol{H}$ the permeability matrix. Considering $\boldsymbol{N}$ as shape function,
+
+```math
+\boldsymbol{C} = \int_{\Omega} \left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \boldsymbol{N}^T \boldsymbol{N} d \Omega
+```
+
+```math
+\boldsymbol{H} = \int_{\Omega} \left( \frac{\rho^w k_r}{\mu} \right) \nabla \boldsymbol{N}^T \boldsymbol{K} \nabla \boldsymbol{N} d \Omega
+```
+
+```math
+\boldsymbol{f_p} = \int_{\Omega} \left( \frac{\rho^w k_r}{\mu} \right) \nabla \boldsymbol{N}^T \boldsymbol{K} \rho^w \boldsymbol{g} d \Omega + B.C.
+```
+
+
+# Pressure Filter Line Element
+For laminar flow along the axis of the well and uniformly distributed storage over the length of the well bore (Diersch, 2014)
+
+```math
+\pi R^2 \left( \frac{1}{l_w} + \rho_0 g \beta \right) \frac{\partial h}{\partial t} - \pi R^2 K_w \frac{\partial}{\partial y} \left[ f_{\mu} \left( \frac{\partial h}{\partial y} + \chi e \right)\right] = -Q_w \delta \left( y - y_w \right)
+```
+
+where
+
+```math
+K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\mu} \quad \quad \quad \quad \chi = \frac{\rho - \rho_0}{\rho_0} \quad \quad \quad \quad h = \frac{p}{\rho_0 g} + y
+```
+
+- $Q_w$			= pumping rate sink $\mathrm{\left[ L^3 T^{-1} \right]}$
+- $t$				= time $\mathrm{\left[ T \right]}$
+- $y$				= vertical coordinate $\mathrm{\left[ L \right]}$
+- $y_w$				= location of the discharge point $\mathrm{\left[ L \right]}$
+- $h$				= hydraulic head in the well $\mathrm{\left[ L \right]}$
+- $l_w$				= total length of liquid filled well bore $\mathrm{\left[ L \right]}$
+- $R$				= radius of the well casing $\mathrm{\left[ L \right]}$
+- $K_w$				= Hagen-Poiseuille permeability $\mathrm{\left[ L \right]}$
+- $\delta$			= Dirichlet delta function $\mathrm{\left[ - \right]}$
+- $\beta$			= compressibility of the liquid $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $f_{\mu}$			= viscosity relation function of liquid $\mathrm{\left[ - \right]}$
+- $\chi$			= buoyancy coefficient $\mathrm{\left[ - \right]}$
+- $e$				= gravitational unit vector $\mathrm{\left[ - \right]}$
+- $g$				= gravitational acceleration $\mathrm{\left[ L T^{-2} \right]}$
+- $\rho_0$			= reference density of the fluid $\mathrm{\left[ M L^{-3} \right]}$
+- $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ F T L^{-2} \right]}$
+- $p$				= liquid pressure $\mathrm{\left[ Pa \right]}$
+
+reformulated in pressure and preserving mass
+
+```math
+\rho^w \left( \frac{1}{\rho^w g l_w} + \beta \right) \frac{\partial p}{\partial t} - \rho^w \frac{\partial}{\partial y} \left[ \frac{R^2}{8 \mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right)\right] = -\frac{\rho^w Q_w}{\pi R^2}
+```
+
+The one dimensional pressure equation with $\alpha = 1$ and $n = 1$ captures the well flow equation.
+
+```math
+\rho^w \beta^* \frac{\partial p}{\partial t} - \frac{\partial}{\partial y} \left[ \frac{\rho^w K^*}{\mu} \left( \frac{\partial p}{\partial y} - \rho^w g \right) \right] = - \rho^w Q^*_w
+```
+where the intrinsic permeability and boundary condition are given by
+
+```math
+\beta^* = \frac{1}{\rho^w g l_w} + \beta \quad \quad \quad \quad K^* = \frac{R^2}{8} \quad \quad \quad \quad Q^*_w = \frac{Q_w}{\pi R^2}
+```
+
+
+## Steady State Pw Line Piping Element
+To function together with the geo_mechanics_newton_raphson_erosion_process_strategy, a line Pw element with
+permeability $k$ depending on the erosion pipe opening PIPE_HEIGHT $a$ is available. Steady state, so the $\dot{p}$ term is omitted from the above equation.
+
+$$k = \frac{a^3}{12}$$
+
+$$ H = \int (\nabla N)^T k \nabla N dV $$
+
+
+
 # Transient Thermal Element
 
 ## Introduction
@@ -84,13 +221,15 @@ $$ \lambda = n S \lambda^w + \left( 1 - n \right) \lambda^s $$
 
 dynamic viscosity  $\mu$ $[\mathrm {Pas}$] of pure water as a function of temperature is given by:
 
-$$ \mu = 2.4318 \cdot 10^{-5} \cdot 10^{{247.8} / {\left(T+133.0\right]}} $$
+$$ \mu = 2.4318 \cdot 10^{-5} \cdot 10^{{247.8} / {\left(T+133.0\right)}} $$
 
 density of water $\rho^w$ $[\mathrm {kg/m^3}]$ is a function of temperature and Diersch (2014) proposes a sixth order Taylor expansion which is approximated here by:
 
 $$ \rho^w = 9.998396 \cdot 10^2 + 6.764771  \cdot 10^{-2} \cdot T - 8.993699  \cdot 10^{-3} \cdot T^2 + 9.143518 \cdot 10^{-5} \cdot T^3 - 8.907391 \cdot 10^{-7} \cdot T^4 + 5.291959  \cdot 10^{-9} \cdot T^5 - 1.359813  \cdot 10^{-11} \cdot T^6 $$
 
-Note: the dependency of water density and viscosity to temperature is user defined and the user can turn this feature on or off in the JSON file.
+**Note**: the dependency of water density and viscosity to temperature is user defined and the user can turn this feature on or off in the JSON file.
+
+**Note**: Please be aware that these equations are purely emperical and they require a specific set of units. The Temperature needs to be in $\mathrm{^{\circ}C}$, length in $\mathrm{m}$, time is $\mathrm{s}$, and mass in $\mathrm{kg}$.
 
 ## Finite Element Formulation
 
@@ -136,6 +275,8 @@ where
 - $\Gamma$			= boundary region
 
 The superscripts $^l$ and $^r$ for Robin boundary condition indicate the left hands side (matrix) and right hand side (vector), respectively. The superscripts $^e$ and $^{ep}$ for $\Omega$ and $\Gamma$ indicate values in the element volume and perpendicular to element boundaries, respectively.  
+
+
 
 
 ## Bibliography

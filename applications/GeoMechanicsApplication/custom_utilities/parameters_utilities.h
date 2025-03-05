@@ -19,7 +19,7 @@
 namespace Kratos
 {
 
-class ParametersUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ParametersUtilities
 {
 public:
     static Parameters CopyRequiredParameters(const Parameters& rSourceParameters,

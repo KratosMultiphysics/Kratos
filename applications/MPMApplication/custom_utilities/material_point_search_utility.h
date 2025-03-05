@@ -91,7 +91,6 @@ namespace Kratos::MPMSearchElementUtility
                 }
             }
         }
-        #pragma omp critical
         rGeom.SetValue(GEOMETRY_NEIGHBOURS, geometry_neighbours);
     }
 
@@ -130,9 +129,13 @@ namespace Kratos::MPMSearchElementUtility
             IsFound = true;
             return rParentGeom;
         } else {
+            // Lock for ParentGeom is required as reading and writing is called in parallel
+            // Lock is set on the node, since the lock option is not available for the geometry
+            rParentGeom(0)->SetLock();
             if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS)) {
                 ConstructNeighbourRelations(rParentGeom, rBackgroundGridModelPart);
             }
+            rParentGeom(0)->UnSetLock();
             auto& geometry_neighbours = rParentGeom.GetValue(GEOMETRY_NEIGHBOURS);
             for (IndexType k = 0; k < geometry_neighbours.size(); ++k) {
                 if (CheckIsInside(*geometry_neighbours[k], rLocalCoords, xg, Tolerance)) {

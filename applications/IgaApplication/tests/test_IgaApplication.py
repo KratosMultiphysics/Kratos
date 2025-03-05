@@ -1,7 +1,6 @@
 # import Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
-import run_cpp_unit_tests
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
@@ -46,6 +45,7 @@ from iga_test_factory import TwoPatchCantileverRefinedCouplingPenaltyTest as Two
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
+from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbsModeler
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
 

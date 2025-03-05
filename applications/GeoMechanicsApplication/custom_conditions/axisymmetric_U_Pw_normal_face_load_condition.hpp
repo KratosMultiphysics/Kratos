@@ -24,75 +24,60 @@
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION)
-    AxisymmetricUPwNormalFaceLoadCondition : public UPwNormalFaceLoadCondition<TDim,TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricUPwNormalFaceLoadCondition
+    : public UPwNormalFaceLoadCondition<TDim, TNumNodes>
 {
-
 public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricUPwNormalFaceLoadCondition);
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymmetricUPwNormalFaceLoadCondition );
-
-    using IndexType = std::size_t;
+    using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node;
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType = Vector;
-    using MatrixType = Matrix;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    AxisymmetricUPwNormalFaceLoadCondition()
+        : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr)
+    {
+    }
 
-    AxisymmetricUPwNormalFaceLoadCondition() : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr) {}
-
-    AxisymmetricUPwNormalFaceLoadCondition( IndexType               NewId,
-                                            GeometryType::Pointer   pGeometry )
+    AxisymmetricUPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : AxisymmetricUPwNormalFaceLoadCondition(NewId, pGeometry, nullptr)
-    {}
+    {
+    }
 
-    AxisymmetricUPwNormalFaceLoadCondition( IndexType               NewId,
-                                            GeometryType::Pointer   pGeometry,
-                                            PropertiesType::Pointer pProperties )
-        : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
-    {}
+    AxisymmetricUPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : UPwNormalFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    {
+    }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
-
     // Member Variables
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    double CalculateIntegrationCoefficient( const IndexType PointNumber,
-                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints ) const override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    double CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                           const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
 private:
-
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Serialization
 
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
 
 }; // class AxisymmetricUPwNormalFaceLoadCondition.

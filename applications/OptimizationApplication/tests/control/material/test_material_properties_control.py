@@ -114,5 +114,4 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
             self.assertEqual(properties[Kratos.DENSITY], properties[Kratos.YOUNG_MODULUS])
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
     kratos_unittest.main()
