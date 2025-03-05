@@ -1,0 +1,3 @@
+/home/camarotti/Software/kratos/scripts/_deps/googletest-subbuild/CMakeFiles/googletest-populate.dir
+/home/camarotti/Software/kratos/scripts/_deps/googletest-subbuild/CMakeFiles/edit_cache.dir
+/home/camarotti/Software/kratos/scripts/_deps/googletest-subbuild/CMakeFiles/rebuild_cache.dir

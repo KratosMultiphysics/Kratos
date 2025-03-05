@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -O3 -DNDEBUG  -Wl,--no-undefined -shared -Wl,-soname,libgmock.so.1.12.1 -o ../../../lib/libgmock.so.1.12.1 "CMakeFiles/gmock.dir/src/gmock-all.cc.o"  -Wl,-rpath,/home/camarotti/Software/kratos/scripts/lib: ../../../lib/libgtest.so.1.12.1 

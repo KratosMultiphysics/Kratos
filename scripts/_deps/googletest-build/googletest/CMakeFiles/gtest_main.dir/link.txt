@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -O3 -DNDEBUG  -Wl,--no-undefined -shared -Wl,-soname,libgtest_main.so.1.12.1 -o ../../../lib/libgtest_main.so.1.12.1 CMakeFiles/gtest_main.dir/src/gtest_main.cc.o  -Wl,-rpath,/home/camarotti/Software/kratos/scripts/lib: ../../../lib/libgtest.so.1.12.1 

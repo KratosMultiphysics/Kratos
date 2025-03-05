@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgidpost.a CMakeFiles/gidpost.dir/source/gidpost.c.o CMakeFiles/gidpost.dir/source/gidpostInt.c.o CMakeFiles/gidpost.dir/source/gidpostHash.c.o CMakeFiles/gidpost.dir/source/hashtab.c.o CMakeFiles/gidpost.dir/source/recycle.c.o CMakeFiles/gidpost.dir/source/lookupa.c.o
+/usr/bin/ranlib libgidpost.a
