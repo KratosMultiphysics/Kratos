@@ -635,6 +635,22 @@ double CalculatePhi(const Properties& rProperties, const double L)
 /***********************************************************************************/
 /***********************************************************************************/
 
+double CalculatePhiY(const Properties& rProperties, const double L)
+{
+    const double E   = rProperties[YOUNG_MODULUS];
+    const double I   = rProperties[I22];
+    const double A_s = rProperties[AREA_EFFECTIVE_Z];
+    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+
+    if (A_s == 0.0) // If effective area is null -> Euler Bernouilli case
+        return 0.0;
+    else
+        return 12.0 * E * I / (G * A_s * std::pow(L, 2));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix)
 {

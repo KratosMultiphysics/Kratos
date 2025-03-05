@@ -377,12 +377,17 @@ void LinearTimoshenkoBeamElement3D2N::CalculateGeneralizedStrainsVector(
     if (rStrain.size() != 6)
         rStrain.resize(6, false);
 
-    rStrain[0] = CalculateAxialStrain(Length, Phi, xi, rNodalValues);
-    rStrain[1] = CalculateBendingCurvatureX(Length, Phi, xi, rNodalValues);
-    rStrain[2] = CalculateBendingCurvatureY(Length, Phi, xi, rNodalValues);
-    rStrain[3] = CalculateBendingCurvatureZ(Length, Phi, xi, rNodalValues);
-    rStrain[4] = CalculateShearStrainXY(Length, Phi, xi, rNodalValues);
-    rStrain[5] = CalculateShearStrainXZ(Length, Phi, xi, rNodalValues);
+    const auto& r_props = GetProperties();
+    const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, Length);
+    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, Length);
+
+    rStrain[0] = CalculateAxialStrain(Length, 0.0, xi, rNodalValues);
+    rStrain[1] = CalculateBendingCurvatureX(Length, 0.0, xi, rNodalValues);
+    rStrain[2] = CalculateBendingCurvatureY(Length, Phi_rot_y, xi, rNodalValues);
+    rStrain[3] = CalculateBendingCurvatureZ(Length, Phi_rot_z, xi, rNodalValues);
+    rStrain[4] = CalculateShearStrainXY(Length, Phi_rot_z, xi, rNodalValues);
+    rStrain[5] = CalculateShearStrainXZ(Length, Phi_rot_y, xi, rNodalValues);
+    
 }
 
 /***********************************************************************************/
@@ -394,7 +399,76 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_TRY
 
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType local_trans_deflection_size = mat_size - 4 * number_of_nodes;
+
+    if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
+        rLHS.resize(mat_size, mat_size, false);
+    }
+    rLHS.clear();
+
+    if (rRHS.size() != mat_size) {
+        rRHS.resize(mat_size, false);
+    }
+    rRHS.clear();
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double length = CalculateLength();
+    // const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+    // const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiZ(r_props, length);
+    const double J      = 0.5 * length;
+    const double area   = GetCrossArea();
+
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+
+    VectorType nodal_values(mat_size);
+    GetNodalValuesVector(nodal_values);
+
+    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes),
+        N_theta_derivatives(local_trans_deflection_size), N_theta(local_trans_deflection_size), N_derivatives(local_trans_deflection_size),
+        N_u(number_of_nodes), N_shape(local_trans_deflection_size), N_s(local_trans_deflection_size);
+
+    // Loop over the integration points (IP)
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, r_integration_points, IP);
+
+        global_size_N.clear();
+        const double xi     = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight();
+        const double jacobian_weight = weight * J;
+
+        CalculateGeneralizedStrainsVector(strain_vector, length, 0.0, xi, nodal_values);
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+        const double N  = r_generalized_stresses[0];
+        const double Mx = r_generalized_stresses[1];
+        const double My = r_generalized_stresses[2];
+        const double Mz = r_generalized_stresses[3];
+        const double Vy = r_generalized_stresses[4];
+        const double Vz = r_generalized_stresses[5];
+
+
+
+    }
+
+    KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem")
 }
 
 /***********************************************************************************/

@@ -349,6 +349,7 @@ double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
  * @param rValues The constitutive law parameters
  */
 KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L);
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhiY(const Properties& rProperties, const double L);
 
 void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix);
