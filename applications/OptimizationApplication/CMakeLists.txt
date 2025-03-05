@@ -37,7 +37,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     kratos_add_gtests(TARGET KratosOptimizationCore SOURCES "${KRATOS_OPTIMIZATION_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE} ${KRATOS_OPTIMIZATION_APPLICATION_TESTING_SOURCES})
+add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE})
 target_link_libraries(KratosOptimizationCore PUBLIC KratosCore PRIVATE ${OPENSUBDIV_LIBRARIES})
 set_target_properties(KratosOptimizationCore PROPERTIES COMPILE_DEFINITIONS "OPTIMIZATION_APPLICATION=EXPORT,API")
 
@@ -49,7 +49,7 @@ set_target_properties(KratosOptimizationApplication PROPERTIES PREFIX "")
 
 # Compiling the fcpw library
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw)
-target_link_libraries(KratosOptimizationCore fcpw)
+# target_link_libraries(KratosOptimizationCore fcpw)
 target_include_directories(KratosOptimizationCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw/include)
 target_include_directories(KratosOptimizationCore PRIVATE ${FCPW_EIGEN_INCLUDES})
 target_include_directories(KratosOptimizationCore PRIVATE ${FCPW_ENOKI_INCLUDES})
