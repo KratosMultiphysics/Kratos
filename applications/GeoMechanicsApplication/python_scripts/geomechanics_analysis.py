@@ -72,7 +72,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         super().FinalizeSolutionStep()
 
         if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations:
-            raise Exception("max_number_of_iterations_exceeded")
+            raise RuntimeError("max_number_of_iterations_exceeded")
 
     def _check_delta_time_size(self):
         if self.delta_time < self.min_delta_time:
@@ -81,7 +81,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
             else:
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "The time step ", self.delta_time, " is smaller than a default minimum value of ", self.min_delta_time)
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check the case settings.")
-            raise Exception('The time step is too small!')
+            raise RuntimeError('The time step is too small!')
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
@@ -224,7 +224,7 @@ if __name__ == '__main__':
         err_msg += '    "python geomechanics_analysis.py"\n'
         err_msg += '- With custom parameter file:\n'
         err_msg += '    "python geomechanics_analysis.py <my-parameter-file>.json"\n'
-        raise Exception(err_msg)
+        raise TypeError(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
