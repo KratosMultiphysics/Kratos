@@ -10,7 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include <boost/numeric/ublas/assignment.hpp>

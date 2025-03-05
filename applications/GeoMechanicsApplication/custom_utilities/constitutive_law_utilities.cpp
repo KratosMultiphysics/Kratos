@@ -11,7 +11,7 @@
 //                   Wijtze Pieter Kikstra
 //
 
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
