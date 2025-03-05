@@ -503,32 +503,31 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dMz_dkappa_z * jacobian_weight;
         noalias(rRHS) -= global_size_N * Mz * jacobian_weight;
 
+        // Shear XY contributions
+        GlobalSizeVectorTransversalY(global_size_N, N_s);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dVy_dgamma_xy * jacobian_weight;
+        noalias(rRHS) -= global_size_N * Vy * jacobian_weight;
 
+        // Transverse DoFs shape functions {w, theta_y}
+        GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_y, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_y, xi);
+        GetShapeFunctionsValues(N_shape, length, Phi_rot_y, xi);
+        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_y, xi);
+        noalias(N_s) = N_derivatives - N_theta;
 
+        // Bending in z contributions
+        GlobalSizeVectorTransversalZ(global_size_N, N_theta_derivatives);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dMy_dkappa_y * jacobian_weight;
+        noalias(rRHS) -= global_size_N * Mz * jacobian_weight;
 
-
-
-
-
-
-
-
-
-
+        // Shear XY contributions
+        GlobalSizeVectorTransversalZ(global_size_N, N_s);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dVz_dgamma_xz * jacobian_weight;
+        noalias(rRHS) -= global_size_N * Vy * jacobian_weight;
     }
+    RotateAll(rLHS, rRHS, r_geometry);
 
     KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
-    MatrixType& rLHS,
-    const ProcessInfo& rProcessInfo
-    )
-{
-
 }
 
 /***********************************************************************************/
@@ -539,7 +538,22 @@ void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_TRY
 
+    KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
+    MatrixType& rLHS,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    KRATOS_TRY
+
+    KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide")
 }
 
 /***********************************************************************************/
