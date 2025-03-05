@@ -374,9 +374,15 @@ void LinearTimoshenkoBeamElement3D2N::CalculateGeneralizedStrainsVector(
     const VectorType &rNodalValues
     ) const
 {
+    if (rStrain.size() != 6)
+        rStrain.resize(6, false);
 
-
-
+    rStrain[0] = CalculateAxialStrain(Length, Phi, xi, rNodalValues);
+    rStrain[1] = CalculateBendingCurvatureX(Length, Phi, xi, rNodalValues);
+    rStrain[2] = CalculateBendingCurvatureY(Length, Phi, xi, rNodalValues);
+    rStrain[3] = CalculateBendingCurvatureZ(Length, Phi, xi, rNodalValues);
+    rStrain[4] = CalculateShearStrainXY(Length, Phi, xi, rNodalValues);
+    rStrain[5] = CalculateShearStrainXZ(Length, Phi, xi, rNodalValues);
 }
 
 /***********************************************************************************/
