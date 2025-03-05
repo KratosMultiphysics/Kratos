@@ -159,7 +159,7 @@ public:
      *      Axial strain:        E_l = du/dx
      *      Torsional curvature: k_x = d theta_x / dx
      *      Bending curvature y: k_y = d theta_y / dx
-     *      Bending curvature z: k_y = d theta_z / dx
+     *      Bending curvature z: k_z = d theta_z / dx
      *      Shear angle xy:      phi_y = dv/dx - theta_z
      *      Shear angle xz:      phi_z = dv/dx + theta_z
      * and stores them in rStrain
