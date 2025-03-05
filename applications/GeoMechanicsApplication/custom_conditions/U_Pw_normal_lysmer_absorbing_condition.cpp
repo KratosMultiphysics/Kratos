@@ -278,6 +278,15 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateExtrapolationMatri
             GeoElementUtilities::CalculateExtrapolationMatrixQuad(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
         }
+        if (num_nodes_neighbour == 6) {
+            GeoElementUtilities::CalculateExtrapolationMatrixTriangle6N(extrapolation_matrix, integration_method_neighbour);
+            return extrapolation_matrix;
+        }
+        if (num_nodes_neighbour == 8) {
+            GeoElementUtilities::CalculateExtrapolationMatrixQuad8N(extrapolation_matrix, integration_method_neighbour);
+            return extrapolation_matrix;
+        }
+
     }
     // Calculate extrapolation matrix for 3d elements
     if constexpr (TDim == 3) {
@@ -287,6 +296,14 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateExtrapolationMatri
         }
         if (num_nodes_neighbour == 8) {
             GeoElementUtilities::CalculateExtrapolationMatrixHexa(extrapolation_matrix, integration_method_neighbour);
+            return extrapolation_matrix;
+        }
+        if (num_nodes_neighbour == 10) {
+            GeoElementUtilities::CalculateExtrapolationMatrixTetra10N(extrapolation_matrix, integration_method_neighbour);
+            return extrapolation_matrix;
+        }
+        if (num_nodes_neighbour == 20) {
+            GeoElementUtilities::CalculateExtrapolationMatrixHexa20N(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
         }
     }
@@ -455,25 +472,25 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix2DLine
     }
 }
 
-template <>
-void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix,
-                                                                const Element::GeometryType& rGeom)
-{
-    // Line_2d_2
-    CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
-}
+//template <>
+//void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix,
+//                                                                const Element::GeometryType& rGeom)
+//{
+//    // Line_2d_2
+//    CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
+//}
+//
+//template <>
+//void UPwLysmerAbsorbingCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix,
+//                                                                const Element::GeometryType& rGeom)
+//{
+//    // Line_2d_3
+//    CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
+//}
 
-template <>
-void UPwLysmerAbsorbingCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix,
-                                                                const Element::GeometryType& rGeom)
-{
-    // Line_2d_3
-    CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
-}
-
-template <>
-void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
-                                                                const Element::GeometryType& rGeom)
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix3DTriangle(DimensionMatrixType& rRotationMatrix,
+    const Element::GeometryType& rGeom)
 {
     ////triangle_3d_3
     array_1d<double, 3> p_mid_0;
@@ -483,7 +500,7 @@ void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<do
 
     // Unitary vector in local x direction
     array_1d<double, 3> v_x;
-    noalias(v_x)            = rGeom.GetPoint(1) - rGeom.GetPoint(0);
+    noalias(v_x) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
     const double inv_norm_x = 1.0 / norm_2(v_x);
     v_x[0] *= inv_norm_x;
     v_x[1] *= inv_norm_x;
@@ -518,20 +535,65 @@ void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<do
     rRotationMatrix(2, 2) = v_z[2];
 }
 
-template <>
-void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
-                                                                const Element::GeometryType& rGeom)
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix,
+    const Element::GeometryType& rGeom)
+{
+
+    if constexpr (TDim == 2)
+    {
+        CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
+    }
+    else
+    {
+        if constexpr (TNumNodes == 3 || TNumNodes == 6)
+        {
+            CalculateRotationMatrix3DTriangle(rRotationMatrix, rGeom);
+        }
+        else if constexpr(TNumNodes == 4 || TNumNodes == 8)
+        {
+            CalculateRotationMatrix3DQuad(rRotationMatrix, rGeom);
+        }
+        else {
+            KRATOS_ERROR << "Rotation matrix for TDim: " << TDim << "; and TNumNodes: " << TNumNodes <<" is not implemented." << std::endl;
+        }
+
+    }
+}
+//
+//template <>
+//void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
+//                                                                const Element::GeometryType& rGeom)
+//{
+//    ////triangle_3d_3
+//    CalculateRotationMatrix3DTriangle(rRotationMatrix, rGeom);
+//
+//    constexpr
+//}
+//
+//template <>
+//void UPwLysmerAbsorbingCondition<3, 6>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
+//    const Element::GeometryType& rGeom)
+//{
+//    ////triangle_3d_6
+//    CalculateRotationMatrix3DTriangle(rRotationMatrix, rGeom);
+//}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix3DQuad(DimensionMatrixType& rRotationMatrix,
+    const Element::GeometryType& rGeom)
 {
     // Quadrilateral_3d_4
     array_1d<double, 3>        p_mid_0;
     array_1d<double, 3>        p_mid_1;
     const array_1d<double, 3>& r_p_2 = rGeom.GetPoint(2);
-    noalias(p_mid_0)                 = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(3));
-    noalias(p_mid_1)                 = 0.5 * (rGeom.GetPoint(1) + r_p_2);
+    noalias(p_mid_0) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(3));
+    noalias(p_mid_1) = 0.5 * (rGeom.GetPoint(1) + r_p_2);
 
     // Unitary vector in local x direction
     array_1d<double, 3> v_x;
-    noalias(v_x)            = p_mid_1 - p_mid_0;
+    noalias(v_x) = p_mid_1 - p_mid_0;
     const double inv_norm_x = 1.0 / norm_2(v_x);
     v_x[0] *= inv_norm_x;
     v_x[1] *= inv_norm_x;
@@ -564,6 +626,20 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix(BoundedMatrix<do
     rRotationMatrix(2, 1) = v_z[1];
     rRotationMatrix(2, 2) = v_z[2];
 }
+//
+//template <>
+//void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
+//                                                                const Element::GeometryType& rGeom)
+//{
+//    CalculateRotationMatrix3DQuad(rRotationMatrix, rGeom);
+//}
+//
+//template <>
+//void UPwLysmerAbsorbingCondition<3, 8>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
+//    const Element::GeometryType& rGeom)
+//{
+//    CalculateRotationMatrix3DQuad(rRotationMatrix, rGeom);
+//}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 std::string UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Info() const
@@ -571,9 +647,18 @@ std::string UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Info() const
     return "UPwLysmerAbsorbingCondition";
 }
 
+// 2 noded line
 template class UPwLysmerAbsorbingCondition<2, 2>;
+
+// 3 noded line
 template class UPwLysmerAbsorbingCondition<2, 3>;
+
+// first order triangle, quad
 template class UPwLysmerAbsorbingCondition<3, 3>;
 template class UPwLysmerAbsorbingCondition<3, 4>;
+
+// second order triangle, quad
+template class UPwLysmerAbsorbingCondition<3, 6>;
+template class UPwLysmerAbsorbingCondition<3, 8>;
 
 } // Namespace Kratos.

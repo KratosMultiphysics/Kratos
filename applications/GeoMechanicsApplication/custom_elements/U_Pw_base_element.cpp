@@ -172,10 +172,22 @@ GeometryData::IntegrationMethod UPwBaseElement::GetIntegrationMethod() const
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
         break;
     case 10:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
+        if (this->GetGeometry().WorkingSpaceDimension() == 2)
+        {
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
+        }
+        else {
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
         break;
     case 15:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        if (this->GetGeometry().WorkingSpaceDimension() == 2)
+        {
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        }
+        else {
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
         break;
     default:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;

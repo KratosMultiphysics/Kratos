@@ -202,15 +202,25 @@ public:
 
     static void CalculateExtrapolationMatrixTriangle(Matrix& rExtrapolationMatrix,
                                                      const GeometryData::IntegrationMethod& rIntegrationMethod);
+    static void CalculateExtrapolationMatrixTriangle6N(Matrix& rExtrapolationMatrix,
+        const GeometryData::IntegrationMethod& rIntegrationMethod);
 
     static void CalculateExtrapolationMatrixQuad(Matrix& rExtrapolationMatrix,
                                                  const GeometryData::IntegrationMethod& rIntegrationMethod);
+    static void CalculateExtrapolationMatrixQuad8N(Matrix& rExtrapolationMatrix,
+        const GeometryData::IntegrationMethod& rIntegrationMethod);
 
     static void CalculateExtrapolationMatrixTetra(Matrix& rExtrapolationMatrix,
                                                   const GeometryData::IntegrationMethod& rIntegrationMethod);
 
+    static void CalculateExtrapolationMatrixTetra10N(Matrix& rExtrapolationMatrix,
+        const GeometryData::IntegrationMethod& rIntegrationMethod);
+
     static void CalculateExtrapolationMatrixHexa(Matrix& rExtrapolationMatrix,
                                                  const GeometryData::IntegrationMethod& rIntegrationMethod);
+
+    static void CalculateExtrapolationMatrixHexa20N(Matrix& rExtrapolationMatrix,
+        const GeometryData::IntegrationMethod& rIntegrationMethod);
 
     static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom,
                                                                 const Properties&   rProp);
