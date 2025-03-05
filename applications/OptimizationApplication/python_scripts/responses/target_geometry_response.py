@@ -22,7 +22,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFu
 
 class TargetGeometryResponse(ResponseFunction):
     """
-    Optimize towrds a target geometry.
+    Optimize towards a target geometry.
 
     """
 
@@ -56,13 +56,27 @@ class TargetGeometryResponse(ResponseFunction):
     def GetAnalysisModelPart(self) -> None:
         return None
     
-    def CreateTargetGeometry(self) -> None:
+    def CreateTargetGeometry(self, type="ellipsoid") -> None:
         self.target_geometry = np.zeros((self.model_part.NumberOfNodes(),3), dtype=float)
         nodes = self.model_part.GetNodes()
-        for i, node in enumerate(nodes):
-            self.target_geometry[i,0] = node.X * 0.75
-            self.target_geometry[i,1] = node.Y * 2
-            self.target_geometry[i,2] = node.Z
+        if type=="ellipsoid":
+            # assuming input nodes are a sphere or circle
+            for i, node in enumerate(nodes):
+                self.target_geometry[i,0] = node.X * 0.75
+                self.target_geometry[i,1] = node.Y * 2
+                self.target_geometry[i,2] = node.Z
+        elif type=="scordelis-lo_roof":
+            # assuming input nodes are a flat plate in x-y plane and
+            # circular shape should be generated in the x-z plane
+            R = 25  # radius
+            x_values = np.zeros(self.model_part.NumberOfNodes())
+            for i, node in enumerate(nodes):
+                x_values[i] = node.X
+            x_center = np.average(x_values)
+            for i, node in enumerate(nodes):
+                self.target_geometry[i,0] = node.X  # maybe fix later to specific value
+                self.target_geometry[i,1] = node.Y  # maybe fix later to specific value
+                self.target_geometry[i,2] = node.Z + np.sqrt(R**2 - (node.X - x_center)**2)
     
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
