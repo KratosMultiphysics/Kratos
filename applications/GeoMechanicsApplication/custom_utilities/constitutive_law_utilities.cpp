@@ -14,6 +14,28 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
+namespace
+{
+
+using namespace Kratos;
+
+double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int>& rIndexVariable)
+{
+    if (rProperties.Has(UMAT_PARAMETERS) && rProperties.Has(rIndexVariable)) {
+        const auto index = rProperties[rIndexVariable]; // 1-based index
+        KRATOS_DEBUG_ERROR_IF(index < 1 ||
+                              static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
+            << "Got out-of-bounds " << rIndexVariable.Name() << " (material ID: " << rProperties.Id()
+            << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
+        return rProperties[UMAT_PARAMETERS][index - 1];
+    }
+
+    KRATOS_ERROR << "Material " << rProperties.Id() << " does not have UMAT_PARAMETERS and/or "
+                 << rIndexVariable.Name() << "\n";
+}
+
+} // namespace
+
 namespace Kratos
 {
 
@@ -45,32 +67,12 @@ void ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parame
 
 double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
 {
-    // So far, we only support retrieving the cohesion from user-defined material models
-    if (rProperties.Has(UMAT_PARAMETERS) && rProperties.Has(INDEX_OF_UMAT_C_PARAMETER)) {
-        const auto index = rProperties[INDEX_OF_UMAT_C_PARAMETER]; // 1-based index
-        KRATOS_DEBUG_ERROR_IF(index < 1 ||
-                              static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
-            << "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: " << rProperties.Id()
-            << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
-        return rProperties[UMAT_PARAMETERS][index - 1];
-    }
-
-    KRATOS_ERROR << "Material " << rProperties.Id() << "does not have a value for the cohesion\n";
+    return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_C_PARAMETER);
 }
 
 double ConstitutiveLawUtilities::GetFrictionAngle(const Properties& rProperties)
 {
-    // So far, we only support retrieving the friction angle from user-defined material models
-    if (rProperties.Has(UMAT_PARAMETERS) && rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER)) {
-        const auto index = rProperties[INDEX_OF_UMAT_PHI_PARAMETER]; // 1-based index
-        KRATOS_DEBUG_ERROR_IF(index < 1 ||
-                              static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
-            << "Got out-of-bounds INDEX_OF_UMAT_PHI_PARAMETER (material ID: " << rProperties.Id()
-            << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
-        return rProperties[UMAT_PARAMETERS][index - 1];
-    }
-
-    KRATOS_ERROR << "Material " << rProperties.Id() << "does not have a value for the friction angle\n";
+    return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
 }
 
 } // namespace Kratos
