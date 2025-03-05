@@ -424,8 +424,8 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     const double length = CalculateLength();
-    // const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-    // const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiZ(r_props, length);
+    const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, length);
     const double J      = 0.5 * length;
     const double area   = GetCrossArea();
 
@@ -439,9 +439,14 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
 
-    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes),
-        N_theta_derivatives(local_trans_deflection_size), N_theta(local_trans_deflection_size), N_derivatives(local_trans_deflection_size),
-        N_u(number_of_nodes), N_shape(local_trans_deflection_size), N_s(local_trans_deflection_size);
+    VectorType global_size_N(mat_size);
+    VectorType N_u_derivatives(number_of_nodes);
+    VectorType N_theta_derivatives(local_trans_deflection_size);
+    VectorType N_theta(local_trans_deflection_size);
+    VectorType N_derivatives(local_trans_deflection_size);
+    VectorType N_u(number_of_nodes);
+    VectorType N_shape(local_trans_deflection_size);
+    VectorType N_s(local_trans_deflection_size);
 
     // Loop over the integration points (IP)
     const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
@@ -463,6 +468,50 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         const double Mz = r_generalized_stresses[3];
         const double Vy = r_generalized_stresses[4];
         const double Vz = r_generalized_stresses[5];
+
+        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+        const double dN_dEl       = r_constitutive_matrix(0, 0);
+        const double dMx_dkappa_x = r_constitutive_matrix(1, 1);
+        const double dMy_dkappa_y = r_constitutive_matrix(2, 2);
+        const double dMz_dkappa_z = r_constitutive_matrix(3, 3);
+        const double dVy_dgamma_xy = r_constitutive_matrix(4, 4);
+        const double dVz_dgamma_xz = r_constitutive_matrix(5, 6);
+        
+        // Axial DoFs shape functions (u and theta_x)
+        GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, 0.0, xi);
+        GetNu0ShapeFunctionsValues(N_u, length, 0.0, xi);
+
+        // Axial contributions
+        GlobalSizeAxialVector(global_size_N, N_u_derivatives);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
+        noalias(rRHS) -= global_size_N * N * jacobian_weight;
+
+        // Torsional contributions
+        GlobalSizeVectorAxialRotation(global_size_N, N_u_derivatives);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dMx_dkappa_x * jacobian_weight;
+        noalias(rRHS) -= global_size_N * Mx * jacobian_weight;
+
+        // Transverse DoFs shape functions {v, theta_z}
+        GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_z, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_z, xi);
+        GetShapeFunctionsValues(N_shape, length, Phi_rot_z, xi);
+        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_z, xi);
+        noalias(N_s) = N_derivatives - N_theta;
+
+        // Bending in z contributions
+        GlobalSizeVectorTransversalY(global_size_N, N_theta_derivatives);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dMz_dkappa_z * jacobian_weight;
+        noalias(rRHS) -= global_size_N * Mz * jacobian_weight;
+
+
+
+
+
+
+
+
+
+
 
 
 
