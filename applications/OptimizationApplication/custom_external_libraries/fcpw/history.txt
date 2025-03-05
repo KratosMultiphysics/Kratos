@@ -1,0 +1,47 @@
+basti@basti-tum:~$ git clone https://github.com/rohan-sawhney/fcpw.git
+Cloning into 'fcpw'...
+remote: Enumerating objects: 7923, done.
+remote: Counting objects: 100% (1250/1250), done.
+remote: Compressing objects: 100% (357/357), done.
+remote: Total 7923 (delta 733), reused 1208 (delta 707), pack-reused 6673 (from 1)
+Receiving objects: 100% (7923/7923), 27.52 MiB | 25.16 MiB/s, done.
+Resolving deltas: 100% (4058/4058), done.
+basti@basti-tum:~$ cd fcpw && git submodule update --init --recursive
+Submodule 'deps/eigen-git-mirror' (https://github.com/eigenteam/eigen-git-mirror.git) registered for path 'deps/eigen-git-mirror'
+Submodule 'deps/enoki' (https://github.com/mitsuba-renderer/enoki.git) registered for path 'deps/enoki'
+Cloning into '/home/basti/fcpw/deps/eigen-git-mirror'...
+Cloning into '/home/basti/fcpw/deps/enoki'...
+Submodule path 'deps/eigen-git-mirror': checked out '36b95962756c1fce8e29b1f8bc45967f30773c00'
+Submodule path 'deps/enoki': checked out '63a5f4c0a35a8513a39393a9ee92646ce44a386e'
+Submodule 'ext/cub' (https://github.com/NVlabs/cub) registered for path 'deps/enoki/ext/cub'
+Submodule 'ext/pybind11' (https://github.com/pybind/pybind11) registered for path 'deps/enoki/ext/pybind11'
+Cloning into '/home/basti/fcpw/deps/enoki/ext/cub'...
+Cloning into '/home/basti/fcpw/deps/enoki/ext/pybind11'...
+Submodule path 'deps/enoki/ext/cub': checked out 'c3cceac115c072fb63df1836ff46d8c60d9eb304'
+Submodule path 'deps/enoki/ext/pybind11': checked out 'bf2b031449c8c8156443655a80bdaf41433b2534'
+Submodule 'tools/clang' (https://github.com/wjakob/clang-cindex-python3) registered for path 'deps/enoki/ext/pybind11/tools/clang'
+Cloning into '/home/basti/fcpw/deps/enoki/ext/pybind11/tools/clang'...
+Submodule path 'deps/enoki/ext/pybind11/tools/clang': checked out '6a00cbc4a9b8e68b71caf7f774b3f9c753ae84d5'
+basti@basti-tum:~/fcpw$ mkdir build && cd build
+basti@basti-tum:~/fcpw/build$ cmake ..
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Setting build type to 'Release' as none was specified.
+-- Enoki Max ISA: -MARCH=SKX
+
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/basti/fcpw/build
+basti@basti-tum:~/fcpw/build$ make
+basti@basti-tum:~/fcpw/build$ 
+

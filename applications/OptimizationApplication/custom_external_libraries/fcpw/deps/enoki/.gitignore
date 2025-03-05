@@ -1,0 +1,64 @@
+# CMake
+/CMakeCache.txt
+/CPackConfig.cmake
+/CPackSourceConfig.cmake
+CMakeFiles
+cmake_install.cmake
+CTestTestfile.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Makefile
+
+# Ninja
+.ninja_deps
+.ninja_log
+*.ninja
+
+# Miscellaneous;
+/build*
+/Testing
+/tests/Testing
+*.dir
+*~
+\.DS_Store
+*.dSYM
+
+# Visual Studio
+*.vcxproj
+enoki.sdf
+enoki.sln
+enoki.opensdf
+enoki.VC.VC.opendb
+enoki.VC.db
+Debug
+Release
+*.filters
+/.vs
+/x64
+
+# Visual Studio Code
+/.vscode
+
+# Build products
+*_none
+*_sse42
+*_avx
+*_avx2
+*_avx512_knl
+*_avx512_skx
+*_neon
+*.ppm
+libenoki-cuda.so
+libenoki-cuda.dylib
+enoki-cuda.dll
+libenoki-autodiff.so
+libenoki-autodiff.dylib
+enoki-autodiff.dll
+enoki.cpython*
+/enoki
+compile_commands.json
+\.clangd
+
+# Documentation
+/html
+/docs/.build

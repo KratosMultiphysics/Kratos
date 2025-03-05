@@ -1,0 +1,7 @@
+[submodule "ext/cub"]
+	path = ext/cub
+	url = https://github.com/NVlabs/cub
+
+[submodule "ext/pybind11"]
+    path = ext/pybind11
+    url = https://github.com/pybind/pybind11

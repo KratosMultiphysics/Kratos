@@ -1,0 +1,144 @@
+name: Wheels
+
+on: 
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+env:
+  CIBW_BUILD_VERBOSITY: 1
+  CIBW_SKIP: "*-musllinux* pp*"
+  CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+  CIBW_ARCHS_WINDOWS: auto64
+  CIBW_ARCHS_LINUX: auto64
+  CIBW_BEFORE_ALL_LINUX: yum install -y zip wayland-devel libxkbcommon-devel libXcursor-devel libXi-devel libXinerama-devel libXrandr-devel
+  CIBW_ENVIRONMENT_LINUX: "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/project/deps/slang/lib"
+  CIBW_CONFIG_SETTINGS_MACOS: cmake.define.FCPW_USE_ENOKI=OFF
+  CIBW_CONFIG_SETTINGS_LINUX: cmake.define.FCPW_ENABLE_GPU_SUPPORT=ON
+  CIBW_CONFIG_SETTINGS_WINDOWS: cmake.define.FCPW_ENABLE_GPU_SUPPORT=ON
+  MACOSX_DEPLOYMENT_TARGET: "10.15"
+
+jobs:
+  build:
+    name: Build wheels
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows, linux, macos]
+        platform: [x86_64, arm64]  # Intel and Apple Silicon
+        python: [cp39, cp310, cp311, cp312]
+        exclude:
+          - { os: windows, platform: arm64 }
+          - { os: linux, platform: arm64 }
+        include:
+          - { os: windows, runs-on: windows-latest }
+          - { os: linux, runs-on: ubuntu-latest }
+          - { os: macos, runs-on: macos-13, platform: x86_64 }
+          - { os: macos, runs-on: macos-14, platform: arm64 }
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Clone nanobind
+      run: git clone --recurse-submodules https://github.com/wjakob/nanobind.git deps/nanobind
+
+    - name: Download slang binaries (Windows)
+      if: matrix.os == 'windows'
+      id: download-win64
+      uses: dsaltares/fetch-gh-release-asset@master
+      with:
+        repo: shader-slang/slang
+        file: 'slang-.*-windows-x86_64\.zip'
+        target: "./"
+        regex: true
+
+    - name: Unzip slang binaries (Windows)
+      if: matrix.os == 'windows'
+      run: |
+        $zipFile = Get-ChildItem -Filter "slang-*-windows-x86_64.zip"
+        Expand-Archive -Path $zipFile.FullName -DestinationPath deps/slang
+      shell: pwsh
+
+    - name: Download slang binaries (Ubuntu)
+      if: matrix.os == 'linux'
+      id: download-linux64
+      uses: dsaltares/fetch-gh-release-asset@master
+      with:
+        repo: shader-slang/slang
+        file: 'slang-.*-linux-x86_64-glibc-2.17\.tar.gz'
+        target: "./"
+        regex: true
+
+    - name: Unzip slang binaries (Ubuntu)
+      if: matrix.os == 'linux'
+      run: |
+        tar_file=$(ls slang-*-linux-x86_64-glibc-2.17.tar.gz)
+        mkdir -p deps/slang
+        tar -xzf "$tar_file" -C deps/slang
+
+    - name: Install cibuildwheel
+      run: python -m pip install cibuildwheel==2.20.0
+
+    - name: Setup MSVC
+      if: matrix.os == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Build wheels
+      env:
+        CIBW_BUILD: ${{ matrix.python }}-*
+        LD_LIBRARY_PATH: /project/deps/slang/lib:$LD_LIBRARY_PATH
+      run: |
+        python -m cibuildwheel --output-dir wheelhouse
+
+    - name: Upload wheels as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-${{ matrix.runs-on }}-python-${{ matrix.python }}
+        path: wheelhouse/*.whl
+
+  release:
+    name: Create GitHub release and publish wheels
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all wheels
+      uses: actions/download-artifact@v4
+      with:
+        path: ./dist
+
+    - name: Flatten directory structure
+      run: |
+        find ./dist -type f -name '*.whl' -exec mv {} ./dist/ \;
+
+    - name: Delete all non-wheel files and directories
+      run: |
+        find ./dist -type f ! -name '*.whl' -delete
+        find ./dist -type d -empty -delete
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        packages-dir: ./dist
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        body: |
+          FCPW release containing pre-built python wheels for Windows, macOS, and Ubuntu.
+
+          **NOTE:** Windows and Ubuntu wheels come with GPU and CPU vectotization support, while the macOS wheels do not.
+        files: ./dist/*.whl

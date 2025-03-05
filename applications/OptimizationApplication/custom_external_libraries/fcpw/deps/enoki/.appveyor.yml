@@ -1,0 +1,45 @@
+version: 1.0.{build}
+image:
+- Visual Studio 2017
+test: off
+skip_branch_with_pr: true
+platform:
+- x64
+matrix:
+  fast_finish: true
+configuration:
+ - Debug
+ - Release
+environment:
+  matrix:
+    - TEST_NAME: basic
+    - TEST_NAME: call
+    - TEST_NAME: color
+    - TEST_NAME: complex
+    - TEST_NAME: conv
+    - TEST_NAME: custom
+    - TEST_NAME: dynamic
+    - TEST_NAME: explog
+    - TEST_NAME: float
+    - TEST_NAME: histogram
+    - TEST_NAME: horiz
+    - TEST_NAME: hyperbolic
+    - TEST_NAME: idiv
+    - TEST_NAME: integer
+    - TEST_NAME: memory
+    - TEST_NAME: memory2
+    - TEST_NAME: morton
+    - TEST_NAME: nested
+    - TEST_NAME: sh
+    - TEST_NAME: special
+    - TEST_NAME: sphere
+    - TEST_NAME: trig
+    - TEST_NAME: vector
+build:
+  parallel:true
+build_script:
+- set preferredToolArchitecture=x64
+- cmake -G "Visual Studio 15 2017" -A "x64" -DCMAKE_SUPPRESS_REGENERATION=1 -DENOKI_TEST=1 -DENOKI_TEST_NAME=%TEST_NAME% .
+- set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+- cmake --build . --config %CONFIGURATION% -- /v:m /m /logger:%MSBuildLogger%
+- ctest
