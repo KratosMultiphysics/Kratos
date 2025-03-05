@@ -62,17 +62,15 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
--DCMAKE_C_COMPILER=/usr/bin/gcc					    \
--DCMAKE_CXX_COMPILER=/usr/bin/g++				    \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
--DUSE_TRIANGLE_NONFREE_TPL=OFF                                          \
+-DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=OFF                                                          \
+-DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
+-DCMAKE_C_FLAGS="-msse3"                                               \
+-DBOOST_ROOT="/workspace/boost/boost_1_74_0"                           \
+-DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                         \
+-DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                             \
+-DINCLUDE_MMG=ON                                                       \
+-DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
-#-DBOOST_ROOT="/usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0" \
-# -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc               \
-# -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++             \
-#-DINCLUDE_MMG=ON                                                       \
-#-DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                         \
-#-DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                             \
-#-DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
-#-DKRATOS_GENERATE_PYTHON_STUBS=OFF                                      \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON                                      \
