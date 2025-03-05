@@ -210,13 +210,11 @@ double LinearTimoshenkoBeamElement3D2N::CalculateShearStrainXY(
     const VectorType& rNodalValues
     ) const
 {
-    // VectorType N_derivatives(6), N_theta(6);
-    // GetFirstDerivativesShapeFunctionsValues(N_derivatives, Length, Phi, xi);
-    // GetNThetaShapeFunctionsValues(N_theta, Length, Phi, xi);
-    // const VectorType N_s = N_derivatives - N_theta;
-    // return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[4] * rNodalValues[4] +
-    //        N_s[5] * rNodalValues[5] + N_s[2] * rNodalValues[7] + N_s[3] * rNodalValues[8];
-    return 0.0;
+    VectorType N_derivatives(4), N_theta(4);
+    GetFirstDerivativesShapeFunctionsValues(N_derivatives, Length, Phi, xi);
+    GetNThetaShapeFunctionsValues(N_theta, Length, Phi, xi);
+    const VectorType N_s = N_derivatives - N_theta;
+    return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[5] + N_s[2] * rNodalValues[7] + N_s[3] * rNodalValues[11];
 }
 
 /***********************************************************************************/
