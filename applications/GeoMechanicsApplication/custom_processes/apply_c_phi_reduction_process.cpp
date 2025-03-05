@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 
@@ -124,7 +125,7 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Element::PropertiesType& rP
                         static_cast<int>(part_properties[UMAT_PARAMETERS].size()))
         << "invalid INDEX_OF_UMAT_C_PARAMETER: " << part_properties[INDEX_OF_UMAT_C_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
-    const auto c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
+    const auto c = ConstitutiveLawUtilities::GetCohesion(part_properties);
     KRATOS_ERROR_IF(c < 0.) << "Cohesion C out of range: " << c << std::endl;
     return c;
 }
