@@ -15,7 +15,7 @@
 
 The application includes tests to check the proper functioning of the application.
 
-## 😎 Features:
+## Features:
 
 - **A set of *Neumann* conditions**:
      * *Point loads (loads applied directly on the nodes)*
@@ -79,6 +79,6 @@ The application includes tests to check the proper functioning of the applicatio
 
 - **+100 Python unittest, including Validation tests, and several cpp tests**
 
-## ⚙️ Examples:
+## ️ Examples:
 
 Examples can be found [here](https://github.com/KratosMultiphysics/Examples/tree/master/structural_mechanics).
