@@ -348,7 +348,7 @@ protected:
             return mpValues + offset;
         }
 
-        ~DataBlock()
+        virtual ~DataBlock()
         {
             if (mpValues == nullptr) {
                 return;
