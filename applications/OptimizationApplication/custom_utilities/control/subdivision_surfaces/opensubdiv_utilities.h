@@ -114,7 +114,7 @@ OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
     std::map<IndexType, std::map<IndexType, IndexType>>& rGlobalMapOsdFaceToKratosCondIds,
     const bool FixFreeEdges = false)
 {
-    KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner") << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner") << std::endl;
     int num_vertices = rGrid.NumberOfNodes();
     int num_faces = rGrid.NumberOfConditions();
 
@@ -134,8 +134,8 @@ OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
         Level0MapOsdVertToKratosNodeIds[vert_index] = node_it->GetId();
     }
     auto t2_v = high_resolution_clock::now();
-    KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: number of vertices ") << num_vertices << std::endl;
-    KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: time needed for loop ") << duration_cast<seconds>(t2_v-t1_v).count() << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: number of vertices ") << num_vertices << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: time needed for loop ") << duration_cast<seconds>(t2_v-t1_v).count() << std::endl;
 
     auto t1_f = high_resolution_clock::now();
     const auto conds_begin = rGrid.ConditionsBegin();
@@ -160,8 +160,8 @@ OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
         }
     }
     auto t2_f = high_resolution_clock::now();
-    KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: number of faces ") << num_faces << std::endl;
-    KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: time needed for loop ") << duration_cast<seconds>(t2_f-t1_f).count() << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: number of faces ") << num_faces << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: time needed for loop ") << duration_cast<seconds>(t2_f-t1_f).count() << std::endl;
     // KRATOS_ERROR << std::endl;
     // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner debug 1") << std::endl;
 
@@ -190,7 +190,7 @@ OpenSubdiv::Far::TopologyRefiner * GenerateOpenSubdivRefiner(
     auto t1_r = high_resolution_clock::now();
     OpenSubdiv::Far::TopologyRefiner * refiner = OpenSubdiv::Far::TopologyRefinerFactory<Descriptor>::Create(desc, OpenSubdiv::Far::TopologyRefinerFactory<Descriptor>::Options(type, options));
     auto t2_r = high_resolution_clock::now();
-    KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: time needed creating refiner ") << duration_cast<seconds>(t2_r-t1_r).count() << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner :: time needed creating refiner ") << duration_cast<seconds>(t2_r-t1_r).count() << std::endl;
 
     // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateOpenSubdivRefiner finished successfully") << std::endl;
     return refiner;
@@ -202,7 +202,7 @@ void GenerateRefinementLevels(
     SizeType n_max_ref = 4
 )
 {
-    KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateRefinementLevels") << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateRefinementLevels") << std::endl;
 
     OpenSubdiv::Far::TopologyRefiner::UniformOptions uniform_ref_options = OpenSubdiv::Far::TopologyRefiner::UniformOptions(n_max_ref);
     // generate all topological data in last refinement, since it is not done by default to save storage space
@@ -211,7 +211,7 @@ void GenerateRefinementLevels(
     // refine uniformly by n_uniformRef
     refiner->RefineUniform(uniform_ref_options);
 
-    KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateRefinementLevels end of function") << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: GenerateRefinementLevels end of function") << std::endl;
 };
 
 void RefineGeometry(
@@ -223,7 +223,7 @@ void RefineGeometry(
     OpenSubdiv::Far::TopologyRefiner * refiner = nullptr
     )
 {
-    KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry") << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry") << std::endl;
 
     // clear output modelpart
     rOutput.Clear();
@@ -231,7 +231,7 @@ void RefineGeometry(
     if (!refiner) {
         /// generate opensubdiv refiner
         refiner = GenerateOpenSubdivRefiner(rGrid, rGlobalMapOsdVertToKratosNodeIds, rGlobalMapOsdFaceToKratosCondIds, false);
-        KRATOS_INFO("CATMULL_CLARK :: CreateSecondRingNeighbourhoodsOfNodes :: creating new refiner ") << std::endl;
+        // KRATOS_INFO("CATMULL_CLARK :: CreateSecondRingNeighbourhoodsOfNodes :: creating new refiner ") << std::endl;
     }
     else {
         // unrefine to enable subsequent refining
@@ -355,7 +355,7 @@ void RefineGeometry(
     //     KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: nodes ") << "[ " << geom[0].GetId()  << " , " << geom[1].GetId() << " , " << geom[2].GetId() << " , " << geom[3].GetId() << " ] " << std::endl;
     // }
 
-    KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: end of function") << std::endl;
+    // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: end of function") << std::endl;
 
     free(verts);
 };

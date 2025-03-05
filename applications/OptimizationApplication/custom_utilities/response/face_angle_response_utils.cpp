@@ -56,11 +56,11 @@ double FaceAngleResponseUtils::CalculateValue(
 	)
 {
 	KRATOS_TRY;
-	KRATOS_INFO("FaceAngleResponseUtils::CalculateValue") << std::endl;
+	// KRATOS_INFO("FaceAngleResponseUtils::CalculateValue") << std::endl;
 
-	KRATOS_INFO("debug ") << std::endl;
-	KRATOS_INFO("CalculateValue :: rModelPart.NumberOfNodes() ") << rModelPart.NumberOfNodes() << std::endl;
-	KRATOS_INFO("CalculateValue :: rModelPart.NumberOfConditions() ") << rModelPart.NumberOfConditions() << std::endl;
+	// KRATOS_INFO("debug ") << std::endl;
+	// KRATOS_INFO("CalculateValue :: rModelPart.NumberOfNodes() ") << rModelPart.NumberOfNodes() << std::endl;
+	// KRATOS_INFO("CalculateValue :: rModelPart.NumberOfConditions() ") << rModelPart.NumberOfConditions() << std::endl;
 
 	// const double value = block_for_each<SumReduction<double>>(rModelPart.Conditions(), [&](Condition& rCond) {
 	// 	if (mConsiderOnlyInitiallyFeasible && !(rCond.GetValue(CONSIDER_FACE_ANGLE))){
@@ -93,7 +93,7 @@ double FaceAngleResponseUtils::CalculateValue(
 	}
 
 	double returnValue = sqrt(value);
-	KRATOS_INFO("returnValue is ") << returnValue << std::endl;
+	// KRATOS_INFO("returnValue is ") << returnValue << std::endl;
 
 	return returnValue;
 
@@ -110,7 +110,7 @@ void FaceAngleResponseUtils::GetShapeSensitivities(
 {
 	KRATOS_TRY;
 
-	KRATOS_INFO("FaceAngleResponseUtils::GetShapeSensitivities") << std::endl;
+	// KRATOS_INFO("FaceAngleResponseUtils::GetShapeSensitivities") << std::endl;
 
 	double value = CalculateValue(
 		rGradientComputedModelPart, 
@@ -174,7 +174,7 @@ void FaceAngleResponseUtils::GetShapeSensitivities(
 	// for (auto& node_i : rGradientComputedModelPart.Nodes()) {
 	// 	KRATOS_INFO("node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)") << node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) << std::endl;
 	// }
-	KRATOS_INFO("GetShapeSensitivities :: debug end") << std::endl;
+	// KRATOS_INFO("GetShapeSensitivities :: debug end") << std::endl;
 
 	KRATOS_CATCH("");
 }
@@ -221,7 +221,7 @@ void FaceAngleResponseUtils::CalculateGradient(
 
                 if (*pVariable == SHAPE) {
                     if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::NodesContainerType>>) {
-						KRATOS_INFO("writing into expression") << std::endl;
+						// KRATOS_INFO("writing into expression") << std::endl;
                         VariableExpressionIO::Read(*pContainerExpression, &SHAPE_SENSITIVITY, true);
                     } else {
                         KRATOS_ERROR << "Requesting sensitivity w.r.t. "
