@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "timoshenko_beam_elastic_constitutive_law.h"
+#include "timoshenko_beam_elastic_constitutive_law_3d.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
@@ -67,11 +67,15 @@ int TimoshenkoBeamElasticConstitutiveLaw3D::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))    << "POISSON_RATIO is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))       << "CROSS_AREA is not defined in the properties"    << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(AREA_EFFECTIVE_Y)) << "AREA_EFFECTIVE_Y is not defined in the properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))              << "I33 is not defined in the properties"            << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(AREA_EFFECTIVE_Z)) << "AREA_EFFECTIVE_Z is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))              << "I33 is not defined in the properties"              << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I22))              << "I22 is not defined in the properties"              << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[YOUNG_MODULUS] > 0.0)    << "The YOUNG_MODULUS value is lower than 0.0" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[CROSS_AREA] > 0.0)       << "The CROSS_AREA value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[CROSS_AREA] > 0.0)       << "The CROSS_AREA value is lower than 0.0"    << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[I33] > 0.0)              << "The I33 value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[I22] > 0.0)              << "The I22 value is lower than 0.0" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[AREA_EFFECTIVE_Y] > 0.0) << "The AREA_EFFECTIVE_Y value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[AREA_EFFECTIVE_Z] > 0.0) << "The AREA_EFFECTIVE_Z value is lower than 0.0" << std::endl;
     KRATOS_ERROR_IF    (rMaterialProperties[POISSON_RATIO] < 0.0)    << "The POISSON_RATIO value is lower than 0.0" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[POISSON_RATIO] < 0.5)    << "The POISSON_RATIO cannot be greater than or equal 0.5." << std::endl;
     return 0;
@@ -107,52 +111,64 @@ void TimoshenkoBeamElasticConstitutiveLaw3D::CalculateMaterialResponsePK1(Consti
 void TimoshenkoBeamElasticConstitutiveLaw3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const auto& r_cl_law_options = rValues.GetOptions();
-    auto &r_material_properties = rValues.GetMaterialProperties();
-    auto &r_strain_vector = rValues.GetStrainVector();
+    const auto &r_material_properties = rValues.GetMaterialProperties();
+    const auto &r_strain_vector = rValues.GetStrainVector();
     AddInitialStrainVectorContribution(r_strain_vector);
     const auto strain_size = GetStrainSize();
 
-    const double axial_strain = r_strain_vector[0]; // E_l
-    const double curvature    = r_strain_vector[1]; // Kappa
-    const double shear_strain = r_strain_vector[2]; // Gamma_xy
+    // const double axial_strain    = r_strain_vector[0];
+    // const double curvature_x     = r_strain_vector[1];
+    // const double curvature_y     = r_strain_vector[2];
+    // const double curvature_z     = r_strain_vector[3];
+    // const double shear_strain_XY = r_strain_vector[4];
+    // const double shear_strain_XZ = r_strain_vector[5];
 
-    const double E    = r_material_properties[YOUNG_MODULUS];
-    const double A    = r_material_properties[CROSS_AREA];
-    const double I    = r_material_properties[I33];
+    // const double E    = r_material_properties[YOUNG_MODULUS];
+    // const double A    = r_material_properties[CROSS_AREA];
+    // const double I33  = r_material_properties[I33];
+    // const double I22  = r_material_properties[I22];
+    // const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
+    // const double A_sY = r_material_properties[AREA_EFFECTIVE_Y];
+    // const double A_sZ = r_material_properties[AREA_EFFECTIVE_Z];
 
-    const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
-    const double A_s  = r_material_properties[AREA_EFFECTIVE_Y];
+    // if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+    //     auto &r_generalized_stress_vector = rValues.GetStressVector();
+    //     if (r_generalized_stress_vector.size() != strain_size)
+    //         r_generalized_stress_vector.resize(strain_size, false);
 
-    if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        auto &r_generalized_stress_vector = rValues.GetStressVector();
-        if (r_generalized_stress_vector.size() != strain_size)
-            r_generalized_stress_vector.resize(strain_size, false);
+    //     const double EA   = E * A;
+    //     const double EI22 = E * I22;
+    //     const double EI33 = E * I33;
+    //     const double GAsY = G * A_sY;
+    //     const double GAsZ = G * A_sZ;
 
-        const double EA  = E * A;
-        const double EI  = E * I;
-        const double GAs = G * A_s;
+    //     r_generalized_stress_vector[0] = EA * axial_strain;
+    //     r_generalized_stress_vector[1] = G * (I22 + I33) * curvature_x;
+    //     r_generalized_stress_vector[2] = EI22 * curvature_y;
+    //     r_generalized_stress_vector[3] = EI33 * curvature_z;
+    //     r_generalized_stress_vector[4] = GAsY * shear_strain_XY;
+    //     r_generalized_stress_vector[5] = GAsZ * shear_strain_XZ;
 
-        r_generalized_stress_vector[0] = EA * axial_strain;  // N
-        r_generalized_stress_vector[1] = EI * curvature;     // M
-        r_generalized_stress_vector[2] = GAs * shear_strain; // V
+    //     AddInitialStressVectorContribution(r_generalized_stress_vector);
 
-        AddInitialStressVectorContribution(r_generalized_stress_vector);
+    //     if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
+    //         r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
+    //     }
 
-        if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
-            r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
-        }
+    //     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    //         auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
+    //         if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
+    //             r_stress_derivatives.resize(strain_size, strain_size, false);
+    //         r_stress_derivatives.clear();
 
-        if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
-            if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
-                r_stress_derivatives.resize(strain_size, strain_size, false);
-            r_stress_derivatives.clear();
-
-            r_stress_derivatives(0, 0) = EA;  // dN_dEl
-            r_stress_derivatives(1, 1) = EI;  // dM_dkappa
-            r_stress_derivatives(2, 2) = GAs; // dV_dGamma_xy
-        }
-    }
+    //         r_stress_derivatives(0, 0) = EA;
+    //         r_stress_derivatives(1, 1) = G * (I22 + I33);
+    //         r_stress_derivatives(2, 2) = EI22;
+    //         r_stress_derivatives(3, 3) = EI33;
+    //         r_stress_derivatives(4, 4) = GAsY;
+    //         r_stress_derivatives(5, 5) = GAsZ;
+    //     }
+    // }
 }
 
 } // Namespace Kratos
