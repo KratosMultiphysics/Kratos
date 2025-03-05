@@ -36,3 +36,8 @@ class ApplyNoSlipProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         self.vector_process.ExecuteFinalizeSolutionStep()
+
+# Dummy process for the automatic name deduction
+class ApplyNoslipProcess(KratosMultiphysics.ApplyNoSlipProcess):
+    def __init__(self, Model, settings):
+        KratosMultiphysics.ApplyNoSlipProcess.__init__(self, Model, settings)
