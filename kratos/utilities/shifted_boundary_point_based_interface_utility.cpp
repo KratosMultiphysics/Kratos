@@ -861,8 +861,8 @@ namespace Kratos
             const std::size_t local_size = n_nodes * (TDim+1);
 
             // Calculate unknowns at the nodes of the element for the positive and the negative side of Gamma
-            Vector unknowns_pos(local_size);
-            Vector unknowns_neg(local_size);
+            Vector unknowns_pos = ZeroVector(local_size);
+            Vector unknowns_neg = ZeroVector(local_size);
             const bool unknowns_calculated_successfully = CalculateUnknownsForBothSidesOfSplitElement<TDim>(p_element, unknowns_pos, unknowns_neg);
             if (!unknowns_calculated_successfully) {
                 std::scoped_lock<LockObject> lock(mutex_valid_ex);
@@ -886,7 +886,6 @@ namespace Kratos
                 // Get shape function values and derivatives of the element at the skin point
                 Vector skin_pt_N(n_nodes);
                 Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, TDim);
-                array_1d<double,3> int_pt_local_coords = ZeroVector(3);
                 GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
                 // Calculate pressure at skin point for positive and negative side of Gamma
@@ -913,13 +912,13 @@ namespace Kratos
                 Vector strain_rate_neg = prod(B_matrix, unknowns_neg);
 
                 // Set constitutive law values and calculate material response, which sets the shear stress, for positive side
-                Vector shear_stress_pos(voigt_size);
+                Vector shear_stress_pos = ZeroVector(voigt_size);
                 constitutive_law_values.SetStrainVector(strain_rate_pos);           //input
                 constitutive_law_values.SetStressVector(shear_stress_pos);          //output
                 p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
 
                 // Set constitutive law values and calculate material response, which sets the shear stress, for negative side
-                Vector shear_stress_neg(voigt_size);
+                Vector shear_stress_neg = ZeroVector(voigt_size);
                 constitutive_law_values.SetStrainVector(strain_rate_neg);           //input
                 constitutive_law_values.SetStressVector(shear_stress_neg);          //output
                 p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
@@ -1028,11 +1027,6 @@ namespace Kratos
         // }
         const auto& r_geom = pElement->GetGeometry();
         const std::size_t n_nodes = r_geom.PointsNumber();
-        const std::size_t local_size = n_nodes * (TDim+1);
-
-        // Initialize nodal unknowns
-        rPositiveSideUnknowns = ZeroVector(local_size);
-        rNegativeSideUnknowns = ZeroVector(local_size);
 
         Vector sides_vector(n_nodes);
         const std::size_t sides_found = mSidesVectorMap.count(pElement);
@@ -1065,8 +1059,8 @@ namespace Kratos
             const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
 
             // Initialize positive and negative side velocity and pressure
-            Vector u_node_pos = ZeroVector(TDim);
-            Vector u_node_neg = ZeroVector(TDim);
+            array_1d<double,3> u_node_pos = ZeroVector(3);
+            array_1d<double,3> u_node_neg = ZeroVector(3);
             double p_node_pos = 0.0;
             double p_node_neg = 0.0;
 
