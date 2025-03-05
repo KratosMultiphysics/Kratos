@@ -283,21 +283,36 @@ double LinearTimoshenkoBeamElement3D2N::CalculateBendingCurvatureZ(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void LinearTimoshenkoBeamElement3D2N::AssembleGlobalRotationMatrix(
+    const BoundedMatrix<double, 3, 3>& rT,
+    BoundedMatrix<double, 12, 12>& rGlobalT
+)
+{
+    for (IndexType block = 0; block < 4; ++block) {
+        for (IndexType i = 0; i < rT.size1(); ++i) {
+            for (IndexType j = 0; j < rT.size2(); ++j) {
+                rGlobalT(3 * block + i, 3 * block + j) = rT(i, j);
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
 void LinearTimoshenkoBeamElement3D2N::RotateLHS(
     MatrixType& rLHS,
     const GeometryType& rGeometry
     )
 {
-    // const double angle = GetAngle();
-
-    // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-    //     BoundedMatrix<double, 3, 3> T, Tt;
-    //     BoundedMatrix<double, 9, 9> global_size_T, aux_product;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-    //     noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    //     noalias(rLHS) = prod(global_size_T, aux_product);
-    // }
+    const SizeType num_nodes = rGeometry.size();
+    const SizeType global_size = GetDoFsPerNode() * num_nodes;
+    
+    BoundedMatrix<double, 3, 3> T;
+    BoundedMatrix<double, 12, 12> global_T;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
+    AssembleGlobalRotationMatrix(T, global_T);
 }
 
 /***********************************************************************************/

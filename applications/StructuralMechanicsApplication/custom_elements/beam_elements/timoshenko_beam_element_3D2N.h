@@ -216,12 +216,23 @@ public:
      * @param rGlobalSizeVector The global size vector including only the axial theta_x terms
      * @param rLocalSizeVector The 2 local components of theta_x
      */
-    virtual void GlobalSizeVectorAxialRotation(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
+    virtual void GlobalSizeVectorAxialRotation(
+        VectorType& rGlobalSizeVector,
+        const VectorType& rLocalSizeVector)
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[3] = rLocalSizeVector[0];
         rGlobalSizeVector[9] = rLocalSizeVector[1];
     }
+
+    /**
+     * @brief Assembles the 3 dimension rotation matrix to a global element size one
+     * @param rT The local 3 dimension rotation matrix
+     * @param rGlobalT The global 12 dimension rotation matrix
+     */
+    virtual void AssembleGlobalRotationMatrix(
+        const BoundedMatrix<double, 3, 3>& rT,
+        BoundedMatrix<double, 12, 12>& rGlobalT);
 
     /**
      * @brief It creates a new element pointer and clones the previous element data
