@@ -33,6 +33,8 @@ public:
                                           const Matrix&                rF,
                                           double                       detF);
 
+    static double GetCohesion(const Properties& rProperties);
+
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
