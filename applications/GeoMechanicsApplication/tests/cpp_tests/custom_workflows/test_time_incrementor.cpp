@@ -436,11 +436,11 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, Kratos
     auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
     auto previous_state              = TimeStepEndState{};
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
-    previous_state.time              = 8.0; // to have a zero time step
+    previous_state.time              = 7.9999999; // to have a zero time step
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         time_incrementor.PostTimeStepExecution(previous_state),
-        "Delta time (0) is smaller than minimum allowable value 1e-06");
+        "Delta time (1e-07) is smaller than minimum allowable value 1e-06");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HalfTimeStepAtNonConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
