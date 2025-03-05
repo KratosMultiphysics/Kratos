@@ -113,6 +113,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
     // Note that the SBM_INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary (BOUNDARY elements) e.g. by the ShiftedBoundaryMeshlessInterfaceUtility.
     // One or multiple faces of these SBM_INTERFACE elements are attached to SBM_BOUNDARY elements.
     // These faces are therefore a part of the surrogate interface gamma_tilde, so the boundary flux contributions is added.
+    //TODO SPEED UP!!!
     if (this->Is(SBM_INTERFACE)) {
         // Initialize the element data
         ShiftedBoundaryElementData data;
@@ -125,8 +126,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         if (sur_bd_ids_vect.size() != 0) {
 
             // Set integration method for surrogate boundary face
-            // NOTE that second order is required here!
-            //TODO NEXT ONLY TESTING !!! GAUSS 2 SHOULD BE USED!
+            // NOTE that second order is required here
             const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
             // Get the parent geometry data
@@ -158,8 +158,12 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
                 // Get the gradient of the node opposite of the surrogate face to calculate the normal
                 // NOTE this works because DN_DX of a node is calculated as the normal of the opposite face (cross product for Tetrahedra3D4N)
-                BoundedVector<double,Dim> DN_DX_opposite_node = row(DN_DX_parent, bd_local_ids[0]);
-                BoundedVector<double,Dim> normal_sur_bd = - DN_DX_opposite_node / norm_2(DN_DX_opposite_node);
+                const BoundedVector<double,Dim> DN_DX_opposite_node = row(DN_DX_parent, bd_local_ids[0]);
+                const double h_sur_bd = 1.0 / norm_2(DN_DX_opposite_node);
+                BoundedVector<double,3> normal_sur_bd = ZeroVector(3);
+                for (std::size_t d = 0; d < Dim; ++d) {
+                    normal_sur_bd(d) = - DN_DX_opposite_node(d) * h_sur_bd;
+                }
 
                 // Get detJ for all integration points of the surrogate boundary face
                 VectorType int_pt_detJs;
@@ -173,6 +177,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
 
                     // Compute the local coordinates of the integration point in the parent element's geometry
+                    //TODO NEXT compute shape function values and derivatives of parent without converting to parent local coordinates!
                     Geometry<NodeType>::CoordinatesArrayType aux_global_coords = ZeroVector(3);
                     r_bd_geom.GlobalCoordinates(aux_global_coords, r_integration_points[i_int_pt].Coordinates());
                     Geometry<NodeType>::CoordinatesArrayType int_pt_local_coords_parent = ZeroVector(3);
@@ -504,11 +509,11 @@ void ShiftedBoundaryFluidElement<TBaseElement>::InitializeGeometryData(ShiftedBo
 template<class TBaseElement>
 std::vector<std::size_t> ShiftedBoundaryFluidElement<TBaseElement>::GetSurrogateFacesIds()
 {
-    const std::size_t n_faces = Dim + 1;  //NOTE this is only valid for tri and tetra
+    const std::size_t n_faces = Dim + 1;  // NOTE this is only valid for tri and tetra
     auto& r_neigh_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     // Check the current element faces
-    // Note that we rely on the fact that the neighbors are sorted according to the order of faces in NEIGHBOUR_ELEMENTS
+    // NOTE that we rely on the fact that the neighbors are sorted according to the order of faces in NEIGHBOUR_ELEMENTS
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
         auto p_neigh_elem = r_neigh_elems(i_face).get();

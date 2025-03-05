@@ -71,7 +71,7 @@ public:
     /// Pointer definition of ShiftedBoundaryWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShiftedBoundaryWallCondition);
 
-    static constexpr std::size_t VoigtSize = 3 * (TDim-1);
+    static constexpr std::size_t VoigtSize = 3 * (TDim-1);  // 3 in 2D, 6 in 3D - StrainSize of FluidElementData
     static constexpr std::size_t BlockSize = TDim + 1;
 
     typedef Node NodeType;

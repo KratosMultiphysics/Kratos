@@ -195,8 +195,8 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     // Get meshless geometry data (for the integration point)
     const double parent_size = this->GetValue(ELEMENT_H);               // parent element size
     const double weight = GetValue(INTEGRATION_WEIGHT);                 // integration weight for the integration point
-    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);                 // shape function values for all cloud points
-    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud points
+    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);                 // shape function values for all cloud points (VectorType)
+    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud points (MatrixType)
     array_1d<double,3> normal = GetValue(NORMAL);                       // boundary normal at the integration point
     normal /= norm_2(normal);
 
@@ -235,7 +235,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     ConstitutiveLaw::Parameters constitutive_law_values(r_geometry, this->GetProperties(), rCurrentProcessInfo);
     Vector strain_rate = prod(B_matrix, unknown_values);
     Vector shear_stress(VoigtSize);
-    Matrix C_matrix(VoigtSize, VoigtSize);
+    Matrix C_matrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     // Set constitutive law flags
     Flags& r_cl_options = constitutive_law_values.GetOptions();
@@ -247,7 +247,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     constitutive_law_values.SetShapeFunctionsDerivatives(r_DN_DX);
     constitutive_law_values.SetStrainVector(strain_rate);
     constitutive_law_values.SetStressVector(shear_stress);    //this is an ouput parameter
-    constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter
+    constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter 
 
     // Calculate material response and effective viscosity
     //NOTE that here we assume that only one constitutive law is employed for all of the integration points.
@@ -368,7 +368,7 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateStrainMatrix(
 
     if(TDim == 2) {
         for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
-            const std::size_t col = 3 * i_node;
+            const std::size_t col = BlockSize * i_node;
             rB(0, col  ) = rDN_DX(i_node, 0);
             rB(1, col+1) = rDN_DX(i_node, 1);
             rB(2, col  ) = rDN_DX(i_node, 1);
@@ -376,7 +376,7 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateStrainMatrix(
         }
     } else if(TDim == 3) {
         for (std::size_t i_node = 0; i_node < NumNodes; ++i_node ) {
-            const std::size_t col = 4 * i_node;
+            const std::size_t col = BlockSize * i_node;
             rB(0, col  ) = rDN_DX(i_node, 0);
             rB(1, col+1) = rDN_DX(i_node, 1);
             rB(2, col+2) = rDN_DX(i_node, 2);
@@ -404,7 +404,7 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
     //KRATOS_WATCH(rN(0));
     //KRATOS_WATCH(r_geometry[0].FastGetSolutionStepValue(VELOCITY));
     double int_pt_rho = rN(0) * r_geometry[0].FastGetSolutionStepValue(DENSITY);
-    array_1d<double,TDim> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
+    array_1d<double,3> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
     for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
         int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
         int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
@@ -413,11 +413,12 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
     }
     //KRATOS_WATCH(int_pt_v);
     const double int_pt_v_norm = norm_2(int_pt_v);
-
     //KRATOS_WATCH(int_pt_v_norm);
 
+    const double stab_constant = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize + int_pt_rho*ParentSize*ParentSize/DeltaTime;
+
     // Compute the Nitsche coefficient (including the Winter stabilization term)
-    const double coeff = (EffectiveViscosity + EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize + int_pt_rho*ParentSize*ParentSize/DeltaTime) / (Penalty * ParentSize);
+    const double coeff = (EffectiveViscosity + stab_constant) / (Penalty * ParentSize);
 
     return coeff;
 }
@@ -429,8 +430,9 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     const double ParentSize,
     const double EffectiveViscosity) const
 {
-    const double coeff_1 = SlipLength / (SlipLength + Penalty*ParentSize);
-    const double coeff_2 = EffectiveViscosity / (SlipLength + Penalty*ParentSize);
+    const double penalty_coeff = 1.0 / (SlipLength + Penalty*ParentSize);
+    const double coeff_1 = SlipLength * penalty_coeff ;
+    const double coeff_2 = EffectiveViscosity * penalty_coeff;
 
     std::pair<const double, const double> coeffs(coeff_1, coeff_2);
     return coeffs;
@@ -443,8 +445,9 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     const double ParentSize,
     const double EffectiveViscosity) const
 {
-    const double coeff_1 = SlipLength * Penalty * ParentSize / (SlipLength + Penalty*ParentSize);
-    const double coeff_2 = EffectiveViscosity * Penalty * ParentSize / (SlipLength + Penalty*ParentSize);
+    const double stab_coeff = Penalty * ParentSize / (SlipLength + Penalty*ParentSize);
+    const double coeff_1 = SlipLength * stab_coeff;
+    const double coeff_2 = EffectiveViscosity * stab_coeff;
 
     std::pair<const double, const double> coeffs(coeff_1, coeff_2);
     return coeffs;
