@@ -13,7 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
