@@ -60,9 +60,6 @@ public:
     ///@{
 
     // COMMON PHYSICAL QUANTITIES
-    // double Conductivity;
-    // double Decay;
-    // double ConvectionCoefficient;
     NodalScalarData Conductivity;
     NodalScalarData Decay;
     NodalScalarData ConvectionCoefficient;

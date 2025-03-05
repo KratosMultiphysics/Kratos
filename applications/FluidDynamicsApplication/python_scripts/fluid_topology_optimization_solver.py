@@ -41,6 +41,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         super()._SetFormulation()
         self.element_has_nodal_properties = True
         self.non_historical_nodal_properties_variables_list.append(KratosCFD.RESISTANCE)
+        self.non_historical_nodal_properties_variables_list.append(KratosMultiphysics.CONVECTION_COEFFICIENT)
 
     def AddVariables(self):  
         #Add parent class variables
@@ -56,7 +57,9 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         # eventual transport coupling
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_ADJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_ADJ_GRADIENT)
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Topology Optimization ADJ-NS solver variables added correctly.")          
 
     def _SetTimeSchemeBufferSize(self):

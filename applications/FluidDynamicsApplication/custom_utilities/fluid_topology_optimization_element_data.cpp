@@ -61,6 +61,7 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     // Resistance has to be used as a nodal value, since in this way evaluating the functional derivatives
     // w.r.t the design parameters is easier.
     this->FillFromNonHistoricalNodalData(Resistance, RESISTANCE, r_geometry); 
+    this->FillFromNonHistoricalNodalData(TransportCouplingConvectionCoefficient, CONVECTION_COEFFICIENT, r_geometry); 
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     // Calculate element characteristic size
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);

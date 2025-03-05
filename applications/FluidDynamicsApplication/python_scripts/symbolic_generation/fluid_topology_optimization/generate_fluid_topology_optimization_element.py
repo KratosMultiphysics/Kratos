@@ -265,32 +265,43 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## HANDLE ADJOINT FORCING TERMS  
     if (include_functionals):
+        # This method is used to evaluate the functional value
         # Functionals Database
         # 0: resistance  : int_{\Omega}{alpha*||u||^2}
         # 1: strain-rate : int_{\Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
         # 2: vorticity   : int_{\Omega}{2*mu*||R||^2} = int_{\Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
-        # 3: outlet_concentration : int_{\Gamma_{out}}{c}
-        # 4: region_concentration: int_{\Omega}{c^2}
-        # 4: ...
-        # 5: ...
-        # 5 is just a number big enough to contain the acutal database of functionals
+        # 3: outlet_transport_scalar : int_{\Gamma_{out}}{c}
+        # 4: region_transport_scalar: int_{\Omega}{c^2}
+        # 5: transport_scalar_diffusion: int_{\Omega}{D\\||grad(u)||^2}
+	    # 6: transport_scalar_convection: int_{\Omega}{beta*T*dot(u,grad(T))}
+	    # 7: transport_scalar_decay: int_{\Omega}{kT^2}
+	    # 8: transport_scalar_source: int_{\Omega}{-Q*T}
+
         functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
-        rv_funct_resistance_adj  = -2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
-        rv_funct_strain_rate_adj = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
-        rv_funct_vorticity_adj   = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
-        rv_adj += functional_weights[0]*rv_funct_resistance_adj + functional_weights[1]*rv_funct_strain_rate_adj + functional_weights[2]*rv_funct_vorticity_adj
+        rv_funct_resistance_adj  = 2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
+        rv_funct_strain_rate_adj = 4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
+        rv_funct_vorticity_adj   = 4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
+        rv_adj -= functional_weights[0]*rv_funct_resistance_adj + functional_weights[1]*rv_funct_strain_rate_adj + functional_weights[2]*rv_funct_vorticity_adj
 
     if (transport_coupling):
         # Transport Problem Solution (if only fluid is = 0)
-        t     = DefineVector('t',nnodes) # temperature
-        t_adj = DefineVector('t_adj',nnodes) # temperature_adj
-        # Adjoint Temperature at gauss points
-        t_adj_gauss = t_adj.transpose()*N           # Forcing_adj at gauss points
+        t     = DefineVector('t',nnodes) # transprot scalar
+        t_adj = DefineVector('t_adj',nnodes) # transport scalar
+        t_ConvCoeff = DefineVector('t_ConvCoeff', nnodes) # convection coefficient for transport coupling
+        # Temperature at gauss points
+        t_gauss = t_adj.transpose()*N # t at gauss points
+        t_adj_gauss = t_adj.transpose()*N # t_adj at gauss points
+        t_ConvCoeff_gauss = t_ConvCoeff.transpose()*N # convection coefficient for transport coupling at gauss points
         # Temperature Gradient
         grad_t     = DfjDxi(DN,t)      # Temperature gradient VERTICAL VECTOR
         # Residual evaluation
-        rv_transport_coupling_adj = -(w_adj_gauss.transpose()*(grad_t*t_adj_gauss))
+        rv_transport_coupling_adj = -t_ConvCoeff_gauss*(w_adj_gauss.transpose()*(grad_t*t_adj_gauss))
         rv_adj += rv_transport_coupling_adj
+
+    #     # HANDLE ADJOINT FORCING TERMS  
+        if (include_functionals):
+            rv_funct_transport_convection_adj = t_ConvCoeff_gauss * t_gauss * (grad_t.transpose()*w_adj_gauss)
+            rv_adj -= functional_weights[6]*rv_funct_transport_convection_adj
     
     ## HANDLE ADJOINT CONVECTION 
     if (convective_term):
@@ -360,7 +371,9 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             momentum_residual_adj += -functional_weights[0]*2.0*alpha*v_ns_gauss
 
         if (transport_coupling):
-            momentum_residual_adj += -grad_t*t_adj_gauss
+            momentum_residual_adj += -grad_t*t_adj_gauss*t_ConvCoeff_gauss
+            if (include_functionals):
+                momentum_residual_adj += -functional_weights[6]*grad_t*t_gauss*t_ConvCoeff_gauss
 
         # mass conservation residual
         mass_residual_adj = -div_v_adj

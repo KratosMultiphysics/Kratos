@@ -880,6 +880,39 @@ void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementD
 }
 
 template <>
+void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointLHSContribution(
+    TransportTopologyOptimizationElementData<2,4,true> & rData,
+    MatrixType& rLHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // const double dyn_tau = rData.DynamicTau;
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const BoundedMatrix<double,2,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // TRANSPORT ELEMENTAL LHS MATRIX
+    //substitute_lhs_2D4N_T 
+    
+}
+
+template <>
 void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointLHSContribution(
     TransportTopologyOptimizationElementData<3,4,true>& rData,
     MatrixType& rLHS)
@@ -949,6 +982,43 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
 }
 
 template <>
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointRHSContribution(
+    TransportTopologyOptimizationElementData<2,4,true>& rData,
+    VectorType& rRHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // const double dyn_tau = rData.DynamicTau;
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const array_1d<double,4>& t = rData.Temperature;
+    const array_1d<double,4>& tn = rData.Temperature_OldStep1;
+    const array_1d<double,4>& tnn = rData.Temperature_OldStep2;
+    const BoundedMatrix<double,2,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
+
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // TRANSPORT ELEMENTAL RHS VECTOR
+    //substitute_rhs_2D4N_T
+}
+
+template <>
 void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointRHSContribution(
     TransportTopologyOptimizationElementData<3,4,true>& rData,
     VectorType& rRHS)
@@ -971,12 +1041,12 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const array_1d<double,3>& t = rData.Temperature;
-    const array_1d<double,3>& tn = rData.Temperature_OldStep1;
-    const array_1d<double,3>& tnn = rData.Temperature_OldStep2;
-    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
-    const array_1d<double,3>& source = rData.SourceTerm;
+    const array_1d<double,4>& t = rData.Temperature;
+    const array_1d<double,4>& tn = rData.Temperature_OldStep1;
+    const array_1d<double,4>& tnn = rData.Temperature_OldStep2;
+    const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
@@ -1016,6 +1086,38 @@ void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementD
 
     // ADJOINT TRANSPORT ELEMENTAL LHS MATRIX
     //substitute_lhs_2D3N_ADJ_T
+}
+
+template <>
+void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointLHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<2,4,true> & rData,
+    MatrixType& rLHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // const double dyn_tau = rData.DynamicTau;
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
+
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // ADJOINT TRANSPORT ELEMENTAL LHS MATRIX
+    //substitute_lhs_2D4N_ADJ_T
 }
 
 template <>
@@ -1082,12 +1184,58 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
     const array_1d<double,3>& source_adj = rData.SourceTerm_adj;
     const array_1d<double,3>& opt_t = rData.Optimization_Temperature;
+    const array_1d<double,3>& t = rData.Temperature;
+    const BoundedMatrix<double,2,3> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,3>& source = rData.SourceTerm;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
 
     // ADJOINT TRANSPORT ELEMENTAL RHS VECTOR
     //substitute_rhs_2D3N_ADJ_T
+}
+
+template <>
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointRHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<2,4,true>& rData,
+    VectorType& rRHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // const double dyn_tau = rData.DynamicTau;
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    Vector functional_weights = rData.Functional_Weights; //  functional terms weights
+
+    const array_1d<double,4>& t_adj = rData.Temperature_adj;
+    const array_1d<double,4>& tn_adj = rData.Temperature_adj_OldStep1;
+    const array_1d<double,4>& tnn_adj = rData.Temperature_adj_OldStep2;
+    const BoundedMatrix<double,2,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
+    const array_1d<double,4>& opt_t = rData.Optimization_Temperature;
+    const array_1d<double,4>& t = rData.Temperature;
+    const BoundedMatrix<double,2,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
+
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // ADJOINT TRANSPORT ELEMENTAL RHS VECTOR
+    //substitute_rhs_2D4N_ADJ_T
 }
 
 template <>
@@ -1122,6 +1270,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
     const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
     const array_1d<double,4>& opt_t = rData.Optimization_Temperature;
+    const array_1d<double,4>& t = rData.Temperature;
+    const BoundedMatrix<double,3,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
@@ -1199,6 +1350,7 @@ void TransportTopologyOptimizationElement<TElementData>::load(Serializer& rSeria
 // Template class instantiation
 
 template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,3,true> >;
+template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true> >;
 template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<3,4,true> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

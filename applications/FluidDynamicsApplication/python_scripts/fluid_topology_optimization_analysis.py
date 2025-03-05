@@ -1,5 +1,6 @@
+## IMPORT
+# Import Libraries
 from sys import argv
-
 import numpy as np #import the numpy library
 import scipy as sp #import the scipy library
 from scipy.spatial import KDTree
@@ -7,14 +8,16 @@ from scipy.sparse import dok_matrix, lil_matrix
 import mmapy as MMA # import the MMA subroutines python library: https://github.com/arjendeetman/GCMMA-MMA-Python
 import time
 
+# Import Kratos
 import KratosMultiphysics as KratosMultiphysics
-# Import applications
+# Import Kratos Applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.MeshingApplication as KratosMMG
-
+# Import Kratos Analysis and Solvers
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
-from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver
+# Import Kratos Processes
+from KratosMultiphysics import ComputeNodalGradientProcess
 
 class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def __init__(self,model,parameters):
@@ -305,10 +308,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """     
         ## Current Optimization Step Solutions 
         self._InitializeTopologyOptimizationStepPhysicsSolution()
+        self._UpdateRelevantPhysicsVariables()
         self._SolvePhysicsProblem() # NAVIER-STOKES PROBLEM SOLUTION
         if (self.first_iteration):
             self._SetFunctionalWeights()
             self._ResetFunctionalOutput()
+        self._UpdateRelevantAdjointVariables()
         self._SolveAdjointProblem() # ADJOINT NAVIER-STOKES PROBLEM SOLUTION   
     
     def _GeometricalPreprocessing(self):
@@ -318,7 +323,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         print("--|" + self.topology_optimization_stage_str + "| GEOMETRICAL PREPROCESSING")
         mp = self._GetComputingModelPart()
         self.dim = mp.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-        self.nodes_in_element = self.dim+1 # only for triangles(2D) and tetrahedra(3D)
+        self.nodes_in_element = mp.Elements[1].GetGeometry().PointsNumber()
         self._OrderNodes()
         self._OrderElements()
         self._ComputeNodalDomainSizes()
@@ -329,7 +334,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.opt_it = 0
         self._SetDesignParameterChangeTolerance()
         self.n_optimization_constraints = 1  
-        self._ResetConstraints()
+        self._InitializeConstraints()
         self._InitializeRemeshing()
     
     def _SetDesignParameterChangeTolerance(self, design_parameter_change_toll = 0.0):
@@ -338,7 +343,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ResetConstraints(self):
         self.constraints = np.zeros(self.n_optimization_constraints)  
         self.constraints_derivatives_wrt_design = np.zeros((self.n_optimization_constraints, self.n_opt_design_parameters))
-        
+
+    def _InitializeConstraints(self):
+        self._ResetConstraints()
+        self._InitializeVolumeConstraint()
+
+    def _InitializeVolumeConstraint(self, is_fluid_volume=True):
+        self.is_fluid_volume_constraint = is_fluid_volume
 
     def _InitializeDomainDesign(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE DOMAIN DESIGN")
@@ -349,9 +360,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _InitializePhysicsParameters(self, resistance_parameters=[1e4, 0.0, 1.0]):
         self._InitializeResistance(resistance_parameters)
 
-    def _SetMaxDomainVolumeFraction(self, volume_fraction = 1.0):
-        self.max_volume_fraction = volume_fraction
-        self.volume_fraction = 0.0
+    def _SetMaxDomainVolumeFraction(self, max_volume_fraction = 1.0):
+        self.max_volume_fraction = max_volume_fraction
+        # self.volume_fraction = 0.0
 
     def _InitializeDomainDesignParameter(self, initial_value = 0.0):
         """
@@ -401,7 +412,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _ComputeNodalDomainSizes(self):
         """
-        This method compute the nodal domain size - not vectorized but it is done once. WORKS ONLY FOR TRIANGULAR AND TETRAHEDRAL MESH
+        This method compute the nodal domain size - not vectorized but it is done once
         """
         print("--|" + self.topology_optimization_stage_str + "| ---> Compute Domain Size")
         mp = self._GetComputingModelPart()
@@ -416,6 +427,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.total_domain_size = self.total_domain_size + elem_domain_size
             for node in geom:
                 self.nodal_domain_sizes[node.Id-1] += elem_domain_size * contribution_factor
+        self._UpdateNodalAreaVariable()
+        
+    def _UpdateNodalAreaVariable(self):
+        mp = self._GetComputingModelPart()
+        for node in mp.Nodes:
+            node.SetValue(KratosMultiphysics.NODAL_AREA, self.nodal_domain_sizes[node.Id-1])
+
+    def _ComputeScalarVariableNodalGradient(self, scalar_variable, gradient_variable):
+        mp = self._GetComputingModelPart()
+        gradient_process = ComputeNodalGradientProcess(mp, scalar_variable, gradient_variable, KratosMultiphysics.NODAL_AREA)
+        gradient_process.Execute()
 
     def _OptimizationGeometricalPreprocessing(self):
         self._ComputeOptimizationDomainSize()
@@ -458,7 +480,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             n_non_opt_nodes = len(non_opt_mp.Nodes)
         else:
             n_non_opt_nodes = 0
-
         #find the nodes belonging to the interface between the opt_mp and the non_opt_mp
         # self.opt_non_opt_interface_nodes = np.zeros(self.n_nodes, dtype=int)
         # count_nodes_at_opt_non_opt_interface = 0
@@ -575,15 +596,18 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._UpdateResistanceVariable()
 
     def _ComputeResistance(self, design_parameter):
-        return self._ComputeConvexPhysicsParameter(self.resistance_parameters, design_parameter)
+        return self._ComputePhysicsParameter(self.resistance_parameters, design_parameter)
+    
+    def _ComputePhysicsParameter(self, physics_parameter_values, design_parameter):
+        self._ComputeConvexPhysicsParameter(physics_parameter_values, design_parameter)
 
     def _ComputeConvexPhysicsParameter(self, physics_parameter_values, design_parameter):
         value_fluid = physics_parameter_values[0]
         value_solid = physics_parameter_values[1]
         slope       = physics_parameter_values[2]
-        resistance = value_fluid + (value_solid-value_fluid)*(slope*design_parameter)/(slope+1-design_parameter)
-        resistance_derivative_wrt_design_base = (value_solid-value_fluid)*(slope*(slope+1))/((slope+1-design_parameter)**2)
-        return resistance, resistance_derivative_wrt_design_base
+        physics_parameter = value_fluid + (value_solid-value_fluid)*(slope*design_parameter)/(slope+1-design_parameter)
+        physics_parameter_derivative_wrt_design_base = (value_solid-value_fluid)*(slope*(slope+1))/((slope+1-design_parameter)**2)
+        return physics_parameter, physics_parameter_derivative_wrt_design_base
     
     def _UpdateResistanceDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
@@ -754,10 +778,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         # 0: resistance  : int_{\Omega}{alpha*||u||^2}
         # 1: strain-rate : int_{\Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
         # 2: vorticity   : int_{\Omega}{2*mu*||R||^2} = int_{\Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
-        # 3: outlet_concentration : int_{\Gamma_{out}}{c}
-        # 4: region_concentration: int_{\Omega}{c^2}
-        # 5: ...
-        # 5 is just a number big enough to contain the acutal database of functionals
+        # 3: outlet_transport_scalar : int_{\Gamma_{out}}{c}
+        # 4: region_transport_scalar: int_{\Omega}{c^2}
+        # 5: transport_scalar_diffusion: int_{\Omega}{D\\||grad(u)||^2}
+	    # 6: transport_scalar_convection: int_{\Omega}{beta*T*dot(u,grad(T))}
+	    # 7: transport_scalar_decay: int_{\Omega}{kT^2}
+	    # 8: transport_scalar_source: int_{\Omega}{-Q*T}
         """
         self._SetTopologyOptimizationStage(3)
         print("--|" + self.topology_optimization_stage_str + "| EVALUATE FUNCTIONAL VALUE")
@@ -775,10 +801,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             # self.first_iteration = False
         self.functional = self.functional / self.initial_functional_abs_value
 
-    def _EvaluateResistanceFunctional(self, velocity, print_functional=False):
+    def _EvaluateResistanceFunctional(self, print_functional=False):
         """
         This method computes the resistance functional: int_{\Omega}{\\alpha||u||^2}
         """
+        mp = self._GetComputingModelPart()
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
         integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
         self.functionals[0] = np.dot(self.nodal_domain_sizes, integrand)
@@ -787,12 +815,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (print_functional):
             print("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (no weight):", self.functionals[0])
         else:
-            print("--|" + self.topology_optimization_stage_str + "| --> Resistance Functional")
+            print("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional")
 
-    def _EvaluateStrainRateFunctional(self, velocity, print_functional=False):
+    def _EvaluateStrainRateFunctional(self, print_functional=False):
         """
         This method computes the Strain-Rate functional: int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}
         """
+        mp = self._GetComputingModelPart()
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         vel = velocity[self.element_nodes_ids[:]]
         vel_gradient = np.matmul(np.transpose(vel, axes=(0,2,1)), self.shape_functions_derivatives)
         vel_symmetric_gradient = 1.0/2.0 * (vel_gradient+(np.transpose(vel_gradient, axes=(0,2,1))))
@@ -804,12 +834,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (print_functional):
             print("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (no weight):", self.functionals[1])
         else:
-            print("--|" + self.topology_optimization_stage_str + "| --> Strain-Rate Functional")
+            print("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional")
 
-    def _EvaluateVorticityFunctional(self, velocity, print_functional=False):
+    def _EvaluateVorticityFunctional(self, print_functional=False):
         """
         This method computes the Vorticity functional: int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}
         """
+        mp = self._GetComputingModelPart()
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         vel = velocity[self.element_nodes_ids[:]]
         vel_gradient = np.matmul(np.transpose(vel, axes=(0,2,1)), self.shape_functions_derivatives)
         vel_antisymmetric_gradient = 1.0/2.0 * (vel_gradient-(np.transpose(vel_gradient, axes=(0,2,1))))
@@ -821,30 +853,67 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (print_functional):
             print("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional: (no weight)", self.functionals[2])    
         else:
-            print("--|" + self.topology_optimization_stage_str + "| --> Vorticity Functional")
+            print("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional")
     
-    def _EvaluateFunctionalDerivatives(self, first_it = False):
+    def _EvaluateFunctionalDerivatives(self):
         """
         This method is used to evaluate the functional derivatives w.r.t the design parameter
         """
         self._SetTopologyOptimizationStage(3)
         print("--|" + self.topology_optimization_stage_str + "| EVALUATE FUNCTIONAL DERIVATIVES")
+        self.functional_derivatives_wrt_design = np.asarray([self._ComputeFunctionalDerivatives()]).T
+        self._UpdateFunctionalDerivativesVariable()
+        if (self.first_iteration):
+            self.initial_functional_derivatives_wrt_design = self.functional_derivatives_wrt_design
+
+    # def _EvaluateFunctionalDerivatives(self, first_it = False):
+    #     """
+    #     This method is used to evaluate the functional derivatives w.r.t the design parameter
+    #     """
+    #     self._SetTopologyOptimizationStage(3)
+    #     print("--|" + self.topology_optimization_stage_str + "| EVALUATE FUNCTIONAL DERIVATIVES")
+    #     mp = self._GetComputingModelPart()
+    #     velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+    #     velocity_adjoint= np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)
+    #     self.functional_derivatives_wrt_design = self.resistance_derivative_wrt_design * np.sum(velocity * (self.functional_weights[0]*velocity + velocity_adjoint), axis=1) * self.nodal_domain_sizes 
+    #     self.functional_derivatives_wrt_design = self.functional_derivatives_wrt_design / self.initial_functional_abs_value
+    #     for node in mp.Nodes:
+    #         node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[node.Id-1])
+    #     if (first_it):
+    #         self.initial_functional_derivatives_wrt_design = self.functional_derivatives_wrt_design
+    #     self.functional_derivatives_wrt_design = np.asarray([self.functional_derivatives_wrt_design]).T
+
+    def _ComputeFunctionalDerivatives(self):
+        temp_functional_derivatives_wrt_design = np.asarray(self.n_nodes)
+        temp_functional_derivatives_wrt_design = self._ComputeFunctionalDerivativesFunctionalContribution()
+        temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesFluidPhysicsContribution()
+        return temp_functional_derivatives_wrt_design
+        
+    def _UpdateFunctionalDerivativesVariable(self):
+        mp = self._GetComputingModelPart()
+        for node in mp.Nodes:
+            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[node.Id-1][0])
+
+    def _ComputeFunctionalDerivativesFunctionalContribution(self):
         mp = self._GetComputingModelPart()
         velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        velocity_adjoint= np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        self.functional_derivatives_wrt_design = self.resistance_derivative_wrt_design * np.sum(velocity * (self.functional_weights[0]*velocity + velocity_adjoint), axis=1) * self.nodal_domain_sizes 
-        self.functional_derivatives_wrt_design = self.functional_derivatives_wrt_design / self.initial_functional_abs_value
-        for node in mp.Nodes:
-            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[node.Id-1])
-        if (first_it):
-            self.initial_functional_derivatives_wrt_design = self.functional_derivatives_wrt_design
-        self.functional_derivatives_wrt_design = np.asarray([self.functional_derivatives_wrt_design]).T
+        return self.functional_weights[0]*self.resistance_derivative_wrt_design * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
+
+    def _ComputeFunctionalDerivativesFluidPhysicsContribution(self):
+        mp = self._GetComputingModelPart()
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        velocity_adjoint= np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)        
+        return self.resistance_derivative_wrt_design * np.sum(velocity*velocity_adjoint, axis=1) * self.nodal_domain_sizes
 
     def _EvaluateVolumeConstraintAndDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
-        self.volume_fraction = 1.0 - np.dot(self.design_parameter, self.nodal_optimization_domain_sizes)/self.optimization_domain_size
+        if (self.is_fluid_volume_constraint):
+            self.volume_fraction = 1.0 - np.dot(self.design_parameter, self.nodal_optimization_domain_sizes)/self.optimization_domain_size
+            volume_constraint_derivatives_wrt_design_base = -1.0 * self.nodal_optimization_domain_sizes / self.optimization_domain_size
+        else:
+            self.volume_fraction = np.dot(self.design_parameter, self.nodal_optimization_domain_sizes)/self.optimization_domain_size
+            volume_constraint_derivatives_wrt_design_base = self.nodal_optimization_domain_sizes / self.optimization_domain_size
         self.volume_constraint = self.volume_fraction - self.max_volume_fraction
-        volume_constraint_derivatives_wrt_design_base = -1.0 * self.nodal_optimization_domain_sizes / self.optimization_domain_size
         volume_constraint_derivatives_wrt_design_projected = volume_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
         self.constraints[0] = self.volume_constraint
         self.constraints_derivatives_wrt_design[0,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected)[mask]
@@ -1012,12 +1081,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _EvaluateDesignParameterChange(self):
         old_design_parameter_norm = np.linalg.norm(1-self.old_design_parameter)
+        self.design_parameter_change = np.linalg.norm(self.design_parameter-self.old_design_parameter)
         if (old_design_parameter_norm > 1e-10):
             # change evaluated on the amount of fluid, that's why we have ||(1-design)-(1-old_design)|| / ||1-old_design||
-            self.design_parameter_change = np.linalg.norm(self.design_parameter-self.old_design_parameter)
             self.design_parameter_change /= old_design_parameter_norm
         else:
-            pass
+            # change evaluated on the amount of fluid, that's why we have ||design-old_design|| / ||old_design||
+            old_design_parameter_norm = np.linalg.norm(self.old_design_parameter)
+            self.design_parameter_change /= old_design_parameter_norm
         if (self.opt_it > 1):
             design_parameter_converged = (self.design_parameter_change < self.design_parameter_change_toll)
         else:
@@ -1051,50 +1122,82 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def _ComputeDesignParameterDiffusiveFilterUtilities(self):
-        self._BuildNodesConnectivity()
+        self._InitializeDiffusiveFilter()
         self.design_parameter_filtered = np.zeros(self.n_nodes)
 
+    def _InitializeDiffusiveFilter(self, apply_diffusive_filter=True, diffusive_filter_radius=0.01):
+        self.apply_diffusive_filter = apply_diffusive_filter
+        self.diffusive_filter_radius = diffusive_filter_radius
+        if (self.apply_diffusive_filter):
+            self._BuildNodesConnectivity()
+
     def _ComputeDesignParameterProjectiveFilterUtilities(self):
+        self._InitializeProjectiveFilter()
         self.design_parameter_projected = np.zeros(self.n_nodes)
         self.design_parameter_projected_derivatives = np.ones(self.n_nodes)
 
-    def _BuildNodesConnectivity(self, radius = 1e-10):
-        if (radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
-            radius = 1e-10
+    def _InitializeProjectiveFilter(self, apply_projective_filter=True, min_mean = 0.2, max_mean = 0.5, min_projection_slope = 1e-10, max_projection_slope = 2.0, projection_change=1e-3):
+        self.apply_projective_filter = apply_projective_filter
+        self.projective_filter_min_mean = min_mean
+        self.projective_filter_max_mean = max_mean
+        self.projective_filter_min_projection_slope = min_projection_slope
+        self.projective_filter_max_projection_slope = max_projection_slope
+        self.projective_filter_activation_change = projection_change
+
+    def _BuildNodesConnectivity(self):
+        if (self.diffusive_filter_radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
+            self.diffusive_filter_radius = 1e-10
         print("--|" + self.topology_optimization_stage_str + "| ---> Build Nodes Connectivity Matrix")
         mp = self._GetComputingModelPart()
         points = self._GetNodesSetCoordinates(mp.Nodes)
         nodes_tree = KDTree(points)
-        self.nodes_connectivity_matrix = nodes_tree.sparse_distance_matrix(nodes_tree, radius, output_type="dok_matrix").tocsr()
+        self.nodes_connectivity_matrix = nodes_tree.sparse_distance_matrix(nodes_tree, self.diffusive_filter_radius, output_type="dok_matrix").tocsr()
         self.nodes_connectivity_matrix.data *= -1
-        self.nodes_connectivity_matrix.data += radius
+        self.nodes_connectivity_matrix.data += self.diffusive_filter_radius
         self.nodes_connectivity_weigths_sum = np.array(self.nodes_connectivity_matrix.sum(axis=1)).flatten()  # Sum of each row as a 1D array
         # Normalization step: Divide non-zero entries by the corresponding row sum
         row_indices = np.repeat(np.arange(self.nodes_connectivity_matrix.shape[0]), np.diff(self.nodes_connectivity_matrix.indptr))
         self.nodes_connectivity_matrix.data /= self.nodes_connectivity_weigths_sum[row_indices]
 
     def _ApplyDesignParameterDiffusiveFilter(self, design_parameter):
-        print("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter")
-        mask = self._GetOptimizationDomainNodesMask()
+        print("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter:", self.apply_diffusive_filter)
         self.design_parameter_filtered = design_parameter
+        mask = self._GetOptimizationDomainNodesMask()
         self.design_parameter_filtered[mask] = self._ApplyDiffusiveFilter(design_parameter)[mask]
 
-    def _ApplyDesignParameterProjectiveFilter(self, design_parameter, mean_min = 0.2, mean_max = 0.5, projection_slope = 2):
-        print("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter")
+    def _ApplyDesignParameterProjectiveFilter(self, design_parameter):
+        print("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter:", self.apply_projective_filter)
         mask = self._GetOptimizationDomainNodesMask()
         self.design_parameter_projected = design_parameter
-        design_parameter_mean = min(max(mean_min,1.0-self.volume_fraction),mean_max)
-        factor = np.tanh(projection_slope*design_parameter_mean) + np.tanh(projection_slope*(1-design_parameter_mean))
-        constant = np.tanh(projection_slope*design_parameter_mean)
-        projection_argument = projection_slope*(design_parameter-design_parameter_mean)
-        self.design_parameter_projected[mask] = ((constant + np.tanh(projection_argument)) / factor)[mask]
-        self.design_parameter_projected_derivatives[mask] = ((projection_slope / factor) / (np.cosh(projection_argument)**2))[mask]
+        self.design_parameter_projected_derivatives = np.ones(self.n_nodes)
+        if ((not self.first_iteration) and (self.apply_projective_filter)):
+            design_change_for_projection = 1.0-min(1.0, max(0.0, self.design_parameter_change-self.design_parameter_change_toll)/(self.projective_filter_activation_change-self.design_parameter_change_toll))
+            if (abs(1.0-design_change_for_projection) < 1e-15):
+                projection_slope = self.projective_filter_min_projection_slope
+            else:
+                if (abs(design_change_for_projection) >= 1e-15):
+                    self.projective_filter_min_projection_slope + (self.projective_filter_max_projection_slope-self.projective_filter_min_projection_slope)*(1-design_change_for_projection)
+                else:
+                    projection_slope = self.projective_filter_max_projection_slope
+            design_parameter_mean = min(max(self.projective_filter_min_mean,1.0-self.volume_fraction),self.projective_filter_max_mean)
+            factor = np.tanh(projection_slope*design_parameter_mean) + np.tanh(projection_slope*(1-design_parameter_mean))
+            constant = np.tanh(projection_slope*design_parameter_mean)
+            projection_argument = projection_slope*(design_parameter-design_parameter_mean)
+            self.design_parameter_projected[mask] = ((constant + np.tanh(projection_argument)) / factor)[mask]
+            self.design_parameter_projected_derivatives[mask] = ((projection_slope / factor) / (np.cosh(projection_argument)**2))[mask]
                 
     def _ApplyDiffusiveFilter(self, scalar_variable):
-        return (self.nodes_connectivity_matrix @ scalar_variable)
+        if (self.apply_diffusive_filter):
+            return (self.nodes_connectivity_matrix @ scalar_variable)
+        else:
+            return scalar_variable
     
     def _ApplyDiffusiveFilterDerivative(self, scalar_variable_derivative):
-        return (scalar_variable_derivative.T @ self.nodes_connectivity_matrix).T
+        if (self.apply_diffusive_filter):
+            return (scalar_variable_derivative.T @ self.nodes_connectivity_matrix).T
+        else:
+            return scalar_variable_derivative
+        
 
     def _UpdateOptimizationProblemPhysics(self, optimization_domain_design_parameter):
         self.design_parameter = self._InsertDesignParameterFromOptimizationDomain(optimization_domain_design_parameter)
@@ -1180,24 +1283,32 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._ResetConstraints()
         self.design_parameter = self._GetDesignParameterVariable()
         self._ResetPhysicsParameters()
-        self.resistance, self.resistance_derivative_wrt_design_base = self._ComputeResistance(self.design_parameter)
-        self._UpdateResistanceDesignDerivative()
+        self._UpdatePhysicsParameters()
         self._PreprocessDerivatives() 
 
     def _GetPhysicsMainModelPartsList(self):
         return [self._GetPhysicsSolver().main_model_part]
     
     def EvaluateFunctionals(self, print_functional):
+        self._EvaluateRequiredGradients()
         mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         if (abs(self.functional_weights[0]) > 1e-10):
-            self._EvaluateResistanceFunctional(velocity, print_functional)
+            self._EvaluateResistanceFunctional(print_functional)
         if (abs(self.functional_weights[1]) > 1e-10):
-            self._EvaluateStrainRateFunctional(velocity, print_functional)
+            self._EvaluateStrainRateFunctional(print_functional)
         if (abs(self.functional_weights[2]) > 1e-10):
-            self._EvaluateVorticityFunctional(velocity, print_functional)
+            self._EvaluateVorticityFunctional(print_functional)
 
     def _CheckMaterialProperties(self):
         print("--|CHECK| Check Fluid Properties")
         self._GetSolver()._CheckMaterialProperties()
+
+    def _UpdateRelevantPhysicsVariables(self):
+        pass
+
+    def _UpdateRelevantAdjointVariables(self):
+        pass
+
+    def _EvaluateRequiredGradients(self):
+        pass
         

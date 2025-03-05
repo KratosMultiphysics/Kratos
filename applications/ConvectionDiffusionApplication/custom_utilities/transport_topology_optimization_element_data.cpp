@@ -261,7 +261,7 @@ template class TransportTopologyOptimizationElementData<2,3,true>;
 // template class TransportTopologyOptimizationElementData<2,4,false>;
 // template class TransportTopologyOptimizationElementData<2,6,false>;
 // template class TransportTopologyOptimizationElementData<2,9,false>;
-// template class TransportTopologyOptimizationElementData<2,4,true>;
+template class TransportTopologyOptimizationElementData<2,4,true>;
 
 // Tetrahedra
 // template class TransportTopologyOptimizationElementData<3,4,false>;

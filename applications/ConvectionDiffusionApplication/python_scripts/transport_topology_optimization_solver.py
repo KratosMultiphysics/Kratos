@@ -47,7 +47,7 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.settings["element_replace_settings"].ValidateAndAssignDefaults(default_replace_settings)
 
         ## Elements
-        num_nodes_elements = domain_size + 1
+        num_nodes_elements = len(self.main_model_part.Elements[1].GetNodes())
         name_string = f"{self.element_name}{domain_size}D{num_nodes_elements}N"
         self.settings["element_replace_settings"]["element_name"].SetString(name_string)
         ## Conditions
@@ -58,7 +58,7 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         return self.settings["element_replace_settings"]
 
     def AddVariables(self): 
-        # Add Fluid Transport Topology Optimization Variables 
+        # Add Transport Topology Optimization Variables 
         #  PHYSICS
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
@@ -89,7 +89,36 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY, 10.0, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.DECAY, 0.0, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONVECTION_COEFFICIENT, 0.0, self.main_model_part.Nodes)
-        super().PrepareModelPart()
+        # super().PrepareModelPart()
+        # assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
+        if not self.is_restarted():
+            # Import material properties
+            materials_imported = self.import_materials()
+            if materials_imported:
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
+            else:
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
+
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+
+            # tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
+            # throw_errors = False
+            # flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
+            # if assign_neighbour_elements:
+            #     flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            # else:
+            #     flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
+            # tmoc(self.main_model_part,throw_errors, flags).Execute()
+            self._set_and_fill_buffer()
+
+        # Create the MPI communicators
+        # if super()._CheckIsDistributed():
+        #     self.distributed_model_part_importer.CreateCommunicators()
+
+        if (self.settings["echo_level"].GetInt() > 0):
+            KratosMultiphysics.Logger.PrintInfo(self.model)
+
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
     def _UpdateConductivityVariable(self, conductivity):
         self.is_conductivity_updated = True

@@ -32,8 +32,10 @@ include_functionals = True # Include Functional Terms in the Adjoint Source Term
 n_functionals = 20 # Number of implemented functionals
 
 ## PROBLEM DIMENSION & N° nodes per element definition
-dim_vector    = [2,3]
-nnodes_vector = [(dim + 1) for dim in dim_vector]
+# dim_vector    = [2,3]
+# nnodes_vector = [(dim + 1) for dim in dim_vector]
+dim_vector = [2, 2, 3]
+nnodes_vector = [3, 4, 4] # tria, quad, tet
 
 ## ITERATE OVER (dim, nnodes_x_el) couples
 for dim, nnodes in zip(dim_vector, nnodes_vector):
@@ -192,24 +194,6 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     rv_galerkin_adj +=  q_adj_gauss.transpose()*f_adj_gauss # RHS Source Term
     rv_adj = rv_galerkin_adj # save BASE residual into TOTAL element residual
 
-    ## HANDLE ADJOINT FORCING TERMS  
-    if (include_functionals):
-        # Functionals Database
-        # 0: resistance  : int_{\Omega}{alpha*||u||^2}
-        # 1: strain-rate : int_{\Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
-        # 2: vorticity   : int_{\Omega}{2*mu*||R||^2} = int_{\Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
-        # 3: outlet_concentration : int_{\Gamma_{out}}{c}
-        # 4: region_concentration: int_{\Omega}{c^2}
-        # 5: ...
-        # 5 is just a number big enough to contain the acutal database of functionals
-        # Source Term definitions
-        functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
-        opt_t = DefineVector('opt_t', nnodes)  # Source Term
-        opt_t_gauss = opt_t.transpose()*N # Optimization Temperature at gauss points
-        functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
-        rv_funct_optimization_temperature  = -2.0*(q_adj_gauss.transpose()*opt_t_gauss)
-        rv_adj += functional_weights[4]*rv_funct_optimization_temperature
-
     ## HANDLE CONVECTION 
     if (convective_term):
         # Definition
@@ -220,6 +204,49 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_conv_adj = ConvCoeff_gauss*(q_adj_gauss.transpose()*(vconv_adj_gauss.transpose()*grad_t_adj)) # convective term
         rv_adj += rv_conv_adj # save CONVECTION residual into TOTAL element residual
     # END HANDLE CONVECTION
+
+    ## HANDLE ADJOINT FORCING TERMS  
+    if (include_functionals):
+        # Functionals Database
+        # 0: resistance  : int_{\Omega}{alpha*||u||^2}
+        # 1: strain-rate : int_{\Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
+        # 2: vorticity   : int_{\Omega}{2*mu*||R||^2} = int_{\Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
+        # 3: outlet_transport_scalar : int_{\Gamma_{out}}{c}
+        # 4: region_transport_scalar: int_{\Omega}{c^2}
+        # 5: transport_scalar_diffusion: int_{\Omega}{D\\||grad(u)||^2}
+	    # 6: transport_scalar_convection: int_{\Omega}{beta*T*dot(u,grad(T))}
+	    # 7: transport_scalar_decay: int_{\Omega}{kT^2}
+	    # 8: transport_scalar_source: int_{\Omega}{-Q*T}
+        # Source Term definitions
+        functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
+
+        # VARIABLES
+        opt_t = DefineVector('opt_t', nnodes)  
+        t_physics = DefineVector('t', nnodes) 
+        vconv_physics = DefineMatrix('vconv',nnodes,dim)
+        f_physics = DefineVector('source', nnodes) 
+        # VARIABLES AT GAUSS POINTS
+        opt_t_gauss = opt_t.transpose()*N # Optimization Temperature at gauss points
+        t_physics_gauss = t_physics.transpose()*N # Transport sclalar at gauss points
+        vconv_physics_gauss = vconv_physics.transpose()*N # Physics convective velocity at gauss points
+        f_physics_gauss = f_physics.transpose()*N # Physics source at gauss points
+        # GRADIENTS
+        grad_t_physics = DfjDxi(DN,t_physics)
+        
+        # region_transport_scalar functional
+        rv_funct_region_transport_scalar  = 2.0*(q_adj_gauss.transpose()*opt_t_gauss)
+        # transport_scalar_transfer
+        rv_funct_transport_scalar_diffusion  = 2.0*Conductivity_gauss*(grad_q_adj.transpose()*grad_t_physics)
+        rv_funct_transport_scalar_convection = ConvCoeff_gauss*((vconv_physics_gauss.transpose()*grad_t_physics)*q_adj_gauss + t_physics_gauss*(vconv_physics_gauss.transpose()*grad_q_adj)) 
+        rv_funct_transport_scalar_decay      = 2.0*Decay_gauss*(q_adj_gauss*t_physics_gauss)
+        rv_funct_transport_scalar_source     = -f_physics_gauss*q_adj_gauss
+        
+        # SUM FUNCTIONAL CONTRIBUTIONS TO ADJ RESIDUAL
+        rv_adj -= functional_weights[4]*rv_funct_region_transport_scalar 
+        rv_adj -= functional_weights[5]*rv_funct_transport_scalar_diffusion
+        rv_adj -= functional_weights[6]*rv_funct_transport_scalar_convection
+        rv_adj -= functional_weights[7]*rv_funct_transport_scalar_decay
+        rv_adj -= functional_weights[8]*rv_funct_transport_scalar_source
 
     ## HANDLE STABILIZATION
     if (stabilization):
@@ -256,9 +283,16 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         ## Include adjoint forcing terms coming from the functional definition
         if (include_functionals):
             mass_residual_adj += -functional_weights[4]*2.0*opt_t_gauss
+            # residual coming from transfer functional DIFFUSION  term involves second order derivatives. 
+            # residual coming from transfer functional CONVECTION term erases when evaluated not in the weak form, only a term in grad(beta) remains
+            grad_ConvCoeff = DfjDxi(DN,ConvCoeff) 
+            mass_residual_adj += functional_weights[6]*((vconv_physics_gauss.transpose()*grad_ConvCoeff)*t_physics_gauss)
+            mass_residual_adj += -functional_weights[7]*(2.0*Decay_gauss*t_physics_gauss)
+            mass_residual_adj += functional_weights[8]*(f_physics_gauss) 
 
         # Temperature subscales
         temperature_subscale_adj = tau1_adj*mass_residual_adj
+
         # ASGS stabilization
         # some of the terms in rv_stab are taken with sign (+) since they derive from an integration by parts 
         rv_stab_adj = -Decay_gauss*q_adj_gauss.transpose()*temperature_subscale_adj # stab decay residual

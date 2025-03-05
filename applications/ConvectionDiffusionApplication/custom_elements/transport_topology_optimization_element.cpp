@@ -888,7 +888,7 @@ const double crLHS9 = N[0]*crLHS0;
 const double crLHS10 = crLHS3*crLHS7;
 const double crLHS11 = crLHS5*crLHS7;
 const double crLHS12 = crLHS10 + crLHS11 + crLHS9;
-const double crLHS13 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + crLHS7*stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2))/h);
+const double crLHS13 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2))*fabs(crLHS7)/h);
 const double crLHS14 = 1.0*crLHS13;
 const double crLHS15 = crLHS12*crLHS14;
 const double crLHS16 = DN(1,0)*crLHS2;
@@ -920,6 +920,103 @@ rLHS(1,2)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS13*crLHS30 - crLHS20*crLHS31 - cr
 rLHS(2,0)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS28 - crLHS15*crLHS29 - crLHS32 - crLHS35*crLHS6);
 rLHS(2,1)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS13*crLHS22 - crLHS18*crLHS35 - crLHS23*crLHS28 - crLHS23*crLHS29 - crLHS34);
 rLHS(2,2)+=-gauss_weight*(-pow(N[2], 2)*crLHS0 + 1.0*N[2]*crLHS0*crLHS13*crLHS30 - crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2)) - crLHS27*crLHS35 - crLHS28*crLHS31 - crLHS29*crLHS31);
+ 
+    
+}
+
+template <>
+void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointLHSContribution(
+    TransportTopologyOptimizationElementData<2,4,true> & rData,
+    MatrixType& rLHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // const double dyn_tau = rData.DynamicTau;
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const BoundedMatrix<double,2,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // TRANSPORT ELEMENTAL LHS MATRIX
+    const double crLHS0 = N[0]*k[0] + N[1]*k[1] + N[2]*k[2] + N[3]*k[3];
+const double crLHS1 = D[0]*N[0] + D[1]*N[1] + D[2]*N[2] + D[3]*N[3];
+const double crLHS2 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
+const double crLHS3 = DN(0,0)*crLHS2;
+const double crLHS4 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
+const double crLHS5 = DN(0,1)*crLHS4;
+const double crLHS6 = crLHS3 + crLHS5;
+const double crLHS7 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
+const double crLHS8 = N[0]*crLHS7;
+const double crLHS9 = N[0]*crLHS0;
+const double crLHS10 = crLHS3*crLHS7;
+const double crLHS11 = crLHS5*crLHS7;
+const double crLHS12 = crLHS10 + crLHS11 + crLHS9;
+const double crLHS13 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2))*fabs(crLHS7)/h);
+const double crLHS14 = 1.0*crLHS13;
+const double crLHS15 = crLHS12*crLHS14;
+const double crLHS16 = DN(1,0)*crLHS2;
+const double crLHS17 = DN(1,1)*crLHS4;
+const double crLHS18 = crLHS16 + crLHS17;
+const double crLHS19 = N[1]*crLHS0;
+const double crLHS20 = crLHS16*crLHS7;
+const double crLHS21 = crLHS17*crLHS7;
+const double crLHS22 = crLHS19 + crLHS20 + crLHS21;
+const double crLHS23 = crLHS14*crLHS22;
+const double crLHS24 = N[1]*crLHS9 + crLHS1*(DN(0,0)*DN(1,0) + DN(0,1)*DN(1,1));
+const double crLHS25 = DN(2,0)*crLHS2;
+const double crLHS26 = DN(2,1)*crLHS4;
+const double crLHS27 = crLHS25 + crLHS26;
+const double crLHS28 = N[2]*crLHS0;
+const double crLHS29 = crLHS25*crLHS7;
+const double crLHS30 = crLHS26*crLHS7;
+const double crLHS31 = crLHS28 + crLHS29 + crLHS30;
+const double crLHS32 = crLHS14*crLHS31;
+const double crLHS33 = N[2]*crLHS9 + crLHS1*(DN(0,0)*DN(2,0) + DN(0,1)*DN(2,1));
+const double crLHS34 = DN(3,0)*crLHS2;
+const double crLHS35 = DN(3,1)*crLHS4;
+const double crLHS36 = crLHS34 + crLHS35;
+const double crLHS37 = crLHS34*crLHS7;
+const double crLHS38 = crLHS35*crLHS7;
+const double crLHS39 = N[3]*crLHS0 + crLHS37 + crLHS38;
+const double crLHS40 = crLHS14*crLHS39;
+const double crLHS41 = N[3]*crLHS9 + crLHS1*(DN(0,0)*DN(3,0) + DN(0,1)*DN(3,1));
+const double crLHS42 = N[1]*crLHS7;
+const double crLHS43 = N[2]*crLHS19 + crLHS1*(DN(1,0)*DN(2,0) + DN(1,1)*DN(2,1));
+const double crLHS44 = N[3]*crLHS19 + crLHS1*(DN(1,0)*DN(3,0) + DN(1,1)*DN(3,1));
+const double crLHS45 = N[2]*crLHS7;
+const double crLHS46 = N[3]*crLHS28 + crLHS1*(DN(2,0)*DN(3,0) + DN(2,1)*DN(3,1));
+const double crLHS47 = N[3]*crLHS7;
+rLHS(0,0)+=-gauss_weight*(-pow(N[0], 2)*crLHS0 + 1.0*N[0]*crLHS0*crLHS12*crLHS13 - crLHS1*(pow(DN(0,0), 2) + pow(DN(0,1), 2)) - crLHS10*crLHS15 - crLHS11*crLHS15 - crLHS6*crLHS8);
+rLHS(0,1)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS13*crLHS22 - crLHS10*crLHS23 - crLHS11*crLHS23 - crLHS18*crLHS8 - crLHS24);
+rLHS(0,2)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS13*crLHS31 - crLHS10*crLHS32 - crLHS11*crLHS32 - crLHS27*crLHS8 - crLHS33);
+rLHS(0,3)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS13*crLHS39 - crLHS10*crLHS40 - crLHS11*crLHS40 - crLHS36*crLHS8 - crLHS41);
+rLHS(1,0)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS20 - crLHS15*crLHS21 - crLHS24 - crLHS42*crLHS6);
+rLHS(1,1)+=-gauss_weight*(-pow(N[1], 2)*crLHS0 + 1.0*N[1]*crLHS0*crLHS13*crLHS22 - crLHS1*(pow(DN(1,0), 2) + pow(DN(1,1), 2)) - crLHS18*crLHS42 - crLHS20*crLHS23 - crLHS21*crLHS23);
+rLHS(1,2)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS13*crLHS31 - crLHS20*crLHS32 - crLHS21*crLHS32 - crLHS27*crLHS42 - crLHS43);
+rLHS(1,3)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS13*crLHS39 - crLHS20*crLHS40 - crLHS21*crLHS40 - crLHS36*crLHS42 - crLHS44);
+rLHS(2,0)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS29 - crLHS15*crLHS30 - crLHS33 - crLHS45*crLHS6);
+rLHS(2,1)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS13*crLHS22 - crLHS18*crLHS45 - crLHS23*crLHS29 - crLHS23*crLHS30 - crLHS43);
+rLHS(2,2)+=-gauss_weight*(-pow(N[2], 2)*crLHS0 + 1.0*N[2]*crLHS0*crLHS13*crLHS31 - crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2)) - crLHS27*crLHS45 - crLHS29*crLHS32 - crLHS30*crLHS32);
+rLHS(2,3)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS13*crLHS39 - crLHS29*crLHS40 - crLHS30*crLHS40 - crLHS36*crLHS45 - crLHS46);
+rLHS(3,0)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS37 - crLHS15*crLHS38 - crLHS41 - crLHS47*crLHS6);
+rLHS(3,1)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS13*crLHS22 - crLHS18*crLHS47 - crLHS23*crLHS37 - crLHS23*crLHS38 - crLHS44);
+rLHS(3,2)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS13*crLHS31 - crLHS27*crLHS47 - crLHS32*crLHS37 - crLHS32*crLHS38 - crLHS46);
+rLHS(3,3)+=-gauss_weight*(-pow(N[3], 2)*crLHS0 + 1.0*N[3]*crLHS0*crLHS13*crLHS39 - crLHS1*(pow(DN(3,0), 2) + pow(DN(3,1), 2)) - crLHS36*crLHS47 - crLHS37*crLHS40 - crLHS38*crLHS40);
  
     
 }
@@ -969,7 +1066,7 @@ const double crLHS12 = crLHS3*crLHS9;
 const double crLHS13 = crLHS5*crLHS9;
 const double crLHS14 = crLHS7*crLHS9;
 const double crLHS15 = crLHS11 + crLHS12 + crLHS13 + crLHS14;
-const double crLHS16 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + crLHS9*stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2) + pow(crLHS6, 2))/h);
+const double crLHS16 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2) + pow(crLHS6, 2))*fabs(crLHS9)/h);
 const double crLHS17 = 1.0*crLHS16;
 const double crLHS18 = crLHS15*crLHS17;
 const double crLHS19 = DN(1,0)*crLHS2;
@@ -1075,7 +1172,7 @@ const double crRHS8 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
 const double crRHS9 = crRHS5*crRHS8;
 const double crRHS10 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2];
 const double crRHS11 = crRHS10*(crRHS7 + crRHS9);
-const double crRHS12 = 1.0*(crRHS0 - crRHS10*crRHS7 - crRHS10*crRHS9 - crRHS2)/(crRHS1*stab_c3 + crRHS10*stab_c2*sqrt(pow(crRHS6, 2) + pow(crRHS8, 2))/h + crRHS3*stab_c1/pow(h, 2));
+const double crRHS12 = 1.0*(crRHS0 - crRHS10*crRHS7 - crRHS10*crRHS9 - crRHS2)/(crRHS1*stab_c3 + crRHS3*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS6, 2) + pow(crRHS8, 2))*fabs(crRHS10)/h);
 const double crRHS13 = crRHS1*crRHS12;
 const double crRHS14 = crRHS10*crRHS12;
 const double crRHS15 = crRHS14*crRHS6;
@@ -1083,6 +1180,64 @@ const double crRHS16 = crRHS14*crRHS8;
 rRHS[0]+=-gauss_weight*(-DN(0,0)*crRHS15 - DN(0,1)*crRHS16 - N[0]*crRHS0 + N[0]*crRHS11 + N[0]*crRHS13 + N[0]*crRHS2 + crRHS3*(DN(0,0)*crRHS4 + DN(0,1)*crRHS5));
 rRHS[1]+=-gauss_weight*(-DN(1,0)*crRHS15 - DN(1,1)*crRHS16 - N[1]*crRHS0 + N[1]*crRHS11 + N[1]*crRHS13 + N[1]*crRHS2 + crRHS3*(DN(1,0)*crRHS4 + DN(1,1)*crRHS5));
 rRHS[2]+=-gauss_weight*(-DN(2,0)*crRHS15 - DN(2,1)*crRHS16 - N[2]*crRHS0 + N[2]*crRHS11 + N[2]*crRHS13 + N[2]*crRHS2 + crRHS3*(DN(2,0)*crRHS4 + DN(2,1)*crRHS5));
+
+}
+
+template <>
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointRHSContribution(
+    TransportTopologyOptimizationElementData<2,4,true>& rData,
+    VectorType& rRHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // const double dyn_tau = rData.DynamicTau;
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const array_1d<double,4>& t = rData.Temperature;
+    const array_1d<double,4>& tn = rData.Temperature_OldStep1;
+    const array_1d<double,4>& tnn = rData.Temperature_OldStep2;
+    const BoundedMatrix<double,2,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
+
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // TRANSPORT ELEMENTAL RHS VECTOR
+    const double crRHS0 = N[0]*source[0] + N[1]*source[1] + N[2]*source[2] + N[3]*source[3];
+const double crRHS1 = N[0]*k[0] + N[1]*k[1] + N[2]*k[2] + N[3]*k[3];
+const double crRHS2 = crRHS1*(N[0]*t[0] + N[1]*t[1] + N[2]*t[2] + N[3]*t[3]);
+const double crRHS3 = D[0]*N[0] + D[1]*N[1] + D[2]*N[2] + D[3]*N[3];
+const double crRHS4 = DN(0,0)*t[0] + DN(1,0)*t[1] + DN(2,0)*t[2] + DN(3,0)*t[3];
+const double crRHS5 = DN(0,1)*t[0] + DN(1,1)*t[1] + DN(2,1)*t[2] + DN(3,1)*t[3];
+const double crRHS6 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
+const double crRHS7 = crRHS4*crRHS6;
+const double crRHS8 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
+const double crRHS9 = crRHS5*crRHS8;
+const double crRHS10 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
+const double crRHS11 = crRHS10*(crRHS7 + crRHS9);
+const double crRHS12 = 1.0*(crRHS0 - crRHS10*crRHS7 - crRHS10*crRHS9 - crRHS2)/(crRHS1*stab_c3 + crRHS3*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS6, 2) + pow(crRHS8, 2))*fabs(crRHS10)/h);
+const double crRHS13 = crRHS1*crRHS12;
+const double crRHS14 = crRHS10*crRHS12;
+const double crRHS15 = crRHS14*crRHS6;
+const double crRHS16 = crRHS14*crRHS8;
+rRHS[0]+=-gauss_weight*(-DN(0,0)*crRHS15 - DN(0,1)*crRHS16 - N[0]*crRHS0 + N[0]*crRHS11 + N[0]*crRHS13 + N[0]*crRHS2 + crRHS3*(DN(0,0)*crRHS4 + DN(0,1)*crRHS5));
+rRHS[1]+=-gauss_weight*(-DN(1,0)*crRHS15 - DN(1,1)*crRHS16 - N[1]*crRHS0 + N[1]*crRHS11 + N[1]*crRHS13 + N[1]*crRHS2 + crRHS3*(DN(1,0)*crRHS4 + DN(1,1)*crRHS5));
+rRHS[2]+=-gauss_weight*(-DN(2,0)*crRHS15 - DN(2,1)*crRHS16 - N[2]*crRHS0 + N[2]*crRHS11 + N[2]*crRHS13 + N[2]*crRHS2 + crRHS3*(DN(2,0)*crRHS4 + DN(2,1)*crRHS5));
+rRHS[3]+=-gauss_weight*(-DN(3,0)*crRHS15 - DN(3,1)*crRHS16 - N[3]*crRHS0 + N[3]*crRHS11 + N[3]*crRHS13 + N[3]*crRHS2 + crRHS3*(DN(3,0)*crRHS4 + DN(3,1)*crRHS5));
 
 }
 
@@ -1109,12 +1264,12 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const array_1d<double,3>& t = rData.Temperature;
-    const array_1d<double,3>& tn = rData.Temperature_OldStep1;
-    const array_1d<double,3>& tnn = rData.Temperature_OldStep2;
-    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
-    const array_1d<double,3>& source = rData.SourceTerm;
+    const array_1d<double,4>& t = rData.Temperature;
+    const array_1d<double,4>& tn = rData.Temperature_OldStep1;
+    const array_1d<double,4>& tnn = rData.Temperature_OldStep2;
+    const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
@@ -1135,7 +1290,7 @@ const double crRHS11 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3
 const double crRHS12 = crRHS11*crRHS6;
 const double crRHS13 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
 const double crRHS14 = crRHS13*(crRHS10 + crRHS12 + crRHS8);
-const double crRHS15 = 1.0*(crRHS0 - crRHS10*crRHS13 - crRHS12*crRHS13 - crRHS13*crRHS8 - crRHS2)/(crRHS1*stab_c3 + crRHS13*stab_c2*sqrt(pow(crRHS11, 2) + pow(crRHS7, 2) + pow(crRHS9, 2))/h + crRHS3*stab_c1/pow(h, 2));
+const double crRHS15 = 1.0*(crRHS0 - crRHS10*crRHS13 - crRHS12*crRHS13 - crRHS13*crRHS8 - crRHS2)/(crRHS1*stab_c3 + crRHS3*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS11, 2) + pow(crRHS7, 2) + pow(crRHS9, 2))*fabs(crRHS13)/h);
 const double crRHS16 = crRHS1*crRHS15;
 const double crRHS17 = crRHS13*crRHS15;
 const double crRHS18 = crRHS17*crRHS7;
@@ -1190,7 +1345,7 @@ const double crLHS8 = N[0]*crLHS0;
 const double crLHS9 = crLHS2*crLHS4;
 const double crLHS10 = crLHS2*crLHS6;
 const double crLHS11 = crLHS10 - crLHS8 + crLHS9;
-const double crLHS12 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + crLHS2*stab_c2*sqrt(pow(crLHS3, 2) + pow(crLHS5, 2))/h);
+const double crLHS12 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS3, 2) + pow(crLHS5, 2))*fabs(crLHS2)/h);
 const double crLHS13 = crLHS12*crLHS8;
 const double crLHS14 = crLHS11*crLHS12;
 const double crLHS15 = DN(1,0)*crLHS3;
@@ -1223,6 +1378,102 @@ rLHS(1,2)+=-gauss_weight*(N[1]*crLHS2*crLHS26 - crLHS19*crLHS31 - crLHS20*crLHS3
 rLHS(2,0)+=-gauss_weight*(N[2]*crLHS2*crLHS7 - crLHS11*crLHS35 - crLHS14*crLHS28 - crLHS14*crLHS29 - crLHS32);
 rLHS(2,1)+=-gauss_weight*(N[2]*crLHS17*crLHS2 - crLHS21*crLHS35 - crLHS22*crLHS28 - crLHS22*crLHS29 - crLHS34);
 rLHS(2,2)+=-gauss_weight*(-pow(N[2], 2)*crLHS0 + N[2]*crLHS2*crLHS26 - crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2)) - crLHS28*crLHS31 - crLHS29*crLHS31 - crLHS30*crLHS35);
+
+}
+
+template <>
+void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointLHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<2,4,true> & rData,
+    MatrixType& rLHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // const double dyn_tau = rData.DynamicTau;
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
+
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // ADJOINT TRANSPORT ELEMENTAL LHS MATRIX
+    const double crLHS0 = N[0]*k[0] + N[1]*k[1] + N[2]*k[2] + N[3]*k[3];
+const double crLHS1 = D[0]*N[0] + D[1]*N[1] + D[2]*N[2] + D[3]*N[3];
+const double crLHS2 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
+const double crLHS3 = N[0]*vconv_adj(0,0) + N[1]*vconv_adj(1,0) + N[2]*vconv_adj(2,0) + N[3]*vconv_adj(3,0);
+const double crLHS4 = DN(0,0)*crLHS3;
+const double crLHS5 = N[0]*vconv_adj(0,1) + N[1]*vconv_adj(1,1) + N[2]*vconv_adj(2,1) + N[3]*vconv_adj(3,1);
+const double crLHS6 = DN(0,1)*crLHS5;
+const double crLHS7 = crLHS4 + crLHS6;
+const double crLHS8 = N[0]*crLHS0;
+const double crLHS9 = crLHS2*crLHS4;
+const double crLHS10 = crLHS2*crLHS6;
+const double crLHS11 = crLHS10 - crLHS8 + crLHS9;
+const double crLHS12 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS3, 2) + pow(crLHS5, 2))*fabs(crLHS2)/h);
+const double crLHS13 = crLHS12*crLHS8;
+const double crLHS14 = crLHS11*crLHS12;
+const double crLHS15 = DN(1,0)*crLHS3;
+const double crLHS16 = DN(1,1)*crLHS5;
+const double crLHS17 = crLHS15 + crLHS16;
+const double crLHS18 = N[1]*crLHS0;
+const double crLHS19 = crLHS15*crLHS2;
+const double crLHS20 = crLHS16*crLHS2;
+const double crLHS21 = -crLHS18 + crLHS19 + crLHS20;
+const double crLHS22 = crLHS12*crLHS21;
+const double crLHS23 = N[1]*crLHS8 + crLHS1*(DN(0,0)*DN(1,0) + DN(0,1)*DN(1,1));
+const double crLHS24 = DN(2,0)*crLHS3;
+const double crLHS25 = DN(2,1)*crLHS5;
+const double crLHS26 = crLHS24 + crLHS25;
+const double crLHS27 = N[2]*crLHS0;
+const double crLHS28 = crLHS2*crLHS24;
+const double crLHS29 = crLHS2*crLHS25;
+const double crLHS30 = -crLHS27 + crLHS28 + crLHS29;
+const double crLHS31 = crLHS12*crLHS30;
+const double crLHS32 = N[2]*crLHS8 + crLHS1*(DN(0,0)*DN(2,0) + DN(0,1)*DN(2,1));
+const double crLHS33 = DN(3,0)*crLHS3;
+const double crLHS34 = DN(3,1)*crLHS5;
+const double crLHS35 = crLHS33 + crLHS34;
+const double crLHS36 = N[3]*crLHS0;
+const double crLHS37 = crLHS2*crLHS33;
+const double crLHS38 = crLHS2*crLHS34;
+const double crLHS39 = -crLHS36 + crLHS37 + crLHS38;
+const double crLHS40 = crLHS12*crLHS39;
+const double crLHS41 = N[3]*crLHS8 + crLHS1*(DN(0,0)*DN(3,0) + DN(0,1)*DN(3,1));
+const double crLHS42 = crLHS12*crLHS18;
+const double crLHS43 = N[2]*crLHS18 + crLHS1*(DN(1,0)*DN(2,0) + DN(1,1)*DN(2,1));
+const double crLHS44 = N[3]*crLHS18 + crLHS1*(DN(1,0)*DN(3,0) + DN(1,1)*DN(3,1));
+const double crLHS45 = crLHS12*crLHS27;
+const double crLHS46 = N[3]*crLHS27 + crLHS1*(DN(2,0)*DN(3,0) + DN(2,1)*DN(3,1));
+const double crLHS47 = crLHS12*crLHS36;
+rLHS(0,0)+=-gauss_weight*(-pow(N[0], 2)*crLHS0 + N[0]*crLHS2*crLHS7 - crLHS1*(pow(DN(0,0), 2) + pow(DN(0,1), 2)) - crLHS10*crLHS14 - crLHS11*crLHS13 - crLHS14*crLHS9);
+rLHS(0,1)+=-gauss_weight*(N[0]*crLHS17*crLHS2 - crLHS10*crLHS22 - crLHS13*crLHS21 - crLHS22*crLHS9 - crLHS23);
+rLHS(0,2)+=-gauss_weight*(N[0]*crLHS2*crLHS26 - crLHS10*crLHS31 - crLHS13*crLHS30 - crLHS31*crLHS9 - crLHS32);
+rLHS(0,3)+=-gauss_weight*(N[0]*crLHS2*crLHS35 - crLHS10*crLHS40 - crLHS13*crLHS39 - crLHS40*crLHS9 - crLHS41);
+rLHS(1,0)+=-gauss_weight*(N[1]*crLHS2*crLHS7 - crLHS11*crLHS42 - crLHS14*crLHS19 - crLHS14*crLHS20 - crLHS23);
+rLHS(1,1)+=-gauss_weight*(-pow(N[1], 2)*crLHS0 + N[1]*crLHS17*crLHS2 - crLHS1*(pow(DN(1,0), 2) + pow(DN(1,1), 2)) - crLHS19*crLHS22 - crLHS20*crLHS22 - crLHS21*crLHS42);
+rLHS(1,2)+=-gauss_weight*(N[1]*crLHS2*crLHS26 - crLHS19*crLHS31 - crLHS20*crLHS31 - crLHS30*crLHS42 - crLHS43);
+rLHS(1,3)+=-gauss_weight*(N[1]*crLHS2*crLHS35 - crLHS19*crLHS40 - crLHS20*crLHS40 - crLHS39*crLHS42 - crLHS44);
+rLHS(2,0)+=-gauss_weight*(N[2]*crLHS2*crLHS7 - crLHS11*crLHS45 - crLHS14*crLHS28 - crLHS14*crLHS29 - crLHS32);
+rLHS(2,1)+=-gauss_weight*(N[2]*crLHS17*crLHS2 - crLHS21*crLHS45 - crLHS22*crLHS28 - crLHS22*crLHS29 - crLHS43);
+rLHS(2,2)+=-gauss_weight*(-pow(N[2], 2)*crLHS0 + N[2]*crLHS2*crLHS26 - crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2)) - crLHS28*crLHS31 - crLHS29*crLHS31 - crLHS30*crLHS45);
+rLHS(2,3)+=-gauss_weight*(N[2]*crLHS2*crLHS35 - crLHS28*crLHS40 - crLHS29*crLHS40 - crLHS39*crLHS45 - crLHS46);
+rLHS(3,0)+=-gauss_weight*(N[3]*crLHS2*crLHS7 - crLHS11*crLHS47 - crLHS14*crLHS37 - crLHS14*crLHS38 - crLHS41);
+rLHS(3,1)+=-gauss_weight*(N[3]*crLHS17*crLHS2 - crLHS21*crLHS47 - crLHS22*crLHS37 - crLHS22*crLHS38 - crLHS44);
+rLHS(3,2)+=-gauss_weight*(N[3]*crLHS2*crLHS26 - crLHS30*crLHS47 - crLHS31*crLHS37 - crLHS31*crLHS38 - crLHS46);
+rLHS(3,3)+=-gauss_weight*(-pow(N[3], 2)*crLHS0 + N[3]*crLHS2*crLHS35 - crLHS1*(pow(DN(3,0), 2) + pow(DN(3,1), 2)) - crLHS37*crLHS40 - crLHS38*crLHS40 - crLHS39*crLHS47);
 
 }
 
@@ -1270,7 +1521,7 @@ const double crLHS11 = crLHS2*crLHS4;
 const double crLHS12 = crLHS2*crLHS6;
 const double crLHS13 = crLHS2*crLHS8;
 const double crLHS14 = -crLHS10 + crLHS11 + crLHS12 + crLHS13;
-const double crLHS15 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + crLHS2*stab_c2*sqrt(pow(crLHS3, 2) + pow(crLHS5, 2) + pow(crLHS7, 2))/h);
+const double crLHS15 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS3, 2) + pow(crLHS5, 2) + pow(crLHS7, 2))*fabs(crLHS2)/h);
 const double crLHS16 = crLHS10*crLHS15;
 const double crLHS17 = crLHS14*crLHS15;
 const double crLHS18 = DN(1,0)*crLHS3;
@@ -1363,6 +1614,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
     const array_1d<double,3>& source_adj = rData.SourceTerm_adj;
     const array_1d<double,3>& opt_t = rData.Optimization_Temperature;
+    const array_1d<double,3>& t = rData.Temperature;
+    const BoundedMatrix<double,2,3> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,3>& source = rData.SourceTerm;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
@@ -1370,25 +1624,110 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     // ADJOINT TRANSPORT ELEMENTAL RHS VECTOR
     const double crRHS0 = N[0]*source_adj[0] + N[1]*source_adj[1] + N[2]*source_adj[2];
 const double crRHS1 = 2.0*functional_weights[4]*(N[0]*opt_t[0] + N[1]*opt_t[1] + N[2]*opt_t[2]);
-const double crRHS2 = N[0]*k[0] + N[1]*k[1] + N[2]*k[2];
-const double crRHS3 = crRHS2*(N[0]*t_adj[0] + N[1]*t_adj[1] + N[2]*t_adj[2]);
-const double crRHS4 = D[0]*N[0] + D[1]*N[1] + D[2]*N[2];
-const double crRHS5 = DN(0,0)*t_adj[0] + DN(1,0)*t_adj[1] + DN(2,0)*t_adj[2];
-const double crRHS6 = DN(0,1)*t_adj[0] + DN(1,1)*t_adj[1] + DN(2,1)*t_adj[2];
-const double crRHS7 = N[0]*vconv_adj(0,0) + N[1]*vconv_adj(1,0) + N[2]*vconv_adj(2,0);
-const double crRHS8 = crRHS5*crRHS7;
-const double crRHS9 = N[0]*vconv_adj(0,1) + N[1]*vconv_adj(1,1) + N[2]*vconv_adj(2,1);
-const double crRHS10 = crRHS6*crRHS9;
-const double crRHS11 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2];
-const double crRHS12 = crRHS11*(crRHS10 + crRHS8);
-const double crRHS13 = 1.0*(crRHS0 - crRHS1 + crRHS10*crRHS11 + crRHS11*crRHS8 - crRHS3)/(crRHS11*stab_c2*sqrt(pow(crRHS7, 2) + pow(crRHS9, 2))/h + crRHS2*stab_c3 + crRHS4*stab_c1/pow(h, 2));
-const double crRHS14 = crRHS13*crRHS2;
-const double crRHS15 = crRHS11*crRHS13;
-const double crRHS16 = crRHS15*crRHS7;
-const double crRHS17 = crRHS15*crRHS9;
-rRHS[0]+=-gauss_weight*(DN(0,0)*crRHS16 + DN(0,1)*crRHS17 - N[0]*crRHS0 + N[0]*crRHS1 - N[0]*crRHS12 + N[0]*crRHS14 + N[0]*crRHS3 + crRHS4*(DN(0,0)*crRHS5 + DN(0,1)*crRHS6));
-rRHS[1]+=-gauss_weight*(DN(1,0)*crRHS16 + DN(1,1)*crRHS17 - N[1]*crRHS0 + N[1]*crRHS1 - N[1]*crRHS12 + N[1]*crRHS14 + N[1]*crRHS3 + crRHS4*(DN(1,0)*crRHS5 + DN(1,1)*crRHS6));
-rRHS[2]+=-gauss_weight*(DN(2,0)*crRHS16 + DN(2,1)*crRHS17 - N[2]*crRHS0 + N[2]*crRHS1 - N[2]*crRHS12 + N[2]*crRHS14 + N[2]*crRHS3 + crRHS4*(DN(2,0)*crRHS5 + DN(2,1)*crRHS6));
+const double crRHS2 = functional_weights[8]*(N[0]*source[0] + N[1]*source[1] + N[2]*source[2]);
+const double crRHS3 = N[0]*k[0] + N[1]*k[1] + N[2]*k[2];
+const double crRHS4 = crRHS3*(N[0]*t_adj[0] + N[1]*t_adj[1] + N[2]*t_adj[2]);
+const double crRHS5 = N[0]*t[0] + N[1]*t[1] + N[2]*t[2];
+const double crRHS6 = 2.0*crRHS3*crRHS5*functional_weights[7];
+const double crRHS7 = D[0]*N[0] + D[1]*N[1] + D[2]*N[2];
+const double crRHS8 = DN(0,0)*t_adj[0] + DN(1,0)*t_adj[1] + DN(2,0)*t_adj[2];
+const double crRHS9 = DN(0,1)*t_adj[0] + DN(1,1)*t_adj[1] + DN(2,1)*t_adj[2];
+const double crRHS10 = DN(0,0)*t[0] + DN(1,0)*t[1] + DN(2,0)*t[2];
+const double crRHS11 = DN(0,1)*t[0] + DN(1,1)*t[1] + DN(2,1)*t[2];
+const double crRHS12 = 2.0*crRHS7*functional_weights[5];
+const double crRHS13 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2];
+const double crRHS14 = N[0]*vconv_adj(0,0) + N[1]*vconv_adj(1,0) + N[2]*vconv_adj(2,0);
+const double crRHS15 = crRHS14*crRHS8;
+const double crRHS16 = N[0]*vconv_adj(0,1) + N[1]*vconv_adj(1,1) + N[2]*vconv_adj(2,1);
+const double crRHS17 = crRHS16*crRHS9;
+const double crRHS18 = crRHS13*(crRHS15 + crRHS17);
+const double crRHS19 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
+const double crRHS20 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
+const double crRHS21 = crRHS10*crRHS19 + crRHS11*crRHS20;
+const double crRHS22 = crRHS13*functional_weights[6];
+const double crRHS23 = 1.0*(crRHS0 - crRHS1 + crRHS13*crRHS15 + crRHS13*crRHS17 + crRHS2 - crRHS4 + crRHS5*functional_weights[6]*(crRHS19*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2]) + crRHS20*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2])) - crRHS6)/(crRHS3*stab_c3 + crRHS7*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS14, 2) + pow(crRHS16, 2))*fabs(crRHS13)/h);
+const double crRHS24 = crRHS23*crRHS3;
+const double crRHS25 = crRHS13*crRHS23;
+const double crRHS26 = crRHS14*crRHS25;
+const double crRHS27 = crRHS16*crRHS25;
+rRHS[0]+=-gauss_weight*(DN(0,0)*crRHS26 + DN(0,1)*crRHS27 - N[0]*crRHS0 + N[0]*crRHS1 - N[0]*crRHS18 - N[0]*crRHS2 + N[0]*crRHS24 + N[0]*crRHS4 + N[0]*crRHS6 + crRHS12*(DN(0,0)*crRHS10 + DN(0,1)*crRHS11) + crRHS22*(N[0]*crRHS21 + crRHS5*(DN(0,0)*crRHS19 + DN(0,1)*crRHS20)) + crRHS7*(DN(0,0)*crRHS8 + DN(0,1)*crRHS9));
+rRHS[1]+=-gauss_weight*(DN(1,0)*crRHS26 + DN(1,1)*crRHS27 - N[1]*crRHS0 + N[1]*crRHS1 - N[1]*crRHS18 - N[1]*crRHS2 + N[1]*crRHS24 + N[1]*crRHS4 + N[1]*crRHS6 + crRHS12*(DN(1,0)*crRHS10 + DN(1,1)*crRHS11) + crRHS22*(N[1]*crRHS21 + crRHS5*(DN(1,0)*crRHS19 + DN(1,1)*crRHS20)) + crRHS7*(DN(1,0)*crRHS8 + DN(1,1)*crRHS9));
+rRHS[2]+=-gauss_weight*(DN(2,0)*crRHS26 + DN(2,1)*crRHS27 - N[2]*crRHS0 + N[2]*crRHS1 - N[2]*crRHS18 - N[2]*crRHS2 + N[2]*crRHS24 + N[2]*crRHS4 + N[2]*crRHS6 + crRHS12*(DN(2,0)*crRHS10 + DN(2,1)*crRHS11) + crRHS22*(N[2]*crRHS21 + crRHS5*(DN(2,0)*crRHS19 + DN(2,1)*crRHS20)) + crRHS7*(DN(2,0)*crRHS8 + DN(2,1)*crRHS9));
+
+}
+
+template <>
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointRHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<2,4,true>& rData,
+    VectorType& rRHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    // const double dt = rData.DeltaTime;
+    // const double bdf0 = rData.bdf0;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // const double dyn_tau = rData.DynamicTau;
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    Vector functional_weights = rData.Functional_Weights; //  functional terms weights
+
+    const array_1d<double,4>& t_adj = rData.Temperature_adj;
+    const array_1d<double,4>& tn_adj = rData.Temperature_adj_OldStep1;
+    const array_1d<double,4>& tnn_adj = rData.Temperature_adj_OldStep2;
+    const BoundedMatrix<double,2,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
+    const array_1d<double,4>& opt_t = rData.Optimization_Temperature;
+    const array_1d<double,4>& t = rData.Temperature;
+    const BoundedMatrix<double,2,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
+
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // ADJOINT TRANSPORT ELEMENTAL RHS VECTOR
+    const double crRHS0 = N[0]*source_adj[0] + N[1]*source_adj[1] + N[2]*source_adj[2] + N[3]*source_adj[3];
+const double crRHS1 = 2.0*functional_weights[4]*(N[0]*opt_t[0] + N[1]*opt_t[1] + N[2]*opt_t[2] + N[3]*opt_t[3]);
+const double crRHS2 = functional_weights[8]*(N[0]*source[0] + N[1]*source[1] + N[2]*source[2] + N[3]*source[3]);
+const double crRHS3 = N[0]*k[0] + N[1]*k[1] + N[2]*k[2] + N[3]*k[3];
+const double crRHS4 = crRHS3*(N[0]*t_adj[0] + N[1]*t_adj[1] + N[2]*t_adj[2] + N[3]*t_adj[3]);
+const double crRHS5 = N[0]*t[0] + N[1]*t[1] + N[2]*t[2] + N[3]*t[3];
+const double crRHS6 = 2.0*crRHS3*crRHS5*functional_weights[7];
+const double crRHS7 = D[0]*N[0] + D[1]*N[1] + D[2]*N[2] + D[3]*N[3];
+const double crRHS8 = DN(0,0)*t_adj[0] + DN(1,0)*t_adj[1] + DN(2,0)*t_adj[2] + DN(3,0)*t_adj[3];
+const double crRHS9 = DN(0,1)*t_adj[0] + DN(1,1)*t_adj[1] + DN(2,1)*t_adj[2] + DN(3,1)*t_adj[3];
+const double crRHS10 = DN(0,0)*t[0] + DN(1,0)*t[1] + DN(2,0)*t[2] + DN(3,0)*t[3];
+const double crRHS11 = DN(0,1)*t[0] + DN(1,1)*t[1] + DN(2,1)*t[2] + DN(3,1)*t[3];
+const double crRHS12 = 2.0*crRHS7*functional_weights[5];
+const double crRHS13 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
+const double crRHS14 = N[0]*vconv_adj(0,0) + N[1]*vconv_adj(1,0) + N[2]*vconv_adj(2,0) + N[3]*vconv_adj(3,0);
+const double crRHS15 = crRHS14*crRHS8;
+const double crRHS16 = N[0]*vconv_adj(0,1) + N[1]*vconv_adj(1,1) + N[2]*vconv_adj(2,1) + N[3]*vconv_adj(3,1);
+const double crRHS17 = crRHS16*crRHS9;
+const double crRHS18 = crRHS13*(crRHS15 + crRHS17);
+const double crRHS19 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
+const double crRHS20 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
+const double crRHS21 = crRHS10*crRHS19 + crRHS11*crRHS20;
+const double crRHS22 = crRHS13*functional_weights[6];
+const double crRHS23 = 1.0*(crRHS0 - crRHS1 + crRHS13*crRHS15 + crRHS13*crRHS17 + crRHS2 - crRHS4 + crRHS5*functional_weights[6]*(crRHS19*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2] + DN(3,0)*c[3]) + crRHS20*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2] + DN(3,1)*c[3])) - crRHS6)/(crRHS3*stab_c3 + crRHS7*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS14, 2) + pow(crRHS16, 2))*fabs(crRHS13)/h);
+const double crRHS24 = crRHS23*crRHS3;
+const double crRHS25 = crRHS13*crRHS23;
+const double crRHS26 = crRHS14*crRHS25;
+const double crRHS27 = crRHS16*crRHS25;
+rRHS[0]+=-gauss_weight*(DN(0,0)*crRHS26 + DN(0,1)*crRHS27 - N[0]*crRHS0 + N[0]*crRHS1 - N[0]*crRHS18 - N[0]*crRHS2 + N[0]*crRHS24 + N[0]*crRHS4 + N[0]*crRHS6 + crRHS12*(DN(0,0)*crRHS10 + DN(0,1)*crRHS11) + crRHS22*(N[0]*crRHS21 + crRHS5*(DN(0,0)*crRHS19 + DN(0,1)*crRHS20)) + crRHS7*(DN(0,0)*crRHS8 + DN(0,1)*crRHS9));
+rRHS[1]+=-gauss_weight*(DN(1,0)*crRHS26 + DN(1,1)*crRHS27 - N[1]*crRHS0 + N[1]*crRHS1 - N[1]*crRHS18 - N[1]*crRHS2 + N[1]*crRHS24 + N[1]*crRHS4 + N[1]*crRHS6 + crRHS12*(DN(1,0)*crRHS10 + DN(1,1)*crRHS11) + crRHS22*(N[1]*crRHS21 + crRHS5*(DN(1,0)*crRHS19 + DN(1,1)*crRHS20)) + crRHS7*(DN(1,0)*crRHS8 + DN(1,1)*crRHS9));
+rRHS[2]+=-gauss_weight*(DN(2,0)*crRHS26 + DN(2,1)*crRHS27 - N[2]*crRHS0 + N[2]*crRHS1 - N[2]*crRHS18 - N[2]*crRHS2 + N[2]*crRHS24 + N[2]*crRHS4 + N[2]*crRHS6 + crRHS12*(DN(2,0)*crRHS10 + DN(2,1)*crRHS11) + crRHS22*(N[2]*crRHS21 + crRHS5*(DN(2,0)*crRHS19 + DN(2,1)*crRHS20)) + crRHS7*(DN(2,0)*crRHS8 + DN(2,1)*crRHS9));
+rRHS[3]+=-gauss_weight*(DN(3,0)*crRHS26 + DN(3,1)*crRHS27 - N[3]*crRHS0 + N[3]*crRHS1 - N[3]*crRHS18 - N[3]*crRHS2 + N[3]*crRHS24 + N[3]*crRHS4 + N[3]*crRHS6 + crRHS12*(DN(3,0)*crRHS10 + DN(3,1)*crRHS11) + crRHS22*(N[3]*crRHS21 + crRHS5*(DN(3,0)*crRHS19 + DN(3,1)*crRHS20)) + crRHS7*(DN(3,0)*crRHS8 + DN(3,1)*crRHS9));
 
 }
 
@@ -1424,6 +1763,9 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectiveVelocity - rData.MeshVelocity;
     const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
     const array_1d<double,4>& opt_t = rData.Optimization_Temperature;
+    const array_1d<double,4>& t = rData.Temperature;
+    const BoundedMatrix<double,3,4> vconv = rData.ConvectiveVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
@@ -1431,30 +1773,42 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     // ADJOINT TRANSPORT ELEMENTAL RHS VECTOR
     const double crRHS0 = N[0]*source_adj[0] + N[1]*source_adj[1] + N[2]*source_adj[2] + N[3]*source_adj[3];
 const double crRHS1 = 2.0*functional_weights[4]*(N[0]*opt_t[0] + N[1]*opt_t[1] + N[2]*opt_t[2] + N[3]*opt_t[3]);
-const double crRHS2 = N[0]*k[0] + N[1]*k[1] + N[2]*k[2] + N[3]*k[3];
-const double crRHS3 = crRHS2*(N[0]*t_adj[0] + N[1]*t_adj[1] + N[2]*t_adj[2] + N[3]*t_adj[3]);
-const double crRHS4 = D[0]*N[0] + D[1]*N[1] + D[2]*N[2] + D[3]*N[3];
-const double crRHS5 = DN(0,0)*t_adj[0] + DN(1,0)*t_adj[1] + DN(2,0)*t_adj[2] + DN(3,0)*t_adj[3];
-const double crRHS6 = DN(0,1)*t_adj[0] + DN(1,1)*t_adj[1] + DN(2,1)*t_adj[2] + DN(3,1)*t_adj[3];
-const double crRHS7 = DN(0,2)*t_adj[0] + DN(1,2)*t_adj[1] + DN(2,2)*t_adj[2] + DN(3,2)*t_adj[3];
-const double crRHS8 = N[0]*vconv_adj(0,0) + N[1]*vconv_adj(1,0) + N[2]*vconv_adj(2,0) + N[3]*vconv_adj(3,0);
-const double crRHS9 = crRHS5*crRHS8;
-const double crRHS10 = N[0]*vconv_adj(0,1) + N[1]*vconv_adj(1,1) + N[2]*vconv_adj(2,1) + N[3]*vconv_adj(3,1);
-const double crRHS11 = crRHS10*crRHS6;
-const double crRHS12 = N[0]*vconv_adj(0,2) + N[1]*vconv_adj(1,2) + N[2]*vconv_adj(2,2) + N[3]*vconv_adj(3,2);
-const double crRHS13 = crRHS12*crRHS7;
-const double crRHS14 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
-const double crRHS15 = crRHS14*(crRHS11 + crRHS13 + crRHS9);
-const double crRHS16 = 1.0*(crRHS0 - crRHS1 + crRHS11*crRHS14 + crRHS13*crRHS14 + crRHS14*crRHS9 - crRHS3)/(crRHS14*stab_c2*sqrt(pow(crRHS10, 2) + pow(crRHS12, 2) + pow(crRHS8, 2))/h + crRHS2*stab_c3 + crRHS4*stab_c1/pow(h, 2));
-const double crRHS17 = crRHS16*crRHS2;
-const double crRHS18 = crRHS14*crRHS16;
-const double crRHS19 = crRHS18*crRHS8;
-const double crRHS20 = crRHS10*crRHS18;
-const double crRHS21 = crRHS12*crRHS18;
-rRHS[0]+=-gauss_weight*(DN(0,0)*crRHS19 + DN(0,1)*crRHS20 + DN(0,2)*crRHS21 - N[0]*crRHS0 + N[0]*crRHS1 - N[0]*crRHS15 + N[0]*crRHS17 + N[0]*crRHS3 + crRHS4*(DN(0,0)*crRHS5 + DN(0,1)*crRHS6 + DN(0,2)*crRHS7));
-rRHS[1]+=-gauss_weight*(DN(1,0)*crRHS19 + DN(1,1)*crRHS20 + DN(1,2)*crRHS21 - N[1]*crRHS0 + N[1]*crRHS1 - N[1]*crRHS15 + N[1]*crRHS17 + N[1]*crRHS3 + crRHS4*(DN(1,0)*crRHS5 + DN(1,1)*crRHS6 + DN(1,2)*crRHS7));
-rRHS[2]+=-gauss_weight*(DN(2,0)*crRHS19 + DN(2,1)*crRHS20 + DN(2,2)*crRHS21 - N[2]*crRHS0 + N[2]*crRHS1 - N[2]*crRHS15 + N[2]*crRHS17 + N[2]*crRHS3 + crRHS4*(DN(2,0)*crRHS5 + DN(2,1)*crRHS6 + DN(2,2)*crRHS7));
-rRHS[3]+=-gauss_weight*(DN(3,0)*crRHS19 + DN(3,1)*crRHS20 + DN(3,2)*crRHS21 - N[3]*crRHS0 + N[3]*crRHS1 - N[3]*crRHS15 + N[3]*crRHS17 + N[3]*crRHS3 + crRHS4*(DN(3,0)*crRHS5 + DN(3,1)*crRHS6 + DN(3,2)*crRHS7));
+const double crRHS2 = functional_weights[8]*(N[0]*source[0] + N[1]*source[1] + N[2]*source[2] + N[3]*source[3]);
+const double crRHS3 = N[0]*k[0] + N[1]*k[1] + N[2]*k[2] + N[3]*k[3];
+const double crRHS4 = crRHS3*(N[0]*t_adj[0] + N[1]*t_adj[1] + N[2]*t_adj[2] + N[3]*t_adj[3]);
+const double crRHS5 = N[0]*t[0] + N[1]*t[1] + N[2]*t[2] + N[3]*t[3];
+const double crRHS6 = 2.0*crRHS3*crRHS5*functional_weights[7];
+const double crRHS7 = D[0]*N[0] + D[1]*N[1] + D[2]*N[2] + D[3]*N[3];
+const double crRHS8 = DN(0,0)*t_adj[0] + DN(1,0)*t_adj[1] + DN(2,0)*t_adj[2] + DN(3,0)*t_adj[3];
+const double crRHS9 = DN(0,1)*t_adj[0] + DN(1,1)*t_adj[1] + DN(2,1)*t_adj[2] + DN(3,1)*t_adj[3];
+const double crRHS10 = DN(0,2)*t_adj[0] + DN(1,2)*t_adj[1] + DN(2,2)*t_adj[2] + DN(3,2)*t_adj[3];
+const double crRHS11 = DN(0,0)*t[0] + DN(1,0)*t[1] + DN(2,0)*t[2] + DN(3,0)*t[3];
+const double crRHS12 = DN(0,1)*t[0] + DN(1,1)*t[1] + DN(2,1)*t[2] + DN(3,1)*t[3];
+const double crRHS13 = DN(0,2)*t[0] + DN(1,2)*t[1] + DN(2,2)*t[2] + DN(3,2)*t[3];
+const double crRHS14 = 2.0*crRHS7*functional_weights[5];
+const double crRHS15 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
+const double crRHS16 = N[0]*vconv_adj(0,0) + N[1]*vconv_adj(1,0) + N[2]*vconv_adj(2,0) + N[3]*vconv_adj(3,0);
+const double crRHS17 = crRHS16*crRHS8;
+const double crRHS18 = N[0]*vconv_adj(0,1) + N[1]*vconv_adj(1,1) + N[2]*vconv_adj(2,1) + N[3]*vconv_adj(3,1);
+const double crRHS19 = crRHS18*crRHS9;
+const double crRHS20 = N[0]*vconv_adj(0,2) + N[1]*vconv_adj(1,2) + N[2]*vconv_adj(2,2) + N[3]*vconv_adj(3,2);
+const double crRHS21 = crRHS10*crRHS20;
+const double crRHS22 = crRHS15*(crRHS17 + crRHS19 + crRHS21);
+const double crRHS23 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
+const double crRHS24 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
+const double crRHS25 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
+const double crRHS26 = crRHS11*crRHS23 + crRHS12*crRHS24 + crRHS13*crRHS25;
+const double crRHS27 = crRHS15*functional_weights[6];
+const double crRHS28 = 1.0*(crRHS0 - crRHS1 + crRHS15*crRHS17 + crRHS15*crRHS19 + crRHS15*crRHS21 + crRHS2 - crRHS4 + crRHS5*functional_weights[6]*(crRHS23*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2] + DN(3,0)*c[3]) + crRHS24*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2] + DN(3,1)*c[3]) + crRHS25*(DN(0,2)*c[0] + DN(1,2)*c[1] + DN(2,2)*c[2] + DN(3,2)*c[3])) - crRHS6)/(crRHS3*stab_c3 + crRHS7*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS16, 2) + pow(crRHS18, 2) + pow(crRHS20, 2))*fabs(crRHS15)/h);
+const double crRHS29 = crRHS28*crRHS3;
+const double crRHS30 = crRHS15*crRHS28;
+const double crRHS31 = crRHS16*crRHS30;
+const double crRHS32 = crRHS18*crRHS30;
+const double crRHS33 = crRHS20*crRHS30;
+rRHS[0]+=-gauss_weight*(DN(0,0)*crRHS31 + DN(0,1)*crRHS32 + DN(0,2)*crRHS33 - N[0]*crRHS0 + N[0]*crRHS1 - N[0]*crRHS2 - N[0]*crRHS22 + N[0]*crRHS29 + N[0]*crRHS4 + N[0]*crRHS6 + crRHS14*(DN(0,0)*crRHS11 + DN(0,1)*crRHS12 + DN(0,2)*crRHS13) + crRHS27*(N[0]*crRHS26 + crRHS5*(DN(0,0)*crRHS23 + DN(0,1)*crRHS24 + DN(0,2)*crRHS25)) + crRHS7*(DN(0,0)*crRHS8 + DN(0,1)*crRHS9 + DN(0,2)*crRHS10));
+rRHS[1]+=-gauss_weight*(DN(1,0)*crRHS31 + DN(1,1)*crRHS32 + DN(1,2)*crRHS33 - N[1]*crRHS0 + N[1]*crRHS1 - N[1]*crRHS2 - N[1]*crRHS22 + N[1]*crRHS29 + N[1]*crRHS4 + N[1]*crRHS6 + crRHS14*(DN(1,0)*crRHS11 + DN(1,1)*crRHS12 + DN(1,2)*crRHS13) + crRHS27*(N[1]*crRHS26 + crRHS5*(DN(1,0)*crRHS23 + DN(1,1)*crRHS24 + DN(1,2)*crRHS25)) + crRHS7*(DN(1,0)*crRHS8 + DN(1,1)*crRHS9 + DN(1,2)*crRHS10));
+rRHS[2]+=-gauss_weight*(DN(2,0)*crRHS31 + DN(2,1)*crRHS32 + DN(2,2)*crRHS33 - N[2]*crRHS0 + N[2]*crRHS1 - N[2]*crRHS2 - N[2]*crRHS22 + N[2]*crRHS29 + N[2]*crRHS4 + N[2]*crRHS6 + crRHS14*(DN(2,0)*crRHS11 + DN(2,1)*crRHS12 + DN(2,2)*crRHS13) + crRHS27*(N[2]*crRHS26 + crRHS5*(DN(2,0)*crRHS23 + DN(2,1)*crRHS24 + DN(2,2)*crRHS25)) + crRHS7*(DN(2,0)*crRHS8 + DN(2,1)*crRHS9 + DN(2,2)*crRHS10));
+rRHS[3]+=-gauss_weight*(DN(3,0)*crRHS31 + DN(3,1)*crRHS32 + DN(3,2)*crRHS33 - N[3]*crRHS0 + N[3]*crRHS1 - N[3]*crRHS2 - N[3]*crRHS22 + N[3]*crRHS29 + N[3]*crRHS4 + N[3]*crRHS6 + crRHS14*(DN(3,0)*crRHS11 + DN(3,1)*crRHS12 + DN(3,2)*crRHS13) + crRHS27*(N[3]*crRHS26 + crRHS5*(DN(3,0)*crRHS23 + DN(3,1)*crRHS24 + DN(3,2)*crRHS25)) + crRHS7*(DN(3,0)*crRHS8 + DN(3,1)*crRHS9 + DN(3,2)*crRHS10));
  
 }
 
@@ -1527,6 +1881,7 @@ void TransportTopologyOptimizationElement<TElementData>::load(Serializer& rSeria
 // Template class instantiation
 
 template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,3,true> >;
+template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true> >;
 template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<3,4,true> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

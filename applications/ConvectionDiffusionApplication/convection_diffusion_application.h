@@ -289,6 +289,7 @@ private:
 
     // Topology Optimization Fluid Transport Element
     const TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,3,true>> mTransportTopologyOptimizationElement2D3N;
+    const TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,4,true>> mTransportTopologyOptimizationElement2D4N;
     const TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<3,4,true>> mTransportTopologyOptimizationElement3D4N;
 
     ///@}

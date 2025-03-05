@@ -69,6 +69,7 @@ public:
     NodalScalarData Resistance;     // Darcy's law resistance 
     double DeltaTime;      // Time increment
     double ElementSize;    // Element Characteristic Length (size)
+    NodalScalarData TransportCouplingConvectionCoefficient;
 
     // COMMON STABILIZATION QUANTITIES
     double DynamicTau;     // Dynamic tau considered in ASGS stabilization coefficients
