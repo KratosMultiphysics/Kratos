@@ -75,6 +75,17 @@ double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
     return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
 }
 
+std::pair<std::string, double> GetMinAllowableDeltaTimeFrom(const Parameters& rProjectParameters)
+{
+    if (rProjectParameters["solver_settings"]["time_stepping"].Has("minimum_allowable_value")) {
+        return {"set",
+                rProjectParameters["solver_settings"]["time_stepping"]["minimum_allowable_value"].GetDouble()};
+    } else {
+        constexpr auto minimum_allowable_value = 1e-10;
+        return {"default", minimum_allowable_value};
+    }
+}
+
 std::size_t GetMinNumberOfIterationsFrom(const Parameters& rProjectParameters)
 {
     return static_cast<std::size_t>(rProjectParameters["solver_settings"]["min_iterations"].GetInt());
@@ -323,10 +334,10 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
     // For now, we can create adaptive time incrementors only
     return std::make_unique<AdaptiveTimeIncrementor>(
         GetStartTimeFrom(rProjectParameters), GetEndTimeFrom(rProjectParameters),
-        GetTimeIncrementFrom(rProjectParameters), GetMaxNumberOfCyclesFrom(rProjectParameters),
-        GetReductionFactorFrom(rProjectParameters), GetIncreaseFactorFrom(rProjectParameters),
-        GetMaxDeltaTimeFactorFrom(rProjectParameters), GetMinNumberOfIterationsFrom(rProjectParameters),
-        GetMaxNumberOfIterationsFrom(rProjectParameters));
+        GetTimeIncrementFrom(rProjectParameters), GetMinAllowableDeltaTimeFrom(rProjectParameters),
+        GetMaxNumberOfCyclesFrom(rProjectParameters), GetReductionFactorFrom(rProjectParameters),
+        GetIncreaseFactorFrom(rProjectParameters), GetMaxDeltaTimeFactorFrom(rProjectParameters),
+        GetMinNumberOfIterationsFrom(rProjectParameters), GetMaxNumberOfIterationsFrom(rProjectParameters));
 }
 
 std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const Parameters& rProjectParameters,
