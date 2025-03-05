@@ -112,4 +112,192 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_VECTOR_EQ(cauchy_stress_vector, expected_cauchy_stress_vector);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATION_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSION_CUTOFF, 10.0);
+    parameters.SetMaterialProperties(properties);
+    ProcessInfo process;
+
+    // Act
+    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
+    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    Vector mapped_stress_vector;
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
+    expected_cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
+    KRATOS_EXPECT_VECTOR_EQ(mapped_stress_vector, expected_cauchy_stress_vector);
+
+    // Act
+    cauchy_stress_vector <<= 8.0, 6.0, 4.0, 0.0;
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    expected_cauchy_stress_vector <<= 8.0, 6.0, 4.0, 0.0;
+    KRATOS_EXPECT_VECTOR_EQ(mapped_stress_vector, expected_cauchy_stress_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATION_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSION_CUTOFF, 10.0);
+    parameters.SetMaterialProperties(properties);
+    ProcessInfo process;
+
+    // Act
+    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    cauchy_stress_vector <<= 8.0, 0.0, -12.0, 0.0;
+    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    Vector mapped_stress_vector;
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
+    expected_cauchy_stress_vector <<= 7.338673315592010089, 0.0, -11.338673315592010089, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+
+    // Act
+    cauchy_stress_vector <<= 12.0, 0.0, -16.0, 0.0;
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    expected_cauchy_stress_vector <<= 7.338673315592010089, 0.0, -11.338673315592010089, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATION_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSION_CUTOFF, 10.0);
+    parameters.SetMaterialProperties(properties);
+    ProcessInfo process;
+
+    // Act
+    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    cauchy_stress_vector <<= 14.0, 8.0, 2.0, 0.0;
+    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    Vector mapped_stress_vector;
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
+    expected_cauchy_stress_vector <<= 10.0, 8.0, -1.5179192179966735, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+
+    // Act
+    cauchy_stress_vector <<= 24.0, 8.0, -8.0, 0.0;
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    expected_cauchy_stress_vector <<= 10.0, 8.0, -1.5179192179966735, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtAxialTensionZone,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    auto plane_strain = std::make_unique<PlaneStrain>();
+    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATION_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSION_CUTOFF, 10.0);
+    parameters.SetMaterialProperties(properties);
+    ProcessInfo process;
+
+    // Act
+    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    cauchy_stress_vector <<= 12.0, 9.0, 8.0, 0.0;
+    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    Vector mapped_stress_vector;
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
+    expected_cauchy_stress_vector <<= 10.0, 9.0, 6.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+
+    // Act
+    cauchy_stress_vector <<= 14.0, 9.0, 6.0, 0.0;
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    expected_cauchy_stress_vector <<= 10.0, 9.0, 2.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing

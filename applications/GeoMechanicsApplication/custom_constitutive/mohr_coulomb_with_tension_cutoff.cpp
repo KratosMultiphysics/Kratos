@@ -38,6 +38,25 @@ ConstitutiveLaw::Pointer MohrCoulombWithTensionCutOff::Clone() const
     return p_result;
 }
 
+Vector& MohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+{
+    if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+        rValue = mStressVector;
+    } else {
+        KRATOS_ERROR << "Can't get value of " << rThisVariable.Name() << ": unsupported variable\n";
+    }
+    return rValue;
+}
+
+void MohrCoulombWithTensionCutOff::SetValue(const Variable<Vector >& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
+        mStressVector = rValue;
+    } else {
+        KRATOS_ERROR << "Can't set value of " << rVariable.Name() << ": unsupported variable\n";
+    }
+}
+
 SizeType MohrCoulombWithTensionCutOff::WorkingSpaceDimension()
 {
     return mpConstitutiveDimension->GetDimension();
@@ -125,6 +144,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
     if (tension_cutoff < apex && trial_tau <= corner_point(1) && cutoff >= 0.0) {
         Vector modified_principal = this->ReturnStressAtAxialZone(principal_trial_stress_vector, tension_cutoff);
+        StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
         return;
     }
@@ -135,6 +155,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     if (derivative_flow_function <= 0.0) {
         Vector modified_principal =
             this->ReturnStressAtCornerReturnZone(principal_trial_stress_vector, corner_point);
+        StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
         mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
         return;
     }
@@ -142,6 +163,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     // Regular failure region
     Vector modified_principal = this->ReturnStressAtRegularFailureZone(
         principal_trial_stress_vector, mCoulombYieldSurface, friction_angle, cohesion);
+    StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
     mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
 }
 
@@ -202,7 +224,7 @@ Vector MohrCoulombWithTensionCutOff::RotatePrincipalStresses(const Vector& rPrin
                                                              const Matrix& rRotationMatrix) const
 {
     Matrix principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
-    Vector result = StressStrainUtilities::RotateStressMatrix(principal_stress_matrix, rRotationMatrix);
+    Vector result = StressStrainUtilities::RotateStressMatrix(principal_stress_matrix, rRotationMatrix, mpConstitutiveDimension->GetStrainSize());
     return result;
 }
 

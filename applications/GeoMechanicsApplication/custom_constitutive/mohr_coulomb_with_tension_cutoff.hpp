@@ -51,6 +51,8 @@ public:
     SizeType                               GetStrainSize() const override;
     StrainMeasure                          GetStrainMeasure() override;
 
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    void SetValue(const Variable<Vector >& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     int  Check(const Properties&   rMaterialProperties,
                const GeometryType& rElementGeometry,
                const ProcessInfo&  rCurrentProcessInfo) const override;

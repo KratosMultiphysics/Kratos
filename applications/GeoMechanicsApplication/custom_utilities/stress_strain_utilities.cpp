@@ -190,29 +190,23 @@ void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStre
     for (int i = 0; i < 3; ++i) {
         rPrincipalStressVector(i) = PrincipalStressMatrix(i, i);
     }
-    KRATOS_INFO("CalculatePrincipalStresses")
-        << "rPrincipalStressVector (1): " << rPrincipalStressVector << std::endl;
-    KRATOS_INFO("CalculatePrincipalStresses")
-        << "rEigenVectorsMatrix (1): " << rEigenVectorsMatrix << std::endl;
+    ReorderEigenValuesAndVectors(rPrincipalStressVector, rEigenVectorsMatrix);
+}
+
+void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector,
+                                      Matrix& rEigenVectorsMatrix)
+{
     std::vector<std::size_t> indices(rPrincipalStressVector.size());
     std::iota(indices.begin(), indices.end(), 0);
-    KRATOS_INFO("CalculatePrincipalStresses") << "indices (1): " << indices << std::endl;
     std::sort(indices.begin(), indices.end(), [&rPrincipalStressVector](const std::size_t i, const std::size_t j) {
-        return rPrincipalStressVector[j] < rPrincipalStressVector[i];
-    });
-    KRATOS_INFO("CalculatePrincipalStresses")
-        << "rPrincipalStressVector (2): " << rPrincipalStressVector << std::endl;
-    KRATOS_INFO("CalculatePrincipalStresses") << "indices (2): " << indices << std::endl;
+    return rPrincipalStressVector[j] < rPrincipalStressVector[i]; });
 
     std::vector<double> tmp_vector;
     tmp_vector.reserve(rPrincipalStressVector.size());
     for (const auto index : indices) {
         tmp_vector.push_back(rPrincipalStressVector[index]);
     }
-
     std::copy(tmp_vector.begin(), tmp_vector.end(), rPrincipalStressVector.begin());
-    KRATOS_INFO("CalculatePrincipalStresses")
-        << "rPrincipalStressVector (3): " << rPrincipalStressVector << std::endl;
 
     Matrix tmp_matrix(rEigenVectorsMatrix.size1(), rEigenVectorsMatrix.size2());
     for (auto i = std::size_t{0}; i < rEigenVectorsMatrix.size1(); ++i) {
@@ -220,10 +214,7 @@ void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStre
             tmp_matrix(i, j) = rEigenVectorsMatrix(i, indices[j]);
         }
     }
-
-    noalias(rEigenVectorsMatrix) = tmp_matrix;
-    KRATOS_INFO("CalculatePrincipalStresses")
-        << "rEigenVectorsMatrix (3): " << rEigenVectorsMatrix << std::endl;
+    rEigenVectorsMatrix = tmp_matrix;
 }
 
 Matrix StressStrainUtilities::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix)
@@ -237,11 +228,11 @@ Matrix StressStrainUtilities::CalculateRotationMatrix(const Matrix& eigenVectors
     return result;
 }
 
-Vector StressStrainUtilities::RotateStressMatrix(const Matrix& rStressMatrix, const Matrix& rRotationMatrix)
+Vector StressStrainUtilities::RotateStressMatrix(const Matrix& rStressMatrix, const Matrix& rRotationMatrix, std::size_t StressVectorSize)
 {
     Matrix temp                  = prod(rStressMatrix, trans(rRotationMatrix));
     Matrix rotated_stress_matrix = prod(rRotationMatrix, temp);
-    return MathUtils<double>::StressTensorToVector(rotated_stress_matrix);
+    return MathUtils<double>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
 } // namespace Kratos
