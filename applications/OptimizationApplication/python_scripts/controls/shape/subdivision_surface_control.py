@@ -168,14 +168,14 @@ class SubdivisionSurfaceControl(Control):
         # import pdb
         # pdb.set_trace()
 
-        print("MapGradient :: physical_gradient (KOA.SHAPE):\n", physical_gradient.Evaluate().shape)
+        # print("MapGradient :: physical_gradient (KOA.SHAPE):\n", physical_gradient.Evaluate().shape)
         #import pdb
         #pdb.set_trace()
         control_gradient = self.ProjectBackward(physical_gradient)
         # KOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(self.GetControlField(), physical_gradient, self.inverse_mapping_relation_matrix, self.control_polygon_model_part.Nodes)
         # KratosOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.Elements)
-        print("MapGradient :: physical_gradient:\n", physical_gradient.Evaluate())
-        print("MapGradient :: control_gradient:\n", control_gradient.Evaluate())
+        # print("MapGradient :: physical_gradient:\n", physical_gradient.Evaluate())
+        # print("MapGradient :: control_gradient:\n", control_gradient.Evaluate())
 
         # filtered_gradient = self.filter.BackwardFilterIntegratedField(KOA.ExpressionUtils.ExtractData(physical_gradient, self.model_part))
 
@@ -197,22 +197,25 @@ class SubdivisionSurfaceControl(Control):
 
         # new_control_field_array = control_field_array + control_polygon_update
 
-        print("Update :: new_control_field:\n", new_control_field.Evaluate())
-        print("Update :: self.control_field.PrintData():\n", self.control_field.Evaluate())
-        print("Update :: NormL2(self.control_field - new_control_field): ", KM.Expression.Utils.NormL2(self.control_field - new_control_field))
+        # print("Update :: new_control_field:\n", new_control_field.Evaluate())
+        # print("Update :: self.control_field.PrintData():\n", self.control_field.Evaluate())
+        # print("Update :: NormL2(self.control_field - new_control_field): ", KM.Expression.Utils.NormL2(self.control_field - new_control_field))
         
         if not IsSameContainerExpression(new_control_field, self.GetEmptyControlField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.control_polygon_model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
         # import pdb
         # pdb.set_trace()
+        
         if KM.Expression.Utils.NormL2(self.control_field - new_control_field) > 1e-15:
             # update the control SHAPE field
-            # control_update = new_control_field - self.control_field
+            control_update = new_control_field - self.control_field
             self.control_field = new_control_field
             # now update the physical field
             # new_physical_field = KM.Expression.NodalExpression(self.controlled_model_part)
             new_physical_field = self.GetPhysicalField()
-            KOA.ExpressionUtils.ProductWithEntityMatrix(new_physical_field, self.forward_matrix, new_control_field)
+            physical_field_update = KM.Expression.NodalExpression(self.controlled_model_part)
+            KOA.ExpressionUtils.ProductWithEntityMatrix(physical_field_update, self.forward_matrix, control_update)
+            new_physical_field += physical_field_update
             self._UpdateControlPolygon(self.control_field)
             self._UpdateMesh(new_physical_field)
 
