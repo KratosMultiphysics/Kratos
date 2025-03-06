@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosOptimizationApplication ****")
 set(OPENSUBDIV_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build")
-set(OPENSUBDIV_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build/bin")
+set(OPENSUBDIV_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build/opensubdiv")
 set(OPENSUBDIV_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/buil/lib")
 include_directories( ${OPENSUBDIV_INCLUDE_DIR} )
 # find_package(OpenSubdiv REQUIRED)
