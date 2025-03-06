@@ -39,8 +39,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.min_iterations      = solver_settings["min_iterations"].GetInt()
         self.max_delta_time_factor = solver_settings["time_stepping"]["max_delta_time_factor"].GetDouble() if solver_settings["time_stepping"].Has("max_delta_time_factor") else 1000.0
         self.max_delta_time      = self.delta_time * self.max_delta_time_factor
-        self.min_delta_time_set  = solver_settings["time_stepping"].Has("minimum_allowable_value")
-        self.min_delta_time      = solver_settings["time_stepping"]["minimum_allowable_value"].GetDouble() if self.min_delta_time_set else 1e-10
+        self.min_delta_time      = solver_settings["time_stepping"]["minimum_allowable_value"].GetDouble() if solver_settings["time_stepping"].Has("minimum_allowable_value") else None
         self.number_cycles       = solver_settings["number_cycles"].GetInt()
         self.max_iterations      = solver_settings["max_iterations"].GetInt()
         self.solution_type       = solver_settings["solution_type"].GetString()
@@ -74,13 +73,12 @@ class GeoMechanicsAnalysis(AnalysisStage):
         if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations:
             raise RuntimeError("max_number_of_iterations_exceeded")
 
-    def _check_delta_time_size(self):
-        if self.delta_time < self.min_delta_time:
-            if self.min_delta_time_set:
-                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "The time step ", self.delta_time, " is smaller than a given minimum value of ", self.min_delta_time)
-            else:
-                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "The time step ", self.delta_time, " is smaller than a default minimum value of ", self.min_delta_time)
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check settings in Project Parameters and Materials Files.")
+    def _CheckDeltaTimeSize(self):
+        min_delta_time = self._GetMinDeltaTimeValueOrDefault()
+        if self.delta_time < min_delta_time:
+            origin_of_value = "given" if self.min_delta_time is not None else "default"
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), f"The time step {self.delta_time} is smaller than a {origin_of_value} minimum value of {min_delta_time}")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check settings in Project Parameters and Materials files.")
             raise RuntimeError('The time step is too small!')
 
     def RunSolutionLoop(self):
@@ -107,13 +105,12 @@ class GeoMechanicsAnalysis(AnalysisStage):
             new_time        = t + self.delta_time
 
             # avoid very small remaining time steps
-            small_time_increment = 1.E-3 * self.delta_time
-            if self.end_time - new_time < small_time_increment:
+            if self.end_time - new_time < self._GetMinDeltaTimeValueOrDefault():
                 new_time = self.end_time
                 self.delta_time = new_time - t
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time without small increments: ", self.delta_time)
 
-            self._check_delta_time_size()
+            self._CheckDeltaTimeSize()
 
             # start the new step
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -159,7 +156,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                     # scale down step and restart
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                     self.delta_time *= self.reduction_factor
-                    self._check_delta_time_size()
+                    self._CheckDeltaTimeSize()
                     # Reset displacements to the initial
                     KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
                     for node in self._GetSolver().GetComputingModelPart().Nodes:
@@ -213,6 +210,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
 
     def _GetSimulationName(self):
         return "GeoMechanics Analysis"
+
+    def _GetMinDeltaTimeValueOrDefault(self):
+        return self.min_delta_time if self.min_delta_time is not None else 1.0e-10
 
 if __name__ == '__main__':
     from sys import argv

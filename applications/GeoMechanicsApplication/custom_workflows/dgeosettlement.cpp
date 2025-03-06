@@ -75,15 +75,13 @@ double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
     return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
 }
 
-std::pair<std::string, double> GetMinAllowableDeltaTimeFrom(const Parameters& rProjectParameters)
+std::optional<double> GetMaybeMinDeltaTimeFrom(const Parameters& rProjectParameters)
 {
-    if (rProjectParameters["solver_settings"]["time_stepping"].Has("minimum_allowable_value")) {
-        return {"given",
-                rProjectParameters["solver_settings"]["time_stepping"]["minimum_allowable_value"].GetDouble()};
-    } else {
-        constexpr auto minimum_allowable_value = 1e-10;
-        return {"default", minimum_allowable_value};
-    }
+    return rProjectParameters["solver_settings"]["time_stepping"].Has("minimum_allowable_value")
+               ? std::make_optional(rProjectParameters["solver_settings"]["time_stepping"]
+                                                      ["minimum_allowable_value"]
+                                                          .GetDouble())
+               : std::nullopt;
 }
 
 std::size_t GetMinNumberOfIterationsFrom(const Parameters& rProjectParameters)
@@ -334,9 +332,9 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
     // For now, we can create adaptive time incrementors only
     return std::make_unique<AdaptiveTimeIncrementor>(
         GetStartTimeFrom(rProjectParameters), GetEndTimeFrom(rProjectParameters),
-        GetTimeIncrementFrom(rProjectParameters), GetMinAllowableDeltaTimeFrom(rProjectParameters),
-        GetMaxNumberOfCyclesFrom(rProjectParameters), GetReductionFactorFrom(rProjectParameters),
-        GetIncreaseFactorFrom(rProjectParameters), GetMaxDeltaTimeFactorFrom(rProjectParameters),
+        GetTimeIncrementFrom(rProjectParameters), GetMaxNumberOfCyclesFrom(rProjectParameters),
+        GetReductionFactorFrom(rProjectParameters), GetIncreaseFactorFrom(rProjectParameters),
+        GetMaybeMinDeltaTimeFrom(rProjectParameters), GetMaxDeltaTimeFactorFrom(rProjectParameters),
         GetMinNumberOfIterationsFrom(rProjectParameters), GetMaxNumberOfIterationsFrom(rProjectParameters));
 }
 

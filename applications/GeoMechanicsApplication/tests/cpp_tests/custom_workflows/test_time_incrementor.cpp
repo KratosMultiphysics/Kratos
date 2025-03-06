@@ -22,24 +22,24 @@ namespace
 {
 
 struct AdaptiveTimeIncrementorSettings {
-    double                         StartTime{0.0};
-    double                         EndTime{8.0};
-    double                         StartIncrement{0.5};
-    std::pair<std::string, double> MinAllowableDeltaTime{"given", 1e-06};
-    std::size_t                    MaxNumOfCycles{8};
-    double                         ReductionFactor{0.5};
-    double                         IncreaseFactor{2.0};
-    double                         MaxDeltaTimeFactor{1000.0};
-    std::size_t                    MinNumOfIterations{3};
-    std::size_t                    MaxNumOfIterations{15};
+    double                StartTime{0.0};
+    double                EndTime{8.0};
+    double                StartIncrement{0.5};
+    std::optional<double> MaybeMinDeltaTime{std::make_optional(1e-06)};
+    std::size_t           MaxNumOfCycles{8};
+    double                ReductionFactor{0.5};
+    double                IncreaseFactor{2.0};
+    double                MaxDeltaTimeFactor{1000.0};
+    std::size_t           MinNumOfIterations{3};
+    std::size_t           MaxNumOfIterations{15};
 };
 
 AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncrementorSettings& rSettings)
 {
     return AdaptiveTimeIncrementor{rSettings.StartTime,          rSettings.EndTime,
-                                   rSettings.StartIncrement,     rSettings.MinAllowableDeltaTime,
-                                   rSettings.MaxNumOfCycles,     rSettings.ReductionFactor,
-                                   rSettings.IncreaseFactor,     rSettings.MaxDeltaTimeFactor,
+                                   rSettings.StartIncrement,     rSettings.MaxNumOfCycles,
+                                   rSettings.ReductionFactor,    rSettings.IncreaseFactor,
+                                   rSettings.MaybeMinDeltaTime,  rSettings.MaxDeltaTimeFactor,
                                    rSettings.MinNumOfIterations, rSettings.MaxNumOfIterations};
 }
 

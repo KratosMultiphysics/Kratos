@@ -19,23 +19,23 @@
 namespace Kratos
 {
 
-AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double StartTime,
-                                                 double EndTime,
-                                                 double StartIncrement,
-                                                 std::pair<std::string, double> MinAllowableDeltaTime,
-                                                 std::size_t MaxNumOfCycles,
-                                                 double      ReductionFactor,
-                                                 double      IncreaseFactor,
-                                                 double      MaxTimeStepFactor,
-                                                 std::size_t MinNumOfIterations,
-                                                 std::size_t MaxNumOfIterations)
+AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double                StartTime,
+                                                 double                EndTime,
+                                                 double                StartIncrement,
+                                                 std::size_t           MaxNumOfCycles,
+                                                 double                ReductionFactor,
+                                                 double                IncreaseFactor,
+                                                 std::optional<double> MaybeMinDeltaTime,
+                                                 double                MaxTimeStepFactor,
+                                                 std::size_t           MinNumOfIterations,
+                                                 std::size_t           MaxNumOfIterations)
     : TimeIncrementor(),
       mEndTime(EndTime),
       mDeltaTime(std::min(StartIncrement, EndTime - StartTime)), // avoid exceeding the end time
-      mMinAllowableDeltaTime(std::move(MinAllowableDeltaTime)),
       mMaxNumOfCycles(MaxNumOfCycles),
       mReductionFactor(ReductionFactor),
       mIncreaseFactor(IncreaseFactor),
+      mMaybeMinDeltaTime(std::move(MaybeMinDeltaTime)),
       mMaxDeltaTime(MaxTimeStepFactor * mDeltaTime),
       mMinNumOfIterations(MinNumOfIterations),
       mMaxNumOfIterations(MaxNumOfIterations)
@@ -75,6 +75,8 @@ double AdaptiveTimeIncrementor::GetIncrement() const { return mDeltaTime; }
 
 void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rResultantState)
 {
+    constexpr auto default_min_delta_time = 1.0e-10;
+
     if (rResultantState.Converged()) // it is converged also at the beginning of the cycles
     {
         if (rResultantState.num_of_iterations < mMinNumOfIterations) {
@@ -82,13 +84,11 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         } else if (rResultantState.num_of_iterations == mMaxNumOfIterations) {
             mDeltaTime *= mReductionFactor;
         }
-        if (rResultantState.time < mEndTime) {
-            // Up-scaling to reach end_time without small increments
-            constexpr auto small_increment_factor = 1.0e-3;
-            if (auto small_time_increment = small_increment_factor * mDeltaTime;
-                rResultantState.time + mDeltaTime > mEndTime - small_time_increment) {
-                mDeltaTime = mEndTime - rResultantState.time;
-            }
+
+        if (rResultantState.time < mEndTime && mEndTime - (rResultantState.time + mDeltaTime) <
+                                                   mMaybeMinDeltaTime.value_or(default_min_delta_time)) {
+            // Up-scaling to reach end_time without small increment
+            mDeltaTime = mEndTime - rResultantState.time;
         }
     }
 
@@ -97,9 +97,10 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         mDeltaTime *= mReductionFactor;
     }
 
-    KRATOS_ERROR_IF(mDeltaTime < mMinAllowableDeltaTime.second)
-        << "Delta time (" << mDeltaTime << ") is smaller than " << mMinAllowableDeltaTime.first << " minimum allowable value "
-        << mMinAllowableDeltaTime.second << std::endl;
+    KRATOS_ERROR_IF(mDeltaTime < mMaybeMinDeltaTime.value_or(default_min_delta_time))
+        << "Delta time (" << mDeltaTime << ") is smaller than "
+        << (mMaybeMinDeltaTime ? "given" : "default") << " minimum allowable value "
+        << mMaybeMinDeltaTime.value_or(default_min_delta_time) << std::endl;
 }
 
 } // namespace Kratos
