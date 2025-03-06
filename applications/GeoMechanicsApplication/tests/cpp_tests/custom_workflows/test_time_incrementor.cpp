@@ -10,6 +10,7 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Anne van de Graaf
 //                   Richard Faasse
+//                   Gennady Markelov
 //
 
 #include "custom_workflows/adaptive_time_incrementor.h"

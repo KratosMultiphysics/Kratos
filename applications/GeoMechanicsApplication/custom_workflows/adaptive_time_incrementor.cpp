@@ -77,7 +77,7 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
 {
     constexpr auto default_min_delta_time = 1.0e-10;
 
-    if (rResultantState.Converged()) // it is converged also at the beginning of the cycles
+    if (rResultantState.Converged())
     {
         if (rResultantState.num_of_iterations < mMinNumOfIterations) {
             mDeltaTime = std::min(mDeltaTime * mIncreaseFactor, mMaxDeltaTime);
