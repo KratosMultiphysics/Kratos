@@ -864,16 +864,23 @@ namespace Kratos
     // Compute the normal distance of a point (x,y) to a line segment edge with vertices (xa,ya)-(xb,yb).
     // If the point projection falls outside the segment, it returns the closest end point (xa,ya) or (xb,yb).
     double RVEWallBoundary2D::ComputeDistancePointToSegment(double x, double y, double xa, double ya, double xb, double yb) {
-        // Projection parameter (relative position) of point onto segment (xa,ya)->(xb,yb)
         double dx = xb - xa;
         double dy = yb - ya;
-        double t = ((x-xa)*dx + (y-ya)*dy) / (dx*dx + dy*dy);
+        double l2 = dx * dx + dy * dy;
+
+        // Avoid division by zero in case of degenerate segment
+        if (l2 == 0.0) return std::sqrt((x - xa) * (x - xa) + (y - ya) * (y - ya));
+
+        // Compute projection parameter t and clamp t to the segment range [0,1]
+        double t = ((x - xa) * dx + (y - ya) * dy) / l2;
         t = std::max(0.0, std::min(1.0, t));
 
-        // Distance to the closest point on the segment
+        // Compute closest point on the segment
         double near_x = xa + t * dx;
         double near_y = ya + t * dy;
-        return std::sqrt((x-near_x)*(x-near_x) + (y-near_x)*(y-near_x));
+
+        // Compute Euclidean distance
+        return std::sqrt((x - near_x) * (x - near_x) + (y - near_y) * (y - near_y));
     }
 
     //------------------------------------------------------------------------------------------------------------
