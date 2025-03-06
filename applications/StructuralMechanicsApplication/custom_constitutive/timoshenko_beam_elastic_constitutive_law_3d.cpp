@@ -112,63 +112,63 @@ void TimoshenkoBeamElasticConstitutiveLaw3D::CalculateMaterialResponseCauchy(Con
 {
     const auto& r_cl_law_options = rValues.GetOptions();
     const auto &r_material_properties = rValues.GetMaterialProperties();
-    const auto &r_strain_vector = rValues.GetStrainVector();
+    auto &r_strain_vector = rValues.GetStrainVector();
     AddInitialStrainVectorContribution(r_strain_vector);
-    const auto strain_size = GetStrainSize();
+    const SizeType strain_size = GetStrainSize();
 
-    // const double axial_strain    = r_strain_vector[0];
-    // const double curvature_x     = r_strain_vector[1];
-    // const double curvature_y     = r_strain_vector[2];
-    // const double curvature_z     = r_strain_vector[3];
-    // const double shear_strain_XY = r_strain_vector[4];
-    // const double shear_strain_XZ = r_strain_vector[5];
+    const double axial_strain    = r_strain_vector[0];
+    const double curvature_x     = r_strain_vector[1];
+    const double curvature_y     = r_strain_vector[2];
+    const double curvature_z     = r_strain_vector[3];
+    const double shear_strain_XY = r_strain_vector[4];
+    const double shear_strain_XZ = r_strain_vector[5];
 
-    // const double E    = r_material_properties[YOUNG_MODULUS];
-    // const double A    = r_material_properties[CROSS_AREA];
-    // const double I33  = r_material_properties[I33];
-    // const double I22  = r_material_properties[I22];
-    // const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
-    // const double A_sY = r_material_properties[AREA_EFFECTIVE_Y];
-    // const double A_sZ = r_material_properties[AREA_EFFECTIVE_Z];
+    const double E    = r_material_properties[YOUNG_MODULUS];
+    const double A    = r_material_properties[CROSS_AREA];
+    const double Iz  = r_material_properties[I33];
+    const double Iy  = r_material_properties[I22];
+    const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
+    const double A_sY = r_material_properties[AREA_EFFECTIVE_Y];
+    const double A_sZ = r_material_properties[AREA_EFFECTIVE_Z];
 
-    // if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-    //     auto &r_generalized_stress_vector = rValues.GetStressVector();
-    //     if (r_generalized_stress_vector.size() != strain_size)
-    //         r_generalized_stress_vector.resize(strain_size, false);
+    if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        auto &r_generalized_stress_vector = rValues.GetStressVector();
+        if (r_generalized_stress_vector.size() != strain_size)
+            r_generalized_stress_vector.resize(strain_size, false);
 
-    //     const double EA   = E * A;
-    //     const double EI22 = E * I22;
-    //     const double EI33 = E * I33;
-    //     const double GAsY = G * A_sY;
-    //     const double GAsZ = G * A_sZ;
+        const double EA   = E * A;
+        const double EIy = E * Iy;
+        const double EIz = E * Iz;
+        const double GAsY = G * A_sY;
+        const double GAsZ = G * A_sZ;
 
-    //     r_generalized_stress_vector[0] = EA * axial_strain;
-    //     r_generalized_stress_vector[1] = G * (I22 + I33) * curvature_x;
-    //     r_generalized_stress_vector[2] = EI22 * curvature_y;
-    //     r_generalized_stress_vector[3] = EI33 * curvature_z;
-    //     r_generalized_stress_vector[4] = GAsY * shear_strain_XY;
-    //     r_generalized_stress_vector[5] = GAsZ * shear_strain_XZ;
+        r_generalized_stress_vector[0] = EA * axial_strain;
+        r_generalized_stress_vector[1] = G * (I22 + I33) * curvature_x;
+        r_generalized_stress_vector[2] = EIy * curvature_y;
+        r_generalized_stress_vector[3] = EIz * curvature_z;
+        r_generalized_stress_vector[4] = GAsY * shear_strain_XY;
+        r_generalized_stress_vector[5] = GAsZ * shear_strain_XZ;
 
-    //     AddInitialStressVectorContribution(r_generalized_stress_vector);
+        AddInitialStressVectorContribution(r_generalized_stress_vector);
 
-    //     if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
-    //         r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
-    //     }
+        if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
+            r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
+        }
 
-    //     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-    //         auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
-    //         if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
-    //             r_stress_derivatives.resize(strain_size, strain_size, false);
-    //         r_stress_derivatives.clear();
+        if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
+            if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
+                r_stress_derivatives.resize(strain_size, strain_size, false);
+            r_stress_derivatives.clear();
 
-    //         r_stress_derivatives(0, 0) = EA;
-    //         r_stress_derivatives(1, 1) = G * (I22 + I33);
-    //         r_stress_derivatives(2, 2) = EI22;
-    //         r_stress_derivatives(3, 3) = EI33;
-    //         r_stress_derivatives(4, 4) = GAsY;
-    //         r_stress_derivatives(5, 5) = GAsZ;
-    //     }
-    // }
+            r_stress_derivatives(0, 0) = EA;
+            r_stress_derivatives(1, 1) = G * (Iy + Iz);
+            r_stress_derivatives(2, 2) = EIy;
+            r_stress_derivatives(3, 3) = EIz;
+            r_stress_derivatives(4, 4) = GAsY;
+            r_stress_derivatives(5, 5) = GAsZ;
+        }
+    }
 }
 
 } // Namespace Kratos
