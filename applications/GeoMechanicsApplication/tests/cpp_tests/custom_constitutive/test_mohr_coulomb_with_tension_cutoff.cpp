@@ -11,10 +11,11 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
-#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.hpp"
+#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "geo_mechanics_application_variables.h"
 
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -33,7 +34,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
+    // Arrange
     const auto original_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     // Act
@@ -47,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Clone, KratosGeoMechanics
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
+    // Arrange
     auto                        law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     ConstitutiveLaw::Parameters parameters;
     Properties                  properties(3);
@@ -83,40 +84,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchy,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Set
-    auto plane_strain = std::make_unique<PlaneStrain>();
-    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    ConstitutiveLaw::Parameters parameters;
-    Properties                  properties;
-    properties.SetValue(GEO_FRICTION_ANGLE, 10.0);
-    properties.SetValue(GEO_COHESION, 0.5);
-    properties.SetValue(GEO_DILATANCY_ANGLE, 5.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 0.5);
-    parameters.SetMaterialProperties(properties);
-
-    // Act
-    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
-    cauchy_stress_vector <<= -10.0, -10.0, -10.0, 0.0;
-    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
-    parameters.SetStrainVector(strain_vector);
-    parameters.SetStressVector(cauchy_stress_vector);
-    law.CalculateMaterialResponseCauchy(parameters);
-
-    // Assert
-    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
-    expected_cauchy_stress_vector <<= -10.0, -10.0, -10.0, 0.0;
-    KRATOS_EXPECT_VECTOR_EQ(cauchy_stress_vector, expected_cauchy_stress_vector);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
-    auto plane_strain = std::make_unique<PlaneStrain>();
+    // Arrange
     auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     ConstitutiveLaw::Parameters parameters;
@@ -129,9 +100,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     ProcessInfo process;
 
     // Act
-    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    Vector cauchy_stress_vector = ZeroVector(4);
     cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
-    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    Vector strain_vector = ZeroVector(4);
     parameters.SetStrainVector(strain_vector);
     parameters.SetStressVector(cauchy_stress_vector);
     law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
@@ -141,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
 
     // Assert
-    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
+    Vector expected_cauchy_stress_vector(4);
     expected_cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
     KRATOS_EXPECT_VECTOR_EQ(mapped_stress_vector, expected_cauchy_stress_vector);
 
@@ -162,8 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
-    auto plane_strain = std::make_unique<PlaneStrain>();
+    // Arrange
     auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     ConstitutiveLaw::Parameters parameters;
@@ -176,9 +146,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     ProcessInfo process;
 
     // Act
-    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    Vector cauchy_stress_vector = ZeroVector(4);
     cauchy_stress_vector <<= 8.0, 0.0, -12.0, 0.0;
-    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    Vector strain_vector = ZeroVector(4);
     parameters.SetStrainVector(strain_vector);
     parameters.SetStressVector(cauchy_stress_vector);
     law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
@@ -188,7 +158,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
 
     // Assert
-    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
+    Vector expected_cauchy_stress_vector(4);
     expected_cauchy_stress_vector <<= 7.338673315592010089, 0.0, -11.338673315592010089, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
@@ -209,8 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
-    auto plane_strain = std::make_unique<PlaneStrain>();
+    // Arrange
     auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     ConstitutiveLaw::Parameters parameters;
@@ -223,9 +192,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     ProcessInfo process;
 
     // Act
-    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    Vector cauchy_stress_vector = ZeroVector(4);
     cauchy_stress_vector <<= 14.0, 8.0, 2.0, 0.0;
-    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    Vector strain_vector = ZeroVector(4);
     parameters.SetStrainVector(strain_vector);
     parameters.SetStressVector(cauchy_stress_vector);
     law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
@@ -235,7 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
 
     // Assert
-    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
+    Vector expected_cauchy_stress_vector(4);
     expected_cauchy_stress_vector <<= 10.0, 8.0, -1.5179192179966735, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
@@ -256,8 +225,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtAxialTensionZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
-    auto plane_strain = std::make_unique<PlaneStrain>();
+    // Arrange
     auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     ConstitutiveLaw::Parameters parameters;
@@ -270,9 +238,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     ProcessInfo process;
 
     // Act
-    Vector cauchy_stress_vector = ZeroVector(plane_strain->GetStrainSize());
+    Vector cauchy_stress_vector = ZeroVector(4);
     cauchy_stress_vector <<= 12.0, 9.0, 8.0, 0.0;
-    Vector strain_vector = ZeroVector(plane_strain->GetStrainSize());
+    Vector strain_vector = ZeroVector(4);
     parameters.SetStrainVector(strain_vector);
     parameters.SetStressVector(cauchy_stress_vector);
     law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
@@ -282,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
 
     // Assert
-    Vector expected_cauchy_stress_vector(plane_strain->GetStrainSize());
+    Vector expected_cauchy_stress_vector(4);
     expected_cauchy_stress_vector <<= 10.0, 9.0, 6.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 

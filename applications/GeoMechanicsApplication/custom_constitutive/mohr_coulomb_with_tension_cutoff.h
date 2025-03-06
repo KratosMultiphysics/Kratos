@@ -20,9 +20,7 @@
 // Project includes
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
-#include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
-#include "includes/serializer.h"
 
 namespace Kratos
 {
