@@ -25,7 +25,7 @@ struct AdaptiveTimeIncrementorSettings {
     double                         StartTime{0.0};
     double                         EndTime{8.0};
     double                         StartIncrement{0.5};
-    std::pair<std::string, double> MinAllowableDeltaTime{"set", 1e-06};
+    std::pair<std::string, double> MinAllowableDeltaTime{"given", 1e-06};
     std::size_t                    MaxNumOfCycles{8};
     double                         ReductionFactor{0.5};
     double                         IncreaseFactor{2.0};
@@ -440,13 +440,13 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, Kratos
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         time_incrementor.PostTimeStepExecution(previous_state),
-        "Delta time (1e-07) is smaller than minimum allowable value 1e-06");
+        "Delta time (1e-07) is smaller than given minimum allowable value 1e-06");
 
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-    time_incrementor.PostTimeStepExecution(previous_state),
-    "Delta time (5e-08) is smaller than minimum allowable value 1e-06");
+        time_incrementor.PostTimeStepExecution(previous_state),
+        "Delta time (5e-08) is smaller than given minimum allowable value 1e-06");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HalfTimeStepAtNonConverged, KratosGeoMechanicsFastSuiteWithoutKernel)

@@ -80,7 +80,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "The time step ", self.delta_time, " is smaller than a given minimum value of ", self.min_delta_time)
             else:
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "The time step ", self.delta_time, " is smaller than a default minimum value of ", self.min_delta_time)
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check the case settings.")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check settings in Project Parameters and Materials Files.")
             raise RuntimeError('The time step is too small!')
 
     def RunSolutionLoop(self):
@@ -194,9 +194,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 self._GetSolver().GetComputingModelPart().Nodes, variable, zero_vector, 1)
 
     def PrintAnalysisStageProgressInformation(self):
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP       : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME       : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
 
     def _CreateSolver(self):
         return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)

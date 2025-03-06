@@ -84,8 +84,9 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         }
         if (rResultantState.time < mEndTime) {
             // Up-scaling to reach end_time without small increments
-            constexpr auto small_increment = 1.0e-3;
-            if (rResultantState.time + mDeltaTime > mEndTime - small_increment * mDeltaTime) {
+            constexpr auto small_increment_factor = 1.0e-3;
+            if (auto small_time_increment = small_increment_factor * mDeltaTime;
+                rResultantState.time + mDeltaTime > mEndTime - small_time_increment) {
                 mDeltaTime = mEndTime - rResultantState.time;
             }
         }
@@ -97,7 +98,7 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
     }
 
     KRATOS_ERROR_IF(mDeltaTime < mMinAllowableDeltaTime.second)
-        << "Delta time (" << mDeltaTime << ") is smaller than minimum allowable value "
+        << "Delta time (" << mDeltaTime << ") is smaller than " << mMinAllowableDeltaTime.first << " minimum allowable value "
         << mMinAllowableDeltaTime.second << std::endl;
 }
 

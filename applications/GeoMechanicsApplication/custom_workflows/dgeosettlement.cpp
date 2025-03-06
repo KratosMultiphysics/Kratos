@@ -78,7 +78,7 @@ double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
 std::pair<std::string, double> GetMinAllowableDeltaTimeFrom(const Parameters& rProjectParameters)
 {
     if (rProjectParameters["solver_settings"]["time_stepping"].Has("minimum_allowable_value")) {
-        return {"set",
+        return {"given",
                 rProjectParameters["solver_settings"]["time_stepping"]["minimum_allowable_value"].GetDouble()};
     } else {
         constexpr auto minimum_allowable_value = 1e-10;
