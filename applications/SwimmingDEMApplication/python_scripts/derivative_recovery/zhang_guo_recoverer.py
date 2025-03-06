@@ -15,6 +15,12 @@ class ZhangGuoGradientRecoverer(recoverer.GradientRecoverer):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_Y, Kratos.VELOCITY_Y_GRADIENT)
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_Z, Kratos.VELOCITY_Z_GRADIENT)
 
+        import numpy as np
+        for node in self.model_part.Nodes:
+            grad_v_x = node.GetSolutionStepValue(Kratos.VELOCITY_X_GRADIENT)
+            grad_v_y = node.GetSolutionStepValue(Kratos.VELOCITY_Y_GRADIENT)
+            grad_v_z = node.GetSolutionStepValue(Kratos.VELOCITY_Z_GRADIENT)
+
     def RecoverPressureGradient(self):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.PRESSURE, Fluid.RECOVERED_PRESSURE_GRADIENT)
     def RecoverFluidFractionGradient(self):

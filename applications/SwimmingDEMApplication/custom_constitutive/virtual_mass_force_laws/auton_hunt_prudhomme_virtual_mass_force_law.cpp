@@ -43,7 +43,6 @@ namespace Kratos {
                                                 const ProcessInfo& r_current_process_info)
     {
         const array_1d<double, 3>& fluid_acc = r_geometry[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
-        const double radius = r_geometry[0].FastGetSolutionStepValue(RADIUS);
 
         array_1d<double, 3> minus_slip_acc = fluid_acc; // the particle acceleration is assumed to be treated implicitly through the added_mass
         const double fluid_mass = displaced_volume * fluid_density;
@@ -51,6 +50,7 @@ namespace Kratos {
         mLastVirtualMassAddedMass = virtual_mass_coeff * fluid_mass;
 
         if (mDoApplyFaxenCorrections) {
+            const double radius = r_geometry[0].FastGetSolutionStepValue(RADIUS);
             const array_1d<double, 3>& fluid_vel_laplacian_rate = r_geometry[0].FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
             noalias(minus_slip_acc) -= 0.1 * radius * radius * fluid_vel_laplacian_rate; // add Faxen term
         }

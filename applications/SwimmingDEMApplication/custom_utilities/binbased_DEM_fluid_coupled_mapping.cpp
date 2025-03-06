@@ -50,6 +50,14 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     const int max_results = 100000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
+    // If the following is true, interpolate the fluid acceleration directly from
+    // the shape functions of the fluid's element
+    bool project_fluid_accel_using_shape_functions = false;
+    if (parameters["dem_parameters"].Has("project_fluid_accel_using_shape_functions"))
+    {
+        project_fluid_accel_using_shape_functions = parameters["dem_parameters"]["project_fluid_accel_using_shape_functions"].GetBool();
+    }
+
     #pragma omp parallel for firstprivate(results, shape_function_values_at_point)
     for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
         NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
@@ -70,11 +78,29 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
                 p_particle->Set(INSIDE, true);
 				VariablesList& dem_variables = mVariables.GetVariablesList("DEM");
                 for (unsigned int j = 0; j != dem_variables.size(); ++j){
-                    Project(p_element,
-                            shape_function_values_at_point,
-                            p_particle,
-                            dem_variables[j],
-                            alpha);
+                    if (*(dem_variables[j]) == FLUID_ACCEL_PROJECTED && project_fluid_accel_using_shape_functions)
+                    {
+                        std::cout << "Projecting using shape functions" << std::endl;
+                        ProjectFluidAccelUsingShapeFunctions(p_element,
+                                                  shape_function_values_at_point,
+                                                  p_particle,
+                                                  dem_variables[j],
+                                                  alpha);
+                    } else if (*(dem_variables[j]) == FLUID_VEL_PROJECTED && project_fluid_accel_using_shape_functions) {
+                        std::cout << "Projecting using shape functions" << std::endl;
+                        ProjectFluidVelocityUsingShapeFunctions(p_element,
+                                                  shape_function_values_at_point,
+                                                  p_particle,
+                                                  dem_variables[j],
+                                                  alpha);
+
+                    } else {
+                        Project(p_element,
+                                shape_function_values_at_point,
+                                p_particle,
+                                dem_variables[j],
+                                alpha);
+                    }
                 }
             }
 
@@ -887,6 +913,73 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectFluidVelocityUsingShapeFunctions(Element::Pointer p_elem,
+             const Vector& N,
+             Node::Pointer p_node,
+             const VariableData *r_destination_variable,
+             double alpha)
+{
+}
+
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectFluidAccelUsingShapeFunctions(Element::Pointer p_elem,
+             const Vector& N,
+             Node::Pointer p_node,
+             const VariableData *r_destination_variable,
+             double alpha)
+{
+    // The interpolation is done by simply evaluation the derivatives of the fluid vel
+    // at the particles position
+
+    // Get the geometry
+    Geometry<Node>& r_geometry = p_elem->GetGeometry();
+    const SizeType local_space_dimension = r_geometry.LocalSpaceDimension();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType points_number = r_geometry.PointsNumber();
+
+    // Get the particle position in local coords
+    const array_1d<double, 3> p_pos_global = p_node->Coordinates();
+    array_1d<double, 3> p_pos_local;
+    r_geometry.PointLocalCoordinates(p_pos_local, p_pos_global);
+
+    // Compute the inverse of the jacobian at the particle's position 
+    Matrix jacobian_inverse = ZeroMatrix( dimension, local_space_dimension );
+    r_geometry.InverseOfJacobian(jacobian_inverse, p_pos_local);
+
+    // Now compute the gradient in local coordinates, i.e. grad(f)_global = J^(-1) grad(f)_local
+    Matrix shape_functions_gradients_local(points_number, local_space_dimension);
+    r_geometry.ShapeFunctionsLocalGradients( shape_functions_gradients_local, p_pos_local );
+
+    // Now compute the gradient in global coordinates
+    Matrix shape_functions_gradients_global(points_number, local_space_dimension);
+    shape_functions_gradients_local = prod(shape_functions_gradients_local, trans(jacobian_inverse));
+
+    // Compute the material derivative (TODO: add time variation!!)
+    Vector shape_functions_values;
+    r_geometry.ShapeFunctionsValues(shape_functions_values, p_pos_local);
+    Vector result = ZeroVector(dimension);
+    for (size_t i = 0; i < dimension; i++)
+    {
+        for (size_t n = 0; n < points_number; n++)
+        {
+            double velocity_node_n = r_geometry[n].FastGetSolutionStepValue(VELOCITY)[i];
+            for (size_t m = 0; m < points_number; m++)
+            {
+                for (size_t d = 0; d < dimension; d++)
+                {
+                    double velocity_node_m = r_geometry[m].FastGetSolutionStepValue(VELOCITY)[d];
+                    result(i) += velocity_node_n * velocity_node_m * shape_functions_values(m) * shape_functions_gradients_global(n, d);
+                }
+            }
+        }
+    }
+    
+    // std::cout << "Computed Dt u(x=xp) = " << result << std::endl;
+    // exit(0);
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Project(Element::Pointer p_elem,
              const Vector& N,
              Node::Pointer p_node,
@@ -897,7 +990,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Project(
         Interpolate(p_elem, N, p_node, DENSITY, FLUID_DENSITY_PROJECTED, alpha);
     }
 
-    if (*r_destination_variable == NODAL_DENSITY_PROJECTED){
+    else if (*r_destination_variable == NODAL_DENSITY_PROJECTED){
         Interpolate(p_elem, N, p_node, NODAL_DENSITY, NODAL_DENSITY_PROJECTED, alpha);
     }
 

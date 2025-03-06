@@ -29,7 +29,7 @@ class ExplicitStrategy():
         if self.solver_settings.Has("do_search_neighbours"):
             Logger.PrintWarning("DEM", '\nWARNING!:  do_search_neighbours flag is deprecated. Please use do_search_dem_neighbours instead.\n')
             self.solver_settings.AddValue("do_search_dem_neighbours", self.solver_settings["do_search_neighbours"])
-            self.solver_settings.RemoveValue("do_search_neighbours")
+            self.solver_settings.RemoveValue("do_search_dem_neighbours")
 
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
