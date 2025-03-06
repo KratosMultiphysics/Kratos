@@ -8,7 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //
-//  Main authors:    Mohame Nabi,
+//  Main authors:    Mohamed Nabi,
 //                   Wijtze Pieter Kikstra
 //
 
@@ -26,17 +26,16 @@ public:
 
     CoulombYieldSurface() = default;
 
-    CoulombYieldSurface(double frictionAngle, double cohesion, double dilatationAngle);
+    CoulombYieldSurface(double FrictionAngle, double Cohesion, double DilatationAngle);
 
-    double YieldFunctionValue(const Vector& rPrincipalStress) const override;
-    Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const override;
+    [[nodiscard]] double YieldFunctionValue(const Vector& rPrincipalStress) const override;
+    [[nodiscard]] Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const override;
 
 private:
-    // Member Variables
     double mFrictionAngle   = 0.0;
     double mCohesion        = 0.0;
     double mDilatationAngle = 0.0;
 
-}; // Class CoulombYieldFunction
+}; // Class CoulombYieldSurface
 
 } // namespace Kratos

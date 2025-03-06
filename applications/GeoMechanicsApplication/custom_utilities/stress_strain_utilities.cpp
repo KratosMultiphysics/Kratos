@@ -181,14 +181,13 @@ void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStre
                                                        Vector&       rPrincipalStressVector,
                                                        Matrix&       rEigenVectorsMatrix)
 {
-    auto   stress_tensor = MathUtils<double>::StressVectorToTensor(rCauchyStressVector);
-    Matrix PrincipalStressMatrix;
-    Matrix EigenVectorsMatrix;
+    auto   stress_tensor = MathUtils<>::StressVectorToTensor(rCauchyStressVector);
+    Matrix principal_stress_matrix;
     MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, rEigenVectorsMatrix,
-                                              PrincipalStressMatrix, 1.0e-16, 20);
+                                              principal_stress_matrix, 1.0e-16, 20);
     rPrincipalStressVector = ZeroVector(3);
     for (int i = 0; i < 3; ++i) {
-        rPrincipalStressVector(i) = PrincipalStressMatrix(i, i);
+        rPrincipalStressVector(i) = principal_stress_matrix(i, i);
     }
     ReorderEigenValuesAndVectors(rPrincipalStressVector, rEigenVectorsMatrix);
 }
@@ -197,8 +196,8 @@ void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStres
                                       Matrix& rEigenVectorsMatrix)
 {
     std::vector<std::size_t> indices(rPrincipalStressVector.size());
-    std::iota(indices.begin(), indices.end(), 0);
-    std::sort(indices.begin(), indices.end(), [&rPrincipalStressVector](const std::size_t i, const std::size_t j) {
+    std::iota(indices.begin(), indices.end(), std::size_t{0});
+    std::sort(indices.begin(), indices.end(), [&rPrincipalStressVector](auto i, auto j) {
     return rPrincipalStressVector[j] < rPrincipalStressVector[i]; });
 
     std::vector<double> tmp_vector;
@@ -217,11 +216,11 @@ void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStres
     rEigenVectorsMatrix = tmp_matrix;
 }
 
-Matrix StressStrainUtilities::CalculateRotationMatrix(const Matrix& eigenVectorsMatrix)
+Matrix StressStrainUtilities::CalculateRotationMatrix(const Matrix& rEigenVectorsMatrix)
 {
-    Matrix result(eigenVectorsMatrix.size1(), eigenVectorsMatrix.size2());
-    for (std::size_t i = 0; i < eigenVectorsMatrix.size1(); ++i) {
-        Vector vec        = column(eigenVectorsMatrix, i);
+    Matrix result(rEigenVectorsMatrix.size1(), rEigenVectorsMatrix.size2());
+    for (std::size_t i = 0; i < rEigenVectorsMatrix.size1(); ++i) {
+        Vector vec        = column(rEigenVectorsMatrix, i);
         vec               = GeoMechanicsMathUtilities::Normalized(vec);
         column(result, i) = vec;
     }

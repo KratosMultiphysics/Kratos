@@ -16,6 +16,7 @@
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "utilities/math_utils.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -203,12 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStresses, KratosGeoMechanicsFas
 
     Vector expected_solution = ZeroVector(3);
     expected_solution <<= 135.736961146391, 22.5224297324582, -8.25939087884923;
-
-    constexpr double tolerance{1.0e-12};
-
-    for (unsigned int i = 0; i < principal_stresses.size(); ++i) {
-        KRATOS_EXPECT_NEAR(principal_stresses(i), expected_solution(i), tolerance);
-    }
+    KRATOS_EXPECT_VECTOR_NEAR(principal_stresses, expected_solution, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateRotationMatrix2D, KratosGeoMechanicsFastSuiteWithoutKernel)

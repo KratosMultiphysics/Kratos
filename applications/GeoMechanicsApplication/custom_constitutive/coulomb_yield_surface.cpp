@@ -11,14 +11,16 @@
 //                   Wijtze Pieter Kikstra
 //
 
-#include "custom_constitutive/coulomb_yield_surface.hpp"
+#include "custom_constitutive/coulomb_yield_surface.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <cmath>
 
 namespace Kratos
 {
-CoulombYieldSurface::CoulombYieldSurface(double frictionAngle, double cohesion, double dilatationAngle)
-    : mFrictionAngle{frictionAngle}, mCohesion{cohesion}, mDilatationAngle{dilatationAngle}
+
+CoulombYieldSurface::CoulombYieldSurface(double FrictionAngle, double Cohesion, double DilatationAngle)
+    : mFrictionAngle{FrictionAngle}, mCohesion{Cohesion}, mDilatationAngle{DilatationAngle}
 {
 }
 

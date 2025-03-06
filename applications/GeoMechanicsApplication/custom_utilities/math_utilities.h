@@ -36,14 +36,7 @@ public:
         return rVector / length;
     }
 
-    static Matrix VectorToDiagonalMatrix(const Vector& rVector)
-    {
-        Matrix result = ZeroMatrix(rVector.size(), rVector.size());
-        for (std::size_t i = 0; i < rVector.size(); ++i) {
-            result(i, i) = rVector(i);
-        }
-        return result;
-    }
+    [[nodiscard]] static Matrix VectorToDiagonalMatrix(const Vector& rVector);
 
 }; // class GeoMechanicsMathUtilities
 

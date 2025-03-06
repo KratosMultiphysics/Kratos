@@ -10,7 +10,7 @@
 //
 //  Main authors:    Mohamed Nabi,
 //                   Wijtze Pieter Kikstra
-// //
+//
 
 #pragma once
 
@@ -18,8 +18,8 @@
 #include <cmath>
 
 // Project includes
-#include "custom_constitutive/coulomb_yield_surface.hpp"
-#include "custom_constitutive/tension_cutoff.hpp"
+#include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/tension_cutoff.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
 #include "includes/serializer.h"
@@ -27,6 +27,7 @@
 namespace Kratos
 {
 class ConstitutiveLawDimension;
+class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombWithTensionCutOff : public ConstitutiveLaw
 {
@@ -56,11 +57,9 @@ public:
     int  Check(const Properties&   rMaterialProperties,
                const GeometryType& rElementGeometry,
                const ProcessInfo&  rCurrentProcessInfo) const override;
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& parameters) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
     Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector, const Matrix& rRotationMatrix) const;
-
-    double FindRegion(ConstitutiveLaw::Parameters& rParameters, const Vector& rPrincipalStressVector);
 
 private:
     std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
@@ -89,5 +88,5 @@ private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-}; // Class MohrCoulombConstitutiveLaw
+}; // Class MohrCoulombWithTensionCutOff
 } // namespace Kratos

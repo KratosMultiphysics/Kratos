@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "includes/serializer.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -23,7 +23,7 @@ class YieldSurface
 public:
     virtual ~YieldSurface() = default;
 
-    virtual double YieldFunctionValue(const Vector& rPrincipalStress) const     = 0;
-    virtual Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const = 0;
+    [[nodiscard]] virtual double YieldFunctionValue(const Vector& rPrincipalStress) const     = 0;
+    [[nodiscard]] virtual Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const = 0;
 };
 } // namespace Kratos.

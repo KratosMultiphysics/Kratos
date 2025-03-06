@@ -11,13 +11,13 @@
 //                   Wijtze Pieter Kikstra
 //
 
-#include "custom_constitutive/tension_cutoff.hpp"
+#include "custom_constitutive/tension_cutoff.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos
 {
-TensionCutoff::TensionCutoff(double tensileStrength) : mTensileStrength{tensileStrength} {}
+TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileStrength} {}
 
 double TensionCutoff::YieldFunctionValue(const Vector& rPrincipalStress) const
 {

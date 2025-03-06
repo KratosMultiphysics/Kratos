@@ -10,7 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "custom_constitutive/coulomb_yield_surface.hpp"
+#include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.hpp"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
@@ -66,12 +66,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
     properties.SetValue(GEO_FRICTION_ANGLE, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
-        "Error: GEO_DILATION_ANGLE is not defined or has an invalid value for property: 3")
-    properties.SetValue(GEO_DILATION_ANGLE, 1.0);
+        "Error: GEO_DILATANCY_ANGLE is not defined or has an invalid value for property: 3")
+    properties.SetValue(GEO_DILATANCY_ANGLE, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
-        "Error: GEO_TENSION_CUTOFF is not defined or has an invalid value for property: 3")
-    properties.SetValue(GEO_TENSION_CUTOFF, 1.0);
+        "Error: GEO_TENSILE_STRENGTH is not defined or has an invalid value for property: 3")
+    properties.SetValue(GEO_TENSILE_STRENGTH, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
         "Error: YOUNG_MODULUS is not defined or has an invalid value for property: 3")
@@ -94,8 +94,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     Properties                  properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 10.0);
     properties.SetValue(GEO_COHESION, 0.5);
-    properties.SetValue(GEO_DILATION_ANGLE, 5.0);
-    properties.SetValue(GEO_TENSION_CUTOFF, 0.5);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 5.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 0.5);
     parameters.SetMaterialProperties(properties);
 
     // Act
@@ -123,8 +123,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     Properties                  properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
-    properties.SetValue(GEO_DILATION_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSION_CUTOFF, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     parameters.SetMaterialProperties(properties);
     ProcessInfo process;
 
@@ -170,8 +170,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     Properties                  properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
-    properties.SetValue(GEO_DILATION_ANGLE, 0.0);
-    properties.SetValue(GEO_TENSION_CUTOFF, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     parameters.SetMaterialProperties(properties);
     ProcessInfo process;
 
@@ -217,8 +217,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     Properties                  properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
-    properties.SetValue(GEO_DILATION_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSION_CUTOFF, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     parameters.SetMaterialProperties(properties);
     ProcessInfo process;
 
@@ -264,8 +264,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     Properties                  properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
-    properties.SetValue(GEO_DILATION_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSION_CUTOFF, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     parameters.SetMaterialProperties(properties);
     ProcessInfo process;
 

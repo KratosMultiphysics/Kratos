@@ -8,9 +8,9 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //
-//  Main authors:    Mohame Nabi,
+//  Main authors:    Mohamed Nabi,
 //                   Wijtze Pieter Kikstra
-// //
+//
 
 #pragma once
 
@@ -26,15 +26,14 @@ public:
 
     TensionCutoff() = default;
 
-    explicit TensionCutoff(double tensileStrength);
+    explicit TensionCutoff(double TensileStrength);
 
-    double YieldFunctionValue(const Vector& rPrincipalStress) const override;
-    Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const override;
+    [[nodiscard]] double YieldFunctionValue(const Vector& rPrincipalStress) const override;
+    [[nodiscard]] Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const override;
 
 private:
-    // Member Variables
     double mTensileStrength = 0.0;
 
-}; // Class TensionCutoffFunction
+}; // Class TensionCutoff
 
 } // namespace Kratos
