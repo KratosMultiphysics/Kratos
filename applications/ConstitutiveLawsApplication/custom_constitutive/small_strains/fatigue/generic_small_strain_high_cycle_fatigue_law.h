@@ -461,8 +461,11 @@ private:
     double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
-
+    double mReferenceDamage = 0.0; // Damage level to be considered at each load block. This is used to work with stable loads during the fatigue process.
     double mReferenceTemperature = 0.0;
+    double mPreviousCycleDamage = 0.0; // Damage level at the previous cycle.
+    bool mFirstCycleOfANewLoad = false; // Variable used to identify the first cycle after a new load block. This is used in the Nlocal calculation and to compute the C factor.
+    double mCFactor = 1.0;
     ///@}
     ///@name Private Operators
     ///@{
@@ -502,6 +505,11 @@ private:
         rSerializer.save("CyclesToFailure", mCyclesToFailure);
         rSerializer.save("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.save("Period", mPeriod);
+        rSerializer.save("ReferenceDamage", mReferenceDamage);
+        rSerializer.save("ReferenceTemperature", mReferenceTemperature);
+        rSerializer.save("PreviousCycleDamage", mPreviousCycleDamage);
+        rSerializer.save("FirstCycleOfANewLoad", mFirstCycleOfANewLoad);
+        rSerializer.save("CFactor", mCFactor);
     }
 
     void load(Serializer &rSerializer) override
@@ -527,6 +535,10 @@ private:
         rSerializer.load("CyclesToFailure", mCyclesToFailure);
         rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.load("Period", mPeriod);
+        rSerializer.load("ReferenceDamage", mReferenceDamage);
+        rSerializer.load("ReferenceTemperature", mReferenceTemperature);
+        rSerializer.load("FirstCycleOfANewLoad", mFirstCycleOfANewLoad);
+        rSerializer.load("CFactor", mCFactor);
     }
     ///@}
 
