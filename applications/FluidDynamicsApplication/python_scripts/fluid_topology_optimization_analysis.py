@@ -136,7 +136,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         # Prepare Solvers : ImportModelPart -> PrepareModelPart -> AddDofs)
         self.PrepareSolvers()
         # # Set the Functionals Weigths for the Optimization
-        # self._SetFunctionalWeights()
         # Modify Initial
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -195,7 +194,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._GetAdjointSolver().PrepareModelPart()
         self._GetAdjointSolver().AddDofs()
 
-    def _SetFunctionalWeights(self, weights = [1, 1, 0, 0, 0]):
+    def _SetFunctionalWeights(self, weights = [1, 1, 0, 0, 0, 0, 0, 0, 0]):
+        # set future transport functinals to zero
+        weights[3]=0.0
+        weights[4]=0.0
+        weights[5]=0.0
+        weights[6]=0.0
+        weights[7]=0.0
+        weights[8]=0.0
         self.n_functionals = len(weights)
         self.initial_functionals_values = np.zeros(self.n_functionals)
         self.functionals = np.zeros(self.n_functionals)
@@ -308,6 +314,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """     
         ## Current Optimization Step Solutions 
         self._InitializeTopologyOptimizationStepPhysicsSolution()
+        self._CheckMaterialProperties()
         self._UpdateRelevantPhysicsVariables()
         self._SolvePhysicsProblem() # NAVIER-STOKES PROBLEM SOLUTION
         if (self.first_iteration):
@@ -599,7 +606,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return self._ComputePhysicsParameter(self.resistance_parameters, design_parameter)
     
     def _ComputePhysicsParameter(self, physics_parameter_values, design_parameter):
-        self._ComputeConvexPhysicsParameter(physics_parameter_values, design_parameter)
+        return self._ComputeConvexPhysicsParameter(physics_parameter_values, design_parameter)
 
     def _ComputeConvexPhysicsParameter(self, physics_parameter_values, design_parameter):
         value_fluid = physics_parameter_values[0]
@@ -866,33 +873,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (self.first_iteration):
             self.initial_functional_derivatives_wrt_design = self.functional_derivatives_wrt_design
 
-    # def _EvaluateFunctionalDerivatives(self, first_it = False):
-    #     """
-    #     This method is used to evaluate the functional derivatives w.r.t the design parameter
-    #     """
-    #     self._SetTopologyOptimizationStage(3)
-    #     print("--|" + self.topology_optimization_stage_str + "| EVALUATE FUNCTIONAL DERIVATIVES")
-    #     mp = self._GetComputingModelPart()
-    #     velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-    #     velocity_adjoint= np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)
-    #     self.functional_derivatives_wrt_design = self.resistance_derivative_wrt_design * np.sum(velocity * (self.functional_weights[0]*velocity + velocity_adjoint), axis=1) * self.nodal_domain_sizes 
-    #     self.functional_derivatives_wrt_design = self.functional_derivatives_wrt_design / self.initial_functional_abs_value
-    #     for node in mp.Nodes:
-    #         node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[node.Id-1])
-    #     if (first_it):
-    #         self.initial_functional_derivatives_wrt_design = self.functional_derivatives_wrt_design
-    #     self.functional_derivatives_wrt_design = np.asarray([self.functional_derivatives_wrt_design]).T
-
     def _ComputeFunctionalDerivatives(self):
         temp_functional_derivatives_wrt_design = np.asarray(self.n_nodes)
         temp_functional_derivatives_wrt_design = self._ComputeFunctionalDerivativesFunctionalContribution()
-        temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesFluidPhysicsContribution()
+        temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesPhysicsContribution()
         return temp_functional_derivatives_wrt_design
         
     def _UpdateFunctionalDerivativesVariable(self):
         mp = self._GetComputingModelPart()
         for node in mp.Nodes:
             node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[node.Id-1][0])
+
+    def _ComputeFunctionalDerivativesPhysicsContribution(self):
+        return self._ComputeFunctionalDerivativesFluidPhysicsContribution()
 
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
         mp = self._GetComputingModelPart()
@@ -1176,7 +1169,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 projection_slope = self.projective_filter_min_projection_slope
             else:
                 if (abs(design_change_for_projection) >= 1e-15):
-                    self.projective_filter_min_projection_slope + (self.projective_filter_max_projection_slope-self.projective_filter_min_projection_slope)*(1-design_change_for_projection)
+                    projection_slope = self.projective_filter_min_projection_slope + (self.projective_filter_max_projection_slope-self.projective_filter_min_projection_slope)*(1-design_change_for_projection)
                 else:
                     projection_slope = self.projective_filter_max_projection_slope
             design_parameter_mean = min(max(self.projective_filter_min_mean,1.0-self.volume_fraction),self.projective_filter_max_mean)
@@ -1291,7 +1284,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def EvaluateFunctionals(self, print_functional):
         self._EvaluateRequiredGradients()
-        mp = self._GetComputingModelPart()
         if (abs(self.functional_weights[0]) > 1e-10):
             self._EvaluateResistanceFunctional(print_functional)
         if (abs(self.functional_weights[1]) > 1e-10):

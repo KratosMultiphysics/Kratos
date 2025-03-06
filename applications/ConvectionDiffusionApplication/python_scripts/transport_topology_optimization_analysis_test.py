@@ -307,7 +307,7 @@ class TransportTopologyOptimizationAnalysisTest(ConvectionDiffusionAnalysis):
         """
         self._GetAdjointSolver().Initialize()
 
-    def _SetFunctionalWeights(self):
+    def _SetFunctionalWeights(self, weights=[]):
         functional_weights = np.zeros(30)
         self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, functional_weights)
     

@@ -63,11 +63,17 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_GRADIENT)
         # ADJOINT
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.HEAT_FLUX_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.FACE_HEAT_FLUX_ADJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_ADJ_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.OPTIMIZATION_TEMPERATURE)
+        # GENERAL
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         # SETTINGS
         self._DefineSettings()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Transport Topology Optimization T and T_ADJ solver variables added correctly.")
@@ -156,8 +162,8 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         else:
             raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(convection_coefficient)}")
 
-    def _SetConvectiveVelocity(self, constant_velocity, vel):
-        self.is_constant_velocity = constant_velocity
+    def _SetConvectiveVelocity(self, is_constant_velocity, vel):
+        self.is_constant_velocity = is_constant_velocity
         self.constant_velocity = vel
         if (self.is_constant_velocity):
             self._SetConstantConvectiveVelocity(self.constant_velocity)
