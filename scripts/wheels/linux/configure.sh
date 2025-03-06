@@ -74,4 +74,3 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON                                      \
--DOPENSUBDIV_ROOT_DIR="${KRATOS_APP_DIR}/OptimizationApplication/custom_external_libraries/OpenSubdiv/build/bin"
