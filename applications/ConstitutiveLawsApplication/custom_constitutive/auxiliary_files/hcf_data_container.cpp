@@ -126,7 +126,9 @@ void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Prop
                                                                                     rFatigueVariables.Sth,
                                                                                     rFatigueVariables.Alphat,
                                                                                     rFatigueVariables.FatigueReductionFactor,
-                                                                                    rFatigueVariables.WohlerStress);
+                                                                                    rFatigueVariables.WohlerStress,
+                                                                                    1.0,
+                                                                                    1.0);
 }
 
 /***********************************************************************************/
