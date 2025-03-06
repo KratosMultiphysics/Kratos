@@ -5,7 +5,7 @@ set(OPENSUBDIV_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/O
 set(OPENSUBDIV_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build/opensubdiv")
 set(OPENSUBDIV_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build/lib")
 # include_directories( ${OPENSUBDIV_ROOT_DIR} )
-# include_directories( ${OPENSUBDIV_INCLUDE_DIR} )
+include_directories( ${OPENSUBDIV_INCLUDE_DIR} )
 # include_directories( ${OPENSUBDIV_LIBRARIES} )
 find_package(OpenSubdiv REQUIRED)
 
