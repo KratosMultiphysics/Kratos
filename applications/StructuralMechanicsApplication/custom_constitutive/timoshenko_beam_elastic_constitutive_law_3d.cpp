@@ -137,8 +137,8 @@ void TimoshenkoBeamElasticConstitutiveLaw3D::CalculateMaterialResponseCauchy(Con
             r_generalized_stress_vector.resize(strain_size, false);
 
         const double EA   = E * A;
-        const double EIy = E * Iy;
-        const double EIz = E * Iz;
+        const double EIy  = E * Iy;
+        const double EIz  = E * Iz;
         const double GAsY = G * A_sY;
         const double GAsZ = G * A_sZ;
 
