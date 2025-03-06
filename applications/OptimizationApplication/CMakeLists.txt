@@ -2,12 +2,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosOptimizationApplication ****")
 
-# find_package(OpenSubdiv REQUIRED)
+find_package(OpenSubdiv REQUIRED)
 
 ################### PYBIND11
 include(pybind11Tools)
 
-# include_directories( ${OPENSUBDIV_INCLUDE_DIR} )
+include_directories( ${OPENSUBDIV_INCLUDE_DIR} )
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Optimization core sources
