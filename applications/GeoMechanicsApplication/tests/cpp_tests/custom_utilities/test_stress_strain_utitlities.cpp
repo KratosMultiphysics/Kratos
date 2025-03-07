@@ -41,7 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckGreenLagrangeStrainTensor, KratosGeoMechanicsFast
 {
     const Matrix eye =
         StressStrainUtilities::CalculateGreenLagrangeStrainTensor(std::sqrt(3.) * IdentityMatrix(3));
-    KRATOS_EXPECT_MATRIX_NEAR(eye, IdentityMatrix(3), 1e-12)
+    KRATOS_EXPECT_MATRIX_NEAR(eye, IdentityMatrix(3), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressHydrostatic, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -119,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombPressureCapacityShearOnly, Kr
     KRATOS_EXPECT_NEAR(3. * std::sin(friction_angle),
                        StressStrainUtilities::CalculateMohrCoulombPressureCapacity(
                            stress_vector, cohesion, friction_angle),
-                       1.E-10);
+                       Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateCauchyStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateCauchyStrain, KratosGeoMechanicsFastSuit
     Vector expected_strain(5);
     expected_strain <<= 0.55, 0.205, 0.11, 0.4, 0.35;
 
-    KRATOS_EXPECT_VECTOR_NEAR(strain, expected_strain, 1.E-10)
+    KRATOS_EXPECT_VECTOR_NEAR(strain, expected_strain, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuiteWith
     expected_strains.push_back(expected_strain);
 
     for (size_t i = 0; i < strains.size(); ++i)
-        KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-10)
+        KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], Defaults::absolute_tolerance)
 
     use_hencky_strain = true;
     strains = StressStrainUtilities::CalculateStrains(deformation_gradients, Bs, displacements,
@@ -211,42 +211,6 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStresses, KratosGeoMechanicsFas
                                  0.5210391553001751,  0.7890961797761399, -0.3253389274384210,
                                  0.4415695796102967,  0.0769883706270019,  0.8939178357941993;
     KRATOS_EXPECT_MATRIX_NEAR(rotation_matrix, expected_solution_matrix, Defaults::absolute_tolerance)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(CheckCalculateRotationMatrix2D, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    Vector stress_vector = ZeroVector(4);
-    stress_vector <<= -6.0, -7.0, -14.0, 1.0;
-
-    Vector eigenvalues_vector;
-    Matrix eigenvectors_matrix;
-    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, eigenvalues_vector, eigenvectors_matrix);
-
-    Matrix rotation_matrix = StressStrainUtilities::CalculateRotationMatrix(eigenvectors_matrix);
-    Matrix unit_matrix     = prod(rotation_matrix, trans(rotation_matrix));
-
-    Matrix expected_unit_matrix = ZeroMatrix(3, 3);
-    expected_unit_matrix <<= 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
-    KRATOS_EXPECT_MATRIX_NEAR(unit_matrix, expected_unit_matrix, 1.0e-15);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(CheckCalculateRotationMatrix3D, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    Vector stress_vector = ZeroVector(6);
-    stress_vector <<= 10.0, 50.0, 20.0, 40.0, 35.0, 45.0;
-
-    Vector eigenvalues_vector;
-    Matrix eigenvectors_matrix;
-    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, eigenvalues_vector, eigenvectors_matrix);
-
-    Matrix rotation_matrix = StressStrainUtilities::CalculateRotationMatrix(eigenvectors_matrix);
-    Matrix unit_matrix     = prod(rotation_matrix, trans(rotation_matrix));
-
-    Matrix expected_unit_matrix = ZeroMatrix(3, 3);
-    expected_unit_matrix <<= 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0;
-    KRATOS_EXPECT_MATRIX_NEAR(unit_matrix, expected_unit_matrix, 1.0e-15);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckRotateStressMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)

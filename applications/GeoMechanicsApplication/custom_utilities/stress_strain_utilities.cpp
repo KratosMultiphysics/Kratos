@@ -216,22 +216,20 @@ void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStres
     rEigenVectorsMatrix = tmp_matrix;
 }
 
-Matrix StressStrainUtilities::CalculateRotationMatrix(const Matrix& rEigenVectorsMatrix)
-{
-    Matrix result(rEigenVectorsMatrix.size1(), rEigenVectorsMatrix.size2());
-    for (std::size_t i = 0; i < rEigenVectorsMatrix.size1(); ++i) {
-        Vector vec        = column(rEigenVectorsMatrix, i);
-        vec               = GeoMechanicsMathUtilities::Normalized(vec);
-        column(result, i) = vec;
-    }
-    return result;
-}
-
 Vector StressStrainUtilities::RotateStressMatrix(const Matrix& rStressMatrix, const Matrix& rRotationMatrix, std::size_t StressVectorSize)
 {
     Matrix temp                  = prod(rStressMatrix, trans(rRotationMatrix));
     Matrix rotated_stress_matrix = prod(rRotationMatrix, temp);
     return MathUtils<double>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
+}
+
+Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
+                                                             const Matrix& rRotationMatrix,
+                                                             std::size_t StressVectorSize)
+{
+    Matrix principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
+    Vector result = RotateStressMatrix(principal_stress_matrix, rRotationMatrix, StressVectorSize);
+    return result;
 }
 
 } // namespace Kratos

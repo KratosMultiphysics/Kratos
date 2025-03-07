@@ -49,7 +49,9 @@ public:
     StressMeasure                          GetStressMeasure() override;
     SizeType                               GetStrainSize() const override;
     StrainMeasure                          GetStrainMeasure() override;
-
+    void InitializeMaterial(const Properties& rMaterialProperties,
+                                    const Geometry<Node>& rElementGeometry,
+                                    const Vector& rShapeFunctionsValues) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     void SetValue(const Variable<Vector >& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     int  Check(const Properties&   rMaterialProperties,
@@ -70,8 +72,8 @@ private:
     void CheckProperty(const Properties& rMaterialProperties, const Kratos::Variable<double>& rVariable) const;
     void   CalculateTrialStressVector(const Vector&                rStrainVector,
                                       Vector&                      rStressVector,
-                                      ConstitutiveLaw::Parameters& rValues) const;
-    Matrix CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues) const;
+                                      double YoungModulus,
+                                                              double PoissonRatio) const;
     double CalculateApex(double FrictionAngle, double Cohesion) const;
     Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensionCutoff) const;
     Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, double TensionCutoff) const;

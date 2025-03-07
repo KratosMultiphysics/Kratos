@@ -43,10 +43,12 @@ public:
     static void                CalculatePrincipalStresses(const Vector& rCauchyStressVector,
                                                           Vector&       rPrincipalStressVector,
                                                           Matrix&       rEigenVectorsMatrix);
-    static Matrix              CalculateRotationMatrix(const Matrix& rEigenVectorsMatrix);
     static Vector RotateStressMatrix(const Matrix& rStressMatrix, const Matrix& rRotationMatrix, std::size_t StressVectorSize);
     static void ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector,
                                           Matrix& rEigenVectorsMatrix);
+    static Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector,
+                                                             const Matrix& rRotationMatrix,
+                                                             std::size_t StressVectorSize);
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
     static double CalculateDenominator(const Vector& rStressVector, double Phi);

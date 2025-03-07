@@ -107,6 +107,19 @@ bool MohrCoulombWithTensionCutOff::IsIncremental() { return true; }
 
 bool MohrCoulombWithTensionCutOff::RequiresInitializeMaterialResponse() { return true; }
 
+void MohrCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMaterialProperties,
+                                const Geometry<Node>& ,
+                                const Vector& )
+{
+    const auto        friction_angle_in_rad = MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]);
+    const auto        cohesion       = rMaterialProperties[GEO_COHESION];
+    const auto        dilatancy_angle = MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]);
+    const auto        tension_cutoff = rMaterialProperties[GEO_TENSILE_STRENGTH];
+
+    mCoulombYieldSurface = CoulombYieldSurface(friction_angle_in_rad, cohesion, dilatancy_angle);
+    mTensionCutOff       = TensionCutoff(tension_cutoff);
+}
+
 void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     const Properties& r_prop         = rParameters.GetMaterialProperties();
@@ -114,22 +127,20 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     const auto        cohesion       = r_prop[GEO_COHESION];
     const auto        dilatancy_angle = MathUtils<>::DegreesToRadians(r_prop[GEO_DILATANCY_ANGLE]);
     const auto        tension_cutoff = r_prop[GEO_TENSILE_STRENGTH];
-
-    mCoulombYieldSurface = CoulombYieldSurface(friction_angle_in_rad, cohesion, dilatancy_angle);
-    mTensionCutOff       = TensionCutoff(tension_cutoff);
+    const auto        young_modulus = r_prop[YOUNG_MODULUS];
+    const auto        poisson_ratio = r_prop[POISSON_RATIO];
 
     Vector trail_stress_vector;
     Vector strain_vector = rParameters.GetStrainVector();
 
-    this->CalculateTrialStressVector(strain_vector, trail_stress_vector, rParameters);
+    this->CalculateTrialStressVector(strain_vector, trail_stress_vector, young_modulus, poisson_ratio);
     Vector principal_trial_stress_vector;
-    Matrix eigenvectors_matrix;
+    Matrix rotation_matrix;
     StressStrainUtilities::CalculatePrincipalStresses(
-        trail_stress_vector, principal_trial_stress_vector, eigenvectors_matrix);
-    Matrix rotation_matrix = StressStrainUtilities::CalculateRotationMatrix(eigenvectors_matrix);
+        trail_stress_vector, principal_trial_stress_vector, rotation_matrix);
 
-    double coulomb = mCoulombYieldSurface.YieldFunctionValue(principal_trial_stress_vector);
-    double cutoff  = mTensionCutOff.YieldFunctionValue(principal_trial_stress_vector);
+    const auto coulomb = mCoulombYieldSurface.YieldFunctionValue(principal_trial_stress_vector);
+    const auto cutoff  = mTensionCutOff.YieldFunctionValue(principal_trial_stress_vector);
 
     // Elastic region
     if (coulomb <= 0.0 && cutoff <= 0.0) {
@@ -138,26 +149,26 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     }
 
     // Tension cut-off return
-    double trail_sigma = 0.5 * (principal_trial_stress_vector(0) + principal_trial_stress_vector(2));
-    double trial_tau = 0.5 * (principal_trial_stress_vector(0) - principal_trial_stress_vector(2));
-    double apex      = this->CalculateApex(friction_angle_in_rad, cohesion);
+    const auto trial_tau = 0.5 * (principal_trial_stress_vector(0) - principal_trial_stress_vector(2));
+    const auto apex      = this->CalculateApex(friction_angle_in_rad, cohesion);
     Vector corner_point = this->CalculateCornerPoint(friction_angle_in_rad, cohesion, tension_cutoff);
 
     if (tension_cutoff < apex && trial_tau <= corner_point(1) && cutoff >= 0.0) {
         Vector modified_principal = this->ReturnStressAtAxialZone(principal_trial_stress_vector, tension_cutoff);
         StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
-        mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
+        mStressVector = StressStrainUtilities::RotatePrincipalStresses(modified_principal, rotation_matrix,mpConstitutiveDimension->GetStrainSize());
         return;
     }
 
     // Zone of tensile corner return
-    double derivative_flow_function =
+    const auto trail_sigma = 0.5 * (principal_trial_stress_vector(0) + principal_trial_stress_vector(2));
+    const auto derivative_flow_function =
         (trial_tau - corner_point(1)) * std::sin(dilatancy_angle) - (trail_sigma - corner_point(0));
     if (derivative_flow_function <= 0.0) {
         Vector modified_principal =
             this->ReturnStressAtCornerReturnZone(principal_trial_stress_vector, corner_point);
         StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
-        mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
+        mStressVector = StressStrainUtilities::RotatePrincipalStresses(modified_principal, rotation_matrix,mpConstitutiveDimension->GetStrainSize());
         return;
     }
 
@@ -165,7 +176,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     Vector modified_principal = this->ReturnStressAtRegularFailureZone(
         principal_trial_stress_vector, mCoulombYieldSurface, friction_angle_in_rad, cohesion);
     StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
-    mStressVector = this->RotatePrincipalStresses(modified_principal, rotation_matrix);
+    mStressVector = StressStrainUtilities::RotatePrincipalStresses(modified_principal, rotation_matrix,mpConstitutiveDimension->GetStrainSize());
 }
 
 Vector MohrCoulombWithTensionCutOff::ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector,
@@ -220,28 +231,14 @@ Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(double FrictionAngle, 
     return result;
 }
 
-Vector MohrCoulombWithTensionCutOff::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
-                                                             const Matrix& rRotationMatrix) const
-{
-    Matrix principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
-    Vector result = StressStrainUtilities::RotateStressMatrix(principal_stress_matrix, rRotationMatrix, mpConstitutiveDimension->GetStrainSize());
-    return result;
-}
-
 void MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
                                                               Vector&       rStressVector,
-                                                              ConstitutiveLaw::Parameters& rValues) const
+                                                              double YoungModulus,
+                                                              double PoissonRatio) const
 {
     const auto delta_strain_vector = rStrainVector - mStrainVectorFinalized;
-    Matrix elastic_matrix    = this->CalculateElasticMatrix(rValues);
+    Matrix elastic_matrix = mpConstitutiveDimension->CalculateElasticMatrix(YoungModulus,PoissonRatio);
     rStressVector            = mStressVectorFinalized + prod(elastic_matrix, delta_strain_vector);
-}
-
-Matrix MohrCoulombWithTensionCutOff::CalculateElasticMatrix(ConstitutiveLaw::Parameters& rValues) const
-{
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    return mpConstitutiveDimension->CalculateElasticMatrix(r_material_properties[YOUNG_MODULUS],
-                                                           r_material_properties[POISSON_RATIO]);
 }
 
 void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
