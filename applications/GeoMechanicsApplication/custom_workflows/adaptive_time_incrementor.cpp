@@ -25,17 +25,19 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double                StartTime
                                                  std::size_t           MaxNumOfCycles,
                                                  double                ReductionFactor,
                                                  double                IncreaseFactor,
-                                                 std::optional<double> MaybeMinDeltaTime,
+                                                 std::optional<double> mUserMinDeltaTime,
                                                  double                MaxTimeStepFactor,
                                                  std::size_t           MinNumOfIterations,
                                                  std::size_t           MaxNumOfIterations)
     : TimeIncrementor(),
       mEndTime(EndTime),
-      mDeltaTime(std::min(StartIncrement, EndTime - StartTime)), // avoid exceeding the end time
+      mTimeSpan(EndTime - StartTime),
+      mDeltaTime(std::min(StartIncrement, mTimeSpan)), // avoid exceeding the end time
+      mInitialDeltaTime(mDeltaTime),
       mMaxNumOfCycles(MaxNumOfCycles),
       mReductionFactor(ReductionFactor),
       mIncreaseFactor(IncreaseFactor),
-      mMaybeMinDeltaTime(std::move(MaybeMinDeltaTime)),
+      mUserMinDeltaTime(std::move(mUserMinDeltaTime)),
       mMaxDeltaTime(MaxTimeStepFactor * mDeltaTime),
       mMinNumOfIterations(MinNumOfIterations),
       mMaxNumOfIterations(MaxNumOfIterations)
@@ -75,10 +77,10 @@ double AdaptiveTimeIncrementor::GetIncrement() const { return mDeltaTime; }
 
 void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rResultantState)
 {
-    constexpr auto default_min_delta_time = 1.0e-10;
+    constexpr auto delta_time_as_fraction_of_time_span = 0.001;
+    auto default_min_delta_time = std::min(mInitialDeltaTime, delta_time_as_fraction_of_time_span * mTimeSpan);
 
-    if (rResultantState.Converged())
-    {
+    if (rResultantState.Converged()) {
         if (rResultantState.num_of_iterations < mMinNumOfIterations) {
             mDeltaTime = std::min(mDeltaTime * mIncreaseFactor, mMaxDeltaTime);
         } else if (rResultantState.num_of_iterations == mMaxNumOfIterations) {
@@ -86,7 +88,7 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         }
 
         if (rResultantState.time < mEndTime && mEndTime - (rResultantState.time + mDeltaTime) <
-                                                   mMaybeMinDeltaTime.value_or(default_min_delta_time)) {
+                                                   mUserMinDeltaTime.value_or(default_min_delta_time)) {
             // Up-scaling to reach end_time without small increment
             mDeltaTime = mEndTime - rResultantState.time;
         }
@@ -97,10 +99,10 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         mDeltaTime *= mReductionFactor;
     }
 
-    KRATOS_ERROR_IF(mDeltaTime < mMaybeMinDeltaTime.value_or(default_min_delta_time))
+    KRATOS_ERROR_IF(mDeltaTime < mUserMinDeltaTime.value_or(default_min_delta_time))
         << "Delta time (" << mDeltaTime << ") is smaller than "
-        << (mMaybeMinDeltaTime ? "given" : "default") << " minimum allowable value "
-        << mMaybeMinDeltaTime.value_or(default_min_delta_time) << std::endl;
+        << (mUserMinDeltaTime ? "given" : "default") << " minimum allowable value "
+        << mUserMinDeltaTime.value_or(default_min_delta_time) << std::endl;
 }
 
 } // namespace Kratos
