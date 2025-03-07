@@ -335,7 +335,7 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
 
   # restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
-endif(KRATOS_BUILD_TESTING MATCHES ON) 
+endif(KRATOS_BUILD_TESTING MATCHES ON)
 
 # Benchmarking
 if(KRATOS_BUILD_BENCHMARK MATCHES ON)
@@ -492,13 +492,13 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 #   if(NOT OpenSubdiv_FOUND)
 #     # Trying to find in in external libraries
-#   endif(NOT OpenSubdiv_FOUND)  
+#   endif(NOT OpenSubdiv_FOUND)
 # endif(${USE_OPENSUBDIV} MATCHES ON)
 
 ##*****************************
 # Compiling the opensubdiv library
 ## currently not working perfectly:
-## - the compilation of opensubdiv runs parallel to kratos which leads to needing to run 
+## - the compilation of opensubdiv runs parallel to kratos which leads to needing to run
 ##   the installation double since dependencies cannot be found
 ## - thought: compiling OptApp means compiing subdiv control, which automatically leads to failing of compilation
 ##   --> how to prevent this?
@@ -517,7 +517,7 @@ if(${USE_OPENSUBDIV} MATCHES ON )
       PREFIX "${KRATOS_BINARY_DIR}/external_libraries/${OSD_PREFIX}"
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
       STEP_TARGETS ${OSD_PREFIX}_info
-      # PREFIX "${OSD_PREFIX}"  
+      # PREFIX "${OSD_PREFIX}"
       # DOWNLOAD_DIR "${KRATOS_SOURCE_DIR}/external_libraries/${OSD_PREFIX}"
       # SOURCE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/${OSD_PREFIX}"
       # BINARY_DIR "${KRATOS_BINARY_DIR}/external_libraries/${OSD_PREFIX}"
@@ -551,7 +551,7 @@ if(${USE_OPENSUBDIV} MATCHES ON )
     # include_directories(${OSD_INCLUDE_DIR})
     # add_dependencies(${OSD_PREFIX} KratosOptimizationApplication)
     # message(STATUS "OSD include dir : ${OSD_INCLUDE_DIR}")
-    
+
 
 
 
@@ -564,7 +564,7 @@ if(${USE_OPENSUBDIV} MATCHES ON )
     #   DEPENDEES build
     #   WORKING_DIRECTORY ${SOURCE_DIR}
     #   LOG 1
-    # ) 
+    # )
 
     # # set the include directory variable and include it
     # set(OSD_INCLUDE_DIRS ${SOURCE_DIR}/include)
@@ -799,12 +799,6 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
-
-set(NO_GLFW ON)
-set(NO_PTEX ON)
-set(NO_TBB ON)
-set(NO_OPENGL ON)
-add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/opensubdiv)
 
 # # Clean the Module and libs install directories
 # if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
