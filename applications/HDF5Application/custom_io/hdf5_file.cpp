@@ -37,21 +37,38 @@
 // Include base h
 #include "hdf5_file.h"
 
+#ifndef KRATOS_CHECK_FOR_HDF5_ERROR
+#define KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, /*int*/ RETURN_VALUE)                                           \
+    if (RETURN_VALUE < 0) {                                                                                 \
+        std::stringstream message;                                                                          \
+        message << "call to " << #METHOD << " returned error code " << RETURN_VALUE << " with message:\n";  \
+        auto callback = [](unsigned depth,                                                                  \
+                        const H5E_error_t* p_error_descriptor,                                              \
+                        void* p_stream) -> herr_t {                                                         \
+            std::stringstream& r_stream = *static_cast<std::stringstream*>(p_stream);                       \
+            if (not depth) r_stream << p_error_descriptor->desc << "\n";                                    \
+            r_stream << "in file " << p_error_descriptor->file_name                                         \
+                    << ":" << p_error_descriptor->line                                                      \
+                    << " in function " << p_error_descriptor->func_name << "\n";                            \
+            return 0;                                                                                       \
+        };                                                                                                  \
+        H5Ewalk(H5E_DEFAULT, H5E_WALK_UPWARD, callback, static_cast<void*>(&message));                      \
+        KRATOS_ERROR << message.str();                                                                      \
+    }
+#endif
+
 #ifndef KRATOS_HDF5_CALL_WITH_RETURN
 #define KRATOS_HDF5_CALL_WITH_RETURN(RETURN_VALUE, METHOD, ...) \
     RETURN_VALUE = METHOD(__VA_ARGS__);                         \
-    KRATOS_ERROR_IF(RETURN_VALUE < 0)                           \
-        << "Error occured in " << #METHOD                       \
-        << " [ hdf5 error code = " << RETURN_VALUE << " ].\n";
+    KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, RETURN_VALUE)           \
 
 #endif
 
 #ifndef KRATOS_HDF5_CALL
-#define KRATOS_HDF5_CALL(METHOD, ...)                                              \
-    {                                                                              \
-        const auto error = METHOD(__VA_ARGS__);                                    \
-        KRATOS_ERROR_IF(error < 0) << "Error occured in " << #METHOD               \
-                                   << " [ hdf5 error code = " << error << " ].\n"; \
+#define KRATOS_HDF5_CALL(METHOD, ...)              \
+    {                                              \
+        const auto error = METHOD(__VA_ARGS__);    \
+        KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, error) \
     }
 
 #endif
