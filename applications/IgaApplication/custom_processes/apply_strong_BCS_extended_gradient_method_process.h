@@ -71,7 +71,7 @@ public:
     using ReordererType = Reorderer<SparseSpaceType, LocalSpaceType>;
     using DirectSolverType = DirectSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
-    // using AMGCLSolverType = AMGCLSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
+    //using AMGCLSolverType = AMGCLSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
     using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
     // using PreconditionerType = Preconditioner<SparseSpaceType, LocalSpaceType>;
     // using MixedULMLinearSolverType = MixedULMLinearSolver<SparseSpaceType, LocalSpaceType, PreconditionerType, ReordererType>;
@@ -129,7 +129,8 @@ public:
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "model_part_name": "please_specify_model_part_name",
+            "background_mesh_model_part_name": "please_specify_model_part_name",
+            "skin_model_part_name": "please_specify_model_part_name",
             "variable_name": "please_specify_a_variable",
             "value"           : "please_specify_a_value",
             "interpolation_scheme": "please_specify_an_interpolation_scheme",
@@ -169,6 +170,7 @@ private:
     SizeType mEchoLevel;
     IndexType mIterations = 0;
     ModelPart* mpSkinModelPart = nullptr;
+    ModelPart* mpBackgroundMeshModelPart = nullptr;
     CompressedMatrix mLHS;
     Vector mRHS;
     Vector mRHSBoundaryContribution;

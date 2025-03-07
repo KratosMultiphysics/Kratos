@@ -22,9 +22,12 @@ namespace Kratos
     }
 
     void ApplyStrongBCSExtendedGradientMethodProcess::Execute(){
+        // Read the background mesh model part name
+        std::string background_mesh_model_part_name = mParameters["background_mesh_model_part_name"].GetString();
+        mpBackgroundMeshModelPart = &mpModel->GetModelPart(background_mesh_model_part_name);
         // Read the skin model part name
-        std::string model_part_name = mParameters["model_part_name"].GetString();
-        mpSkinModelPart = &mpModel->GetModelPart(model_part_name);
+        std::string skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+        mpSkinModelPart = &mpModel->GetModelPart(skin_model_part_name);
         // Read the unknown variable for the problem
         mUnknownVariable = mParameters["variable_name"].GetString();
         // Read the value to be applied as BC
@@ -36,8 +39,7 @@ namespace Kratos
         // Define the polinomial order of the MLS interpolation
         mMLSPolinomialOrder = mParameters["MLS_polinomial_order"].GetInt();
         // Get the number of nodes of the background mesh 
-        mNumberOfNodesBackgroundMesh = mpSkinModelPart->GetRootModelPart().NumberOfNodes();
-
+        mNumberOfNodesBackgroundMesh = mpBackgroundMeshModelPart->NumberOfNodes();
 
         // Build the LHS in the first iteration
         if (mIterations == 0){
@@ -103,21 +105,25 @@ namespace Kratos
             
             LHSBoundaryContribution_elemental = prod(trans(N), N) * weight * det_jacobian[0];
 
+
             // Assemble the elemental contribution in the global matrix
             std::vector<IndexType> equation_id_vector;
             for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
                 equation_id_vector.push_back(gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).EquationId());
             }
-            
+
+
             for (IndexType j = 0; j < equation_id_vector.size(); j++){
                 for (IndexType k = 0; k < equation_id_vector.size(); k++){
-                    LHSBoundaryContribution(equation_id_vector[j] - 1, equation_id_vector[k] - 1) += LHSBoundaryContribution_elemental(j, k);
+                    LHSBoundaryContribution(equation_id_vector[j], equation_id_vector[k]) += LHSBoundaryContribution_elemental(j, k);
                 }
             }
         }
     }
 
     void ApplyStrongBCSExtendedGradientMethodProcess::ComputeLHSTrimmedElementsGradientContribution(CompressedMatrix& LHSTrimmedElementsGradientContribution){
+        if (mpSkinModelPart->NumberOfElements() == 0) return;
+
         IndexType number_active_control_points_per_gp = mpSkinModelPart->ElementsBegin()->GetGeometry().PointsNumber();
 
         // Loop over the elements in intersected_elements_sub_model_part. Each element represents a gauss point over a NURBS surface
@@ -125,7 +131,7 @@ namespace Kratos
             const auto p_gauss_point_geometry = gauss_point_it->pGetGeometry();
             
             // Initialize the elemental matrix
-            CompressedMatrix LHSTrimmedElementsContribution_elemental = ZeroMatrix(number_active_control_points_per_gp, number_active_control_points_per_gp);
+            Matrix LHSTrimmedElementsContribution_elemental = ZeroMatrix(number_active_control_points_per_gp, number_active_control_points_per_gp);
 
             // Get the integration weight  
             const double weight = p_gauss_point_geometry->IntegrationPoints()[0].Weight();  
@@ -133,7 +139,7 @@ namespace Kratos
             // Shape functions evaluated at the GP
             const GeometryType::ShapeFunctionsGradientsType& dN_dxi = p_gauss_point_geometry->ShapeFunctionsLocalGradients();
             const unsigned int dim = dN_dxi[0].size2();
-            CompressedMatrix dN_dx(number_active_control_points_per_gp, dim); 
+            Matrix dN_dx(number_active_control_points_per_gp, dim); 
             noalias(dN_dx) = dN_dxi[0];
 
             // Determinant of jacobian
@@ -145,9 +151,9 @@ namespace Kratos
             Vector unit_normal_vector_2d = ZeroVector(2); 
             for (IndexType i = 0; i < 2; ++i) unit_normal_vector_2d[i] = unit_normal_vector[i];
 
-            CompressedMatrix normal_prod =  outer_prod(unit_normal_vector_2d, unit_normal_vector_2d);
+            Matrix normal_prod =  outer_prod(unit_normal_vector_2d, unit_normal_vector_2d);
 
-            CompressedMatrix first_prod = prod(dN_dx, normal_prod);
+            Matrix first_prod = prod(dN_dx, normal_prod);
             LHSTrimmedElementsContribution_elemental = prod(first_prod, trans(dN_dx)) * weight * det_jacobian[0];
 
             // Assemble the elemental contribution in the global matrix
@@ -158,7 +164,7 @@ namespace Kratos
             
             for (IndexType j = 0; j < equation_id_vector.size(); j++){
                 for (IndexType k = 0; k < equation_id_vector.size(); k++){
-                    LHSTrimmedElementsGradientContribution(equation_id_vector[j] - 1, equation_id_vector[k] - 1) += LHSTrimmedElementsContribution_elemental(j, k);
+                    LHSTrimmedElementsGradientContribution(equation_id_vector[j], equation_id_vector[k]) += LHSTrimmedElementsContribution_elemental(j, k);
                 }
             }
         }
@@ -218,12 +224,14 @@ namespace Kratos
             }
             
             for (IndexType j = 0; j < equation_id_vector.size(); j++){
-                RHSBoundaryContribution(equation_id_vector[j] - 1) += RHSBoundaryContribution_elemental(j);
+                RHSBoundaryContribution(equation_id_vector[j]) += RHSBoundaryContribution_elemental(j);
             }
         }
     }
 
     void ApplyStrongBCSExtendedGradientMethodProcess::ComputeRHSTrimmedElementsGradientContribution(Vector& RHSTrimmedElementsGradientContribution){
+        if (mpSkinModelPart->NumberOfElements() == 0) return;
+
         IndexType number_active_control_points_per_gp = mpSkinModelPart->ElementsBegin()->GetGeometry().PointsNumber();
 
         // Define the interpolation points and the fields for the rbf interpolation 
@@ -244,7 +252,6 @@ namespace Kratos
             const unsigned int dim = dN_dxi[0].size2();
             Matrix dN_dx(number_active_control_points_per_gp, dim); 
             noalias(dN_dx) = dN_dxi[0];
-
 
             // Determinant of jacobian
             Vector det_jacobian;
@@ -284,7 +291,7 @@ namespace Kratos
             }
             
             for (IndexType j = 0; j < equation_id_vector.size(); j++){
-                RHSTrimmedElementsGradientContribution(equation_id_vector[j] - 1) += RHSTrimmedElementsContribution_elemental(j);
+                RHSTrimmedElementsGradientContribution(equation_id_vector[j]) += RHSTrimmedElementsContribution_elemental(j);
             }
         }
     }
@@ -434,11 +441,12 @@ namespace Kratos
     }
 
     void ApplyStrongBCSExtendedGradientMethodProcess::ApplyStrongBoundaryConditions(){
-        IndexType number_active_control_points_per_gp = mpSkinModelPart->ElementsBegin()->GetGeometry().PointsNumber();
+        IndexType number_active_control_points_per_gp = mpSkinModelPart->ConditionsBegin()->GetGeometry().PointsNumber();
 
-        for (auto gauss_point_it = mpSkinModelPart->ElementsBegin(); gauss_point_it != mpSkinModelPart->ElementsEnd(); gauss_point_it++){
+        for (auto gauss_point_it = mpSkinModelPart->ConditionsBegin(); gauss_point_it != mpSkinModelPart->  ConditionsEnd(); gauss_point_it++){
             for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
-                double value_to_fix = mPhiDir[gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).EquationId() - 1];
+                double value_to_fix = mPhiDir[gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).EquationId()];
+                if (value_to_fix == 0.0) continue;
                 gauss_point_it->GetGeometry()[i].Fix(TEMPERATURE);
                 gauss_point_it->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = value_to_fix;
             }
@@ -507,7 +515,6 @@ namespace Kratos
 
      double ApplyStrongBCSExtendedGradientMethodProcess::CalculateKernelParameterMLS(CoordinatesArrayType quadrature_point_position){
         double min_distance = 1.0e10;
-        KRATOS_WATCH(quadrature_point_position)
 
         for (IndexType i = 0; i < mClosestInterpolationPointsCoordinates.size1(); i++){
             array_1d<double, 3> interpolation_points_coordinates;

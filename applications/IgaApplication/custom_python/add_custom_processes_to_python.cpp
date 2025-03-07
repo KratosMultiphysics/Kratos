@@ -21,6 +21,7 @@
 #include "custom_processes/assign_integration_points_to_background_elements_process.h"
 #include "custom_processes/assign_iga_external_conditions_process.h"
 #include "custom_processes/classify_elements_extended_gradient_method_process.h"
+#include "custom_processes/classify_integration_points_extended_gradient_method_process.h"
 #include "custom_processes/apply_strong_BCS_extended_gradient_method_process.h"
 #include "custom_processes/calculate_L2_norm_error_process.h"
 
@@ -64,6 +65,10 @@ void AddCustomProcessesToPython(
         .def(py::init<Model&, Parameters >())
         ;
 
+    py::class_<ClassifyIntegrationPointsExtendedGradientMethodProcess, ClassifyIntegrationPointsExtendedGradientMethodProcess::Pointer, Process>(m, "ClassifyIntegrationPointsExtendedGradientMethodProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
+
     py::class_<ApplyStrongBCSExtendedGradientMethodProcess, ApplyStrongBCSExtendedGradientMethodProcess::Pointer, Process>(m, "ApplyStrongBCSExtendedGradientMethodProcess")
         .def(py::init<Model&, Parameters >())
         ;
@@ -71,7 +76,6 @@ void AddCustomProcessesToPython(
     py::class_<CalculateL2NormErrorProcess, CalculateL2NormErrorProcess::Pointer, Process>(m, "CalculateL2NormErrorProcess")
         .def(py::init<Model&, Parameters >())
         ;
-
 
 }
 

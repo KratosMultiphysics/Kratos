@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 from colorama import Fore, Style, init
 
-class NewExtendedGradientMethodPoissonProblemAnalysis(AnalysisStage):
+class ExtendedGradientMethodAnalysis(AnalysisStage):
     """
     This class is the main-script of the ExtendedGradientConvectionDiffusion method put in a class
 
@@ -35,7 +35,7 @@ class NewExtendedGradientMethodPoissonProblemAnalysis(AnalysisStage):
             self.solver_settings.AddEmptyValue("domain_size")
             self.solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
 
-        super(NewExtendedGradientMethodPoissonProblemAnalysis, self).__init__(model, project_parameters)
+        super(ExtendedGradientMethodAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -102,7 +102,7 @@ class NewExtendedGradientMethodPoissonProblemAnalysis(AnalysisStage):
                 self.new_solution_field[node.Id - 1] = node.GetSolutionStepValue(unknown_variable)
 
         error = np.linalg.norm(self.new_solution_field - self.old_solution_field)/np.linalg.norm(self.old_solution_field)
-
+        
         self.old_solution_field = self.new_solution_field
 
         return error
@@ -129,5 +129,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = NewExtendedGradientMethodPoissonProblemAnalysis(model, parameters)
+    simulation = ExtendedGradientMethodAnalysis(model, parameters)
     simulation.Run()
