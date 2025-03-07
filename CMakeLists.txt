@@ -800,6 +800,12 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
+set(NO_GLFW ON)
+set(NO_PTEX ON)
+set(NO_TBB ON)
+set(NO_OPENGL ON)
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/opensubdiv)
+
 # # Clean the Module and libs install directories
 # if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
 #     install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")

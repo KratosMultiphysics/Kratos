@@ -1,0 +1,137 @@
+//
+//   Copyright 2013 Pixar
+//
+//   Licensed under the Apache License, Version 2.0 (the "Apache License")
+//   with the following modification; you may not use this file except in
+//   compliance with the Apache License and the following modification to it:
+//   Section 6. Trademarks. is deleted and replaced with:
+//
+//   6. Trademarks. This License does not grant permission to use the trade
+//      names, trademarks, service marks, or product names of the Licensor
+//      and its affiliates, except as required to comply with Section 4(c) of
+//      the License and to reproduce the content of the NOTICE file.
+//
+//   You may obtain a copy of the Apache License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the Apache License with the above modification is
+//   distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+//   KIND, either express or implied. See the Apache License for the specific
+//   language governing permissions and limitations under the Apache License.
+//
+
+static const std::string catmark_torus =
+"# This file uses centimeters as units for non-parametric coordinates.\n"
+"\n"
+"v 1.250520 -0.353553 0.517982\n"
+"v 0.597239 -0.353553 0.247384\n"
+"v 0.597239 0.353553 0.247384\n"
+"v 1.250520 0.353553 0.517982\n"
+"v 0.517982 -0.353553 1.250520\n"
+"v 0.247384 -0.353553 0.597239\n"
+"v 0.247384 0.353553 0.597239\n"
+"v 0.517982 0.353553 1.250520\n"
+"v -0.517982 -0.353553 1.250520\n"
+"v -0.247384 -0.353553 0.597239\n"
+"v -0.247384 0.353553 0.597239\n"
+"v -0.517982 0.353553 1.250520\n"
+"v -1.250520 -0.353553 0.517982\n"
+"v -0.597239 -0.353553 0.247384\n"
+"v -0.597239 0.353553 0.247384\n"
+"v -1.250520 0.353553 0.517982\n"
+"v -1.250520 -0.353553 -0.517982\n"
+"v -0.597239 -0.353553 -0.247384\n"
+"v -0.597239 0.353553 -0.247384\n"
+"v -1.250520 0.353553 -0.517982\n"
+"v -0.517982 -0.353553 -1.250520\n"
+"v -0.247384 -0.353553 -0.597239\n"
+"v -0.247384 0.353553 -0.597239\n"
+"v -0.517982 0.353553 -1.250520\n"
+"v 0.517982 -0.353553 -1.250520\n"
+"v 0.247384 -0.353553 -0.597239\n"
+"v 0.247384 0.353553 -0.597239\n"
+"v 0.517982 0.353553 -1.250520\n"
+"v 1.250520 -0.353553 -0.517982\n"
+"v 0.597239 -0.353553 -0.247384\n"
+"v 0.597239 0.353553 -0.247384\n"
+"v 1.250520 0.353553 -0.517982\n"
+"vt 0.1 0.1\n"
+"vt 0.1 0.2\n"
+"vt 0.1 0.3\n"
+"vt 0.1 0.4\n"
+"vt 0.2 0.1\n"
+"vt 0.2 0.2\n"
+"vt 0.2 0.3\n"
+"vt 0.2 0.4\n"
+"vt 0.3 0.1\n"
+"vt 0.3 0.2\n"
+"vt 0.3 0.3\n"
+"vt 0.3 0.4\n"
+"vt 0.4 0.1\n"
+"vt 0.4 0.2\n"
+"vt 0.4 0.3\n"
+"vt 0.4 0.4\n"
+"vt 0.5 0.1\n"
+"vt 0.5 0.2\n"
+"vt 0.5 0.3\n"
+"vt 0.5 0.4\n"
+"vt 0.6 0.1\n"
+"vt 0.6 0.2\n"
+"vt 0.6 0.3\n"
+"vt 0.6 0.4\n"
+"vt 0.7 0.1\n"
+"vt 0.7 0.2\n"
+"vt 0.7 0.3\n"
+"vt 0.7 0.4\n"
+"vt 0.8 0.1\n"
+"vt 0.8 0.2\n"
+"vt 0.8 0.3\n"
+"vt 0.8 0.4\n"
+"vt 0.9 0.1\n"
+"vt 0.9 0.2\n"
+"vt 0.9 0.3\n"
+"vt 0.9 0.4\n"
+"vt 0.1 0.5\n"
+"vt 0.2 0.5\n"
+"vt 0.3 0.5\n"
+"vt 0.4 0.5\n"
+"vt 0.5 0.5\n"
+"vt 0.6 0.5\n"
+"vt 0.7 0.5\n"
+"vt 0.8 0.5\n"
+"vt 0.9 0.5\n"
+"f  5/5   6/6   2/2   1/1\n"
+"f  6/6   7/7   3/3   2/2\n"
+"f  7/7   8/8   4/4   3/3\n"
+"f  8/8   5/38  1/37  4/4\n"
+"f  9/9  10/10  6/6   5/5\n"
+"f 10/10 11/11  7/7   6/6\n"
+"f 11/11 12/12  8/8   7/7\n"
+"f 12/12  9/39  5/38  8/8\n"
+"f 13/13 14/14 10/10  9/9\n"
+"f 14/14 15/15 11/11 10/10\n"
+"f 15/15 16/16 12/12 11/11\n"
+"f 16/16 13/40  9/39 12/12\n"
+"f 17/17 18/18 14/14 13/13\n"
+"f 18/18 19/19 15/15 14/14\n"
+"f 19/19 20/20 16/16 15/15\n"
+"f 20/20 17/41 13/40 16/16\n"
+"f 21/21 22/22 18/18 17/17\n"
+"f 22/22 23/23 19/19 18/18\n"
+"f 23/23 24/24 20/20 19/19\n"
+"f 24/24 21/42 17/41 20/20\n"
+"f 25/25 26/26 22/22 21/21\n"
+"f 26/26 27/27 23/23 22/22\n"
+"f 27/27 28/28 24/24 23/23\n"
+"f 28/28 25/43 21/42 24/24\n"
+"f 29/29 30/30 26/26 25/25\n"
+"f 30/30 31/31 27/27 26/26\n"
+"f 31/31 32/32 28/28 27/27\n"
+"f 32/32 29/44 25/43 28/28\n"
+"f  1/33  2/34 30/30 29/29\n"
+"f  2/34  3/35 31/31 30/30\n"
+"f  3/35  4/36 32/32 31/31\n"
+"f  4/36  1/45 29/44 32/32\n"
+;

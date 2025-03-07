@@ -1,13 +1,19 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosOptimizationApplication ****")
-set(OPENSUBDIV_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build")
-set(OPENSUBDIV_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build/opensubdiv")
-set(OPENSUBDIV_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build/lib")
-include_directories( ${OPENSUBDIV_ROOT_DIR} )
-include_directories( ${OPENSUBDIV_INCLUDE_DIR} )
-include_directories( ${OPENSUBDIV_LIBRARIES} )
-find_package(OpenSubdiv REQUIRED)
+# set(OPENSUBDIV_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build")
+# set(OPENSUBDIV_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build/opensubdiv")
+# set(OPENSUBDIV_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/OpenSubdiv/build/lib")
+# include_directories( ${OPENSUBDIV_ROOT_DIR} )
+# include_directories( ${OPENSUBDIV_INCLUDE_DIR} )
+# include_directories( ${OPENSUBDIV_LIBRARIES} )
+# find_package(OpenSubdiv REQUIRED)
+set(OSD_DIR ${KRATOS_SOURCE_DIR}/external_libraries/opensubdiv)
+set(OSD_BIN_DIR ${KRATOS_BINARY_DIR}/external_libraries/opensubdiv)
+set(OSD_LIBRARIES ${KRATOS_BINARY_DIR}/external_libraries/opensubdiv/opensubdiv)
+include_directories( ${OSD_DIR} )
+include_directories( ${OSD_BIN_DIR} )
+include_directories( ${OSD_LIBRARIES} )
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -42,7 +48,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE})
-target_link_libraries(KratosOptimizationCore PUBLIC KratosCore PRIVATE ${OPENSUBDIV_LIBRARIES})
+target_link_libraries(KratosOptimizationCore PUBLIC KratosCore PRIVATE opensubdiv)
 set_target_properties(KratosOptimizationCore PROPERTIES COMPILE_DEFINITIONS "OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################

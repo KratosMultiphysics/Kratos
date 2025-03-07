@@ -30,10 +30,15 @@ using std::chrono::seconds;
 // #include <opensubdiv/far/patchTableFactory.h>
 // #include <opensubdiv/far/patchMap.h>
 /// OpenSubdiv specific paths
-#include "../../../custom_external_libraries/OpenSubdiv/opensubdiv/far/topologyDescriptor.h"
-#include "../../../custom_external_libraries/OpenSubdiv/opensubdiv/far/primvarRefiner.h"
-#include "../../../custom_external_libraries/OpenSubdiv/opensubdiv/far/patchTableFactory.h"
-#include "../../../custom_external_libraries/OpenSubdiv/opensubdiv/far/patchMap.h"
+// #include "../../../custom_external_libraries/OpenSubdiv/opensubdiv/far/topologyDescriptor.h"
+// #include "../../../custom_external_libraries/OpenSubdiv/opensubdiv/far/primvarRefiner.h"
+// #include "../../../custom_external_libraries/OpenSubdiv/opensubdiv/far/patchTableFactory.h"
+// #include "../../../custom_external_libraries/OpenSubdiv/opensubdiv/far/patchMap.h"
+/// OpenSubdiv specific paths
+#include <opensubdiv/opensubdiv/far/topologyDescriptor.h>
+#include <opensubdiv/opensubdiv/far/primvarRefiner.h>
+#include <opensubdiv/opensubdiv/far/patchTableFactory.h>
+#include <opensubdiv/opensubdiv/far/patchMap.h>
 
 /// This file contains classes for handling OpenSubdiv's types
 /// and functions for applying OpenSubdivs utilities
