@@ -27,6 +27,7 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_controls/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_responsess/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/*.cpp
     # could add here option to include subd if needed to avoid failing build
 )
 
