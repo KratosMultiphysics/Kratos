@@ -148,7 +148,6 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     if (rNodalValues.size() != global_size)
         rNodalValues.resize(global_size, false);
     
-    BoundedVector<double, 12> global_values;
     BoundedMatrix<double, 3, 3> T;
     noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(r_geom);
 
@@ -159,13 +158,13 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     const VectorType& r_local_displ_0 = prod(T, r_displ_0);
     const VectorType& r_local_rot_0   = prod(T, r_rotation_0);
 
-    global_values[0] = r_local_displ_0[0];
-    global_values[1] = r_local_displ_0[1];
-    global_values[2] = r_local_displ_0[2];
+    rNodalValues[0] = r_local_displ_0[0];
+    rNodalValues[1] = r_local_displ_0[1];
+    rNodalValues[2] = r_local_displ_0[2];
 
-    global_values[3] = r_local_rot_0[0];
-    global_values[4] = r_local_rot_0[1];
-    global_values[5] = r_local_rot_0[2];
+    rNodalValues[3] = r_local_rot_0[0];
+    rNodalValues[4] = r_local_rot_0[1];
+    rNodalValues[5] = r_local_rot_0[2];
 
     const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
     const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ROTATION);
@@ -173,13 +172,13 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     const VectorType& r_local_displ_1 = prod(T, r_displ_1);
     const VectorType& r_local_rot_1   = prod(T, r_rotation_1);
 
-    global_values[6] = r_rotation_1[0];
-    global_values[7] = r_rotation_1[1];
-    global_values[8] = r_rotation_1[2];
+    rNodalValues[6] = r_rotation_1[0];
+    rNodalValues[7] = r_rotation_1[1];
+    rNodalValues[8] = r_rotation_1[2];
 
-    global_values[9]  = r_local_rot_1[0];
-    global_values[10] = r_local_rot_1[1];
-    global_values[11] = r_local_rot_1[2];
+    rNodalValues[9]  = r_local_rot_1[0];
+    rNodalValues[10] = r_local_rot_1[1];
+    rNodalValues[11] = r_local_rot_1[2];
 
     KRATOS_CATCH("")
 }
@@ -288,6 +287,7 @@ void LinearTimoshenkoBeamElement3D2N::AssembleGlobalRotationMatrix(
     BoundedMatrix<double, 12, 12>& rGlobalT
 )
 {
+    rGlobalT.clear();
     for (IndexType block = 0; block < 4; ++block) {
         for (IndexType i = 0; i < rT.size1(); ++i) {
             for (IndexType j = 0; j < rT.size2(); ++j) {
@@ -361,6 +361,8 @@ void LinearTimoshenkoBeamElement3D2N::RotateAll(
 
     noalias(aux_product) = prod(rLHS, trans(global_size_T));
     noalias(rLHS) = prod(global_size_T, aux_product);
+
+    KRATOS_WATCH(global_size_T)
 }
 
 /***********************************************************************************/
@@ -475,7 +477,12 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         const double dMy_dkappa_y = r_constitutive_matrix(2, 2);
         const double dMz_dkappa_z = r_constitutive_matrix(3, 3);
         const double dVy_dgamma_xy = r_constitutive_matrix(4, 4);
-        const double dVz_dgamma_xz = r_constitutive_matrix(5, 6);
+        const double dVz_dgamma_xz = r_constitutive_matrix(5, 5);
+
+        KRATOS_WATCH(nodal_values)
+        KRATOS_WATCH(strain_vector)
+        KRATOS_WATCH(r_generalized_stresses)
+        KRATOS_WATCH(r_constitutive_matrix)
         
         // Axial DoFs shape functions (u and theta_x)
         GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, 0.0, xi);
@@ -513,7 +520,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi_rot_y, xi);
         GetShapeFunctionsValues(N_shape, length, Phi_rot_y, xi);
         GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_y, xi);
-        noalias(N_s) = N_derivatives - N_theta;
+        noalias(N_s) = N_derivatives + N_theta;
 
         // Bending in z contributions
         GlobalSizeVectorTransversalZ(global_size_N, N_theta_derivatives);
@@ -530,6 +537,8 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         // MISSING BODY FORCES!!!!!!!!!!!!!!!!!!!!!!!!
     }
     RotateAll(rLHS, rRHS, r_geometry);
+
+    KRATOS_WATCH(rLHS)
 
     KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem")
 }
