@@ -86,62 +86,62 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     grad_q = DfjDxi(DN,q)   # Temperature test function gradient VERTICAL VECTOR
 
     ## BASE GALERKIN FUNCTIONAL RESIDUAL
-    rv_galerkin  = -Conductivity_gauss*(grad_q.transpose()*grad_t)  # diffusion term
-    rv_galerkin += -Decay_gauss*(q_gauss.transpose()*t_gauss) # reaction term
-    rv_galerkin +=  q_gauss.transpose()*f_gauss # RHS Source Term
-    rv = rv_galerkin # save BASE residual into TOTAL element residual
+    rv_conductivity  = -Conductivity_gauss*(grad_q.transpose()*grad_t)  # diffusion term
+    rv_source =  q_gauss.transpose()*f_gauss # RHS Source Term
+    # rv_decay = -Decay_gauss*(q_gauss.transpose()*t_gauss) # reaction ter
+    rv = rv_conductivity + rv_source #+ rv_decay# save BASE residual into TOTAL element residual
 
-    ## HANDLE CONVECTION 
-    if (convective_term):
-        # Definition
-        vconv = DefineMatrix('vconv',nnodes,dim)    # Convective velocity 
-        # Gauss points
-        vconv_gauss = vconv.transpose()*N           # Convective velocity on gauss points
-        # CONVECTIVE GALERKIN FUNCTIONAL RESIDUAL
-        rv_conv = -ConvCoeff_gauss*(q_gauss.transpose()*(vconv_gauss.transpose()*grad_t)) # convective term
-        rv += rv_conv # save CONVECTION residual into TOTAL element residual
-    # END HANDLE CONVECTION
+    # ## HANDLE CONVECTION 
+    # if (convective_term):
+    #     # Definition
+    #     vconv = DefineMatrix('vconv',nnodes,dim)    # Convective velocity 
+    #     # Gauss points
+    #     vconv_gauss = vconv.transpose()*N           # Convective velocity on gauss points
+    #     # CONVECTIVE GALERKIN FUNCTIONAL RESIDUAL
+    #     rv_conv = -ConvCoeff_gauss*(q_gauss.transpose()*(vconv_gauss.transpose()*grad_t)) # convective term
+    #     rv += rv_conv # save CONVECTION residual into TOTAL element residual
+    # # END HANDLE CONVECTION
 
-    ## HANDLE STABILIZATION
-    if (stabilization):
-        # Parameters definition
-        h = sympy.Symbol('h', positive = True)      # Mesh size
-        # dt = sympy.Symbol('dt', positive = True) # Time increment
-        # dyn_tau = sympy.Symbol('dyn_tau', positive = True) # Time stabilization constant
-        #Stabilization constants definition
-        stab_c1 = sympy.Symbol('stab_c1', positive = True) # Diffusion stabilization constant
-        stab_c2 = sympy.Symbol('stab_c2', positive = True) # Convection stabilization constant
-        stab_c3 = sympy.Symbol('stab_c3', positive = True) # Resistance (alpha) term stabilization constant
-        # TAU1 EVALUATION steps
-        tau1_denominator = 0.0
-        # tau1_denominator += rho*dyn_tau/dt # time contribution to tau_1
-        tau1_denominator += stab_c1*Conductivity_gauss[0]/h**2 # diffusion contribution to tau_1
-        tau1_denominator += stab_c3*Decay_gauss[0] # decay contribution to tau_1
-        # Update TAU1 with CONVECTIVE term stabilization
-        if (convective_term):
-            stab_norm_a = 0.0
-            for i in range(0, dim): # evaluate the vconv norm
-                stab_norm_a += vconv_gauss[i]**2
-            stab_norm_a = sympy.sqrt(stab_norm_a)
-            tau1_denominator += stab_c2*abs(ConvCoeff_gauss[0])*stab_norm_a/h # convection contribution to tau_1
-        # Definition of TAU1 & TAU2
-        tau1 = 1.0/tau1_denominator         # Stabilization parameter 1
-        ##  STABILIZATION functional terms
-        # mass conservation residual
-        mass_residual  = f_gauss # Source Term
-        mass_residual += -Decay_gauss*t_gauss # Decay_gauss factor
-        # eliminates diffusion involving 2nd order derivatives for 1st order solutions
-        if (convective_term):
-            mass_residual += -ConvCoeff_gauss*vconv_gauss.transpose()*grad_t # convective term
-        # Temperature subscales
-        temperature_subscale = tau1*mass_residual
-        # ASGS stabilization
-        # some of the terms in rv_stab are taken with sign (+) since they derive from an integration by parts 
-        rv_stab = -Decay_gauss*q_gauss.transpose()*temperature_subscale # stab decay residual
-        if (convective_term):
-            rv_stab += ConvCoeff_gauss*temperature_subscale*vconv_gauss.transpose()*grad_q # stab convection
-        rv += rv_stab # save STABILIZATION residual into TOTAL element residual
-    # END HANDLE STABILIZATION
+    # ## HANDLE STABILIZATION
+    # if (stabilization):
+    #     # Parameters definition
+    #     h = sympy.Symbol('h', positive = True)      # Mesh size
+    #     # dt = sympy.Symbol('dt', positive = True) # Time increment
+    #     # dyn_tau = sympy.Symbol('dyn_tau', positive = True) # Time stabilization constant
+    #     #Stabilization constants definition
+    #     stab_c1 = sympy.Symbol('stab_c1', positive = True) # Diffusion stabilization constant
+    #     stab_c2 = sympy.Symbol('stab_c2', positive = True) # Convection stabilization constant
+    #     stab_c3 = sympy.Symbol('stab_c3', positive = True) # Resistance (alpha) term stabilization constant
+    #     # TAU1 EVALUATION steps
+    #     tau1_denominator = 0.0
+    #     # tau1_denominator += rho*dyn_tau/dt # time contribution to tau_1
+    #     tau1_denominator += stab_c1*Conductivity_gauss[0]/h**2 # diffusion contribution to tau_1
+    #     tau1_denominator += stab_c3*Decay_gauss[0] # decay contribution to tau_1
+    #     # Update TAU1 with CONVECTIVE term stabilization
+    #     if (convective_term):
+    #         stab_norm_a = 0.0
+    #         for i in range(0, dim): # evaluate the vconv norm
+    #             stab_norm_a += vconv_gauss[i]**2
+    #         stab_norm_a = sympy.sqrt(stab_norm_a)
+    #         tau1_denominator += stab_c2*abs(ConvCoeff_gauss[0])*stab_norm_a/h # convection contribution to tau_1
+    #     # Definition of TAU1 & TAU2
+    #     tau1 = 1.0/tau1_denominator         # Stabilization parameter 1
+    #     ##  STABILIZATION functional terms
+    #     # mass conservation residual
+    #     mass_residual  = f_gauss # Source Term
+    #     mass_residual += -Decay_gauss*t_gauss # Decay_gauss factor
+    #     # eliminates diffusion involving 2nd order derivatives for 1st order solutions
+    #     if (convective_term):
+    #         mass_residual += -ConvCoeff_gauss*vconv_gauss.transpose()*grad_t # convective term
+    #     # Temperature subscales
+    #     temperature_subscale = tau1*mass_residual
+    #     # ASGS stabilization
+    #     # some of the terms in rv_stab are taken with sign (+) since they derive from an integration by parts 
+    #     rv_stab = -Decay_gauss*q_gauss.transpose()*temperature_subscale # stab decay residual
+    #     if (convective_term):
+    #         rv_stab += ConvCoeff_gauss*temperature_subscale*vconv_gauss.transpose()*grad_q # stab convection
+    #     rv += rv_stab # save STABILIZATION residual into TOTAL element residual
+    # # END HANDLE STABILIZATION
 
     ## Define DOFs and test function vectors
     dofs = sympy.zeros(nnodes, 1)
@@ -189,22 +189,11 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     grad_q_adj = DfjDxi(DN,q_adj)   # Temperature test function gradient VERTICAL VECTOR
 
     ## BASE GALERKIN FUNCTIONAL RESIDUAL
-    rv_galerkin_adj  = -Conductivity_gauss*(grad_q_adj.transpose()*grad_t_adj)  # diffusion term
-    rv_galerkin_adj += -Decay_gauss*(q_adj_gauss.transpose()*t_adj_gauss) # reaction term
-    rv_galerkin_adj +=  q_adj_gauss.transpose()*f_adj_gauss # RHS Source Term
-    rv_adj = rv_galerkin_adj # save BASE residual into TOTAL element residual
-
-    ## HANDLE CONVECTION 
-    if (convective_term):
-        # Definition
-        vconv_adj = DefineMatrix('vconv_adj',nnodes,dim)    # Convective velocity 
-        # Gauss points
-        vconv_adj_gauss = vconv_adj.transpose()*N           # Convective velocity on gauus points
-        # CONVECTIVE GALERKIN FUNCTIONAL RESIDUAL
-        rv_conv_adj = ConvCoeff_gauss*(q_adj_gauss.transpose()*(vconv_adj_gauss.transpose()*grad_t_adj)) # convective term
-        rv_adj += rv_conv_adj # save CONVECTION residual into TOTAL element residual
-    # END HANDLE CONVECTION
-
+    rv_conductivtiy_adj  = -Conductivity_gauss*(grad_q_adj.transpose()*grad_t_adj)  # diffusion term
+    rv_source_adj =  q_adj_gauss.transpose()*f_adj_gauss # RHS Source Term
+    rv_decay_adj = -Decay_gauss*(q_adj_gauss.transpose()*t_adj_gauss) # reaction term
+    rv_adj = rv_conductivtiy_adj + rv_decay_adj #+ rv_decay# save BASE residual into TOTAL element residual
+    
     ## HANDLE ADJOINT FORCING TERMS  
     if (include_functionals):
         # Functionals Database
@@ -247,59 +236,70 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_adj -= functional_weights[6]*rv_funct_transport_scalar_convection
         rv_adj -= functional_weights[7]*rv_funct_transport_scalar_decay
         rv_adj -= functional_weights[8]*rv_funct_transport_scalar_source
+    
+    # ## HANDLE CONVECTION 
+    # if (convective_term):
+    #     # Definition
+    #     vconv_adj = DefineMatrix('vconv_adj',nnodes,dim)    # Convective velocity 
+    #     # Gauss points
+    #     vconv_adj_gauss = vconv_adj.transpose()*N           # Convective velocity on gauus points
+    #     # CONVECTIVE GALERKIN FUNCTIONAL RESIDUAL
+    #     rv_conv_adj = ConvCoeff_gauss*(q_adj_gauss.transpose()*(vconv_adj_gauss.transpose()*grad_t_adj)) # convective term
+    #     rv_adj += rv_conv_adj # save CONVECTION residual into TOTAL element residual
+    # # END HANDLE CONVECTION
 
-    ## HANDLE STABILIZATION
-    if (stabilization):
-        # Parameters definition
-        h = sympy.Symbol('h', positive = True)      # Mesh size
-        # dt = sympy.Symbol('dt', positive = True) # Time increment
-        # dyn_tau = sympy.Symbol('dyn_tau', positive = True) # Time stabilization constant
-        #Stabilization constants definition
-        stab_c1 = sympy.Symbol('stab_c1', positive = True) # Diffusion stabilization constant
-        stab_c2 = sympy.Symbol('stab_c2', positive = True) # Convection stabilization constant
-        stab_c3 = sympy.Symbol('stab_c3', positive = True) # Decay term stabilization constant
-        # TAU1 EVALUATION steps
-        tau1_denominator_adj = 0.0
-        # tau1_denominator += rho*dyn_tau/dt # time contribution to tau_1
-        tau1_denominator_adj += stab_c1*Conductivity_gauss[0]/h**2 # diffusion contribution to tau_1
-        tau1_denominator_adj += stab_c3*Decay_gauss[0] # decay contribution to tau_1
-        # Update TAU1 with CONVECTIVE term stabilization
-        if (convective_term):
-            stab_norm_a_adj = 0.0
-            for i in range(0, dim): # evaluate the vconv norm
-                stab_norm_a_adj += vconv_adj_gauss[i]**2
-            stab_norm_a_adj = sympy.sqrt(stab_norm_a_adj)
-            tau1_denominator_adj += stab_c2*abs(ConvCoeff_gauss[0])*stab_norm_a_adj/h # convection contribution to tau_1
-        # Definition of TAU1 & TAU2
-        tau1_adj = 1.0/tau1_denominator_adj         # Stabilization parameter 1
-        ##  STABILIZATION functional terms
-        # mass conservation residual
-        mass_residual_adj  = f_adj_gauss # Source Term
-        mass_residual_adj += -Decay_gauss*t_adj_gauss # decay factor
-        # eliminates diffusion involving 2nd order derivatives for 1st order solutions
-        if (convective_term):
-            mass_residual_adj += ConvCoeff_gauss*vconv_adj_gauss.transpose()*grad_t_adj # convective term
+    # ## HANDLE STABILIZATION
+    # if (stabilization):
+    #     # Parameters definition
+    #     h = sympy.Symbol('h', positive = True)      # Mesh size
+    #     # dt = sympy.Symbol('dt', positive = True) # Time increment
+    #     # dyn_tau = sympy.Symbol('dyn_tau', positive = True) # Time stabilization constant
+    #     #Stabilization constants definition
+    #     stab_c1 = sympy.Symbol('stab_c1', positive = True) # Diffusion stabilization constant
+    #     stab_c2 = sympy.Symbol('stab_c2', positive = True) # Convection stabilization constant
+    #     stab_c3 = sympy.Symbol('stab_c3', positive = True) # Decay term stabilization constant
+    #     # TAU1 EVALUATION steps
+    #     tau1_denominator_adj = 0.0
+    #     # tau1_denominator += rho*dyn_tau/dt # time contribution to tau_1
+    #     tau1_denominator_adj += stab_c1*Conductivity_gauss[0]/h**2 # diffusion contribution to tau_1
+    #     tau1_denominator_adj += stab_c3*Decay_gauss[0] # decay contribution to tau_1
+    #     # Update TAU1 with CONVECTIVE term stabilization
+    #     if (convective_term):
+    #         stab_norm_a_adj = 0.0
+    #         for i in range(0, dim): # evaluate the vconv norm
+    #             stab_norm_a_adj += vconv_adj_gauss[i]**2
+    #         stab_norm_a_adj = sympy.sqrt(stab_norm_a_adj)
+    #         tau1_denominator_adj += stab_c2*abs(ConvCoeff_gauss[0])*stab_norm_a_adj/h # convection contribution to tau_1
+    #     # Definition of TAU1 & TAU2
+    #     tau1_adj = 1.0/tau1_denominator_adj         # Stabilization parameter 1
+    #     ##  STABILIZATION functional terms
+    #     # mass conservation residual
+    #     mass_residual_adj  = f_adj_gauss # Source Term
+    #     mass_residual_adj += -Decay_gauss*t_adj_gauss # decay factor
+    #     # eliminates diffusion involving 2nd order derivatives for 1st order solutions
+    #     if (convective_term):
+    #         mass_residual_adj += ConvCoeff_gauss*vconv_adj_gauss.transpose()*grad_t_adj # convective term
 
-        ## Include adjoint forcing terms coming from the functional definition
-        if (include_functionals):
-            mass_residual_adj += -functional_weights[4]*2.0*opt_t_gauss
-            # residual coming from transfer functional DIFFUSION  term involves second order derivatives. 
-            # residual coming from transfer functional CONVECTION term erases when evaluated not in the weak form, only a term in grad(beta) remains
-            grad_ConvCoeff = DfjDxi(DN,ConvCoeff) 
-            mass_residual_adj += functional_weights[6]*((vconv_physics_gauss.transpose()*grad_ConvCoeff)*t_physics_gauss)
-            mass_residual_adj += -functional_weights[7]*(2.0*Decay_gauss*t_physics_gauss)
-            mass_residual_adj += functional_weights[8]*(f_physics_gauss) 
+    #     ## Include adjoint forcing terms coming from the functional definition
+    #     if (include_functionals):
+    #         mass_residual_adj += -functional_weights[4]*2.0*opt_t_gauss
+    #         # residual coming from transfer functional DIFFUSION  term involves second order derivatives. 
+    #         # residual coming from transfer functional CONVECTION term erases when evaluated not in the weak form, only a term in grad(beta) remains
+    #         grad_ConvCoeff = DfjDxi(DN,ConvCoeff) 
+    #         mass_residual_adj += functional_weights[6]*((vconv_physics_gauss.transpose()*grad_ConvCoeff)*t_physics_gauss)
+    #         mass_residual_adj += -functional_weights[7]*(2.0*Decay_gauss*t_physics_gauss)
+    #         mass_residual_adj += functional_weights[8]*(f_physics_gauss) 
 
-        # Temperature subscales
-        temperature_subscale_adj = tau1_adj*mass_residual_adj
+    #     # Temperature subscales
+    #     temperature_subscale_adj = tau1_adj*mass_residual_adj
 
-        # ASGS stabilization
-        # some of the terms in rv_stab are taken with sign (+) since they derive from an integration by parts 
-        rv_stab_adj = -Decay_gauss*q_adj_gauss.transpose()*temperature_subscale_adj # stab decay residual
-        if (convective_term):
-            rv_stab_adj += -ConvCoeff_gauss*temperature_subscale_adj*vconv_adj_gauss.transpose()*grad_q_adj # stab convection
-        rv_adj += rv_stab_adj # save STABILIZATION residual into TOTAL element residual
-    # END HANDLE STABILIZATION
+    #     # ASGS stabilization
+    #     # some of the terms in rv_stab are taken with sign (+) since they derive from an integration by parts 
+    #     rv_stab_adj = -Decay_gauss*q_adj_gauss.transpose()*temperature_subscale_adj # stab decay residual
+    #     if (convective_term):
+    #         rv_stab_adj += -ConvCoeff_gauss*temperature_subscale_adj*vconv_adj_gauss.transpose()*grad_q_adj # stab convection
+    #     rv_adj += rv_stab_adj # save STABILIZATION residual into TOTAL element residual
+    # # END HANDLE STABILIZATION
 
     ## Define DOFs and test function vectors
     dofs = sympy.zeros(nnodes, 1)

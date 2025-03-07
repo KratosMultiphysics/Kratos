@@ -365,6 +365,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._InitializePhysicsParameters()
 
     def _InitializePhysicsParameters(self, resistance_parameters=[1e4, 0.0, 1.0]):
+        self._SetPhysicsParametersInterpolationMethods()
         self._InitializeResistance(resistance_parameters)
 
     def _SetMaxDomainVolumeFraction(self, max_volume_fraction = 1.0):
@@ -589,6 +590,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._ResetResistance()
         self._UpdateResistanceVariable()
 
+    def _SetPhysicsParametersInterpolationMethods(self, resistance="hyperbolic"):
+        self._SetResistanceInterpolationMethod(resistance)
+
+    def _SetResistanceInterpolationMethod(self, interpolation_method):
+        self.resistance_interpolation_method = interpolation_method
+
     def _ResetResistance(self):
         self.resistance = np.zeros(self.n_nodes)
         self.resistance_derivative_wrt_design = np.zeros(self.n_nodes)
@@ -603,17 +610,40 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._UpdateResistanceVariable()
 
     def _ComputeResistance(self, design_parameter):
-        return self._ComputePhysicsParameter(self.resistance_parameters, design_parameter)
+        return self._ComputePhysicsParameter(self.resistance_interpolation_method, self.resistance_parameters, design_parameter)
     
-    def _ComputePhysicsParameter(self, physics_parameter_values, design_parameter):
-        return self._ComputeConvexPhysicsParameter(physics_parameter_values, design_parameter)
-
-    def _ComputeConvexPhysicsParameter(self, physics_parameter_values, design_parameter):
+    def _ComputePhysicsParameter(self, interpolation_method, physics_parameter_values, design_parameter):
+        if (interpolation_method == ("POLYNOMIAL").lower()):
+            return self._ComputePolynomialPhysicsParameter(physics_parameter_values, design_parameter)
+        else:
+            return self._ComputeHyperbolicPhysicsParameter(physics_parameter_values, design_parameter)
+        
+    def _ComputeHyperbolicPhysicsParameter(self, physics_parameter_values, design_parameter):
         value_fluid = physics_parameter_values[0]
         value_solid = physics_parameter_values[1]
         slope       = physics_parameter_values[2]
         physics_parameter = value_fluid + (value_solid-value_fluid)*(slope*design_parameter)/(slope+1-design_parameter)
         physics_parameter_derivative_wrt_design_base = (value_solid-value_fluid)*(slope*(slope+1))/((slope+1-design_parameter)**2)
+        return physics_parameter, physics_parameter_derivative_wrt_design_base
+    
+    def _ComputePolynomialPhysicsParameter(self, physics_parameter_values, design_parameter):
+        value_void  = physics_parameter_values[0]
+        value_solid = physics_parameter_values[1]
+        power       = physics_parameter_values[2]
+        if (power < 1.0):
+            power = 1.0
+        power_multiplier = 10.0
+        power_max   = power_multiplier*power
+        min_it = 5.0
+        max_it = 100.0
+        if (self.opt_it < min_it):
+            eff_power = power
+        elif (self.opt_it <= max_it):
+            eff_power = power + (power_max-power)*(self.opt_it-min_it)/(max_it-min_it)
+        else:
+            eff_power = power_max
+        physics_parameter = value_void + (value_solid-value_void)*(design_parameter**eff_power)
+        physics_parameter_derivative_wrt_design_base = eff_power*(value_solid-value_void)*(design_parameter**(eff_power-1))
         return physics_parameter, physics_parameter_derivative_wrt_design_base
     
     def _UpdateResistanceDesignDerivative(self):

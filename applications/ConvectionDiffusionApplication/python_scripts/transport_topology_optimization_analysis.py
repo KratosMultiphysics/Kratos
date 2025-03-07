@@ -384,6 +384,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
 
     def _InitializePhysicsParameters(self, conductivity_parameters=[1e-4, 1e-2, 1.0], decay_parameters=[0.0, 0.0, 1.0], convection_coefficient_parameters=[0.0, 0.0, 1.0]):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")
+        self._SetPhysicsParametersInterpolationMethods()
         self._InitializeConductivity(conductivity_parameters)
         self._InitializeDecay(decay_parameters)
         self._InitializeConvectionCoefficient(convection_coefficient_parameters)
@@ -428,6 +429,20 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     def _ResetConvectionCoefficient(self):
         self.convection_coefficient = np.zeros(self.n_nodes)
         self.convection_coefficient_derivative_wrt_design = np.zeros(self.n_nodes)
+
+    def _SetPhysicsParametersInterpolationMethods(self, conductivity="hyperbolic", decay="hyperbolic", convection_coefficient="hyperbolic"):
+        self._SetConductivityInterpolationMethod(conductivity)
+        self._SetDecayInterpolationMethod(decay)
+        self._SetConvectionCoefficientInterpolationMethod(convection_coefficient)
+
+    def _SetConductivityInterpolationMethod(self, interpolation_method):
+        self.conductivity_interpolation_method = interpolation_method
+        
+    def _SetDecayInterpolationMethod(self, interpolation_method):
+        self.decay_interpolation_method = interpolation_method
+
+    def _SetConvectionCoefficientInterpolationMethod(self, interpolation_method):
+        self.convection_coefficient_interpolation_method = interpolation_method    
 
     def UpdatePhysicsParametersVariables(self):
         self._UpdateConductivityVariable()
@@ -476,13 +491,13 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self._UpdateConvectionCoefficientVariable()
     
     def _ComputeConductivity(self, design_parameter):
-        return self._ComputeConvexPhysicsParameter(self.conductivity_parameters, design_parameter)
+        return self._ComputePhysicsParameter(self.conductivity_interpolation_method, self.conductivity_parameters, design_parameter)
     
     def _ComputeDecay(self, design_parameter):
-        return self._ComputeConvexPhysicsParameter(self.decay_parameters, design_parameter)
+        return self._ComputePhysicsParameter(self.decay_interpolation_method, self.decay_parameters, design_parameter)
     
     def _ComputeConvectionCoefficient(self, design_parameter):
-        return self._ComputeConvexPhysicsParameter(self.convection_coefficient_parameters, design_parameter)
+        return self._ComputePhysicsParameter(self.convection_coefficient_interpolation_method, self.convection_coefficient_parameters, design_parameter)
 
     def _UpdateConductivityDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
