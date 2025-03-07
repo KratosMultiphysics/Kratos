@@ -24,6 +24,10 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
 
+if(POLICY CMP0077)
+  cmake_policy(SET CMP0077 NEW)
+endif(POLICY CMP0077)
+
 if(POLICY CMP0144)
   cmake_policy(SET CMP0144 NEW)
 endif(POLICY CMP0144)
@@ -104,6 +108,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Include cmake modules
 include(DownloadLib)
 include(ExternalProject)
+# include(CheckIncludeFileCXX)
 
 # Define custom compiler build types
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
@@ -334,7 +339,7 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
 
   # restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
-endif(KRATOS_BUILD_TESTING MATCHES ON) 
+endif(KRATOS_BUILD_TESTING MATCHES ON)
 
 # Benchmarking
 if(KRATOS_BUILD_BENCHMARK MATCHES ON)
@@ -481,6 +486,114 @@ endif(${USE_CUDA} MATCHES ON)
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     add_definitions(-DUSE_TRIANGLE_NONFREE_TPL)
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+
+##*****************************
+# Finding OpenSubdiv if needed
+# if(${USE_OPENSUBDIV} MATCHES ON)
+#   # Specify location of OpenSubdiv
+#   set(OpenSubdiv_DIR /home/basti/Software/Opensubdiv)
+#   find_package(OpenSubdiv REQUIRED)
+
+#   if(NOT OpenSubdiv_FOUND)
+#     # Trying to find in in external libraries
+#   endif(NOT OpenSubdiv_FOUND)
+# endif(${USE_OPENSUBDIV} MATCHES ON)
+
+##*****************************
+# Compiling the opensubdiv library
+## currently not working perfectly:
+## - the compilation of opensubdiv runs parallel to kratos which leads to needing to run
+##   the installation double since dependencies cannot be found
+## - thought: compiling OptApp means compiing subdiv control, which automatically leads to failing of compilation
+##   --> how to prevent this?
+## - still need to handle installing dependencies and make kratos wait for compilation to end
+if(${USE_OPENSUBDIV} MATCHES ON )
+    add_definitions(-DUSE_OPENSUBDIV)
+    set(OSD_PREFIX OSD)
+    # Automatic download - should download every time the project gets built
+    set(OSD_URL https://github.com/PixarAnimationStudios/OpenSubdiv/archive/release.zip)
+    # Manual download - place it in external_libraries
+    #set(OSD_URL ${KRATOS_SOURCE_DIR}/external_libraries/osd-latest-release.tgz)
+
+    set(OSD_MAKE make)
+    ExternalProject_Add(${OSD_PREFIX}
+      URL ${OSD_URL}
+      PREFIX "${KRATOS_BINARY_DIR}/external_libraries/${OSD_PREFIX}"
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+      STEP_TARGETS ${OSD_PREFIX}_info
+      # PREFIX "${OSD_PREFIX}"
+      # DOWNLOAD_DIR "${KRATOS_SOURCE_DIR}/external_libraries/${OSD_PREFIX}"
+      # SOURCE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/${OSD_PREFIX}"
+      # BINARY_DIR "${KRATOS_BINARY_DIR}/external_libraries/${OSD_PREFIX}"
+      # CONFIGURE_COMMAND ""
+      # BUILD_COMMAND  ${OSD_MAKE} --build osd_build_prefix=${OSD_PREFIX}
+      # BUILD_IN_SOURCE 1
+      # INSTALL_COMMAND ""
+      # LOG_DOWNLOAD 1
+      # LOG_BUILD 1
+    )
+
+    # get the unpacked source directory path
+    ExternalProject_Get_Property(${OSD_PREFIX} SOURCE_DIR)
+    message(STATUS "Source directory of ${OSD_PREFIX} ${SOURCE_DIR}")
+    # include_directories(${SOURCE_DIR})
+
+    # if(NOT TARGET ${OSD_PREFIX})
+    #     find_package(${OSD_PREFIX} QUIET)
+    #     if(NOT OSD_FOUND)
+    #         message(STATUS "${OSD_PREFIX} find package failed!")
+    #     else()
+    #         message(STATUS "${OSD_PREFIX} find package success!")
+    #     endif()
+    # else()
+    #     message(STATUS "${OSD_PREFIX} target existed!")
+    # endif()
+
+    # target_link_libraries(${OSD_PREFIX} PUBLIC KratosOptimizationApplication)
+    # add_dependencies(KratosOptimizationApplication ${OSD_PREFIX})
+    # get_target_property(OSD_INCLUDE_DIR ${OSD_PREFIX} INCLUDE_DIRECTORIES)
+    # include_directories(${OSD_INCLUDE_DIR})
+    # add_dependencies(${OSD_PREFIX} KratosOptimizationApplication)
+    # message(STATUS "OSD include dir : ${OSD_INCLUDE_DIR}")
+
+
+
+
+    # ADD_LIBRARY(${OSD_PREFIX} STATIC IMPORTED GLOBAL)
+    # ADD_DEPENDENCIES(${OSD_PREFIX} ${OSD_PREFIX}-project)
+
+    # build another dependency
+    # ExternalProject_Add_Step(${OSD_PREFIX} ${OSD_PREFIX}_info
+    #   COMMAND ${OSD_MAKE} info osd_build_prefix=${OSD_PREFIX}
+    #   DEPENDEES build
+    #   WORKING_DIRECTORY ${SOURCE_DIR}
+    #   LOG 1
+    # )
+
+    # # set the include directory variable and include it
+    # set(OSD_INCLUDE_DIRS ${SOURCE_DIR}/include)
+    # include_directories(${OSD_INCLUDE_DIRS})
+
+    # verify that the OSD header files can be included
+    # set(CMAKE_REQUIRED_INCLUDES_SAVE ${CMAKE_REQUIRED_INCLUDES})
+    # set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} 	${OSD_INCLUDE_DIRS})
+    # CHECK_INCLUDE_FILE_CXX("osd/osd.h" HAVE_OSD)
+    # set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES_SAVE})
+    # if (NOT HAVE_OSD)
+    #   message(STATUS "Did not build OSD correctly as cannot find osd.h. Will build it.")
+    #   set(HAVE_OSD 1)
+    # endif (NOT HAVE_OSD)
+
+    # # Optional: install the OSD libraries when the application being built gets installed
+    # # when you run "make install"
+    # if (UNIX)
+    # install(DIRECTORY ${OSD_LIBRARY_DIRS}/ DESTINATION lib
+    #     USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*.so*")
+    # else (UNIX)
+    # ## Similarly for Windows.
+    # endif (UNIX)
+
+endif(${USE_OPENSUBDIV} MATCHES ON )
 
 # Compiling the tetgen library
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)

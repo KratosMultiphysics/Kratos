@@ -1,0 +1,124 @@
+<!--
+     Copyright 2013 Pixar
+
+     Licensed under the Apache License, Version 2.0 (the "Apache License")
+     with the following modification; you may not use this file except in
+     compliance with the Apache License and the following modification to it:
+     Section 6. Trademarks. is deleted and replaced with:
+
+     6. Trademarks. This License does not grant permission to use the trade
+        names, trademarks, service marks, or product names of the Licensor
+        and its affiliates, except as required to comply with Section 4(c) of
+        the License and to reproduce the content of the NOTICE file.
+
+     You may obtain a copy of the Apache License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the Apache License with the above modification is
+     distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied. See the Apache License for the specific
+     language governing permissions and limitations under the Apache License.
+//-->
+
+<div class="navigation">
+    <br>
+    <div class="searchBar">
+        <form action="search.html">
+            <input type="text" name="q" id="searchInput" />
+            <input type="button" id="searchButton" onclick="this.form.submit();" value="Search" />
+        </form>
+    </div>
+    <div class="quickLinks">
+        <ul>
+            <li><a href="intro.html">Introduction</a></li>
+                <ul>
+                    <li><a href="license.html">License</a></li>
+                    <li><a href="getting_started.html">Getting Started</a></li>
+                    <li><a href="contributing.html">Contributing</a></li>
+                    <li><a href="cmake_build.html">Building OpenSubdiv</a></li>
+                    <li><a href="code_examples.html">Code Examples</a></li>
+                    <li><a href="references.html">References</a></li>
+                </ul>
+            <p></p>
+            <li><a href="subdivision_surfaces.html">Subdivision Surfaces</a>
+                <ul>
+                    <li><a href="subdivision_surfaces.html#piecewise-parametric-surfaces">Piecewise Parametric Surfaces</a></li>
+                    <li><a href="subdivision_surfaces.html#arbitrary-topology">Arbitrary Topology</a></li>
+                    <li><a href="subdivision_surfaces.html#subdivision-versus-tessellation">Subdivision versus Tessellation</a></li>
+                    <li><a href="subdivision_surfaces.html#mesh-data-and-topology">Mesh Data and Topology</a></li>
+                    <li><a href="subdivision_surfaces.html#schemes-and-options">Schemes and Options</a></li>
+                    <li><a href="mod_notes.html">Modeling Tips</a></li>
+                </ul>
+            </li>
+            <p></p>
+            <li><a href="api_overview.html">OpenSubdiv User Guide</a>
+                <ul>
+                    <li><a href="api_overview.html">API Overview</a>
+                    <ul>
+                        <li><a href="sdc_overview.html">Sdc</a></li>
+                        <li><a href="vtr_overview.html">Vtr</a></li>
+                        <li><a href="far_overview.html">Far</a></li>
+                        <ul>
+                            <li><a href="far_overview.html#far-topologyrefiner">Topology Refiner</a></li>
+                            <li><a href="far_overview.html#far-topologyrefinerfactory">Topology Refiner Factory</a></li>
+                            <li><a href="far_overview.html#far-primvarrefiner">Primvar Refiner</a></li>
+                            <li><a href="far_overview.html#far-patchtable">Patch Table</a></li>
+                            <li><a href="far_overview.html#far-stenciltable">Stencil Table</a></li>
+                        </ul>
+                        <li><a href="bfr_overview.html">Bfr</a></li>
+                        <ul>
+                            <li><a href="bfr_overview.html#bfr-navlink-evaluation">Evaluation</a></li>
+                            <li><a href="bfr_overview.html#bfr-navlink-parameterization">Parameterization</a></li>
+                            <li><a href="bfr_overview.html#bfr-navlink-tessellation">Tessellation</a></li>
+                            <li><a href="bfr_overview.html#bfr-navlink-surfacefactory">More on Surface Factory</a></li>
+                            <li><a href="bfr_overview.html#bfr-navlink-customizing">Custom Surface Factory</a></li>
+                        </ul>
+                        <li><a href="osd_overview.html">Osd</a></li>
+                        <ul>
+                            <li><a href="osd_shader_interface.html">Shader Interface</a></li>
+                        </ul>
+                    </ul>
+                    </li>
+                    <li><a href="tutorials.html">Tutorials</a>
+                    <li><a href="hbr_overview.html">Historical But Relevant</a></li>
+                    <ul>
+                        <li><a href="hbr_overview.html">Hbr</a></li>
+                        <ul>
+                            <li><a href="using_osd_hbr.html">Using Hbr</a></li>
+                        </ul>
+                        <li><a href="hedits.html">Hierarchical Edits</a></li>
+                    </ul>
+                </ul>
+            </li>
+            <p></p>
+            <li><a href="additional_resources.html">Additional Resources</a>
+                <ul>
+                    <li><a href="http://graphics.pixar.com/opensubdiv/forum.html">Forum</a>
+                    <li><a href="additional_resources.html#links">Links</a>
+                    <li><a href="additional_resources.html#videos">Videos</a>
+                </ul>
+            <p></p>
+            <li><a href="release_notes.html">Releases</a>
+                <ul>
+                    <li><a href="release_36.html">Release 3.6</a></li>
+                    <li><a href="release_35.html">Release 3.5</a></li>
+                    <li><a href="release_34.html">Release 3.4</a></li>
+                    <li><a href="release_33.html">Release 3.3</a></li>
+                    <li><a href="release_32.html">Release 3.2</a></li>
+                    <li><a href="release_31.html">Release 3.1</a></li>
+                    <li><a href="release_30.html">Release 3.0</a></li>
+                        <ul>
+                            <li><a href="release_30.html">Overview</a></li>
+                            <li><a href="porting.html">Porting Guide: 2.0 to 3.0</a></li>
+                            <li><a href="compatibility.html">Subdivision Compatibility</a></li>
+                        </ul>
+                    <li><a href="release_notes.html">Release Notes</a></li>
+                </ul>
+            <p></p>
+            <li><a href="doxy_html/index.html" target="_blank">Doxygen</a></li>
+        </ul>
+    </div>
+    <br>
+</div>

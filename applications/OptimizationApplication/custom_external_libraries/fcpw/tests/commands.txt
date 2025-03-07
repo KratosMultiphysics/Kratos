@@ -1,0 +1,49 @@
+./tests/aggregate_tests --dim=3 --tFile ../tests/input/bunny.obj --nQueries=1024 --checkCorrectness --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/aggregate_tests --dim=3 --tFile ../tests/input/armadillo.obj --nQueries=1024 --checkCorrectness --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/aggregate_tests --dim=3 --tFile ../tests/input/kitten.obj --nQueries=1024 --checkCorrectness --plotInteriorPoints --computeSilhouettes --vizScene
+
+./tests/aggregate_tests --dim=3 --tFile ../tests/input/bunny.obj --nQueries=1048576 --checkPerformance --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/aggregate_tests --dim=3 --tFile ../tests/input/armadillo.obj --nQueries=1048576 --checkPerformance --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/aggregate_tests --dim=3 --tFile ../tests/input/kitten.obj --nQueries=1048576 --checkPerformance --plotInteriorPoints --computeSilhouettes --vizScene
+
+./tests/csg_tests --dim=3 --tFile ../tests/input/armadillo.obj --tFile ../tests/input/bunny.obj --tFile ../tests/input/kitten.obj --csgFile ../tests/input/csg.txt --instanceFile ../tests/input/instances3d.txt
+
+./tests/aggregate_tests --dim=2 --lFile ../tests/input/plus-shape.obj --nQueries=1024 --checkCorrectness --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/aggregate_tests --dim=2 --lFile ../tests/input/spiral.obj --nQueries=1024 --checkCorrectness --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/aggregate_tests --dim=2 --lFile ../tests/input/walker.obj --nQueries=1024 --checkCorrectness --plotInteriorPoints --computeSilhouettes --vizScene
+
+./tests/aggregate_tests --dim=2 --lFile ../tests/input/plus-shape.obj --nQueries=1048576 --checkPerformance --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/aggregate_tests --dim=2 --lFile ../tests/input/spiral.obj --nQueries=1048576 --checkPerformance --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/aggregate_tests --dim=2 --lFile ../tests/input/walker.obj --nQueries=1048576 --checkPerformance --plotInteriorPoints --computeSilhouettes --vizScene
+
+./tests/csg_tests --dim=2 --lFile ../tests/input/spiral.obj --lFile ../tests/input/plus-shape.obj --lFile ../tests/input/walker.obj --csgFile ../tests/input/csg.txt --instanceFile ../tests/input/instances2d.txt
+
+./tests/gpu_tests --dim=3 --tFile ../tests/input/bunny.obj --nQueries=1048576 --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/gpu_tests --dim=3 --tFile ../tests/input/armadillo.obj --nQueries=1048576 --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/gpu_tests --dim=3 --tFile ../tests/input/kitten.obj --nQueries=1048576 --plotInteriorPoints --computeSilhouettes --vizScene
+
+./tests/gpu_tests --dim=2 --lFile ../tests/input/plus-shape.obj --nQueries=1048576 --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/gpu_tests --dim=2 --lFile ../tests/input/spiral.obj --nQueries=1048576 --plotInteriorPoints --computeSilhouettes --vizScene
+./tests/gpu_tests --dim=2 --lFile ../tests/input/walker.obj --nQueries=1048576 --plotInteriorPoints --computeSilhouettes --vizScene
+
+slangc include/fcpw/gpu/bvh.slang -o bvh.slang-module
+slangc include/fcpw/gpu/bvh-traversal.cs.slang -entry rayIntersection -target glsl -o bvh-traveral-ray-intersection.glsl
+slangc include/fcpw/gpu/bvh-traversal.cs.slang -entry sphereIntersection -target glsl -o bvh-traveral-sphere-intersection.glsl
+slangc include/fcpw/gpu/bvh-traversal.cs.slang -entry closestPoint -target glsl -o bvh-traveral-closest-point.glsl
+slangc include/fcpw/gpu/bvh-traversal.cs.slang -entry closestSilhouettePoint -target glsl -o bvh-traveral-closest-silhouette-point.glsl
+
+python fcpw_tests.py --file_path=input/bunny.obj --dim=3 --n_queries=1024 --compute_silhouettes --compare_with_cpu_baseline --visualize_scene
+python fcpw_tests.py --file_path=input/armadillo.obj --dim=3 --n_queries=1024 --compute_silhouettes --compare_with_cpu_baseline --visualize_scene
+python fcpw_tests.py --file_path=input/kitten.obj --dim=3 --n_queries=1024 --compute_silhouettes --compare_with_cpu_baseline --visualize_scene
+
+python fcpw_tests.py --file_path=input/plus-shape.obj --dim=2 --n_queries=1024 --compute_silhouettes --compare_with_cpu_baseline --visualize_scene
+python fcpw_tests.py --file_path=input/spiral.obj --dim=2 --n_queries=1024 --compute_silhouettes --compare_with_cpu_baseline --visualize_scene
+python fcpw_tests.py --file_path=input/walker.obj --dim=2 --n_queries=1024 --compute_silhouettes --compare_with_cpu_baseline --visualize_scene
+
+python fcpw_tests.py --file_path=input/bunny.obj --dim=3 --n_queries=1048576 --compute_silhouettes --run_gpu_queries --compare_with_warp --visualize_scene
+python fcpw_tests.py --file_path=input/armadillo.obj --dim=3 --n_queries=1048576 --compute_silhouettes --run_gpu_queries --compare_with_warp --visualize_scene
+python fcpw_tests.py --file_path=input/kitten.obj --dim=3 --n_queries=1048576 --compute_silhouettes --run_gpu_queries --compare_with_warp --visualize_scene
+
+python fcpw_tests.py --file_path=input/plus-shape.obj --dim=2 --n_queries=1048576 --compute_silhouettes --run_gpu_queries --visualize_scene
+python fcpw_tests.py --file_path=input/spiral.obj --dim=2 --n_queries=1048576 --compute_silhouettes --run_gpu_queries --visualize_scene
+python fcpw_tests.py --file_path=input/walker.obj --dim=2 --n_queries=1048576 --compute_silhouettes --run_gpu_queries --visualize_scene

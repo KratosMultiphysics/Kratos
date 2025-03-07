@@ -1,0 +1,23 @@
+Future Optimizations & Features:
+1. multiple geometry instances on GPU backend
+2. add support for more geometries:
+---- spheres, thickened line segments & triangles, beziers, nurbs, subdivision surfaces
+3. traversal optimization for closest point & silhouette queries:
+---- dfs strategy can visit lots of extra branches due to query points lying inside boxes higher up in the tree (-> no information on which branches should be prioritized); priority queue based traversal reduces the number of visited boxes but overhead is too high
+---- quantize bounding boxes: https://www.embree.org/papers/2018-HPG-compressedleafbvh.pdf
+---- implement "stackless" traversal: https://software.intel.com/content/dam/develop/external/us/en/documents/wide-bvh-traversal-with-a-short-stack-837099.pdf
+---- sort nodes by direction for closest point queries (things can possibly go very wrong if guess is totally off for certain geometric distributions)
+---- (for non-spatio-temporal (incoherent) queries) incrementally build spatial data structure while querying that stores pointers to nodes in the tree based on positions and directions to boundary
+4. SNCH
+---- properly handle unoriented and non-manifold meshes
+---- specialized construction heuristics for tighter normal cones such as the surface area orientation heuristic:
+------- http://www.aconty.com/pdf/many-lights-hpg2018.pdf
+------- https://link.springer.com/content/pdf/10.1007/978-1-4842-4427-2_18.pdf
+---- stochastic intersection: perform deterministic traversal if sphere center is contained in node, otherwise switch to stochastic traversal (similar to algorithm 3 in the many lights paper)
+---- more tightly packed silhouette leaf nodes in mbvh
+---- faster traversal (tighter view cones, minimize sqrt, acos, asin, atan2 calls)
+5. tree construction:
+---- oriented bounding boxes and/or rectangular swept spheres (specify bounding volume via templates)
+---- spatial split bvh
+---- vectorize and thread
+6. packet queries: lower bound distance to all points inside box (optionally, collect subtrees)

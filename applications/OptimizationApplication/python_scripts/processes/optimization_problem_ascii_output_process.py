@@ -29,8 +29,8 @@ class Header:
             value_format_post_fix = "d"
             self.__value_converter = lambda x: int(x)
         elif isinstance(value, float):
-            value_length = len(("{:0." + str(format_info[type(value)]) + "e}").format(value))
-            value_format_post_fix = f".{format_info[type(value)]}e"
+            value_length = len(("{:0." + str(format_info[type(float(value))]) + "e}").format(value))
+            value_format_post_fix = f".{format_info[type(float(value))]}e"
             self.__value_converter = lambda x: float(x)
         else:
             value_length = format_info[str]

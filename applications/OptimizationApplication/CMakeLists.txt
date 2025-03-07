@@ -2,10 +2,18 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosOptimizationApplication ****")
 
+# set(NO_GLFW ON)
+# set(NO_PTEX ON)
+# set(NO_TBB ON)
+# set(NO_OPENGL ON)
+
+add_subdirectory(custom_external_libraries/opensubdiv)
+
 ################### PYBIND11
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/opensubdiv )
 
 ## Optimization core sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
@@ -20,11 +28,12 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_controls/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_responsess/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    # could add here option to include subd if needed to avoid failing build
 )
 
 ## Optimization python interface sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 # Optimization testing sources
@@ -34,7 +43,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE})
-target_link_libraries(KratosOptimizationCore PUBLIC KratosCore)
+target_link_libraries(KratosOptimizationCore PUBLIC KratosCore PRIVATE osd_dynamic_cpu)
 set_target_properties(KratosOptimizationCore PROPERTIES COMPILE_DEFINITIONS "OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################
@@ -42,6 +51,17 @@ set_target_properties(KratosOptimizationCore PROPERTIES COMPILE_DEFINITIONS "OPT
 pybind11_add_module(KratosOptimizationApplication MODULE THIN_LTO ${KRATOS_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosOptimizationApplication PRIVATE KratosOptimizationCore)
 set_target_properties(KratosOptimizationApplication PROPERTIES PREFIX "")
+
+# Compiling the fcpw library
+# include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw/ )
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw )
+# include_directories( ${KRATOS_SOURCE_DIR}applications/OptimizationApplication/custom_external_libraries/fcpw )
+# add_subdirectory( ${KRATOS_SOURCE_DIR}applications/OptimizationApplication/custom_external_libraries/fcpw )
+# add_subdirectory(custom_external_libraries/fcpw)
+# target_link_libraries(KratosOptimizationCore fcpw)
+target_include_directories(KratosOptimizationCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/fcpw/include)
+target_include_directories(KratosOptimizationCore PRIVATE ${FCPW_EIGEN_INCLUDES})
+target_include_directories(KratosOptimizationCore PRIVATE ${FCPW_ENOKI_INCLUDES})
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
