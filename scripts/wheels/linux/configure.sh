@@ -74,3 +74,8 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON                                      \
+-DNO_GLFW=ON    \
+-DNO_PTEX=ON    \
+-DNO_TBB=ON     \
+-DNO_OPENGL=ON  \
+

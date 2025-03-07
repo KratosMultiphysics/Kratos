@@ -2,10 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosOptimizationApplication ****")
 
-set(NO_GLFW ON)
-set(NO_PTEX ON)
-set(NO_TBB ON)
-set(NO_OPENGL ON)
+# set(NO_GLFW ON)
+# set(NO_PTEX ON)
+# set(NO_TBB ON)
+# set(NO_OPENGL ON)
 
 add_subdirectory(custom_external_libraries/opensubdiv)
 
