@@ -430,7 +430,7 @@ namespace Kratos
 
 
 
-               // 2. Set the matrix to the appropiate size
+               // 2. Set the matrix to the appropriate size
 
                if ( rConstitutiveMatrix.size1() == 6) {
                   noalias( rConstitutiveMatrix ) = rConstMatrixBig;
