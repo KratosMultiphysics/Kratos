@@ -87,8 +87,7 @@ public:
             // define working variables
             Vector RHS_perturbed;
 
-            if (rOutput.size() != rRHS.size())
-                rOutput.resize(rRHS.size(), false);
+            rOutput.resize(rRHS.size(), false);
 
             // perturb the design variable
             rNode.FastGetSolutionStepValue(rDesignVariable) += rPertubationSize;
