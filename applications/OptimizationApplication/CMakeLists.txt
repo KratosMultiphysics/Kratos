@@ -1,5 +1,11 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+if(POLICY CMP0077)
+
+  cmake_policy(SET CMP0077 NEW)
+
+endif(POLICY CMP0077)
+
 message("**** configuring KratosOptimizationApplication ****")
 
 set(NO_GLFW ON)
