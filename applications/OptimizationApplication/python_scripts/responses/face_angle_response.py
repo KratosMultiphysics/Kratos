@@ -101,9 +101,15 @@ class FaceAngleResponse(ResponseFunction):
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE]
     
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+    # function changed name: see below
+    # def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+    #     if self.model_part is None:
+    #         raise RuntimeError("Please call FaceAngleResponse::Initialize first.")
+    #     return self.model_part
+    
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
-            raise RuntimeError("Please call FaceAngleResponse::Initialize first.")
+            raise RuntimeError("Please call DiscreteValueResidualResponseFunction::Initialize first.")
         return self.model_part
     
     def GetAnalysisModelPart(self) -> None:
