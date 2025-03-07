@@ -795,6 +795,8 @@ namespace Kratos
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated()
     {
         // Create the bin-based point locator (TDim here makes template necessary)
+        const std::size_t point_locator_max_results = 10000;
+        const double point_locator_tolerance = 1.0e-5;
         BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
         point_locator.UpdateSearchDatabase();
 
@@ -805,9 +807,12 @@ namespace Kratos
         LockObject mutex_valid_ex;
         block_for_each(mpSkinModelPart->Nodes(), [&](NodeType& rSkinNode){
             // Locate node in fluid mesh (should be inside a deactivated element)
-            Vector skin_node_N;
+            Vector skin_node_N(TDim+1); //TODO this restricts the use to tri and tetra
             Element::Pointer p_element = nullptr;
-            const bool is_found = point_locator.FindPointOnMeshSimplified(rSkinNode.Coordinates(), skin_node_N, p_element);
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
+            const bool is_found = point_locator.FindPointOnMesh(
+                rSkinNode.Coordinates(), skin_node_N, p_element,
+                search_results.begin(), point_locator_max_results, point_locator_tolerance);
 
             // If the skin node is found, interpolate the POSITIVE_FACE_PRESSURE from the PRESSURE
             if (is_found) {
@@ -1317,7 +1322,7 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mpSkinModelPart->NumberOfElements())
             << "There are no elements in skin model part (boundary) '" << mpSkinModelPart->FullName() << "'." << std::endl;
 
-        // Set the bin-based fast point locator utility
+        // Set the bin-based fast point locator
         //TODO faster to keep pointer_locator for all skin model parts and iterations?
         //TODO UpdateSearchDatabase necessary whenever there is a node relocation?
         const std::size_t point_locator_max_results = 10000;
@@ -1325,7 +1330,7 @@ namespace Kratos
         BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
         point_locator.UpdateSearchDatabase();
 
-        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
         //const std::size_t n_gp_per_element = mpSkinModelPart->ElementsBegin()->GetGeometry().IntegrationPointsNumber(integration_method);
         //const std::size_t n_skin_points = mpSkinModelPart->NumberOfElements() * n_gp_per_element;
