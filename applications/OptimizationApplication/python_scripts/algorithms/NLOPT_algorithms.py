@@ -21,7 +21,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class NLOPTAlgorithms(Algorithm):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        A python Wrapper to couple NLOPT optimization library. https://nlopt.readthedocs.io/en/latest/
     """
 
     @classmethod
