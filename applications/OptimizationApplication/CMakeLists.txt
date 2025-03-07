@@ -43,7 +43,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE})
-target_link_libraries(KratosOptimizationCore PUBLIC KratosCore PRIVATE osd_dynamic_cpu osd_dynamic_gpu)
+target_link_libraries(KratosOptimizationCore PUBLIC KratosCore PRIVATE osd_dynamic_cpu)
 set_target_properties(KratosOptimizationCore PROPERTIES COMPILE_DEFINITIONS "OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################
