@@ -12,6 +12,7 @@
 //
 
 #include "stress_strain_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "utilities/math_utils.h"
 #include <cmath>
@@ -177,6 +178,61 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
                                : CalculateCauchyStrain(rB, rDisplacements);
     });
 
+    return result;
+}
+
+void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStressVector,
+                                                       Vector&       rPrincipalStressVector,
+                                                       Matrix&       rEigenVectorsMatrix)
+{
+    auto   stress_tensor = MathUtils<>::StressVectorToTensor(rCauchyStressVector);
+    Matrix principal_stress_matrix;
+    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, rEigenVectorsMatrix,
+                                              principal_stress_matrix, 1.0e-16, 20);
+    rPrincipalStressVector = ZeroVector(3);
+    for (int i = 0; i < 3; ++i) {
+        rPrincipalStressVector(i) = principal_stress_matrix(i, i);
+    }
+    ReorderEigenValuesAndVectors(rPrincipalStressVector, rEigenVectorsMatrix);
+}
+
+void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector,
+                                      Matrix& rEigenVectorsMatrix)
+{
+    std::vector<std::size_t> indices(rPrincipalStressVector.size());
+    std::iota(indices.begin(), indices.end(), std::size_t{0});
+    std::sort(indices.begin(), indices.end(), [&rPrincipalStressVector](auto i, auto j) {
+    return rPrincipalStressVector[j] < rPrincipalStressVector[i]; });
+
+    std::vector<double> tmp_vector;
+    tmp_vector.reserve(rPrincipalStressVector.size());
+    for (const auto index : indices) {
+        tmp_vector.push_back(rPrincipalStressVector[index]);
+    }
+    std::copy(tmp_vector.begin(), tmp_vector.end(), rPrincipalStressVector.begin());
+
+    Matrix tmp_matrix(rEigenVectorsMatrix.size1(), rEigenVectorsMatrix.size2());
+    for (auto i = std::size_t{0}; i < rEigenVectorsMatrix.size1(); ++i) {
+        for (auto j = std::size_t{0}; j < rEigenVectorsMatrix.size2(); ++j) {
+            tmp_matrix(i, j) = rEigenVectorsMatrix(i, indices[j]);
+        }
+    }
+    rEigenVectorsMatrix = tmp_matrix;
+}
+
+Vector StressStrainUtilities::RotateStressMatrix(const Matrix& rStressMatrix, const Matrix& rRotationMatrix, std::size_t StressVectorSize)
+{
+    Matrix temp                  = prod(rStressMatrix, trans(rRotationMatrix));
+    Matrix rotated_stress_matrix = prod(rRotationMatrix, temp);
+    return MathUtils<double>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
+}
+
+Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
+                                                             const Matrix& rRotationMatrix,
+                                                             std::size_t StressVectorSize)
+{
+    Matrix principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
+    Vector result = RotateStressMatrix(principal_stress_matrix, rRotationMatrix, StressVectorSize);
     return result;
 }
 

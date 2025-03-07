@@ -36,6 +36,8 @@ public:
         return rVector / length;
     }
 
+    [[nodiscard]] static Matrix VectorToDiagonalMatrix(const Vector& rVector);
+
 }; // class GeoMechanicsMathUtilities
 
 } // namespace Kratos
