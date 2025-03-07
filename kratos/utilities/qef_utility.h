@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ariadna Cortes
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -21,8 +22,6 @@
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "geometries/bounding_box.h"
-
-#include "utilities/math_utils.h"
 namespace Kratos
 {
 ///@name Kratos Globals

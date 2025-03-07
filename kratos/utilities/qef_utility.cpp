@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ariadna Cortes
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -16,9 +17,9 @@
 
 // Project includes
 #include "utilities/qef_utility.h"
-#include "utilities/intersection_utilities.h"
-#include "includes/ublas_interface.h"
 #include "includes/geometrical_object.h"
+#include "utilities/intersection_utilities.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
