@@ -629,9 +629,9 @@ private:
     template<class TMatrixType>
     static TDataType TwoNorm(const TMatrixType& rA)
     {
-        const TDataType sum = IndexPartition<std::size_t>(rA.size1()).for_each<SumReduction<TDataType>>([&](std::size_t i) {
+        const TDataType sum = IndexPartition<IndexType>(rA.size1()).for_each<SumReduction<TDataType>>([&](IndexType i) {
             TDataType aux_sum = TDataType();
-            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
+            for (IndexType j = 0; j < rA.size2(); ++j) {
                 aux_sum += std::pow(rA(i,j),2);
             }
             return aux_sum;
@@ -651,9 +651,9 @@ private:
     template<class TMatrixType>
     static TDataType JacobiNorm(const TMatrixType& rA)
     {
-        return IndexPartition<std::size_t>(rA.size1()).for_each<SumReduction<TDataType>>([&](std::size_t i) {
+        return IndexPartition<IndexType>(rA.size1()).for_each<SumReduction<TDataType>>([&](IndexType i) {
             TDataType aux_sum = TDataType();
-            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
+            for (IndexType j = 0; j < rA.size2(); ++j) {
                 if (i != j) {
                     aux_sum += std::abs(rA(i,j));
                 }
