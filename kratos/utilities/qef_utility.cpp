@@ -28,45 +28,37 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     const GeometryArrayType& rTriangles
     )
 {
-    const array_1d<double,3> center = rVoxel.Center().Coordinates();
-    BoundedMatrix<double,3,1> mat_center(3,1);
-    column(mat_center,0) = center;
+    // Initialize the corresponding matrices
+    AuxiliaryClasses aux;
+
+    // Compute the center of the box
+    const array_1d<double, 3> center = rVoxel.Center().Coordinates();
+    column(aux.MatCenter, 0) = center;
+
+    // Generate the edges of the voxel
     GeometryArrayType edges = rVoxel.GenerateEdges();
 
-    //Initialize the corresponding matrices
-    BoundedMatrix<double,3,3> ata = ZeroMatrix(3,3);
-    BoundedMatrix<double,3,1> atb = ZeroMatrix(3,1);
-
-    // Define auxiliary variables
-    array_1d<double,3> normal;
-    array_1d<double,3> intersection;
-    BoundedMatrix<double,3,1> mat_normal;
-    BoundedMatrix<double,1,3> mat_normal_trans;
-    BoundedMatrix<double,1, 1> mat_aux;
-    GeometryType::CoordinatesArrayType aux_center = ZeroVector(3);
+    // Iterate over the triangles
     for (std::size_t i = 0; i < rTriangles.size(); i++) {
-        noalias(normal) = rTriangles[i].Normal(aux_center);
-        column(mat_normal,0) = normal;
+        noalias(aux.Normal) = rTriangles[i].Normal(aux.AuxCenter);
+        column(aux.MatNormal,0) = aux.Normal;
 
-        //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
-        //but possible), only one will be taken into account to create the matrixes.
+        //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely
+        //but possible), only one will be taken into account to create the matrices.
         int result = 0;
         std::size_t j = 0;
         while(!result && j < edges.size()) {
             PointsArrayType ends = edges[j++].Points();
-            result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i], ends[0], ends[1], intersection);
+            result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i], ends[0], ends[1], aux.Intersection);
         }
+
+        // If the triangle intersects the edge, update the matrices
         if (result) {
-            // Fill the matrixes with the corresponding information from the intersection and normal
-            noalias(mat_normal_trans) = trans(mat_normal);
-            ata += prod(mat_normal, mat_normal_trans);
-            const double aux = MathUtils<double>::Dot(normal, intersection);
-            mat_aux(0, 0) = aux;
-            atb += prod(mat_normal, mat_aux);
+            UpdateATAATB(aux);
         }
     }
 
-    return ComputeQuadraticErrorFunctionPoint(ata, atb, mat_center);
+    return ComputeQuadraticErrorFunctionPoint(aux.ATA, aux.ATB, aux.MatCenter);
 }
 
 /***********************************************************************************/
@@ -77,48 +69,51 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     const std::vector<GeometricalObject*>& rTriangles
     )
 {
-    const array_1d<double,3> center = rBox.GetMinPoint() + (rBox.GetMaxPoint() - rBox.GetMinPoint())/2;
-    BoundedMatrix<double,3,1> mat_center;
-    column(mat_center,0) = center;
+    // Initialize the corresponding matrices
+    AuxiliaryClasses aux;
 
-    //Initialize the corresponding matrices
-    BoundedMatrix<double,3,3> ata = ZeroMatrix(3,3);
-    BoundedMatrix<double,3,1> atb = ZeroMatrix(3,1);
+    // Compute the center of the box
+    const array_1d<double, 3> center = rBox.GetMinPoint() + (rBox.GetMaxPoint() - rBox.GetMinPoint())/2;
+    column(aux.MatCenter, 0) = center;
 
-    // Define auxiliary variables
-    array_1d<double,3> normal;
-    array_1d<double,3> intersection;
-    BoundedMatrix<double,3,1> mat_normal;
-    BoundedMatrix<double,1,3> mat_normal_trans;
-    BoundedMatrix<double,1, 1> mat_aux;
-    GeometryType::CoordinatesArrayType aux_center = ZeroVector(3);
+    // Iterate over the triangles
     Point end0, end1;
     for (std::size_t i = 0; i < rTriangles.size(); i++) {
         const auto& r_geometry = rTriangles[i]->GetGeometry();
-        noalias(normal) = r_geometry.Normal(aux_center);
-        column(mat_normal,0) = normal;
+        noalias(aux.Normal) = r_geometry.Normal(aux.AuxCenter);
+        column(aux.MatNormal,0) = aux.Normal;
 
-        //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely 
-        //but possible), only one will be taken into account to create the matrixes.
+        // We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely
+        // but possible), only one will be taken into account to create the matrices.
         int result = 0;
         std::size_t j = 0;
         while(!result && j < 12) {
             FirstEnd(end0, j, rBox);
             SecondEnd(end1, j, rBox);
-            result = IntersectionUtilities::ComputeTriangleLineIntersection(r_geometry, end0, end1, intersection);
-            j++;
+            result = IntersectionUtilities::ComputeTriangleLineIntersection(r_geometry, end0, end1, aux.Intersection);
+            ++j;
         }
+
+        // If the triangle intersects the edge, update the matrices
         if (result) {
-            // Fill the matrixes with the corresponding information from the intersection and normal
-            noalias(mat_normal_trans) = trans(mat_normal);
-            ata += prod(mat_normal, mat_normal_trans);
-            const double aux = MathUtils<double>::Dot(normal, intersection);
-            mat_aux(0, 0) = aux;
-            atb += prod(mat_normal, mat_aux);
+            UpdateATAATB(aux);
         }
     }
 
-    return ComputeQuadraticErrorFunctionPoint(ata, atb, mat_center);
+    return ComputeQuadraticErrorFunctionPoint(aux.ATA, aux.ATB, aux.MatCenter);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void QuadraticErrorFunction::UpdateATAATB(AuxiliaryClasses& rAuxiliaryClasses)
+{
+    // Fill the matrices with the corresponding information from the intersection and normal
+    noalias(rAuxiliaryClasses.MatNormalTrans) = trans(rAuxiliaryClasses.MatNormal);
+    rAuxiliaryClasses.ATA += prod(rAuxiliaryClasses.MatNormal, rAuxiliaryClasses.MatNormalTrans);
+    const double dot_product = MathUtils<double>::Dot(rAuxiliaryClasses.Normal, rAuxiliaryClasses.Intersection);
+    rAuxiliaryClasses.MatAux(0, 0) = dot_product;
+    rAuxiliaryClasses.ATB += prod(rAuxiliaryClasses.MatNormal, rAuxiliaryClasses.MatAux);
 }
 
 /***********************************************************************************/

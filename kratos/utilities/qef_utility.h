@@ -83,6 +83,22 @@ public:
     /// The points array type
     using PointsArrayType = GeometryType::PointsArrayType;
 
+    /**
+     * @brief Auxiliary classes to store the matrices and vectors needed to compute the quadratic error function point
+     */
+    struct AuxiliaryClasses {
+        BoundedMatrix<double, 3, 1> MatCenter;
+        BoundedMatrix<double, 3, 3> ATA = ZeroMatrix(3, 3);
+        BoundedMatrix<double, 3, 1> ATB = ZeroMatrix(3, 1);
+
+        array_1d<double, 3> Normal;
+        array_1d<double, 3> Intersection;
+        BoundedMatrix<double, 3, 1> MatNormal;
+        BoundedMatrix<double, 1, 3> MatNormalTrans;
+        BoundedMatrix<double, 1, 1> MatAux;
+        GeometryType::CoordinatesArrayType AuxCenter = ZeroVector(3);
+    };
+
     /// Pointer definition of VoxelInsideVolume
     KRATOS_CLASS_POINTER_DEFINITION( QuadraticErrorFunction );
 
@@ -146,6 +162,12 @@ private:
     ///@{
 
     /**
+     * @brief Update ATA and ATB matrices
+     * @param rAuxiliaryClasses The auxiliary classes containing the matrices and vectors needed to compute the quadratic error function point
+     */
+    static void UpdateATAATB(AuxiliaryClasses& rAuxiliaryClasses);
+
+    /**
      * @brief Computes the first endpoint of an edge in a bounding box.
      * @param rPoint The first endpoint of the edge.
      * @param i The index of the edge.
@@ -173,12 +195,12 @@ private:
 
     /**
      * @brief Computes the point that minimizes the quadratic error function.
-     * @details This function computes the solution for the quadratic error function by using the 
+     * @details This function computes the solution for the quadratic error function by using the
      * pseudo-inverse of the ATA matrix. The solution is given by:
      * \f[
      * x = center + ATA^{-1} \cdot (ATB - ATA \cdot center)
      * \f]
-     * where ATA^{-1} is computed via an eigenvalue decomposition of the ATA matrix.
+     * where ATA^{-1} is computed via an SVD decomposition of the ATA matrix.
      * @param rATA A symmetric 3x3 matrix representing the accumulated outer product of normals (i.e., AᵀA).
      * @param rATB A 3x1 vector representing the accumulated product of normals and their corresponding scalar offsets.
      * @param rMatCenter A 3x1 vector representing the center point.
