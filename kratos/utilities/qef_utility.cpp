@@ -20,6 +20,7 @@
 #include "includes/geometrical_object.h"
 #include "utilities/intersection_utilities.h"
 #include "utilities/math_utils.h"
+#include "utilities/svd_utils.h"
 
 namespace Kratos
 {
@@ -178,34 +179,43 @@ array_1d<double,3> QuadraticErrorFunction::ComputeQuadraticErrorFunctionPoint(
     const BoundedMatrix<double,3,1>& rMatCenter
     )
 {
-    // Compute the eigen-decomposition of the ATA matrix.
-    // mat_eigenvectors will contain the eigenvectors,
-    // and mat_eigenvalues is a diagonal matrix with the corresponding eigenvalues.
-    BoundedMatrix<double,3,3> mat_eigenvectors, mat_eigenvalues;
-    const bool converged = MathUtils<double>::GaussSeidelEigenSystem(rATA, mat_eigenvectors, mat_eigenvalues);
-    KRATOS_WARNING_IF("QuadraticErrorFunctionPoint", !converged) << "Method for matrix eigenvalues didn't converge" << std::endl;
+    // LEGACY: Compute eigenvalues and eigenvectors of the ATA matrix
+    // // Compute the eigen-decomposition of the ATA matrix.
+    // // mat_eigenvectors will contain the eigenvectors,
+    // // and mat_eigenvalues is a diagonal matrix with the corresponding eigenvalues.
+    // BoundedMatrix<double,3,3> mat_eigenvectors, mat_eigenvalues;
+    // const bool converged = MathUtils<double>::GaussSeidelEigenSystem(rATA, mat_eigenvectors, mat_eigenvalues);
+    // KRATOS_WARNING_IF("QuadraticErrorFunctionPoint", !converged) << "Method for matrix eigenvalues didn't converge" << std::endl;
+
+    // Compute SVD decomposition of the ATA matrix
+    // The SVD decomposition is used to compute the pseudo-inverse of the ATA matrix.
+    // The pseudo-inverse is used to solve the linear system of equations. (https://www.johndcook.com/blog/2018/05/05/svd/)
+    // U_matrix and V_matrix are orthogonal matrices, and S_matrix is a diagonal matrix with the singular values.
+    BoundedMatrix<double, 3, 3> U_matrix, S_matrix, V_matrix;
+    SVDUtils<double>::JacobiSingularValueDecomposition(rATA, U_matrix, S_matrix, V_matrix);
 
     // Define a tolerance to avoid division by very small or huge numbers.
     const double tolerance = 1e-12;
 
     // Construct the diagonal matrix 'd' for computing the pseudo-inverse.
-    // For each eigenvalue, if it is too small (or its inverse is too small), set its inverse to zero.
-    BoundedMatrix<double,3,3> d = ZeroMatrix(3,3);
+    // For each singularvalue, if it is too small (or its inverse is too small), set its inverse to zero.
+    BoundedMatrix<double,3,3> d = ZeroMatrix(3, 3);
     for (std::size_t i = 0; i < 3; ++i) {
-        const double eigenvalue = mat_eigenvalues(i,i);
-        const double inv_eigenvalue = 1.0 / eigenvalue;
-        // If the eigenvalue is below tolerance or its inverse is negligible, set to zero.
-        d(i,i) = (eigenvalue < tolerance || inv_eigenvalue < tolerance) ? 0.0 : inv_eigenvalue;
+        const double singularvalue = S_matrix(i, i); // mat_eigenvalues(i, i); NOTE: LEGACY
+        const double inv_singularvalue = 1.0 / singularvalue;
+        // If the singularvalue is below tolerance or its inverse is negligible, set to zero.
+        d(i,i) = (singularvalue < tolerance || inv_singularvalue < tolerance) ? 0.0 : inv_singularvalue;
     }
 
-    // Compute the pseudo-inverse of the ATA matrix using the eigen-decomposition.
-    BoundedMatrix<double,3,3> ata_inverse;
-    MathUtils<double>::BDBtProductOperation(ata_inverse, d, mat_eigenvectors);
+    // Compute the pseudo-inverse of the ATA matrix using the SVD-decomposition.
+    BoundedMatrix<double,3,3> ata_pseudo_inverse;
+    // MathUtils<double>::BDBtProductOperation(ata_pseudo_inverse, d, mat_eigenvectors); NOTE: LEGACY
+    noalias(ata_pseudo_inverse) = prod(trans(V_matrix), BoundedMatrix<double,3,3>(prod(d, trans(U_matrix))));
 
     // Compute the product of ATA and the center vector.
-    const BoundedMatrix<double,3,3> ata_c = prod(rATA, rMatCenter);
+    const BoundedMatrix<double, 3, 3> ata_c = prod(rATA, rMatCenter);
     // Compute the solution vector: center + ATA_inverse * (ATB - ATA * center)
-    const BoundedMatrix<double,3,1> solution = prod(ata_inverse, rATB - ata_c) + rMatCenter;
+    const BoundedMatrix<double, 3, 1> solution = prod(ata_pseudo_inverse, rATB - ata_c) + rMatCenter;
 
     // Extract the resulting point from the solution vector.
     return column(solution, 0);
