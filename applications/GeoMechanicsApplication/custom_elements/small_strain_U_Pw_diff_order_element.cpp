@@ -32,6 +32,7 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "stress_state_policy.h"
+#include <numeric>
 
 namespace Kratos
 {
@@ -54,6 +55,8 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 {
     KRATOS_TRY
 
+    if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
+
     const auto& r_geom = GetGeometry();
 
     if (r_geom.DomainSize() < 1.0e-15)
@@ -62,64 +65,14 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     // check pressure geometry pointer
     KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
 
-    // verify that the variables are correctly initialized
     // Verify specific properties
     const auto& r_prop = this->GetProperties();
 
     if (!r_prop.Has(IGNORE_UNDRAINED))
         KRATOS_ERROR << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
 
-    if (!r_prop[IGNORE_UNDRAINED]) {
-        if (!r_prop.Has(PERMEABILITY_XX) || r_prop[PERMEABILITY_XX] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_XX has Key zero, is not defined or "
-                            "has an invalid value at element"
-                         << this->Id() << std::endl;
-
-        if (!r_prop.Has(PERMEABILITY_YY) || r_prop[PERMEABILITY_YY] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_YY has Key zero, is not defined or "
-                            "has an invalid value at element"
-                         << this->Id() << std::endl;
-
-        if (!r_prop.Has(PERMEABILITY_XY) || r_prop[PERMEABILITY_XY] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_XY has Key zero, is not defined or "
-                            "has an invalid value at element"
-                         << this->Id() << std::endl;
-
-        if (r_geom.WorkingSpaceDimension() > 2) {
-            if (!r_prop.Has(PERMEABILITY_ZZ) || r_prop[PERMEABILITY_ZZ] < 0.0)
-                KRATOS_ERROR << "PERMEABILITY_ZZ has Key zero, is not defined "
-                                "or has an invalid value at element"
-                             << this->Id() << std::endl;
-
-            if (!r_prop.Has(PERMEABILITY_YZ) || r_prop[PERMEABILITY_YZ] < 0.0)
-                KRATOS_ERROR << "PERMEABILITY_YZ has Key zero, is not defined "
-                                "or has an invalid value at element"
-                             << this->Id() << std::endl;
-
-            if (!r_prop.Has(PERMEABILITY_ZX) || r_prop[PERMEABILITY_ZX] < 0.0)
-                KRATOS_ERROR << "PERMEABILITY_ZX has Key zero, is not defined "
-                                "or has an invalid value at element"
-                             << this->Id() << std::endl;
-        }
-    }
-
-    // verify that the dofs exist
-    for (const auto& r_node : r_geom) {
-        if (!r_node.SolutionStepsDataHas(DISPLACEMENT))
-            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << r_node.Id() << std::endl;
-
-        if (!r_node.HasDofFor(DISPLACEMENT_X) || !r_node.HasDofFor(DISPLACEMENT_Y) ||
-            !r_node.HasDofFor(DISPLACEMENT_Z))
-            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
-                         << r_node.Id() << std::endl;
-
-        if (!r_node.SolutionStepsDataHas(WATER_PRESSURE))
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << r_node.Id() << std::endl;
-
-        if (!r_node.HasDofFor(WATER_PRESSURE))
-            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node "
-                         << r_node.Id() << std::endl;
-    }
+    if (!r_prop[IGNORE_UNDRAINED])
+        GeoElementUtilities::CheckPermeabilityProperties(r_prop, r_geom.WorkingSpaceDimension());
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW))
@@ -158,44 +111,6 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     }
 
     return 0;
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
-    const auto deformation_gradients = CalculateDeformationGradients();
-    const auto determinants_of_deformation_gradients =
-        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-    const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        GetStressStatePolicy().GetVoigtSize());
-
-    const auto number_of_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-    for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B            = b_matrices[GPoint];
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Nu,
-            Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[GPoint]);
-
-        noalias(Variables.StressVector) = mStressVector[GPoint];
-        ConstitutiveParameters.SetStressVector(Variables.StressVector);
-        mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
-    }
 
     KRATOS_CATCH("")
 }
@@ -577,16 +492,18 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             }
         }
 
-        for (unsigned int g_point = 0; g_point < number_of_integration_points; g_point++) {
-            double hydraulic_head = 0.0;
-            for (unsigned int node = 0; node < num_u_nodes; ++node)
-                hydraulic_head += n_container(g_point, node) * nodal_hydraulic_head[node];
-
-            rOutput[g_point] = hydraulic_head;
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+             ++integration_point) {
+            const auto& shape_function_values = row(n_container, integration_point);
+            rOutput[integration_point] =
+                std::inner_product(shape_function_values.begin(), shape_function_values.end(),
+                                   nodal_hydraulic_head.begin(), 0.0);
         }
     } else {
-        for (unsigned int i = 0; i < number_of_integration_points; ++i) {
-            rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+             ++integration_point) {
+            rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
+                rVariable, rOutput[integration_point]);
         }
     }
 
@@ -622,43 +539,34 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                        std::multiplies<>{});
 
         // Loop over integration points
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
         for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, g_point);
             Variables.B = b_matrices[g_point];
 
-            // Compute FluidFlux vector q [m/s]
-            const SizeType Dim       = r_geometry.WorkingSpaceDimension();
-            const SizeType NumUNodes = r_geometry.PointsNumber();
-
-            Vector   BodyAcceleration = ZeroVector(Dim);
-            SizeType Index            = 0;
-            for (SizeType i = 0; i < NumUNodes; ++i) {
-                for (unsigned int idim = 0; idim < Dim; ++idim)
-                    BodyAcceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
+            Vector   body_acceleration = ZeroVector(dimension);
+            SizeType Index             = 0;
+            for (SizeType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                for (unsigned int idim = 0; idim < dimension; ++idim) {
+                    body_acceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index];
+                    ++Index;
+                }
             }
 
             const auto relative_permeability = relative_permeability_values[g_point];
 
-            // Compute strain, need to update porosity
-            Variables.F            = deformation_gradients[g_point];
-            Variables.StrainVector = strain_vectors[g_point];
+            Vector grad_pressure_term(dimension);
+            noalias(grad_pressure_term) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
+            noalias(grad_pressure_term) +=
+                PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * body_acceleration;
 
-            Vector GradPressureTerm(Dim);
-            noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
-            noalias(GradPressureTerm) +=
-                PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * BodyAcceleration;
-
-            Vector aux_fluid_flux = ZeroVector(Dim);
-            aux_fluid_flux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                             relative_permeability * prod(Variables.IntrinsicPermeability, GradPressureTerm);
-
-            Vector fluid_flux = ZeroVector(3);
-            for (unsigned int idim = 0; idim < Dim; ++idim)
-                fluid_flux[idim] = aux_fluid_flux[idim];
-
-            rOutput[g_point].resize(3, false);
-            rOutput[g_point] = fluid_flux;
+            // Compute fluid flux vector q [L/T]
+            rOutput[g_point].clear();
+            const auto fluid_flux = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+                                    relative_permeability *
+                                    prod(Variables.IntrinsicPermeability, grad_pressure_term);
+            std::copy_n(fluid_flux.begin(), dimension, rOutput[g_point].begin());
         }
     }
 
@@ -892,10 +800,12 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSatura
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
+    result.reserve(rFluidPressures.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateDerivativeOfSaturation(retention_law_params);
     });
@@ -907,10 +817,12 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDegreesOfSaturation
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
+    result.reserve(rFluidPressures.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+                   std::back_inserter(result),
+                   [&retention_law_params](auto fluid_pressure, const auto& pRetentionLaw) {
         retention_law_params.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
@@ -1091,11 +1003,12 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables(ElementVariables& 
     rVariables.PressureVector.resize(num_p_nodes, false);
     rVariables.PressureDtVector.resize(num_p_nodes, false);
     rVariables.DeltaPressureVector.resize(num_p_nodes, false);
+    const auto& r_p_geometry = *mpPressureGeometry;
     for (SizeType i = 0; i < num_p_nodes; ++i) {
-        rVariables.PressureVector[i]      = r_geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.PressureDtVector[i]    = r_geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
-        rVariables.DeltaPressureVector[i] = r_geom[i].FastGetSolutionStepValue(WATER_PRESSURE) -
-                                            r_geom[i].FastGetSolutionStepValue(WATER_PRESSURE, 1);
+        rVariables.PressureVector[i] = r_p_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        rVariables.PressureDtVector[i] = r_p_geometry[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.DeltaPressureVector[i] = r_p_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE) -
+                                            r_p_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE, 1);
     }
 
     KRATOS_CATCH("")
@@ -1105,32 +1018,18 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 {
     KRATOS_TRY
 
-    const SizeType        dimension = GetGeometry().WorkingSpaceDimension();
-    const PropertiesType& rProp     = this->GetProperties();
+    const PropertiesType& r_properties = this->GetProperties();
 
-    rVariables.IgnoreUndrained = rProp[IGNORE_UNDRAINED];
-    rVariables.UseHenckyStrain = false;
-    if (rProp.Has(USE_HENCKY_STRAIN)) rVariables.UseHenckyStrain = rProp[USE_HENCKY_STRAIN];
+    rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
+    rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
 
-    rVariables.ConsiderGeometricStiffness = false;
-    if (rProp.Has(CONSIDER_GEOMETRIC_STIFFNESS))
-        rVariables.ConsiderGeometricStiffness = rProp[CONSIDER_GEOMETRIC_STIFFNESS];
+    rVariables.ConsiderGeometricStiffness =
+        r_properties.Has(CONSIDER_GEOMETRIC_STIFFNESS) ? r_properties[CONSIDER_GEOMETRIC_STIFFNESS] : false;
 
-    rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
+    rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
     // Setting the intrinsic permeability matrix
-    (rVariables.IntrinsicPermeability).resize(dimension, dimension, false);
-    rVariables.IntrinsicPermeability(0, 0) = rProp[PERMEABILITY_XX];
-    rVariables.IntrinsicPermeability(1, 1) = rProp[PERMEABILITY_YY];
-    rVariables.IntrinsicPermeability(0, 1) = rProp[PERMEABILITY_XY];
-    rVariables.IntrinsicPermeability(1, 0) = rVariables.IntrinsicPermeability(0, 1);
-
-    if (dimension == 3) {
-        rVariables.IntrinsicPermeability(2, 2) = rProp[PERMEABILITY_ZZ];
-        rVariables.IntrinsicPermeability(2, 0) = rProp[PERMEABILITY_ZX];
-        rVariables.IntrinsicPermeability(1, 2) = rProp[PERMEABILITY_YZ];
-        rVariables.IntrinsicPermeability(0, 2) = rVariables.IntrinsicPermeability(2, 0);
-        rVariables.IntrinsicPermeability(2, 1) = rVariables.IntrinsicPermeability(1, 2);
-    }
+    rVariables.IntrinsicPermeability =
+        GeoElementUtilities::FillPermeabilityMatrix(r_properties, GetGeometry().WorkingSpaceDimension());
 
     KRATOS_CATCH("")
 }
@@ -1165,6 +1064,7 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
     const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
 {
     std::vector<Matrix> result;
+    result.reserve(rDN_DXContainer.size());
     for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
         result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
     }
@@ -1172,8 +1072,8 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
     return result;
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
-                                                        ElementVariables& rVariables) const
+void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&             rLeftHandSideMatrix,
+                                                        const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1290,18 +1190,19 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     const auto soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(
         rVariables.DegreeOfSaturation, this->GetProperties());
 
-    Vector   BodyAcceleration = ZeroVector(Dim);
-    SizeType Index            = 0;
+    Vector   body_acceleration = ZeroVector(Dim);
+    SizeType Index             = 0;
     for (SizeType i = 0; i < NumUNodes; ++i) {
         for (SizeType idim = 0; idim < Dim; ++idim) {
-            BodyAcceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index++];
+            body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index];
+            ++Index;
         }
     }
 
     for (SizeType i = 0; i < NumUNodes; ++i) {
         Index = i * Dim;
         for (SizeType idim = 0; idim < Dim; ++idim) {
-            rRightHandSideVector[Index + idim] += rVariables.Nu[i] * soil_density * BodyAcceleration[idim] *
+            rRightHandSideVector[Index + idim] += rVariables.Nu[i] * soil_density * body_acceleration[idim] *
                                                   rVariables.IntegrationCoefficientInitialConfiguration;
         }
     }
@@ -1342,8 +1243,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
 
     Matrix compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-    Vector CompressibilityFlow = -prod(compressibility_matrix, rVariables.PressureDtVector);
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, CompressibilityFlow);
+    Vector compressibility_flow = -prod(compressibility_matrix, rVariables.PressureDtVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, compressibility_flow);
 
     KRATOS_CATCH("")
 }
@@ -1355,8 +1256,10 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateRelativePermeabilit
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
     auto result = std::vector<double>{};
+    result.reserve(mRetentionLawVector.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
     });
@@ -1370,8 +1273,10 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
     auto result = std::vector<double>{};
+    result.reserve(mRetentionLawVector.size());
     std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
     });
@@ -1457,10 +1362,12 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateDeformationGradients() const
 {
+    const auto number_of_integration_points =
+        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
     std::vector<Matrix> result;
-    for (unsigned int GPoint = 0;
-         GPoint < this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()); ++GPoint) {
-        result.push_back(CalculateDeformationGradient(GPoint));
+    result.reserve(number_of_integration_points);
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+        result.push_back(CalculateDeformationGradient(integration_point));
     }
 
     return result;
@@ -1524,11 +1431,10 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
     }
 }
 
-Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()
+Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const
 {
     Vector result(mpPressureGeometry->PointsNumber());
-    std::transform(this->GetGeometry().begin(),
-                   this->GetGeometry().begin() + mpPressureGeometry->PointsNumber(), result.begin(),
+    std::transform(mpPressureGeometry->begin(), mpPressureGeometry->end(), result.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
     return result;
 }

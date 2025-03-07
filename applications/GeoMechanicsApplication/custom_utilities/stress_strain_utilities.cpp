@@ -64,15 +64,19 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
 
-    const double p                   = CalculateMeanStress(rStressVector);
-    const double q                   = CalculateVonMisesStress(rStressVector);
-    const Matrix local_stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
-    Matrix       sigma_princi;
-    Matrix       eigen_vectors;
-    MathUtils<double>::GaussSeidelEigenSystem(local_stress_tensor, eigen_vectors, sigma_princi, 1.0e-16, 20);
-    const double numerator = (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
-    if (std::abs(numerator) < 1.0E-12) return 0.;
-    return std::asin((-27. / 2.) * numerator / (q * q * q)) / 3.0;
+    const auto q = CalculateVonMisesStress(rStressVector);
+    if (constexpr auto tolerance = 1.0E-12; q < tolerance) return 0.0;
+
+    Matrix sigma_princi;
+    Matrix eigen_vectors;
+    MathUtils<>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rStressVector),
+                                        eigen_vectors, sigma_princi, 1.0e-16, 20);
+    const auto p = CalculateMeanStress(rStressVector);
+    const auto numerator = (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
+    // Avoid a domain error when computing the arc sine (which results in a NaN value)
+    const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / (q * q * q), -1.0, 1.0);
+
+    return std::asin(arg_to_asin) / 3.0;
 }
 
 double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double Phi)
@@ -165,6 +169,7 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
                                                             std::size_t   VoigtSize)
 {
     std::vector<Vector> result;
+    result.reserve(rDeformationGradients.size());
     std::transform(
         rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
         [&rDisplacements, UseHenckyStrain, VoigtSize](const auto& rDeformationGradient, const auto& rB) {

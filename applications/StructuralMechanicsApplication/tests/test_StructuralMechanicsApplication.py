@@ -89,6 +89,8 @@ from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnal
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
 from test_adjoint_loading_conditions import TestAdjointLoadingConditions as TTestAdjointLoadingConditions
+# Explicit dynamics reactions tests
+from test_explicit_central_differences_reactions import TestExplicitCentralDifferencesReactions as TTestExplicitCentralDifferencesReactions
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -336,6 +338,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryUtility]))
     # Set moving load process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSetMovingLoadProcess]))
+    # Explicit dynamics reactions tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestExplicitCentralDifferencesReactions]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)

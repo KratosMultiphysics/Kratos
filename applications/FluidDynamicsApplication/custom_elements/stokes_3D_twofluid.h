@@ -136,7 +136,7 @@ public:
 
     }
 
-    void CalculateAll(
+    virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
