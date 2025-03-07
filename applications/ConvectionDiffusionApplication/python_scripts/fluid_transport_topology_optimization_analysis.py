@@ -16,12 +16,13 @@ import KratosMultiphysics.MeshingApplication as KratosMMG
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 from KratosMultiphysics.FluidDynamicsApplication.fluid_topology_optimization_analysis import FluidTopologyOptimizationAnalysis
+from KratosMultiphysics.ConvectionDiffusionApplication.transport_topology_optimization_analysis import TransportTopologyOptimizationAnalysis
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver
 from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver
 from KratosMultiphysics.ConvectionDiffusionApplication import fluid_transport_topology_optimization_solver
 
-class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
+class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAnalysis):
     def __init__(self,model,parameters):
         super().__init__(model,parameters) 
 
@@ -102,7 +103,7 @@ class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalys
             print("\n ERROR: _PrepareTransportSettings in the wrong topology optimization stage.\n")
         
     def _GetPhysicsMainModelPartsList(self):
-        return [self._GetPhysicsSolver()._GetFluidSolver().main_model_part, self._GetPhysicsSolver()._GetTransportSolver().main_model_part]
+        return [self._GetFluidSolver().main_model_part, self._GetTransportSolver().main_model_part]
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TOTAL STEP: ", self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
@@ -172,7 +173,7 @@ class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalys
             print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "):", self.weighted_functionals[8])
 
 
-    def _InitializeFunctionalWeights(self, fluid_weights = [1, 1, 0], transport_weights=[1,0,0,0,0,0], coupling_weights=[1,1]):
+    def _InitializeFunctionalWeights(self, fluid_weights = [1, 1, 0], transport_weights=[0,0,1,0,0,0], coupling_weights=[1,1]):
         # normalize weights
         self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_weights))
         self.normalized_transport_functional_weights = self._NormalizeFunctionalWeights(np.asarray(transport_weights))
@@ -190,7 +191,7 @@ class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalys
         self.transport_functionals = np.zeros(self.n_transport_functionals)
         self.functionals = np.zeros(self.n_functionals)
 
-    def _SetFunctionalWeights(self, fluid_weights = [1, 1, 0], transport_weights=[1,0,0,0,0,0], coupling_weights=[1,1]):
+    def _SetFunctionalWeights(self, fluid_weights = [1, 1, 0], transport_weights=[0,0,1,0,0,0], coupling_weights=[1,1]):
         print("--|" + self.topology_optimization_stage_str + "| ---> Set Functional Weights")
         self._InitializeFunctionalWeights(fluid_weights, transport_weights, coupling_weights)
         self.EvaluateFunctionals(print_functional=False)
@@ -446,93 +447,48 @@ class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalys
 
     def SetTargetOutletTransportScalar(self, target_transport_scalar=0.0):
         self.target_outlet_transport_scalar = target_transport_scalar
-        
-    def _ComputeFunctionalDerivatives(self):
-        temp_functional_derivatives_wrt_design = super()._ComputeFunctionalDerivatives()
-        temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesTransportPhysicsContribution()
-        return temp_functional_derivatives_wrt_design
 
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
-        fluid_functional_derivatives_wrt_design = super()._ComputeFunctionalDerivativesFunctionalContribution()
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))
-        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        transport_diffusion_functional_derivatives_wrt_design  = self.functional_weights[5]*self.conductivity_derivative_wrt_design * np.sum(transport_scalar_gradient*transport_scalar_gradient, axis=1) * self.nodal_domain_sizes
-        transport_convection_functional_derivatives_wrt_design = self.functional_weights[6]*self.convection_coefficient_derivative_wrt_design * (transport_scalar*(np.sum(velocity*transport_scalar_gradient, axis=1))) * self.nodal_domain_sizes
-        transport_decay_functional_derivatives_wrt_design      = self.functional_weights[7]*self.decay_derivative_wrt_design * (transport_scalar**2) * self.nodal_domain_sizes
-        return fluid_functional_derivatives_wrt_design + (transport_diffusion_functional_derivatives_wrt_design+transport_convection_functional_derivatives_wrt_design+transport_decay_functional_derivatives_wrt_design)
-        
-    def _ComputeFunctionalDerivativesTransportPhysicsContribution(self):
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))
-        transport_scalar_adjoint = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_ADJ, 0))
-        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        transport_scalar_adj_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_ADJ_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        transport_physics_functional_derivatives_wrt_design  = self.conductivity_derivative_wrt_design * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_adj_gradient) * self.nodal_domain_sizes
-        transport_physics_functional_derivatives_wrt_design += self.decay_derivative_wrt_design * (transport_scalar*transport_scalar_adjoint) * self.nodal_domain_sizes
-        transport_physics_functional_derivatives_wrt_design += self.convection_coefficient_derivative_wrt_design * np.einsum('ij,ij->i', velocity, transport_scalar_gradient) * transport_scalar_adjoint * self.nodal_domain_sizes
-        return transport_physics_functional_derivatives_wrt_design
+        return self._ComputeFunctionalDerivativesFluidFunctionalContribution() + self._ComputeFunctionalDerivativesTransportFunctionalContribution()
     
-    def _UpdateRelevantAdjointVariables(self):
-        super()._UpdateRelevantAdjointVariables()
-        if (abs(self.functional_weights[3]) > 1e-10):
-            self._SetTransportSurfaceSourceFromFunctional()
-        if (abs(self.functional_weights[4]) > 1e-10):
-            self._UpdateOptimizationTemperatureVariable()
+    def _ComputeFunctionalDerivativesPhysicsContribution(self):
+        return self._ComputeFunctionalDerivativesFluidPhysicsContribution() + self._ComputeFunctionalDerivativesTransportPhysicsContribution()
 
-    def _UpdateOptimizationTemperatureVariable(self):
-        focus_mp = self._FindAdjointVolumeSourceProcess().model_part
-        for node in focus_mp.Nodes:
-            node.SetSolutionStepValue(KratosCD.OPTIMIZATION_TEMPERATURE, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-
-    def _GetFluidModelPart(self):
-        return self._GetPhysicsSolver()._GetFluidSolver().GetMainModelPart()
-
-    def _GetTransportModelPart(self):
-        return self._GetPhysicsSolver()._GetTransportSolver().GetMainModelPart()
-
+    def _GetFluidSolver(self):
+        if (not self.IsAdjointStage()):
+            return self._GetPhysicsSolver()._GetFluidSolver()
+        else:
+            return self._GetAdjointSolver()._GetFluidSolver()
+    
     def _GetTransportSolver(self):
         if (not self.IsAdjointStage()):
             return self._GetPhysicsSolver()._GetTransportSolver()
         else:
             return self._GetAdjointSolver()._GetTransportSolver()
         
+    def _GetFluidModelPart(self):
+        return self._GetFluidSolver.GetMainModelPart()
+
+    def _GetTransportModelPart(self):
+        return self._GetTransportSolver.GetMainModelPart()
+
     def _CheckMaterialProperties(self):
         print("--|CHECK| Check Physics Properties")
         self._GetSolver()._CheckMaterialProperties()
 
     def _InitializePhysicsParameters(self, resistance_parameters=[0.0, 1e4, 1.0], conductivity_parameters=[1e-4, 1e-2, 1.0], decay_parameters=[0.0, 0.0, 1.0], convection_coefficient_parameters=[0.0, 0.0, 1.0]):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")
+        self._SetPhysicsParametersInterpolationMethods()
         self._InitializeResistance(resistance_parameters)
         self._InitializeConductivity(conductivity_parameters)
         self._InitializeDecay(decay_parameters)
         self._InitializeConvectionCoefficient(convection_coefficient_parameters)
 
-    def _InitializeResistance(self, resistance_parameters_values):
-        print("--|" + self.topology_optimization_stage_str + "| INITIALIZE RESISTANCE")
-        self.resistance_parameters = resistance_parameters_values
-        self._ResetResistance()
-        self._UpdateResistanceVariable()
-
-    def _InitializeConductivity(self, conductivity_parameters_values):
-        print("--|" + self.topology_optimization_stage_str + "| INITIALIZE CONDUCTIVITY")
-        self.conductivity_parameters = conductivity_parameters_values
-        self._ResetConductivity()
-        self._UpdateConductivityVariable()
-
-    def _InitializeDecay(self, decay_parameters_values):
-        print("--|" + self.topology_optimization_stage_str + "| INITIALIZE DECAY")
-        self.decay_parameters = decay_parameters_values
-        self._ResetDecay()
-        self._UpdateDecayVariable()
-
-    def _InitializeConvectionCoefficient(self, convection_coefficient_parameters_values):
-        print("--|" + self.topology_optimization_stage_str + "| INITIALIZE CONVECTION COEFFICIENT")
-        self.convection_coefficient_parameters = convection_coefficient_parameters_values
-        self._ResetConvectionCoefficient()
-        self._UpdateConvectionCoefficientVariable()
+    def _SetPhysicsParametersInterpolationMethods(self, resistance="hyperbolic", conductivity="hyperbolic", decay="hyperbolic", convection_coefficient="hyperbolic"):
+        self._SetResistanceInterpolationMethod(resistance)
+        self._SetConductivityInterpolationMethod(conductivity)
+        self._SetDecayInterpolationMethod(decay)
+        self._SetConvectionCoefficientInterpolationMethod(convection_coefficient)
 
     def ResetPhysicsParameters(self):
         self._ResetResistance()
@@ -540,39 +496,11 @@ class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalys
         self._ResetDecay()
         self._ResetConvectionCoefficient()
 
-    def _ResetResistance(self):
-        self.resistance = np.zeros(self.n_nodes)
-        self.resistance_derivative_wrt_design = np.zeros(self.n_nodes)
-
-    def _ResetConductivity(self):
-        self.conductivity = np.zeros(self.n_nodes)
-        self.conductivity_derivative_wrt_design = np.zeros(self.n_nodes)
-
-    def _ResetDecay(self):
-        self.decay = np.zeros(self.n_nodes)
-        self.decay_derivative_wrt_design = np.zeros(self.n_nodes)
-
-    def _ResetConvectionCoefficient(self):
-        self.convection_coefficient = np.zeros(self.n_nodes)
-        self.convection_coefficient_derivative_wrt_design = np.zeros(self.n_nodes)
-
     def UpdatePhysicsParametersVariables(self):
         self._UpdateResistanceVariable()
         self._UpdateConductivityVariable()
         self._UpdateDecayVariable()
         self._UpdateConvectionCoefficientVariable()
-
-    def _UpdateResistanceVariable(self):
-        self._GetSolver()._UpdateResistanceVariable(self.resistance)
-
-    def _UpdateConductivityVariable(self):
-        self._GetSolver()._UpdateConductivityVariable(self.conductivity)
-
-    def _UpdateDecayVariable(self):
-        self._GetSolver()._UpdateDecayVariable(self.decay)
-
-    def _UpdateConvectionCoefficientVariable(self):
-        self._GetSolver()._UpdateConvectionCoefficientVariable(self.convection_coefficient)
 
     def _UpdatePhysicsParameters(self):
         self._UpdateResistance()
@@ -580,77 +508,6 @@ class FluidTransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalys
         self._UpdateDecay()
         self._UpdateConvectionCoefficient()
         
-    def _UpdateResistance(self):
-        """
-        This method handles the resistance update.
-        """
-        print("--|" + self.topology_optimization_stage_str + "| UPDATE RESISTANCE")
-        self.resistance, self.resistance_derivative_wrt_design_base = self._ComputeResistance(self.design_parameter)
-        self._UpdateResistanceDesignDerivative()
-        self._UpdateResistanceVariable()
-
-    def _UpdateConductivity(self):
-        """
-        This method handles the conductivity update.
-        """
-        print("--|" + self.topology_optimization_stage_str + "| UPDATE CONDUCTIVITY")
-        self.conductivity, self.conductivity_derivative_wrt_design_base = self._ComputeConductivity(self.design_parameter)
-        self._UpdateConductivityDesignDerivative()
-        self._UpdateConductivityVariable()
-
-    def _UpdateDecay(self):
-        """
-        This method handles the decay update.
-        """
-        print("--|" + self.topology_optimization_stage_str + "| UPDATE DECAY")
-        self.decay, self.decay_derivative_wrt_design_base = self._ComputeDecay(self.design_parameter)
-        self._UpdateDecayDesignDerivative()
-        self._UpdateDecayVariable()
-
-    def _UpdateConvectionCoefficient(self):
-        """
-        This method handles the convection coefficient update.
-        """
-        print("--|" + self.topology_optimization_stage_str + "| UPDATE CONVECTION COEFFICIENT")
-        self.convection_coefficient, self.convection_coefficient_derivative_wrt_design_base = self._ComputeConvectionCoefficient(self.design_parameter)
-        self._UpdateConvectionCoefficientDesignDerivative()
-        self._UpdateConvectionCoefficientVariable()
-    
-    def _ComputeConductivity(self, design_parameter):
-        return self._ComputePhysicsParameter(self.conductivity_parameters, design_parameter)
-    
-    def _ComputeDecay(self, design_parameter):
-        return self._ComputePhysicsParameter(self.decay_parameters, design_parameter)
-    
-    def _ComputeConvectionCoefficient(self, design_parameter):
-        return self._ComputePhysicsParameter(self.convection_coefficient_parameters, design_parameter)
-    
-    def _UpdateResistanceDesignDerivative(self):
-        mask = self._GetOptimizationDomainNodesMask()
-        resistance_derivative_wrt_design_projected = self.resistance_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.resistance_derivative_wrt_design = resistance_derivative_wrt_design_projected
-        self.resistance_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(resistance_derivative_wrt_design_projected)[mask]
-
-    def _UpdateConductivityDesignDerivative(self):
-        mask = self._GetOptimizationDomainNodesMask()
-        conductivity_derivative_wrt_design_projected = self.conductivity_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.conductivity_derivative_wrt_design = conductivity_derivative_wrt_design_projected
-        self.conductivity_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(conductivity_derivative_wrt_design_projected)[mask]
-
-    def _UpdateDecayDesignDerivative(self):
-        mask = self._GetOptimizationDomainNodesMask()
-        decay_derivative_wrt_design_projected = self.decay_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.decay_derivative_wrt_design = decay_derivative_wrt_design_projected
-        self.decay_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(decay_derivative_wrt_design_projected)[mask]
-
-    def _UpdateConvectionCoefficientDesignDerivative(self):
-        mask = self._GetOptimizationDomainNodesMask()
-        convection_coefficient_derivative_wrt_design_projected = self.convection_coefficient_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.convection_coefficient_derivative_wrt_design = convection_coefficient_derivative_wrt_design_projected
-        self.convection_coefficient_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(convection_coefficient_derivative_wrt_design_projected)[mask]
-
-
-
 
 
 

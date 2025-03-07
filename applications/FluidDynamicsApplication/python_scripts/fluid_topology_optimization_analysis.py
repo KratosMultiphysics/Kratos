@@ -368,6 +368,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._SetPhysicsParametersInterpolationMethods()
         self._InitializeResistance(resistance_parameters)
 
+    def _SetPhysicsParametersInterpolationMethods(self, resistance="hyperbolic"):
+        self._SetResistanceInterpolationMethod(resistance)
+
+    def _SetResistanceInterpolationMethod(self, interpolation_method):
+        self.resistance_interpolation_method = interpolation_method
+    
     def _SetMaxDomainVolumeFraction(self, max_volume_fraction = 1.0):
         self.max_volume_fraction = max_volume_fraction
         # self.volume_fraction = 0.0
@@ -590,12 +596,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._ResetResistance()
         self._UpdateResistanceVariable()
 
-    def _SetPhysicsParametersInterpolationMethods(self, resistance="hyperbolic"):
-        self._SetResistanceInterpolationMethod(resistance)
-
-    def _SetResistanceInterpolationMethod(self, interpolation_method):
-        self.resistance_interpolation_method = interpolation_method
-
     def _ResetResistance(self):
         self.resistance = np.zeros(self.n_nodes)
         self.resistance_derivative_wrt_design = np.zeros(self.n_nodes)
@@ -619,11 +619,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             return self._ComputeHyperbolicPhysicsParameter(physics_parameter_values, design_parameter)
         
     def _ComputeHyperbolicPhysicsParameter(self, physics_parameter_values, design_parameter):
-        value_fluid = physics_parameter_values[0]
+        value_void = physics_parameter_values[0]
         value_solid = physics_parameter_values[1]
         slope       = physics_parameter_values[2]
-        physics_parameter = value_fluid + (value_solid-value_fluid)*(slope*design_parameter)/(slope+1-design_parameter)
-        physics_parameter_derivative_wrt_design_base = (value_solid-value_fluid)*(slope*(slope+1))/((slope+1-design_parameter)**2)
+        if (value_void <= value_solid): 
+            physics_parameter = value_void + (value_solid-value_void)*(slope*design_parameter)/(slope+1-design_parameter)
+            physics_parameter_derivative_wrt_design_base = (value_solid-value_void)*(slope*(slope+1))/((slope+1-design_parameter)**2)
+        else:
+            physics_parameter = value_solid - (value_solid-value_void)*(slope*(1-design_parameter))/(slope+design_parameter)
+            physics_parameter_derivative_wrt_design_base = (value_solid-value_void)*(slope*(slope+1))/((slope+design_parameter)**2)
         return physics_parameter, physics_parameter_derivative_wrt_design_base
     
     def _ComputePolynomialPhysicsParameter(self, physics_parameter_values, design_parameter):
@@ -642,8 +646,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             eff_power = power + (power_max-power)*(self.opt_it-min_it)/(max_it-min_it)
         else:
             eff_power = power_max
-        physics_parameter = value_void + (value_solid-value_void)*(design_parameter**eff_power)
-        physics_parameter_derivative_wrt_design_base = eff_power*(value_solid-value_void)*(design_parameter**(eff_power-1))
+        if (value_void <= value_solid): 
+            physics_parameter = value_void + (value_solid-value_void)*(design_parameter**eff_power)
+            physics_parameter_derivative_wrt_design_base = eff_power*(value_solid-value_void)*(design_parameter**(eff_power-1))
+        else:
+            physics_parameter = value_solid - (value_solid-value_void)*((1.0-design_parameter)**eff_power)
+            physics_parameter_derivative_wrt_design_base = eff_power*(value_solid-value_void)*((1.0-design_parameter)**(eff_power-1))
         return physics_parameter, physics_parameter_derivative_wrt_design_base
     
     def _UpdateResistanceDesignDerivative(self):
@@ -914,10 +922,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         for node in mp.Nodes:
             node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[node.Id-1][0])
 
+    def _ComputeFunctionalDerivativesFunctionalContribution(self):
+        return self._ComputeFunctionalDerivativesFluidFunctionalContribution()
+    
     def _ComputeFunctionalDerivativesPhysicsContribution(self):
         return self._ComputeFunctionalDerivativesFluidPhysicsContribution()
 
-    def _ComputeFunctionalDerivativesFunctionalContribution(self):
+    def _ComputeFunctionalDerivativesFluidFunctionalContribution(self):
         mp = self._GetComputingModelPart()
         velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         return self.functional_weights[0]*self.resistance_derivative_wrt_design * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
@@ -1166,6 +1177,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.projective_filter_min_projection_slope = min_projection_slope
         self.projective_filter_max_projection_slope = max_projection_slope
         self.projective_filter_activation_change = projection_change
+        self.projective_filter_slope = 1e-15
 
     def _BuildNodesConnectivity(self):
         if (self.diffusive_filter_radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
@@ -1193,21 +1205,24 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         mask = self._GetOptimizationDomainNodesMask()
         self.design_parameter_projected = design_parameter
         self.design_parameter_projected_derivatives = np.ones(self.n_nodes)
-        if ((not self.first_iteration) and (self.apply_projective_filter)):
-            design_change_for_projection = 1.0-min(1.0, max(0.0, self.design_parameter_change-self.design_parameter_change_toll)/(self.projective_filter_activation_change-self.design_parameter_change_toll))
-            if (abs(1.0-design_change_for_projection) < 1e-15):
-                projection_slope = self.projective_filter_min_projection_slope
+        if ((self.opt_it > 10) and (self.apply_projective_filter)):
+            design_change_ratio = 1.0-min(1.0, max(0.0, self.design_parameter_change-self.design_parameter_change_toll)/(self.projective_filter_activation_change-self.design_parameter_change_toll))
+            if (abs(design_change_ratio) < 1e-15): # design_change_ratio == 0
+                new_projection_slope = self.projective_filter_min_projection_slope
             else:
-                if (abs(design_change_for_projection) >= 1e-15):
-                    projection_slope = self.projective_filter_min_projection_slope + (self.projective_filter_max_projection_slope-self.projective_filter_min_projection_slope)*(1-design_change_for_projection)
-                else:
-                    projection_slope = self.projective_filter_max_projection_slope
+                print("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter: ---> APPLY PROJECTION")
+                if ((abs(1-design_change_ratio) < 1e-15)): # design_change_ratio == 1
+                    new_projection_slope = self.projective_filter_max_projection_slope
+                else: # design_change_ratio \in (0,1)
+                    new_projection_slope = self.projective_filter_min_projection_slope + (self.projective_filter_max_projection_slope-self.projective_filter_min_projection_slope)*design_change_ratio    
+            if (new_projection_slope > self.projective_filter_slope):
+                self.projective_filter_slope = new_projection_slope
             design_parameter_mean = min(max(self.projective_filter_min_mean,1.0-self.volume_fraction),self.projective_filter_max_mean)
-            factor = np.tanh(projection_slope*design_parameter_mean) + np.tanh(projection_slope*(1-design_parameter_mean))
-            constant = np.tanh(projection_slope*design_parameter_mean)
-            projection_argument = projection_slope*(design_parameter-design_parameter_mean)
+            factor = np.tanh(self.projective_filter_slope*design_parameter_mean) + np.tanh(self.projective_filter_slope*(1-design_parameter_mean))
+            constant = np.tanh(self.projective_filter_slope*design_parameter_mean)
+            projection_argument = self.projective_filter_slope*(design_parameter-design_parameter_mean)
             self.design_parameter_projected[mask] = ((constant + np.tanh(projection_argument)) / factor)[mask]
-            self.design_parameter_projected_derivatives[mask] = ((projection_slope / factor) / (np.cosh(projection_argument)**2))[mask]
+            self.design_parameter_projected_derivatives[mask] = ((self.projective_filter_slope / factor) / (np.cosh(projection_argument)**2))[mask]
                 
     def _ApplyDiffusiveFilter(self, scalar_variable):
         if (self.apply_diffusive_filter):

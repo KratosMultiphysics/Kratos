@@ -336,12 +336,14 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
 
     def SetTargetOutletTransportScalar(self, target_transport_scalar=0.0):
         self.target_outlet_transport_scalar = target_transport_scalar
-        
-    def _ComputeFunctionalDerivatives(self):
-        temp_functional_derivatives_wrt_design = super()._ComputeFunctionalDerivatives()
-        return temp_functional_derivatives_wrt_design
 
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
+        return self._ComputeFunctionalDerivativesTransportFunctionalContribution()
+    
+    def _ComputeFunctionalDerivativesPhysicsContribution(self):
+        return self._ComputeFunctionalDerivativesTransportPhysicsContribution()
+
+    def _ComputeFunctionalDerivativesTransportFunctionalContribution(self):
         mp = self._GetComputingModelPart()
         velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))
@@ -349,10 +351,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         transport_diffusion_functional_derivatives_wrt_design  = self.functional_weights[5]*self.conductivity_derivative_wrt_design * np.sum(transport_scalar_gradient*transport_scalar_gradient, axis=1) * self.nodal_domain_sizes
         transport_convection_functional_derivatives_wrt_design = self.functional_weights[6]*self.convection_coefficient_derivative_wrt_design * (transport_scalar*(np.sum(velocity*transport_scalar_gradient, axis=1))) * self.nodal_domain_sizes
         transport_decay_functional_derivatives_wrt_design      = self.functional_weights[7]*self.decay_derivative_wrt_design * (transport_scalar**2) * self.nodal_domain_sizes
-        return transport_diffusion_functional_derivatives_wrt_design+transport_convection_functional_derivatives_wrt_design+transport_decay_functional_derivatives_wrt_design
-
-    def _ComputeFunctionalDerivativesPhysicsContribution(self):
-        return self._ComputeFunctionalDerivativesTransportPhysicsContribution()    
+        return transport_diffusion_functional_derivatives_wrt_design+transport_convection_functional_derivatives_wrt_design+transport_decay_functional_derivatives_wrt_design 
     
     def _ComputeFunctionalDerivativesTransportPhysicsContribution(self):
         mp = self._GetComputingModelPart()
@@ -390,6 +389,20 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self._InitializeConvectionCoefficient(convection_coefficient_parameters)
         self._SetConvectiveVelocity()
 
+    def _SetPhysicsParametersInterpolationMethods(self, conductivity="hyperbolic", decay="hyperbolic", convection_coefficient="hyperbolic"):
+        self._SetConductivityInterpolationMethod(conductivity)
+        self._SetDecayInterpolationMethod(decay)
+        self._SetConvectionCoefficientInterpolationMethod(convection_coefficient)
+
+    def _SetConductivityInterpolationMethod(self, interpolation_method):
+        self.conductivity_interpolation_method = interpolation_method
+        
+    def _SetDecayInterpolationMethod(self, interpolation_method):
+        self.decay_interpolation_method = interpolation_method
+
+    def _SetConvectionCoefficientInterpolationMethod(self, interpolation_method):
+        self.convection_coefficient_interpolation_method = interpolation_method    
+    
     def _SetConvectiveVelocity(self, constant_velocity=False, vel=[0,0,0]):
         self.is_constant_velocity = constant_velocity
         self.constant_velocity = vel
@@ -429,20 +442,6 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     def _ResetConvectionCoefficient(self):
         self.convection_coefficient = np.zeros(self.n_nodes)
         self.convection_coefficient_derivative_wrt_design = np.zeros(self.n_nodes)
-
-    def _SetPhysicsParametersInterpolationMethods(self, conductivity="hyperbolic", decay="hyperbolic", convection_coefficient="hyperbolic"):
-        self._SetConductivityInterpolationMethod(conductivity)
-        self._SetDecayInterpolationMethod(decay)
-        self._SetConvectionCoefficientInterpolationMethod(convection_coefficient)
-
-    def _SetConductivityInterpolationMethod(self, interpolation_method):
-        self.conductivity_interpolation_method = interpolation_method
-        
-    def _SetDecayInterpolationMethod(self, interpolation_method):
-        self.decay_interpolation_method = interpolation_method
-
-    def _SetConvectionCoefficientInterpolationMethod(self, interpolation_method):
-        self.convection_coefficient_interpolation_method = interpolation_method    
 
     def UpdatePhysicsParametersVariables(self):
         self._UpdateConductivityVariable()
