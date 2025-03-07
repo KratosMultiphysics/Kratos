@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_parameters.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
