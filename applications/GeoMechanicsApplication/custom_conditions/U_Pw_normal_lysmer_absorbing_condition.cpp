@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
+#include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
@@ -274,17 +275,14 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateExtrapolationMatri
                                                                       integration_method_neighbour);
             return extrapolation_matrix;
         }
-        if (num_nodes_neighbour == 4) {
+        else if (num_nodes_neighbour == 4) {
             GeoElementUtilities::CalculateExtrapolationMatrixQuad(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
         }
-        if (num_nodes_neighbour == 6) {
-            GeoElementUtilities::CalculateExtrapolationMatrixTriangle6N(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
-        }
-        if (num_nodes_neighbour == 8) {
-            GeoElementUtilities::CalculateExtrapolationMatrixQuad8N(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
+        // tri6 or quad8 neighbour
+        else if (num_nodes_neighbour == 6 || num_nodes_neighbour == 8) {
+            LinearNodalExtrapolator extrapolator;
+            return extrapolator.CalculateElementExtrapolationMatrix(r_neighbour_geom, integration_method_neighbour);
         }
 
     }
@@ -294,18 +292,17 @@ Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateExtrapolationMatri
             GeoElementUtilities::CalculateExtrapolationMatrixTetra(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
         }
-        if (num_nodes_neighbour == 8) {
+        else if (num_nodes_neighbour == 8) {
             GeoElementUtilities::CalculateExtrapolationMatrixHexa(extrapolation_matrix, integration_method_neighbour);
             return extrapolation_matrix;
         }
-        if (num_nodes_neighbour == 10) {
-            GeoElementUtilities::CalculateExtrapolationMatrixTetra10N(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
+        // tetra10 or hexa20 neighbour
+        else if (num_nodes_neighbour == 10 || num_nodes_neighbour == 20) {
+
+            LinearNodalExtrapolator extrapolator;
+            return extrapolator.CalculateElementExtrapolationMatrix(r_neighbour_geom, integration_method_neighbour);
         }
-        if (num_nodes_neighbour == 20) {
-            GeoElementUtilities::CalculateExtrapolationMatrixHexa20N(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
-        }
+
     }
 
     // if no extrapolation matrix is implemented, take average values at gauss points
