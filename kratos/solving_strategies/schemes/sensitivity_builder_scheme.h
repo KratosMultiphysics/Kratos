@@ -569,16 +569,18 @@ private:
 
         this->CalculateLocalSensitivity(rEntity, rResponseFunction,
                                         rSensitivityVector, rVariable, rProcessInfo);
-
-        auto& r_geometry = rEntity.GetGeometry();
-        if (rGPSensitivityVector.size() != r_geometry.PointsNumber()) {
-            rGPSensitivityVector.resize(r_geometry.PointsNumber());
+        
+        if (rSensitivityVector.size() > 0) {
+            auto& r_geometry = rEntity.GetGeometry();
+            if (rGPSensitivityVector.size() != r_geometry.PointsNumber()) {
+                rGPSensitivityVector.resize(r_geometry.PointsNumber());
+            }
+            
+            for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i) {
+                rGPSensitivityVector(i) = mGlobalPointerNodalMap[r_geometry[i].Id()];
+            }
         }
-
-        for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i) {
-            rGPSensitivityVector(i) = mGlobalPointerNodalMap[r_geometry[i].Id()];
-        }
-
+        
         KRATOS_CATCH("");
     }
 
