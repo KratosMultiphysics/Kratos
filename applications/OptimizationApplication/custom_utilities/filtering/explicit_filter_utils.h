@@ -18,16 +18,18 @@
 #include <string>
 #include <variant>
 
+// External includes
+#include "nanoflann/include/nanoflann.hpp"
+
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "spatial_containers/spatial_containers.h"
 #include "expression/container_expression.h"
 
 // Application includes
-#include "entity_point.h"
 #include "filter_function.h"
 #include "explicit_damping.h"
+#include "filter_utils.h"
 
 namespace Kratos {
 
@@ -41,26 +43,31 @@ public:
     ///@name Type definitions
     ///@{
 
-    using EntityType = typename TContainerType::value_type;
-
-    using EntityPointType = EntityPoint<EntityType>;
-
-    using EntityPointVector = std::vector<typename EntityPointType::Pointer>;
-
-    // Type definitions for tree-search
-    using BucketType = Bucket<3, EntityPoint<EntityType>, EntityPointVector>;
-
-    using KDTree = Tree<KDTreePartition<BucketType>>;
-
     /// Pointer definition of ContainerMapper
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitFilterUtils);
+
+    ///@}
+    ///@name Nanoflann KD Tree type definitions
+    ///@{
+
+    using PositionAdapter = NanoFlannSingleContainerPositionAdapter<TContainerType>;
+
+    using ResultVectorType = typename PositionAdapter::ResultVectorType;
+
+    using PointerVectorType = typename PositionAdapter::PointerVectorType;
+
+    using DistanceMetricType = typename nanoflann::metric_L2_Simple::traits<double, PositionAdapter>::distance_t;
+
+    using KDTreeIndexType = nanoflann::KDTreeSingleIndexAdaptor<DistanceMetricType, PositionAdapter, 3>;
+
+    using KDTreeThreadLocalStorage = NanoFlannKDTreeThreadLocalStorage<PointerVectorType>;
 
     ///@}
     ///@name LifeCycle
     ///@{
 
     ExplicitFilterUtils(
-        const ModelPart& rModelPart,
+        ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
         const IndexType MaxNumberOfNeighbours,
         const IndexType EchoLevel);
@@ -140,7 +147,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    const ModelPart& mrModelPart;
+    ModelPart& mrModelPart;
 
     FilterFunction::UniquePointer mpKernelFunction;
 
@@ -150,15 +157,13 @@ private:
 
     Expression::ConstPointer mpNodalDomainSizeExpression;
 
-    EntityPointVector mEntityPointVector;
-
-    IndexType mBucketSize = 100;
-
-    IndexType mMaxNumberOfNeighbors;
+    IndexType mLeafMaxSize = 10;
 
     IndexType mEchoLevel;
 
-    typename KDTree::Pointer mpSearchTree;
+    std::unique_ptr<PositionAdapter> mpAdapter;
+
+    std::unique_ptr<KDTreeIndexType> mpKDTreeIndex;
 
     ///@}
     ///@name Private operations
