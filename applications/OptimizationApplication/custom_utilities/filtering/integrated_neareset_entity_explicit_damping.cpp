@@ -44,10 +44,13 @@ IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEntityE
         "damping_type"               : "integrated_nearest_entity",
         "damping_function_type"      : "cosine",
         "damping_distance_multiplier": 100.0,
+        "damping_max_items_in_bucket": 10,
         "damped_model_part_settings" : {}
     })" );
 
     Settings.ValidateAndAssignDefaults(defaults);
+
+    mLeafMaxSize = Settings["damping_max_items_in_bucket"].GetInt();
 
     mpKernelFunction = Kratos::make_unique<DampingFunction>(Settings["damping_function_type"].GetString(), Settings["damping_distance_multiplier"].GetDouble());
     mComponentWiseDampedModelParts = OptimizationUtils::GetComponentWiseModelParts(rModel, Settings["damped_model_part_settings"]);
