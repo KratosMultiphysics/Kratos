@@ -15,6 +15,9 @@
 // System includes
 #include <vector>
 
+// External includes
+#include "nanoflann/include/nanoflann.hpp"
+
 // Project includes
 #include "containers/model.h"
 #include "expression/container_expression.h"
@@ -24,6 +27,7 @@
 
 // Application includes
 #include "filter_function.h"
+#include "filter_utils.h"
 #include "explicit_damping.h"
 
 namespace Kratos
@@ -43,14 +47,17 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) NearestEntityExplicitDamping: public 
 
     using EntityType = typename BaseType::EntityType;
 
-    using EntityPointType = typename BaseType::EntityPointType;
-
     using EntityPointVector = typename BaseType::EntityPointVector;
 
-    // Type definitions for tree-search
-    using BucketType = Bucket<3, EntityPointType, EntityPointVector>;
+    using PositionAdapter = NanoFlannMultipleModelPartPositionAdapter<TContainerType>;
 
-    using KDTree = Tree<KDTreePartition<BucketType>>;
+    using ResultVectorType = typename PositionAdapter::ResultVectorType;
+
+    using PointerVectorType = typename PositionAdapter::PointerVectorType;
+
+    using DistanceMetricType = typename nanoflann::metric_L2_Simple::traits<double, PositionAdapter>::distance_t;
+
+    using KDTreeIndexType = nanoflann::KDTreeSingleIndexAdaptor<DistanceMetricType, PositionAdapter, 3>;
 
     /// Pointer definition of ContainerMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestEntityExplicitDamping);
@@ -100,7 +107,7 @@ private:
 
     IndexType mStride;
 
-    IndexType mBucketSize = 100;
+    IndexType mLeafMaxSize = 100;
 
     FilterFunction::UniquePointer mpKernelFunction;
 
