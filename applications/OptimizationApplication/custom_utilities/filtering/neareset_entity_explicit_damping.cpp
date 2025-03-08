@@ -37,12 +37,15 @@ NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping(
 
     Parameters defaults = Parameters(R"(
     {
-        "damping_type"              : "nearest_entity",
-        "damping_function_type"     : "cosine",
-        "damped_model_part_settings": {}
+        "damping_type"               : "nearest_entity",
+        "damping_function_type"      : "cosine",
+        "damping_max_items_in_bucket": 10,
+        "damped_model_part_settings" : {}
     })" );
 
     Settings.ValidateAndAssignDefaults(defaults);
+
+    mLeafMaxSize = Settings["damping_max_items_in_bucket"].GetInt();
 
     mpKernelFunction = Kratos::make_unique<FilterFunction>(Settings["damping_function_type"].GetString());
     mComponentWiseDampedModelParts = OptimizationUtils::GetComponentWiseModelParts(rModel, Settings["damped_model_part_settings"]);

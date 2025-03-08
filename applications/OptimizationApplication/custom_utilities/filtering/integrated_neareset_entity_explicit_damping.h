@@ -107,7 +107,7 @@ private:
 
     IndexType mStride;
 
-    IndexType mLeafMaxSize = 100;
+    IndexType mLeafMaxSize;
 
     DampingFunction::UniquePointer mpKernelFunction;
 

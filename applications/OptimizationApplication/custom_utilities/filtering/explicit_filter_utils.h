@@ -69,8 +69,8 @@ public:
     ExplicitFilterUtils(
         ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
-        const IndexType MaxNumberOfNeighbours,
-        const IndexType EchoLevel);
+        const IndexType MaxLeafSize = 10,
+        const IndexType EchoLevel = 0);
 
     ///@}
     ///@name Public operations
@@ -157,7 +157,7 @@ private:
 
     Expression::ConstPointer mpNodalDomainSizeExpression;
 
-    IndexType mLeafMaxSize = 10;
+    IndexType mLeafMaxSize;
 
     IndexType mEchoLevel;
 
