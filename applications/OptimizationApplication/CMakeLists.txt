@@ -6,6 +6,7 @@ message("**** configuring KratosOptimizationApplication ****")
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( $(KRATOS_SOURCE_DIR)/external_libraries/nanoflann )
 
 ## Optimization core sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
