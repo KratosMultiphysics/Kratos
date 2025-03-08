@@ -199,6 +199,9 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS_SENSITIVITY);
         KRATOS_REGISTER_VARIABLE(POISSON_RATIO_SENSITIVITY);
 
+        // For filtering
+        KRATOS_REGISTER_VARIABLE(NODAL_DOMAIN_SIZE);
+
         // do not expose the following variables to python. They are used
         // as temporary data holders. They can be changed
         // at any point of time in an analysis.

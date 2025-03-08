@@ -175,6 +175,9 @@ namespace Kratos
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( OPTIMIZATION_APPLICATION, HELMHOLTZ_VECTOR);
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( OPTIMIZATION_APPLICATION, HELMHOLTZ_VECTOR_SOURCE);
 
+    // For filtering
+    KRATOS_DEFINE_APPLICATION_VARIABLE(OPTIMIZATION_APPLICATION, double, NODAL_DOMAIN_SIZE);
+
     // do not expose the following variables to python. They are used
     // as temporary data holders. They can be changed
     // at any point of time in an analysis.
