@@ -7,6 +7,7 @@
 # 		initial_value: 5.887500e+03
 # 	strain_energy:
 # 		initial_value: 5.004872e+06
+# 		ref_value: 5.004872e+06
 # ------------ End of initial values ------------
 # -----------------------------------------------
 # ------------ Start of step values -------------
