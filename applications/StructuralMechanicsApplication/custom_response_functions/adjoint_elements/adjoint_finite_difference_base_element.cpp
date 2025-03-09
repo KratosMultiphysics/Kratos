@@ -349,19 +349,44 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
+    const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+    const SizeType num_dofs_per_node = mHasRotationDofs ?  2 * dimension : dimension;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
 
-    Vector RHS;
-    this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+    if( rDesignVariable == TEMPERATURE )
+    {
+        rOutput.resize( number_of_nodes, local_size, false);
 
-    // Get pseudo-load from utility
-    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
+        Vector RHS;
+        Vector derived_RHS;
+        
+        pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+        for(IndexType i_node = 0; i_node < mpPrimalElement->GetGeometry().PointsNumber(); ++i_node)
+        {
+            // Get pseudo-load contribution from utility
+            FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable,
+                                                                      mpPrimalElement->GetGeometry()[i_node], delta, 
+                                                                      derived_RHS, rCurrentProcessInfo);
+
+            KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit! [ derived_RHS.size() = " << derived_RHS.size() << ", local_size = " << local_size << " ]." << std::endl;
+
+            for(IndexType i = 0; i < derived_RHS.size(); ++i)
+                rOutput(i_node, i) = derived_RHS[i];
+        }
+    }
+    else
+    {
+        Vector RHS;
+        this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+        // Get pseudo-load from utility
+        FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
+    }
 
     if (rOutput.size1() == 0 || rOutput.size2() == 0)
     {
-        const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
-        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-        const SizeType local_size = number_of_nodes * num_dofs_per_node;
         rOutput = ZeroMatrix(0, local_size);
     }
 

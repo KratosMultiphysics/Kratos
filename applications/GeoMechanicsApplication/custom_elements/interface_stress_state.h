@@ -33,6 +33,10 @@ public:
 private:
     static const Vector VoigtVectorInterface2D;
     static Vector       DefineInterfaceVoigtVector();
+
+    friend class Serializer;
+    void save(Serializer&) const override;
+    void load(Serializer&) override;
 };
 
 } // namespace Kratos
