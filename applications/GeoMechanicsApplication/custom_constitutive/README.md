@@ -68,11 +68,11 @@ Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does n
 
 $$ F_{tc}(\sigma) = \sigma_1 - t_c = 0 $$
 
-where $\t_c$ is the tensile strength. If $\sigma_1$ exceeds $t_c$, failure occurs regardless of the shear strength condition.
+where $t_c$ is the tensile strength. If $\sigma_1$ exceeds $t_c$, failure occurs regardless of the shear strength condition.
 
 Combination of these two, it yiels to the following figure:
 
-<img src="mohr-coulomb-with-tension-cutoff-zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
+<img src="documentation_data/mohr-coulomb-with-tension-cutoff-zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
 
 
 ### Implementation in Numerical Models
@@ -81,17 +81,17 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 
 1. Calculate the trial stress by: 
 
-$$boldsymbol{\sigma}^{trial} = boldsymbol{\sigma}^0 + E \Delta boldsymbol{\epsilon}$$
+$$\boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + E \Delta \boldsymbol{\epsilon}$$
 
-2. Extract the principal stresses $\sigma_1 >= \sigma_2 >= \sigma_3$ for the calculated trial stress, and calculate the rotation matrix.
+2. Extract the principal stresses $\sigma_1 \ge \sigma_2 \ge \sigma_3$ for the calculated trial stress, and calculate the rotation matrix.
 
 3. Calculate the values of $F_{MC}$ and $F_{tC}$ for the calculated principal stresses.
 
 4. Evaluate the condition and mapping
   - If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.
   - If the trial stress falls in the axial zone. The trial stress then needs to be mapped back to the cutoff curve.
-  - If it falls in the tensile corner return zone, then it needs to be mapped to the corned point.
-  - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve along the normal direction of flow function.
+  - If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.
+  - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve rong the normal direction of flow function.
 
 5. If after mapping, the condidition $\sigma_1 >= \sigma_2 >= \sigma_3$ is not valid, rearrang the principal stresses and repeat the process, namely go to point 3.
 
