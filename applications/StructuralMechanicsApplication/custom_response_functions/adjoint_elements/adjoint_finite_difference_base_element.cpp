@@ -370,7 +370,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
                                                                       mpPrimalElement->GetGeometry()[i_node], delta, 
                                                                       derived_RHS, rCurrentProcessInfo);
 
-            KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+            KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit! [ derived_RHS.size() = " << derived_RHS.size() << ", local_size = " << local_size << " ]." << std::endl;
 
             for(IndexType i = 0; i < derived_RHS.size(); ++i)
                 rOutput(i_node, i) = derived_RHS[i];
