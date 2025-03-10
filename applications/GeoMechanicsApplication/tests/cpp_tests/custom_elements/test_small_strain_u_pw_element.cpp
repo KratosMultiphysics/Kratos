@@ -36,6 +36,7 @@ ModelPart& CreateModelPartWithUPwSolutionStepVariables(Model& rModel)
     r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
     r_result.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     r_result.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    r_result.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
 
     return r_result;
 }
@@ -277,8 +278,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeSolutionStep, KratosGeo
     for (const auto& r_node : element->GetGeometry()) {
         KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
     }
-
-
 }
 
 } // namespace Kratos::Testing
