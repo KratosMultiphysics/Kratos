@@ -172,9 +172,9 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     const VectorType& r_local_displ_1 = prod(T, r_displ_1);
     const VectorType& r_local_rot_1   = prod(T, r_rotation_1);
 
-    rNodalValues[6] = r_rotation_1[0];
-    rNodalValues[7] = r_rotation_1[1];
-    rNodalValues[8] = r_rotation_1[2];
+    rNodalValues[6] = r_local_displ_1[0];
+    rNodalValues[7] = r_local_displ_1[1];
+    rNodalValues[8] = r_local_displ_1[2];
 
     rNodalValues[9]  = r_local_rot_1[0];
     rNodalValues[10] = r_local_rot_1[1];

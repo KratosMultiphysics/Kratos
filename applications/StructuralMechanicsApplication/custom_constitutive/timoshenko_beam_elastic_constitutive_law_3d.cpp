@@ -143,7 +143,7 @@ void TimoshenkoBeamElasticConstitutiveLaw3D::CalculateMaterialResponseCauchy(Con
         const double GAsZ = G * A_sZ;
 
         r_generalized_stress_vector[0] = EA * axial_strain;
-        r_generalized_stress_vector[1] = G * (I22 + I33) * curvature_x;
+        r_generalized_stress_vector[1] = G * (Iy + Iz) * curvature_x;
         r_generalized_stress_vector[2] = EIy * curvature_y;
         r_generalized_stress_vector[3] = EIz * curvature_z;
         r_generalized_stress_vector[4] = GAsY * shear_strain_XY;
