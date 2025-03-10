@@ -1735,7 +1735,7 @@ void CatmullClarkSDS::CreateMappingMatrix(
 
     // 5. start loop over FE-nodes in FE-mesh
     const auto fe_node_begin = rControlledMesh.NodesBegin();
-// #pragma omp parallel for
+#pragma omp parallel for
     for (IndexType fe_node_index = 0; fe_node_index < rControlledMesh.NumberOfNodes(); ++fe_node_index) {
         IndexType row_index = fe_node_index * rControlPolygon.NumberOfNodes();
         auto fe_node_it = fe_node_begin + fe_node_index;
