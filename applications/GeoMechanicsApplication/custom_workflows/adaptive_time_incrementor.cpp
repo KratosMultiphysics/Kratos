@@ -25,7 +25,7 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double                StartTime
                                                  std::size_t           MaxNumOfCycles,
                                                  double                ReductionFactor,
                                                  double                IncreaseFactor,
-                                                 std::optional<double> mUserMinDeltaTime,
+                                                 std::optional<double> UserMinDeltaTime,
                                                  double                MaxTimeStepFactor,
                                                  std::size_t           MinNumOfIterations,
                                                  std::size_t           MaxNumOfIterations)
@@ -37,7 +37,7 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double                StartTime
       mMaxNumOfCycles(MaxNumOfCycles),
       mReductionFactor(ReductionFactor),
       mIncreaseFactor(IncreaseFactor),
-      mUserMinDeltaTime(std::move(mUserMinDeltaTime)),
+      mUserMinDeltaTime(std::move(UserMinDeltaTime)),
       mMaxDeltaTime(MaxTimeStepFactor * mDeltaTime),
       mMinNumOfIterations(MinNumOfIterations),
       mMaxNumOfIterations(MaxNumOfIterations)
@@ -77,8 +77,9 @@ double AdaptiveTimeIncrementor::GetIncrement() const { return mDeltaTime; }
 
 void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rResultantState)
 {
-    constexpr auto delta_time_as_fraction_of_time_span = 0.001;
-    auto default_min_delta_time = std::min(mInitialDeltaTime, delta_time_as_fraction_of_time_span * mTimeSpan);
+    constexpr auto delta_time_as_fraction_of_time_span = 0.0001;
+    const auto     default_min_delta_time =
+        std::min(mInitialDeltaTime, delta_time_as_fraction_of_time_span * mTimeSpan);
 
     if (rResultantState.Converged()) {
         if (rResultantState.num_of_iterations < mMinNumOfIterations) {

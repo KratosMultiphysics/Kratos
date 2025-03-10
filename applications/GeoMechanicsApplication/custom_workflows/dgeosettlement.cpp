@@ -75,7 +75,7 @@ double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
     return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
 }
 
-std::optional<double> GetMaybeMinDeltaTimeFrom(const Parameters& rProjectParameters)
+std::optional<double> GetUserMinDeltaTimeFrom(const Parameters& rProjectParameters)
 {
     return rProjectParameters["solver_settings"]["time_stepping"].Has("minimum_allowable_value")
                ? std::make_optional(rProjectParameters["solver_settings"]["time_stepping"]
@@ -334,7 +334,7 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
         GetStartTimeFrom(rProjectParameters), GetEndTimeFrom(rProjectParameters),
         GetTimeIncrementFrom(rProjectParameters), GetMaxNumberOfCyclesFrom(rProjectParameters),
         GetReductionFactorFrom(rProjectParameters), GetIncreaseFactorFrom(rProjectParameters),
-        GetMaybeMinDeltaTimeFrom(rProjectParameters), GetMaxDeltaTimeFactorFrom(rProjectParameters),
+        GetUserMinDeltaTimeFrom(rProjectParameters), GetMaxDeltaTimeFactorFrom(rProjectParameters),
         GetMinNumberOfIterationsFrom(rProjectParameters), GetMaxNumberOfIterationsFrom(rProjectParameters));
 }
 

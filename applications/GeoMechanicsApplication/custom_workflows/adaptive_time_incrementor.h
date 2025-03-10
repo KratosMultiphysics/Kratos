@@ -15,7 +15,6 @@
 
 #include "includes/kratos_export_api.h"
 #include "time_incrementor.h"
-#include <string>
 
 namespace Kratos
 {
@@ -29,7 +28,7 @@ public:
                             std::size_t           MaxNumOfCycles     = 10,
                             double                ReductionFactor    = 0.5,
                             double                IncreaseFactor     = 2.0,
-                            std::optional<double> mUserMinDeltaTime  = std::nullopt,
+                            std::optional<double> UserMinDeltaTime   = std::nullopt,
                             double                MaxTimeStepFactor  = 1000.0,
                             std::size_t           MinNumOfIterations = 3,
                             std::size_t           MaxNumOfIterations = 15);

@@ -111,7 +111,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 self.delta_time = new_time - t
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time without small increments: ", self.delta_time)
 
-            print("1: ", self.delta_time, t, new_time)
             self._CheckDeltaTimeSize()
 
             # start the new step
@@ -158,7 +157,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
                     # scale down step and restart
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                     self.delta_time *= self.reduction_factor
-                    print("2: ", self.delta_time, t, new_time)
                     self._CheckDeltaTimeSize()
                     # Reset displacements to the initial
                     KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
@@ -215,8 +213,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
         return "GeoMechanics Analysis"
 
     def _GetMinDeltaTimeValueOrDefault(self):
-        delta_time_as_fraction_of_time_span = 0.001
-        return self.min_delta_time if self.min_delta_time is not None else min(self.initial_delta_time,delta_time_as_fraction_of_time_span*(self.end_time - self.start_time))
+        delta_time_as_fraction_of_time_span = 0.0001
+        return self.min_delta_time if self.min_delta_time is not None else min(self.initial_delta_time, delta_time_as_fraction_of_time_span * (self.end_time - self.start_time))
 
 if __name__ == '__main__':
     from sys import argv
