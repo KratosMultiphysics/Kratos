@@ -237,7 +237,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateLeftHandSide
     element->Initialize(process_info);
     Matrix actual_left_hand_side;
     element->CalculateLeftHandSide(actual_left_hand_side, process_info);
-    Matrix expected_left_hand_side = ZeroMatrix(9, 9);
+    Matrix expected_left_hand_side(9, 9);
     // clang-format off
     expected_left_hand_side <<= 5000000,0,-5000000,0,0,0,0,0,0,
                                 0,2500000,2500000,-2500000,-2500000,0,0,0,0,
