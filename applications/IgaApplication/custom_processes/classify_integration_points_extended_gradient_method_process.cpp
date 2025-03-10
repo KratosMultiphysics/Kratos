@@ -29,7 +29,9 @@ namespace Kratos
         mpSkinOuterLoopModelPart = &mpModel->GetModelPart(mParameters["skin_model_part_outer_name"].GetString());
         mNumberOfInnerLoops = mParameters["number_of_inner_loops"].GetInt();
         if (mNumberOfInnerLoops > 0) {
-            mpSkinInnerLoopModelPart = &mpModel->GetModelPart(mParameters["skin_model_part_inner_name"].GetString());
+            for (IndexType i = 0; i < mNumberOfInnerLoops; i++){
+                mpVectorSkinInnerLoops.push_back(&mpModel->GetModelPart(mParameters["skin_model_part_inner_name"].GetArrayItem(i).GetString()));
+            }
         }
 
         // Create sub model parts containing the elements intersected by the boundary and the active elements
@@ -47,12 +49,16 @@ namespace Kratos
 
         // Create a vector containing the points defining the inner loop
         if (mNumberOfInnerLoops > 0){
-            for (auto condition_it_inner = mpSkinInnerLoopModelPart->ConditionsBegin(); condition_it_inner != mpSkinInnerLoopModelPart->ConditionsEnd(); condition_it_inner++){
-                GeometryType condition_geometry = condition_it_inner->GetGeometry();
+            for (IndexType i = 0; i < mNumberOfInnerLoops; i++){
+                std::vector<array_1d<double, 3>> inner_loop_polygon;
+                for (auto condition_it_inner = mpVectorSkinInnerLoops[i]->ConditionsBegin(); condition_it_inner != mpVectorSkinInnerLoops[i]->ConditionsEnd(); condition_it_inner++){
+                    GeometryType condition_geometry = condition_it_inner->GetGeometry();
 
-                // Get the points defining the line geometry
-                array_1d<double,3> line_p1 = condition_geometry.GetPoint(0).Coordinates();
-                mInnerLoopPolygon.push_back(line_p1);
+                    // Get the points defining the line geometry
+                    array_1d<double,3> line_p1 = condition_geometry.GetPoint(0).Coordinates();
+                    inner_loop_polygon.push_back(line_p1);
+                }
+                mVectorInnerLoopsPolygons.push_back(inner_loop_polygon);
             }
         }
 
@@ -157,7 +163,9 @@ namespace Kratos
         // Create the integration points in the outer and inner loops
         CreateBrepCurveOnSurfaceIntegrationPoints(p_nurbs_surface, intersected_elements_sub_model_part, mpSkinOuterLoopModelPart);
         if (mNumberOfInnerLoops > 0) {
-            CreateBrepCurveOnSurfaceIntegrationPoints(p_nurbs_surface, intersected_elements_sub_model_part, mpSkinInnerLoopModelPart);
+            for (IndexType i = 0; i < mNumberOfInnerLoops; i++){
+                CreateBrepCurveOnSurfaceIntegrationPoints(p_nurbs_surface, intersected_elements_sub_model_part, mpVectorSkinInnerLoops[i]);
+            }
         }
     }
 
@@ -185,19 +193,21 @@ namespace Kratos
 
         // Iterate over the lines in the inner loop and check if a knot span is intersected
         if (mNumberOfInnerLoops > 0){
-            for (auto condition_it_inner_loop = mpSkinInnerLoopModelPart->ConditionsBegin(); condition_it_inner_loop != mpSkinInnerLoopModelPart->ConditionsEnd(); condition_it_inner_loop++){
-                GeometryType condition_geometry = condition_it_inner_loop->GetGeometry();
+            for (IndexType i = 0; i < mNumberOfInnerLoops; i++){
+                for (auto condition_it_inner_loop = mpVectorSkinInnerLoops[i]->ConditionsBegin(); condition_it_inner_loop != mpVectorSkinInnerLoops[i]->ConditionsEnd(); condition_it_inner_loop++){
+                    GeometryType condition_geometry = condition_it_inner_loop->GetGeometry();
 
-                // Get the points defining the line geometry
-                array_1d<double,3> line_p1 = condition_geometry.GetPoint(0).Coordinates();
-                array_1d<double,3> line_p2 = condition_geometry.GetPoint(1).Coordinates();
+                    // Get the points defining the line geometry
+                    array_1d<double,3> line_p1 = condition_geometry.GetPoint(0).Coordinates();
+                    array_1d<double,3> line_p2 = condition_geometry.GetPoint(1).Coordinates();
 
-                // Verify intersection
-                bool intersects = LineIntersectsRectangle(line_p1, line_p2, u_min, u_max, v_min, v_max);
-                
-                if (intersects == true){
-                    Vector unit_normal = ComputeUnitNormal(line_p1, line_p2);
-                    vector_of_unit_normals_inner.push_back(unit_normal);
+                    // Verify intersection
+                    bool intersects = LineIntersectsRectangle(line_p1, line_p2, u_min, u_max, v_min, v_max);
+                    
+                    if (intersects == true){
+                        Vector unit_normal = ComputeUnitNormal(line_p1, line_p2);
+                        vector_of_unit_normals_inner.push_back(unit_normal);
+                    }
                 }
             }
         }
@@ -236,7 +246,7 @@ namespace Kratos
     }
 
     bool ClassifyIntegrationPointsExtendedGradientMethodProcess::IsKnotSpanActive(const double u_min, const double u_max, const double v_min, const double v_max){
-        // For an element to be active, it needs to be inside the outer loop and outside the inner loop 
+        // For an element to be active, it needs to be inside the outer loop and outside ALL the inner loops
         // Define the four corners of the rectangle
         array_1d<double, 3> p1{u_min, v_min, 0.0}; 
         array_1d<double, 3> p2{u_max, v_min, 0.0};  
@@ -251,15 +261,17 @@ namespace Kratos
         if (is_rectangle_inside_outer_loop.first == 1 && mNumberOfInnerLoops == 0) return true; 
         
         if(mNumberOfInnerLoops > 0){
-            // Check if the knot span is inside or outside the inner loop
-            auto is_rectangle_inside_inner_loop = IsRectangleInsidePolygon(p1, p2, p3, p4, mInnerLoopPolygon);
-
-            // If the knot span is inside the outer loop and inside the inner loop, return 0
-            if (is_rectangle_inside_outer_loop.first == 1 && is_rectangle_inside_inner_loop.first == 1) return false; 
-
-            // If the knot span is inside the outer loop and outside the inner loop, return 1
-            if(is_rectangle_inside_outer_loop.first == 1 && is_rectangle_inside_inner_loop.first == 0) return true;
+            // Iterate over all inner loops to check if the element is inside any of them
+            for (IndexType i = 0; i < mNumberOfInnerLoops; i++) {
+                auto is_rectangle_inside_inner_loop = IsRectangleInsidePolygon(p1, p2, p3, p4, mVectorInnerLoopsPolygons[i]);
+                
+                // If the knot span is inside any inner loop, return false
+                if (is_rectangle_inside_inner_loop.first == 1) return false; 
+            }
         }
+        
+        // If the knot span is inside the outer loop and outside all inner loops, return true
+        return true;
     }
 
     // Main function to verify the line-rectangle intersection

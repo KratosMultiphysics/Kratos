@@ -10,15 +10,12 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 import sys
 import numpy as np
 import scipy.sparse.linalg as spla
-from shapely.geometry import LineString, Polygon
-from scipy.interpolate import Rbf
 import matplotlib
 matplotlib.use('Agg')  # Use Agg for rendering plots to files
 import matplotlib.pyplot as plt
-from scipy.interpolate import griddata
 from colorama import Fore, Style, init
 
-class ExtendedGradientMethodAnalysis(AnalysisStage):
+class ExtendedGradientMethodPoissonProblemAnalysis(AnalysisStage):
     """
     This class is the main-script of the ExtendedGradientConvectionDiffusion method put in a class
 
@@ -35,7 +32,7 @@ class ExtendedGradientMethodAnalysis(AnalysisStage):
             self.solver_settings.AddEmptyValue("domain_size")
             self.solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
 
-        super(ExtendedGradientMethodAnalysis, self).__init__(model, project_parameters)
+        super(ExtendedGradientMethodPoissonProblemAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -129,5 +126,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = ExtendedGradientMethodAnalysis(model, parameters)
+    simulation = ExtendedGradientMethodPoissonProblemAnalysis(model, parameters)
     simulation.Run()

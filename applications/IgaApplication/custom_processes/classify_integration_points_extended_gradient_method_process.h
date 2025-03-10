@@ -129,7 +129,7 @@ public:
         const Parameters default_parameters = Parameters(R"(
         {
             "background_model_part_name"                 : "please_specify_model_part_name",
-            "skin_model_part_inner_name" : "please_specify_skin_model_part_inner_name",
+            "skin_model_part_inner_name" : ["please_specify_skin_model_part_inner_name"],
             "skin_model_part_outer_name" : "please_specify_skin_model_part_outer_name",
             "number_of_inner_loops": 0
         })" );
@@ -165,11 +165,12 @@ private:
     Model* mpModel = nullptr;
     Parameters mParameters;
     SizeType mEchoLevel;
-    std::vector<array_1d<double, 3>> mOuterLoopPolygon, mInnerLoopPolygon;
+    std::vector<array_1d<double, 3>> mOuterLoopPolygon;
+    std::vector<std::vector<array_1d<double, 3>>> mVectorInnerLoopsPolygons;
 
     ModelPart* mpBackgroundMeshModelPart = nullptr;
     ModelPart* mpSkinOuterLoopModelPart = nullptr;
-    ModelPart* mpSkinInnerLoopModelPart = nullptr;
+    std::vector<ModelPart*> mpVectorSkinInnerLoops;
     IndexType mNumberOfInnerLoops = 0;
 
     ///@}
