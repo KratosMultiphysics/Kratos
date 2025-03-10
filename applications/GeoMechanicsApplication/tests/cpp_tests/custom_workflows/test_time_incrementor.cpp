@@ -26,7 +26,7 @@ struct AdaptiveTimeIncrementorSettings {
     double                StartTime{0.0};
     double                EndTime{8.0};
     double                StartIncrement{0.5};
-    std::optional<double> MaybeMinDeltaTime{std::make_optional(1e-06)};
+    std::optional<double> UserMinDeltaTime{std::make_optional(1e-06)};
     std::size_t           MaxNumOfCycles{8};
     double                ReductionFactor{0.5};
     double                IncreaseFactor{2.0};
@@ -40,7 +40,7 @@ AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncremento
     return AdaptiveTimeIncrementor{rSettings.StartTime,          rSettings.EndTime,
                                    rSettings.StartIncrement,     rSettings.MaxNumOfCycles,
                                    rSettings.ReductionFactor,    rSettings.IncreaseFactor,
-                                   rSettings.MaybeMinDeltaTime,  rSettings.MaxDeltaTimeFactor,
+                                   rSettings.UserMinDeltaTime,  rSettings.MaxDeltaTimeFactor,
                                    rSettings.MinNumOfIterations, rSettings.MaxNumOfIterations};
 }
 
