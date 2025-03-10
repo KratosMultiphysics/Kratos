@@ -59,16 +59,13 @@ class OptimizationAnalysis:
         self.__algorithm.Check()
 
     def Finalize(self):
-        print("Optimization Finalize")
         self.__algorithm.Finalize()
 
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.Finalize)
         for process_type in self.__algorithm.GetProcessesOrder():
-            print("Finalize process_type:", process_type)
 
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteFinalize)
         CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Finalize)
-        print("end Optimization Finalize")
 
     def Run(self):
         with OptimizationAnalysisTimeLogger():
@@ -76,7 +73,6 @@ class OptimizationAnalysis:
             self.Check()
             self.__algorithm.Solve()
             self.Finalize()
-        print("optimization_analysis.py :: end of Run(self)")
 
     def _CreateModelPartControllers(self):
         default_settings = Kratos.Parameters("""{

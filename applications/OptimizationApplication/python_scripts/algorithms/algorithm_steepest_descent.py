@@ -83,7 +83,6 @@ class AlgorithmSteepestDescent(Algorithm):
     def Finalize(self):
         self.master_control.Finalize()
         self.__objective.Finalize()
-        print("steepest descent end finalize")
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
@@ -99,10 +98,8 @@ class AlgorithmSteepestDescent(Algorithm):
 
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
-        print("UpdateControl")
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
         self.__control_field = KratosOA.ExpressionUtils.Collapse(self.__control_field + update)
-        print("end UpdateControl")
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
