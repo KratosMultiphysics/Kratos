@@ -13,6 +13,8 @@
 #include "custom_utilities/math_utilities.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
+#include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing
 {
@@ -56,6 +58,32 @@ KRATOS_TEST_CASE_IN_SUITE(Normalized_Throws_WhenInputtingZeroVector, KratosGeoMe
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto normalized = GeoMechanicsMathUtilities::Normalized(vector),
         "A zero vector cannot be normalized")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Matrix stress_matrix = ZeroMatrix(3, 3);
+    // clang-format off
+    stress_matrix <<= 10.0, 40.0, 0.0,
+                      40.0, 50.0, 0.0,
+                      0.0, 0.0, 20.0;
+    // clang-format on
+
+    double angle           = MathUtils<>::DegreesToRadians(30.0);
+    Matrix rotation_matrix = ZeroMatrix(3, 3);
+    rotation_matrix <<= std::cos(angle), -std::sin(angle), 0.0, std::sin(angle), std::cos(angle),
+        0.0, 0.0, 0.0, 1.0;
+    Matrix result = GeoMechanicsMathUtilities::RotateTensor(stress_matrix, rotation_matrix);
+
+    Matrix expected_result = ZeroMatrix(3, 3);
+    // clang-format off
+    expected_result <<= -14.641016151377542, 2.6794919243112303, 0.0,
+                         2.6794919243112303, 74.64101615137753, 0.0,
+                         0.0, 0.0, 20.0;
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

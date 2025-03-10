@@ -208,27 +208,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStresses, KratosGeoMechanicsFas
 
     Matrix expected_solution_matrix = ZeroMatrix(3, 3);
     expected_solution_matrix <<= 0.7304344631839778, -0.6094259674898185, -0.3083269127764114,
-                                 0.5210391553001751,  0.7890961797761399, -0.3253389274384210,
-                                 0.4415695796102967,  0.0769883706270019,  0.8939178357941993;
+        0.5210391553001751, 0.7890961797761399, -0.3253389274384210, 0.4415695796102967,
+        0.0769883706270019, 0.8939178357941993;
     KRATOS_EXPECT_MATRIX_NEAR(rotation_matrix, expected_solution_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckRotateStressMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    Vector stress_vector = ZeroVector(4);
-    stress_vector <<= 10.0, 50.0, 20.0, 40.0;
-    Matrix stress_matrix = MathUtils<>::StressVectorToTensor(stress_vector);
-
-    double angle = MathUtils<>::DegreesToRadians(30.0);
-    Matrix rotation_matrix = ZeroMatrix(3, 3);
-    rotation_matrix <<= std::cos(angle), -std::sin(angle), 0.0,
-                        std::sin(angle),  std::cos(angle), 0.0,
-                        0.0,  0.0, 1.0;
-    Vector result = StressStrainUtilities::RotateStressMatrix(stress_matrix, rotation_matrix, 4);
-
-    Vector expected_result = ZeroVector(4);
-    expected_result <<= -14.641016151377542, 74.64101615137753, 20.0, 2.6794919243112303;
-    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::absolute_tolerance);
-}
 } // namespace Kratos::Testing

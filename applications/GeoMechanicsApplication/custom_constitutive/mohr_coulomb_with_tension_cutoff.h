@@ -49,11 +49,11 @@ public:
     StressMeasure                          GetStressMeasure() override;
     SizeType                               GetStrainSize() const override;
     StrainMeasure                          GetStrainMeasure() override;
-    void InitializeMaterial(const Properties& rMaterialProperties,
-                                    const Geometry<Node>& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues) override;
+    void                                   InitializeMaterial(const Properties&     rMaterialProperties,
+                                                              const Geometry<Node>& rElementGeometry,
+                                                              const Vector&         rShapeFunctionsValues) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
-    void SetValue(const Variable<Vector >& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     int  Check(const Properties&   rMaterialProperties,
                const GeometryType& rElementGeometry,
                const ProcessInfo&  rCurrentProcessInfo) const override;
@@ -70,10 +70,10 @@ private:
     TensionCutoff                             mTensionCutOff;
 
     void CheckProperty(const Properties& rMaterialProperties, const Kratos::Variable<double>& rVariable) const;
-    void   CalculateTrialStressVector(const Vector&                rStrainVector,
-                                      Vector&                      rStressVector,
-                                      double YoungModulus,
-                                                              double PoissonRatio) const;
+    void   CalculateTrialStressVector(const Vector& rStrainVector,
+                                      Vector&       rStressVector,
+                                      double        YoungModulus,
+                                      double        PoissonRatio) const;
     double CalculateApex(double FrictionAngle, double Cohesion) const;
     Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensionCutoff) const;
     Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, double TensionCutoff) const;

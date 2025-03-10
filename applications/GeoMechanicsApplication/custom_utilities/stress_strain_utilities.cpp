@@ -192,13 +192,13 @@ void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStre
     ReorderEigenValuesAndVectors(rPrincipalStressVector, rEigenVectorsMatrix);
 }
 
-void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector,
-                                      Matrix& rEigenVectorsMatrix)
+void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix)
 {
     std::vector<std::size_t> indices(rPrincipalStressVector.size());
     std::iota(indices.begin(), indices.end(), std::size_t{0});
     std::sort(indices.begin(), indices.end(), [&rPrincipalStressVector](auto i, auto j) {
-    return rPrincipalStressVector[j] < rPrincipalStressVector[i]; });
+        return rPrincipalStressVector[j] < rPrincipalStressVector[i];
+    });
 
     std::vector<double> tmp_vector;
     tmp_vector.reserve(rPrincipalStressVector.size());
@@ -216,20 +216,14 @@ void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStres
     rEigenVectorsMatrix = tmp_matrix;
 }
 
-Vector StressStrainUtilities::RotateStressMatrix(const Matrix& rStressMatrix, const Matrix& rRotationMatrix, std::size_t StressVectorSize)
-{
-    Matrix temp                  = prod(rStressMatrix, trans(rRotationMatrix));
-    Matrix rotated_stress_matrix = prod(rRotationMatrix, temp);
-    return MathUtils<double>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
-}
-
 Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
-                                                             const Matrix& rRotationMatrix,
-                                                             std::size_t StressVectorSize)
+                                                      const Matrix& rRotationMatrix,
+                                                      std::size_t   StressVectorSize)
 {
     Matrix principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
-    Vector result = RotateStressMatrix(principal_stress_matrix, rRotationMatrix, StressVectorSize);
-    return result;
+    Matrix rotated_stress_matrix =
+        GeoMechanicsMathUtilities::RotateTensor(principal_stress_matrix, rRotationMatrix);
+    return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
 } // namespace Kratos

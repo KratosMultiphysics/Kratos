@@ -88,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     ConstitutiveLaw::Parameters parameters;
     Properties                  properties;
@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     ProcessInfo process;
 
     Geometry<Node> dummyGeometry;
-    Vector dummyVector;
+    Vector         dummyVector;
     law.InitializeMaterial(properties, dummyGeometry, dummyVector);
 
     // Act
@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     ConstitutiveLaw::Parameters parameters;
     Properties                  properties;
@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     ProcessInfo process;
 
     Geometry<Node> dummyGeometry;
-    Vector dummyVector;
+    Vector         dummyVector;
     law.InitializeMaterial(properties, dummyGeometry, dummyVector);
 
     // Act
@@ -188,7 +188,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     ConstitutiveLaw::Parameters parameters;
     Properties                  properties;
@@ -200,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     ProcessInfo process;
 
     Geometry<Node> dummyGeometry;
-    Vector dummyVector;
+    Vector         dummyVector;
     law.InitializeMaterial(properties, dummyGeometry, dummyVector);
 
     // Act
@@ -238,7 +238,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law          = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     ConstitutiveLaw::Parameters parameters;
     Properties                  properties;
@@ -250,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     ProcessInfo process;
 
     Geometry<Node> dummyGeometry;
-    Vector dummyVector;
+    Vector         dummyVector;
     law.InitializeMaterial(properties, dummyGeometry, dummyVector);
 
     // Act
@@ -294,7 +294,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
 
     // Assert
     expected_cauchy_stress_vector <<= 10.0, 10.0, 0.0, 0.0;
-    //KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+    // KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
