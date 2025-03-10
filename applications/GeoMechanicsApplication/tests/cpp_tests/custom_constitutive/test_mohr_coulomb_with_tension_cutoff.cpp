@@ -245,6 +245,24 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Assert
     expected_cauchy_stress_vector <<= 10.0, 8.0, -1.5179192179966735, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+
+    // Assert
+    expected_cauchy_stress_vector(4);
+    expected_cauchy_stress_vector <<= 10.0, 8.0, -1.5179192179966735, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+
+    // Act
+    cauchy_stress_vector <<= 24.0, 22.0, -8.0, 0.0;
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    expected_cauchy_stress_vector <<= 10.0, 10.0, -1.5179192179966735, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtAxialTensionZone,
