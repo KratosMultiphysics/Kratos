@@ -204,10 +204,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateRightHandSid
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
     SetSolutionStepValues(element);
 
-    // Act, no exceptions on correct input
+    // Act
     element->Initialize(process_info);
     Vector actual_right_hand_side;
     element->CalculateRightHandSide(actual_right_hand_side, process_info);
+
+    // Assert
     Vector expected_right_hand_side = ZeroVector(9);
     expected_right_hand_side[7]     = -4.542;
     expected_right_hand_side[8]     = +4.542;
@@ -233,10 +235,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateLeftHandSide
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
     SetSolutionStepValues(element);
 
-    // Act, no exceptions on correct input
+    // Act
     element->Initialize(process_info);
     Matrix actual_left_hand_side;
     element->CalculateLeftHandSide(actual_left_hand_side, process_info);
+
+    // Assert
     Matrix expected_left_hand_side(9, 9);
     // clang-format off
     expected_left_hand_side <<= 5000000,0,-5000000,0,0,0,0,0,0,
@@ -251,6 +255,30 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateLeftHandSide
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto process_info = ProcessInfo{};
+    // No storage, no dynamics, only statics and steady state
+    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
+    process_info[VELOCITY_COEFFICIENT]    = 0.0;
+
+    Model model;
+    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    SetSolutionStepValues(element);
+
+    // Act, no exceptions on correct input
+    element->Initialize(process_info);
+    element->InitializeSolutionStep(process_info);
+
+    // Assert
+    for (const auto& r_node : element->GetGeometry()) {
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
+    }
+
+
 }
 
 } // namespace Kratos::Testing
