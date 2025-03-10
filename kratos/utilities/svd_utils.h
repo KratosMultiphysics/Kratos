@@ -4,21 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SVD_UTILS )
-#define  KRATOS_SVD_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 
+// External includes
 
-/* External includes */
-
-/* Project includes */
+// Project includes
 #include "utilities/math_utils.h"
 #include "spaces/ublas_space.h"
 
@@ -54,24 +52,23 @@ template<class TDataType>
 class SVDUtils
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
     /// Definition of the matrix type
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
     /// Definition of the vector type
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using  SizeType = std::size_t;
 
     /// Definition of index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of local space
-    typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
+    using LocalSpaceType = UblasSpace<TDataType, Matrix, Vector>;
 
     /// Definition of epsilon zero tolerance
     constexpr static TDataType ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -453,53 +450,7 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
 private:
-
-    ///@name Private static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Private LifeCycle
-    ///@{
-
-    ///@}
     ///@name Unaccessible methods
     ///@{
 
@@ -507,16 +458,14 @@ private:
 
     SVDUtils(SVDUtils& rSource);
 
+    ///@}
 }; /* Class SVDUtils */
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_SVD_UTILS  defined */
