@@ -141,9 +141,9 @@ BoundedMatrix<double, 3, 3> LinearTimoshenkoBeamElement3D2N::GetConsistentFrenet
 {
     BoundedMatrix<double, 3, 3> T;
     noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
-    T(0, 1) *= -1.0;
-    T(1, 1) *= -1.0;
-    T(2, 1) *= -1.0;
+    //T(0, 1) *= -1.0;
+    //T(1, 1) *= -1.0;
+    //T(2, 1) *= -1.0;
     return T;
 }
 
@@ -169,10 +169,17 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
 
     const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
     const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ROTATION);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ROTATION);
 
     // Here we rotate the vectors to local axes
     const VectorType& r_local_displ_0 = prod(T, r_displ_0);
+    const VectorType& r_local_displ_1 = prod(T, r_displ_1);
+    T(0, 1) *= -1.0;
+    T(1, 1) *= -1.0;
+    T(2, 1) *= -1.0;
     const VectorType& r_local_rot_0   = prod(T, r_rotation_0);
+    const VectorType& r_local_rot_1   = prod(T, r_rotation_1);
 
     rNodalValues[0] = r_local_displ_0[0];
     rNodalValues[1] = r_local_displ_0[1];
@@ -181,12 +188,6 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     rNodalValues[3] = r_local_rot_0[0];
     rNodalValues[4] = r_local_rot_0[1];
     rNodalValues[5] = r_local_rot_0[2];
-
-    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
-    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ROTATION);
-
-    const VectorType& r_local_displ_1 = prod(T, r_displ_1);
-    const VectorType& r_local_rot_1   = prod(T, r_rotation_1);
 
     rNodalValues[6] = r_local_displ_1[0];
     rNodalValues[7] = r_local_displ_1[1];
@@ -307,7 +308,15 @@ void LinearTimoshenkoBeamElement3D2N::AssembleGlobalRotationMatrix(
     for (IndexType block = 0; block < 4; ++block) {
         for (IndexType i = 0; i < rT.size1(); ++i) {
             for (IndexType j = 0; j < rT.size2(); ++j) {
-                rGlobalT(3 * block + i, 3 * block + j) = rT(i, j);
+                if (block == 1 || block == 3) {
+                    if (j == 1) {
+                        rGlobalT(3 * block + i, 3 * block + j) = -rT(i, j);
+                    } else {
+                        rGlobalT(3 * block + i, 3 * block + j) = rT(i, j);
+                    }
+                } else {
+                    rGlobalT(3 * block + i, 3 * block + j) = rT(i, j);
+                }
             }
         }
     }
