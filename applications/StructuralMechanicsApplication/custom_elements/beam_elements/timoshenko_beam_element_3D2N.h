@@ -275,6 +275,15 @@ public:
         ) const override;
 
     /**
+     * @brief This function builds a Frenet-Serret rotation matrix from local to global in 3D
+     * This is valid for STRAIGHT lines
+     * The change of sign is required in this case since in the x-z plane the y axis is inverted (goes downwards) with respect
+     * the convention in x-y- plane, in which the z goes upwards
+     * @param rGeometry: The geometry of the line element
+     */
+    BoundedMatrix<double, 3, 3> GetConsistentFrenetSerretMatrix3D(const GeometryType& rGeometry) const;
+
+    /**
      * @brief This function rotates the LHS from local to global coordinates
      * @param rLHS the left hand side
      * @param rGeometry the geometry of the FE

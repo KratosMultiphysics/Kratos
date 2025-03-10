@@ -135,6 +135,22 @@ array_1d<double, 3> LinearTimoshenkoBeamElement3D2N::GetLocalAxesBodyForce(
 /***********************************************************************************/
 /***********************************************************************************/
 
+BoundedMatrix<double, 3, 3> LinearTimoshenkoBeamElement3D2N::GetConsistentFrenetSerretMatrix3D(
+    const GeometryType& rGeometry
+    ) const
+{
+    BoundedMatrix<double, 3, 3> T;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
+    T(0, 1) *= -1.0;
+    T(1, 1) *= -1.0;
+    T(2, 1) *= -1.0;
+    return T;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
 void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     VectorType& rNodalValues
     ) const
@@ -149,7 +165,7 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
         rNodalValues.resize(global_size, false);
 
     BoundedMatrix<double, 3, 3> T;
-    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(r_geom);
+    noalias(T) = GetConsistentFrenetSerretMatrix3D(r_geom);
 
     const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
     const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ROTATION);
@@ -311,7 +327,7 @@ void LinearTimoshenkoBeamElement3D2N::RotateLHS(
 
     BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 12, 12> global_size_T, aux_product;
-    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
+    noalias(T) = GetConsistentFrenetSerretMatrix3D(rGeometry);
     AssembleGlobalRotationMatrix(T, global_size_T);
 
     noalias(aux_product) = prod(rLHS, trans(global_size_T));
@@ -333,7 +349,7 @@ void LinearTimoshenkoBeamElement3D2N::RotateRHS(
     BoundedMatrix<double, 12, 12> global_size_T;
     BoundedVector<double, 12> local_rhs;
     noalias(local_rhs) = rRHS;
-    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
+    noalias(T) = GetConsistentFrenetSerretMatrix3D(rGeometry);
     AssembleGlobalRotationMatrix(T, global_size_T);
     noalias(rRHS) = prod(global_size_T, local_rhs);
 }
@@ -352,7 +368,7 @@ void LinearTimoshenkoBeamElement3D2N::RotateAll(
 
     BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 12, 12> global_size_T, aux_product;
-    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
+    noalias(T) = GetConsistentFrenetSerretMatrix3D(rGeometry);
     AssembleGlobalRotationMatrix(T, global_size_T);
 
     BoundedVector<double, 12> local_rhs;
