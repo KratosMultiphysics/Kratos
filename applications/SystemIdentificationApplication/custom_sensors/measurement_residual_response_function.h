@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "includes/node.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "response_functions/adjoint_response_function.h"
