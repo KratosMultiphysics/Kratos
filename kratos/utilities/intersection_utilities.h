@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector.h"
 #include "utilities/math_utils.h"
@@ -76,10 +75,10 @@ public:
     /**
      * @brief Default constructor
      */
-    IntersectionUtilities(){}
+    IntersectionUtilities() = default;
 
     /// Destructor
-    virtual ~IntersectionUtilities(){}
+    virtual ~IntersectionUtilities() = default;
 
     ///@}
     ///@name Operations
@@ -103,8 +102,9 @@ public:
         const array_1d<double,3>& rLinePoint1,
         const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12) {
-
+        const double epsilon = 1e-12
+        )
+    {
         // This is the adaption of the implementation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
         // Based on Tomas Möller & Ben Trumbore (1997) Fast, Minimum Storage Ray-Triangle Intersection, Journal of Graphics Tools, 2:1, 21-28, DOI: 10.1080/10867651.1997.10487468 
@@ -168,7 +168,7 @@ public:
     }
 
     /**
-     * Find the 2D intersection of a line (bounded) with a triangle (bounded)
+     * @brief Find the 2D intersection of a line (bounded) with a triangle (bounded)
      * @param rVert1 The first vertex of the triangle to intersect
      * @param rVert2 The second vertex of the triangle to intersect
      * @param rVert3 The third vertex of the triangle to intersect
@@ -181,7 +181,8 @@ public:
         const array_1d<double,3>& rVert1,
         const array_1d<double,3>& rVert2,
         const array_1d<double,3>& rPoint0,
-        const array_1d<double,3>& rPoint1)
+        const array_1d<double,3>& rPoint1
+        )
     {
         // Check the intersection of each edge against the intersecting object
         array_1d<double,3> int_point;
@@ -196,9 +197,8 @@ public:
     }
 
     /**
-     * Check if a point is inside a 2D triangle
-     * @brief This uses the Cramer's rule for solving a linear system and obtain the barycentric coordinates
-     * @details 
+     * @brief Check if a point is inside a 2D triangle
+     * @details This uses the Cramer's rule for solving a linear system and obtain the barycentric coordinates
      * @param rVert0 The first vertex of the triangle to intersect
      * @param rVert1 The second vertex of the triangle to intersect
      * @param rVert2 The third vertex of the triangle to intersect
@@ -213,12 +213,13 @@ public:
         const array_1d<double,3>& rVert1,
         const array_1d<double,3>& rVert2,
         const array_1d<double,3>& rPoint,
-        const double Tolerance = std::numeric_limits<double>::epsilon())
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
     {
         const array_1d<double,3> u = rVert1 - rVert0;
         const array_1d<double,3> v = rVert2 - rVert0;
         const array_1d<double,3> w = rPoint - rVert0;
-        
+
         const double uu = inner_prod(u, u);
         const double uv = inner_prod(u, v);
         const double vv = inner_prod(v, v);
@@ -260,7 +261,7 @@ public:
         TCoordinatesType& rIntersectionPoint2,
         int& rSolution,//IntersectionUtilitiesTetrahedraLineIntersectionStatus& rSolution,
         const double Epsilon = 1e-12
-        ) 
+        )
     {
         // Lambda function to check the inside of a line corrected
         auto is_inside_projected = [&Epsilon] (auto& rGeometry, const TCoordinatesType& rPoint) -> bool {
@@ -418,7 +419,7 @@ public:
         TCoordinatesType& rIntersectionPoint1,
         TCoordinatesType& rIntersectionPoint2,
         const double Epsilon = 1e-12
-        ) 
+        )
     {
         int solution = 0;// IntersectionUtilitiesTetrahedraLineIntersectionStatus solution = IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION;
         for (auto& r_face : rTetrahedraGeometry.GenerateFaces()) {
@@ -465,7 +466,7 @@ public:
                         noalias(rIntersectionPoint2) = rLinePoint1;
                         solution = 4;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION_ONE_INSIDE;
                     }
-                } 
+                }
                 if (solution == 2) {// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION) {
                     if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
                         if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) {  // Must be different from the first one
@@ -512,7 +513,7 @@ public:
     static PointerVector<Point> ComputeShortestLineBetweenTwoLines(
         const TGeometryType& rSegment1,
         const TGeometryType& rSegment2
-        )  
+        )
     {
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -611,7 +612,7 @@ public:
     }
 
     /**
-     * Find the 2D intersection of two lines (both bounded)
+     * @brief Find the 2D intersection of two lines (both bounded)
      * @param rLineGeometry Is the line to intersect
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
@@ -628,14 +629,15 @@ public:
         const array_1d<double,3>& rLinePoint0,
         const array_1d<double,3>& rLinePoint1,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12)
+        const double epsilon = 1e-12
+        )
     {
         return ComputeLineLineIntersection(
             rLineGeometry[0], rLineGeometry[1], rLinePoint0, rLinePoint1, rIntersectionPoint, epsilon);
     }
 
     /**
-     * Find the 2D intersection of two lines (both bounded)
+     * @brief Find the 2D intersection of two lines (both bounded)
      * @param rLine1Point0 Coordinates of the first point of the first line
      * @param rLine1Point1 Coordinates of the second point of the first line
      * @param rLine2Point0 Coordinates of the first point of the second line
@@ -653,7 +655,8 @@ public:
         const array_1d<double,3>& rLine2Point0,
         const array_1d<double,3>& rLine2Point1,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12)
+        const double epsilon = 1e-12
+        )
     {
         const array_1d<double,3> r = rLine1Point1 - rLine1Point0;
         const array_1d<double,3> s = rLine2Point1 - rLine2Point0;
@@ -718,7 +721,8 @@ public:
         const array_1d<double,3>& rLinePoint1,
         const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12)
+        const double epsilon = 1e-12
+        )
     {
         // This is the adaption of the implementation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
@@ -763,10 +767,11 @@ public:
      * @return int Returns 0 if there is no intersection and 1 otherwise
      */
     static int ComputeLineBoxIntersection(
-        const array_1d<double,3> &rBoxPoint0,
-        const array_1d<double,3> &rBoxPoint1,
-        const array_1d<double,3> &rLinePoint0,
-        const array_1d<double,3> &rLinePoint1)
+        const array_1d<double,3>& rBoxPoint0,
+        const array_1d<double,3>& rBoxPoint1,
+        const array_1d<double,3>& rLinePoint0,
+        const array_1d<double,3>& rLinePoint1
+        )
     {
         array_1d<double,3> intersection_point = ZeroVector(3);
 
@@ -793,6 +798,77 @@ public:
         return false;
     }
 
+    /**
+     * @brief Computes the intersection line between two planes.
+     * @details Given two planes defined by a point and a normal for each, this function computes
+     *          the intersection line between them. The direction (tangent) of the intersection line is
+     *          computed as the cross product of the two normals. If this cross product is nearly zero,
+     *          the planes are parallel (or coincident) and no unique intersection line exists.
+     *
+     *          If the planes intersect in a unique line, a point on the line is determined using the formula:
+     *          @f[
+     *            \mathbf{x}_0 = \frac{ \left[ (d_1 \mathbf{n}_2 - d_2 \mathbf{n}_1) \times (\mathbf{n}_1 \times \mathbf{n}_2) \right] }{ \| \mathbf{n}_1 \times \mathbf{n}_2 \|^2 }
+     *          @f]
+     *          where @f$ d_1 = \mathbf{n}_1 \cdot \mathbf{p}_1 @f$ and @f$ d_2 = \mathbf{n}_2 \cdot \mathbf{p}_2 @f$.
+     *          Note that the normals need not be unit length.
+     *
+     * @param rPlanePoint1 One point on the first plane.
+     * @param rNormal1 The normal vector of the first plane.
+     * @param rPlanePoint2 One point on the second plane.
+     * @param rNormal2 The normal vector of the second plane.
+     * @param rPoint [out] A point on the intersection line (if one exists).
+     * @param rTangent [out] The direction (tangent) vector of the intersection line.
+     * @param Tolerance The tolerance to check the parallel
+     * @return 0 if the planes are parallel (or nearly parallel), 1 if the planes intersect in a unique line.
+     */
+    static int Compute2PlaneIntersection(
+        const array_1d<double, 3>& rPlanePoint1,
+        const array_1d<double, 3>& rNormal1,
+        const array_1d<double, 3>& rPlanePoint2,
+        const array_1d<double, 3>& rNormal2,
+        array_1d<double, 3>& rPoint,
+        array_1d<double, 3>& rTangent,
+        const double Tolerance = 1.0e-12
+        );
+
+    /**
+     * @brief Computes the intersection point between three planes.
+     * @details This function determines the intersection among three planes.
+     *          It first computes the intersection line of the first two planes using Compute2PlaneIntersection.
+     *          Then, it intersects that line with the third plane. Depending on the configuration of the planes,
+     *          the function returns:
+     *          - 0 if all three planes are parallel (or nearly parallel),
+     *          - 1 if the intersection of the first two planes yields a line that is parallel to the third plane
+     *                (i.e. the three planes share a common line)
+     *          - 2 if two parallel lines are formed by the intersection of the first two planes and the third plane is parallel to them
+     *          - 3 if the three planes intersect in a unique point.
+     * @param rPlanePoint1 One point on the first plane.
+     * @param rNormal1 The normal vector of the first plane.
+     * @param rPlanePoint2 One point on the second plane.
+     * @param rNormal2 The normal vector of the second plane.
+     * @param rPlanePoint3 One point on the third plane.
+     * @param rNormal3 The normal vector of the third plane.
+     * @param rPoint1 [out] The intersection point if a unique intersection exists.
+     * @param rVector1 [out] The direction vector of the intersection line if the planes intersect in a line.
+     * @param rPoint2 [out] A point on the intersection line if the planes intersect in a line.
+     * @param rVector2 [out] The direction vector of the intersection line if the planes intersect in a line.
+     * @param Tolerance The tolerance used for checking parallelism (default is 1.0e-12).
+     * @return 0 if all planes are parallel, 1 if the intersection is a line (degenerate case), 2 if the intersection is two lines (degenerate case), 3 if the planes intersect in a unique point.
+     */
+    static int Compute3PlaneIntersection(
+        const array_1d<double, 3>& rPlanePoint1,
+        const array_1d<double, 3>& rNormal1,
+        const array_1d<double, 3>& rPlanePoint2,
+        const array_1d<double, 3>& rNormal2,
+        const array_1d<double, 3>& rPlanePoint3,
+        const array_1d<double, 3>& rNormal3,
+        array_1d<double, 3>& rPoint1,
+        array_1d<double, 3>& rVector1,
+        array_1d<double, 3>& rPoint2,
+        array_1d<double, 3>& rVector2,
+        const double Tolerance = 1.0e-12
+        );
+
     ///@}
     ///@name Access
     ///@{
@@ -809,7 +885,6 @@ public:
     ///@name Friends
     ///@{
 private:
-
     ///@name Private static Member Variables
     ///@{
 
@@ -831,17 +906,29 @@ private:
      * @param b Second vector
      * @return The 2D cross product value
      */
-
     static inline double CrossProd2D(const array_1d<double,3> &a, const array_1d<double,3> &b){
         return (a(0)*b(1) - a(1)*b(0));
     }
 
+    /**
+     * @brief Computes the intersection point of a line segment with a box.
+     * @details This function calculates the intersection point of a line segment defined by two points (rPoint1 and rPoint2)
+     * with a box, given the distances from the points to the box (Dist1 and Dist2). If the line segment intersects
+     * the box, the intersection point is stored in rIntersectionPoint.
+     * @param Dist1 Distance from the first point to the box.
+     * @param Dist2 Distance from the second point to the box.
+     * @param rPoint1 The first point of the line segment.
+     * @param rPoint2 The second point of the line segment.
+     * @param rIntersectionPoint The intersection point of the line segment with the box, if it exists.
+     * @return int Returns 1 if there is an intersection, 0 otherwise.
+     */
     static inline int GetLineBoxIntersection(
         const double Dist1,
         const double Dist2,
-        const array_1d<double,3> &rPoint1,
-        const array_1d<double,3> &rPoint2,
-        array_1d<double,3> &rIntersectionPoint)
+        const array_1d<double,3>& rPoint1,
+        const array_1d<double,3>& rPoint2,
+        array_1d<double,3>& rIntersectionPoint
+        )
     {
         if ((Dist1 * Dist2) >= 0.0){
             return 0;
@@ -854,11 +941,21 @@ private:
         return 1;
     }
 
+    /**
+     * @brief Checks if a point is inside a box along a specified axis.
+     * @details This function determines whether a given intersection point lies within the bounds of a box defined by two points along a specified axis.
+     * @param rIntersectionPoint The point to check, represented as an array of 3 doubles.
+     * @param rBoxPoint0 One corner of the box, represented as an array of 3 doubles.
+     * @param rBoxPoint1 The opposite corner of the box, represented as an array of 3 doubles.
+     * @param Axis The axis along which to check the intersection point (1 for X-axis, 2 for Y-axis, 3 for Z-axis).
+     * @return int Returns 1 if the intersection point is inside the box along the specified axis, otherwise returns 0.
+     */
     static inline int InBox(
-        const array_1d<double,3> &rIntersectionPoint,
-        const array_1d<double,3> &rBoxPoint0,
-        const array_1d<double,3> &rBoxPoint1,
-        const unsigned int Axis)
+        const array_1d<double,3>& rIntersectionPoint,
+        const array_1d<double,3>& rBoxPoint0,
+        const array_1d<double,3>& rBoxPoint1,
+        const unsigned int Axis
+        )
     {
         if ( Axis==1 && rIntersectionPoint[2] > rBoxPoint0[2] && rIntersectionPoint[2] < rBoxPoint1[2] && rIntersectionPoint[1] > rBoxPoint0[1] && rIntersectionPoint[1] < rBoxPoint1[1]) return 1;
         if ( Axis==2 && rIntersectionPoint[2] > rBoxPoint0[2] && rIntersectionPoint[2] < rBoxPoint1[2] && rIntersectionPoint[0] > rBoxPoint0[0] && rIntersectionPoint[0] < rBoxPoint1[0]) return 1;
