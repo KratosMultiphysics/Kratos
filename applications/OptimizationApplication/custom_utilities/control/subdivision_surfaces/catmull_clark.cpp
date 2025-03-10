@@ -51,8 +51,6 @@ namespace Kratos
 // namespace SDSUtils
 // {
 
-// using IndexType = std::size_t;
-// using NodeType = Node::NodeType;
 using GeometryType = Geometry<Node>;
 using ModelPart = ModelPart;
 // using MeshType = ModelPart::MeshType;
@@ -60,7 +58,6 @@ using CoordinatesArrayType = Point::CoordinatesArrayType;
 typedef Geometry<NodeType>::GeometriesArrayType GeometriesArrayType;
 
 // typedefs for nearest point search
-// typedef Node NodeType;
 typedef NodeType::Pointer NodeTypePointer;
 typedef std::vector<NodeType::Pointer> NodeVector;
 typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
@@ -626,14 +623,20 @@ std::vector<double> GetUnitWeightDistributionForNode(
     // Vertex *verts = (Vertex*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(Vertex) );
     // memcpy(&verts[0], &vertices[0], nverts*sizeof(double));
 
-    VertexValue *vverts = (VertexValue*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(VertexValue) );
-    memcpy(&vverts[0], &cp_weights[0], nverts*sizeof(double));
+    // VertexValue *vverts = (VertexValue*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(VertexValue) );
+    // memcpy(&vverts[0], &cp_weights[0], nverts*sizeof(double));
+
+    std::vector<VertexValue> vverts(refiner->GetNumVerticesTotal());
+#pragma omp parallel for
+    for(int index = 0; index < nverts; ++index) {
+        vverts[index].value = cp_weights[index];
+    }
 
     // Interpolate vertex primvar data at each level
     OpenSubdiv::Far::PrimvarRefiner primvarRefiner(*refiner);
 
     // Vertex * src = verts;
-    VertexValue * vsrc = vverts;
+    VertexValue * vsrc = &vverts[0];
     for (SizeType level = 1; level <= ref_level; ++level) {
         // Vertex * dst = src + refiner->GetLevel(level-1).GetNumVertices();
         // primvarRefiner.Interpolate(level, src, dst);
@@ -657,12 +660,17 @@ std::vector<double> GetUnitWeightDistributionForNode(
     cp_weights.resize(nverts);
     memcpy(&cp_weights[0], &vverts[firstOfLastVerts], nverts*sizeof(double));
 
+#pragma omp parallel for
+    for(int index = 0; index < nverts; ++index) {
+        cp_weights[index] = vverts[firstOfLastVerts + index].value;
+    }
+
     // KRATOS_INFO("CATMULL_CLARK :: GetUnitWeightDistributionForNode :: cp_weights computed") << cp_weights << std::endl; // << cp_weights << std::endl;
     // refLastLevel.GetNumVertices
     // free(verts);
     // free(vverts);
-    // std::vector<double> cp_weights_copy = cp_weights;   // should be deep copy
-    return cp_weights;
+    std::vector<double> cp_weights_copy = cp_weights;   // should be deep copy
+    return cp_weights_copy;
 }
 
 void OutputModelPartToVtk(ModelPart& rOuptutMP, std::string filename)
