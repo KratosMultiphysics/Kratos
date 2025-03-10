@@ -620,14 +620,7 @@ std::vector<double> GetUnitWeightDistributionForNode(
     std::vector<double> cp_weights(nverts, 0.0);
     cp_weights[osd_v_idx] = 1.0;
 
-    // Vertex *verts = (Vertex*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(Vertex) );
-    // memcpy(&verts[0], &vertices[0], nverts*sizeof(double));
-
-    // VertexValue *vverts = (VertexValue*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(VertexValue) );
-    // memcpy(&vverts[0], &cp_weights[0], nverts*sizeof(double));
-
     std::vector<VertexValue> vverts(refiner->GetNumVerticesTotal());
-#pragma omp parallel for
     for(int index = 0; index < nverts; ++index) {
         vverts[index].value = cp_weights[index];
     }
@@ -654,23 +647,14 @@ std::vector<double> GetUnitWeightDistributionForNode(
     
     // copy vertex information
     int firstOfLastVerts = refiner->GetNumVerticesTotal() - nverts;
-    // vertices.resize(nverts*3);
-    // memcpy(&vertices[0], &verts[firstOfLastVerts], nverts*3*sizeof(double));
-
-    cp_weights.resize(nverts);
-    memcpy(&cp_weights[0], &vverts[firstOfLastVerts], nverts*sizeof(double));
-
-#pragma omp parallel for
+    std::vector<double> cp_weights_last_ref(nverts);
     for(int index = 0; index < nverts; ++index) {
-        cp_weights[index] = vverts[firstOfLastVerts + index].value;
+        cp_weights_last_ref[index] = vverts[firstOfLastVerts + index].value;
     }
 
     // KRATOS_INFO("CATMULL_CLARK :: GetUnitWeightDistributionForNode :: cp_weights computed") << cp_weights << std::endl; // << cp_weights << std::endl;
     // refLastLevel.GetNumVertices
-    // free(verts);
-    // free(vverts);
-    std::vector<double> cp_weights_copy = cp_weights;   // should be deep copy
-    return cp_weights_copy;
+    return cp_weights_last_ref;
 }
 
 void OutputModelPartToVtk(ModelPart& rOuptutMP, std::string filename)
