@@ -83,6 +83,3 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_analysis[index])
             model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_analysis[index])
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_analysis[index])
-
-
-

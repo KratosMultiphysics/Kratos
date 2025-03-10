@@ -31,7 +31,8 @@ namespace Kratos
 
 using SizeType = std::size_t;
 using IndexType = std::size_t;
-using NodeType = Node::NodeType;
+// using NodeType = Node::NodeType;
+typedef Node NodeType;
 
 ///@name Kratos Classes
 ///@{
