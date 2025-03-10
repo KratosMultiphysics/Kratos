@@ -12,6 +12,8 @@
 //
 
 #include "stress_strain_utilities.h"
+#include "custom_utilities/generic_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "utilities/math_utils.h"
 #include <cmath>
@@ -178,6 +180,54 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     });
 
     return result;
+}
+
+void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStressVector,
+                                                       Vector&       rPrincipalStressVector,
+                                                       Matrix&       rEigenVectorsMatrix)
+{
+    auto   stress_tensor = MathUtils<>::StressVectorToTensor(rCauchyStressVector);
+    Matrix principal_stress_matrix;
+    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, rEigenVectorsMatrix,
+                                              principal_stress_matrix, 1.0e-16, 20);
+    rPrincipalStressVector = ZeroVector(3);
+    for (int i = 0; i < 3; ++i) {
+        rPrincipalStressVector(i) = principal_stress_matrix(i, i);
+    }
+    ReorderEigenValuesAndVectors(rPrincipalStressVector, rEigenVectorsMatrix);
+}
+
+void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix)
+{
+    std::vector<std::size_t> indices(rPrincipalStressVector.size());
+    std::iota(indices.begin(), indices.end(), std::size_t{0});
+    std::sort(indices.begin(), indices.end(), [&rPrincipalStressVector](auto i, auto j) {
+        return rPrincipalStressVector[j] < rPrincipalStressVector[i];
+    });
+
+    std::vector<double> principal_stress_vector(rPrincipalStressVector.size());
+    std::copy(rPrincipalStressVector.begin(), rPrincipalStressVector.end(), principal_stress_vector.begin());
+    principal_stress_vector = GenericUtilities::ApplyPermutation<double>(principal_stress_vector, indices);
+    std::copy(principal_stress_vector.begin(), principal_stress_vector.end(), rPrincipalStressVector.begin());
+
+    std::vector<Vector> eigenvectors_matrix(rEigenVectorsMatrix.size2());
+    for (std::size_t i = 0; i < rEigenVectorsMatrix.size2(); ++i) {
+        eigenvectors_matrix[i] = column(rEigenVectorsMatrix, i);
+    }
+    eigenvectors_matrix = GenericUtilities::ApplyPermutation<Vector>(eigenvectors_matrix, indices);
+    for (std::size_t i = 0; i < rEigenVectorsMatrix.size2(); ++i) {
+        column(rEigenVectorsMatrix, i) = eigenvectors_matrix[i];
+    }
+}
+
+Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
+                                                      const Matrix& rRotationMatrix,
+                                                      std::size_t   StressVectorSize)
+{
+    Matrix principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
+    Matrix rotated_stress_matrix =
+        GeoMechanicsMathUtilities::RotateTensor(principal_stress_matrix, rRotationMatrix);
+    return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
 } // namespace Kratos
