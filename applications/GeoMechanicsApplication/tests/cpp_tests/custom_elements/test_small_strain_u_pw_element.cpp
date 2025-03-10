@@ -19,6 +19,7 @@
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -38,6 +39,55 @@ ModelPart& CreateModelPartWithUPwSolutionStepVariables(Model& rModel)
     r_result.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
     return r_result;
+}
+
+std::shared_ptr<Properties> SetProperties()
+{
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
+                                                 std::make_unique<PlaneStrain>()));
+    p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
+    p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    p_properties->SetValue(DENSITY_SOLID, 2.650000e+03);
+    p_properties->SetValue(DENSITY_WATER, 1.000000e+03);
+    p_properties->SetValue(POROSITY, 1.000000e-01);
+    p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
+    p_properties->SetValue(BULK_MODULUS_FLUID, 200.0); // small to get a significant value for the compressibility term
+    p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
+    p_properties->SetValue(PERMEABILITY_YY, 9.084000e-06);
+    p_properties->SetValue(PERMEABILITY_XY, 0.000000e+00);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    // Biot alpha = 0, no coupling
+    p_properties->SetValue(BIOT_COEFFICIENT, 0.000000e+00);
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+    p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
+    p_properties->SetValue(IGNORE_UNDRAINED, false);
+
+    return p_properties;
+}
+
+void SetSolutionStepValues(Kratos::intrusive_ptr<Kratos::UPwSmallStrainElement<2, 3>> & rElement)
+{
+    rElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
+    rElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
+    rElement->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
+    rElement->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
+    // Zero acceleration -> no Fluid Body Flow
+    rElement->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, 0.0, 0.0};
+    rElement->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, 0.0, 0.0};
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, 0.0, 0.0};
+    // Zero pressure gradient -> no permeability flow
+    rElement->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
+    rElement->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE)    = 2.0E4;
+    rElement->GetGeometry()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
+    rElement->GetGeometry()[1].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -81,11 +131,7 @@ using namespace Kratos;
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    PointerVector<Node> nodes;
-    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
-    nodes.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
-    const auto                        p_geometry   = std::make_shared<Triangle2D3<Node>>(nodes);
+    const auto                        p_geometry   = std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
     const auto                        p_properties = std::make_shared<Properties>();
     const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
                                               std::make_unique<PlaneStrainStressState>());
@@ -126,11 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_DoFList, KratosGeoMechanicsFastS
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    PointerVector<Node> nodes;
-    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
-    nodes.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
-    const auto                        p_geometry   = std::make_shared<Triangle2D3<Node>>(nodes);
+    const auto                        p_geometry   = std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
     const auto                        p_properties = std::make_shared<Properties>();
     const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
                                               std::make_unique<PlaneStrainStressState>());
@@ -146,49 +188,13 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMech
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCheckDoesNotThrowOnCorrectInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
-                                                 std::make_unique<PlaneStrain>()));
-    p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
-    p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
-    p_properties->SetValue(DENSITY_SOLID, 2.650000e+03);
-    p_properties->SetValue(DENSITY_WATER, 1.000000e+03);
-    p_properties->SetValue(POROSITY, 1.000000e-01);
-    p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
-    p_properties->SetValue(BULK_MODULUS_FLUID, 200.0); // small to get a significant value for the compressibility term
-    p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
-    p_properties->SetValue(PERMEABILITY_YY, 9.084000e-06);
-    p_properties->SetValue(PERMEABILITY_XY, 9.084000e-06);
-    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    p_properties->SetValue(BIOT_COEFFICIENT, 1.000000e+00);
-    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
-    p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
-    p_properties->SetValue(IGNORE_UNDRAINED, false);
-
     auto process_info                     = ProcessInfo{};
     process_info[DT_PRESSURE_COEFFICIENT] = 1.0;
     process_info[VELOCITY_COEFFICIENT]    = 1.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, p_properties);
-    element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
-    element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
-    element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, -10.0, 0.0};
-    element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
-    element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
-    element->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE)    = 0.0;
-    element->GetGeometry()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
-    element->GetGeometry()[1].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
-    element->GetGeometry()[2].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
+    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    SetSolutionStepValues(element);
 
     // Act, no exceptions on correct input
     KRATOS_EXPECT_EQ(element->Check(process_info), 0);
@@ -197,53 +203,14 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCheckDoesNotThrowOnCorrectInput, 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
-                                                 std::make_unique<PlaneStrain>()));
-    p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
-    p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
-    p_properties->SetValue(DENSITY_SOLID, 2.650000e+03);
-    p_properties->SetValue(DENSITY_WATER, 1.000000e+03);
-    p_properties->SetValue(POROSITY, 1.000000e-01);
-    p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
-    p_properties->SetValue(BULK_MODULUS_FLUID, 200.0); // small to get a significant value for the compressibility term
-    p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
-    p_properties->SetValue(PERMEABILITY_YY, 9.084000e-06);
-    p_properties->SetValue(PERMEABILITY_XY, 0.000000e+00);
-    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
-    // Biot alpha = 0, no coupling
-    p_properties->SetValue(BIOT_COEFFICIENT, 0.000000e+00);
-    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
-    p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
-    p_properties->SetValue(IGNORE_UNDRAINED, false);
-
     auto process_info = ProcessInfo{};
     // No storage, no dynamics, only statics and steady state
     process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
     process_info[VELOCITY_COEFFICIENT]    = 0.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, p_properties);
-    element->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    // Zero acceleration -> no Fluid Body Flow
-    element->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, 0.0, 0.0};
-    element->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, 0.0, 0.0};
-    // Zero pressure gradient -> no permeability flow
-    element->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
-    element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
-    element->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE)    = 2.0E4;
-    element->GetGeometry()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
-    element->GetGeometry()[1].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
-    element->GetGeometry()[2].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
+    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    SetSolutionStepValues(element);
 
     // Act, no exceptions on correct input
     element->Initialize(process_info);
