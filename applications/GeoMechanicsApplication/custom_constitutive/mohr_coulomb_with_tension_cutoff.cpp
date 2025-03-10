@@ -141,47 +141,49 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     StressStrainUtilities::CalculatePrincipalStresses(
         trail_stress_vector, principal_trial_stress_vector, rotation_matrix);
 
-    const auto coulomb = mCoulombYieldSurface.YieldFunctionValue(principal_trial_stress_vector);
-    const auto cutoff  = mTensionCutOff.YieldFunctionValue(principal_trial_stress_vector);
+    mStressVector = trail_stress_vector;
+    while (true) {
+        const auto coulomb = mCoulombYieldSurface.YieldFunctionValue(principal_trial_stress_vector);
+        const auto cutoff  = mTensionCutOff.YieldFunctionValue(principal_trial_stress_vector);
 
-    // Elastic region
-    if (coulomb <= 0.0 && cutoff <= 0.0) {
-        mStressVector = trail_stress_vector;
-        return;
-    }
+        // Elastic region
+        if (coulomb <= 0.0 && cutoff <= 0.0) return;
 
-    // Tension cut-off return
-    const auto trial_tau = 0.5 * (principal_trial_stress_vector(0) - principal_trial_stress_vector(2));
-    const auto apex = this->CalculateApex(friction_angle_in_rad, cohesion);
-    Vector corner_point = this->CalculateCornerPoint(friction_angle_in_rad, cohesion, tension_cutoff);
+        // Tension cut-off return
+        const auto trial_tau = 0.5 * (principal_trial_stress_vector(0) - principal_trial_stress_vector(2));
+        const auto apex = this->CalculateApex(friction_angle_in_rad, cohesion);
+        Vector corner_point = this->CalculateCornerPoint(friction_angle_in_rad, cohesion, tension_cutoff);
 
-    if (tension_cutoff < apex && trial_tau <= corner_point(1) && cutoff >= 0.0) {
-        Vector modified_principal = this->ReturnStressAtAxialZone(principal_trial_stress_vector, tension_cutoff);
-        StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
+        if (tension_cutoff < apex && trial_tau <= corner_point(1) && cutoff >= 0.0) {
+            principal_trial_stress_vector =
+                this->ReturnStressAtAxialZone(principal_trial_stress_vector, tension_cutoff);
+            StressStrainUtilities::ReorderEigenValuesAndVectors(principal_trial_stress_vector, rotation_matrix);
+            mStressVector = StressStrainUtilities::RotatePrincipalStresses(
+                principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
+            continue;
+        }
+
+        // Zone of tensile corner return
+        const auto trail_sigma =
+            0.5 * (principal_trial_stress_vector(0) + principal_trial_stress_vector(2));
+        const auto derivative_flow_function =
+            (trial_tau - corner_point(1)) * std::sin(dilatancy_angle) - (trail_sigma - corner_point(0));
+        if (derivative_flow_function <= 0.0) {
+            principal_trial_stress_vector =
+                this->ReturnStressAtCornerReturnZone(principal_trial_stress_vector, corner_point);
+            StressStrainUtilities::ReorderEigenValuesAndVectors(principal_trial_stress_vector, rotation_matrix);
+            mStressVector = StressStrainUtilities::RotatePrincipalStresses(
+                principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
+            continue;
+        }
+
+        // Regular failure region
+        principal_trial_stress_vector = this->ReturnStressAtRegularFailureZone(
+            principal_trial_stress_vector, mCoulombYieldSurface, friction_angle_in_rad, cohesion);
+        StressStrainUtilities::ReorderEigenValuesAndVectors(principal_trial_stress_vector, rotation_matrix);
         mStressVector = StressStrainUtilities::RotatePrincipalStresses(
-            modified_principal, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
-        return;
+            principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
     }
-
-    // Zone of tensile corner return
-    const auto trail_sigma = 0.5 * (principal_trial_stress_vector(0) + principal_trial_stress_vector(2));
-    const auto derivative_flow_function =
-        (trial_tau - corner_point(1)) * std::sin(dilatancy_angle) - (trail_sigma - corner_point(0));
-    if (derivative_flow_function <= 0.0) {
-        Vector modified_principal =
-            this->ReturnStressAtCornerReturnZone(principal_trial_stress_vector, corner_point);
-        StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
-        mStressVector = StressStrainUtilities::RotatePrincipalStresses(
-            modified_principal, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
-        return;
-    }
-
-    // Regular failure region
-    Vector modified_principal = this->ReturnStressAtRegularFailureZone(
-        principal_trial_stress_vector, mCoulombYieldSurface, friction_angle_in_rad, cohesion);
-    StressStrainUtilities::ReorderEigenValuesAndVectors(modified_principal, rotation_matrix);
-    mStressVector = StressStrainUtilities::RotatePrincipalStresses(
-        modified_principal, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
 }
 
 Vector MohrCoulombWithTensionCutOff::ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector,
