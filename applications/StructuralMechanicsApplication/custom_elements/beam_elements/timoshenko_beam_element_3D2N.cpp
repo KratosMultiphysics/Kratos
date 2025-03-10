@@ -147,7 +147,7 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
 
     if (rNodalValues.size() != global_size)
         rNodalValues.resize(global_size, false);
-    
+
     BoundedMatrix<double, 3, 3> T;
     noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(r_geom);
 
@@ -308,7 +308,7 @@ void LinearTimoshenkoBeamElement3D2N::RotateLHS(
 {
     const SizeType num_nodes = rGeometry.size();
     const SizeType global_size = GetDoFsPerNode() * num_nodes;
-    
+
     BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 12, 12> global_size_T, aux_product;
     noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
@@ -328,7 +328,7 @@ void LinearTimoshenkoBeamElement3D2N::RotateRHS(
 {
     const SizeType num_nodes = rGeometry.size();
     const SizeType global_size = GetDoFsPerNode() * num_nodes;
-    
+
     BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 12, 12> global_size_T;
     BoundedVector<double, 12> local_rhs;
@@ -349,7 +349,7 @@ void LinearTimoshenkoBeamElement3D2N::RotateAll(
 {
     const SizeType num_nodes = rGeometry.size();
     const SizeType global_size = GetDoFsPerNode() * num_nodes;
-    
+
     BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 12, 12> global_size_T, aux_product;
     noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(rGeometry);
@@ -361,8 +361,6 @@ void LinearTimoshenkoBeamElement3D2N::RotateAll(
 
     noalias(aux_product) = prod(rLHS, trans(global_size_T));
     noalias(rLHS) = prod(global_size_T, aux_product);
-
-    KRATOS_WATCH(global_size_T)
 }
 
 /***********************************************************************************/
@@ -389,7 +387,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateGeneralizedStrainsVector(
     rStrain[3] = CalculateBendingCurvatureZ(Length, Phi_rot_z, xi, rNodalValues);
     rStrain[4] = CalculateShearStrainXY(Length, Phi_rot_z, xi, rNodalValues);
     rStrain[5] = CalculateShearStrainXZ(Length, Phi_rot_y, xi, rNodalValues);
-    
+
 }
 
 /***********************************************************************************/
@@ -479,11 +477,6 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         const double dVy_dgamma_xy = r_constitutive_matrix(4, 4);
         const double dVz_dgamma_xz = r_constitutive_matrix(5, 5);
 
-        KRATOS_WATCH(nodal_values)
-        KRATOS_WATCH(strain_vector)
-        KRATOS_WATCH(r_generalized_stresses)
-        KRATOS_WATCH(r_constitutive_matrix)
-        
         // Axial DoFs shape functions (u and theta_x)
         GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, 0.0, xi);
         GetNu0ShapeFunctionsValues(N_u, length, 0.0, xi);
@@ -493,10 +486,14 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
         noalias(rRHS) -= global_size_N * N * jacobian_weight;
 
+        std::cout << "IP: " << IP << "  // N: " << global_size_N << std::endl;
+
         // Torsional contributions
         GlobalSizeVectorAxialRotation(global_size_N, N_u_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dMx_dkappa_x * jacobian_weight;
         noalias(rRHS) -= global_size_N * Mx * jacobian_weight;
+
+        std::cout << "IP: " << IP << "  // Mx: " << global_size_N << std::endl;
 
         // Transverse DoFs shape functions {v, theta_z}
         GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_z, xi);
@@ -510,10 +507,16 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dMz_dkappa_z * jacobian_weight;
         noalias(rRHS) -= global_size_N * Mz * jacobian_weight;
 
+        std::cout << "IP: " << IP << "  // Mz: " << global_size_N << std::endl;
+        //KRATOS_WATCH(global_size_N)
+
         // Shear XY contributions
         GlobalSizeVectorTransversalY(global_size_N, N_s);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dVy_dgamma_xy * jacobian_weight;
         noalias(rRHS) -= global_size_N * Vy * jacobian_weight;
+
+        //KRATOS_WATCH(global_size_N)
+        std::cout << "IP: " << IP << "  // Vy: " << global_size_N << std::endl;
 
         // Transverse DoFs shape functions {w, theta_y}
         GetNThetaShapeFunctionsValues(N_theta, length, Phi_rot_y, xi);
@@ -525,12 +528,16 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
         // Bending in z contributions
         GlobalSizeVectorTransversalZ(global_size_N, N_theta_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dMy_dkappa_y * jacobian_weight;
-        noalias(rRHS) -= global_size_N * Mz * jacobian_weight;
+        noalias(rRHS) -= global_size_N * My * jacobian_weight;
+
+        std::cout << "IP: " << IP << "  // My: " << global_size_N << std::endl;
 
         // Shear XY contributions
         GlobalSizeVectorTransversalZ(global_size_N, N_s);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dVz_dgamma_xz * jacobian_weight;
-        noalias(rRHS) -= global_size_N * Vy * jacobian_weight;
+        noalias(rRHS) -= global_size_N * Vz * jacobian_weight;
+
+        std::cout << "IP: " << IP << "  // Vz: " << global_size_N << std::endl;
 
         // MISSING BODY FORCES!!!!!!!!!!!!!!!!!!!!!!!!
         // MISSING BODY FORCES!!!!!!!!!!!!!!!!!!!!!!!!
@@ -539,6 +546,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
     RotateAll(rLHS, rRHS, r_geometry);
 
     KRATOS_WATCH(rLHS)
+    KRATOS_ERROR << "" << std::endl;
 
     KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem")
 }
@@ -616,7 +624,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
         const double Mz = r_generalized_stresses[3];
         const double Vy = r_generalized_stresses[4];
         const double Vz = r_generalized_stresses[5];
-        
+
         // Axial DoFs shape functions (u and theta_x)
         GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, 0.0, xi);
         GetNu0ShapeFunctionsValues(N_u, length, 0.0, xi);
@@ -651,21 +659,19 @@ void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
         GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi_rot_y, xi);
         noalias(N_s) = N_derivatives - N_theta;
 
-        // Bending in z contributions
+        // Bending in y contributions
         GlobalSizeVectorTransversalZ(global_size_N, N_theta_derivatives);
-        noalias(rRHS) -= global_size_N * Mz * jacobian_weight;
+        noalias(rRHS) -= global_size_N * My * jacobian_weight;
 
-        // Shear XY contributions
+        // Shear XZ contributions
         GlobalSizeVectorTransversalZ(global_size_N, N_s);
-        noalias(rRHS) -= global_size_N * Vy * jacobian_weight;
+        noalias(rRHS) -= global_size_N * Vz * jacobian_weight;
 
         // MISSING BODY FORCES!!!!!!!!!!!!!!!!!!!!!!!!
         // MISSING BODY FORCES!!!!!!!!!!!!!!!!!!!!!!!!
         // MISSING BODY FORCES!!!!!!!!!!!!!!!!!!!!!!!!
     }
     RotateRHS(rRHS, r_geometry);
-
-
 
     KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide")
 }
