@@ -47,13 +47,14 @@ using namespace Kratos;
 
 using IndexType = std::size_t;
 using SizeType = std::size_t;
+// using NodeType = Node::NodeType;
 using ConditionType = ModelPart::ConditionType;
 using GeometryType = Geometry<Node>;
 using MeshType = ModelPart::MeshType;
 using NodesContainerType = ModelPart::NodesContainerType;
 using ConditionsContainerType = ModelPart::ConditionsContainerType;
 using NodesArrayType = Condition::NodesArrayType;
-typedef NodeType Node;
+typedef Node NodeType;
 typedef NodeType::Pointer NodeTypePointer;
 typedef Geometry<NodeType>::GeometriesArrayType GeometriesArrayType;
 typedef OpenSubdiv::Far::TopologyDescriptor Descriptor;

@@ -74,5 +74,8 @@ class Algorithm(ABC):
             list(map(lambda x: x.ExecuteInitializeSolutionStep(), self._optimization_problem.GetListOfProcesses(process_type)))
 
     def _FinalizeIteration(self) -> None:
+        print("_FinalizeIteration")
         for process_type in self._optimization_problem.GetAvailableProcessTypes():
+            print("process_type:", process_type)
             list(map(lambda x: x.ExecuteFinalizeSolutionStep(), self._optimization_problem.GetListOfProcesses(process_type)))
+        print("end _FinalizeIteration")

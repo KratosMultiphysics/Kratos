@@ -18,9 +18,9 @@
 #include "expression/literal_flat_expression.h"
 #include "includes/define.h"
 #include "includes/node.h"
-#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
+#include "containers/model.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/math_utils.h"
@@ -51,7 +51,8 @@ namespace Kratos
 // namespace SDSUtils
 // {
 
-using IndexType = std::size_t;
+// using IndexType = std::size_t;
+// using NodeType = Node::NodeType;
 using GeometryType = Geometry<Node>;
 using ModelPart = ModelPart;
 // using MeshType = ModelPart::MeshType;
@@ -59,6 +60,7 @@ using CoordinatesArrayType = Point::CoordinatesArrayType;
 typedef Geometry<NodeType>::GeometriesArrayType GeometriesArrayType;
 
 // typedefs for nearest point search
+// typedef Node NodeType;
 typedef NodeType::Pointer NodeTypePointer;
 typedef std::vector<NodeType::Pointer> NodeVector;
 typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
@@ -658,7 +660,7 @@ std::vector<double> GetUnitWeightDistributionForNode(
     // KRATOS_INFO("CATMULL_CLARK :: GetUnitWeightDistributionForNode :: cp_weights computed") << cp_weights << std::endl; // << cp_weights << std::endl;
     // refLastLevel.GetNumVertices
     // free(verts);
-    free(vverts);
+    // free(vverts);
     std::vector<double> cp_weights_copy = cp_weights;   // should be deep copy
     return cp_weights_copy;
 }
@@ -1737,7 +1739,7 @@ void CatmullClarkSDS::CreateMappingMatrix(
 
     // 5. start loop over FE-nodes in FE-mesh
     const auto fe_node_begin = rControlledMesh.NodesBegin();
-#pragma omp parallel for
+// #pragma omp parallel for
     for (IndexType fe_node_index = 0; fe_node_index < rControlledMesh.NumberOfNodes(); ++fe_node_index) {
         IndexType row_index = fe_node_index * rControlPolygon.NumberOfNodes();
         auto fe_node_it = fe_node_begin + fe_node_index;

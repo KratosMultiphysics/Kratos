@@ -61,6 +61,8 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
             project = Project(self.analysis_settings.Clone())
             self.current_analysis: Orchestrator = getattr(import_module(self.analysis_full_module), self.analysis_type)(project)
 
+        import pdb
+        pdb.set_trace()
         self.current_analysis.Run()
 
     def GetAnalysisModelPart(self):

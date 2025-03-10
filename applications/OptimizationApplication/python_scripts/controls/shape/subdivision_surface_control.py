@@ -109,6 +109,8 @@ class SubdivisionSurfaceControl(Control):
         self.mapping_relation = KM.Expression.NodalExpression(self.control_polygon_model_part)
         KM.Expression.LiteralExpressionIO.SetData(self.mapping_relation, mapping_relation_data)
 
+        # import pdb
+        # pdb.set_trace()
         self.forward_matrix = KM.Matrix(mapping_relation_data)
         self.backward_matrix = KM.Matrix()
 
@@ -118,6 +120,9 @@ class SubdivisionSurfaceControl(Control):
         KOA.ExpressionUtils.Transpose(self.backward_matrix, self.forward_matrix)
         # self.inverse_mapping_relation = KM.Expression.NodalExpression(self.control_polygon_model_part)
         # KM.Expression.LiteralExpressionIO.SetData(self.inverse_mapping_relation, backward_matrix)
+        print("Initialize")
+        print("Initialize :: self.forward_matrix.Size1", self.forward_matrix.Size1())
+        print("Initialize :: self.backward_matrix.Size2", self.backward_matrix.Size2())
         
         # import pdb
         # pdb.set_trace()
@@ -163,14 +168,14 @@ class SubdivisionSurfaceControl(Control):
         if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.controlled_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
         
-        field = KM.Expression.NodalExpression(self.controlled_model_part)
-        KM.Expression.LiteralExpressionIO.SetData(field, [0.0,0.0,0.1])
+        # field = KM.Expression.NodalExpression(self.controlled_model_part)
+        # KM.Expression.LiteralExpressionIO.SetData(field, [0.0,0.0,0.1])
         # import pdb
         # pdb.set_trace()
 
         # print("MapGradient :: physical_gradient (KOA.SHAPE):\n", physical_gradient.Evaluate().shape)
-        #import pdb
-        #pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         control_gradient = self.ProjectBackward(physical_gradient)
         # KOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(self.GetControlField(), physical_gradient, self.inverse_mapping_relation_matrix, self.control_polygon_model_part.Nodes)
         # KratosOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.Elements)
@@ -185,7 +190,10 @@ class SubdivisionSurfaceControl(Control):
         # gradient_unit = np.zeros(self.inverse_mapping_relation.shape[1])
         # gradient_unit[0] = 1.0
         mapped_gradient = KM.Expression.NodalExpression(self.control_polygon_model_part)
+        print("ProjectBackward")
         KOA.ExpressionUtils.ProductWithEntityMatrix(mapped_gradient, self.backward_matrix, gradient)
+        print("ProjectBackward :: self.forward_matrix.Size1", self.forward_matrix.Size1())
+        print("ProjectBackward :: self.backward_matrix.Size2", self.backward_matrix.Size2())
         return mapped_gradient
 
     @time_decorator(methodName="GetName")
@@ -214,7 +222,10 @@ class SubdivisionSurfaceControl(Control):
             # new_physical_field = KM.Expression.NodalExpression(self.controlled_model_part)
             new_physical_field = self.GetPhysicalField()
             physical_field_update = KM.Expression.NodalExpression(self.controlled_model_part)
+            print("Update")
             KOA.ExpressionUtils.ProductWithEntityMatrix(physical_field_update, self.forward_matrix, control_update)
+            print("Update :: self.forward_matrix.Size1", self.forward_matrix.Size1())
+            print("Update :: self.backward_matrix.Size2", self.backward_matrix.Size2())
             new_physical_field += physical_field_update
             self._UpdateControlPolygon(self.control_field)
             self._UpdateMesh(new_physical_field)

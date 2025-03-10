@@ -136,7 +136,8 @@ class FaceAngleResponse(ResponseFunction):
         pass
 
     def Finalize(self) -> None:
-        pass
+        print("face_angle_response.py :: Finalize")
+        # pass
 
     def CalculateValue(self) -> float:
         # import pdb
@@ -167,4 +168,5 @@ class FaceAngleResponse(ResponseFunction):
                     self.main_direction,
                     self.min_angle,
                     self.perturbation_size)
+        print("face_angle_response.py :: end CalculateGradient")
                 

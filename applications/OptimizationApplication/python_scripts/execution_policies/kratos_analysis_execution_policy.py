@@ -79,7 +79,9 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         pass
 
     def Finalize(self) -> None:
+        print("kratos analysis finalize")
         self.analysis.Finalize()
+        print("end kratos analysis finalize")
 
     def Execute(self):
         self.analysis.time = self.analysis.project_parameters["problem_data"]["start_time"].GetDouble()
