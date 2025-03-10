@@ -8,6 +8,7 @@
     },
     "solver_settings"  : {
         "solver_type"                        : "Static",
+        "compute_reactions"                  : true,
         "model_part_name"                    : "MPM_Material",
         "domain_size"                        : 2,
         "echo_level"                         : 0,
@@ -71,6 +72,18 @@
                 "model_part_name"  : "Background_Grid.LineLoad2D_Load_on_lines_Auto1",
                 "time_frequency"   : 1.0
             }
+        },
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["REACTION"],
+                "input_file_name"  : "cooks_membrane_tests/compressible_cook_membrane_2D_test_reaction_results.json",
+                "model_part_name"  : "Background_Grid.DISPLACEMENT_Displacement_Auto1",
+                "time_frequency"   : 1.0
+            }
         }]
     },
     "print_output_process" : [{
@@ -84,5 +97,18 @@
             "model_part_name"   : "Background_Grid.LineLoad2D_Load_on_lines_Auto1",
             "time_frequency"    : 1.0
         }
-    }]
+    },
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"  : ["REACTION"],
+            "output_file_name"  : "cooks_membrane_tests/compressible_cook_membrane_2D_test_reaction_results.json",
+            "model_part_name"   : "Background_Grid.DISPLACEMENT_Displacement_Auto1",
+            "time_frequency"    : 1.0
+        }
+    }],
+    "analysis_stage": "KratosMultiphysics.MPMApplication.particle_mechanics_analysis"
 }
