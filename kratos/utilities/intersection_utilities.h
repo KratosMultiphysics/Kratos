@@ -811,7 +811,6 @@ public:
      *          @f]
      *          where @f$ d_1 = \mathbf{n}_1 \cdot \mathbf{p}_1 @f$ and @f$ d_2 = \mathbf{n}_2 \cdot \mathbf{p}_2 @f$.
      *          Note that the normals need not be unit length.
-     *
      * @param rPlanePoint1 One point on the first plane.
      * @param rNormal1 The normal vector of the first plane.
      * @param rPlanePoint2 One point on the second plane.
