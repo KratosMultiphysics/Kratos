@@ -308,7 +308,7 @@ void LinearTimoshenkoBeamElement3D2N::AssembleGlobalRotationMatrix(
     for (IndexType block = 0; block < 4; ++block) {
         for (IndexType i = 0; i < rT.size1(); ++i) {
             for (IndexType j = 0; j < rT.size2(); ++j) {
-                if (block == 1 || block == 3) {
+                if (block == 1 || block == 3) { // rotations orientation consistent with sign
                     if (j == 1) {
                         rGlobalT(3 * block + i, 3 * block + j) = -rT(i, j);
                     } else {
@@ -412,7 +412,6 @@ void LinearTimoshenkoBeamElement3D2N::CalculateGeneralizedStrainsVector(
     rStrain[3] = CalculateBendingCurvatureZ(Length, Phi_rot_z, xi, rNodalValues);
     rStrain[4] = CalculateShearStrainXY(Length, Phi_rot_z, xi, rNodalValues);
     rStrain[5] = CalculateShearStrainXZ(Length, Phi_rot_y, xi, rNodalValues);
-
 }
 
 /***********************************************************************************/

@@ -169,7 +169,12 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const override;
+    void CalculateGeneralizedStrainsVector(
+        VectorType& rStrain,
+        const double Length,
+        const double Phi,
+        const double xi,
+        const VectorType &rNodalValues) const override;
 
     /**
      * @brief Computes the length of the FE and returns it
@@ -184,7 +189,9 @@ public:
      * @param rGlobalSizeVector The global size vector multiplying v and theta_z components
      * @param rLocalSizeVector The 4 local components of Nv
      */
-    virtual void GlobalSizeVectorTransversalY(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
+    virtual void GlobalSizeVectorTransversalY(
+        VectorType& rGlobalSizeVector,
+        const VectorType& rLocalSizeVector) const
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[1]  = rLocalSizeVector[0];
@@ -198,7 +205,9 @@ public:
      * @param rGlobalSizeVector The global size vector multiplying w and theta_y components
      * @param rLocalSizeVector The 4 local components of Nw
      */
-    virtual void GlobalSizeVectorTransversalZ(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
+    virtual void GlobalSizeVectorTransversalZ(
+        VectorType& rGlobalSizeVector,
+        const VectorType& rLocalSizeVector) const
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[2]  = rLocalSizeVector[0];
@@ -212,7 +221,9 @@ public:
      * @param rGlobalSizeVector The global size vector including only the axial u terms
      * @param rLocalSizeVector The 2 local components of u
      */
-    void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
+    void GlobalSizeAxialVector(
+        VectorType& rGlobalSizeVector,
+        const VectorType& rLocalSizeVector) override
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[0] = rLocalSizeVector[0];
