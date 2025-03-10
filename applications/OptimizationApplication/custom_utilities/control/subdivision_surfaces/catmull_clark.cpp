@@ -560,7 +560,7 @@ void PushNodesToLimit(ModelPart& rInputModelPart, ModelPart& rOutputModelPart, s
     auto t1_v = high_resolution_clock::now();
     // KRATOS_INFO("CATMULL_CLARK :: PushNodesToLimit") << std::endl;
     const auto nodes_begin = rInputModelPart.NodesBegin();
-// #pragma omp parallel for
+#pragma omp parallel for
     for (IndexType node_idx = 0; node_idx < rInputModelPart.NumberOfNodes(); ++node_idx)
     {
         auto node_it = nodes_begin + node_idx;
@@ -661,8 +661,8 @@ std::vector<double> GetUnitWeightDistributionForNode(
     // refLastLevel.GetNumVertices
     // free(verts);
     // free(vverts);
-    std::vector<double> cp_weights_copy = cp_weights;   // should be deep copy
-    return cp_weights_copy;
+    // std::vector<double> cp_weights_copy = cp_weights;   // should be deep copy
+    return cp_weights;
 }
 
 void OutputModelPartToVtk(ModelPart& rOuptutMP, std::string filename)
@@ -1739,7 +1739,7 @@ void CatmullClarkSDS::CreateMappingMatrix(
 
     // 5. start loop over FE-nodes in FE-mesh
     const auto fe_node_begin = rControlledMesh.NodesBegin();
-// #pragma omp parallel for
+#pragma omp parallel for
     for (IndexType fe_node_index = 0; fe_node_index < rControlledMesh.NumberOfNodes(); ++fe_node_index) {
         IndexType row_index = fe_node_index * rControlPolygon.NumberOfNodes();
         auto fe_node_it = fe_node_begin + fe_node_index;
