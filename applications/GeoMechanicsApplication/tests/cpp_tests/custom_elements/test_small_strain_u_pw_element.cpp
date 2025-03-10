@@ -66,7 +66,7 @@ std::shared_ptr<Properties> SetProperties()
     return p_properties;
 }
 
-void SetSolutionStepValues(Kratos::intrusive_ptr<Kratos::UPwSmallStrainElement<2, 3>> & rElement)
+void SetSolutionStepValues(Kratos::intrusive_ptr<Kratos::UPwSmallStrainElement<2, 3>>& rElement)
 {
     rElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
     rElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -131,7 +131,8 @@ using namespace Kratos;
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto                        p_geometry   = std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
+    const auto p_geometry =
+        std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
     const auto                        p_properties = std::make_shared<Properties>();
     const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
                                               std::make_unique<PlaneStrainStressState>());
@@ -172,7 +173,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_DoFList, KratosGeoMechanicsFastS
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto                        p_geometry   = std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
+    const auto p_geometry =
+        std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
     const auto                        p_properties = std::make_shared<Properties>();
     const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
                                               std::make_unique<PlaneStrainStressState>());
@@ -227,6 +229,38 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateRightHandSid
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_fluid_flux_at_integration_points[i],
                                            (array_1d<double, 3>{0., 9.084, 0.}), Defaults::relative_tolerance);
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateLeftHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto process_info = ProcessInfo{};
+    // No storage, no dynamics, only statics and steady state
+    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
+    process_info[VELOCITY_COEFFICIENT]    = 0.0;
+
+    Model model;
+    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    SetSolutionStepValues(element);
+
+    // Act, no exceptions on correct input
+    element->Initialize(process_info);
+    Matrix actual_left_hand_side;
+    element->CalculateLeftHandSide(actual_left_hand_side, process_info);
+    Matrix expected_left_hand_side = ZeroMatrix(9, 9);
+    // clang-format off
+    expected_left_hand_side <<= 5000000,0,-5000000,0,0,0,0,0,0,
+                                0,2500000,2500000,-2500000,-2500000,0,0,0,0,
+                               -5000000,2500000,7500000,-2500000,-2500000,0,0,0,0,
+                                0,-2500000,-2500000,7500000,2500000,-5000000,0,0,0,
+                                0,-2500000,-2500000,2500000,2500000,0,0,0,0,
+                                0,0,0,-5000000,0,5000000,0,0,0,
+                                0,0,0,0,0,0,-0.00045419999999999998,0.00045419999999999998,0,
+                                0,0,0,0,0,0,0.00045419999999999998,-0.00090839999999999996,0.00045419999999999998,
+                                0,0,0,0,0,0,0,0.00045419999999999998,-0.00045419999999999998;
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
 }
 
 } // namespace Kratos::Testing
