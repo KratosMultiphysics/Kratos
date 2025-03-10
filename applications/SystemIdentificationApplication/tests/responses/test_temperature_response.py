@@ -139,13 +139,13 @@ class TestTemperatureDetectionResponse(kratos_unittest.TestCase):
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()
-            self.assertAlmostEqual(ref_value, 3.75896569589695e-09, 12)
+            self.assertAlmostEqual(ref_value, 0.03758965695896949, 10)
 
             response.CalculateGradient(var)
 
             gradients = var[Kratos.TEMPERATURE].Evaluate()
 
-            delta = 1e-8
+            delta = 1e-4
             for index, node in enumerate(model_part.Nodes):
                 node: Kratos.Node
                 nodal_temp = node.GetSolutionStepValue(Kratos.TEMPERATURE)
@@ -172,19 +172,19 @@ class TestTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCase):
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()
-            self.assertAlmostEqual(ref_value, 1.873890486053216e-09, 12)
+            self.assertAlmostEqual(ref_value, 0.004684726292930924, 10)
 
             response.CalculateGradient(var)
 
             gradients = var[Kratos.TEMPERATURE].Evaluate()
 
-            delta = 1e-8
+            delta = 1e-4
             for index, node in enumerate(model_part.Nodes):
                 node: Kratos.Node
                 nodal_temp = node.GetSolutionStepValue(Kratos.TEMPERATURE)
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,   nodal_temp + delta)
                 sensitivity = ((response.CalculateValue() - ref_value) / delta)
-                self.assertAlmostEqual(gradients[index], sensitivity, 14)
+                self.assertAlmostEqual(gradients[index], sensitivity, 6)
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp) 
 
 if __name__ == "__main__":

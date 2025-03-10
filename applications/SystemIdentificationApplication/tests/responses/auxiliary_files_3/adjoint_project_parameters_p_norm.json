@@ -7,7 +7,7 @@
         "echo_level": 0
     },
     "sensor_settings": {
-        "perturbation_size": 1e-8,
+        "perturbation_size": 1e-4,
         "adapt_perturbation_size": true,
         "p_coefficient": 4,
         "@include_json": "auxiliary_files_3/sensor_data.json"

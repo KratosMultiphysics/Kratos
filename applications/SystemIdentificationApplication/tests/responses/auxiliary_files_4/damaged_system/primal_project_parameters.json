@@ -71,7 +71,7 @@
                     "model_part_name" : "Structure.Parts_Mat_1",
                     "variable_name"   : "TEMPERATURE",
                     "constrained"     : true,
-                    "value"           : 20.0,
+                    "value"           : 10.0,
                     "interval"        : [0.0,"End"]
                 }
             }
@@ -84,8 +84,8 @@
                 "Parameters"    : {
                     "model_part_name" : "Structure.SurfacePressure3D_load",
                     "variable_name"   : "PRESSURE",
-                    "interval"        : [0.0,0.0],
-                    "value"           : 1000.0
+                    "interval"        : [0.0,"End"],
+                    "value"           : 1.0
                 }
             }
         ],

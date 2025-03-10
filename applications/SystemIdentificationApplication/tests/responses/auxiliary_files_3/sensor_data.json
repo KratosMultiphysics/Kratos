@@ -13,7 +13,7 @@
                 0.0,
                 0.0
             ],
-            "weight": 1.0
+            "weight": 1e7
         },
         {
             "type": "displacement_sensor",
@@ -28,7 +28,7 @@
                 0.0,
                 0.0
             ],
-            "weight": 1.0
+            "weight": 1e7
         }
     ]
 }

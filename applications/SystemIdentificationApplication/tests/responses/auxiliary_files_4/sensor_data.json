@@ -11,7 +11,7 @@
             "strain_variable": "GREEN_LAGRANGE_STRAIN_TENSOR",
             "type": "strain_sensor",
             "variable_data": {},
-            "weight": 1.0
+            "weight": 1e7
         },
         {
             "location": [
@@ -24,7 +24,7 @@
             "strain_variable": "GREEN_LAGRANGE_STRAIN_TENSOR",
             "type": "strain_sensor",
             "variable_data": {},
-            "weight": 1.0
+            "weight": 1e7
         }
     ]
 }
