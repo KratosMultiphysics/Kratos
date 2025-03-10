@@ -125,8 +125,9 @@ void TimoshenkoBeamElasticConstitutiveLaw3D::CalculateMaterialResponseCauchy(Con
 
     const double E    = r_material_properties[YOUNG_MODULUS];
     const double A    = r_material_properties[CROSS_AREA];
-    const double Iz  = r_material_properties[I33];
-    const double Iy  = r_material_properties[I22];
+    const double Iz   = r_material_properties[I33];
+    const double Iy   = r_material_properties[I22];
+    const double It   = r_material_properties.Has(IT) ? r_material_properties[IT] : (Iy + Iz);
     const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
     const double A_sY = r_material_properties[AREA_EFFECTIVE_Y];
     const double A_sZ = r_material_properties[AREA_EFFECTIVE_Z];
@@ -143,7 +144,7 @@ void TimoshenkoBeamElasticConstitutiveLaw3D::CalculateMaterialResponseCauchy(Con
         const double GAsZ = G * A_sZ;
 
         r_generalized_stress_vector[0] = EA * axial_strain;
-        r_generalized_stress_vector[1] = G * (Iy + Iz) * curvature_x;
+        r_generalized_stress_vector[1] = G * It * curvature_x;
         r_generalized_stress_vector[2] = EIy * curvature_y;
         r_generalized_stress_vector[3] = EIz * curvature_z;
         r_generalized_stress_vector[4] = GAsY * shear_strain_XY;
@@ -162,7 +163,7 @@ void TimoshenkoBeamElasticConstitutiveLaw3D::CalculateMaterialResponseCauchy(Con
             r_stress_derivatives.clear();
 
             r_stress_derivatives(0, 0) = EA;
-            r_stress_derivatives(1, 1) = G * (Iy + Iz);
+            r_stress_derivatives(1, 1) = G * It;
             r_stress_derivatives(2, 2) = EIy;
             r_stress_derivatives(3, 3) = EIz;
             r_stress_derivatives(4, 4) = GAsY;
