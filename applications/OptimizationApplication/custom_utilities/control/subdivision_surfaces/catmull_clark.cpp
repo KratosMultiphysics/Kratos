@@ -52,7 +52,6 @@ namespace Kratos
 // {
 
 using IndexType = std::size_t;
-using NodeType = Node::NodeType;
 using GeometryType = Geometry<Node>;
 using ModelPart = ModelPart;
 // using MeshType = ModelPart::MeshType;
@@ -618,12 +617,12 @@ std::vector<double> GetUnitWeightDistributionForNode(
     // KRATOS_INFO("CATMULL_CLARK :: GetUnitWeightDistributionForNode: ref_level") << ref_level << std::endl;
     // KRATOS_INFO("CATMULL_CLARK :: GetUnitWeightDistributionForNode: nverts") << nverts << std::endl;
 
-    std::vector<double> vertices(3*nverts, 0.0);
+    // std::vector<double> vertices(3*nverts, 0.0);
     std::vector<double> cp_weights(nverts, 0.0);
     cp_weights[osd_v_idx] = 1.0;
 
-    Vertex *verts = (Vertex*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(Vertex) );
-    memcpy(&verts[0], &vertices[0], nverts*sizeof(double));
+    // Vertex *verts = (Vertex*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(Vertex) );
+    // memcpy(&verts[0], &vertices[0], nverts*sizeof(double));
 
     VertexValue *vverts = (VertexValue*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(VertexValue) );
     memcpy(&vverts[0], &cp_weights[0], nverts*sizeof(double));
@@ -631,12 +630,12 @@ std::vector<double> GetUnitWeightDistributionForNode(
     // Interpolate vertex primvar data at each level
     OpenSubdiv::Far::PrimvarRefiner primvarRefiner(*refiner);
 
-    Vertex * src = verts;
+    // Vertex * src = verts;
     VertexValue * vsrc = vverts;
     for (SizeType level = 1; level <= ref_level; ++level) {
-        Vertex * dst = src + refiner->GetLevel(level-1).GetNumVertices();
-        primvarRefiner.Interpolate(level, src, dst);
-        src = dst;
+        // Vertex * dst = src + refiner->GetLevel(level-1).GetNumVertices();
+        // primvarRefiner.Interpolate(level, src, dst);
+        // src = dst;
 
         VertexValue * vdst = vsrc + refiner->GetLevel(level-1).GetNumVertices();
         primvarRefiner.Interpolate(level, vsrc, vdst);
@@ -650,15 +649,18 @@ std::vector<double> GetUnitWeightDistributionForNode(
     
     // copy vertex information
     int firstOfLastVerts = refiner->GetNumVerticesTotal() - nverts;
-    vertices.resize(nverts*3);
-    memcpy(&vertices[0], &verts[firstOfLastVerts], nverts*3*sizeof(double));
+    // vertices.resize(nverts*3);
+    // memcpy(&vertices[0], &verts[firstOfLastVerts], nverts*3*sizeof(double));
 
     cp_weights.resize(nverts);
     memcpy(&cp_weights[0], &vverts[firstOfLastVerts], nverts*sizeof(double));
 
     // KRATOS_INFO("CATMULL_CLARK :: GetUnitWeightDistributionForNode :: cp_weights computed") << cp_weights << std::endl; // << cp_weights << std::endl;
     // refLastLevel.GetNumVertices
-    return cp_weights;
+    // free(verts);
+    free(vverts);
+    std::vector<double> cp_weights_copy = cp_weights;   // should be deep copy
+    return cp_weights_copy;
 }
 
 void OutputModelPartToVtk(ModelPart& rOuptutMP, std::string filename)

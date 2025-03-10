@@ -47,13 +47,13 @@ using namespace Kratos;
 
 using IndexType = std::size_t;
 using SizeType = std::size_t;
-using NodeType = Node::NodeType;
 using ConditionType = ModelPart::ConditionType;
 using GeometryType = Geometry<Node>;
 using MeshType = ModelPart::MeshType;
 using NodesContainerType = ModelPart::NodesContainerType;
 using ConditionsContainerType = ModelPart::ConditionsContainerType;
 using NodesArrayType = Condition::NodesArrayType;
+typedef NodeType Node;
 typedef NodeType::Pointer NodeTypePointer;
 typedef Geometry<NodeType>::GeometriesArrayType GeometriesArrayType;
 typedef OpenSubdiv::Far::TopologyDescriptor Descriptor;
@@ -257,28 +257,29 @@ void RefineGeometry(
 
     // Create a buffer to hold the position of the refined verts and
     // local points, then copy the coarse positions at the beginning.
-    Vertex *verts = (Vertex*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(Vertex) );
+    std::vector<Vertex> verts(refiner->GetNumVerticesTotal());
+    //Vertex *verts = (Vertex*)std::malloc( refiner->GetNumVerticesTotal() *sizeof(Vertex) );
 
     SizeType nverts = rGrid.NumberOfNodes();
-    std::vector<double> verts_coords(nverts*3);
+    //std::vector<double> verts_coords(nverts*3);
     // IndexType index = 0;
     const auto nodes_begin = rGrid.NodesBegin();
     // for(auto node_it = rGrid.NodesBegin(); node_it != rGrid.NodesEnd(); node_it++) {
     for(int index = 0; index < nverts; ++index) {
         // NodeType& r_node = *node_it;
         auto node_it = nodes_begin + index;
-        verts_coords[3*index + 0] = node_it->Coordinates()[0];
-        verts_coords[3*index + 1] = node_it->Coordinates()[1];
-        verts_coords[3*index + 2] = node_it->Coordinates()[2];
+        verts[index].point[0] = node_it->Coordinates()[0];
+        verts[index].point[1] = node_it->Coordinates()[1];
+        verts[index].point[2] = node_it->Coordinates()[2];
         // index += 1;
     }
 
-    memcpy(&verts[0], &verts_coords[0], nverts*3*sizeof(double));
+    //memcpy(&verts[0], &verts_coords[0], nverts*3*sizeof(double));
 
     // Interpolate vertex primvar data at each level
     OpenSubdiv::Far::PrimvarRefiner primvarRefiner(*refiner);
 
-    Vertex * src = verts;
+    Vertex * src = &verts[0];
     for (SizeType level = 1; level <= ref_level; ++level) {
         Vertex * dst = src + refiner->GetLevel(level-1).GetNumVertices();
         primvarRefiner.Interpolate(level, src, dst);
@@ -295,17 +296,17 @@ void RefineGeometry(
 
     // copy vertex information
     int firstOfLastVerts = refiner->GetNumVerticesTotal() - nverts;
-    verts_coords.resize(nverts*3);
-    memcpy(&verts_coords[0], &verts[firstOfLastVerts], nverts*3*sizeof(double));
+    // verts_coords.resize(nverts*3);
+    // memcpy(&verts_coords[0], &verts[firstOfLastVerts], nverts*3*sizeof(double));
 
     // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: before creating nodes with subd data and adding them to rOutput ") << std::endl;
     NodesContainerType::Pointer p_new_nodes_container = make_shared<NodesContainerType>();
     // p_new_nodes_container->reserve(nverts);
+    std::vector<double> node_coord(3);
     for (IndexType i = 0; i < nverts; ++i) {
-        std::vector<double> node_coord(3);
-        node_coord[0] = verts_coords[3*i + 0];
-        node_coord[1] = verts_coords[3*i + 1];
-        node_coord[2] = verts_coords[3*i + 2];
+        node_coord[0] = verts[firstOfLastVerts + i].point[0];
+        node_coord[1] = verts[firstOfLastVerts + i].point[1];
+        node_coord[2] = verts[firstOfLastVerts + i].point[2];
         IndexType osd_vert_idx = i;
         IndexType kratos_node_id = osd_vert_idx + 1;    // to avoid kratos id 0
         NodeTypePointer p_node = make_intrusive<Node>(kratos_node_id, node_coord);
@@ -373,7 +374,7 @@ void RefineGeometry(
 
     // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: end of function") << std::endl;
 
-    free(verts);
+    //free(verts);
 };
 
 #endif // OPENSUBDIV_UTILITIES_H define
