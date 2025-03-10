@@ -1,0 +1,93 @@
+{
+  "TIME": [
+    1.0999999999999999
+  ],
+  "NODE_1": {
+    "REACTION_X": [
+      0.0
+    ],
+    "REACTION_Y": [
+      0.0
+    ],
+    "REACTION_Z": [
+      0.0
+    ]
+  },
+  "NODE_2": {
+    "REACTION_X": [
+      0.0
+    ],
+    "REACTION_Y": [
+      0.0
+    ],
+    "REACTION_Z": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "REACTION_X": [
+      0.0
+    ],
+    "REACTION_Y": [
+      0.0
+    ],
+    "REACTION_Z": [
+      0.0
+    ]
+  },
+  "NODE_4": {
+    "REACTION_X": [
+      -639924.6914161968
+    ],
+    "REACTION_Y": [
+      53229.47532877274
+    ],
+    "REACTION_Z": [
+      0.0
+    ]
+  },
+  "NODE_6": {
+    "REACTION_X": [
+      0.0
+    ],
+    "REACTION_Y": [
+      0.0
+    ],
+    "REACTION_Z": [
+      0.0
+    ]
+  },
+  "NODE_9": {
+    "REACTION_X": [
+      639842.1820117371
+    ],
+    "REACTION_Y": [
+      53898.502222818584
+    ],
+    "REACTION_Z": [
+      0.0
+    ]
+  },
+  "NODE_14": {
+    "REACTION_X": [
+      0.0
+    ],
+    "REACTION_Y": [
+      0.0
+    ],
+    "REACTION_Z": [
+      0.0
+    ]
+  },
+  "NODE_17": {
+    "REACTION_X": [
+      0.0
+    ],
+    "REACTION_Y": [
+      0.0
+    ],
+    "REACTION_Z": [
+      0.0
+    ]
+  }
+}
