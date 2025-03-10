@@ -12,6 +12,7 @@
 //
 
 #include "stress_strain_utilities.h"
+#include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "utilities/math_utils.h"
@@ -200,20 +201,19 @@ void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStres
         return rPrincipalStressVector[j] < rPrincipalStressVector[i];
     });
 
-    std::vector<double> tmp_vector;
-    tmp_vector.reserve(rPrincipalStressVector.size());
-    for (const auto index : indices) {
-        tmp_vector.push_back(rPrincipalStressVector[index]);
-    }
-    std::copy(tmp_vector.begin(), tmp_vector.end(), rPrincipalStressVector.begin());
+    std::vector<double> principal_stress_vector(rPrincipalStressVector.size());
+    std::copy(rPrincipalStressVector.begin(), rPrincipalStressVector.end(), principal_stress_vector.begin());
+    principal_stress_vector = GenericUtilities::ApplyPermutation<double>(principal_stress_vector, indices);
+    std::copy(principal_stress_vector.begin(), principal_stress_vector.end(), rPrincipalStressVector.begin());
 
-    Matrix tmp_matrix(rEigenVectorsMatrix.size1(), rEigenVectorsMatrix.size2());
-    for (auto i = std::size_t{0}; i < rEigenVectorsMatrix.size1(); ++i) {
-        for (auto j = std::size_t{0}; j < rEigenVectorsMatrix.size2(); ++j) {
-            tmp_matrix(i, j) = rEigenVectorsMatrix(i, indices[j]);
-        }
+    std::vector<Vector> eigenvectors_matrix(rEigenVectorsMatrix.size2());
+    for (std::size_t i = 0; i < rEigenVectorsMatrix.size2(); ++i) {
+        eigenvectors_matrix[i] = column(rEigenVectorsMatrix, i);
     }
-    rEigenVectorsMatrix = tmp_matrix;
+    eigenvectors_matrix = GenericUtilities::ApplyPermutation<Vector>(eigenvectors_matrix, indices);
+    for (std::size_t i = 0; i < rEigenVectorsMatrix.size2(); ++i) {
+        column(rEigenVectorsMatrix, i) = eigenvectors_matrix[i];
+    }
 }
 
 Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
