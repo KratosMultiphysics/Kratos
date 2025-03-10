@@ -136,19 +136,13 @@ class FaceAngleResponse(ResponseFunction):
         pass
 
     def Finalize(self) -> None:
-        print("face_angle_response.py :: Finalize")
-        # pass
+        pass
 
     def CalculateValue(self) -> float:
-        # import pdb
-        # pdb.set_trace()
         self.value = KratosOA.ResponseUtils.FaceAngleResponseUtils.CalculateValue(self.model_part, self.consider_only_initially_feasible, self.main_direction, self.min_angle)
         return self.value
     
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
-        print("face_angle_response.py :: CalculateGradient")
-        # import pdb
-        # pdb.set_trace()
 
         # first merge all the model parts # not necessary for face angle?
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
