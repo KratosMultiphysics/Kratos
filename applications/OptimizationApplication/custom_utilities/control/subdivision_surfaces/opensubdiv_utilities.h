@@ -337,7 +337,13 @@ void RefineGeometry(
             // NodeTypePointer p_node = p_new_nodes_container->GetContainer().at(node_index);
             // node_array.push_back(p_node);
         }
-        Properties::Pointer p_property = rOutput.pGetProperties(0);
+        Properties::Pointer p_property;
+        if (rOutput.HasProperties(0)) {
+            p_property = rOutput.pGetProperties(0);
+        }
+        else {
+            p_property = rOutput.CreateNewProperties(0);
+        }
         // KRATOS_INFO("OPENSUBDIV_UTILS :: RefineGeometry :: create condition with id and nodes") << node_indices << std::endl;
         rOutput.CreateNewCondition(condition_name, kratos_face_index, node_indices, p_property);
         LevelMapOsdFaceToKratosCondIds[osd_face_idx] = kratos_face_index;
