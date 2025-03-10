@@ -684,6 +684,189 @@ namespace Kratos
         }
     };
 
+    void ModifiedShapeFunctions::ComputeFaceValuesOnOneSide(
+        Matrix &rInterfaceShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
+        Vector &rInterfaceWeightsValues,
+        const IndexedPointGeometryPointerType &rInterface,
+        const IndexedPointGeometryPointerType &rParentGeometry,
+        const Matrix &rPmatrix,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        // Set some auxiliar variables
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();                         // Pointer to the input geometry
+        const unsigned int n_nodes = p_input_geometry->PointsNumber();                           // Split geometry number of nodes
+        const unsigned int n_edges = p_input_geometry->EdgesNumber();                            // Number of edges in original geometry
+        const unsigned int split_edges_size = n_edges + n_nodes;                                 // Split edges vector size
+        const unsigned int n_dim = rParentGeometry->WorkingSpaceDimension();                                 // Number of dimensions
+        //const unsigned int n_int_pts = rInterface->IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
+        ////////
+        unsigned int temp_n_int_pts = rInterface->IntegrationPointsNumber(IntegrationMethod);
+        if(n_dim < 3) { // Modified: Handling 2D point case by forcing one integration point
+            temp_n_int_pts = 1; // Set one integration point manually for 2D contact line (point)
+        }
+        const unsigned int n_int_pts = temp_n_int_pts;
+        std::cout << "Number of integration points: " << n_int_pts << std::endl;
+        ////////
+
+        // Resize the shape function values matrix
+        if (rInterfaceShapeFunctionsValues.size1() != n_int_pts) {
+            rInterfaceShapeFunctionsValues.resize(n_int_pts, n_nodes, false);
+        } else if (rInterfaceShapeFunctionsValues.size2() != n_nodes) {
+            rInterfaceShapeFunctionsValues.resize(n_int_pts, n_nodes, false);
+        }
+
+        // Resize the weights vector
+        if (rInterfaceWeightsValues.size() != n_int_pts) {
+            rInterfaceWeightsValues.resize(n_int_pts, false);
+        }
+
+        // Resize the shape functions gradients
+        if (rInterfaceShapeFunctionsGradientsValues.size() != n_int_pts) {
+            rInterfaceShapeFunctionsGradientsValues.resize(n_int_pts, false);
+        }
+
+        // Compute each Gauss pt. shape functions values
+        const IndexedPointGeometryType& r_interface_geom = *rInterface;
+        IndexedPointGeometryType& r_parent_geom = *rParentGeometry;
+
+        std::vector < CoordinatesArrayType > interface_gauss_pts_gl_coords, interface_gauss_pts_loc_coords;
+        interface_gauss_pts_gl_coords.clear();
+        interface_gauss_pts_loc_coords.clear();
+        interface_gauss_pts_gl_coords.reserve(n_int_pts);
+        interface_gauss_pts_loc_coords.reserve(n_int_pts);
+
+        // Get the intersection Gauss points coordinates
+        IntegrationPointsArrayType interface_gauss_pts;
+        interface_gauss_pts = r_interface_geom.IntegrationPoints(IntegrationMethod);
+
+        // Get the intersection Jacobians values
+        Vector intersection_jacobians;
+        r_interface_geom.DeterminantOfJacobian(intersection_jacobians, IntegrationMethod);
+
+        ////////
+        if(n_int_pts == 1) { // Modified: Create a dummy integration point for the 2D point case
+            CoordinatesArrayType contact_coords = r_interface_geom[0].Coordinates();
+            IntegrationPointType dummy_ip(contact_coords, 1.0);
+            interface_gauss_pts.push_back(dummy_ip);
+            std::cout << "interface_gauss_pts: " << interface_gauss_pts << std::endl;
+        }
+        std::cout << "r_interface_geom: " << r_interface_geom << std::endl;
+        std::cout << "Jacobian Determinants: " << intersection_jacobians << std::endl;
+        ////////
+
+        // Get the original geometry shape function and gradients values over the intersection
+        for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+            // Store the Gauss points weights
+            CoordinatesArrayType global_coords = ZeroVector(3);
+            if (n_int_pts > 1){
+                rInterfaceWeightsValues(i_gauss) = intersection_jacobians(i_gauss) * interface_gauss_pts[i_gauss].Weight();
+                // Compute the global coordinates of the intersection Gauss pt.
+                global_coords = r_interface_geom.GlobalCoordinates(global_coords, interface_gauss_pts[i_gauss].Coordinates());
+            }
+            else {
+                rInterfaceWeightsValues(i_gauss) = 1.0;
+                global_coords = r_interface_geom[0].Coordinates();
+            }
+            std::cout << "rInterfaceWeightsValues(i_gauss) = " << rInterfaceWeightsValues(i_gauss) << std::endl;
+
+            // Compute the parent geometry local coordinates of the intersection Gauss pt.
+            CoordinatesArrayType loc_coords = ZeroVector(3);
+            loc_coords = r_parent_geom.PointLocalCoordinates(loc_coords, global_coords);
+        
+            // Compute shape function values
+            // 1. Obtain the parent subgeometry shape function values
+            // 2. Expand them according to the split edges vector
+            // 3. Contract them again using P matrix to get the values over the input geometry
+            double det_jac;
+            Vector aux_sh_func, aux_sh_func_cond;
+
+            aux_sh_func = r_parent_geom.ShapeFunctionsValues(aux_sh_func, loc_coords);
+            Vector aux_sh_func_exp = ZeroVector(split_edges_size);
+            for (unsigned int i = 0; i < n_nodes; ++i) {
+                aux_sh_func_exp(r_parent_geom[i].Id()) = aux_sh_func(i);
+            }
+            aux_sh_func_cond = prod(trans(rPmatrix),aux_sh_func_exp);
+            std::cout << "aux_sh_func_exp: " <<aux_sh_func_exp;
+            std::cout << "rPmatrix: " <<rPmatrix;
+            std::cout << "aux_sh_func_cond: " <<aux_sh_func_cond;
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                rInterfaceShapeFunctionsValues(i_gauss, i_node) = aux_sh_func_cond(i_node);
+            }
+
+            // Compute gradient values
+            // 1. Obtain the parent subgeometry shape function gradients local values
+            // 2. Get the subgeometry shape function gradients global values by multiplying the inverse Jacobian
+            // 3. Expand them according to the split edges vector
+            // 4. Contract them again using P matrix to get the values over the input geometry
+            Matrix aux_grad_sh_func, aux_grad_sh_func_cond, aux_grad_sh_func_local, jac_mat, inv_jac_mat;
+            aux_grad_sh_func_local = r_parent_geom.ShapeFunctionsLocalGradients(aux_grad_sh_func_local, loc_coords);
+            jac_mat = r_parent_geom.Jacobian(jac_mat, loc_coords);
+            MathUtils<double>::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
+            aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat);
+
+            Matrix aux_grad_sh_func_exp = ZeroMatrix(n_dim, split_edges_size);
+            for (unsigned int dim = 0; dim < n_dim; ++dim ) {
+                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                    aux_grad_sh_func_exp(dim, r_parent_geom[i_node].Id()) = aux_grad_sh_func(i_node, dim);
+                }
+            }
+
+            aux_grad_sh_func_cond = prod(aux_grad_sh_func_exp, rPmatrix);
+            rInterfaceShapeFunctionsGradientsValues[i_gauss] = trans(aux_grad_sh_func_cond);
+
+            ////////
+            interface_gauss_pts_loc_coords.push_back(loc_coords);
+            interface_gauss_pts_gl_coords.push_back(global_coords);
+            ////////
+
+        }
+
+        ////////
+        std::cout << "Local Gauss Points Coordinates:" << std::endl;
+        for (unsigned int i = 0; i < interface_gauss_pts_loc_coords.size(); ++i) {
+            std::cout << "Gauss Point " << i << ": " << interface_gauss_pts_loc_coords[i] << std::endl;
+        }
+
+        std::cout << "Global Gauss Points Coordinates:" << std::endl;
+        for (unsigned int i = 0; i < interface_gauss_pts_gl_coords.size(); ++i) {
+            std::cout << "Gauss Point " << i << ": " << interface_gauss_pts_gl_coords[i] << std::endl;
+        }
+        // check that if sum of the shape functions is zero or not
+        for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+            double sum_shape_funcs = 0.0;
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                sum_shape_funcs += rInterfaceShapeFunctionsValues(i_gauss, i_node);
+            }
+            std::cout << "Sum of shape functions at integration point " << i_gauss << ": " << sum_shape_funcs << std::endl;
+        }
+
+        // Print shape function values at gauss points
+        for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+            std::cout << "Shape functions at integration point " << i_gauss << ": ";
+    
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                std::cout << rInterfaceShapeFunctionsValues(i_gauss, i_node) << " ";
+            }
+    
+            std::cout << std::endl;
+        }
+
+        for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+            Vector gradient_sum = ZeroVector(n_dim);
+    
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                for (unsigned int d = 0; d < n_dim; ++d) {
+                    gradient_sum[d] += rInterfaceShapeFunctionsGradientsValues[i_gauss](i_node, d);
+                }
+            }
+
+            std::cout << "Gradient sum at integration point " << i_gauss << ": " << gradient_sum << std::endl;
+        } 
+        ////////
+
+    };
+
     // Given the interfaces pattern of either the positive or negative interface side, computes the outwards area normal vector
     void ModifiedShapeFunctions::ComputeFaceNormalOnOneSide(
         AreaNormalsContainerType& rInterfaceAreaNormalValues,

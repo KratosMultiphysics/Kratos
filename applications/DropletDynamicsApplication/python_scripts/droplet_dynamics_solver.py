@@ -78,6 +78,10 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                     "cross_wind_stabilization_factor" : 0.7
                 }
             },
+            "contact_angle_settings": {
+                "theta_advancing" : 130,
+                "theta_receding" : 130
+            },                                               
             "distance_reinitialization": "variational",
             "parallel_redistance_max_layers" : 25,
             "distance_smoothing": false,
@@ -218,7 +222,24 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
-
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.DISTANCE_AUX)                   # Auxiliary distance function nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.DISTANCE_AUX2)                  # Auxiliary distance function nodal values       
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.DISTANCE_GRADIENT_AUX)          # Auxiliary Distance gradient nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONVECTIVE_VELOCITY)            # Store conctive velocity for level-set process
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CURVATURE)                      # Store curvature as a nodal variable
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.AREA_VARIABLE_AUX)              # Auxiliary area_variable for parallel distance calculator
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.NORMAL_VECTOR)                  # Auxiliary normal vector at interface
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.TANGENT_VECTOR)                 # Auxiliary tangent vector at contact line
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONTACT_VECTOR)                 # Auxiliary contact vector
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONTACT_ANGLE)                  # Contact angle (may not be needed at nodes)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONTACT_VECTOR_MICRO)           # Auxiliary contact vector at micro-scale
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONTACT_ANGLE_MICRO)            # Contact angle (micro-scale)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONTACT_VELOCITY)               # Contact line tangential velocity (normal to the contact-line)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.VELOCITY_STAR)                  # Last known velocity
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.PRESSURE_STAR)                  # Last known pressure
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.PRESSURE_GRADIENT_AUX)          # Pressure gradient on positive and negative sides
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_VELOCITY)
 
     def PrepareModelPart(self):
         # Restarting the simulation is OFF (needs a careful implementation)
@@ -334,6 +355,15 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         self._GetDistanceGradientProcess().Execute()
         # curvature is calculated using nodal distance gradient
         self._GetDistanceCurvatureProcess().Execute()
+
+        # Contact angle calculation
+        self._GetContactAngleEvaluatorProcess().Execute()
+        # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
+        for node in self.main_model_part.Nodes:
+            old_distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            node.SetValue(KratosDroplet.DISTANCE_AUX, old_distance)
+        print("Contact Angle Evaluator: Finished")
+
         # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
         self._GetConsistentNodalPressureGradientProcess().Execute()
 
@@ -887,6 +917,18 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                 self.main_model_part)
 
         return consistent_nodal_pressure_gradient_process
+    
+    def _GetContactAngleEvaluatorProcess(self):
+        if not hasattr(self, '_distance_curvature_process'):
+            self._distance_curvature_process = self._CreateContactAngleEvaluatorProcess()
+        return self._distance_curvature_process
+
+    def _CreateContactAngleEvaluatorProcess(self):
+        contact_angle_settings = self.settings["contact_angle_settings"]
+        contact_angle_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["contact_angle_settings"])
+        contact_angle_evaluator = KratosDroplet.ContactAngleEvaluatorProcess(self.main_model_part, contact_angle_settings)
+
+        return contact_angle_evaluator
 
 
 

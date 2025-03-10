@@ -23,7 +23,11 @@ namespace Kratos
     /// Default constructor
     template<class TPointType>
     DivideTriangle2D3<TPointType>::DivideTriangle2D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances) :
-        DivideGeometry<TPointType>(rInputGeometry, rNodalDistances) {};
+        DivideGeometry<TPointType>(rInputGeometry, rNodalDistances), m_structure_node_id(Vector()) {};
+
+    template<class TPointType>
+    DivideTriangle2D3<TPointType>::DivideTriangle2D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances, const Vector& rStructureNodes) :
+        DivideGeometry<TPointType>(rInputGeometry, rNodalDistances), m_structure_node_id(rStructureNodes) {};
 
     /// Destructor
     template<class TPointType>
@@ -93,6 +97,11 @@ namespace Kratos
             this->mAuxPointsContainer.clear();
             this->mAuxPointsContainer.reserve(6);
 
+            // Store the contact line node (IDs), DEPRECATED: only 1 ID is expected
+            std::vector<int> contact_point_node_ids;
+
+            this->mContactFace.clear();
+
             // Clear the subdivision vectors
             this->mPositiveSubdivisions.clear();
             this->mNegativeSubdivisions.clear();
@@ -135,9 +144,40 @@ namespace Kratos
                     // Add the intersection point to the auxiliar points array
                     IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
                     this->mAuxPointsContainer.push_back(paux_point);
+
+                    if ( m_structure_node_id(edge_node_i) == 1.0 && m_structure_node_id(edge_node_j) == 1.0 ){
+                        //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") << idedge + n_nodes << ", " << aux_node_id << std::endl;
+                        contact_point_node_ids.push_back(aux_node_id);
+                        this->mContactPoint.push_back(paux_point);
+                        
+                        // Create a PointerVector with the single point
+                        Kratos::PointerVector<Kratos::IndexedPoint> point_vector;
+                        point_vector.push_back(paux_point);
+    
+                        // Create the geometry with the points vector
+                        auto geometry_point = Kratos::make_shared<Kratos::Geometry<Kratos::IndexedPoint>>(point_vector);
+
+                        this->mContactLine.push_back(geometry_point);
+
+                        this->mContactFace.push_back(idedge);
+                        std::cout << "contact_point_node_id: " << aux_node_id << "  contact_line_node_cords: "<< paux_point->Coordinates();
+                    }
                 }
 
                 aux_node_id++;
+            }
+
+            if (!contact_point_node_ids.empty()) {
+            std::cout << "contact_line_node_ids: " << contact_point_node_ids ;
+                for (const auto& contact_point : this->mContactPoint) {
+                   std::cout << " contact_line_node_cords: " << contact_point->Coordinates();
+                    }}
+            if (!contact_point_node_ids.empty()) {
+                std::cout << "contact_line_node_ids: " << contact_point_node_ids;
+                for (const auto& geometry_point : this->mContactLine) {
+                    const auto& point = geometry_point->Points()[0];
+                    std::cout << " contact_line_node_cords2: " << point.Coordinates();
+                }
             }
 
             // Call the splitting mode computation function
@@ -250,6 +290,22 @@ namespace Kratos
                         IndexedPointGeometryPointerType p_intersection_line = this->GenerateIntersectionLine(node_i_key ,node_j_key);
                         this->mNegativeInterfaces.push_back(p_intersection_line);
                         this->mNegativeInterfacesParentIds.push_back(i_subdivision);
+
+                        //////////
+                        KRATOS_INFO("DivideTriangle2D3::GenerateDivision()") <<  "mContactFace.size=" << this->mContactFace.size() << std::endl;
+                        KRATOS_INFO("DivideTriangle2D3::GenerateDivision()") <<  "mContactPoint.size" << this->mContactPoint.size() << std::endl;
+                        //////////
+
+                        // if (mContactFace.size() > 0){
+                        if (this->mContactFace.size() > 0){
+
+                            for (unsigned int i_contact = 0; i_contact < this->mContactFace.size(); i_contact++){
+
+                                this->mContactInterface.push_back( this->mNegativeInterfaces.size() - 1 );
+                                KRATOS_INFO("this->mNegativeInterfaces.size()") <<  this->mNegativeInterfaces.size() << std::endl;
+                            }
+                        }
+                        KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactInterface.size()=" << this->mContactInterface.size() << "mContactEdge.size()="<< this->mContactEdge.size()<<std::endl; 
 
                         // In triangles, a unique face can belong to the interface
                         break;

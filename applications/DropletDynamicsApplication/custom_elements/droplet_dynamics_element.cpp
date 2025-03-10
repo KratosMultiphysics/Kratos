@@ -13,6 +13,7 @@
 #include "droplet_dynamics_element.h"
 #include "droplet_dynamics_application_variables.h"
 #include "../../FluidDynamicsApplication/custom_utilities/two_fluid_navier_stokes_data.h"
+#define PI 3.14159265358979
 
 namespace Kratos
 {
@@ -83,15 +84,106 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
+        const double zeta = 5.0e-1;//1.0;//0.7;//
+        const double surface_tension_coefficient = 0.072;//0.0;
+        
+        const double theta_advancing = 127.0 * PI / 180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
+        const double theta_receding = 133.0 * PI / 180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
+
+        const double micro_length_scale = 1.0e-9;
+
+        //this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
+        this->SetValue(CONTACT_VELOCITY, 0.0); // Initialize the contact line velocity
+        const unsigned int num_dim = NumNodes - 1;
+        const VectorType zero_vector = ZeroVector(num_dim);
+        GeometryType::Pointer p_geom = this->pGetGeometry();
+
+        for (unsigned int i=0; i < NumNodes; ++i){
+
+            #pragma omp critical
+            {
+            // (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = zero_vector;
+            (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = zero_vector;
+            (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = zero_vector;
+
+            /* if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
+                (*p_geom)[i].Fix(DISTANCE);
+            } */
+            }
+        }
+
         if (data.IsCut()){
             GeometryType::Pointer p_geom = this->pGetGeometry();
             Matrix shape_functions_pos, shape_functions_neg;
             Matrix shape_functions_enr_pos, shape_functions_enr_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos, shape_derivatives_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos, shape_derivatives_enr_neg;
+            Matrix int_shape_function;            
+            Matrix int_shape_function_enr_neg;
+            Matrix int_shape_function_enr_pos;
+            GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
+            GeometryType::ShapeFunctionsGradientsType int_shape_derivatives_neg;
+            Kratos::Vector int_gauss_pts_weights;
+            std::vector<array_1d<double,3>> int_normals_neg;//std::vector<Vector> 
+            Kratos::Vector gauss_pts_curvature;
+            std::vector<MatrixType> contact_shape_function_neg;                                  //std::vector for multiple contact lines
+            std::vector<GeometryType::ShapeFunctionsGradientsType> contact_shape_derivatives_neg;//std::vector for multiple contact lines
+            std::vector<Kratos::Vector> contact_gauss_pts_weights;                                //std::vector for multiple contact lines
+            std::vector<Vector> contact_tangential_neg;                                          //std::vector for multiple contact lines
+            //std::vector<Vector> contact_vector;                                                  //std::vector for multiple contact lines
 
-            ModifiedShapeFunctions::Pointer p_modified_sh_func = pGetModifiedShapeFunctionsUtility(p_geom, data.Distance);
+            // //////////
+            // const Vector& structure_node_id;
+            // //////////
 
+            // ////////// por shavad
+            // for (unsigned int i_node = 0; i_node < NumNodes; i_node++){
+            //     //if ((*p_geometry)[i_node].GetValue(IS_STRUCTURE) == 1.0 ){
+            //     if ((*p_geom)[i_node].Is(BOUNDARY) == 1.0 ){
+            //         structure_node_id.push_back(i_node);
+            //         KRATOS_INFO("two fluids NS") << " OKOKOKOKOKOKOKOKOKOKOKOKOKOK2222222222222222222222222" << std::endl;
+            //     }
+            // }
+            // //////////
+
+            // //////////
+            // Vector structure_node_id = ZeroVector(NumNodes); // Initialize with max possible size
+            // unsigned int counter = 0; // To keep track of actual number of structure nodes
+            // //////////
+
+            // ////////// por shavad
+            // for (unsigned int i_node = 0; i_node < NumNodes; i_node++) {
+            //     if ((*p_geom)[i_node].Is(BOUNDARY)) {
+            //         structure_node_id[counter] = i_node;
+            //         counter++;
+            //         KRATOS_INFO("two fluids NS") << " OKOKOKOKOKOKOKOKOKOKOKOKOKOK2222222222222222222222222" << std::endl;
+            //     }
+            // }
+
+            // if (counter < NumNodes) {
+            //     Vector temp = structure_node_id;
+            //     structure_node_id.resize(counter);
+            //     for (unsigned int i = 0; i < counter; i++) {
+            //         structure_node_id[i] = temp[i];
+            //     }
+            // }
+            // //////////
+
+            //////////
+            Vector structure_node_id = ZeroVector(NumNodes);
+            //////////
+            for (unsigned int i_node = 0; i_node < NumNodes; i_node++) {
+                if ((*p_geom)[i_node].Is(BOUNDARY)) {
+                    structure_node_id[i_node] = 1.0;
+                }
+            }
+            //////////
+
+            // ModifiedShapeFunctions::Pointer p_modified_sh_func = pGetModifiedShapeFunctionsUtility(p_geom, data.Distance);
+            //////////
+            ModifiedShapeFunctions::Pointer p_modified_sh_func = pGetModifiedShapeFunctionsUtility(p_geom, data.Distance, structure_node_id);
+            //////////
+            
             ComputeSplitting(
                 data,
                 shape_functions_pos,
@@ -107,6 +199,9 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
             if (data.NumberOfDivisions == 1){
                 // Cases exist when the element is not subdivided due to the characteristics of the provided distance
                 // In this cases the element is treated as AIR or FLUID depending on the side
+
+                KRATOS_INFO("Cut Element") << "NumberOfDivisions == 1" << std::endl;
+
                 Vector gauss_weights;
                 Matrix shape_functions;
                 ShapeFunctionDerivativesArrayType shape_derivatives;
@@ -158,25 +253,28 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
                     this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
-                Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
-                GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
-                Vector int_gauss_pts_weights;
-                std::vector< array_1d<double,3> > int_normals_neg;
-
+                // Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
+                // GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
+                // Vector int_gauss_pts_weights;
+                // std::vector< array_1d<double,3> > int_normals_neg;
+                
                 // Surface tension is by default ON for droplet dynamics application
-                /* if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]) */{
-                    ComputeSplitInterface(
-                        data,
-                        int_shape_function,
-                        int_shape_function_enr_pos,
-                        int_shape_function_enr_neg,
-                        int_shape_derivatives,
-                        int_gauss_pts_weights,
-                        int_normals_neg,
-                        p_modified_sh_func);
-                }
+                /* if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]){ */
+                ComputeSplitInterface(
+                    data,
+                    int_shape_function,
+                    int_shape_function_enr_pos,
+                    int_shape_function_enr_neg,
+                    int_shape_derivatives,
+                    int_gauss_pts_weights,
+                    int_normals_neg,
+                    p_modified_sh_func,
+                    contact_shape_function_neg,
+                    contact_shape_derivatives_neg,
+                    contact_gauss_pts_weights,
+                    contact_tangential_neg);
 
-                /* if (rCurrentProcessInfo[MOMENTUM_CORRECTION]) */{
+                /* if (rCurrentProcessInfo[MOMENTUM_CORRECTION]) {*/
                     BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize,LocalSize);
 
                     double positive_density = 0.0;
@@ -218,10 +316,12 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
                         }
                     }
                     noalias(rRightHandSideVector) -= prod(lhs_acc_correction,tempU);
-                }
+                // }
+
+                
 
                 // Surface tension is by default ON for droplet dynamics application
-                /* if (rCurrentProcessInfo[SURFACE_TENSION]) */{
+                /* if (rCurrentProcessInfo[SURFACE_TENSION]) {*/
 
                     AddSurfaceTensionContribution(
                         data,
@@ -236,10 +336,16 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
                         Htot,
                         Vtot,
                         Kee_tot,
-                        rhs_ee_tot
-                    );
+                        rhs_ee_tot,                       
+                        theta_advancing,
+                        theta_receding,
+                        zeta,
+                        micro_length_scale,
+                        contact_gauss_pts_weights,
+                        contact_shape_function_neg,
+                        contact_tangential_neg);
 
-                } /* else{
+                /*}  else{
                     // Without pressure gradient stabilization, volume ratio is checked during condensation
                     // Also, without surface tension, zero pressure difference is penalized
                     // Surface tension is by default ON for droplet dynamics application
@@ -284,6 +390,8 @@ int DropletDynamicsElement<TElementData>::Check(const ProcessInfo &rCurrentProce
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
+
+    // KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
 
     return 0;
 
@@ -1934,7 +2042,11 @@ void DropletDynamicsElement<TElementData>::ComputeSplitInterface(
     GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
     Vector& rInterfaceWeightsNeg,
     std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
-    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
+    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+    std::vector<MatrixType>& rContactShapeFunctionNeg,
+    std::vector<GeometryType::ShapeFunctionsGradientsType>& rContactShapeDerivativesNeg,
+    std::vector<Kratos::Vector>& rContactWeightsNeg,
+    std::vector<Vector>& rContactTangentialsNeg)
 {
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
@@ -1967,23 +2079,104 @@ void DropletDynamicsElement<TElementData>::ComputeSplitInterface(
     // Compute the enrichment shape function values at the interface gauss points using the enrichment interpolation matrices
     rEnrInterfaceShapeFunctionPos = prod(rInterfaceShapeFunctionNeg, enr_pos_interp);
     rEnrInterfaceShapeFunctionNeg = prod(rInterfaceShapeFunctionNeg, enr_neg_interp);
+
+    std::vector<unsigned int> contact_line_faces;
+    std::vector<unsigned int> contact_line_indices;
+
+    /* rHasContactLine = */ pModifiedShapeFunctions->ComputeNegativeSideContactLineVector(contact_line_faces, rContactTangentialsNeg);
+    // rContactTangentialsNeg is normalized in ComputeNegativeSideContactLineVector
+    
+    //KRATOS_INFO("size of contact_line_faces") << contact_line_faces.size() << std::endl;
+    //KRATOS_INFO("size of rContactTangentialsNeg") << rContactTangentialsNeg.size() << std::endl;
+
+    auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+
+    ///////
+    KRATOS_INFO("Debug") << "neighbour_elems size: " << neighbour_elems.size() << std::endl;
+    for (size_t i = 0; i < neighbour_elems.size(); ++i) {
+        if (neighbour_elems(i).get() == nullptr){
+            KRATOS_INFO("Debug") << "The face is boundary: " << i << std::endl;
+        }
+
+}
+    //////
+
+    for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
+
+        /* auto faces = (this->pGetGeometry())->Faces();
+        GeometryType& r_face = faces[ contact_line_faces[i_cl] ];
+        for (unsigned int i_face_node = 0; i_face_node < 3; i_face_node++){
+            KRATOS_WATCH(r_face[0].Coordinates())
+        } */
+         
+        KRATOS_INFO("Elemntal_Id") << this->Id() << std::endl;
+        //////////////////
+        //KRATOS_INFO("contact_line_faces[i_cl]") << contact_line_faces[i_cl] << std::endl;
+        //KRATOS_INFO("neighbour_elems[ contact_line_faces[i_cl] ]") << neighbour_elems[ 3 ] << std::endl;
+        //KRATOS_INFO("neighbour_elems[ contact_line_faces[i_cl] ]") << neighbour_elems[ contact_line_faces[i_cl] ] << std::endl;
+        //////////////////
+
+        //if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
+            contact_line_indices.push_back(i_cl);
+        //}
+    }
+
+    //KRATOS_INFO("Size of contact_line_indices") << contact_line_indices.size() << std::endl;
+
+    /* double tangent_norm = 0.0;
+    for (unsigned int dim = 0; dim < Dim; dim++){
+        tangent_norm += rContactTangentialsNeg[dim]*rContactTangentialsNeg[dim];
+    }
+    tangent_norm = std::sqrt(tangent_norm);
+    for (unsigned int dim = 0; dim < Dim; dim++){
+        rContactTangentialsNeg[dim] = rContactTangentialsNeg[dim]/tangent_norm;
+    } */
+
+    //if (rHasContactLine){ // HERE: HAS CONTACT LINE == contact_line_indices.size() > 0: no need for an explicit check
+                          // ELSEWHERE: HAS CONTACT LINE == rContactWeightsNeg.size() > 0
+        // Call the Contact Line negative side shape functions calculator
+        pModifiedShapeFunctions->ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+            contact_line_indices, //ADDED
+            rContactShapeFunctionNeg,
+            rContactShapeDerivativesNeg,
+            rContactWeightsNeg,
+            GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
+// template <>
+// ModifiedShapeFunctions::UniquePointer DropletDynamicsElement< TwoFluidNavierStokesData<2, 3> >::pGetModifiedShapeFunctionsUtility(
+//     const GeometryType::Pointer pGeometry,
+//     const Vector& rDistances)
+// {
+//     // return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+// }
+
+// template <>
+// ModifiedShapeFunctions::UniquePointer DropletDynamicsElement< TwoFluidNavierStokesData<3, 4> >::pGetModifiedShapeFunctionsUtility(
+//         const GeometryType::Pointer pGeometry,
+//         const Vector& rDistances)
+// {
+//     return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
+// }
+//////////
 template <>
 ModifiedShapeFunctions::UniquePointer DropletDynamicsElement< TwoFluidNavierStokesData<2, 3> >::pGetModifiedShapeFunctionsUtility(
     const GeometryType::Pointer pGeometry,
-    const Vector& rDistances)
+    const Vector& rDistances,
+    const Vector& structure_node_id)
 {
-    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances, structure_node_id);
 }
 
 template <>
 ModifiedShapeFunctions::UniquePointer DropletDynamicsElement< TwoFluidNavierStokesData<3, 4> >::pGetModifiedShapeFunctionsUtility(
-        const GeometryType::Pointer pGeometry,
-        const Vector& rDistances)
+    const GeometryType::Pointer pGeometry,
+    const Vector& rDistances,
+    const Vector& structure_node_id)
 {
-    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
+    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances, structure_node_id);
 }
+//////////
 
 template <class TElementData>
 void DropletDynamicsElement<TElementData>::CalculateCurvatureOnInterfaceGaussPoints(
@@ -2028,6 +2221,272 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
             }
         }
     }
+}
+
+template <class TElementData>
+void DropletDynamicsElement<TElementData>::SurfaceTension(
+    const TElementData& rData,
+    const double coefficient,
+    const double theta_advancing,
+    const double theta_receding,
+    const double zeta,
+    const double micro_length_scale,
+    const Kratos::Vector& rCurvature,
+    const Kratos::Vector& rIntWeights,
+    const Matrix& rIntShapeFunctions,
+    const std::vector< array_1d<double, 3> >& rIntNormalsNeg,//const std::vector<Vector>&
+    const std::vector<Kratos::Vector>& rCLWeights,
+    const std::vector<Matrix>& rCLShapeFunctions,
+    const std::vector<Vector>& rTangential,
+    MatrixType& rLHS,
+    VectorType& rRHS)
+{
+    const unsigned int NumIntGP = rIntShapeFunctions.size1();
+    const unsigned int NumNodes = rIntShapeFunctions.size2();
+    //const unsigned int NumDim = rIntNormalsNeg[0].size();
+
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+
+    double positive_density = 0.0;
+    double negative_density = 0.0;
+    double positive_viscosity = 0.0;
+    double negative_viscosity = 0.0;
+
+    for (unsigned int i = 0; i < NumNodes; i++){
+        if (rData.Distance[i] > 0.0){
+            positive_density = rData.NodalDensity[i];
+            positive_viscosity = rData.NodalDynamicViscosity[i];
+        } else /* if (rData.Distance[i] < 0.0) */{
+            negative_density = rData.NodalDensity[i];
+            negative_viscosity = rData.NodalDynamicViscosity[i];
+        }
+    }
+
+    VectorType rhs = ZeroVector(NumNodes*(Dim+1));
+
+    Vector tempU = ZeroVector(NumNodes*(Dim+1)); // Only velocity
+    for (unsigned int i = 0; i < NumNodes; i++){
+        for (unsigned int dimi = 0; dimi < Dim; dimi++){
+            tempU[i*(Dim+1) + dimi] = rData.Velocity(i,dimi);
+        }
+    }
+
+    for (unsigned int i_cl = 0; i_cl < rCLWeights.size(); i_cl++){
+        MatrixType lhs_dissipation = ZeroMatrix(NumNodes*(Dim+1),NumNodes*(Dim+1));
+
+        Vector contact_vector_macro = ZeroVector(Dim);
+        Vector contact_vector_micro = ZeroVector(Dim);
+        Vector wall_tangent = ZeroVector(Dim);
+        Vector wall_normal_gp = ZeroVector(Dim);
+        Vector velocity_gp = ZeroVector(Dim);
+        double contact_velocity = 0.0;
+        double contact_angle_macro = 0.0;
+        double contact_angle_micro = 0.0;
+
+        array_1d<double, 3> normal_avg = ZeroVector(Dim);//Vector
+        for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
+            normal_avg += rIntWeights(intgp)*rIntNormalsNeg[intgp];
+        }
+        normal_avg /= norm_2(normal_avg);
+
+        const double effective_density = 0.5*(positive_density + negative_density);
+        const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
+
+        const unsigned int NumCLGP = (rCLShapeFunctions[i_cl]).size1();
+        MathUtils<double>::UnitCrossProduct(contact_vector_macro, rTangential[i_cl], normal_avg);
+        ////////
+        std::cout<<"normal_avg = "<<normal_avg<<std::endl<<"rTangential[i_cl] = "<<rTangential[i_cl]<<std::endl<<"contact_vector_macro = "<<contact_vector_macro<<std::endl;
+        ////////
+
+        double weight_sum = 0.0;
+        for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+            weight_sum += (rCLWeights[i_cl])[clgp];
+
+            wall_normal_gp = ZeroVector(Dim);
+            velocity_gp = ZeroVector(Dim);
+            double avg_contact_angle = 0.0;
+            double distance_diff_gp = 0.0;
+            for (unsigned int j = 0; j < NumNodes; j++){
+                wall_normal_gp += (rCLShapeFunctions[i_cl])(clgp,j)
+                            *(*p_geom)[j].FastGetSolutionStepValue(NORMAL);
+                velocity_gp += (rCLShapeFunctions[i_cl])(clgp,j)*
+                            (*p_geom)[j].FastGetSolutionStepValue(VELOCITY);
+                avg_contact_angle += (rCLShapeFunctions[i_cl])(clgp,j)*
+                            (*p_geom)[j].FastGetSolutionStepValue(CONTACT_ANGLE);
+
+                distance_diff_gp += (rCLShapeFunctions[i_cl])(clgp,j)*
+                            ((*p_geom)[j].FastGetSolutionStepValue(DISTANCE) - (*p_geom)[j].FastGetSolutionStepValue(DISTANCE_AUX));
+            }
+
+            MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal_gp, rTangential[i_cl]);
+
+            ////////
+            // Compute cross product
+            array_1d<double, 3> cross_product;
+            MathUtils<double>::CrossProduct(cross_product, normal_avg, wall_normal_gp);
+
+            // Compute the norm of the cross product
+            double norm_cross_product = norm_2(cross_product);
+
+            // Normalize if norm is nonzero
+            array_1d<double, 3> unit_vector = ZeroVector(3);
+            if (norm_cross_product > 1e-12) { // Avoid division by zero
+                unit_vector = cross_product / norm_cross_product;
+            }
+
+            // Debug output
+            std::cout << "Cross Product: " << cross_product << std::endl;
+            std::cout << "Unit Vector: " << unit_vector << std::endl;
+
+            // Vector comparison needs to use proper comparison method
+if (-1e-12 < unit_vector[0] && unit_vector[0] < 1e-12 && 
+    -1e-12 < unit_vector[1] && unit_vector[1] < 1e-12 && 
+    (1-1e-12) < unit_vector[2] && unit_vector[2] < (1+1e-12)) {
+    contact_vector_macro = -contact_vector_macro;
+    wall_tangent = -wall_tangent;
+}
+            ////////
+
+            const double element_size = (NumNodes == 3) ? ElementSizeCalculator<2,3>::ProjectedElementSize(*p_geom, wall_normal_gp) 
+                     : ElementSizeCalculator<3,4>::ProjectedElementSize(*p_geom, wall_normal_gp);
+
+            //const double contact_angle_macro_gp = avg_contact_angle;
+            //////// 
+            const double contact_angle_macro_gp = std::acos(inner_prod(wall_tangent,contact_vector_macro));
+            std::cout<<"contact_angle_macro_gp = "<<contact_angle_macro_gp<<std::endl<<"wall_tangent = "<<wall_tangent<<std::endl<<"wall_normal_gp = "<< wall_normal_gp<<std::endl;
+            ////////
+            double contact_angle_micro_gp = contact_angle_macro_gp;
+
+            double zeta_effective = zeta;
+
+            const double contact_velocity_gp = inner_prod(wall_tangent,velocity_gp);
+
+            //const double reynolds_number = effective_density*std::abs(contact_velocity_gp)*element_size/effective_viscosity;
+            //////////
+            //const double capilary_number = effective_viscosity*contact_velocity_gp/coefficient;
+            const double capilary_number = 0.0;
+            //////////
+
+
+            //KRATOS_INFO("two fluids NS") << "capilary_number= " << capilary_number << std::endl;
+            //KRATOS_INFO("two fluids NS") << "reynolds_number= " << reynolds_number << std::endl;
+
+            //KRATOS_INFO("two fluids NS") << "angle difference= " << std::abs(contact_angle_macro_gp - contact_angle_equilibrium)*180/PI << std::endl;
+
+            double contact_angle_equilibrium = contact_angle_macro_gp;
+
+            const int velocity_direction = (distance_diff_gp < 0.0) - (distance_diff_gp > 0.0);
+
+            if (velocity_direction <= 0 && contact_angle_macro_gp <= theta_receding){
+                contact_angle_equilibrium = theta_receding;
+            } else if (velocity_direction >= 0 && contact_angle_macro_gp >= theta_advancing){
+                contact_angle_equilibrium = theta_advancing;
+            } else {
+                contact_angle_equilibrium = contact_angle_macro_gp;
+                zeta_effective = 1.0e0*zeta;
+            }
+
+            // double contact_angle_equilibrium = theta_receding;
+            // if (contact_angle_macro_gp > contact_angle_equilibrium){
+            //     if (contact_angle_macro_gp >= theta_advancing){
+            //         contact_angle_equilibrium = theta_advancing;
+            //     } else {
+            //         contact_angle_equilibrium = contact_angle_macro_gp;
+            //         zeta_effective = 1.0e0*zeta;
+            //     }
+            // }
+
+            if ( std::abs(contact_angle_macro_gp - contact_angle_equilibrium) < 6.0e-1 &&
+                    capilary_number < 3.0e-1){
+                const double cubic_contact_angle_micro_gp = std::pow(contact_angle_macro_gp, 3.0)
+                    - 9*capilary_number*std::log(element_size/micro_length_scale);
+
+                KRATOS_WARNING_IF("TwoFluidsNS", cubic_contact_angle_micro_gp < 0.0 ||
+                                cubic_contact_angle_micro_gp > 31.0)
+                            << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
+                            << std::endl;
+
+                if (cubic_contact_angle_micro_gp > 0.0 &&
+                        cubic_contact_angle_micro_gp < std::pow(PI, 3.0)) // <= 31.0
+                    contact_angle_micro_gp = std::pow(cubic_contact_angle_micro_gp, 1.0/3.0);
+                else if (cubic_contact_angle_micro_gp <= 0.0)
+                    contact_angle_micro_gp = 0.0; //contact_angle_equilibrium;
+                else //if (cubic_contact_angle_micro_gp > 31.0)
+                    contact_angle_micro_gp = PI; //contact_angle_equilibrium;
+
+                // This relation is valid for contact_angle < 3PI/4 and vanishing Reynolds & Capillary numbers
+            }
+
+            // contact_angle_equilibrium = theta_receding;
+            // if (contact_angle_micro_gp > contact_angle_equilibrium){
+            //     if (contact_angle_micro_gp >= theta_advancing){
+            //         contact_angle_equilibrium = theta_advancing;
+            //         //KRATOS_WATCH("theta > theta_advancing")
+            //     } else {
+            //         contact_angle_equilibrium = contact_angle_micro_gp;
+            //         zeta_effective = 1.0e5*zeta;
+            //         /* for (unsigned int j = 0; j < NumNodes; j++){
+            //             if ((*p_geom)[j].GetValue(IS_STRUCTURE) == 1.0){
+            //                 #pragma omp critical
+            //                 (*p_geom)[j].Fix(DISTANCE);
+            //                 //KRATOS_WATCH(j)
+            //             }
+            //         } */
+            //     }
+            // } //else {
+            //     //KRATOS_WATCH("theta < theta_receding")
+            // //}
+
+            const double coefficientS = coefficient*std::cos(contact_angle_equilibrium);
+
+            //KRATOS_INFO("two fluids NS") << "element_size= " << element_size << std::endl;
+            //KRATOS_INFO("two fluids NS") << "contact_angle_macro_gp= " << contact_angle_macro_gp << std::endl;
+            //KRATOS_INFO("two fluids NS") << "contact_angle_micro_gp= " << contact_angle_micro_gp << std::endl;
+
+            contact_vector_micro = std::cos(contact_angle_micro_gp)*wall_tangent +
+                    std::sin(contact_angle_micro_gp)*wall_normal_gp;
+
+            for (unsigned int i = 0; i < NumNodes; i++){
+                for (unsigned int dimi = 0; dimi < Dim; dimi++){
+                    rhs[ i*(Dim+1) + dimi ] -= coefficient*contact_vector_micro[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i);
+                    rhs[ i*(Dim+1) + dimi ] += coefficientS*wall_tangent[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i); //Contac-line tangential force
+
+                    for (unsigned int j = 0; j < NumNodes; j++){
+                            lhs_dissipation( i*(Dim+1) + dimi, j*(Dim+1) + dimi) +=
+                                zeta_effective * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp,j) * (rCLShapeFunctions[i_cl])(clgp,i);
+                    }
+                }
+            }
+            contact_velocity += (rCLWeights[i_cl])[clgp]*contact_velocity_gp;
+            contact_angle_macro += (rCLWeights[i_cl])[clgp]*contact_angle_macro_gp;
+            contact_angle_micro += (rCLWeights[i_cl])[clgp]*contact_angle_micro_gp;
+        }
+
+        noalias(rLHS) += lhs_dissipation;
+        rhs -= prod(lhs_dissipation,tempU);
+
+        // contact_angle_macro /= weight_sum;
+        // this->SetValue(CONTACT_ANGLE, contact_angle_macro*180.0/PI);
+
+        contact_angle_micro /= weight_sum;
+        this->SetValue(CONTACT_ANGLE_MICRO, contact_angle_micro*180.0/PI);
+
+        contact_velocity /= weight_sum;
+        this->SetValue(CONTACT_VELOCITY, contact_velocity);
+
+        for (unsigned int i=0; i < NumNodes; ++i){
+
+            #pragma omp critical
+            {
+            //(*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+            (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+            (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector_macro;
+            }
+
+        }
+    }
+
+    noalias(rRHS) += rhs;
 }
 
 template <class TElementData>
@@ -2195,7 +2654,14 @@ void DropletDynamicsElement<TElementData>::AddSurfaceTensionContribution(
     const MatrixType &rHtot,
     const MatrixType &rVtot,
     MatrixType &rKeeTot,
-    VectorType &rRHSeeTot)
+    VectorType &rRHSeeTot,
+    const double theta_advancing,
+    const double theta_receding,
+    const double zeta,
+    const double micro_length_scale, 
+    const std::vector<Kratos::Vector>& rCLWeights,
+    const std::vector<Matrix>& rCLShapeFunctions,
+    const std::vector<Vector>& rTangential)
 {
     // Surface tension coefficient is set in material properties
     const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
@@ -2206,13 +2672,29 @@ void DropletDynamicsElement<TElementData>::AddSurfaceTensionContribution(
         rInterfaceShapeFunction,
         gauss_pts_curvature);
 
+    // SurfaceTension(
+    //     surface_tension_coefficient,
+    //     gauss_pts_curvature,
+    //     rInterfaceWeights,
+    //     rInterfaceShapeFunction,
+    //     rInterfaceNormalsNeg,
+    //     rRightHandSideVector);    
     SurfaceTension(
+        rData,
         surface_tension_coefficient,
+        theta_advancing,
+        theta_receding,
+        zeta,
+        micro_length_scale,
         gauss_pts_curvature,
         rInterfaceWeights,
         rInterfaceShapeFunction,
         rInterfaceNormalsNeg,
-        rRightHandSideVector);
+        rCLWeights,
+        rCLShapeFunctions,
+        rTangential,
+        rLeftHandSideMatrix,
+        rRightHandSideVector);        
 
     this->PressureGradientStabilization(
         rData,
@@ -2274,6 +2756,60 @@ void DropletDynamicsElement<TElementData>::CalculateOnIntegrationPoints(
                 }
             }
             rValues[i_gauss] = DVi_DXi;
+        }
+    }
+    else if (/* this->Has( rVariable) && */ rVariable == CONTACT_ANGLE) {
+        GeometryType::Pointer p_geom = this->pGetGeometry();
+        //const auto& r_geometry = GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& integration_points = 
+            p_geom->IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1); //p_geom->GetDefaultIntegrationMethod());
+
+        //const auto& rGeom = this->GetGeometry();
+        //const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        //const unsigned int num_gauss = IntegrationPoints.size();
+
+        const std::size_t number_of_integration_points = integration_points.size();
+
+        if ( rValues.size() != number_of_integration_points ) {
+            rValues.resize( number_of_integration_points );
+        }
+
+        //KRATOS_INFO("CalculateOnIntegrationPoints") << "CALLED!" << std::endl;
+        
+        const double value = this->GetValue( CONTACT_ANGLE);
+        for (std::size_t point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            rValues[point_number] = value;
+
+            //if (value != 0.0){
+            //    KRATOS_INFO("CalculateOnIntegrationPoints") << value << std::endl;
+            //}
+        }
+    }
+    else if (/* this->Has( rVariable) && */ rVariable == CONTACT_VELOCITY) {
+        GeometryType::Pointer p_geom = this->pGetGeometry();
+        //const auto& r_geometry = GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& integration_points = 
+            p_geom->IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1); //p_geom->GetDefaultIntegrationMethod());
+
+        //const auto& rGeom = this->GetGeometry();
+        //const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        //const unsigned int num_gauss = IntegrationPoints.size();
+
+        const std::size_t number_of_integration_points = integration_points.size();
+
+        if ( rValues.size() != number_of_integration_points ) {
+            rValues.resize( number_of_integration_points );
+        }
+
+        //KRATOS_INFO("CalculateOnIntegrationPoints") << "CALLED!" << std::endl;
+        
+        const double value = this->GetValue( CONTACT_VELOCITY);
+        for (std::size_t point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            rValues[point_number] = value;
+
+            //if (value != 0.0){
+            //    KRATOS_INFO("CalculateOnIntegrationPoints") << value << std::endl;
+            //}
         }
     }
 }

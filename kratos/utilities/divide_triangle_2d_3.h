@@ -72,6 +72,8 @@ public:
     /// Default constructor
     DivideTriangle2D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
 
+    DivideTriangle2D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances, const Vector& rStructureNodes);
+
     /// Destructor
     ~DivideTriangle2D3();
 
@@ -173,6 +175,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    const Vector& m_structure_node_id;
+
+
     std::bitset<3> mNodeIsCut{0x0}; // If the cut passes through a node, store this information here
 
     ///@}
@@ -205,8 +210,12 @@ private:
     DivideTriangle2D3& operator=(DivideTriangle2D3 const& rOther);
 
     /// Copy constructor.
+    // DivideTriangle2D3(DivideTriangle2D3 const& rOther)
+        // : DivideGeometry<TPointType>(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
     DivideTriangle2D3(DivideTriangle2D3 const& rOther)
-        : DivideGeometry<TPointType>(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
+        : DivideGeometry<TPointType>(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
+          m_structure_node_id(rOther.m_structure_node_id) {};
+
 
     ///@}
 

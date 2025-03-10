@@ -162,6 +162,36 @@ namespace Kratos
         return mNegativeInterfacesParentIds;
     }
 
+    template<class TPointType>
+    std::vector<unsigned int> DivideGeometry<TPointType>::GetContactInterface() const
+    {
+        return mContactInterface;
+    }
+    
+    template<class TPointType>
+    std::vector<unsigned int> DivideGeometry<TPointType>::GetContactEdge() const
+    {
+        return mContactEdge;
+    }
+
+    template<class TPointType>
+    std::vector<typename DivideGeometry<TPointType>::IndexedPointGeometryPointerType> DivideGeometry<TPointType>::GetContactLine() const
+    {
+        return mContactLine;
+    }
+
+    template<class TPointType>
+    std::vector<unsigned int> DivideGeometry<TPointType>::GetContactFace() const
+    {
+        return mContactFace;
+    }
+
+    template<class TPointType>
+    std::vector<typename DivideGeometry<TPointType>::IndexedPointPointerType> DivideGeometry<TPointType>::GetContactPoint() const
+    {
+        return mContactPoint;
+    }
+
     template class DivideGeometry<Node>;
     template class DivideGeometry<IndexedPoint>;
 };

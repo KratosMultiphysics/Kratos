@@ -57,6 +57,8 @@ public:
     typedef Triangle3D3 < IndexedPointType >                            IndexedPointTriangleType;
     typedef Tetrahedra3D4 < IndexedPointType >                          IndexedPointTetrahedraType;
 
+    typedef Line3D2 < IndexedPointType >                                IndexedPointLineType; // Needed to construct the contact line
+
     /// Pointer definition of DivideTetrahedra3D4
     KRATOS_CLASS_POINTER_DEFINITION(DivideTetrahedra3D4);
 
@@ -64,12 +66,22 @@ public:
     const std::vector<int> mEdgeNodeJ = {1, 2, 3, 2, 3, 3};
     std::vector<int> mSplitEdges = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1};
 
+    // std::vector < unsigned int > mContactInterface;     // Zero or One, gives the interface that contacts the solid
+    // std::vector < unsigned int > mContactEdge;          // Zero, One, or Two, gives the contact edge of the contact interface 
+    // std::vector < IndexedPointGeometryPointerType > mContactLine; // Object to store the contact line(s) (intersection of the interface with solid).
+    // //std::vector < unsigned int > mContactLineNodeIds;   // Object to store the contact line(s)' pair of node Ids in order (e.g. 1,2 , 1,3)
+    // std::vector < unsigned int > mContactFace;          // Object to store the face (local) number corresponding to mContactLine.
+    
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
     DivideTetrahedra3D4(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
+
+    //
+    // DivideTetrahedra3D4(const GeometryType& rInputGeometry, const Vector& rNodalDistances, const std::vector<int> rStructureNodes);
+    DivideTetrahedra3D4(const GeometryType& rInputGeometry, const Vector& rNodalDistances, const Vector& rStructureNodes);
 
     /// Destructor
     ~DivideTetrahedra3D4();
@@ -153,6 +165,13 @@ public:
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
         const unsigned int FatherFaceId) override;
 
+    /**
+     * Given two edge numbers, the common face (if available) is given
+     * @param edgeIdI Id of the first edge
+     * @param edgeIdJ Id of the second edge
+     */
+    int FindCommonFace(const int edgeIdI, const int edgeIdJ);
+
     ///@}
 
 private:
@@ -163,6 +182,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    const Vector& m_structure_node_id;
+    
     std::bitset<4> mNodeIsCut{0x0};
 
     ///@}
@@ -195,8 +216,11 @@ private:
     DivideTetrahedra3D4& operator=(DivideTetrahedra3D4 const& rOther);
 
     /// Copy constructor.
+    //DivideTetrahedra3D4(DivideTetrahedra3D4 const& rOther)
+        //: DivideGeometry<TPointType>(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
     DivideTetrahedra3D4(DivideTetrahedra3D4 const& rOther)
-        : DivideGeometry<TPointType>(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
+        : DivideGeometry<TPointType>(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
+          m_structure_node_id(rOther.m_structure_node_id) {};
 
     ///@}
 

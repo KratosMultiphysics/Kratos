@@ -187,6 +187,19 @@ public:
     int mDivisionsNumber;   // Number of generated subdivisions.
 
     IndexedPointsContainerType mAuxPointsContainer;                         // Indexed points container to store the original plus the intersection points.
+    
+    // std::vector<IndexedPointGeometryPointerType> mPositiveSubdivisions; // Array to store the generated positive subdivisions geometries.
+    // std::vector<IndexedPointGeometryPointerType> mNegativeSubdivisions; // Array to store the generated negative subdivisions geometries.
+    // std::vector<IndexedPointGeometryPointerType> mPositiveInterfaces;   // Array to store the generated positive interfaces geometries.
+    // std::vector<IndexedPointGeometryPointerType> mNegativeInterfaces;   // Array to store the generated negative interfaces geometries.
+    // std::vector<unsigned int> mPositiveInterfacesParentIds;             // Array to store the parent subgeometries ids of the generated positive interfaces.
+    // std::vector<unsigned int> mNegativeInterfacesParentIds;             // Array to store the parent subgeometries ids of the generated negative interfaces.
+
+    // std::vector < unsigned int > mContactInterface;     // Zero or One, gives the interface that contacts the solid
+    // std::vector < unsigned int > mContactEdge;          // Zero, One, or Two, gives the contact edge of the contact interface 
+    // std::vector < IndexedPointGeometryPointerType > mContactLine; // Object to store the contact line(s) (intersection of the interface with solid).
+    // //std::vector < unsigned int > mContactLineNodeIds;   // Object to store the contact line(s)' pair of node Ids in order (e.g. 1,2 , 1,3)
+    // std::vector < unsigned int > mContactFace;          // Object to store the face (local) number corresponding to mContactLine.
 
     ///@}
     ///@name Life Cycle
@@ -243,6 +256,41 @@ public:
      * @return std::vector<IndexedPointGeometryPointerType> A vector containing the ids of the negative side interfaces parents
      */
     std::vector<unsigned int> GetNegativeInterfacesParentIds() const;
+
+    /**
+     * @brief Get the Contact Interface object
+     * This method returns the container with the contact interfaces
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing the ids (Zero or One) of the contact interfaces
+     */
+
+    std::vector<unsigned int> GetContactInterface() const;
+    /**
+     * @brief Get the Contact Edge object
+     * This method returns the container with the contact Edges
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing the ids (Zero or One or Two) of the contact edges
+     */
+    std::vector<unsigned int> GetContactEdge() const;
+
+    /**
+     * @brief Get the Contact Line object
+     * This method returns the container with the contact lines
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the contact line(s)' pair of node Ids in order (e.g. 1,2 , 1,3)
+     */
+    std::vector<IndexedPointGeometryPointerType> GetContactLine() const;
+
+    /**
+     * @brief Get the Contact Face object
+     * This method returns the container with the contact faces
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing the face (local) number corresponding to mContactLine
+     */
+    std::vector<unsigned int> GetContactFace() const;
+
+    /**
+     * @brief Get the Contact Point object
+     * This method returns the container with the contact points
+     * @return std::vector<IndexedPointPointerType> A vector containing pointers to the contact point(s)
+     */
+    std::vector<IndexedPointPointerType> GetContactPoint() const;
 
     ///@}
     ///@name Inquiry
@@ -351,6 +399,13 @@ protected:
     std::vector<IndexedPointGeometryPointerType> mNegativeInterfaces;   // Array to store the generated negative interfaces geometries.
     std::vector<unsigned int> mPositiveInterfacesParentIds;             // Array to store the parent subgeometries ids of the generated positive interfaces.
     std::vector<unsigned int> mNegativeInterfacesParentIds;             // Array to store the parent subgeometries ids of the generated negative interfaces.
+
+    std::vector < unsigned int > mContactInterface;     // Zero or One, gives the interface that contacts the solid
+    std::vector < unsigned int > mContactEdge;          // Zero, One, or Two, gives the contact edge of the contact interface 
+    std::vector < IndexedPointGeometryPointerType > mContactLine; // Object to store the contact line(s) (intersection of the interface with solid).
+    //std::vector < unsigned int > mContactLineNodeIds;   // Object to store the contact line(s)' pair of node Ids in order (e.g. 1,2 , 1,3)
+    std::vector < unsigned int > mContactFace;          // Object to store the face (local) number corresponding to mContactLine.
+    std::vector<IndexedPointPointerType> mContactPoint;  // Object to store the contact point(s) (intersection of the interface with solid in 2D).
 
     ///@}
     ///@name Protected Operators

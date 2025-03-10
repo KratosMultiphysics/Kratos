@@ -161,6 +161,48 @@ protected:
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
         const std::vector<int>& rSplitEdges);
+       
+    /**
+    * Returns the negative side tangential vector (in the direction of contact line).
+    * @param FaceIndices: vector giving the indices of the contact faces from DivideGeometry::mContactFace
+    * @return rNegativeSideContactLineVector: single vector showing the contact line. 
+    */
+    void ComputeNegativeSideContactLineVector(
+        std::vector<unsigned int>& FaceIndices,
+        std::vector<Vector> &rNegativeSideContactLineVector) override
+    {
+        FaceIndices.clear();
+        rNegativeSideContactLineVector.clear();
+    }
+    /* bool ComputeNegativeSideContactLineVector(
+        Vector &rNegativeSideContactLineVector) override
+    {
+        rNegativeSideContactLineVector = ZeroVector(3);
+        return false;
+    } */
+
+    /**
+    * Returns the shape function values in the negative split element side for a given quadrature on the contact line.
+    * @param ContactLineIndices: indices associated with the outer faces that can be considered as contact lines
+    * @return rContactLineNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
+    * @return rContactLineNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
+    * @return rContactLineNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod Desired integration quadrature.
+    */
+    void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+        std::vector<unsigned int>& ContactLineIndices,
+        std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
+        std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
+        std::vector<Vector> &rContactLineNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod) override
+    {
+        double dummy = 0.0;
+    }
+    /* void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+        Matrix &rContactLineNegativeSideShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rContactLineNegativeSideShapeFunctionsGradientsValues,
+        Vector &rContactLineNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod) override */ 
 
     ///@}
     ///@name Protected  Access

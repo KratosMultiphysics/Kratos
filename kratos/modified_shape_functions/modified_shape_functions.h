@@ -197,6 +197,21 @@ public:
         const IntegrationMethodType IntegrationMethod);
 
     /**
+    * Returns the shape function values in the negative split element side for a given quadrature on the contact line.
+    * @param ContactLineIndices: indices associated with the outer faces that can be considered as contact lines
+    * @return rContactLineNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
+    * @return rContactLineNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
+    * @return rContactLineNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod Desired integration quadrature.
+    */
+    virtual void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+        std::vector<unsigned int>& ContactLineIndices,
+        std::vector<Matrix> &rContactLineNegativeSideShapeFunctionsValues,
+        std::vector<ShapeFunctionsGradientsType> &rContactLineNegativeSideShapeFunctionsGradientsValues,
+        std::vector<Vector> &rContactLineNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod) = 0;
+
+    /**
     * Given a face id, returns the shape function values in the positive split element exterior face side for a given quadrature.
     * @return rInterfacePositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
     * @return rInterfacePositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
@@ -279,6 +294,15 @@ public:
     * containing the negative side edge intersection shape function values.
     */
     void ComputeShapeFunctionsOnNegativeEdgeIntersections(Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues);
+
+    /**
+    * Returns the negative side tangential vector (in the direction of contact line).
+    * @param FaceIndices: vector giving the indices of the contact faces from DivideGeometry::mContactFace
+    * @return rNegativeSideContactLineVector: single vector showing the contact line. 
+    */
+    virtual void ComputeNegativeSideContactLineVector(
+        std::vector<unsigned int>& FaceIndices,
+        std::vector<Vector> &rNegativeSideContactLineVector) = 0;
 
     /**
     * Returns true if the element is split and false otherwise.
@@ -386,6 +410,25 @@ protected:
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
         const std::vector<unsigned int> &rInterfacesParentIdsVector,
+        const Matrix &rPmatrix,
+        const IntegrationMethodType IntegrationMethod);
+
+    /**
+    * Returns the shape function values in either the positive or negative element interfaces for a given quadrature.
+    * @return rInterfaceShapeFunctionValues: Matrix containing the computed shape function values.
+    * @return rInterfaceShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
+    * @return rInterfaceWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
+    * @param rInterface Geometry where the values are to be computed.
+    * @param rParentGeometry Subdivision point based parent geometry.
+    * @param rPmatrix reference to the interface interpolation matrix
+    * @param IntegrationMethod Desired integration quadrature.
+    */
+    virtual void ComputeFaceValuesOnOneSide(
+        Matrix &rInterfaceShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
+        Vector &rInterfaceWeightsValues,
+        const IndexedPointGeometryPointerType &rInterface,
+        const IndexedPointGeometryPointerType &rParentGeometry,
         const Matrix &rPmatrix,
         const IntegrationMethodType IntegrationMethod);
 

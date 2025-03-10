@@ -24,6 +24,8 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+#include "custom_utilities/contact_angle_evaluator.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -35,6 +37,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
+    py::class_<ContactAngleEvaluator, ContactAngleEvaluator::Pointer, Process>(m,"ContactAngleEvaluatorProcess")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters& >());
 
 }
 
