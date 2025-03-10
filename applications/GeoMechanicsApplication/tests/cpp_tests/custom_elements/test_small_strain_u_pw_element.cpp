@@ -15,7 +15,6 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "includes/dof.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -68,26 +67,17 @@ std::shared_ptr<Properties> SetProperties()
 
 void SetSolutionStepValues(Kratos::intrusive_ptr<Kratos::UPwSmallStrainElement<2, 3>>& rElement)
 {
-    rElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    rElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    rElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    rElement->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    rElement->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    rElement->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY) = array_1d<double, 3>{0.0, 0.0, 0.0};
-    // Zero acceleration -> no Fluid Body Flow
-    rElement->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, 0.0, 0.0};
-    rElement->GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, 0.0, 0.0};
-    rElement->GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
-        array_1d<double, 3>{0.0, 0.0, 0.0};
-    // Zero pressure gradient -> no permeability flow
-    rElement->GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
-    rElement->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
-    rElement->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE)    = 2.0E4;
-    rElement->GetGeometry()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
-    rElement->GetGeometry()[1].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
-    rElement->GetGeometry()[2].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
+    const auto zero_array_1d = array_1d<double, 3>{0.0, 0.0, 0.0};
+    for (auto& r_node : rElement->GetGeometry()) {
+        r_node.FastGetSolutionStepValue(DISPLACEMENT) = zero_array_1d;
+        r_node.FastGetSolutionStepValue(VELOCITY)     = zero_array_1d;
+        // Zero acceleration -> no Fluid Body Flow
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = zero_array_1d;
+        // Zero pressure gradient -> no permeability flow
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
+        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
+    }
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 2.0E4;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
