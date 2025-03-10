@@ -34,6 +34,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
@@ -116,6 +117,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
@@ -198,6 +200,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
