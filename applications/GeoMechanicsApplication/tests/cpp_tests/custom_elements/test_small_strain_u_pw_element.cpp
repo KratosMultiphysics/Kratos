@@ -66,7 +66,7 @@ std::shared_ptr<Properties> SetProperties()
     return p_properties;
 }
 
-void SetSolutionStepValues(Kratos::intrusive_ptr<Kratos::UPwSmallStrainElement<2, 3>>& rElement)
+void SetSolutionStepValues(const intrusive_ptr<UPwSmallStrainElement<2, 3>>& rElement)
 {
     const auto zero_array_1d = array_1d<double, 3>{0.0, 0.0, 0.0};
     for (auto& r_node : rElement->GetGeometry()) {
