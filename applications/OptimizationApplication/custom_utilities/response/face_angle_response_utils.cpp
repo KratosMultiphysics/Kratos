@@ -167,7 +167,7 @@ void FaceAngleResponseUtils::GetShapeSensitivities(
 			node_i.Z0() -= PerturbationSize;
 
 			// Add to aggregated sensitivities
-			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += 1/value * g_i * gradient;
+			noalias(node_i.GetValue(SHAPE_SENSITIVITY)) += 1/value * g_i * gradient;
 		}
 	}
 	
@@ -222,7 +222,7 @@ void FaceAngleResponseUtils::CalculateGradient(
                 if (*pVariable == SHAPE) {
                     if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::NodesContainerType>>) {
 						// KRATOS_INFO("writing into expression") << std::endl;
-                        VariableExpressionIO::Read(*pContainerExpression, &SHAPE_SENSITIVITY, true);
+                        VariableExpressionIO::Read(*pContainerExpression, &SHAPE_SENSITIVITY, false);
                     } else {
                         KRATOS_ERROR << "Requesting sensitivity w.r.t. "
                                         "SHAPE for a Container expression "
