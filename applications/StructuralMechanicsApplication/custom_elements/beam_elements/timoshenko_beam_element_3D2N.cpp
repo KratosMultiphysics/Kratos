@@ -167,11 +167,14 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     // Here we rotate the vectors to local axes
     const VectorType& r_local_displ_0 = prod(T, r_displ_0);
     const VectorType& r_local_displ_1 = prod(T, r_displ_1);
+
+    // Due to dextrogyr axes system
     T(0, 1) *= -1.0;
     T(1, 1) *= -1.0;
     T(2, 1) *= -1.0;
-    const VectorType& r_local_rot_0   = prod(T, r_rotation_0);
-    const VectorType& r_local_rot_1   = prod(T, r_rotation_1);
+
+    const VectorType& r_local_rot_0 = prod(T, r_rotation_0);
+    const VectorType& r_local_rot_1 = prod(T, r_rotation_1);
 
     rNodalValues[0] = r_local_displ_0[0];
     rNodalValues[1] = r_local_displ_0[1];
@@ -589,8 +592,8 @@ void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
     const double length = CalculateLength();
     const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, length);
-    const double J      = 0.5 * length;
-    const double area   = GetCrossArea();
+    const double J    = 0.5 * length;
+    const double area = GetCrossArea();
 
     VectorType strain_vector(strain_size), stress_vector(strain_size);
     MatrixType constitutive_matrix(strain_size, strain_size);
@@ -757,8 +760,8 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
     const double length = CalculateLength();
     const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, length);
-    const double J      = 0.5 * length;
-    const double area   = GetCrossArea();
+    const double J     = 0.5 * length;
+    const double area  = GetCrossArea();
 
     VectorType strain_vector(strain_size), stress_vector(strain_size);
     MatrixType constitutive_matrix(strain_size, strain_size);
@@ -782,7 +785,6 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
     // Loop over the integration points (IP)
     const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, r_integration_points, IP);
 
         global_size_N.clear();
         const double xi     = r_integration_points[IP].X();
@@ -845,6 +847,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
     }
 
     RotateLHS(rLHS, r_geometry);
+
     KRATOS_CATCH("LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide")
 }
 
