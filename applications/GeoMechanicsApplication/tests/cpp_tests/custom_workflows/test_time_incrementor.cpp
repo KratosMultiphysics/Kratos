@@ -9,6 +9,8 @@
 //
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Anne van de Graaf
+//                   Richard Faasse
+//                   Gennady Markelov
 //
 
 #include "custom_workflows/adaptive_time_incrementor.h"
@@ -21,15 +23,16 @@ namespace
 {
 
 struct AdaptiveTimeIncrementorSettings {
-    double      StartTime{0.0};
-    double      EndTime{8.0};
-    double      StartIncrement{0.5};
-    std::size_t MaxNumOfCycles{8};
-    double      ReductionFactor{0.5};
-    double      IncreaseFactor{2.0};
-    double      MaxDeltaTimeFactor{1000.0};
-    std::size_t MinNumOfIterations{3};
-    std::size_t MaxNumOfIterations{15};
+    double                StartTime{0.0};
+    double                EndTime{8.0};
+    double                StartIncrement{0.5};
+    std::optional<double> UserMinDeltaTime{std::make_optional(1e-06)};
+    std::size_t           MaxNumOfCycles{8};
+    double                ReductionFactor{0.5};
+    double                IncreaseFactor{2.0};
+    double                MaxDeltaTimeFactor{1000.0};
+    std::size_t           MinNumOfIterations{3};
+    std::size_t           MaxNumOfIterations{15};
 };
 
 AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncrementorSettings& rSettings)
@@ -37,8 +40,8 @@ AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncremento
     return AdaptiveTimeIncrementor{rSettings.StartTime,          rSettings.EndTime,
                                    rSettings.StartIncrement,     rSettings.MaxNumOfCycles,
                                    rSettings.ReductionFactor,    rSettings.IncreaseFactor,
-                                   rSettings.MaxDeltaTimeFactor, rSettings.MinNumOfIterations,
-                                   rSettings.MaxNumOfIterations};
+                                   rSettings.UserMinDeltaTime,  rSettings.MaxDeltaTimeFactor,
+                                   rSettings.MinNumOfIterations, rSettings.MaxNumOfIterations};
 }
 
 } // namespace
@@ -425,6 +428,40 @@ KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMech
 
     time_incrementor.PostTimeStepExecution(previous_state);
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
+    settings.StartIncrement          = 8.0;   // We jump to the end time right away
+    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state              = TimeStepEndState{};
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+    previous_state.time              = 7.9999999; // to have a zero time step
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        time_incrementor.PostTimeStepExecution(previous_state),
+        "Delta time (1e-07) is smaller than given minimum allowable value 1e-06");
+
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        time_incrementor.PostTimeStepExecution(previous_state),
+        "Delta time (5e-08) is smaller than given minimum allowable value 1e-06");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HalfTimeStepAtNonConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
+    settings.StartIncrement          = 8.0;   // We jump to the end time right away
+    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state              = TimeStepEndState{};
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
+    previous_state.time              = 8.0;
+
+    time_incrementor.PostTimeStepExecution(previous_state);
+    // The increment should be halved, since the step didn't converge
+    KRATOS_EXPECT_DOUBLE_EQ(4.0, time_incrementor.GetIncrement());
 }
 
 } // namespace Kratos::Testing
