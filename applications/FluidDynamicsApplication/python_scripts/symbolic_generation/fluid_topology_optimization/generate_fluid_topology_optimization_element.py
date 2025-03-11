@@ -278,10 +278,10 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 	    # 8: transport_scalar_source: int_{\Omega}{-Q*T}
 
         functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
-        rv_funct_resistance_adj  = 2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
-        rv_funct_strain_rate_adj = 4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
-        rv_funct_vorticity_adj   = 4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
-        rv_adj -= functional_weights[0]*rv_funct_resistance_adj + functional_weights[1]*rv_funct_strain_rate_adj + functional_weights[2]*rv_funct_vorticity_adj
+        rv_funct_resistance_adj  = -2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
+        rv_funct_strain_rate_adj = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
+        rv_funct_vorticity_adj   = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
+        rv_adj += functional_weights[0]*rv_funct_resistance_adj + functional_weights[1]*rv_funct_strain_rate_adj + functional_weights[2]*rv_funct_vorticity_adj
 
     if (transport_coupling):
         # Transport Problem Solution (if only fluid is = 0)
@@ -300,8 +300,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     #     # HANDLE ADJOINT FORCING TERMS  
         if (include_functionals):
-            rv_funct_transport_convection_adj = t_ConvCoeff_gauss * t_gauss * (grad_t.transpose()*w_adj_gauss)
-            rv_adj -= functional_weights[6]*rv_funct_transport_convection_adj
+            rv_funct_transport_convection_adj = -t_ConvCoeff_gauss * t_gauss * (grad_t.transpose()*w_adj_gauss)
+            rv_adj += functional_weights[6]*rv_funct_transport_convection_adj
     
     ## HANDLE ADJOINT CONVECTION 
     if (convective_term):

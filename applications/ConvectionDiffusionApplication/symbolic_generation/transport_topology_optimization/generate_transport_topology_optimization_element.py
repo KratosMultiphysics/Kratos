@@ -223,28 +223,32 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         grad_t_physics = DfjDxi(DN,t_physics)
         
         # region_transport_scalar functional
-        rv_funct_region_transport_scalar  = 2.0*(q_adj_gauss.transpose()*opt_t_gauss)
+        rv_funct_region_transport_scalar  = -2.0*(q_adj_gauss.transpose()*opt_t_gauss)
         # transport_scalar_transfer
-        rv_funct_transport_scalar_diffusion  = 2.0*Conductivity_gauss*(grad_q_adj.transpose()*grad_t_physics)
-        rv_funct_transport_scalar_convection = ConvCoeff_gauss*((vconv_physics_gauss.transpose()*grad_t_physics)*q_adj_gauss + t_physics_gauss*(vconv_physics_gauss.transpose()*grad_q_adj)) 
-        rv_funct_transport_scalar_decay      = 2.0*Decay_gauss*(q_adj_gauss*t_physics_gauss)
-        rv_funct_transport_scalar_source     = -f_physics_gauss*q_adj_gauss
+        rv_funct_transport_scalar_diffusion  = -2.0*Conductivity_gauss*(grad_q_adj.transpose()*grad_t_physics)
+        rv_funct_transport_scalar_convection = -ConvCoeff_gauss*((vconv_physics_gauss.transpose()*grad_t_physics)*q_adj_gauss + t_physics_gauss*(vconv_physics_gauss.transpose()*grad_q_adj)) 
+        rv_funct_transport_scalar_decay      = -2.0*Decay_gauss*(q_adj_gauss*t_physics_gauss)
+        rv_funct_transport_scalar_source     = f_physics_gauss*q_adj_gauss
         
         # SUM FUNCTIONAL CONTRIBUTIONS TO ADJ RESIDUAL
-        rv_adj -= functional_weights[4]*rv_funct_region_transport_scalar 
-        rv_adj -= functional_weights[5]*rv_funct_transport_scalar_diffusion
-        rv_adj -= functional_weights[6]*rv_funct_transport_scalar_convection
-        rv_adj -= functional_weights[7]*rv_funct_transport_scalar_decay
-        rv_adj -= functional_weights[8]*rv_funct_transport_scalar_source
+        rv_adj += functional_weights[4]*rv_funct_region_transport_scalar 
+        rv_adj += functional_weights[5]*rv_funct_transport_scalar_diffusion
+        rv_adj += functional_weights[6]*rv_funct_transport_scalar_convection
+        rv_adj += functional_weights[7]*rv_funct_transport_scalar_decay
+        rv_adj += functional_weights[8]*rv_funct_transport_scalar_source
     
     ## HANDLE CONVECTION 
     if (convective_term):
+        # CONVECTIVE ADJOINT GALERKIN FUNCTIONAL RESIDUAL
+        # Adjoint convection driven by the vconv = -vel_NS
+        # -> evaluated in a weak form such that the Neumann BC are imposed "naturally"
+        # from the Adjoint PDE its formulation should be: rv_conv_adj = ConvCoeff_gauss*(q_adj_gauss.transpose()*(vconv_adj_gauss.transpose()*grad_t_adj))
         # Definition
         vconv_adj = DefineMatrix('vconv_adj',nnodes,dim)    # Convective velocity 
         # Gauss points
         vconv_adj_gauss = vconv_adj.transpose()*N           # Convective velocity on gauus points
         # CONVECTIVE GALERKIN FUNCTIONAL RESIDUAL
-        rv_conv_adj = ConvCoeff_gauss*(q_adj_gauss.transpose()*(vconv_adj_gauss.transpose()*grad_t_adj)) # convective term
+        rv_conv_adj = -ConvCoeff_gauss*(t_adj_gauss.transpose()*(vconv_adj_gauss.transpose()*grad_q_adj)) # convective term
         rv_adj += rv_conv_adj # save CONVECTION residual into TOTAL element residual
     # END HANDLE CONVECTION
 
@@ -263,7 +267,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # tau1_denominator += rho*dyn_tau/dt # time contribution to tau_1
         tau1_denominator_adj += stab_c1*Conductivity_gauss[0]/h**2 # diffusion contribution to tau_1
         tau1_denominator_adj += stab_c3*Decay_gauss[0] # decay contribution to tau_1
-        # Update TAU1 with CONVECTIVE term stabilization
+        # Update TAU1 with CONVECTIVE term stabilization 
+        # WITH THE NATURAL NEUMANN BC the adjoint convection stabilization should be the same
         if (convective_term):
             stab_norm_a_adj = 0.0
             for i in range(0, dim): # evaluate the vconv norm
