@@ -405,20 +405,19 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementSetValuesOnIntegrationPoints, Kra
                                            cauchy_stress_vectors[i], Defaults::relative_tolerance);
     }
 
-    std::vector<Matrix> calculated_cauchy_stress_matrices;
-    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, calculated_cauchy_stress_matrices, process_info);
-    std::cout << calculated_cauchy_stress_matrices << std::endl;
-    Matrix stress_matrix(3, 3);
-    stress_matrix <<= 1000, 4000, 0, 4000, 2000, 0, 0, 0, 3000;
-    std::vector<Matrix> expected_cauchy_stress_matrices;
-    expected_cauchy_stress_matrices.push_back(stress_matrix);
-    stress_matrix <<= 2000, 5000, 0, 5000, 3000, 0, 0, 0, 4000;
-    expected_cauchy_stress_matrices.push_back(stress_matrix);
-    stress_matrix <<= 3000, 6000, 0, 6000, 4000, 0, 0, 0, 5000;
-    expected_cauchy_stress_matrices.push_back(stress_matrix);
-    for (auto i = std::size_t{0}; i < calculated_cauchy_stress_matrices.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_cauchy_stress_matrices[i],
-                                           expected_cauchy_stress_matrices[i], Defaults::relative_tolerance);
+    std::vector<Matrix> calculated_cauchy_stress_tensors;
+    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, calculated_cauchy_stress_tensors, process_info);
+    Matrix stress_tensor(3, 3);
+    stress_tensor <<= 1000, 4000, 0, 4000, 2000, 0, 0, 0, 3000;
+    std::vector<Matrix> expected_cauchy_stress_tensors;
+    expected_cauchy_stress_tensors.push_back(stress_tensor);
+    stress_tensor <<= 2000, 5000, 0, 5000, 3000, 0, 0, 0, 4000;
+    expected_cauchy_stress_tensors.push_back(stress_tensor);
+    stress_tensor <<= 3000, 6000, 0, 6000, 4000, 0, 0, 0, 5000;
+    expected_cauchy_stress_tensors.push_back(stress_tensor);
+    for (auto i = std::size_t{0}; i < calculated_cauchy_stress_tensors.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_cauchy_stress_tensors[i],
+                                           expected_cauchy_stress_tensors[i], Defaults::relative_tolerance);
     }
 }
 
