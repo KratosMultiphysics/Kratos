@@ -152,7 +152,7 @@ void GetFirstRingVertices(
     // loop over all nodes to find neighbourhood of every node
     auto t1_v = high_resolution_clock::now();
     const auto nodes_begin = rInputMesh.NodesBegin();
-#pragma omp parallel for
+    #pragma omp parallel for
     for (IndexType vert_index = 0; vert_index < num_vertices; ++vert_index) {
         // find control node in mesh rInputMesh
         auto node_it = nodes_begin + vert_index;
@@ -631,10 +631,6 @@ std::vector<double> GetUnitWeightDistributionForNode(
     // Vertex * src = verts;
     VertexValue * vsrc = &vverts[0];
     for (SizeType level = 1; level <= ref_level; ++level) {
-        // Vertex * dst = src + refiner->GetLevel(level-1).GetNumVertices();
-        // primvarRefiner.Interpolate(level, src, dst);
-        // src = dst;
-
         VertexValue * vdst = vsrc + refiner->GetLevel(level-1).GetNumVertices();
         primvarRefiner.Interpolate(level, vsrc, vdst);
         vsrc = vdst;
@@ -652,7 +648,7 @@ std::vector<double> GetUnitWeightDistributionForNode(
         cp_weights_last_ref[index] = vverts[firstOfLastVerts + index].value;
     }
 
-    // KRATOS_INFO("CATMULL_CLARK :: GetUnitWeightDistributionForNode :: cp_weights computed") << cp_weights << std::endl; // << cp_weights << std::endl;
+    // KRATOS_INFO("CATMULL_CLARK :: GetUnitWeightDistributionForNode :: cp_weights_last_ref computed") << cp_weights_last_ref << std::endl; // << cp_weights << std::endl;
     // refLastLevel.GetNumVertices
     return cp_weights_last_ref;
 }
@@ -1678,7 +1674,7 @@ void CatmullClarkSDS::CreateMappingMatrix(
     const bool FixFreeEdges) 
 {
     // set output vector containing mapping weights to correct size
-    rOutputData.resize(rControlPolygon.NumberOfNodes() * rControlledMesh.NumberOfNodes());
+    // rOutputData.resize(rControlPolygon.NumberOfNodes() * rControlledMesh.NumberOfNodes());
     // create boundary ModelPart for open geometries
     // for now we omit creating boundary edges
     // ModelPart& rBoundaryModelPart = ModelPart(rControlPolygon.Name() + "_edges", &rControlPolygon.mpVariablesList, rControlPolygon);       // rControlPolygon.HasSubModelPart(rControlPolygon.Name() + "_edges") ? rControlPolygon.GetSubModelPart(rControlPolygon.Name() + "_edges") : rControlPolygon.CreateSubModelPart(rControlPolygon.Name() + "_edges");

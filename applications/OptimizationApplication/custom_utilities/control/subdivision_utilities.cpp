@@ -71,9 +71,9 @@ std::vector<double> SDSUtils::CalculateMappingRelation(
     // output_container.SetExpression(p_flat_data_expression);
     // auto& r_output_expression = *p_flat_data_expression;
 
-    // const SizeType num_control_pts = rControlPolygon.NumberOfNodes();
-    // const SizeType num_fe_nodes = rControlledMesh.NumberOfNodes();
-    std::vector<double> output_data;
+    const SizeType num_control_pts = rControlPolygon.NumberOfNodes();
+    const SizeType num_fe_nodes = rControlledMesh.NumberOfNodes();
+    std::vector<double> output_data(num_control_pts*num_fe_nodes);
     if(SubdivScheme == "catmull_clark") {
         CatmullClarkSDS subdiv_surface = CatmullClarkSDS(rControlPolygon, rControlledMesh);
         subdiv_surface.CreateMappingMatrix(output_data, rControlPolygon, rControlledMesh, FixFreeEdges);
