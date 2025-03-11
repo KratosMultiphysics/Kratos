@@ -326,9 +326,6 @@ void LinearTimoshenkoBeamElement3D2N::RotateLHS(
     const GeometryType& rGeometry
     )
 {
-    const SizeType num_nodes = rGeometry.size();
-    const SizeType global_size = GetDoFsPerNode() * num_nodes;
-
     BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 12, 12> global_size_T, aux_product;
     noalias(T) = GetConsistentFrenetSerretMatrix3D(rGeometry);
@@ -346,9 +343,6 @@ void LinearTimoshenkoBeamElement3D2N::RotateRHS(
     const GeometryType& rGeometry
     )
 {
-    const SizeType num_nodes = rGeometry.size();
-    const SizeType global_size = GetDoFsPerNode() * num_nodes;
-
     BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 12, 12> global_size_T;
     BoundedVector<double, 12> local_rhs;
@@ -367,9 +361,6 @@ void LinearTimoshenkoBeamElement3D2N::RotateAll(
     const GeometryType& rGeometry
     )
 {
-    const SizeType num_nodes = rGeometry.size();
-    const SizeType global_size = GetDoFsPerNode() * num_nodes;
-
     BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 12, 12> global_size_T, aux_product;
     noalias(T) = GetConsistentFrenetSerretMatrix3D(rGeometry);
@@ -806,7 +797,6 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
     const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, length);
     const double J     = 0.5 * length;
-    const double area  = GetCrossArea();
 
     VectorType strain_vector(strain_size), stress_vector(strain_size);
     MatrixType constitutive_matrix(strain_size, strain_size);
