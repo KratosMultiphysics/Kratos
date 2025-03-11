@@ -367,6 +367,42 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementFinalizeSolutionStep, KratosGeoMe
     KRATOS_EXPECT_DOUBLE_EQ(element->GetGeometry()[0].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(element->GetGeometry()[1].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), -4.542);
     KRATOS_EXPECT_DOUBLE_EQ(element->GetGeometry()[2].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 4.542);
+}
 
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementSetValuesOnIntegrationPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto process_info = ProcessInfo{};
+    // No storage, no dynamics, only statics and steady state
+    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
+    process_info[VELOCITY_COEFFICIENT]    = 0.0;
+
+    Model model;
+    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
+    SetSolutionStepValues(element);
+    element->Initialize(process_info);
+
+    // Act
+    Vector cauchy_stress_vector(4);
+    cauchy_stress_vector <<= 1000.0, 2000.0, 3000.0, 4000.0;
+    std::vector<Vector> cauchy_stress_vectors;
+    cauchy_stress_vectors.push_back(cauchy_stress_vector);
+    cauchy_stress_vector += Vector(4, 1000.0);
+    cauchy_stress_vectors.push_back(cauchy_stress_vector);
+    cauchy_stress_vector += Vector(4, 1000.0);
+    cauchy_stress_vectors.push_back(cauchy_stress_vector);
+
+    element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stress_vectors, process_info);
+
+    // Assert
+    std::vector<Vector> calculated_cauchy_stress_vectors;
+    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, calculated_cauchy_stress_vectors, process_info);
+
+    KRATOS_EXPECT_EQ(calculated_cauchy_stress_vectors.size(), cauchy_stress_vectors.size());
+    for (auto i = std::size_t{0}; i < calculated_cauchy_stress_vectors.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_cauchy_stress_vectors[i],
+                                           cauchy_stress_vectors[i], Defaults::relative_tolerance);
+    }
 }
 } // namespace Kratos::Testing
