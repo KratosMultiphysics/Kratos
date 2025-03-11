@@ -404,5 +404,48 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementSetValuesOnIntegrationPoints, Kra
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_cauchy_stress_vectors[i],
                                            cauchy_stress_vectors[i], Defaults::relative_tolerance);
     }
+
+    std::vector<Matrix> calculated_cauchy_stress_matrices;
+    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, calculated_cauchy_stress_matrices, process_info);
+    std::cout << calculated_cauchy_stress_matrices << std::endl;
+    Matrix stress_matrix(3, 3);
+    stress_matrix <<= 1000, 4000, 0, 4000, 2000, 0, 0, 0, 3000;
+    std::vector<Matrix> expected_cauchy_stress_matrices;
+    expected_cauchy_stress_matrices.push_back(stress_matrix);
+    stress_matrix <<= 2000, 5000, 0, 5000, 3000, 0, 0, 0, 4000;
+    expected_cauchy_stress_matrices.push_back(stress_matrix);
+    stress_matrix <<= 3000, 6000, 0, 6000, 4000, 0, 0, 0, 5000;
+    expected_cauchy_stress_matrices.push_back(stress_matrix);
+    for (auto i = std::size_t{0}; i < calculated_cauchy_stress_matrices.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_cauchy_stress_matrices[i],
+                                           expected_cauchy_stress_matrices[i], Defaults::relative_tolerance);
+    }
 }
+
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculateOnIntegrationPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto process_info = ProcessInfo{};
+    // No storage, no dynamics, only statics and steady state
+    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
+    process_info[VELOCITY_COEFFICIENT]    = 0.0;
+
+    Model model;
+    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
+    SetSolutionStepValues(element);
+    element->Initialize(process_info);
+    element->InitializeNonLinearIteration(process_info);
+    element->FinalizeSolutionStep(process_info);
+
+    // Act and Assert
+    std::vector<double> calculated_bishop_coefficient_vector;
+    element->CalculateOnIntegrationPoints(BISHOP_COEFFICIENT, calculated_bishop_coefficient_vector, process_info);
+
+    std::vector<double> expected_bishop_coefficient_vector{1, 1, 1};
+
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_bishop_coefficient_vector,
+                                       expected_bishop_coefficient_vector, Defaults::relative_tolerance);
+}
+
 } // namespace Kratos::Testing
