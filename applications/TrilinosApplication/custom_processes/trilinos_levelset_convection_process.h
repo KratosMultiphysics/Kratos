@@ -10,8 +10,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED )
-#define  KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 
@@ -243,6 +242,8 @@ protected:
         const auto n_nodes = BaseType::mpDistanceModelPart->NumberOfNodes();
         (this->mVelocity).resize(n_nodes);
         (this->mVelocityOld).resize(n_nodes);
+        (this->mMeshVelocity).resize(n_nodes);
+        (this->mMeshVelocityOld).resize(n_nodes);
         (this->mOldDistance).resize(n_nodes);
 
         if (this->mIsBfecc){
@@ -366,5 +367,3 @@ private:
 
 ///@}
 }  // namespace Kratos.
-
-#endif // KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
