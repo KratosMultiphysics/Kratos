@@ -711,18 +711,6 @@ void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
