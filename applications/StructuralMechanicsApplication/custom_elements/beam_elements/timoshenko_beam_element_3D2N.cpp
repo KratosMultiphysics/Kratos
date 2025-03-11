@@ -710,18 +710,6 @@ void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo
