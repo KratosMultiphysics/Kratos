@@ -280,4 +280,64 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeSolutionStep, KratosGeo
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIteration, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto process_info = ProcessInfo{};
+    // No storage, no dynamics, only statics and steady state
+    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
+    process_info[VELOCITY_COEFFICIENT]    = 0.0;
+
+    Model model;
+    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
+    SetSolutionStepValues(element);
+    element->Initialize(process_info);
+
+    // Act and Assert
+    element->InitializeNonLinearIteration(process_info);
+
+    std::vector<Vector> calculated_values_at_integration_points;
+    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, calculated_values_at_integration_points, process_info);
+    Vector expected_values_at_integration_point = ZeroVector(4);
+    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
+                                           expected_values_at_integration_point, Defaults::relative_tolerance);
+    }
+
+    element->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, calculated_values_at_integration_points, process_info);
+    std::vector<Vector> expected_values_at_integration_points;
+    expected_values_at_integration_point<<=11666.666,11666.666,11666.666,0;
+    expected_values_at_integration_points.push_back(expected_values_at_integration_point);
+    expected_values_at_integration_points.push_back(expected_values_at_integration_point);
+    expected_values_at_integration_point<<=16666.666,16666.666,16666.666,0;
+    expected_values_at_integration_points.push_back(expected_values_at_integration_point);
+    expected_values_at_integration_point<<=11666.666,11666.666,11666.666,0;
+    expected_values_at_integration_points.push_back(expected_values_at_integration_point);
+    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
+                                           expected_values_at_integration_points[i], Defaults::relative_tolerance);
+    }
+
+   element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point = ZeroVector(4);
+    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
+                                           expected_values_at_integration_point, Defaults::relative_tolerance);
+    }
+
+   element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, calculated_values_at_integration_points, process_info);
+         std::cout << "GREEN_LAGRANGE_STRAIN_VECTOR" << calculated_values_at_integration_points << std::endl;
+    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
+                                           expected_values_at_integration_point, Defaults::relative_tolerance);
+    }
+
+    element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, calculated_values_at_integration_points, process_info);
+    std::cout << "GREEN_LAGRANGE_STRAIN_VECTOR" << calculated_values_at_integration_points << std::endl;
+    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
+                                           expected_values_at_integration_point, Defaults::relative_tolerance);
+    }
+}
 } // namespace Kratos::Testing
