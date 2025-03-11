@@ -162,5 +162,4 @@ class FaceAngleResponse(ResponseFunction):
                     self.main_direction,
                     self.min_angle,
                     self.perturbation_size)
-        print("face_angle_response.py :: end CalculateGradient")
                 
