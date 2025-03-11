@@ -12,18 +12,18 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "testing/testing.h"
-#include "custom_mappers/nearest_neighbor_mapper.h"
 #include "includes/stream_serializer.h"
-#include "custom_utilities/mapper_utilities.h"
+
+// Application includes
 #include "mapping_application_variables.h"
+#include "custom_mappers/nearest_neighbor_mapper.h"
+#include "custom_utilities/mapper_utilities.h"
+#include "tests/cpp_tests/mapping_fast_suite.h"
 
 namespace Kratos::Testing {
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
-
-typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
@@ -79,9 +79,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMap
 
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1, 1.0, 2.5, 30.0));
-    auto node_2(Kratos::make_intrusive<NodeType>(3, 10.5, 20.0, 96.8));
-    auto node_3(Kratos::make_intrusive<NodeType>(15, 2.3, 1.9, -2.5));
+    auto node_1(Kratos::make_intrusive<Node>(1, 1.0, 2.5, 30.0));
+    auto node_2(Kratos::make_intrusive<Node>(3, 10.5, 20.0, 96.8));
+    auto node_3(Kratos::make_intrusive<Node>(15, 2.3, 1.9, -2.5));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -124,8 +124,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
 
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1, 18.0, 2.7, 30.0));
-    auto node_2(Kratos::make_intrusive<NodeType>(3, 1.0, 2.5, -3.0));
+    auto node_1(Kratos::make_intrusive<Node>(1, 18.0, 2.7, 30.0));
+    auto node_2(Kratos::make_intrusive<Node>(3, 1.0, 2.5, -3.0));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -162,8 +162,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_SameDistanceFound, Kratos
 
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
 
-    auto node_1(Kratos::make_intrusive<NodeType>(1,  1.0, 0.0, 0.0));
-    auto node_2(Kratos::make_intrusive<NodeType>(2, -1.0, 0.0, 0.0));
+    auto node_1(Kratos::make_intrusive<Node>(1,  1.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<Node>(2, -1.0, 0.0, 0.0));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -207,8 +207,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
 
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
 
-    auto node_2(Kratos::make_intrusive<NodeType>(3, 10.5, 20.0, 96.8));
-    auto node_3(Kratos::make_intrusive<NodeType>(15, 2.3, 1.9, -2.5));
+    auto node_2(Kratos::make_intrusive<Node>(3, 10.5, 20.0, 96.8));
+    auto node_3(Kratos::make_intrusive<Node>(15, 2.3, 1.9, -2.5));
 
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
     InterfaceObject::Pointer interface_node_3(Kratos::make_shared<InterfaceNode>(node_3.get()));
@@ -249,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperLocalSystem_BasicTests, KratosMappingApplication
     // A "NearestNeighborLocalSystem" is being used since "MapperLocalSystem" is a pure virtual class
 
     Point coords_1(1.0, 2.45, -23.8);
-    auto node_local_sys(Kratos::make_intrusive<NodeType>(5, coords_1));
+    auto node_local_sys(Kratos::make_intrusive<Node>(5, coords_1));
 
     NearestNeighborLocalSystem local_sys(node_local_sys.get());
 
@@ -261,7 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperLocalSystem_BasicTests, KratosMappingApplication
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
-    auto node_local_sys(Kratos::make_intrusive<NodeType>(8, 1.0, 2.5, -5.0));
+    auto node_local_sys(Kratos::make_intrusive<Node>(8, 1.0, 2.5, -5.0));
 
     NearestNeighborLocalSystem local_sys(node_local_sys.get());
 
@@ -294,14 +294,14 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosM
 {
     const int dest_id = 13;
 
-    auto node_local_sys(Kratos::make_intrusive<NodeType>(5, 1.0, 2.5, -5.0));
+    auto node_local_sys(Kratos::make_intrusive<Node>(5, 1.0, 2.5, -5.0));
     node_local_sys->SetValue(INTERFACE_EQUATION_ID, dest_id);
 
     NearestNeighborLocalSystem local_sys(node_local_sys.get());
 
     // Create the NearestNeighborInfos to be used by the NearestNeighborLocalSystem
-    auto node_1(Kratos::make_intrusive<NodeType>(1, 18.0, 2.7, 30.0));
-    auto node_2(Kratos::make_intrusive<NodeType>(3, 1.0, 2.5, -3.0)); // this is the nearest neighbor
+    auto node_1(Kratos::make_intrusive<Node>(1, 18.0, 2.7, 30.0));
+    auto node_2(Kratos::make_intrusive<Node>(3, 1.0, 2.5, -3.0)); // this is the nearest neighbor
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
