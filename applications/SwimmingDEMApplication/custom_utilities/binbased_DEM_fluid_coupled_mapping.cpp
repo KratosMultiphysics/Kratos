@@ -53,9 +53,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     // If the following is true, interpolate the fluid acceleration directly from
     // the shape functions of the fluid's element
     bool project_fluid_accel_using_shape_functions = false;
+    bool project_fluid_accel_using_mean_integral = false;
     if (parameters["dem_parameters"].Has("project_fluid_accel_using_shape_functions"))
     {
         project_fluid_accel_using_shape_functions = parameters["dem_parameters"]["project_fluid_accel_using_shape_functions"].GetBool();
+    }
+    if (parameters["dem_parameters"].Has("project_fluid_accel_using_mean_integral"))
+    {
+        project_fluid_accel_using_mean_integral = parameters["dem_parameters"]["project_fluid_accel_using_mean_integral"].GetBool();
+    } else {
+        std::cout << "Error: project_fluid_accel_using_mean_integral not found" << std::endl;
+        exit(1);
     }
 
     #pragma omp parallel for firstprivate(results, shape_function_values_at_point)
@@ -81,6 +89,13 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
                     if (*(dem_variables[j]) == FLUID_ACCEL_PROJECTED && project_fluid_accel_using_shape_functions)
                     {
                         ProjectFluidAccelUsingShapeFunctions(p_element,
+                                                  shape_function_values_at_point,
+                                                  p_particle,
+                                                  dem_variables[j],
+                                                  alpha);
+                    } else if (*(dem_variables[j]) == FLUID_ACCEL_PROJECTED && project_fluid_accel_using_mean_integral)
+                    {
+                        ProjectFluidAccelUsingShapeFunctionsAtGaussPoints(p_element,
                                                   shape_function_values_at_point,
                                                   p_particle,
                                                   dem_variables[j],
@@ -904,6 +919,85 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectFluidAccelUsingShapeFunctionsAtGaussPoints(Element::Pointer p_elem,
+             const Vector& N,
+             Node::Pointer p_node,
+             const VariableData *r_destination_variable,
+             double alpha)
+{
+    std::cout << "In ProjectFluidAccelUsingShapeFunctionsAtGaussPoints" << std::endl;
+    Geometry<Node>& r_geometry = p_elem->GetGeometry();
+    const SizeType local_space_dimension = r_geometry.LocalSpaceDimension();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType points_number = r_geometry.PointsNumber();
+
+    GeometryData::IntegrationMethod integration_method = p_elem->GetIntegrationMethod();
+    const std::vector<IntegrationPoint<3>> r_integrations_points = r_geometry.IntegrationPoints( integration_method );
+    unsigned int r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+    Vector detJ_vector(r_number_integration_points);
+    r_geometry.DeterminantOfJacobian(detJ_vector, integration_method);
+    Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
+    DenseVector<Matrix> shape_derivatives;
+    r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, detJ_vector, integration_method);
+
+    // Velocities evaluated at gauss points
+    Matrix vel_gauss_points = ZeroMatrix(r_number_integration_points, TDim);
+    for (unsigned g = 0; g < r_number_integration_points; g++)
+    {
+        for (unsigned n = 0; n < points_number; n++)
+        {
+            for (unsigned i = 0; i < TDim; i++)
+            {
+                double u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY)[i];
+                vel_gauss_points(g, i) += u_nodal * NContainer(g, n);
+            }
+        }
+    }
+
+    std::cout << "Vel gauss points = " << vel_gauss_points << std::endl;
+
+    array_1d<double, 3> fluid_accel_eval = ZeroVector(3);
+    for (unsigned int g = 0; g < r_number_integration_points; g++)
+    {
+        double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
+        for (unsigned n = 0; n < points_number; n++)
+        {
+            Vector nodal_vel = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned i = 0; i < TDim; i++)
+            {
+                for (unsigned j = 0; j < TDim; j++)
+                {
+                    fluid_accel_eval[i] += Weight * vel_gauss_points(g, j) * (shape_derivatives[g](n, j) * nodal_vel[i]);
+                }
+            }
+        }
+    }
+
+    // Divide by the volume
+    // double volume = r_geometry.Volume();
+    double volume = 0.;
+    for (unsigned g = 0; g < r_number_integration_points; g++)
+    {
+        double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
+        volume += Weight;
+    }
+    std::cout << "Volume = " << volume << std::endl;
+
+    for (unsigned i = 0; i < TDim; i++)
+    {
+        fluid_accel_eval[i] /= volume;
+    }
+    
+    // Assign the value to the particle
+    array_1d<double, 3>& step_datum = p_node->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+    for (unsigned int i = 0; i < TDim; ++i) {
+        step_datum[i] = fluid_accel_eval[i];
+    }
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectFluidAccelUsingShapeFunctions(Element::Pointer p_elem,
              const Vector& N,
              Node::Pointer p_node,
@@ -927,6 +1021,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectF
     // Compute the inverse of the jacobian at the particle's position 
     Matrix jacobian_inverse = ZeroMatrix( dimension, local_space_dimension );
     r_geometry.InverseOfJacobian(jacobian_inverse, p_pos_local);
+    jacobian_inverse = trans(jacobian_inverse);
 
     // Compute the gradient in local coordinates, i.e. calculate grad(f)_global = J^(-1) grad(f)_local
     Matrix shape_functions_gradients_local(points_number, local_space_dimension);
@@ -961,9 +1056,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectF
             {
                 array_1d<double, 3> nodal_vel_fluid = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                 grad_u_global(i, j) += nodal_vel_fluid[i] * shape_functions_gradients_global(n, j);
-                std::cout << "u_" << n << "^" << i << " = " << nodal_vel_fluid[i] << ", g_(" << n << ", " << j << ") = " << shape_functions_gradients_global(n, j) << std::endl;
+                // std::cout << "u_" << n << "^" << i << " = " << nodal_vel_fluid[i] << ", g_(" << n << ", " << j << ") = " << shape_functions_gradients_global(n, j) << std::endl;
             }
-            std::cout << "grad_u(" << i << ", " << j << ") = " << grad_u_global(i, j) << std::endl;
+            // std::cout << "grad_u(" << i << ", " << j << ") = " << grad_u_global(i, j) << std::endl;
         }
     }
 
@@ -1030,8 +1125,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectF
     }
     std::cout << "  - |J|        = " << detJ << std::endl;
     std::cout << "  - V = " << volume << std::endl;
+    std::cout << *p_elem << std::endl;
 
     // std::cout << *p_elem << std::endl;
+    // std::cout << "Entering evaluation" << std::endl;
+    // exit(0);
 
     // if (result_module > 0.27)
     // {

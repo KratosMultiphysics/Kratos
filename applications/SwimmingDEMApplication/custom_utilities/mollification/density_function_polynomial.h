@@ -88,7 +88,7 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal
 {
     double min_distance = mR;
     int n_neigh;
-    int num_bound_neigh = 0;
+    // int num_bound_neigh = 0;
     bool on_boundary = false;
     double sum_of_weights_inv = 0.0;
     array_1d<double, 3> virtual_coordinates;

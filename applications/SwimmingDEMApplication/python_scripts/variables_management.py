@@ -424,7 +424,6 @@ class VariablesManager:
             self.coupling_dem_vars += [Kratos.HYDRODYNAMIC_FORCE]
             self.coupling_dem_vars += [Kratos.HYDRODYNAMIC_MOMENT]
             self.coupling_dem_vars += [Kratos.MATERIAL_FLUID_ACCEL_PROJECTED]
-            self.coupling_dem_vars += [Kratos.FLUID_ACCEL_PROJECTED]
             self.coupling_dem_vars += [Kratos.FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED]
             self.coupling_dem_vars += [Kratos.ADDITIONAL_FORCE] # Here for safety for the moment
 

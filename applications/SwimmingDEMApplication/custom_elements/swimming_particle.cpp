@@ -100,11 +100,14 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                       virtual_mass_force,
                                                       r_current_process_info);
 
-    mHydrodynamicInteractionLaw->ComputeUndisturbedForce(r_geometry,
-                                                      mFluidDensity,
-                                                      CalculateVolume(),
-                                                      undisturbed_flow_force,
-                                                      r_current_process_info);
+    if (node.SolutionStepsDataHas(UNDISTURBED_FLOW_FORCE))
+    {
+        mHydrodynamicInteractionLaw->ComputeUndisturbedForce(r_geometry,
+                                                        mFluidDensity,
+                                                        CalculateVolume(),
+                                                        undisturbed_flow_force,
+                                                        r_current_process_info);
+    }
 
     mHydrodynamicInteractionLaw->ComputeHistoryForce(r_geometry,
                                                      mRadius,
