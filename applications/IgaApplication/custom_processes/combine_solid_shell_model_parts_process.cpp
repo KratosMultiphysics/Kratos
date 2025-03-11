@@ -65,18 +65,6 @@ namespace Kratos
 
 		CoupledModelPart.SetNodalSolutionStepVariablesList();
 
-		auto pProperties = *(CoupledModelPart.PropertiesBegin().base());
-
-		// Iterate over conditions
-		block_for_each(CoupledModelPart.Conditions(), [&pProperties](Condition& rCondition) {
-			rCondition.SetProperties(pProperties);
-			});
-
-		//// Iterate over elements
-		//&pProperties;
-		//block_for_each(CoupledModelPart.Elements(), [&pProperties](Element& rElement) {
-		//	rElement.SetProperties(pProperties);
-		//	});
 	}
 
 	void CombineSolidShellModelPartsProcess::RecursiveAddEntities(ModelPart& rTwinModelPart, ModelPart& rOriginModelPart)
