@@ -25,7 +25,7 @@
 namespace Kratos
 {
 
-array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
+array_1d<double, 3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     const GeometryType& rVoxel,
     const GeometryArrayType& rTriangles
     )
@@ -45,8 +45,9 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
         noalias(aux.Normal) = rTriangles[i].Normal(aux.AuxCenter);
         column(aux.MatNormal,0) = aux.Normal;
 
-        //We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely
-        //but possible), only one will be taken into account to create the matrices.
+        // We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely
+        // but possible), only one will be taken into account to create the matrices.
+        // TODO: Intersection should be in every side, not just one
         int result = 0;
         std::size_t j = 0;
         while(!result && j < edges.size()) {
@@ -66,7 +67,7 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
+array_1d<double, 3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     const BoundingBox<Point>& rBox,
     const std::vector<GeometricalObject*>& rTriangles
     )
@@ -87,6 +88,7 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
 
         // We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely
         // but possible), only one will be taken into account to create the matrices.
+        // TODO: Intersection should be in every side, not just one
         int result = 0;
         std::size_t j = 0;
         while(!result && j < 12) {
@@ -173,7 +175,7 @@ void QuadraticErrorFunction::SecondEnd(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double,3> QuadraticErrorFunction::ComputeQuadraticErrorFunctionPoint(
+array_1d<double, 3> QuadraticErrorFunction::ComputeQuadraticErrorFunctionPoint(
     const BoundedMatrix<double,3,3>& rATA,
     const BoundedMatrix<double,3,1>& rATB,
     const BoundedMatrix<double,3,1>& rMatCenter

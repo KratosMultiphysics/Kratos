@@ -127,7 +127,7 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return The QuadraticErrorFunction point (x,y,z)
      */
-    static array_1d<double,3> QuadraticErrorFunctionPoint (
+    static array_1d<double, 3> QuadraticErrorFunctionPoint (
         const GeometryType& rVoxel,
         const GeometryArrayType& rTriangles
         );
@@ -138,7 +138,7 @@ public:
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
      * @return The QuadraticErrorFunction point (x,y,z)
      */
-    static array_1d<double,3> QuadraticErrorFunctionPoint (
+    static array_1d<double, 3> QuadraticErrorFunctionPoint (
         const BoundingBox<Point>& rBox,
         const std::vector<GeometricalObject*>& rTriangles
         );
@@ -203,9 +203,9 @@ private:
      * @param rATA A symmetric 3x3 matrix representing the accumulated outer product of normals (i.e., AᵀA).
      * @param rATB A 3x1 vector representing the accumulated product of normals and their corresponding scalar offsets.
      * @param rMatCenter A 3x1 vector representing the center point.
-     * @return array_1d<double,3> The computed point that minimizes the quadratic error function.
+     * @return array_1d<double, 3> The computed point that minimizes the quadratic error function.
      */
-    static array_1d<double,3> ComputeQuadraticErrorFunctionPoint(
+    static array_1d<double, 3> ComputeQuadraticErrorFunctionPoint(
         const BoundedMatrix<double,3,3>& rATA,
         const BoundedMatrix<double,3,1>& rATB,
         const BoundedMatrix<double,3,1>& rMatCenter
