@@ -40,7 +40,10 @@
         "linear_solver_settings": {
             "solver_type": "amgcl"
         },
-        "auxiliary_variables_list" : ["TEMPERATURE", "REACTION_FLUX"]
+        "auxiliary_variables_list": [
+            "TEMPERATURE",
+            "REACTION_FLUX"
+        ]
     },
     "processes": {
         "constraints_process_list": [

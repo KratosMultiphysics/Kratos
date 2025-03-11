@@ -32,9 +32,16 @@
         "rotation_dofs": true,
         "volumetric_strain_dofs": false,
         "move_mesh_flag": false,
-        "auxiliary_variables_list" : ["TEMPERATURE", "REACTION_FLUX"],
-        "auxiliary_dofs_list" : ["TEMPERATURE"],
-        "auxiliary_reaction_list" : ["REACTION_FLUX"]
+        "auxiliary_variables_list": [
+            "TEMPERATURE",
+            "REACTION_FLUX"
+        ],
+        "auxiliary_dofs_list": [
+            "TEMPERATURE"
+        ],
+        "auxiliary_reaction_list": [
+            "REACTION_FLUX"
+        ]
     },
     "processes": {
         "constraints_process_list": [
@@ -87,19 +94,21 @@
                 }
             },
             {
-                "python_module" : "assign_scalar_variable_process",
-                "kratos_module" : "KratosMultiphysics",
-                "Parameters"    : {
-                    "model_part_name" : "Structure.Parts_Solid_full",
-                    "variable_name"   : "TEMPERATURE",
-                    "value"           : 0.0,
-                    "interval"        : [0.0,0.0]
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "model_part_name": "Structure.Parts_Solid_full",
+                    "variable_name": "TEMPERATURE",
+                    "value": 0.0,
+                    "interval": [
+                        0.0,
+                        0.0
+                    ]
                 }
             }
         ],
         "list_other_processes": []
     },
-    "output_processes": {
-    },
+    "output_processes": {},
     "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
 }

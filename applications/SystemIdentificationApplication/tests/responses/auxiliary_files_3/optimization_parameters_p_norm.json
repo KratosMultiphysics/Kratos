@@ -67,7 +67,7 @@
     "controls": [
         {
             "name": "temperature_control",
-            "type": "nodal_values_control",
+            "type": "data_values_control",
             "module": "KratosMultiphysics.SystemIdentificationApplication.controls",
             "settings": {
                 "model_part_names": [
@@ -77,6 +77,7 @@
                     }
                 ],
                 "control_variable_name": "TEMPERATURE",
+                "container_type": "nodal_historical",
                 "control_variable_bounds": [
                     -50.0,
                     100.0
