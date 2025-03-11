@@ -80,20 +80,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
                 for (unsigned int j = 0; j != dem_variables.size(); ++j){
                     if (*(dem_variables[j]) == FLUID_ACCEL_PROJECTED && project_fluid_accel_using_shape_functions)
                     {
-                        std::cout << "Projecting using shape functions" << std::endl;
                         ProjectFluidAccelUsingShapeFunctions(p_element,
                                                   shape_function_values_at_point,
                                                   p_particle,
                                                   dem_variables[j],
                                                   alpha);
-                    } else if (*(dem_variables[j]) == FLUID_VEL_PROJECTED && project_fluid_accel_using_shape_functions) {
-                        std::cout << "Projecting using shape functions" << std::endl;
-                        ProjectFluidVelocityUsingShapeFunctions(p_element,
-                                                  shape_function_values_at_point,
-                                                  p_particle,
-                                                  dem_variables[j],
-                                                  alpha);
-
                     } else {
                         Project(p_element,
                                 shape_function_values_at_point,
@@ -913,15 +904,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectFluidVelocityUsingShapeFunctions(Element::Pointer p_elem,
-             const Vector& N,
-             Node::Pointer p_node,
-             const VariableData *r_destination_variable,
-             double alpha)
-{
-}
-
-template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectFluidAccelUsingShapeFunctions(Element::Pointer p_elem,
              const Vector& N,
              Node::Pointer p_node,
@@ -946,36 +928,115 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectF
     Matrix jacobian_inverse = ZeroMatrix( dimension, local_space_dimension );
     r_geometry.InverseOfJacobian(jacobian_inverse, p_pos_local);
 
-    // Now compute the gradient in local coordinates, i.e. grad(f)_global = J^(-1) grad(f)_local
+    // Compute the gradient in local coordinates, i.e. calculate grad(f)_global = J^(-1) grad(f)_local
     Matrix shape_functions_gradients_local(points_number, local_space_dimension);
     r_geometry.ShapeFunctionsLocalGradients( shape_functions_gradients_local, p_pos_local );
 
-    // Now compute the gradient in global coordinates
-    Matrix shape_functions_gradients_global(points_number, local_space_dimension);
-    shape_functions_gradients_local = prod(shape_functions_gradients_local, trans(jacobian_inverse));
+    // Compute the gradient in global coordinates
+    Matrix shape_functions_gradients_global(points_number, dimension);
+    shape_functions_gradients_global = prod(shape_functions_gradients_local, trans(jacobian_inverse));
 
-    // Compute the material derivative (TODO: add time variation!!)
-    Vector shape_functions_values;
+    // Compute the fluid's velocity at x = p_pos
+    Vector shape_functions_values = ZeroVector(points_number);
     r_geometry.ShapeFunctionsValues(shape_functions_values, p_pos_local);
-    Vector result = ZeroVector(dimension);
-    for (size_t i = 0; i < dimension; i++)
+    array_1d<double, 3> fluid_vel_projected;
+    for (size_t d = 0; d < dimension; d++)
     {
+        fluid_vel_projected[d] = 0.;
         for (size_t n = 0; n < points_number; n++)
         {
-            double velocity_node_n = r_geometry[n].FastGetSolutionStepValue(VELOCITY)[i];
-            for (size_t m = 0; m < points_number; m++)
+            array_1d<double, 3> u_fluid_node = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
+            // std::cout << "u_fluid_node = " << u_fluid_node << std::endl;
+            fluid_vel_projected[d] += u_fluid_node[d] * shape_functions_values(n);
+        }
+    }
+
+    // Compute grad(u) at x = xp
+    Matrix grad_u_global = ZeroMatrix(dimension, dimension);  // = grad_u_global(i, j) = \partial_j u^i = U^i_n \partial_j N_n
+    for (size_t i = 0; i < dimension; i++)
+    {
+        for (size_t j = 0; j < dimension; j++)
+        {
+            for (size_t n = 0; n < points_number; n++)
             {
-                for (size_t d = 0; d < dimension; d++)
-                {
-                    double velocity_node_m = r_geometry[m].FastGetSolutionStepValue(VELOCITY)[d];
-                    result(i) += velocity_node_n * velocity_node_m * shape_functions_values(m) * shape_functions_gradients_global(n, d);
-                }
+                array_1d<double, 3> nodal_vel_fluid = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
+                grad_u_global(i, j) += nodal_vel_fluid[i] * shape_functions_gradients_global(n, j);
+                std::cout << "u_" << n << "^" << i << " = " << nodal_vel_fluid[i] << ", g_(" << n << ", " << j << ") = " << shape_functions_gradients_global(n, j) << std::endl;
             }
+            std::cout << "grad_u(" << i << ", " << j << ") = " << grad_u_global(i, j) << std::endl;
+        }
+    }
+
+    // Fluid's acceleration at x = xp (TODO: add time variation!!)
+    array_1d<double, 3> fluid_accel_projected;
+    for (size_t i = 0; i < dimension; i++)
+    {
+        fluid_accel_projected[i] = 0.;
+        for (size_t j = 0; j < dimension; j++)
+        {
+            fluid_accel_projected[i] += fluid_vel_projected[j] * grad_u_global(i, j);      
         }
     }
     
-    // std::cout << "Computed Dt u(x=xp) = " << result << std::endl;
-    // exit(0);
+    
+    // Assign the value to the particle
+    array_1d<double, 3>& step_datum = p_node->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+    for (unsigned int i = 0; i < TDim; ++i) {
+        step_datum[i] = fluid_accel_projected[i];
+    }
+
+    // ##################### Print info ###########################################################################
+    const array_1d<double, 3> particle_velocity = p_node->FastGetSolutionStepValue(VELOCITY);
+    double result_module = sqrt(fluid_accel_projected[0] * fluid_accel_projected[0] + fluid_accel_projected[1] * fluid_accel_projected[1] + fluid_accel_projected[2] * fluid_accel_projected[2]);
+    double detJ = r_geometry.DeterminantOfJacobian(p_pos_local);
+    Matrix jacobian(local_space_dimension, dimension);
+    r_geometry.Jacobian(jacobian, p_pos_local);
+    double volume = r_geometry.Volume();
+
+    std::cout << "Trivial interpolation info:" << std::endl;
+    std::cout << "  - Fluid element id: " << p_elem->Id() << std::endl;
+    std::cout << "  - xp_global  = " << p_pos_global << std::endl;
+    std::cout << "  - xp_local   = " << p_pos_local << std::endl;
+    for (size_t i = 0; i < points_number; i++)
+    {
+        const array_1d<double, 3> fluid_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+        std::cout << "  - u_fluid(" << i << ") = " << fluid_velocity << std::endl;
+    }
+    for (size_t d = 0; d < dimension; d++)
+    {
+        std::cout << "  - grad u^" << d << " = (" << grad_u_global(d, 0) << ", " << grad_u_global(d, 1) << ", " << grad_u_global(d, 2) << ")" << std::endl;
+    }
+    
+    std::cout << "  - u_fluid_pr = " << fluid_vel_projected << std::endl;
+    std::cout << "  - v_part     = " << particle_velocity << std::endl;
+    std::cout << "  - Dt u       = " << fluid_accel_projected << std::endl;
+    std::cout << "  - |Dt u|     = " << result_module << std::endl;
+    std::cout << "  - phi(xp)    = " << shape_functions_values << std::endl;
+
+    std::cout << "  - grad(phi)     = " << std::endl;
+    for (size_t i = 0; i < points_number; i++)
+    {
+        std::cout << "      " << shape_functions_gradients_global(i, 0) << ", " << shape_functions_gradients_global(i, 1) << ", " << shape_functions_gradients_global(i, 2) << std::endl;
+    }
+    std::cout << "  - J     = " << std::endl;
+    for (size_t i = 0; i < dimension; i++)
+    {
+        std::cout << "      " << jacobian(i, 0) << ", " << jacobian(i, 1) << ", " << jacobian(i, 2) << std::endl;
+    }
+    std::cout << "  - J^(-1) = " << std::endl;
+    for (size_t i = 0; i < dimension; i++)
+    {
+        std::cout << "      " << jacobian_inverse(i, 0) << ", " << jacobian_inverse(i, 1) << ", " << jacobian_inverse(i, 2) << std::endl;
+    }
+    std::cout << "  - |J|        = " << detJ << std::endl;
+    std::cout << "  - V = " << volume << std::endl;
+
+    // std::cout << *p_elem << std::endl;
+
+    // if (result_module > 0.27)
+    // {
+    //     exit(0);
+    // }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************

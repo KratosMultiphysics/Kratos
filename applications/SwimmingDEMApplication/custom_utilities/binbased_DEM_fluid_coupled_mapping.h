@@ -389,7 +389,6 @@ double CalculateNormOfSymmetricGradient(const Geometry<Node >& geom, const int i
 array_1d<double, 3> CalculateVorticity(const Geometry<Node >& geom, const int index);
 void Project(Element::Pointer p_elem, const Vector& N, Node::Pointer p_node, const VariableData *r_destination_variable, double alpha);
 void ProjectFluidAccelUsingShapeFunctions(Element::Pointer p_elem, const Vector& N, Node::Pointer p_node, const VariableData *r_destination_variable, double alpha);
-void ProjectFluidVelocityUsingShapeFunctions(Element::Pointer p_elem, const Vector& N, Node::Pointer p_node, const VariableData *r_destination_variable, double alpha);
 void DistributeDimensionalContributionToFluidFraction(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void Distribute(Element::Pointer p_elem, const Vector& N, Node::Pointer p_node,const VariableData *r_destination_variable);
 void ComputeHomogenizedNodalVariable(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable, bool use_drew_model);
