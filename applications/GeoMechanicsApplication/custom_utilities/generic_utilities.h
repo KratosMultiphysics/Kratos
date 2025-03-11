@@ -25,13 +25,25 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GenericUtilities
 {
 public:
-    template <typename Type>
-    [[nodiscard]] static std::vector<Type> ApplyPermutation(const std::vector<Type>&        vec,
-                                                            const std::vector<std::size_t>& indices)
+    // Implementation based on Raymond Chen's article "Applying a permutation to a vector, part 1"
+    // (see https://devblogs.microsoft.com/oldnewthing/20170102-00/?p=95095)
+    template <typename VectorType, typename IndexSequenceType>
+    static VectorType PermutedVector(const VectorType& rVector, const IndexSequenceType& rIndices)
     {
-        std::vector<Type> result(vec.size());
-        for (size_t i = 0; i < vec.size(); i++) {
-            result[i] = vec[indices[i]];
+        auto result = VectorType(rVector.size());
+        std::transform(rIndices.begin(), rIndices.end(), result.begin(),
+                       [&rVector](auto Index) { return rVector[Index]; });
+        return result;
+    }
+
+    template <typename MatrixType, typename IndexSequenceType>
+    static MatrixType MatrixWithPermutedColumns(const MatrixType& rMatrix, const IndexSequenceType& rIndices)
+    {
+        auto result = MatrixType(rMatrix.size1(), rMatrix.size2());
+        for (auto i = std::size_t{0}; i < rMatrix.size1(); ++i) {
+            for (auto j = std::size_t{0}; j < rMatrix.size2(); ++j) {
+                result(i, j) = rMatrix(i, rIndices[j]);
+            }
         }
         return result;
     }

@@ -201,19 +201,8 @@ void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStres
         return rPrincipalStressVector[j] < rPrincipalStressVector[i];
     });
 
-    std::vector<double> principal_stress_vector(rPrincipalStressVector.size());
-    std::copy(rPrincipalStressVector.begin(), rPrincipalStressVector.end(), principal_stress_vector.begin());
-    principal_stress_vector = GenericUtilities::ApplyPermutation<double>(principal_stress_vector, indices);
-    std::copy(principal_stress_vector.begin(), principal_stress_vector.end(), rPrincipalStressVector.begin());
-
-    std::vector<Vector> eigenvectors_matrix(rEigenVectorsMatrix.size2());
-    for (std::size_t i = 0; i < rEigenVectorsMatrix.size2(); ++i) {
-        eigenvectors_matrix[i] = column(rEigenVectorsMatrix, i);
-    }
-    eigenvectors_matrix = GenericUtilities::ApplyPermutation<Vector>(eigenvectors_matrix, indices);
-    for (std::size_t i = 0; i < rEigenVectorsMatrix.size2(); ++i) {
-        column(rEigenVectorsMatrix, i) = eigenvectors_matrix[i];
-    }
+    rPrincipalStressVector = GenericUtilities::PermutedVector(rPrincipalStressVector, indices);
+    rEigenVectorsMatrix = GenericUtilities::MatrixWithPermutedColumns(rEigenVectorsMatrix, indices);
 }
 
 Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
