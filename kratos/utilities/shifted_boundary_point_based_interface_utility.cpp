@@ -161,12 +161,10 @@ namespace Kratos
             "skin_model_part_name" : "",
             "boundary_sub_model_part_name" : "",
             "sbm_interface_condition_name" : "",
-            "conforming_basis" : true,
             "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1,
             "active_side_of_skin" : "both",
             "enclosed_area" : "none",
-            "cross_boundary_neighbors" : false,
             "use_tessellated_boundary" : true
         })" );
 
@@ -201,9 +199,6 @@ namespace Kratos
 
         // Set the order of the MLS extension operator used in the MLS shape functions utility
         mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
-        // If true, the basis is created such that it is conforming with the linear FE space of the surrogate boundary
-        //TODO only conforming MLS extension operators are available!
-        mConformingBasis = ThisParameters["conforming_basis"].GetBool();
         // If true, the basis is created such that the surrogate boundary gradient is kept
         const std::string ext_op_type = ThisParameters["extension_operator_type"].GetString();
         if (ext_op_type == "MLS") {
@@ -245,10 +240,6 @@ namespace Kratos
         } else if (enclosed_area == "negative") {
             mNegativeSideIsEnclosed = true;
         }
-
-        // If true, then the support cloud for a node can be found beyond a first layer of deactivated SBM_BOUNDARY elements (direct neighbors) in normal direction
-        // NOTE that this is beneficial for small cuts and overlapping boundaries or if skin points are not located in the same elements as the tessellated geometry
-        mCrossBoundaryNeighbors = ThisParameters["cross_boundary_neighbors"].GetBool();
 
         // If true, then elements will be declared SBM_BOUNDARY which are intersected by the tessellated skin geometry
         mUseTessellatedBoundary = ThisParameters["use_tessellated_boundary"].GetBool();

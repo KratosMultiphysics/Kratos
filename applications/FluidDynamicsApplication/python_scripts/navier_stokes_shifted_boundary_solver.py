@@ -31,15 +31,18 @@ class ShiftedBoundaryFormulation(object):
 
     def _SetUpShiftedBoundaryWeaklyCompressibleNavierStokes(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "shifted_boundary_weakly_compressible_navier_stokes",
-            "is_slip": false,
-            "slip_length": 1.0e8,
-            "penalty_coefficient": 10.0,
-            "dynamic_tau": 1.0,
-            "level_set_type": "point-based",
-            "conforming_basis" : true,
-            "extension_operator_type" : "MLS",
-            "mls_extension_operator_order" : 1
+            "element_type"                 : "shifted_boundary_weakly_compressible_navier_stokes",
+            "boundary_model_parts"         : [],
+            "enclosed_areas"               : [],
+            "slip_length"                  : 1.0e8,
+            "penalty_coefficient"          : 10.0,
+            "dynamic_tau"                  : 1.0,
+            "level_set_type"               : "point-based",
+            "extension_operator_type"      : "MLS",
+            "mls_extension_operator_order" : 1,
+            "postprocess_drag"             : false,
+            "postprocess_velocity"         : false,
+            "postprocess_pressure"         : false
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -47,9 +50,8 @@ class ShiftedBoundaryFormulation(object):
         self.condition_name = "NavierStokesWallCondition"
         self.sbm_interface_condition_name = "ShiftedBoundaryWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
-        # Error that discontinuous is not supported yet
-        if self.level_set_type != "continuous" and self.level_set_type != "discontinuous" and self.level_set_type != "point-based":
-            err_msg = 'Provided level set type is unknown. Available types for MLS-based SBM are \'continuous\', \'discontinuous\' and \'point-based\'.'
+        if self.level_set_type != "point-based":
+            err_msg = 'Provided level set type is unknown. Available type for MLS-based SBM is \'point-based\'.'
             raise Exception(err_msg)
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
@@ -58,45 +60,33 @@ class ShiftedBoundaryFormulation(object):
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
-        if formulation_settings["is_slip"].GetBool():
-            self.process_info_data[KratosCFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
+        self.process_info_data[KratosCFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
+
+        # Get names of boundary model parts, whether they enclose and area and set post-processing computations for them
+        self.boundary_model_part_names = formulation_settings["boundary_model_parts"].GetStringArray()
+        self.enclosed_areas = formulation_settings["enclosed_areas"].GetStringArray()
+        if len(self.enclosed_areas) is 0:
+            self.enclosed_areas = ['none'] * len(self.boundary_model_part_names)
+        else:
+            if len(self.enclosed_areas) is not len(self.boundary_model_part_names):
+                err_msg = 'Provided array of \'enclosed_areas\' must have the same length as \'boundary_model_parts\'.'
+                raise Exception(err_msg)
+            else:
+                for area in self.enclosed_areas:
+                    print(area)
+                    if area not in ["none", "negative", "positive"]:
+                        err_msg = 'Provided enclosed area designation is unknown. Available designations are \'none\', \'negative\' and \'positive\'.'
+                        raise Exception(err_msg)
+            
+        self.postprocess_drag = formulation_settings["postprocess_drag"].GetBool()
+        self.postprocess_velocity = formulation_settings["postprocess_velocity"].GetBool()
+        self.postprocess_pressure = formulation_settings["postprocess_pressure"].GetBool()
 
 
 def CreateSolver(model, custom_settings):
     return NavierStokesShiftedBoundaryMonolithicSolver(model, custom_settings)
 
 class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
-
-    def __GetDistanceModificationDefaultSettings(self, level_set_type):
-        if level_set_type == "continuous":
-            return self.__GetContinuousDistanceModificationDefaultSettings()
-        elif level_set_type == "discontinuous":
-            return self.__GetDiscontinuousDistanceModificationDefaultSettings()
-        else:
-            err_msg = 'Provided level set type is: \'' + level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
-            raise Exception(err_msg)
-
-    @classmethod
-    def __GetContinuousDistanceModificationDefaultSettings(cls):
-        return KratosMultiphysics.Parameters(r'''{
-            "model_part_name": "",
-            "distance_threshold": 1.0e-12,
-            "continuous_distance": true,
-            "check_at_each_time_step": false,
-            "avoid_almost_empty_elements": false,
-            "deactivate_full_negative_elements": true
-        }''')
-
-    @classmethod
-    def __GetDiscontinuousDistanceModificationDefaultSettings(cls):
-        return KratosMultiphysics.Parameters(r'''{
-            "model_part_name": "",
-            "distance_threshold": 1.0e-12,
-            "continuous_distance": false,
-            "check_at_each_time_step": false,
-            "avoid_almost_empty_elements": false,
-            "deactivate_full_negative_elements": false
-        }''')
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -114,12 +104,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             "material_import_settings": {
                 "materials_filename": ""
             },
-            "distance_reading_settings"    : {
-                "import_mode"         : "from_mdpa",
-                "distance_file_name"  : "no_distance_file"
-            },
-            "distance_modification_settings": {
-            },
             "maximum_iterations": 7,
             "echo_level": 0,
             "time_order": 2,
@@ -129,10 +113,10 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             "reform_dofs_at_each_step": false,
             "consider_periodic_conditions": false,
             "assign_neighbour_elements_to_conditions": true,
-            "relative_velocity_tolerance": 1e-3,
-            "absolute_velocity_tolerance": 1e-5,
-            "relative_pressure_tolerance": 1e-3,
-            "absolute_pressure_tolerance": 1e-5,
+            "relative_velocity_tolerance": 1e-5,
+            "absolute_velocity_tolerance": 1e-7,
+            "relative_pressure_tolerance": 1e-5,
+            "absolute_pressure_tolerance": 1e-7,
             "linear_solver_settings"       : {
                 "solver_type"         : "amgcl"
             },
@@ -168,6 +152,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.element_has_nodal_properties = self.shifted_boundary_formulation.element_has_nodal_properties
         self.historical_nodal_properties_variables_list = self.shifted_boundary_formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.shifted_boundary_formulation.non_historical_nodal_properties_variables_list
+        self.boundary_model_part_names = self.shifted_boundary_formulation.boundary_model_part_names
+        self.enclosed_areas = self.shifted_boundary_formulation.enclosed_areas
+        self.postprocess_drag = self.shifted_boundary_formulation.postprocess_drag
+        self.postprocess_velocity = self.shifted_boundary_formulation.postprocess_velocity
+        self.postprocess_pressure = self.shifted_boundary_formulation.postprocess_pressure
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesShiftedBoundaryMonolithicSolver finished.")
 
@@ -183,9 +172,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Use distance variable for node relocation and voting on positive/ negative side
-        if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
-            #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
@@ -208,36 +194,18 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Sets the shifted-boundary formulation configuration
             self.__SetShiftedBoundaryFormulation()
-            ## Setting the nodal distance
-            if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
-                self.__SetDistanceFunction()
 
     def Initialize(self):
         # If the solver requires an instance of the stabilized shifted boundary formulation class, set the process info variables
-        #TODO??
         if hasattr(self, 'shifted_boundary_formulation'):
             self.shifted_boundary_formulation.SetProcessInfo(self.GetComputingModelPart())
 
         # Construct and initialize the solution strategy
-        #TODO "Error: Constitutive Law not initialized for Element ShiftedBoundaryFluidElement #105033"
+        # NOTE "Error: Constitutive Law not initialized for Element ShiftedBoundaryFluidElement #105033"
         # if strategy is initialized after set up of interface utility (deactivation of elements?)
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
-
-        # # Set the distance modification process
-        # self.GetDistanceModificationProcess().ExecuteInitialize()
-        # # Correct the distance field
-        # self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-        #TODO OR
-        # Avoid zeros with positive epsilon
-        # TODO remove DISTANCEs
-        if self.level_set_type == "continuous" or self.level_set_type == "discontinuous":
-            tol = 1.0e-10
-            for node in self.GetComputingModelPart().Nodes:
-                dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                if abs(dist) < tol:
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
 
         # Create shifted-boundary meshless interface utility and calculate extension operator requiring nodal and elemental neighbors
         self.__SetUpInterfaceUtility()
@@ -254,8 +222,12 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
     def FinalizeSolutionStep(self):
         # Compute Variables for skin model parts in sbm utilities
         for sbm_interface_utility in self.sbm_interface_utilities:
-            sbm_interface_utility.CalculatePressureAtSkinNodes()
-            sbm_interface_utility.CalculateSkinDrag()
+            if self.postprocess_drag:
+                sbm_interface_utility.CalculateSkinDrag()
+            if self.postprocess_velocity:
+                sbm_interface_utility.CalculateVelocityAtSkinNodes()
+            if self.postprocess_pressure:
+                sbm_interface_utility.CalculatePressureAtSkinNodes()
 
         # Call the base solver FinalizeSolutionStep()
         super(NavierStokesShiftedBoundaryMonolithicSolver, self).FinalizeSolutionStep()
@@ -276,7 +248,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 if ele.Properties.Has(KratosMultiphysics.SOUND_VELOCITY):
                     sound_velocity = ele.Properties.GetValue(KratosMultiphysics.SOUND_VELOCITY)
                 else:
-                    sound_velocity = 1.0e+12 # Default sound velocity value
+                    # NOTE this is the default sound velocity value to deactivate compressibility term of elements
+                    sound_velocity = 1.0e+12 
                     KratosMultiphysics.Logger.PrintWarning('No \'SOUND_VELOCITY\' value found in Properties {0}. Setting default value {1}'.format(ele.Properties.Id, sound_velocity))
                 if sound_velocity <= 0.0:
                     raise Exception("SOUND_VELOCITY set to {0} in Properties {1}, positive number expected.".format(sound_velocity, ele.Properties.Id))
@@ -291,134 +264,64 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)
 
     def __SetShiftedBoundaryFormulation(self):
-        # Set the SLIP elemental flag
-        if (self.settings["formulation"]["is_slip"].GetBool()):
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, True, self.GetComputingModelPart().Elements)
-        else:
-            # Set the SLIP elemental flag to false in the entire domain
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, False, self.GetComputingModelPart().Elements)
-
         # Save the formulation settings in the ProcessInfo
         self.shifted_boundary_formulation.SetProcessInfo(self.main_model_part)
-
-    def __SetDistanceFunction(self):
-        ## Set the nodal distance function
-        if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Distance function taken from the .mdpa input file.")
-            # Recall to swap the distance sign (GiD considers d<0 in the fluid region)  #TODO ??? how does this work for distance set in MainKratos.py
-            for node in self.main_model_part.Nodes:
-                distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
 
     def __SetUpInterfaceUtility(self):
         # Create the boundary elements and MLS basis
         settings = KratosMultiphysics.Parameters("""{}""")
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name + "." + self.GetComputingModelPart().Name)
         settings.AddEmptyValue("boundary_sub_model_part_name").SetString("shifted_boundary")
-        settings.AddEmptyValue("conforming_basis").SetBool(self.settings["formulation"]["conforming_basis"].GetBool())
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["formulation"]["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
 
-        if self.level_set_type == "point-based":
-            #n_dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        #if self.level_set_type == "point-based":
+        #n_dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-            # Calculate the required neighbors
-            elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
-            elemental_neighbors_process.Execute()
+        # Calculate the required neighbors
+        elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
+        elemental_neighbors_process.Execute()
 
-            # Add more specific settings for point-based sbm utility
-            settings.AddEmptyValue("skin_model_part_name").SetString("Skin")
+        # Create an interface utility for all skin model part names
+        self.sbm_interface_utilities = []
+        for skin_model_part_name, enclosed_area in zip(self.boundary_model_part_names, self.enclosed_areas):
+            # Adapt settings
+            settings.AddEmptyValue("skin_model_part_name").SetString(skin_model_part_name)
+            settings.AddEmptyValue("enclosed_area").SetString(enclosed_area)
 
-            # Store names and interface utilities for all skin model parts
-            skin_model_part_names = ["Skin"] #["Cylinder"]  #["Skin"]
-            #skin_model_part_names = ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]  # ["Cylinder", "VerticalPlate1", "VerticalPlate2", "VerticalPlate3"]
-            self.sbm_interface_utilities = []
+            # Create interface utility
+            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
+            self.sbm_interface_utilities.append(sbm_interface_utility)
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created for skin model part '" + skin_model_part_name + "'.")
 
-            # Create an interface utility for all skin model parts
-            for skin_model_part_name in skin_model_part_names:
-                # Adapt settings
-                settings["skin_model_part_name"].SetString(skin_model_part_name)
-                if skin_model_part_name == "Cylinder":
-                    #TODO create and use "find_enclosed_volumes" process instead?!
-                    # to determine enclosed volumes bound by inactive elements and set p=0 for one node if no node's pressure is fixed yet
-                    settings.AddEmptyValue("enclosed_area").SetString("negative")
-                    #settings.AddEmptyValue("enclosed_area").SetString("none")
-                else:
-                    settings.AddEmptyValue("enclosed_area").SetString("none")
-
-                # Create interface utility
-                sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryPointBasedInterfaceUtility(self.model, settings)
-                self.sbm_interface_utilities.append(sbm_interface_utility)
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created for skin model part '" + skin_model_part_name + "'.")
-
-            if len(self.sbm_interface_utilities) == 1:
-                self.sbm_interface_utilities[0].CalculateAndAddPointBasedInterface()
-            else:
-                # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
-                self.sbm_interface_utilities[0].ResetFlags()
-
-                # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts
-                for sbm_interface_utility in self.sbm_interface_utilities:
-                    sbm_interface_utility.SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
-                    # To be done after setting tessellated boundary because nodes might be relocated
-                    sbm_interface_utility.LocateSkinPoints()
-
-                # To be done after locating the skin points because elements in which skin points are located
-                # might not be intersected by tessellated skin and might be marked as boundary here
-                sbm_interface_utility.SetInterfaceFlags()
-
-                # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
-                self.sbm_interface_utilities[0].DeactivateElementsAndNodes()
-
-                # Add Kratos conditions for points at the boundary based on extension operators
-                # NOTE that same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
-                for i_skin, sbm_interface_utility in enumerate(self.sbm_interface_utilities):
-                    sbm_interface_utility.CalculateAndAddSkinIntegrationPointConditions()
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part '" + skin_model_part_names[i_skin] + "'.")
-
-                # Search for enclosed volumes and fix the pressure of one node if it has not been fixed yet
-                #sbm_interface_utilities[0].FixEnclosedVolumesPressure()
-
-        elif self.level_set_type == "discontinuous":
-            # Calculate the required neighbors
-            elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
-            elemental_neighbors_process.Execute()
-
-            #
-            settings.AddEmptyValue("levelset_variable_name").SetString("ELEMENTAL_DISTANCES")
-            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(self.model, settings)
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility for discontinuous level-set created.")
-
-            # Add Kratos conditions for points at the boundary based on extension operators
-            sbm_interface_utility.CalculateExtensionOperator()
-
+        if len(self.sbm_interface_utilities) == 1:
+            self.sbm_interface_utilities[0].CalculateAndAddPointBasedInterface()
         else:
-            # Calculate the required neighbors
-            nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
-            nodal_neighbours_process.Execute()
-            elemental_neighbors_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
-            elemental_neighbors_process.Execute()
+            # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
+            self.sbm_interface_utilities[0].ResetFlags()
 
-            settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
-            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility for continuous level-set created.")
+            # Set boundary flags and locate skin model part points in the volume model part elements for all skin model parts
+            for sbm_interface_utility in self.sbm_interface_utilities:
+                sbm_interface_utility.SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
+                # To be done after setting tessellated boundary because nodes might be relocated
+                sbm_interface_utility.LocateSkinPoints()
+
+            # To be done after locating the skin points because elements in which skin points are located
+            # might not be intersected by tessellated skin and might be marked as boundary here
+            sbm_interface_utility.SetInterfaceFlags()
+
+            # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
+            self.sbm_interface_utilities[0].DeactivateElementsAndNodes()
 
             # Add Kratos conditions for points at the boundary based on extension operators
-            sbm_interface_utility.CalculateExtensionOperator()
+            # NOTE that the same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
+            for i_skin, sbm_interface_utility in enumerate(self.sbm_interface_utilities):
+                sbm_interface_utility.CalculateAndAddSkinIntegrationPointConditions()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part '" + self.boundary_model_part_names[i_skin] + "'.")
+
+            #TODO Search for enclosed volumes and fix the pressure of one node if it has not been fixed yet? (instead of defining enclosed_areas)
+            #sbm_interface_utilities[0].FixEnclosedVolumesPressure()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
 
-    def GetDistanceModificationProcess(self):
-        if not hasattr(self, '_distance_modification_process'):
-            self._distance_modification_process = self.__CreateDistanceModificationProcess()
-        return self._distance_modification_process
-
-    def __CreateDistanceModificationProcess(self):
-        # Set the distance modification settings according to the level set type
-        # Note that the distance modification process is applied to the volume model part
-        distance_modification_settings = self.settings["distance_modification_settings"]
-        distance_modification_settings.ValidateAndAssignDefaults(self.__GetDistanceModificationDefaultSettings(self.level_set_type))
-        aux_full_volume_part_name = self.settings["model_part_name"].GetString() + "." + self.settings["volume_model_part_name"].GetString()
-        distance_modification_settings["model_part_name"].SetString(aux_full_volume_part_name)
-        return KratosCFD.DistanceModificationProcess(self.model, distance_modification_settings)
