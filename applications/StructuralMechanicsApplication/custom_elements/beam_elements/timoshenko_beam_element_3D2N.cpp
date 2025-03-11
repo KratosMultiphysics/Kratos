@@ -704,7 +704,49 @@ void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
+    rOutput.resize(r_integration_points.size());
 
+    if (rVariable == AXIAL_STRAIN     ||
+        rVariable == SHEAR_STRAIN_Y   ||
+        rVariable == SHEAR_STRAIN_Z   ||
+        rVariable == BENDING_STRAIN_X ||
+        rVariable == BENDING_STRAIN_Y ||
+        rVariable == BENDING_STRAIN_Z )
+    {
+        // todo
+    } else if (rVariable == AXIAL_FORCE ||
+        rVariable == SHEAR_FORCE_Y      ||
+        rVariable == SHEAR_FORCE_Z      ||
+        rVariable == BENDING_MOMENT_X   ||
+        rVariable == BENDING_MOMENT_Y   ||
+        rVariable == BENDING_MOMENT_Z )
+    {
+        std::vector<Vector> pk2_stress;
+        BaseType::CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, pk2_stress, rCurrentProcessInfo);
+
+        IndexType component = 0;
+        if (rVariable == AXIAL_FORCE) {
+            component = 0;
+        } else if (rVariable == BENDING_MOMENT_X) {
+            component = 1;
+        } else if (rVariable == BENDING_MOMENT_Y) {
+            component = 2;
+        } else if (rVariable == BENDING_MOMENT_Z) {
+            component = 3;
+        } else if (rVariable == SHEAR_FORCE_Y) {
+            component = 4;
+        } else if (rVariable == SHEAR_FORCE_Z) {
+            component = 5;
+        }
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            rOutput[IP] = pk2_stress[IP][component];
+        }
+    }
 }
 
 /***********************************************************************************/
