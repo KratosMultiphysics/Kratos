@@ -716,7 +716,34 @@ void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
         rVariable == BENDING_STRAIN_Y ||
         rVariable == BENDING_STRAIN_Z )
     {
-        // todo
+        IndexType component = 0;
+        if (rVariable == AXIAL_STRAIN) {
+            component = 0;
+        } else if (rVariable == BENDING_STRAIN_X) {
+            component = 1;
+        } else if (rVariable == BENDING_STRAIN_Y) {
+            component = 2;
+        } else if (rVariable == BENDING_STRAIN_Z) {
+            component = 3;
+        } else if (rVariable == SHEAR_STRAIN_Y) {
+            component = 4;
+        } else if (rVariable == SHEAR_STRAIN_Z) {
+            component = 5;
+        }
+        const double length = CalculateLength();
+        VectorType strain_vector(strain_size);
+
+        VectorType nodal_values(mat_size);
+        GetNodalValuesVector(nodal_values);
+
+        // Loop over the integration points (IP)
+        const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            const double xi     = r_integration_points[IP].X();
+            CalculateGeneralizedStrainsVector(strain_vector, length, 0.0, xi, nodal_values);
+            rOutput[IP] = strain_vector[component];
+        }
+
     } else if (rVariable == AXIAL_FORCE ||
         rVariable == SHEAR_FORCE_Y      ||
         rVariable == SHEAR_FORCE_Z      ||
