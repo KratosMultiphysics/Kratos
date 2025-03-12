@@ -182,10 +182,9 @@ void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStre
                                                        Vector&       rPrincipalStressVector,
                                                        Matrix&       rEigenVectorsMatrix)
 {
-    auto   stress_tensor = MathUtils<>::StressVectorToTensor(rCauchyStressVector);
     Matrix principal_stress_matrix;
-    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, rEigenVectorsMatrix,
-                                              principal_stress_matrix, 1.0e-16, 20);
+    MathUtils<double>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rCauchyStressVector),
+                                              rEigenVectorsMatrix, principal_stress_matrix, 1.0e-16, 20);
     rPrincipalStressVector = ZeroVector(3);
     for (int i = 0; i < 3; ++i) {
         rPrincipalStressVector(i) = principal_stress_matrix(i, i);

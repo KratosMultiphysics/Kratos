@@ -11,8 +11,6 @@
 //                   Gennady Markelov
 //
 
-#include "custom_constitutive/plane_strain.h"
-#include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"

@@ -70,19 +70,23 @@ private:
     TensionCutoff                             mTensionCutOff;
 
     void CheckProperty(const Properties& rMaterialProperties, const Kratos::Variable<double>& rVariable) const;
-    void   CalculateTrialStressVector(const Vector& rStrainVector,
-                                      Vector&       rStressVector,
-                                      double        YoungModulus,
-                                      double        PoissonRatio) const;
+    Vector CalculateTrialStressVector(const Vector& rStrainVector, double YoungModulus, double PoissonRatio) const;
     double CalculateApex(double FrictionAngle, double Cohesion) const;
     Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensionCutoff) const;
     Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, double TensionCutoff) const;
-    Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
-                                          const Vector& rCornerPoint) const;
-    Vector ReturnStressAtRegularFailureZone(const Vector&              rPrincipalTrialStressVector,
-                                            const CoulombYieldSurface& rCoulombYieldFunction,
-                                            double                     FrictionAngle,
-                                            double                     Cohesion) const;
+    Vector             ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
+                                                      const Vector& rCornerPoint) const;
+    Vector             ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
+                                                        double        FrictionAngle,
+                                                        double        Cohesion) const;
+    [[nodiscard]] bool IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
+    [[nodiscard]] bool IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
+                                           double        TensileStrength,
+                                           double        Apex,
+                                           const Vector& rCornerPoint) const;
+    [[nodiscard]] bool IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
+                                                  double        DilatancyAngle,
+                                                  const Vector& rCornerPoint) const;
 
     // Serialization
     friend class Serializer;
