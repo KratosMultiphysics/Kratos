@@ -93,13 +93,6 @@ namespace Kratos
         Vector d(2);
         NodeType projection_node;
 
-        // if (this->GetGeometry().GetValue(NEIGHBOUR_NODES).size() != 0) 
-        // {
-        //     projection_node = this->GetGeometry().GetValue(NEIGHBOUR_NODES)[0];
-
-        //     true_n = projection_node.GetValue(NORMAL);
-        //     true_tau = projection_node.GetValue(LOCAL_TANGENT);
-        // }
         if (this->GetValue(NEIGHBOUR_NODES).size() != 0) 
         {
             projection_node = r_geometry.GetValue(NEIGHBOUR_NODES)[0];
@@ -144,9 +137,11 @@ namespace Kratos
         d[1] = projection[1] - r_geometry.Center().Y();
         mDistance = d;
         // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-        outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
-        outputFile.close();
+
+        //TODO: remove
+        // std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+        // outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
+        // outputFile.close();
         SetValue(SKIN_MASTER_COORDINATES, projection);
         
         // Integration
@@ -225,8 +220,8 @@ namespace Kratos
                     H_taylor_term_Y += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
                 }
             }
-            Hgrad(i,0) = H_taylor_term_X + DN_DX(i,0);
-            Hgrad(i,1) = H_taylor_term_Y + DN_DX(i,1);
+            Hgrad(i,0) = H_taylor_term_X  + DN_DX(i,0);
+            Hgrad(i,1) = H_taylor_term_Y  + DN_DX(i,1);
         }    
 
         const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
@@ -280,8 +275,7 @@ namespace Kratos
 
         // dot product n cdot n_tilde
         n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1];
-        // double tau_ntilde = true_tau[0] * normal_parameter_space[0] + true_tau[1] * normal_parameter_space[1];
-
+        double n_tautilde = true_n[0] * tangent_parameter_space[0] + true_n[1] * tangent_parameter_space[1];
 
         double integration_factor = IntToReferenceWeight;
         for (IndexType i = 0; i < number_of_nodes; i++) {
@@ -294,9 +288,11 @@ namespace Kratos
                     for (IndexType jdim = 0; jdim < 2; jdim++) {
                         const int id2 = (id1+2)%3;
                         const int jglob = 2*j+jdim;
+
                         // -()
                         rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
-
+                    
+                        
                         rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor * n_ntilde;
                     }
 
@@ -315,15 +311,29 @@ namespace Kratos
             // const double x = projection[0];
             // const double y = projection[1];
 
-            // g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * true_n[0] + E/(1+nu)*(cos(x)*cosh(y)) * true_n[1]; 
-            // g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * true_n[0] + E/(1+nu)*(sin(x)*sinh(y)) * true_n[1]; 
+            // const double x = r_geometry.Center().X();
+            // const double y = r_geometry.Center().Y();
 
+            // cosinusoidal
             // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * true_n[0]; 
-            // g_N[1] = E/(1-nu)*(sin(x)*sinh(y))  * true_n[1]; 
+            // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * true_n[1]; 
+
+            // polynomial 1
+            // g_N[0] = E/(1-nu*nu)*(2*nu*x*y+2*x*y) * true_n[0]
+            //         + E/(2*(1+nu)) * (x*x + y*y) * true_n[1]; 
+            // g_N[1] = E/(2*(1+nu)) * (x*x + y*y) * true_n[0]
+            //         + E/(1-nu*nu)*(2*nu*x*y+2*x*y) * true_n[1]; 
+
+            // polynomial 2
+            // double sigma_xx = E / (1 - nu * nu) * (0.2 * nu * x + 2 * x * y + 1.0 * x);
+            // double sigma_yy = E / (1 - nu * nu) * (nu * (2 * x * y + 1.0 * x) + 0.2 * x);
+            // double sigma_xy = E / (2 * (1 + nu)) * (4.0 * x * x + 0.2 * y);
+            // g_N[0] = sigma_xx * true_n[0]
+            //         + sigma_xy * true_n[1]; 
+            // g_N[1] = sigma_xy * true_n[0]
+            //         + sigma_yy * true_n[1]; 
 
 
-            // g_N[0] = this->GetValue(FORCE_X); 
-            // g_N[1] = this->GetValue(FORCE_Y); 
 
             g_N[0] = projection_node.GetValue(FORCE_X);
             g_N[1] = projection_node.GetValue(FORCE_Y);

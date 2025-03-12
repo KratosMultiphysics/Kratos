@@ -100,10 +100,11 @@ namespace Kratos
         projection[0] = candidateClosestSkinSegment1.GetGeometry()[0].X() ;
         projection[1] = candidateClosestSkinSegment1.GetGeometry()[0].Y() ;
 
+        //TODO: remove
         // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-        outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
-        outputFile.close();
+        // std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+        // outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
+        // outputFile.close();
 
         Vector d(2);
         d[0] = projection[0] - r_geometry.Center().X();

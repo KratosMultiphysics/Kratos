@@ -176,8 +176,8 @@ class IgaStructuralMechanicsStaticSolver(MechanicalSolver):
 
         
         # ax = fig.add_subplot(111, projection='3d')
-        print(free_node_x)
-        print(free_node_y)
+        # print(free_node_x)
+        # print(free_node_y)
 
         # ax.scatter(fixed_node_x, fixed_node_y, fixed_node_z, marker='x', color='black', s=12,  label='Fixed Nodes')
         ax.scatter(free_node_x, free_node_y, marker='d', color='red',s=60, label='Free Nodes')

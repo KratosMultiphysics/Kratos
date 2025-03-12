@@ -127,7 +127,7 @@ namespace Kratos
         
         KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && is_inner)  << "Inner :: Starting SnakeStep" << std::endl;
         KRATOS_INFO_IF("::[SnakeSBMUtilities]::", rEchoLevel > 0 && !is_inner) << "Outer :: Starting SnakeStep" << std::endl;
-
+        
         if (skin_model_part_initial.NumberOfConditions()> 0) {
 
             // CREATE FIRST NODE FOR SKIN SUB MODEL PART
@@ -505,6 +505,35 @@ namespace Kratos
                 int knot_span_u_point_split = (xy_true_boundary_split[0]-starting_pos_uv[0]) / knot_step_uv[0] ;
                 int knot_span_v_point_split = (xy_true_boundary_split[1]-starting_pos_uv[1]) / knot_step_uv[1] ;
 
+                // check if it's exactly the same of the first or second point
+                bool is_passing_through_diagonal = (knot_spans_uv[0][0] != knot_spans_uv[0][1]) && (knot_spans_uv[1][0] != knot_spans_uv[1][1]);
+                if (is_passing_through_diagonal)
+                {
+                    SizeType count_split = 0;
+                    while (((knot_span_u_point_split == knot_spans_uv[0][0] && knot_span_v_point_split == knot_spans_uv[1][0]) ||
+                            (knot_span_u_point_split == knot_spans_uv[0][1] && knot_span_v_point_split == knot_spans_uv[1][1]) )
+                            && (count_split < 5))
+                    {
+                        count_split++;
+                        local_coords_split[0] = (0.75*local_coords[0] + 0.25*local_coords[1]);
+                        p_curve->GlobalCoordinates(xy_true_boundary_split, local_coords_split);
+
+                        knot_span_u_point_split = (xy_true_boundary_split[0]-starting_pos_uv[0]) / knot_step_uv[0] ;
+                        knot_span_v_point_split = (xy_true_boundary_split[1]-starting_pos_uv[1]) / knot_step_uv[1] ;
+                    }
+                    // if the true skin exactly or almost exactly pass trough a diagonal vertex 
+                    if ((knot_span_u_point_split == knot_spans_uv[0][0] && knot_span_v_point_split == knot_spans_uv[1][0]) ||
+                        (knot_span_u_point_split == knot_spans_uv[0][1] && knot_span_v_point_split == knot_spans_uv[1][1]))
+                        {
+                            
+                            knot_span_u_point_split = knot_spans_uv[0][0];
+                            knot_span_v_point_split = knot_spans_uv[1][1];
+
+                            KRATOS_ERROR_IF_NOT(is_passing_through_diagonal) << "ERROR, SOMETHING WRONG IN THE SNAKE STEP FOR PASS THROUGH DIAGONAL"
+                                                        << knot_spans_uv << std::endl;
+                        }
+                }
+
                 if (knot_span_u_point_split == knot_spans_available[idMatrix][0].size()) knot_span_u_point_split--;
                 if (knot_span_v_point_split == knot_spans_available[idMatrix].size()) knot_span_v_point_split--;
 
@@ -544,8 +573,6 @@ namespace Kratos
                 // __We do it recursively second split__
                 SnakeStepNurbs(skin_model_part, knot_spans_available, idMatrix, knot_span_uv_split, 
                          xy_coord_i_cond_split, knot_step_uv, starting_pos_uv, local_coords_split_segment2, p_curve);
-
-
 
             }
             // Check if the true boundary crosses an u or a v knot value
@@ -701,7 +728,7 @@ namespace Kratos
                         }
 
                     // Create 25 "fake" GaussPoints to check if the majority are inside or outside
-                    const int numFakeGaussPoints = 8;
+                    const int numFakeGaussPoints = 6;
                     int numberOfInsideGaussianPoints = 0;
                     for (int i_GPx = 0; i_GPx < numFakeGaussPoints; i_GPx++){
                         double x_coord = j*knot_step_uv[0] + knot_step_uv[0]/(numFakeGaussPoints+1)*(i_GPx+1) + starting_pos_uv[0];

@@ -148,7 +148,7 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        KRATOS_INFO_IF("PRE-CRITERIA:: \n ACTIVE SET CRITERION: Convergence achieved", this->GetEchoLevel()>=0);
+        // KRATOS_INFO_IF("PRE-CRITERIA:: \n ACTIVE SET CRITERION: Convergence achieved", this->GetEchoLevel()>=0);
         PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
         return true;
@@ -268,7 +268,6 @@ public:
         ) override
     {
 
-        // return true;
         if (!rModelPart.HasSubModelPart("ContactInterface")) return true;
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("ContactInterface");
 
@@ -285,7 +284,7 @@ public:
 
             int n_GP_per_segment = 2*p+1;
             double toll_tangent_distance = 1e-1;
-            double toll = 1e-9;
+            double toll = 0;//1e-9;
             double toll_stress = 1e-4;
             int n_cond = contact_sub_model_part.Conditions().size(); 
 
@@ -342,16 +341,18 @@ public:
                 check_per_segment_gap[segment_index] += check_value_gap;
 
                 // // FIXME:
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[1] < 1e-2)
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 1e-2)
                 // {
+                //     KRATOS_WATCH(i_cond->GetValue(SKIN_MASTER_COORDINATES))
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
                 //     {
+                //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
                 //         n_changes++;
                 //     }
                 //     n_active ++;
                 // }
-
                 // else 
+
                 if (check_value_stress< -toll_stress)
                 {   
                     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
@@ -360,7 +361,7 @@ public:
                     n_changes++;
                     }
 
-                } else if ((check_value_gap > toll) && tangent_gap_master < toll_tangent_distance) //|| check_value_gap + check_value_stress > toll
+                } else if ((check_value_gap > toll) && std::abs(tangent_gap_master) < toll_tangent_distance) //|| check_value_gap + check_value_stress > toll
                 {
                     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
                     {
@@ -375,7 +376,6 @@ public:
                 count_cond++;
 
             }
-
             if (n_active == 0) 
                 KRATOS_WATCH("[Warning]:: zero active contact conditions")
                                                                                 

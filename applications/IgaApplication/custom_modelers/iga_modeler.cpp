@@ -307,7 +307,7 @@ namespace Kratos
         if (meshSizes_uv.size() > 2) {if (meshSizes_uv[2] > meshSize) {meshSize = meshSizes_uv[2];}}
         
 
-        radius = sqrt(3)*(meshSize); 
+        radius = sqrt(2)*(meshSize);  //TODO: sqrt(3) in 3D
         // radius = 30*(meshSize);
         DynamicBins testBins(points.begin(), points.end());
         const int numberOfResults = 1e6; 
@@ -390,6 +390,9 @@ namespace Kratos
 
                         double minimum_distance=1e10;
                         int nearestNodeId;
+
+                        double best_n_dot_distance = 1e10;
+                        Node best_node;
                         for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
                             double new_distance = list_of_distances[i_distance];   
                             if (new_distance < minimum_distance) { 
@@ -397,6 +400,44 @@ namespace Kratos
                                 nearestNodeId = i_distance;
                                 }
                         }
+                        // for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
+                        //     double new_distance = list_of_distances[i_distance];   
+                        //     //FIXME:
+                        //     auto& closest_condition = skin_model_part.GetCondition(Results[i_distance]->Id());
+                        //     auto& closest_point = closest_condition.GetGeometry()[0];
+
+                        //     Vector condition_tangent_vector = geometries[0].Center() - geometries[1].Center();
+                        //     condition_tangent_vector /= norm_2(condition_tangent_vector);
+                        //     Vector temp_normal = closest_point.GetValue(NORMAL);
+                        //     double n_dot_distance = std::abs(inner_prod(temp_normal, condition_tangent_vector));
+
+                        //     // Vector distance_vector = closest_point - gaussPoint;
+                        //     // distance_vector /= norm_2(distance_vector);
+                        //     // double n_dot_distance = std::abs(inner_prod(temp_normal, distance_vector));
+                            
+                        //     // KRATOS_WATCH(gaussPoint)
+                        //     // KRATOS_WATCH(closest_point)
+                        //     // KRATOS_WATCH(temp_normal)
+                        //     // KRATOS_WATCH(condition_tangent_vector)
+                        //     // KRATOS_WATCH(n_dot_distance)
+                        //     // KRATOS_WATCH("---------------")
+
+                        //     if (n_dot_distance < best_n_dot_distance && new_distance < minimum_distance *1.5)
+                        //     {
+                        //         best_n_dot_distance = n_dot_distance;
+                        //         nearestNodeId = i_distance;
+                        //         best_node = closest_point;
+                        //     }
+                        // }
+
+                        auto closest_condition = skin_model_part.GetCondition(Results[nearestNodeId]->Id());
+                        best_node = closest_condition.GetGeometry()[0];
+
+                        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+                        outputFile << best_node[0] << " " << best_node[1] << " "  << gaussPoint.X() << " " << gaussPoint.Y() <<"\n";
+                        outputFile.close();
+                        // if (is_inner)
+                        //     exit(0);
 
                         if (obtainedResults == 0) {
                              KRATOS_WATCH("0 POINTS FOUND: EXIT")
@@ -404,7 +445,7 @@ namespace Kratos
                              exit(0);}
 
                         
-                        listIdClosestCondition[j] = Results[nearestNodeId]->Id();
+                        listIdClosestCondition[j] = Results[nearestNodeId]->Id();                          
                     }
                     if (is_inner) {
                         this->CreateConditions(

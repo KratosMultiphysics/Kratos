@@ -180,7 +180,14 @@ namespace Kratos
                 rCond.Set(TO_ERASE, true);
         });
 
+        NodesArrayType& r_nodes_array = mrContactModelPart->GetParentModelPart().Nodes();
+        block_for_each(r_nodes_array, [&](Node& rNode) {
+                rNode.Set(TO_ERASE, true);
+        });
+
         mrContactModelPart->GetParentModelPart().RemoveConditionsFromAllLevels(TO_ERASE);
+        mrContactModelPart->GetParentModelPart().RemoveNodesFromAllLevels(TO_ERASE);
+
         SizeType id = 1;
         if (mrContactModelPart->GetRootModelPart().Conditions().size() > 0)
             id = mrContactModelPart->GetRootModelPart().Conditions().back().Id() + 1;
@@ -232,6 +239,8 @@ namespace Kratos
 
         //********************************************************
         // ********************************************************** */
+        //FIXME:
+        bool is_surrogate_correct = false;
         for (auto& r_geometry_master : mrMasterModelPart->Geometries()) {
             int master_brep_id = r_geometry_master.Id();
             auto p_master_geometry = mrMasterModelPart->pGetGeometry(master_brep_id);
@@ -254,6 +263,16 @@ namespace Kratos
                 // collect the skin projection
                 Node& skin_node = gp_in_brep->GetValue(NEIGHBOUR_NODES)[0];
 
+                //FIXME:
+                if (gp_in_brep->Center()[0] < 1e-1 && gp_in_brep->Center()[1]< 8.11)
+                {   
+                    if (skin_node.X() < 1e-1 && skin_node.Y()< 8.1)
+                        is_surrogate_correct = true;
+                    
+                    // KRATOS_WATCH(gp_in_brep->Center())
+                    // KRATOS_WATCH(skin_node)
+                }
+
                 // project the skin_node to the skin boundary on the slave side
                 double best_curve_distance = 1e16;
                 CoordinatesArrayType best_curve_projection;
@@ -274,7 +293,7 @@ namespace Kratos
 
                     // bool is_converged = ProjectionNurbsContactUtilities<PointType, PointerVector<NodeType>>::NewtonRaphsonCurve(
                     //                     local_coord,
-                    //                     skin_node_deformed_coordinates,
+                    //                     skin_node,
                     //                     projected_point,
                     //                     i_slave_curve,
                     //                     distance,
@@ -367,9 +386,6 @@ namespace Kratos
                 IndexType best_brep_surrogate_slave_id = Results[nearestNodeId]->Id();
                 auto best_slave_brep_geometry = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(mrSlaveModelPart->pGetGeometry(best_brep_surrogate_slave_id));
                 KRATOS_ERROR_IF(!best_slave_brep_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << best_brep_surrogate_slave_id << "is not a Brep." << std::endl;
-                best_slave_brep_geometry->SetValue(IDENTIFIER, "active");
-                master_brep_geometry->SetValue(IDENTIFIER, "active");
-
                 // find the closest integration point in the brep
                 GeometriesArrayType gp_list_slave;
                 best_slave_brep_geometry->GetQuadraturePointGeometries(gp_list_slave);
@@ -391,14 +407,14 @@ namespace Kratos
                 rResultGeometries(count_gp_master) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCouplingGeometry2D(
                                                         gp_in_brep, gp_list_slave(best_surrogate_node_array_position));
 
+                
+                gp_in_brep->SetValue(IDENTIFIER, "active");
+                gp_list_slave(best_surrogate_node_array_position)->SetValue(IDENTIFIER, "active");
+
+
                 rResultGeometries(count_gp_master)->SetValue(MARKER_MESHES, master_knot_step_uv);
                 
                 count_gp_master++;
-                // KRATOS_WATCH(gp_in_brep.Center())
-                // KRATOS_WATCH(gp_in_brep.GetValue(NEIGHBOUR_NODES)[0])
-                // KRATOS_WATCH(gp_in_brep.GetValue(NEIGHBOUR_NODES)[0].GetValue(NEIGHBOUR_NODES)[0])
-                // KRATOS_WATCH(gp_in_brep.GetValue(NEIGHBOUR_NODES)[0].GetValue(NEIGHBOUR_NODES)[0].GetValue(NEIGHBOUR_GEOMETRY)->Center())
-                // KRATOS_WATCH("--------------------------------\n-------------------------------")
             }
             rResultGeometries.resize(count_gp_master);
             if (is_converged_at_least_once_in_brep)
@@ -408,71 +424,63 @@ namespace Kratos
                                 *mrContactModelPart, name, id, mpPropMaster, mpPropSlave);
             }
         }
+
+        // KRATOS_ERROR_IF_NOT(is_surrogate_correct) << "SURROGATE NOT CORRECT FOR CONTACT SBM PROBLEM" << std::endl;
+
         // Set non active slave breps to SBM load condition to zero
         std::string default_condition_name = "SBMLoadSolid2DCondition";
         SizeType rIdCounter = 1;
-        if (mrSlaveModelPart->Conditions().size() > 0)
-            rIdCounter = mrSlaveModelPart->Conditions().back().Id() + 1;
-        // FIXME:
-        // for (auto& r_geometry_slave : mrSlaveModelPart->Geometries()) {
+        if (mrContactModelPart->GetRootModelPart().Conditions().size() > 0)
+            rIdCounter = mrContactModelPart->GetRootModelPart().Conditions().back().Id() + 1;
 
-        //     int slave_brep_id = r_geometry_slave.Id();
-        //     auto p_slave_geometry = mrSlaveModelPart->pGetGeometry(slave_brep_id);
+        for (auto& r_geometry_slave : mrSlaveModelPart->Geometries()) {
 
-        //     if (p_slave_geometry->GetValue(IDENTIFIER) == "active") continue;
+            int slave_brep_id = r_geometry_slave.Id();
+            auto p_slave_geometry = mrSlaveModelPart->pGetGeometry(slave_brep_id);
 
-        //     auto slave_brep_geometry = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_slave_geometry);
+            auto slave_brep_geometry = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_slave_geometry);
 
-        //     KRATOS_ERROR_IF(!slave_brep_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << slave_brep_id << "is not a Brep." << std::endl;
+            KRATOS_ERROR_IF(!slave_brep_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << slave_brep_id << "is not a Brep." << std::endl;
 
-        //     GeometriesArrayType gp_list_slave;
-        //     slave_brep_geometry->GetQuadraturePointGeometries(gp_list_slave);
+            GeometriesArrayType gp_list_slave;
+            slave_brep_geometry->GetQuadraturePointGeometries(gp_list_slave);
 
-        //     // CREATE SBM LOAD CONDITIONS 
-        //     const Condition& rReferenceCondition = KratosComponents<Condition>::Get(default_condition_name);
-        //     ModelPart::ConditionsContainerType new_condition_list;
+            // CREATE SBM LOAD CONDITIONS 
+            const Condition& rReferenceCondition = KratosComponents<Condition>::Get(default_condition_name);
+            ModelPart::ConditionsContainerType new_condition_list;
 
-        //     KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
-        //         << "Creating conditions of type " << default_condition_name
-        //         << " in " << mrSlaveModelPart->Name() << "-SubModelPart." << std::endl;
+            KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
+                << "Creating conditions of type " << default_condition_name
+                << " in " << mrContactModelPart->GetParentModelPart().Name() << "-SubModelPart." << std::endl;
 
-        //     IndexType count_cond = 0;
-        //     for (auto it = gp_list_slave.ptr_begin(); it != gp_list_slave.ptr_end(); ++it) {
-        //         new_condition_list.push_back(
-        //             rReferenceCondition.Create(rIdCounter, (*it), mpPropSlave));
-
-        //         // Add closest projection node
-        //         // if (norm_2((*it)->GetValue(NORMAL)) > 1e-13)
-        //         // {
-        //         //     KRATOS_WATCH((*it)->GetValue(NEIGHBOUR_NODES));
-        //         // }
-        //         //---------------------------------------------
+            IndexType count_cond = 0;
+            for (auto it = gp_list_slave.ptr_begin(); it != gp_list_slave.ptr_end(); ++it) {
                 
-        //         new_condition_list.GetContainer()[count_cond]->SetValue(MARKER_MESHES, meshSizes_uv);
+                if ((*it)->GetValue(IDENTIFIER) == "active") continue;
+
+                new_condition_list.push_back(
+                    rReferenceCondition.Create(rIdCounter, (*it), mpPropSlave));
+                
+                new_condition_list.GetContainer()[count_cond]->SetValue(MARKER_MESHES, meshSizes_uv);
                                 
-        //         for (SizeType i = 0; i < (*it)->size(); ++i) {
-        //             // These are the control points associated with the basis functions involved in the condition we are creating
-        //             // rModelPart.AddNode((*it)->pGetPoint(i));
-        //             mrSlaveModelPart->Nodes().push_back((*it)->pGetPoint(i));
-        //         }
-        //         rIdCounter++;
-        //         count_cond++;
-        //     }
-        //     mrSlaveModelPart->AddConditions(new_condition_list.begin(), new_condition_list.end());
-        // }
-        // EntitiesUtilities::InitializeEntities<Condition>(*mrSlaveModelPart);
+                for (SizeType i = 0; i < (*it)->size(); ++i) {
+                    // These are the control points associated with the basis functions involved in the condition we are creating
+                    // rModelPart.AddNode((*it)->pGetPoint(i));
+                    mrContactModelPart->GetParentModelPart().Nodes().push_back((*it)->pGetPoint(i));
+                }
+                rIdCounter++;
+                count_cond++;
+            }
+            mrContactModelPart->GetParentModelPart().AddConditions(new_condition_list.begin(), new_condition_list.end());
+        }
             //-----------------------------------------------------------------------------------------------------
             // master inactive breps
-        rIdCounter = 1;
-        if (mrMasterModelPart->GetParentModelPart().Conditions().size() > 0)
-            rIdCounter = mrMasterModelPart->GetParentModelPart().Conditions().back().Id() + 1;
+        if (mrContactModelPart->GetRootModelPart().Conditions().size() > 0)
+            rIdCounter = mrContactModelPart->GetRootModelPart().Conditions().back().Id() + 1;
         for (auto& r_geometry_master : mrMasterModelPart->Geometries()) {
 
             int master_brep_id = r_geometry_master.Id();
             auto p_master_geometry = mrMasterModelPart->pGetGeometry(master_brep_id);
-
-            if (p_master_geometry->GetValue(IDENTIFIER) == "active") continue;
-
 
             auto master_brep_geometry = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_master_geometry);
 
@@ -491,6 +499,9 @@ namespace Kratos
 
             IndexType count_cond = 0;
             for (auto it = gp_list_master.ptr_begin(); it != gp_list_master.ptr_end(); ++it) {
+                
+                if ((*it)->GetValue(IDENTIFIER) == "active") continue;
+
                 new_condition_list.push_back(rReferenceCondition.Create(rIdCounter, (*it), mpPropMaster));
                 
                 new_condition_list.GetContainer()[count_cond]->SetValue(MARKER_MESHES, meshSizes_uv);
@@ -509,6 +520,8 @@ namespace Kratos
         }
 
         EntitiesUtilities::InitializeEntities<Condition>(mrContactModelPart->GetParentModelPart());
+
+        KRATOS_ERROR_IF(mrContactModelPart->NumberOfConditions() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
     }
     
 

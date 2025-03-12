@@ -80,6 +80,7 @@ public:
     using PointType = Node;
 
     using ConditionsArrayType = ModelPart::ConditionsContainerType;
+    using NodesArrayType = ModelPart::NodesContainerType;
 
     using NodePointerVector = GlobalPointersVector<NodeType>;
 
