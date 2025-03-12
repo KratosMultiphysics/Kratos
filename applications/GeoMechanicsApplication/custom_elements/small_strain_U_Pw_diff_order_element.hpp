@@ -189,7 +189,7 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
@@ -243,7 +243,7 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    Vector GetPressureSolutionVector();
+    [[nodiscard]] Vector GetPressureSolutionVector() const;
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);

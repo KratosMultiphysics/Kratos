@@ -545,7 +545,7 @@ public:
 
 
     /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
+    @return SizeType contains number of this geometry edges.
     */
     SizeType EdgesNumber() const override
     {

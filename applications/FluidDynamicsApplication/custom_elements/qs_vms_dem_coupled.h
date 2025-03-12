@@ -262,11 +262,15 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-        int mInterpolationOrder = 1;
-        DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
-        // Velocity subscale history, stored at integration points
-        DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-        DenseVector< array_1d<double,Dim> > mPreviousVelocity;
+    // Velocity subscale history, stored at integration points
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mPreviousVelocity;
+    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
+    int mInterpolationOrder = 1;
+    std::vector<double> mPorosity;
+    std::vector<double> mPorosityRate;
+    std::vector<Vector> mPorosityGradient;
+    std::vector<Vector> mBodyForce;
 
     ///@}
     ///@name Protected Operators
@@ -346,6 +350,12 @@ protected:
     void SubscalePressure(
         const TElementData& rData,
         double &rPressureSubscale) const override;
+
+    array_1d<double,3> FullConvectiveVelocity(const TElementData& rData) const;
+
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access

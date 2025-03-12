@@ -217,7 +217,7 @@ public:
     /** Copy constructor from a geometry with other point type.
      Construct this geometry as a copy of given geometry which
     has different type of points. The given goemetry's
-    TOtherPointType* must be implicity convertible to this
+    TOtherPointType* must be implicitly convertible to this
     geometry PointType.
 
     @note This copy constructor don't copy the points and new
@@ -339,7 +339,7 @@ public:
 
     /**
      * @brief This method gives you number of all edges of this geometry.
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -364,7 +364,7 @@ public:
     }
 
     /**
-     * @brief This method calculate and return volume of this geometry.
+     * @brief This method calculates and returns volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -377,8 +377,8 @@ public:
     }
 
     /**
-     * This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * This method calculates and returns length, area or volume of
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
