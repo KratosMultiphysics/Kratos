@@ -64,7 +64,7 @@ class KRATOS_API(KRATOS_CORE) DataValueContainer
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Define local flag
     KRATOS_DEFINE_LOCAL_FLAG(OVERWRITE_OLD_VALUES);
 
@@ -91,7 +91,9 @@ public:
     ///@{
 
     /// Default constructor.
-    DataValueContainer() {}
+    DataValueContainer() noexcept = default;
+
+    DataValueContainer(DataValueContainer&&) noexcept = default;
 
     /// Copy constructor.
     DataValueContainer(DataValueContainer const& rOther)
@@ -118,7 +120,7 @@ public:
      * @param rThisVariable The VariableData object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& operator()(const VariableData& rThisVariable) const
     {
         return GetValue<TDataType>(rThisVariable);
@@ -131,7 +133,7 @@ public:
      * @param rThisVariable The Variable object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     TDataType& operator()(const Variable<TDataType>& rThisVariable)
     {
         return GetValue<TDataType>(rThisVariable);
@@ -144,7 +146,7 @@ public:
      * @param rThisVariable The Variable object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& operator()(const Variable<TDataType>& rThisVariable) const
     {
         return GetValue<TDataType>(rThisVariable);
@@ -157,7 +159,7 @@ public:
      * @param rThisVariable The VariableData object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     TDataType& operator[](const VariableData& rThisVariable)
     {
         return GetValue<TDataType>(rThisVariable);
@@ -170,7 +172,7 @@ public:
      * @param rThisVariable The VariableData object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& operator[](const VariableData& rThisVariable) const
     {
         return GetValue<TDataType>(rThisVariable);
@@ -183,7 +185,7 @@ public:
      * @param rThisVariable The Variable object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     TDataType& operator[](const Variable<TDataType>& rThisVariable)
     {
         return GetValue<TDataType>(rThisVariable);
@@ -191,12 +193,12 @@ public:
 
     /**
      * @brief Index operator for retrieving a data value by a Variable (const version).
-     * @details This operator allows you to retrieve a data value by providing a Variable object. 
+     * @details This operator allows you to retrieve a data value by providing a Variable object.
      * @tparam TDataType The data type of the value to retrieve.
      * @param rThisVariable The Variable object specifying the variable.
      * @return A reference to the data value.
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue<TDataType>(rThisVariable);
@@ -238,6 +240,8 @@ public:
         return mData.end();
     }
 
+    DataValueContainer& operator=(DataValueContainer&&) noexcept = default;
+
     /**
      * @brief Assignment operator for copying data from another DataValueContainer.
      * @details This operator allows you to assign the contents of another DataValueContainer to this container.
@@ -256,7 +260,7 @@ public:
      * @param rThisVariable The variable for which the value is to be retrieved.
      * @return Reference to the value of the provided variable.
      */
-    template<class TDataType> 
+    template<class TDataType>
     TDataType& GetValue(const Variable<TDataType>& rThisVariable)
     {
         typename ContainerType::iterator i;
@@ -282,7 +286,7 @@ public:
      * @return Const reference to the value of the provided variable.
      * @todo Make the variable of the constant version consistent with the one of the "classical" one
      */
-    template<class TDataType> 
+    template<class TDataType>
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
     {
         typename ContainerType::const_iterator i;
@@ -308,7 +312,7 @@ public:
      * @param rThisVariable The variable for which the value is to be set.
      * @param rValue The value to be set for the variable.
      */
-    template<class TDataType> 
+    template<class TDataType>
     void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
     {
         typename ContainerType::iterator i;
@@ -327,7 +331,7 @@ public:
      * @tparam TDataType The data type of the variable.
      * @param rThisVariable The variable whose associated value is to be erased.
      */
-    template<class TDataType> 
+    template<class TDataType>
     void Erase(const Variable<TDataType>& rThisVariable)
     {
         typename ContainerType::iterator i;
@@ -370,7 +374,7 @@ public:
      * @param rThisVariable The variable for which the check is to be made.
      * @return True if the variable has an associated value in the container, otherwise false.
      */
-    template<class TDataType> 
+    template<class TDataType>
     bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())) != mData.end());
