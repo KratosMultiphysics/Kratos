@@ -433,7 +433,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler1(
         const double EulerAngle1,
-        BoundedMatrix<double, 3, 3>& rRotationOperator
+        BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
         );
 
     /**
@@ -442,7 +442,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler2(
         const double EulerAngle2,
-        BoundedMatrix<double, 3, 3>& rRotationOperator
+        BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
         );
 
     /**
@@ -451,7 +451,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler3(
         const double EulerAngle3,
-        BoundedMatrix<double, 3, 3>& rRotationOperator
+        BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
         );
 
     /**
@@ -468,10 +468,31 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double EulerAngle1, // phi
         const double EulerAngle2, // theta
         const double EulerAngle3, // hi
-        BoundedMatrix<double, 3, 3>& rRotationOperator
+        BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
         );
 
-     /**
+    /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrix(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrixPlaneStrain(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrixPlaneStress(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
      * @brief This computes the MacaullyBrackets of a double
      */
     static double MacaullyBrackets(const double Number);
@@ -511,6 +532,15 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         ConstitutiveLaw::Parameters &rValues,
         const double Temperature
         );
+
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    static void CalculateTangentTensorByPerturbation(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw* pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy);
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos

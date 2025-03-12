@@ -108,26 +108,19 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 
 // geo structural element
-#include "custom_elements/geo_cable_element.hpp"
 #include "custom_elements/geo_cr_beam_element_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
 #include "custom_elements/geo_curved_beam_element.hpp"
-#include "custom_elements/geo_linear_truss_element.hpp"
-#include "custom_elements/geo_truss_element.hpp"
 #include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
-#include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
-#include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
@@ -403,6 +396,8 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
     const GeoSteadyStatePwPipingElement<2, 2> mGeoSteadyStatePwPipingElement2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+    const GeoSteadyStatePwPipingElement<3, 2> mGeoSteadyStatePwPipingElement3D2N{
+        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
 
     // small strain elements:
     const UPwSmallStrainElement<2, 3> mUPwSmallStrainElement2D3N{
@@ -715,18 +710,6 @@ private:
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N{
         0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoTrussElement<2, 2> mGeoTrussElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoTrussElement<3, 2> mGeoTrussElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoLinearTrussElement<2, 2> mGeoLinearTrussElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoLinearTrussElement<3, 2> mGeoLinearTrussElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCableElement<2, 2> mGeoCableElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCableElement<3, 2> mGeoCableElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoCurvedBeamElement<2, 3> mGeoCurvedBeamElement2D3N{
         0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
 
@@ -959,12 +942,8 @@ private:
         0, Kratos::make_shared<Quadrilateral3D9<NodeType>>(Condition::GeometryType::PointsArrayType(9))};
 
     // constitutive models
-    const BilinearCohesive3DLaw  mBilinearCohesive3DLaw;
-    const BilinearCohesive2DLaw  mBilinearCohesive2DLaw;
-    const LinearPlaneStrainK0Law mLinearPlaneStrainK0Law;
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
-    const ElasticIsotropicK03DLaw        mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
     const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw{};

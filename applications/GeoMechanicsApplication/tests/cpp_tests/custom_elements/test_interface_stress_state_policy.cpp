@@ -12,11 +12,15 @@
 
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/line_interface_geometry.h"
+#include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <string>
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 namespace
 {
@@ -144,6 +148,26 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorS
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.GetStressTensorSize(),
         "For interfaces, the stress tensor size is not implemented.")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto scoped_registration = ScopedSerializerRegistrationOfAllStressStatePolicies{};
+    const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<InterfaceStressState>()};
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_policy);
+    auto p_loaded_policy = std::unique_ptr<StressStatePolicy>{};
+    serializer.load("test_tag"s, p_loaded_policy);
+
+    // Assert
+    ASSERT_NE(p_loaded_policy, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_2D_INTERFACE);
+    auto expected_voigt_vector = Vector{2};
+    expected_voigt_vector <<= 1.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
