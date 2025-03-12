@@ -67,15 +67,17 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
     {
         KRATOS_ERROR << "Found discrepancy on the number of nodes in the L2 projection." << std::endl;
     }
+    std::cout << "Preparing to compute L2" << std::endl;
 
     // For each u_j compute the gradient
     Matrix massMatrix = ZeroMatrix(number_of_nodes * TDim, number_of_nodes * TDim);
     Vector rhs = ZeroVector(number_of_nodes * TDim);
     
-    bool mass_matrix_computed = false;
+    // bool mass_matrix_computed = false;
     for (unsigned int j = 0; j < TDim; j++) {
         Vector L2Projection = ZeroVector(number_of_nodes * TDim);  // grad_proj_component_j
 
+        std::cout << "Building mass matrix for j = " << j << std::endl;
         for (unsigned int e = 0; e < number_of_elements; e++)
         {
             // std::cout << "  Computing element e = " << e << std::endl;
@@ -154,7 +156,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
         // if (!mass_matrix_computed)
         // {
         massMatrix = ZeroMatrix(TDim * number_of_nodes, TDim * number_of_nodes);
-        mass_matrix_computed = true;
+        // mass_matrix_computed = true;
         // }
         rhs = ZeroVector(TDim * number_of_nodes);
     }

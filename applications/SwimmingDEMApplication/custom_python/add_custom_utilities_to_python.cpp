@@ -562,6 +562,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<>())
         .def("ComputeDofsErrors", &ErrorNormCalculator::ComputeDofsErrors)
         .def("GetL2VectorErrorNorm", &ErrorNormCalculator::GetL2VectorErrorNorm)
+        .def("GetL2MaterialAccelNormUsingNodeDerivatives", &ErrorNormCalculator::GetL2MaterialAccelNormUsingNodeDerivatives)
         .def("GetL2ScalarErrorNorm", &ErrorNormCalculator::GetL2ScalarErrorNorm)
         .def("GetH1ScalarErrorSemiNorm", &ErrorNormCalculator::GetH1ScalarErrorSemiNorm)
         .def("GetH1VectorErrorSemiNorm", &ErrorNormCalculator::GetH1VectorErrorSemiNorm)

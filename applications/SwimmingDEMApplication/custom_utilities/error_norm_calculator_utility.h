@@ -60,6 +60,8 @@ double GetH1ScalarErrorSemiNorm(ModelPart& r_model_part);
 
 double GetH1VectorErrorSemiNorm(ModelPart& r_model_part);
 
+double GetL2MaterialAccelNormUsingNodeDerivatives(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rExact_Variable);
+
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
