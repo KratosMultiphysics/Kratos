@@ -200,7 +200,7 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessable with SURFACE_INDEX.
+    *        Surface of the geometry is accessible with SURFACE_INDEX.
     * @param Index: trim_index or SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
@@ -214,7 +214,7 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    *        Surface of the geometry is accessible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
@@ -485,7 +485,7 @@ public:
     ///@name Quadrature Point Geometries
     ///@{
 
-    /* @brief calls function of undelying nurbs surface and updates
+    /* @brief calls function of underlying nurbs surface and updates
      *        the parent to itself.
      *
      * @param rResultGeometries list of quadrature point geometries.
