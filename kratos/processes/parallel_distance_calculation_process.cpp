@@ -47,6 +47,7 @@ ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
 
     mMaxLevels = Settings["max_levels"].GetInt();
     mMaxDistance = Settings["max_distance"].GetDouble();
+    mPreserveInterface = Settings["preserve_interface"].GetBool();
     mCalculateExactDistancesToPlane = Settings["calculate_exact_distances_to_plane"].GetBool();
 
     const std::string distance_database = Settings["distance_database"].GetString();
@@ -75,6 +76,7 @@ const Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters(
         "distance_database" : "nodal_historical",
         "max_levels" : 25,
         "max_distance" : 1.0,
+        "preserve_interface" : false,
         "calculate_exact_distances_to_plane" : false
     })");
 }
@@ -279,7 +281,7 @@ void ParallelDistanceCalculationProcess<TDim>::Execute()
 
     ResetVariables();
 
-    CalculateExactDistancesOnDividedElements();
+    SetDistancesOnDividedElements();
 
     ExtendDistancesByLayer();
 
@@ -323,12 +325,12 @@ void ParallelDistanceCalculationProcess<TDim>::ResetVariables()
 }
 
 template<unsigned int TDim>
-void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedElements()
+void ParallelDistanceCalculationProcess<TDim>::SetDistancesOnDividedElements()
 {
     KRATOS_TRY
 
     //identify the list of elements divided by the original distance distribution and recompute an "exact" distance
-    //attempting to maintain the original position of the free surface
+    //attempting to mantain the original position of the free surface
     //note that the backup value is used in calculating the position of the free surface and the divided elements
     array_1d<double,TDim+1> dist;
     block_for_each(mrModelPart.Elements(), dist, [&](Element& rElement, array_1d<double,TDim+1>& rDist){
@@ -340,23 +342,10 @@ void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedE
 
         bool is_divided = IsDivided(rDist);
         if (is_divided) {
-            if (mCalculateExactDistancesToPlane) {
-                GeometryUtils::CalculateExactDistancesToPlane(element_geometry, rDist);
+            if (mPreserveInterface) {
+                PreserveDistancesOnDividedElements(element_geometry, rDist);
             } else {
-                GeometryUtils::CalculateTetrahedraDistances(element_geometry, rDist);
-            }
-
-            // loop over nodes and apply the new distances.
-            for (unsigned int i_node = 0; i_node < TDim+1; i_node++) {
-                double& r_distance = mDistanceGetter(element_geometry[i_node]);
-                const double new_distance = rDist[i_node];
-
-                element_geometry[i_node].SetLock();
-                if (std::abs(r_distance) > std::abs(new_distance)) {
-                    r_distance = new_distance;
-                }
-                element_geometry[i_node].Set(VISITED, true);
-                element_geometry[i_node].UnSetLock();
+                CalculateExactDistancesOnDividedElements(element_geometry, rDist);
             }
         }
     });
@@ -379,6 +368,53 @@ void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedE
             mNodalAreaGetter(rNode) = 1.0; // This is not correct
         }
     });
+
+    KRATOS_CATCH("")
+}
+
+
+template<unsigned int TDim>
+void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedElements(
+    Geometry<Node>& rGeometry,
+    array_1d<double,TDim+1>& rDist)
+{
+    KRATOS_TRY
+
+    if (mCalculateExactDistancesToPlane) {
+        GeometryUtils::CalculateExactDistancesToPlane(rGeometry, rDist);
+    } else {
+        GeometryUtils::CalculateTetrahedraDistances(rGeometry, rDist);
+    }
+
+    for (unsigned int i_node = 0; i_node < TDim+1; i_node++) {
+        double& r_distance = mDistanceGetter(rGeometry[i_node]);
+        const double new_distance = rDist[i_node];
+
+        rGeometry[i_node].SetLock();
+        if (std::abs(r_distance) > std::abs(new_distance)) {
+            r_distance = new_distance;
+        }
+        rGeometry[i_node].Set(VISITED, true);
+        rGeometry[i_node].UnSetLock();
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<unsigned int TDim>
+void ParallelDistanceCalculationProcess<TDim>::PreserveDistancesOnDividedElements(
+    Geometry<Node>& rGeometry,
+    const array_1d<double,TDim+1>& rDist)
+{
+    KRATOS_TRY
+
+    for (unsigned int i_node = 0; i_node < TDim+1; i_node++) {
+        double& r_distance = mDistanceGetter(rGeometry[i_node]);
+        rGeometry[i_node].SetLock();
+        r_distance = std::abs(rDist[i_node]);
+        rGeometry[i_node].Set(VISITED, true);
+        rGeometry[i_node].UnSetLock();
+    }
 
     KRATOS_CATCH("")
 }
