@@ -95,9 +95,12 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
 
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "element_type": "ns_fractional_velocity_convection"
+            "element_type": "ns_fractional_velocity_convection",
+            "model_part_name":"Main"
             }""")
-        KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(model_part,
+        print("levelset_convection_settings:", levelset_convection_settings)
+        print("joderr")
+        KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(current_model,
                 linear_solver,
                 levelset_convection_settings).Execute()
         
@@ -157,10 +160,11 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
 
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "element_type": "ns_fractional_velocity_convection"
+            "element_type": "ns_fractional_velocity_convection",
+            "model_part_name":"Main"
             }""")
     
-        KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(model_part,
+        KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(current_model,
                 linear_solver,
                 levelset_convection_settings).Execute()
         
@@ -225,7 +229,8 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
         
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "element_type": "ns_fractional_velocity_convection"
+            "element_type": "ns_fractional_velocity_convection",
+            "model_part_name":"Main"
             }""")
         for node in model_part.Nodes:
             if node.Id == 54:
@@ -234,7 +239,7 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
                ref_value = velocity_fractional-velocity
         
 
-        KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(model_part,
+        KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(current_model,
                 linear_solver,
                 levelset_convection_settings).Execute()
         self.assertAlmostEqual(ref_value, -651.9)

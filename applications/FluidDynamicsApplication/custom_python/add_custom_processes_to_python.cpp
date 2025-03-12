@@ -185,12 +185,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init<Model&, Parameters>())
     ;
     py::class_<TwoFluidNavierStokesFractionalConvectionProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>, TwoFluidNavierStokesFractionalConvectionProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "TwoFluidNavierStokesFractionalConvectionProcess2D")
-        .def(py::init<Model &, LinearSolverType::Pointer, Parameters>())
-        .def(py::init<ModelPart &, LinearSolverType::Pointer, Parameters>());
+        .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
+    ;
 
     py::class_<TwoFluidNavierStokesFractionalConvectionProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>, TwoFluidNavierStokesFractionalConvectionProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "TwoFluidNavierStokesFractionalConvectionProcess3D")
-        .def(py::init<Model &, LinearSolverType::Pointer, Parameters>())
-        .def(py::init<ModelPart &, LinearSolverType::Pointer, Parameters>());
+        .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
+    ;
 }
 
 } // namespace Python.

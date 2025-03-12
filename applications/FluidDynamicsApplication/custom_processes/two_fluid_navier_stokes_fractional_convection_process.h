@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Uxue Chasco
 //                   
@@ -90,40 +90,29 @@ namespace Kratos
          * @param pLinearSolver Linear solver to be used in the level set convection problem
          * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
          */
+
         TwoFluidNavierStokesFractionalConvectionProcess(
             Model &rModel,
             typename TLinearSolver::Pointer pLinearSolver,
             Parameters ThisParameters)
-            : TwoFluidNavierStokesFractionalConvectionProcess(
-                  rModel.GetModelPart(ThisParameters["model_part_name"].GetString()),
-                  pLinearSolver,
-                  ThisParameters)
-        {
-        }
+            :mrModel(rModel),
+            mrBaseModelPart(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()))
+            {
 
-        /**
-         * @brief  Construct a new Navier Stokes Fractional Convection Process object
-         * NS Fractional convection proces model part constructor
-         * @param rBaseModelPart Origin model part
-         * @param pLinearSolver Linear solver to be used in the level set convection problem
-         * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
-         */
-        TwoFluidNavierStokesFractionalConvectionProcess(
-            ModelPart &rBaseModelPart,
-            typename TLinearSolver::Pointer pLinearSolver,
-            Parameters ThisParameters)
-            : TwoFluidNavierStokesFractionalConvectionProcess(
-                  rBaseModelPart,
-                  ThisParameters)
-        {
             KRATOS_TRY
-
             auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>>(pLinearSolver);
             InitializeConvectionStrategy(p_builder_solver);
+            // Validate the common settings as well as the element formulation specific ones
+            // Checks and assign all the required member variables
+            CheckAndAssignSettings(ThisParameters);
+            ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+            ThisParameters["element_settings"].ValidateAndAssignDefaults(GetNSFractionalConvectionElementDefaultParameters(ThisParameters["element_type"].GetString()));
+            
+            std::string element_type = ThisParameters["element_type"].GetString();
 
             KRATOS_CATCH("")
         }
-
+        
         /// Copy constructor.
         TwoFluidNavierStokesFractionalConvectionProcess(TwoFluidNavierStokesFractionalConvectionProcess const &rOther) = delete;
 
@@ -137,10 +126,6 @@ namespace Kratos
         ///@name Operators
         ///@{
 
-        void operator()()
-        {
-            Execute();
-        }
 
         ///@}
         ///@name Operations
@@ -183,19 +168,19 @@ namespace Kratos
             const double dt = previous_delta_time;
 
             // If the nodal stabilization tau is to be used, it is also computed in here
-            IndexPartition<int>(mpFractionalVelocityModelPart->NumberOfNodes()).for_each([&](int i_node)
-                                                                               {
-            const auto it_node = mpFractionalVelocityModelPart->NodesBegin() + i_node;
-            mVelocity[i_node] = it_node->FastGetSolutionStepValue(FRACTIONAL_VELOCITY);
+            IndexPartition<int>(mpFractionalVelocityModelPart->NumberOfNodes()).for_each([&](int i_node){
+                const auto it_node = mpFractionalVelocityModelPart->NodesBegin() + i_node;
+                mVelocity[i_node] = it_node->FastGetSolutionStepValue(FRACTIONAL_VELOCITY);
 
-            if (mElementTauNodal) {
-                double velocity_norm = norm_2(mVelocity[i_node]);
-                const double nodal_h = it_node-> GetValue(NODAL_H);
-                const double dynamic_tau = r_conv_process_info.GetValue(DYNAMIC_TAU);
-                const double tau = 1.0 / (dynamic_tau / dt + velocity_norm / std::pow(nodal_h,2));
+                if (mElementTauNodal) {
+                    double velocity_norm = norm_2(mVelocity[i_node]);
+                    const double nodal_h = it_node-> GetValue(NODAL_H);
+                    const double dynamic_tau = r_conv_process_info.GetValue(DYNAMIC_TAU);
+                    const double tau = 1.0 / (dynamic_tau / dt + velocity_norm / std::pow(nodal_h,2));
 
-                it_node->GetValue(TAU) = tau;
-            } });
+                    it_node->GetValue(TAU) = tau;
+                }
+            });
 
             mpSolvingStrategy->InitializeSolutionStep();
             mpSolvingStrategy->Predict();
@@ -220,9 +205,8 @@ namespace Kratos
         const Parameters GetDefaultParameters() const override
         {
             Parameters default_parameters = Parameters(R"({
-            "model_part_name" : "",
+            "model_part_name"     :" ",
             "echo_level" : 0,
-            "ns_frac_convection_model_part_name" : "",
             "element_type" : "ns_fractional_velocity_convection",
             "element_settings" : {}
         })");
@@ -272,9 +256,8 @@ namespace Kratos
         ///@name Protected member Variables
         ///@{
 
-        ModelPart &mrBaseModelPart;
-
         Model &mrModel;
+        ModelPart &mrBaseModelPart;
 
         ModelPart *mpFractionalVelocityModelPart = nullptr;
 
@@ -303,20 +286,6 @@ namespace Kratos
         ///@}
         ///@name Protected Operations
         ///@{
-
-        TwoFluidNavierStokesFractionalConvectionProcess(
-            ModelPart &rModelPart,
-            Parameters ThisParameters)
-            : mrBaseModelPart(rModelPart), mrModel(rModelPart.GetModel())
-        {
-            // Validate the common settings as well as the element formulation specific ones
-            ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-            ThisParameters["element_settings"].ValidateAndAssignDefaults(GetNSFractionalConvectionElementDefaultParameters(ThisParameters["element_type"].GetString()));
-
-            std::string element_type = ThisParameters["element_type"].GetString();
-            // Checks and assign all the required member variables
-            CheckAndAssignSettings(ThisParameters);
-        }
 
 
         virtual void ReGenerateNSFractionalConvectionModelPart(ModelPart &rBaseModelPart)
@@ -380,7 +349,6 @@ namespace Kratos
          */
         void InitializeFractionalVelocityModelPartDatabases()
         {
-
             const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
             if (mElementTauNodal)
             {
@@ -442,15 +410,16 @@ namespace Kratos
             mpNSFractionalConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
 
             mElementTauNodal = ThisParameters["element_settings"].Has("tau_nodal") ? ThisParameters["element_settings"]["tau_nodal"].GetBool() : false;
-
+            KRATOS_WATCH(ThisParameters["model_part_name"].GetString())
             // Convection related settings
-            if (ThisParameters["ns_frac_convection_model_part_name"].GetString() == "")
+            if (ThisParameters["model_part_name"].GetString() == "")
             {
+                
                 mAuxModelPartName = mrBaseModelPart.Name() + "_FractionalVelocityConvectionPart";
             }
             else
             {
-                mAuxModelPartName = ThisParameters["ns_frac_convection_model_part_name"].GetString();
+                mAuxModelPartName = ThisParameters["model_part_name"].GetString();
             }
 
             // Limiter related settings
