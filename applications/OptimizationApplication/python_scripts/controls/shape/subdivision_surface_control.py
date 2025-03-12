@@ -168,8 +168,8 @@ class SubdivisionSurfaceControl(Control):
         control_gradient = self.ProjectBackward(physical_gradient)
         # KOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(self.GetControlField(), physical_gradient, self.inverse_mapping_relation_matrix, self.control_polygon_model_part.Nodes)
         # KratosOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.Elements)
-        # print("MapGradient :: physical_gradient:\n", physical_gradient.Evaluate())
-        # print("MapGradient :: control_gradient:\n", control_gradient.Evaluate())
+        print("MapGradient :: physical_gradient:\n", physical_gradient.Evaluate())
+        print("MapGradient :: control_gradient:\n", control_gradient.Evaluate())
 
         # filtered_gradient = self.filter.BackwardFilterIntegratedField(KOA.ExpressionUtils.ExtractData(physical_gradient, self.model_part))
 
@@ -178,8 +178,13 @@ class SubdivisionSurfaceControl(Control):
     def ProjectBackward(self, gradient):
         # gradient_unit = np.zeros(self.inverse_mapping_relation.shape[1])
         # gradient_unit[0] = 1.0
+        # import pdb
+        # pdb.set_trace()
+        # print("ProjectBackward :: gradient:", gradient)
         mapped_gradient = KM.Expression.NodalExpression(self.control_polygon_model_part)
         KOA.ExpressionUtils.ProductWithEntityMatrix(mapped_gradient, self.backward_matrix, gradient)
+        # print("ProjectBackward :: mapped_gradient:", mapped_gradient)
+        # pdb.set_trace()
         return mapped_gradient
 
     @time_decorator(methodName="GetName")

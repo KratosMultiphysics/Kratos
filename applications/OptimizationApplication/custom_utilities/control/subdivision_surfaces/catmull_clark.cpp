@@ -1920,7 +1920,9 @@ void CatmullClarkSDS::CreateMappingMatrix(
         // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: successfully finished loop number ") << fe_node_it->GetId() << std::endl;
 
     }
-    // KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: rOutputData ") << rOutputData << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: rOutputData[0] ") << rOutputData[0] << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: rOutputData[0] ") << rOutputData[0] << std::endl;
+    KRATOS_INFO("CATMULL_CLARK :: CreateMappingMatrix :: rOutputData.back() ") << rOutputData.back() << std::endl;
     KRATOS_INFO("Finished creating mapping matrix...") << std::endl;
 };
 
