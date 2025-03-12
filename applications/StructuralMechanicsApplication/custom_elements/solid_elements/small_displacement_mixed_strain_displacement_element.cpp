@@ -401,7 +401,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     Q.clear();
     M.clear();
 
-    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    //const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = GetIntegrationPoints();
     SizeType n_gauss = r_integration_points.size();
 
     Matrix D0(strain_size, strain_size);
@@ -506,7 +507,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     Q.clear();
     M.clear();
 
-    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    //const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = GetIntegrationPoints();
     SizeType n_gauss = r_integration_points.size();
 
     Matrix D0(strain_size, strain_size);
@@ -585,7 +587,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    //const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = GetIntegrationPoints();
     SizeType n_gauss = r_integration_points.size();
 
     Vector RHSu(dim * n_nodes);
@@ -985,7 +988,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
 {
     KRATOS_TRY
     const auto& r_geometry = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType &r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    //const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = GetIntegrationPoints();
 
     const SizeType number_of_integration_points = r_integration_points.size();
     if (rOutput.size() != number_of_integration_points)
