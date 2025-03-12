@@ -17,6 +17,9 @@
 #include "spaces/ublas_space.h" // TUblasSparseSpace
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE
 
+// System includes
+#include <cstdint> // std::uint8_t
+
 
 namespace Kratos {
 
@@ -369,22 +372,29 @@ void MapEntityContribution(TEntity& rEntity,
 }
 
 
-template <class TSparse, class TDense, class TItDof>
+template <class TSparse,
+          class TDense,
+          class TItRowDof,
+          class TItColumnDof>
 void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
                               typename TSparse::VectorType& rRhs,
-                              const TItDof itDofBegin,
-                              const TItDof itDofEnd,
-                              [[maybe_unused]] const typename TSparse::DataType DiagonalScaleFactor)
+                              const TItRowDof itRowDofBegin,
+                              const TItRowDof itRowDofEnd,
+                              const TItColumnDof itColumnDofBegin,
+                              [[maybe_unused]] const TItColumnDof itColumnDofEnd,
+                              const typename TSparse::DataType DiagonalScaleFactor)
 {
     // Type checks.
-    static_assert(std::is_same_v<typename std::iterator_traits<TItDof>::value_type,Dof<double>>);
+    static_assert(std::is_same_v<
+        typename std::iterator_traits<TItRowDof>::value_type,
+        Dof<typename TDense::DataType>>);
 
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
 
-    block_for_each(itDofBegin,
-                   itDofEnd,
-                   [&rLhs, &rRhs, itDofBegin, itDofEnd, DiagonalScaleFactor](const Dof<double>& r_dof){
+    block_for_each(itRowDofBegin,
+                   itRowDofEnd,
+                   [&rLhs, &rRhs, itColumnDofBegin, DiagonalScaleFactor](const Dof<double>& r_dof){
         const std::size_t i_dof = r_dof.EquationId();
         const typename TSparse::IndexType i_entry_begin = rLhs.index1_data()[i_dof];
         const typename TSparse::IndexType i_entry_end = rLhs.index1_data()[i_dof + 1];
@@ -393,11 +403,12 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
         if (r_dof.IsFixed()) {
             // Zero out the whole row, except the diagonal.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
-                if (rLhs.index2_data()[i_entry] != i_dof ) {
-                    rLhs.value_data()[i_entry] = 0.0;
-                } else {
+                const auto i_column = rLhs.index2_data()[i_entry];
+                if (i_column == i_dof) {
                     found_diagonal = true;
                     rLhs.value_data()[i_entry] = DiagonalScaleFactor;
+                } else {
+                    rLhs.value_data()[i_entry] = 0.0;
                 }
             } // for i_entry in range(i_entry_begin, i_entry_end)
 
@@ -406,24 +417,139 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
             // Zero out the column which is associated with the zero'ed row.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 const auto i_column = rLhs.index2_data()[i_entry];
-                const auto it_dof = itDofBegin + i_column;
-                if (it_dof->IsFixed()) rLhs.value_data()[i_entry] = 0.0;
+                const auto it_column_dof = itColumnDofBegin + i_column;
+
                 if (i_column == i_dof) {
                     found_diagonal = true;
                     KRATOS_ERROR_IF_NOT(rLhs.value_data()[i_entry])
                         << "zero on main diagonal of row " << i_dof << " "
                         << "related to dof " << r_dof.GetVariable().Name() << " "
                         << "of node " << r_dof.Id();
+                } /*if i_column == i_dof*/ else if (it_column_dof->IsFixed()) {
+                    rLhs.value_data()[i_entry] = 0.0;
                 }
-            }
-        }
+
+            } // for i_entry in range(i_entry_begin, i_entry_end)
+        } /*not r_dof.IsFixed()*/
 
         KRATOS_ERROR_IF_NOT(found_diagonal)
-            << "missing diagonal in row " << i_dof << " "
-            << "related to dof " << r_dof.GetVariable().Name() << " "
-            << "of node " << r_dof.Id();
+        << "missing diagonal in row " << i_dof << " "
+        << "related to dof " << r_dof.GetVariable().Name() << " "
+        << "of node " << r_dof.Id();
     });
+
     KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense, class TItDof>
+void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
+                              typename TSparse::VectorType& rRhs,
+                              const TItDof itDofBegin,
+                              const TItDof itDofEnd,
+                              const typename TSparse::DataType DiagonalScaleFactor)
+{
+    return ApplyDirichletConditions<TSparse,TDense>(
+        rLhs,
+        rRhs,
+        itDofBegin,
+        itDofEnd,
+        itDofBegin,
+        itDofEnd,
+        DiagonalScaleFactor);
+}
+
+
+struct MatrixChecks
+{
+    static constexpr std::uint8_t None                    = 0;
+    static constexpr std::uint8_t DiagonalExists          = 1;
+    static constexpr std::uint8_t DiagonalIsNonNegative   = 1 << 1;
+    static constexpr std::uint8_t DiagonalIsPositive      = 1 << 2;
+    static constexpr std::uint8_t IsDiagonallyDominant    = 1 << 3;
+    static constexpr std::uint8_t RowsAreSorted           = 1 << 4;
+    static constexpr std::uint8_t ColumnsAreSorted        = 1 << 5;
+    static constexpr std::uint8_t All                     = 1
+                                                          + (1 << 1)
+                                                          + (1 << 2)
+                                                          + (1 << 3)
+                                                          + (1 << 4)
+                                                          + (1 << 5);
+}; // struct MatrixCheck
+
+
+template <class TValue, std::uint8_t Checks>
+void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
+{
+    if constexpr (Checks == MatrixChecks::None) return;
+
+    KRATOS_ERROR_IF_NOT(0 <= rMatrix.size1())
+        << "input matrix has invalid row size";
+    KRATOS_ERROR_IF_NOT(0 <= rMatrix.size2())
+        << "input matrix has invalid column size";
+    KRATOS_ERROR_IF_NOT(rMatrix.size1() + 1 == rMatrix.index1_data().size())
+        << "input matrix has inconsistent row extents";
+    KRATOS_ERROR_IF_NOT(rMatrix.index1_data()[rMatrix.size1()] == rMatrix.nnz())
+        << "row extents of the input matrix do not consistently cover its contents";
+
+    if constexpr (Checks & MatrixChecks::ColumnsAreSorted) {
+        KRATOS_ERROR_IF_NOT(std::is_sorted(rMatrix.index1_data().begin(), rMatrix.index1_data().end()))
+            << "the input matrix' columns are not sorted";
+    }
+
+    for (std::size_t i_row=0ul; i_row<rMatrix.size1(); ++i_row) {
+        const auto i_entry_begin = rMatrix.index1_data()[i_row];
+        const auto i_entry_end = rMatrix.index1_data()[i_row + 1];
+
+        if constexpr (Checks & MatrixChecks::RowsAreSorted)
+            KRATOS_ERROR_IF_NOT(std::is_sorted(
+                rMatrix.index2_data().begin() + i_entry_begin,
+                rMatrix.index2_data().begin() + i_entry_end))
+                    << "row " << i_row << " of the input matrix is not sorted";
+
+        if constexpr (Checks & (  MatrixChecks::DiagonalExists
+                                | MatrixChecks::DiagonalIsNonNegative
+                                | MatrixChecks::DiagonalIsPositive
+                                | MatrixChecks::IsDiagonallyDominant)) {
+            std::optional<std::size_t> maybe_diagonal;
+
+            for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+                const auto i_column = rMatrix.index2_data()[i_entry];
+                if (i_column == i_row) {
+                    maybe_diagonal = i_entry;
+                    break;
+                }
+            } // for i_entry in range(i_entry_begin, i_entry_end)
+
+            if (maybe_diagonal.has_value()) {
+                const auto diagonal = rMatrix.value_data()[maybe_diagonal.value()];
+
+                if constexpr (Checks & MatrixChecks::DiagonalIsNonNegative)
+                    KRATOS_ERROR_IF_NOT(static_cast<TValue>(0) <= diagonal)
+                        << "diagonal in row " << i_row << " is negative (" << diagonal << ")";
+
+                if constexpr (Checks & MatrixChecks::DiagonalIsPositive)
+                    KRATOS_ERROR_IF_NOT(static_cast<TValue>(0) < diagonal)
+                        << "diagonal in row " << i_row << " is not positive (" << diagonal << ")";
+
+                if constexpr (Checks & MatrixChecks::IsDiagonallyDominant) {
+                    const auto abs_diagonal = std::abs(diagonal);
+                    for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+                        const auto i_column = rMatrix.index2_data()[i_entry];
+                        const auto entry = rMatrix.value_data()[i_entry];
+                        KRATOS_ERROR_IF(abs_diagonal <= std::abs(entry) and i_column != i_row)
+                            << "row " << i_row << " of the input matrix is not diagonally dominant "
+                            << "(entry in column " << i_column << " {"
+                            << entry << "} has a larger magnitude than the diagonal {"
+                            << diagonal << "})";
+                    } // for i_entry in range(i_entry_begin, i_entry_end)
+                } // if MatrixChecks::IsDiagonallyDominant
+            } /*if diagonal found*/ else {
+                if constexpr (Checks & (MatrixChecks::DiagonalExists | MatrixChecks::DiagonalIsPositive))
+                    KRATOS_ERROR << "diagonal on row " << i_row << " does not exist";
+            }
+        } // if any of the diagonal checks
+    } // for i_row in range(rMatrix.size1())
 }
 
 
