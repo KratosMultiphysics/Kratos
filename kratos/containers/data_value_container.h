@@ -244,15 +244,7 @@ public:
      * @param rOther The DataValueContainer to copy data from.
      * @return A reference to the modified DataValueContainer.
      */
-    DataValueContainer& operator=(const DataValueContainer& rOther)
-    {
-        Clear();
-
-        for(const_iterator i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
-            mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
-
-        return *this;
-    }
+    DataValueContainer& operator=(const DataValueContainer& rOther);
 
     ///@}
     ///@name Operations
