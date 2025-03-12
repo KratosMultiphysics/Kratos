@@ -140,7 +140,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
+    // This is a provisional implementation until the Lobatto
+    // quadratures are fully integrated in the Core
     IntegrationPointsArrayType GetIntegrationPoints()
     {
         const auto& r_geom = GetGeometry();
