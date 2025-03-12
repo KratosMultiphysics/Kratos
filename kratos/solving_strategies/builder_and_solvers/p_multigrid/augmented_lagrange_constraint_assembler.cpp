@@ -136,7 +136,6 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
     KRATOS_TRY
 
     /// @todo Make applying dirichlet conditions on penalty constraints more robust and efficient.
-    TSparse::WriteMatrixMarketMatrix("original.mm", rRelationMatrix, false);
 
     std::size_t forced_dirichlet_dof_count,
                 total_forced_dirichlet_dof_count = 0ul,
@@ -225,8 +224,8 @@ struct AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Impl
     /// @brief A map associating slave IDs with constraint indices and the number of constraint objects referencing it.
     std::unordered_map<std::size_t,     //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
                        std::pair<
-                        std::size_t,    //< row index of the constraint equation in the relation matrix
-                        std::size_t     //< number of constraint objects defining the equation
+                            std::size_t,    //< row index of the constraint equation in the relation matrix
+                            std::size_t     //< number of constraint objects defining the equation
                        >
     > mConstraintIdMap;
 
@@ -670,7 +669,7 @@ Parameters AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetDefaultParam
 "method" : "augmented_lagrange",
 "penalty_factor" : 1e12,
 "initial_lagrange_multiplier" : 0.0,
-"tolerance" : 1e-8,
+"tolerance" : 1e-6,
 "max_iterations" : 1e1,
 "verbosity" : 1
 })");
