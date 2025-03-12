@@ -59,7 +59,11 @@ public:
                   const typename TParentSparse::VectorType* pParentRhs,
                   const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler);
 
-    void ApplyDirichletConditions(const DiagonalScaling& rDiagonalScaling);
+    void ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
+                                  typename IndirectDofSet::const_iterator itParentDofEnd,
+                                  const DiagonalScaling& rDiagonalScaling);
+
+    void ApplyConstraints();
 
     template <class TParentSparse>
     void Initialize(ModelPart& rModelPart,

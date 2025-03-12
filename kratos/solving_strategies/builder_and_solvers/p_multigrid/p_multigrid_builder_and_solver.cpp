@@ -91,6 +91,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     void ExecuteMultigridLoop(typename Interface::TSystemMatrixType& rLhs,
                               typename Interface::TSystemVectorType& rSolution,
+                              const typename Interface::TSystemVectorType& rRhs,
                               typename Interface::TSystemVectorType& rSolutionUpdate,
                               typename Interface::TSystemVectorType& rResidual,
                               typename Interface::TSystemVectorType& rResidualUpdate,
@@ -109,7 +110,10 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                     rResidual);},
                            mMaybeHierarchy.value());
 
+                // Update the fine solution.
                 TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
+
+                // Update the fine residual.
                 TSparse::SetToZero(rResidualUpdate);
                 TSparse::Mult(rLhs, rSolutionUpdate, rResidualUpdate);
                 TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
@@ -121,13 +125,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             mpInterface->GetLinearSystemSolver()->Solve(rLhs, rSolutionUpdate, rResidual);
             mpInterface->GetLinearSystemSolver()->FinalizeSolutionStep(rLhs, rSolutionUpdate, rResidual);
 
+            // Update the fine solution.
+            TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
+
             // Update the fine residual.
             TSparse::SetToZero(rResidualUpdate);
             TSparse::Mult(rLhs, rSolutionUpdate, rResidualUpdate);
             TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
-
-            // Update the fine solution.
-            TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
 
             // Emit status and check for convergence.
             if (0 < mTolerance or 3 <= mVerbosity) {
@@ -140,6 +144,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                               << " residual " << residual_stream.str()
                               << "\n";
                 }
+                if (relative_residual_norm < mTolerance) break;
             } // 0 < mTolerance or 3 <= mVerbosity
         } // while i_multigrid_iteration <= mMaxIterations
         KRATOS_CATCH("")
@@ -188,6 +193,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             // Get an update on the solution with respect to the current residual.
             this->ExecuteMultigridLoop(rLhs,
                                        rSolution,
+                                       rRhs,
                                        solution_update,
                                        residual,
                                        residual_update,
@@ -213,10 +219,10 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         KRATOS_TRY
         if (mpInterface->GetLinearSolver().AdditionalPhysicalDataIsNeeded()) {
             mpInterface->GetLinearSolver().ProvideAdditionalData(rLhs,
-                                                               rSolution,
-                                                               rRhs,
-                                                               mpInterface->GetDofSet(),
-                                                               rModelPart);
+                                                                 rSolution,
+                                                                 rRhs,
+                                                                 mpInterface->GetDofSet(),
+                                                                 rModelPart);
         }
 
         if (mMaybeHierarchy.has_value()) {
@@ -459,6 +465,11 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                         this->mMaybeHierarchy.value());
         } // if mMaybeHierarchy
 
+        //if constexpr (AssembleLHS and AssembleRHS)
+        //    NormalizeSystem<TSparse>(*pMaybeLhs.value(),
+        //                             *pMaybeRhs.value(),
+        //                             GetDiagonalScaleFactor<TSparse>(*pMaybeLhs.value(),
+        //                                                             DiagonalScaling::AbsMax));
         KRATOS_CATCH("")
     }
 
@@ -781,10 +792,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
                                                      mpImpl->mDiagonalScaleFactor);
     if (mpImpl->mMaybeHierarchy.has_value()) {
         std::visit([this](auto& r_grid){
-                       r_grid.ApplyDirichletConditions(mpImpl->mDiagonalScaling);
+                       r_grid.ApplyDirichletConditions(this->GetDofSet().begin(),
+                                                       this->GetDofSet().end(),
+                                                       mpImpl->mDiagonalScaling);
                    },
                    mpImpl->mMaybeHierarchy.value());
     } // if mMaybeHierarchy
+
     KRATOS_CATCH("")
 
 //    const std::size_t system_size = rLhs.size1();
@@ -843,6 +857,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
                                               rRhs,
                                               this->GetDofSet().begin(),
                                               this->GetDofSet().end());
+    if (mpImpl->mMaybeHierarchy.has_value()) {
+        std::visit([](auto& r_hierarchy){r_hierarchy.ApplyConstraints();},
+                   mpImpl->mMaybeHierarchy.value());
+    }
     KRATOS_CATCH("")
 }
 

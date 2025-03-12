@@ -190,6 +190,7 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
         SparseUtils::MatrixMultiplication(left_multiplied_lhs, mProlongationOperator, mLhs);
     } // if AssembleLHS
 
+
     if constexpr (AssembleRHS) {
         // Sanity checks
         KRATOS_ERROR_IF_NOT(pParentRhs);
@@ -261,16 +262,42 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
 
 
 template <class TSparse, class TDense>
-void PGrid<TSparse,TDense>::ApplyDirichletConditions(const DiagonalScaling& rDiagonalScaling)
+void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
+                                                     typename IndirectDofSet::const_iterator itParentDofEnd,
+                                                     const DiagonalScaling& rDiagonalScaling)
 {
     KRATOS_TRY
+
     if (mIndirectDofSet.empty()) return;
+
     Kratos::ApplyDirichletConditions<TSparse,TDense>(
         mLhs,
         mRhs,
         mIndirectDofSet.begin(),
-        mIndirectDofSet.begin() + mIndirectDofSet.size(),
+        mIndirectDofSet.end(),
         GetDiagonalScaleFactor<TSparse>(mLhs, rDiagonalScaling));
+
+    Kratos::ApplyDirichletConditions<TSparse,TDense>(
+        mRestrictionOperator,
+        mRhs,
+        mIndirectDofSet.begin(),
+        mIndirectDofSet.end(),
+        itParentDofBegin,
+        itParentDofEnd,
+        static_cast<typename TDense::DataType>(1));
+
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+void PGrid<TSparse,TDense>::ApplyConstraints()
+{
+    KRATOS_TRY
+    mpConstraintAssembler->Initialize(mLhs,
+                                      mRhs,
+                                      mIndirectDofSet.begin(),
+                                      mIndirectDofSet.end());
     KRATOS_CATCH("")
 }
 
@@ -278,15 +305,11 @@ void PGrid<TSparse,TDense>::ApplyDirichletConditions(const DiagonalScaling& rDia
 template <class TSparse, class TDense>
 template <class TParentSparse>
 void PGrid<TSparse,TDense>::Initialize(ModelPart& rModelPart,
-                                       const typename TParentSparse::MatrixType& rParentLhs,
-                                       const typename TParentSparse::VectorType& rParentSolution,
-                                       const typename TParentSparse::VectorType& rParentRhs)
+                                       const typename TParentSparse::MatrixType&,
+                                       const typename TParentSparse::VectorType&,
+                                       const typename TParentSparse::VectorType&)
 {
     KRATOS_TRY
-    mpConstraintAssembler->Initialize(mLhs,
-                                      mRhs,
-                                      mIndirectDofSet.begin(),
-                                      mIndirectDofSet.end());
     if (mpSolver->AdditionalPhysicalDataIsNeeded())
         mpSolver->ProvideAdditionalData(mLhs,
                                         mSolution,
@@ -302,6 +325,13 @@ template <class TParentSparse>
 bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::VectorType& rParentSolution,
                                                   const typename TParentSparse::VectorType& rParentRhs)
 {
+    #ifndef NDEBUG
+    KRATOS_TRY
+    CheckMatrix<typename TSparse::DataType,MatrixChecks::All>(mRestrictionOperator);
+    CheckMatrix<typename TSparse::DataType,MatrixChecks::RowsAreSorted|MatrixChecks::ColumnsAreSorted>(mProlongationOperator);
+    KRATOS_CATCH("")
+    #endif
+
     // Restrict the residual from the fine grid to the coarse one (this grid).
     KRATOS_TRY
     // This is a matrix-vector product of potentially different value types. In its current state,
@@ -309,8 +339,14 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     // so I'm directly invoking the UBLAS template that does support it.
     TSparse::SetToZero(mRhs);
     TSparse::SetToZero(mSolution);
-    axpy_prod(mRestrictionOperator, rParentRhs, mRhs, true);
-    //axpy_prod(mRestrictionOperator, rParentSolution, mSolution, true);
+    axpy_prod(mRestrictionOperator, rParentRhs, mRhs, boost::numeric::ublas::row_major_tag());
+    //for (std::size_t i_dof=0ul; i_dof<mIndirectDofSet.size(); ++i_dof) {
+    //    const auto& r_dof = *(mIndirectDofSet.begin() + i_dof);
+    //    if (r_dof.IsFixed()) {
+    //        const auto equation_id = r_dof.EquationId();
+    //        mRhs[equation_id] = 0;
+    //    }
+    //}
     KRATOS_CATCH("")
 
     // Impose constraints and solve the coarse system.
@@ -345,7 +381,8 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     // This is a matrix-vector product of potentially different value types. In its current state,
     // sparse spaces do not support computing the products of arguments with different value types,
     // so I'm directly invoking the UBLAS template that does support it.
-    axpy_prod(mProlongationOperator, mSolution, rParentSolution, true);
+    TParentSparse::SetToZero(rParentSolution);
+    axpy_prod(mProlongationOperator, mSolution, rParentSolution, boost::numeric::ublas::row_major_tag());
     KRATOS_CATCH("")
 
     return linear_solver_status and constraint_status.converged;
@@ -354,11 +391,12 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
 
 template <class TSparse, class TDense>
 template <class TParentSparse>
-void PGrid<TSparse,TDense>::Finalize([[maybe_unused]] ModelPart& rModelPart,
-                                     [[maybe_unused]] const typename TParentSparse::MatrixType& rParentLhs,
-                                     [[maybe_unused]] const typename TParentSparse::VectorType& rParentSolution,
-                                     [[maybe_unused]] const typename TParentSparse::VectorType& rParentRhs)
+void PGrid<TSparse,TDense>::Finalize(ModelPart& rModelPart,
+                                     const typename TParentSparse::MatrixType&,
+                                     const typename TParentSparse::VectorType&,
+                                     const typename TParentSparse::VectorType&)
 {
+    mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
 }
 
 
