@@ -328,7 +328,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         KRATOS_TRY
         block_for_each(rModelPart.Elements(),
                        std::vector<Triplet>(),
-                       [&rows, &locks, &hanging_nodes, &rModelPart, &find_node_index](const Element& r_element, std::vector<Triplet>& r_tls) {
+                       [&rows, &locks, &hanging_nodes, &rModelPart, &find_node_index, &rParentIndirectDofSet](const Element& r_element, std::vector<Triplet>& r_tls) {
             if (r_element.IsActive()) {
                 r_tls.clear();
                 const auto& r_geometry = r_element.GetGeometry();
@@ -350,6 +350,8 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                         const unsigned component_count = r_row_dofs.size();
                         for (unsigned i_component=0u; i_component<component_count; ++i_component) {
                             Dof<double>* p_fine_row_dof = r_row_dofs[i_component].get();
+                            if (rParentIndirectDofSet.find(*p_fine_row_dof) == rParentIndirectDofSet.end()) continue;
+
                             const std::size_t i_row_dof = p_fine_row_dof->EquationId();
                             rows[i_row_dof].second = p_fine_row_dof;
 
@@ -406,26 +408,24 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     // Construct a fine DoF index => coarse DoF index map.
     std::vector<std::size_t> dof_map(FineSystemSize);
 
-    {
-        KRATOS_TRY
-        std::size_t i_coarse_dof = 0ul;
-        std::size_t entry_count = 0ul;
-        for (std::size_t i_fine_dof=0ul; i_fine_dof<FineSystemSize; ++i_fine_dof) {
-            dof_map[i_fine_dof] = rows[i_fine_dof].first.empty() ? i_coarse_dof : i_coarse_dof++;
-            entry_count += rows[i_fine_dof].first.size();
-        } // for i_fine_dof in range(FineSystemSize)
+    KRATOS_TRY
+    std::size_t i_coarse_dof = 0ul;
+    std::size_t entry_count = 0ul;
+    for (std::size_t i_fine_dof=0ul; i_fine_dof<FineSystemSize; ++i_fine_dof) {
+        dof_map[i_fine_dof] = rows[i_fine_dof].first.empty() ? i_coarse_dof : i_coarse_dof++;
+        entry_count += rows[i_fine_dof].first.size();
+    } // for i_fine_dof in range(FineSystemSize)
 
-        // No need to keep the higher order rows (i.e.: the empty rows) anymore => erase them.
-        rows.erase(std::remove_if(rows.begin(),
-                                  rows.end(),
-                                  [](const auto& r_pair) {return r_pair.first.empty();}),
-                   rows.end());
-        KRATOS_ERROR_IF_NOT(rows.size() == i_coarse_dof);
+    // No need to keep the higher order rows (i.e.: the empty rows) anymore => erase them.
+    rows.erase(std::remove_if(rows.begin(),
+                              rows.end(),
+                              [](const auto& r_pair) {return r_pair.first.empty();}),
+               rows.end());
+    KRATOS_ERROR_IF_NOT(rows.size() == i_coarse_dof);
 
-        // Resize the restriction operator.
-        rRestrictionOperator = typename TUblasSparseSpace<TValue>::MatrixType(i_coarse_dof, FineSystemSize, entry_count);
-        KRATOS_CATCH("")
-    }
+    // Resize the restriction operator.
+    rRestrictionOperator = typename TUblasSparseSpace<TValue>::MatrixType(i_coarse_dof, FineSystemSize, entry_count);
+    KRATOS_CATCH("")
 
     // todo
     // Normally, the output DofSet would be filled here but since constructing
@@ -437,62 +437,64 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     // This function only allows a direct restriction to a linear mesh, and linear geometries'
     // nodes (i.e.: corner nodes) are always a strict subset of their high order counterparts.
     // This means that fine Dofs can be reused for the coarse system.
-    {
-        // Collect solution step variables and store them in a hash map.
-        std::unordered_map<typename Variable<double>::KeyType,const Variable<double>*> solution_step_variable_map;
+    KRATOS_TRY
+    // Collect solution step variables and store them in a hash map.
+    std::unordered_map<typename Variable<double>::KeyType,const Variable<double>*> solution_step_variable_map;
 
-        for (const auto& r_variable_data : rModelPart.GetNodalSolutionStepVariablesList()) {
+    for (const auto& r_variable_data : rModelPart.GetNodalSolutionStepVariablesList()) {
+        const auto key = r_variable_data.Key();
+        const std::string& r_name = r_variable_data.Name();
+        KRATOS_DEBUG_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_name));
+        const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_name);
+        solution_step_variable_map.emplace(key, &r_variable);
+    } // for r_variable_data in rModelPart.GetNodalSolutionStepVariablesList
+
+    rDofSet.clear();
+    rIndirectDofSet.clear();
+
+    rDofSet.reserve(rows.size());
+    rIndirectDofSet.reserve(rows.size());
+
+    Dof<double>::IndexType i_dof = 0;
+    for ([[maybe_unused]] auto& [r_row, rp_dof] : rows) {
+        rDofSet.emplace_back(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
+        rDofSet.back().first.SetSolutionStepData(*rp_dof->GetSolutionStepsData());
+
+        const auto& r_variable_data = rp_dof->GetVariable();
+        auto it_variable = solution_step_variable_map.find(r_variable_data.Key());
+
+        if (it_variable == solution_step_variable_map.end()) {
             const auto key = r_variable_data.Key();
             const std::string& r_name = r_variable_data.Name();
-            KRATOS_DEBUG_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_name));
+            KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_name));
             const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_name);
-            solution_step_variable_map.emplace(key, &r_variable);
-        } // for r_variable_data in rModelPart.GetNodalSolutionStepVariablesList
-
-        // Add dummy for reactions.
-        solution_step_variable_map.emplace(PRESSURE.Key(), &PRESSURE);
-
-        rDofSet.clear();
-        rIndirectDofSet.clear();
-
-        rDofSet.reserve(rows.size());
-        rIndirectDofSet.reserve(rows.size());
-
-        Dof<double>::IndexType i_dof = 0;
-        for ([[maybe_unused]] auto& [r_row, rp_dof] : rows) {
-            rDofSet.emplace_back(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
-            rDofSet.back().first.SetSolutionStepData(*rp_dof->GetSolutionStepsData());
-
-            const auto& r_variable_data = rp_dof->GetVariable();
-            auto it_variable = solution_step_variable_map.find(r_variable_data.Key());
-
-            if (it_variable == solution_step_variable_map.end()) {
-                const auto key = r_variable_data.Key();
-                const std::string& r_name = r_variable_data.Name();
-                KRATOS_DEBUG_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_name));
-                const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_name);
-                it_variable = solution_step_variable_map.emplace(key, &r_variable).first;
-            }
-
-            const auto& r_reaction_data = rp_dof->GetReaction();
-            auto it_reaction = solution_step_variable_map.find(r_reaction_data.Key());
-
-            if (it_reaction == solution_step_variable_map.end()) {
-                const auto key = r_reaction_data.Key();
-                const std::string& r_name = r_reaction_data.Name();
-                KRATOS_DEBUG_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_name));
-                const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_name);
-                it_reaction = solution_step_variable_map.emplace(key, &r_variable).first;
-            }
-
-            rDofSet.back().second = Dof<double>(&rDofSet.back().first,
-                                                *it_variable->second,
-                                                *it_reaction->second);
-            rDofSet.back().second.SetEquationId(i_dof++);
-            if (rp_dof->IsFixed()) rDofSet.back().second.FixDof();
-            rIndirectDofSet.insert(rIndirectDofSet.end(), &rDofSet.back().second);
+            it_variable = solution_step_variable_map.emplace(key, &r_variable).first;
         }
+
+        const auto& r_reaction_data = rp_dof->GetReaction();
+        auto it_reaction = solution_step_variable_map.find(r_reaction_data.Key());
+
+        if (it_reaction == solution_step_variable_map.end()) {
+            const auto key = r_reaction_data.Key();
+            const std::string& r_name = r_reaction_data.Name();
+            KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_name));
+            const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_name);
+            it_reaction = solution_step_variable_map.emplace(key, &r_variable).first;
+        }
+
+        rDofSet.back().second = Dof<double>(&rDofSet.back().first,
+                                            *it_variable->second,
+                                            *it_reaction->second);
+        rDofSet.back().second.SetEquationId(i_dof++);
+
+        if (rp_dof->IsFixed()) {
+            rDofSet.back().second.FixDof();
+        }
+
+        rIndirectDofSet.insert(rIndirectDofSet.end(), &rDofSet.back().second);
     }
+    rIndirectDofSet.Sort();
+    KRATOS_CATCH("")
 
     // Fill restriction operator row extents.
     // Note: it's a cumulative sum: can't do it in parallel and the standard
@@ -506,15 +508,28 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
     // Fill CSR from COO representation.
     KRATOS_TRY
-    IndexPartition<std::size_t>(rows.size()).for_each([&rows, &rRestrictionOperator, &dof_map](const std::size_t i_coarse_dof) {
+    using TLS = std::vector<std::pair<std::size_t,TValue>>;
+    IndexPartition<std::size_t>(rows.size()).for_each(TLS(),
+                                                      [&rows, &rRestrictionOperator, &dof_map](const std::size_t i_coarse_dof,
+                                                                                               TLS& r_tls) {
         const std::size_t i_entry_begin = rRestrictionOperator.index1_data()[i_coarse_dof];
         [[maybe_unused]] const std::size_t i_entry_end = rRestrictionOperator.index1_data()[i_coarse_dof + 1];
 
         KRATOS_DEBUG_ERROR_IF(i_entry_end - i_entry_begin != rows[i_coarse_dof].first.size());
 
+        // Copy and sort the current row.
         const auto& r_row = rows[i_coarse_dof].first;
+        r_tls.resize(r_row.size());
+        std::copy(r_row.begin(), r_row.end(), r_tls.begin());
+        std::sort(r_tls.begin(),
+                  r_tls.end(),
+                  [](const auto& r_left, const auto& r_right){
+                    return r_left.first < r_right.first;
+                  });
+
+        // Copy row into the CSR matrix.
         std::size_t i_entry = i_entry_begin;
-        for (const auto [i_fine_column, entry] : r_row) {
+        for (const auto& [i_fine_column, entry] : r_tls) {
             KRATOS_DEBUG_ERROR_IF_NOT(i_entry < rRestrictionOperator.index2_data().size()) << i_entry;
             KRATOS_DEBUG_ERROR_IF_NOT(i_entry < rRestrictionOperator.value_data().size()) << i_entry;
             rRestrictionOperator.index2_data()[i_entry] = i_fine_column;
