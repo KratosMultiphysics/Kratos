@@ -104,6 +104,7 @@ File::File(
     : mpDataCommunicator(&rDataCommunicator)
 {
     KRATOS_TRY;
+    KRATOS_HDF5_CALL(H5Eset_auto, H5E_DEFAULT, NULL, NULL)
 
     Parameters default_params(R"(
             {
