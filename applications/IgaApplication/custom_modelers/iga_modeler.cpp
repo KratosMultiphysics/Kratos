@@ -262,10 +262,13 @@ namespace Kratos
         else {
             skin_model_part_name = mParameters["skin_model_part_name"].GetString();
         }
-        ModelPart& skin_model_part = mpModel->HasModelPart(skin_model_part_name)
-                ? mpModel->GetModelPart(skin_model_part_name)
-                : KRATOS_ERROR << "::[CreateQuadraturePointGeometriesSbm]::: Sbm case -> skin_model_part has not been defined before."
-                               << "Maybe you are not calling the nurbs_modeler_sbm" << std::endl;
+
+        KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_name)) 
+                << "::[CreateQuadraturePointGeometriesSbm]::: Sbm case -> skin_model_part has not been defined before."
+                << "Maybe you are not calling the nurbs_modeler_sbm" << std::endl;
+
+        ModelPart& skin_model_part = mpModel->GetModelPart(skin_model_part_name);
+               
         ModelPart& skin_sub_model_part_in = skin_model_part.GetSubModelPart("inner");
         ModelPart& skin_sub_model_part_out = skin_model_part.GetSubModelPart("outer");
 
@@ -274,11 +277,12 @@ namespace Kratos
         else {
             surrogate_sub_model_part_name = rParameters["SBM_parameters"]["surrogate_sub_model_part_name"].GetString();
         }
-
-        ModelPart& surrogate_sub_model_part = rIgaModelPart.HasSubModelPart(surrogate_sub_model_part_name)
-                ? rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name)
-                : KRATOS_ERROR << "::[CreateQuadraturePointGeometriesSbm]::: Sbm case -> surrogate_sub_model_part has not been defined before."
+        
+        KRATOS_ERROR_IF_NOT(rIgaModelPart.HasSubModelPart(surrogate_sub_model_part_name)) 
+                << "::[CreateQuadraturePointGeometriesSbm]::: Sbm case -> surrogate_sub_model_part has not been defined before."
                                << "Maybe you are not calling the nurbs_modeler_sbm" << std::endl;
+
+        ModelPart& surrogate_sub_model_part = rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name);
 
         bool is_inner;     
         Vector meshSizes_uv;
@@ -727,7 +731,7 @@ namespace Kratos
 
                 countListClosestCondition++;
             }
-
+            
             ModelPart& layerModelPart = analysis_model_part.HasSubModelPart(layer_name) ? 
                             analysis_model_part.GetSubModelPart(layer_name) : 
                             analysis_model_part.CreateSubModelPart(layer_name);
