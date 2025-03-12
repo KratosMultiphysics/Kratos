@@ -37,4 +37,15 @@ GetDiagonalScaleFactor(const typename TSparse::MatrixType& rMatrix,
                        const DiagonalScaling ScalingStrategy);
 
 
+template <class TSparse>
+void NormalizeRows(typename TSparse::MatrixType& rLhs,
+                   typename TSparse::VectorType& rRhs);
+
+
+template <class TSparse>
+void NormalizeSystem(typename TSparse::MatrixType& rLhs,
+                     typename TSparse::VectorType& rRhs,
+                     typename TSparse::DataType Coefficient);
+
+
 } // namespace Kratos
