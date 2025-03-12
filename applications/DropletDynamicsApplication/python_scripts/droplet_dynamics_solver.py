@@ -356,13 +356,15 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         # curvature is calculated using nodal distance gradient
         self._GetDistanceCurvatureProcess().Execute()
 
+        ##########
         # Contact angle calculation
-        self._GetContactAngleEvaluatorProcess().Execute()
+        # self._GetContactAngleEvaluatorProcess().Execute()
         # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
         for node in self.main_model_part.Nodes:
             old_distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             node.SetValue(KratosDroplet.DISTANCE_AUX, old_distance)
-        print("Contact Angle Evaluator: Finished")
+        # print("Contact Angle Evaluator: Finished")
+        ##########
 
         # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
         self._GetConsistentNodalPressureGradientProcess().Execute()
@@ -401,8 +403,10 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
         # Recompute the distance field according to the new level-set position
         if self._reinitialization_type != "none":
-            self._GetDistanceReinitializationProcess().Execute()
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+            step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if step == 2 or step%12==0:
+                self._GetDistanceReinitializationProcess().Execute()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
         # Prepare distance correction for next step
         self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()

@@ -87,8 +87,8 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
         const double zeta = 5.0e-1;//1.0;//0.7;//
         const double surface_tension_coefficient = 0.072;//0.0;
         
-        const double theta_advancing = 127.0 * PI / 180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
-        const double theta_receding = 133.0 * PI / 180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
+        const double theta_advancing = 100.0 * PI / 180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
+        const double theta_receding = 100.0 * PI / 180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
 
         const double micro_length_scale = 1.0e-9;
 
@@ -2339,9 +2339,7 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
             std::cout << "Unit Vector: " << unit_vector << std::endl;
 
             // Vector comparison needs to use proper comparison method
-if (-1e-12 < unit_vector[0] && unit_vector[0] < 1e-12 && 
-    -1e-12 < unit_vector[1] && unit_vector[1] < 1e-12 && 
-    (1-1e-12) < unit_vector[2] && unit_vector[2] < (1+1e-12)) {
+if ((1-1e-5) < unit_vector[2] && unit_vector[2] < (1+1e-5)) {
     contact_vector_macro = -contact_vector_macro;
     wall_tangent = -wall_tangent;
 }
@@ -2357,7 +2355,7 @@ if (-1e-12 < unit_vector[0] && unit_vector[0] < 1e-12 &&
             ////////
             double contact_angle_micro_gp = contact_angle_macro_gp;
 
-            double zeta_effective = zeta;
+            double zeta_effective = zeta*0.0;
 
             const double contact_velocity_gp = inner_prod(wall_tangent,velocity_gp);
 
@@ -2374,27 +2372,20 @@ if (-1e-12 < unit_vector[0] && unit_vector[0] < 1e-12 &&
             //KRATOS_INFO("two fluids NS") << "angle difference= " << std::abs(contact_angle_macro_gp - contact_angle_equilibrium)*180/PI << std::endl;
 
             double contact_angle_equilibrium = contact_angle_macro_gp;
+            contact_angle_equilibrium = theta_receding;
 
-            const int velocity_direction = (distance_diff_gp < 0.0) - (distance_diff_gp > 0.0);
+            // const int velocity_direction = (distance_diff_gp < 0.0) - (distance_diff_gp > 0.0);
+            // std::cout<<"velocity_direction = "<<velocity_direction<<std::endl;
 
-            if (velocity_direction <= 0 && contact_angle_macro_gp <= theta_receding){
-                contact_angle_equilibrium = theta_receding;
-            } else if (velocity_direction >= 0 && contact_angle_macro_gp >= theta_advancing){
-                contact_angle_equilibrium = theta_advancing;
-            } else {
-                contact_angle_equilibrium = contact_angle_macro_gp;
-                zeta_effective = 1.0e0*zeta;
-            }
-
-            // double contact_angle_equilibrium = theta_receding;
-            // if (contact_angle_macro_gp > contact_angle_equilibrium){
-            //     if (contact_angle_macro_gp >= theta_advancing){
-            //         contact_angle_equilibrium = theta_advancing;
-            //     } else {
-            //         contact_angle_equilibrium = contact_angle_macro_gp;
-            //         zeta_effective = 1.0e0*zeta;
-            //     }
+            // if (velocity_direction <= 0 && contact_angle_macro_gp <= theta_receding){
+            //     contact_angle_equilibrium = theta_receding;
+            // } else if (velocity_direction >= 0 && contact_angle_macro_gp >= theta_advancing){
+            //     contact_angle_equilibrium = theta_advancing;
+            // } else {
+            //     contact_angle_equilibrium = contact_angle_macro_gp;
+            //     zeta_effective = 1.0e0*zeta;
             // }
+
 
             if ( std::abs(contact_angle_macro_gp - contact_angle_equilibrium) < 6.0e-1 &&
                     capilary_number < 3.0e-1){
@@ -2672,13 +2663,14 @@ void DropletDynamicsElement<TElementData>::AddSurfaceTensionContribution(
         rInterfaceShapeFunction,
         gauss_pts_curvature);
 
-    // SurfaceTension(
-    //     surface_tension_coefficient,
-    //     gauss_pts_curvature,
-    //     rInterfaceWeights,
-    //     rInterfaceShapeFunction,
-    //     rInterfaceNormalsNeg,
-    //     rRightHandSideVector);    
+    SurfaceTension(
+        surface_tension_coefficient,
+        gauss_pts_curvature,
+        rInterfaceWeights,
+        rInterfaceShapeFunction,
+        rInterfaceNormalsNeg,
+        rRightHandSideVector);  
+          
     SurfaceTension(
         rData,
         surface_tension_coefficient,
