@@ -427,27 +427,6 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius(ModelPart& r_model_part)
       {
-        /*
-        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
-
-        double particle_max_normal_ball_to_ball_force_times_radius = 0.0;
-
-        #pragma omp parallel for
-        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
-
-            for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
-                    double particle_normal_ball_to_ball_force_times_radius = 0.0;
-
-                    (it)->Calculate(PARTICLE_MAX_NORMAL_BALL_TO_BALL_FORCE_TIMES_RADIUS, particle_normal_ball_to_ball_force_times_radius, r_model_part.GetProcessInfo());
-
-                    if (particle_max_normal_ball_to_ball_force_times_radius < particle_normal_ball_to_ball_force_times_radius){
-                    particle_max_normal_ball_to_ball_force_times_radius = particle_normal_ball_to_ball_force_times_radius;
-                    }
-                }
-            }
-
-        }*/
 
         double global_max_normal_force_times_radius = 0.0;
 
