@@ -737,7 +737,6 @@ class SphericElementGlobalPhysicsCalculator
       std::vector<std::vector<double>> CalculateTotalStressTensor(ModelPart& r_model_part, double Lx, double Ly, double Lz)
       {
         OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
-        //Matrix measured_total_stress_tensor(3, 3, 0.0);
         std::vector<std::vector<double>> measured_total_stress_tensor(3, std::vector<double>(3));
 
         double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
