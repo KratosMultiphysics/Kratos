@@ -742,8 +742,6 @@ class SphericElementGlobalPhysicsCalculator
         double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
         s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
 
-        double dx, dy, dz;
-
         #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22)
         for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
@@ -756,6 +754,8 @@ class SphericElementGlobalPhysicsCalculator
                 double z_0 = (it)->GetGeometry()[0].Z();
                 double z_1 = (it)->GetGeometry()[1].Z();
 
+                double dx, dy, dz;
+                
                 dx = x_0 - x_1;
                 if (dx > 0.5 * Lx){
                     dx -= Lx;
