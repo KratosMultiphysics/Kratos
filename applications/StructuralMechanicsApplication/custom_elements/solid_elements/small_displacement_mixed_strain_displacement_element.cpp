@@ -414,7 +414,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     // Gauss IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
+        const auto body_force = GetBodyForce(r_integration_points, i_gauss);
 
         CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
@@ -520,7 +520,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     // Gauss IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
+        const auto body_force = GetBodyForce(r_integration_points, i_gauss);
 
         CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
@@ -606,7 +606,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
+        const auto body_force = GetBodyForce(r_integration_points, i_gauss);
 
         CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
@@ -897,7 +897,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     KRATOS_TRY
 
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
+    // const auto& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
+    const auto& r_integration_points = GetIntegrationPoints();
     const double tau = GetStabilizationFactor();
 
     // Shape functions
