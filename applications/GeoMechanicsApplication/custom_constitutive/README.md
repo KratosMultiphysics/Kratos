@@ -53,22 +53,26 @@ Where:
 
 The Mohr-Coulomb failure criterion is defined as:
 
-$$F_{mc}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\phi} - c \cos⁡{\phi} = 0$$
+```math
+    F_{mc}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\phi} - c \cos⁡{\phi} = 0
+```
 
 where:
 
-- $\sigma_1$ = maximum principal stress component
-- $\sigma_3$ = minimum principal stress component
-- $c$ = cohesion
-- $\phi$ = Internal friction angle.
+- $`\sigma_1`$ = maximum principal stress component
+- $`\sigma_3`$ = minimum principal stress component
+- $`c`$ = cohesion
+- $`\phi`$ = Internal friction angle.
 
 This criterion represents a linear envelope in the Mohr stress space, approximating the shear strength of a material under different stress states.
 
 Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does not limit tensile stresses. In geomechanical applications, materials such as rocks and soils have a limited tensile strength . A tensile cutoff is imposed as:
 
-$$ F_{tc}(\sigma) = \sigma_1 - t_c = 0 $$
+```math
+    F_{tc}(\sigma) = \sigma_1 - t_c = 0
+```
 
-where $t_c$ is the tensile strength. If $\sigma_1$ exceeds $t_c$, failure occurs regardless of the shear strength condition.
+where $t_c$ is the tensile strength. If $`\sigma_1`$ exceeds $`t_c`$, failure occurs regardless of the shear strength condition.
 
 Combination of these two, it yiels to the following figure:
 
@@ -81,11 +85,13 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 
 1. Calculate the trial stress by: 
 
-$$\boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + \boldsymbol{\mathrm{C}} \Delta \boldsymbol{\epsilon}$$
+```math
+    \boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + \boldsymbol{\mathrm{C}} \Delta \boldsymbol{\epsilon}
+```
 
-2. Extract the principal stresses $\sigma_1 \ge \sigma_2 \ge \sigma_3$ for the calculated trial stress, and calculate the rotation matrix.
+2. Extract the principal stresses $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ for the calculated trial stress, and calculate the rotation matrix.
 
-3. Calculate the values of $F_{MC}$ and $F_{tC}$ for the calculated principal stresses.
+3. Calculate the values of $`F_{MC}`$ and $`F_{tC}`$ for the calculated principal stresses.
 
 4. Evaluate the condition and mapping
   - If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.
@@ -93,11 +99,12 @@ $$\boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + \boldsymbol{\mathrm{C}} 
   - If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.
   - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve along the normal direction of flow function. The flow function is defined by
   
-  $$G(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}$$
-  
-  where $\psi$ is the dilatancy angle.
+```math
+    G(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}
+```
+  where $`\psi`$ is the dilatancy angle.
 
-5. If after mapping, the condidition $\sigma_1 \ge \sigma_2 \ge \sigma_3$ is not valid, rearrang the principal stresses and repeat the process, namely go to point 3.
+5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, rearrang the principal stresses and repeat the process, namely go to point 3.
 
 6. Rotate the mapped stress vector back, by appying the rotation matrix.
 
