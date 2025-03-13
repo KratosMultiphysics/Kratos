@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:        BSD License
-//                  Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -32,12 +32,10 @@
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
-#include "custom_constitutive/bingham_2d_law.h"
-#include "custom_constitutive/bingham_3d_law.h"
 #include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
-    namespace Testing {
+	namespace Testing {
 
         /**
          * @brief Set the Properties object
@@ -83,9 +81,9 @@ namespace Kratos {
         }
 
         /**
-         * Auxiliar function to generate a triangular element within
+	     * Auxiliar function to generate a triangular element within
          * a given model part using the constitutive law to be tested.
-         */
+	     */
         void GenerateTriangle(
             ModelPart& rModelPart,
             const ConstitutiveLaw::Pointer pConstitutiveLaw,
@@ -108,9 +106,9 @@ namespace Kratos {
         }
 
         /**
-         * Auxiliar function to generate a tetrahedral element within
+	     * Auxiliar function to generate a tetrahedral element within
          * a given model part using the constitutive law to be tested.
-         */
+	     */
         void GenerateTetrahedron(
             ModelPart &rModelPart,
             const ConstitutiveLaw::Pointer pConstitutiveLaw,
@@ -133,11 +131,11 @@ namespace Kratos {
             rModelPart.CreateNewElement("Element3D4N", 1, elem_nodes, p_elem_prop);
         }
 
-        /**
-         * Checks the Newtonian fluid 2D constitutive law.
-         */
-        KRATOS_TEST_CASE_IN_SUITE(Newtonian2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
-        {
+	    /**
+	     * Checks the Newtonian fluid 2D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(Newtonian2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int strain_size = 3;
             Newtonian2DLaw::Pointer p_cons_law(new Newtonian2DLaw());
@@ -188,13 +186,13 @@ namespace Kratos {
             KRATOS_EXPECT_NEAR(stress_vector(0), 0.0, tolerance);
             KRATOS_EXPECT_NEAR(stress_vector(1), 1.8, tolerance);
             KRATOS_EXPECT_NEAR(stress_vector(2), 0.3, tolerance);
-        }
+	    }
 
-        /**
-         * Checks the Newtonian fluid temperature dependent viscosity 2D constitutive law.
-         */
-        KRATOS_TEST_CASE_IN_SUITE(NewtonianTemperatureDependent2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
-        {
+	    /**
+	     * Checks the Newtonian fluid temperature dependent viscosity 2D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(NewtonianTemperatureDependent2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int strain_size = 3;
             Newtonian2DLaw::Pointer p_cons_law(new NewtonianTemperatureDependent2DLaw());
@@ -259,13 +257,13 @@ namespace Kratos {
                     KRATOS_EXPECT_NEAR(c_matrix(i,j), expected_c_2[i*3 + j], tolerance);
                 }
             }
-        }
+	    }
 
-        /**
-         * Checks the Newtonian fluid temperature dependent viscosity 3D constitutive law.
-         */
-        KRATOS_TEST_CASE_IN_SUITE(NewtonianTemperatureDependent3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
-        {
+	    /**
+	     * Checks the Newtonian fluid temperature dependent viscosity 3D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(NewtonianTemperatureDependent3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int strain_size = 6;
             Newtonian3DLaw::Pointer p_cons_law(new NewtonianTemperatureDependent3DLaw());
@@ -329,13 +327,13 @@ namespace Kratos {
                 KRATOS_EXPECT_NEAR(c_matrix(i,i), expected_c_2_diag[i], tolerance);
                 KRATOS_EXPECT_NEAR(stress_vector(i), expected_stress_2[i], tolerance);
             }
-        }
+	    }
 
-        /**
-         * Checks the Newtonian fluid 3D constitutive law.
-         */
-        KRATOS_TEST_CASE_IN_SUITE(Newtonian3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
-        {
+	    /**
+	     * Checks the Newtonian fluid 3D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(Newtonian3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int strain_size = 6;
             Newtonian3DLaw::Pointer p_cons_law(new Newtonian3DLaw());
@@ -395,13 +393,13 @@ namespace Kratos {
             KRATOS_EXPECT_NEAR(stress_vector(3),  0.6, tolerance);
             KRATOS_EXPECT_NEAR(stress_vector(4),  0.9, tolerance);
             KRATOS_EXPECT_NEAR(stress_vector(5),  1.2, tolerance);
-        }
+	    }
 
         /**
-         * Checks the Newtonian Two Fluid 3D constitutive law.
-         */
-        KRATOS_TEST_CASE_IN_SUITE(NewtonianTwoFluid3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
-        {
+	     * Checks the Newtonian Two Fluid 3D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(NewtonianTwoFluid3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int nnodes = 4;
             const unsigned int dim = 3;
@@ -499,13 +497,13 @@ namespace Kratos {
             KRATOS_EXPECT_VECTOR_NEAR(stress_vector, theoretical_stress_vector, tolerance);
 
             KRATOS_EXPECT_MATRIX_NEAR(c_matrix, theoretical_c_matrix, tolerance);
-        }
+	    }
 
-        /**
-         * Checks the Euler fluid 2D constitutive law.
-         */
-        KRATOS_TEST_CASE_IN_SUITE(Euler2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
-        {
+	    /**
+	     * Checks the Euler fluid 2D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(Euler2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int strain_size = 3;
             Euler2DLaw::Pointer p_cons_law(new Euler2DLaw());
@@ -515,9 +513,9 @@ namespace Kratos {
 
             // Create a raw model part
             Model model;
-            ModelPart& model_part = model.CreateModelPart("Main", 3);
+			ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTriangle(model_part, p_cons_law, SetProperties);
-            Element::Pointer p_element = model_part.pGetElement(1);
+			Element::Pointer p_element = model_part.pGetElement(1);
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
@@ -552,13 +550,13 @@ namespace Kratos {
             for (unsigned int i = 0; i < strain_size; ++i) {
                 KRATOS_EXPECT_NEAR(stress_vector(i), 0.0, tolerance);
             }
-        }
+	    }
 
-        /**
-         * Checks the Euler fluid 3D constitutive law.
-         */
-        KRATOS_TEST_CASE_IN_SUITE(Euler3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
-        {
+	    /**
+	     * Checks the Euler fluid 3D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(Euler3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int strain_size = 6;
             Euler3DLaw::Pointer p_cons_law(new Euler3DLaw());
@@ -568,9 +566,9 @@ namespace Kratos {
 
             // Create a raw model part
             Model model;
-            ModelPart& model_part = model.CreateModelPart("Main", 3);
+			ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTetrahedron(model_part, p_cons_law, SetProperties);
-            Element::Pointer p_element = model_part.pGetElement(1);
+			Element::Pointer p_element = model_part.pGetElement(1);
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
@@ -608,11 +606,11 @@ namespace Kratos {
             for (unsigned int i = 0; i < strain_size; ++i) {
                 KRATOS_EXPECT_NEAR(stress_vector(i), 0.0, tolerance);
             }
-        }
+	    }
 
         /**
-        * Checks the Bingham fluid 3D constitutive law.
-        */
+         * Checks the Bingham fluid 3D constitutive law.
+         */
         KRATOS_TEST_CASE_IN_SUITE(Bingham3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
         {
             // Declare the constitutive law pointer as well as its required arrays
@@ -624,13 +622,13 @@ namespace Kratos {
 
             // Create a raw model part
             Model model;
-            ModelPart& model_part = model.CreateModelPart("Main", 3);
+            ModelPart &model_part = model.CreateModelPart("Main", 3);
             GenerateTetrahedron(model_part, p_cons_law, SetProperties);
             Element::Pointer p_element = model_part.pGetElement(1);
-            (model_part.pGetProperties(0))->SetValue(DENSITY,1600);
+            (model_part.pGetProperties(0))->SetValue(DENSITY, 1600);
             (model_part.pGetProperties(0))->SetValue(DYNAMIC_VISCOSITY, 300);
             (model_part.pGetProperties(0))->SetValue(YIELD_STRESS, 50);
-            (model_part.pGetProperties(0))->SetValue(REGULARIZATION_COEFFICIENT,1000);
+            (model_part.pGetProperties(0))->SetValue(REGULARIZATION_COEFFICIENT, 1000);
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
@@ -639,7 +637,7 @@ namespace Kratos {
                 model_part.GetProcessInfo());
 
             // Set constitutive law flags:
-            Flags& constitutive_law_options = cons_law_values.GetOptions();
+            Flags &constitutive_law_options = cons_law_values.GetOptions();
             constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
             constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
@@ -653,33 +651,31 @@ namespace Kratos {
             cons_law_values.SetStrainVector(strain_vector);  // Input strain values
             cons_law_values.SetStressVector(stress_vector);  // Output stress values
             cons_law_values.SetConstitutiveMatrix(c_matrix); // Output constitutive tensor
-
             p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
 
             // Check computed values
             const double tolerance = 1e-7;
-
             const std::vector<double> stress_vector_reference({-203.03030303030314485, 1624.2424242424242493, -1421.2121212121214739, 609.09090909090912191, 913.63636363636373972, 1218.1818181818182438});
             Matrix c_matrix_reference = ZeroMatrix(6, 6);
-            c_matrix_reference(0, 0) =  406.06060606060606233;
+            c_matrix_reference(0, 0) = 406.06060606060606233;
             c_matrix_reference(0, 1) = -203.03030303030303116;
             c_matrix_reference(0, 2) = -203.03030303030303116;
             c_matrix_reference(1, 0) = -203.03030303030303116;
-            c_matrix_reference(1, 1) =  406.06060606060606233;
+            c_matrix_reference(1, 1) = 406.06060606060606233;
             c_matrix_reference(1, 2) = -203.03030303030303116;
             c_matrix_reference(2, 0) = -203.03030303030303116;
             c_matrix_reference(2, 1) = -203.03030303030303116;
-            c_matrix_reference(2, 2) =  406.06060606060606233;
-            c_matrix_reference(3, 3) =  304.54545454545456096;
-            c_matrix_reference(4, 4) =  304.54545454545456096;
-            c_matrix_reference(5, 5) =  304.54545454545456096;
+            c_matrix_reference(2, 2) = 406.06060606060606233;
+            c_matrix_reference(3, 3) = 304.54545454545456096;
+            c_matrix_reference(4, 4) = 304.54545454545456096;
+            c_matrix_reference(5, 5) = 304.54545454545456096;
             KRATOS_EXPECT_VECTOR_NEAR(stress_vector, stress_vector_reference, tolerance);
             KRATOS_EXPECT_MATRIX_NEAR(c_matrix, c_matrix_reference, tolerance);
         }
 
         /**
-        * Checks the Bingham fluid 2D constitutive law.
-        */
+         * Checks the Bingham fluid 2D constitutive law.
+         */
         KRATOS_TEST_CASE_IN_SUITE(Bingham2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
         {
             // Declare the constitutive law pointer as well as its required arrays
@@ -725,13 +721,14 @@ namespace Kratos {
             const double tolerance = 1e-10;
             const std::vector<double> stress_vector_reference({-203.494282789073, 1627.95426231258, 305.24142418361});
             Matrix c_matrix_reference(3, 3);
-            c_matrix_reference(0,0) = 406.98856557814611; c_matrix_reference(0,1) = -203.49428278907305;
-            c_matrix_reference(1,0) = -203.49428278907305; c_matrix_reference(1,1) = 406.98856557814611;
+            c_matrix_reference(0, 0) = 406.98856557814611;
+            c_matrix_reference(0, 1) = -203.49428278907305;
+            c_matrix_reference(1, 0) = -203.49428278907305;
+            c_matrix_reference(1, 1) = 406.98856557814611;
             c_matrix_reference(2, 2) = 305.24142418360958;
 
             KRATOS_EXPECT_VECTOR_NEAR(stress_vector, stress_vector_reference, tolerance);
             KRATOS_EXPECT_MATRIX_NEAR(c_matrix, c_matrix_reference, tolerance);
-
         }
 
     } // namespace Testing
