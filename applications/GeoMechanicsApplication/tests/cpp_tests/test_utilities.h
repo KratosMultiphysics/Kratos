@@ -31,4 +31,17 @@ public:
     static bool CompareFiles(const std::filesystem::path& rPath1, const std::filesystem::path& rPath2);
 };
 
+class ScopedSerializerRegistrationOfAllStressStatePolicies
+{
+public:
+    ScopedSerializerRegistrationOfAllStressStatePolicies();
+    ~ScopedSerializerRegistrationOfAllStressStatePolicies();
+    ScopedSerializerRegistrationOfAllStressStatePolicies(const ScopedSerializerRegistrationOfAllStressStatePolicies&) = delete;
+    ScopedSerializerRegistrationOfAllStressStatePolicies& operator=(
+        const ScopedSerializerRegistrationOfAllStressStatePolicies&) = delete;
+    ScopedSerializerRegistrationOfAllStressStatePolicies(ScopedSerializerRegistrationOfAllStressStatePolicies&&) noexcept = default;
+    ScopedSerializerRegistrationOfAllStressStatePolicies& operator=(
+        ScopedSerializerRegistrationOfAllStressStatePolicies&&) noexcept = default;
+};
+
 } // namespace Kratos::Testing
