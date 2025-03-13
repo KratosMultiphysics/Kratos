@@ -21,8 +21,6 @@
 namespace Kratos {
     namespace Testing {
 
-    typedef Node NodeType;
-
     /**
      *  Here the assigment operator is test
      */
@@ -50,6 +48,32 @@ namespace Kratos {
         KRATOS_EXPECT_DOUBLE_EQ(copy_of_node.FastGetSolutionStepValue(VELOCITY_Z), 0.00);
         KRATOS_EXPECT_TRUE(copy_of_node.Is(ACTIVE));
     }
+
+    /**
+     *  Here the clone operator is test
+     */
+     KRATOS_TEST_CASE_IN_SUITE(NodeCloneOperator, KratosCoreFastSuite)
+     {
+         Model current_model;
+         ModelPart& model_part = current_model.CreateModelPart("test");
+         model_part.AddNodalSolutionStepVariable(DISTANCE);
+         model_part.AddNodalSolutionStepVariable(VELOCITY);
+ 
+         auto p_node = model_part.CreateNewNode(1, 1., 0, 0);
+ 
+         p_node->FastGetSolutionStepValue(DISTANCE) = 12.1;
+         p_node->FastGetSolutionStepValue(VELOCITY_X) = 32.4;
+         p_node->Set(ACTIVE, true);
+ 
+         NodeType::Pointer p_clone_of_node = p_node->Clone();
+ 
+         KRATOS_EXPECT_EQ(p_clone_of_node->Id(), 1);
+         KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(DISTANCE), 12.1);
+         KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_X), 32.4);
+         KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_Y), 0.00);
+         KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_Z), 0.00);
+         KRATOS_EXPECT_TRUE(p_clone_of_node->Is(ACTIVE));
+     }
 
     /**
      *  Here the DoF serialization
