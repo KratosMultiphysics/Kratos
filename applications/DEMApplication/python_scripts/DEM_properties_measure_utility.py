@@ -465,6 +465,7 @@ class DEMPropertiesMeasureUtility:
         if type == "strain":
             pass
     
+    #TODO: This function can be removed in the furture if not needed
     def MeasureSphereForGettingGlobalStressTensor(self, Lx, Ly, Lz):
 
         if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
