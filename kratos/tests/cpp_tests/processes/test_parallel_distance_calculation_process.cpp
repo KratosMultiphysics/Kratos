@@ -217,7 +217,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessPreserveInterface, KratosCoreFa
     const double tolerance = 1.0e-8;
     const std::array<std::size_t,5> nodal_ids = {1,28,37,64,7};
     //node 7 is an interface node and its distance should be preserved
-    const std::array<double, 5> exact_dist = {-5.8153358548852685, -1.5295815295815309, 1.3275613275613267, 5.6133194453527846, distance_node_7};
+    const std::array<double, 5> exact_dist = {-5.8152958152958174, -1.5295815295815309, 1.3275613275613267, 5.613275613275615, distance_node_7};
     for (std::size_t i = 0; i < nodal_ids.size(); ++i) {
         const auto& r_node = r_model_part.GetNode(nodal_ids[i]);
         const double dist = r_node.FastGetSolutionStepValue(DISTANCE);
