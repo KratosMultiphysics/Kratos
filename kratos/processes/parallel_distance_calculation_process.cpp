@@ -169,6 +169,7 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
     const BoundedMatrix<double,TDim+1,TDim>& rDN_DX,
     const double& Volume)
 {
+    constexpr double zero_tolerance = 1e-12;
     unsigned int unknown_node_index = 0;
     array_1d<double,TDim> d;
     double nodal_vol = Volume/static_cast<double>(TDim+1);
@@ -206,21 +207,8 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
 
     double discriminant = b * b - 4.0 * a*c;
 
-    if (discriminant < 0.0) //here we solve (2ax+b) = 0
+    if (discriminant < zero_tolerance) //here we solve (2ax+b) = 0
     {
-//                  double numerator = 0.0;
-//                  double denominator = 0.0;
-//                  for(unsigned int i=0; i<TDim+1; i++)
-//                  {
-//                      for (unsigned int jjj = 0; jjj < TDim; jjj++)
-//                      {
-//                          if(i != unknown_node_index)
-//                            numerator += rDN_DX(unknown_node_index, jjj) * rDN_DX(i, jjj);
-//                          else
-//                            denominator += rDN_DX(unknown_node_index, jjj)*rDN_DX(unknown_node_index, jjj);
-//                      }
-//                  }
-//                  distance = - numerator/denominator;
 
         distance = -b / (2.0*a); //avg_dist ; //
     }
@@ -229,14 +217,14 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
         //(accurate) computation of the distance
         //requires the solution of a*x^2+b*x+c=0
         double q, root1, root2;
-        double sqrt_det = sqrt(discriminant);
-        if (a != 0.0)
+        const double sqrt_det = std::sqrt(discriminant);
+        if (std::abs(a) > zero_tolerance)
         {
             if (b > 0) q = -0.5 * (b + sqrt_det);
             else q = -0.5 * (b - sqrt_det);
             root1 = q / a;
             distance = root1;
-            if(std::abs(q) > 0.0) {
+            if(std::abs(q) > zero_tolerance) {
                 root2 = c / q;
                 if (root2 > root1) distance = root2;
             }
