@@ -781,7 +781,7 @@ class SphericElementGlobalPhysicsCalculator
                     dz += Lz;
                 }
 
-                const array_1d<double, 3>& contact_force = (it)->GetGeometry()[0].FastGetSolutionStepValue(GLOBAL_CONTACT_FORCE);
+                const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
 
                 s_00 += contact_force[0] * dx;
                 s_01 += contact_force[0] * dy;
