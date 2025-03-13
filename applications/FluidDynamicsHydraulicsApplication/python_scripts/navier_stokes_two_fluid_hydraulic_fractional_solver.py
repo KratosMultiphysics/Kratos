@@ -121,11 +121,8 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("DISTANCE_GRADIENT")
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("VELOCITY")
         self.settings["levelset_convection_settings"].AddEmptyValue("convection_model_part_name").SetString("LevelSetConvectionModelPart")
-
-
-        # Set the auxiliar model part name for the navier stokes fractional convection
-        self.settings["fractional_splitting_settings"].AddEmptyValue("ns_frac_convection_model_part_name").SetString("FractionalSplittingModelPart")
-
+       
+        self.settings["fractional_splitting_settings"].AddEmptyValue("model_part_name").SetString(self.main_model_part.Name )
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
@@ -337,10 +334,10 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         if self.mass_source:
             water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-            water_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementNegativeVolume(self.GetComputingModelPart())
+            water_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementsNegativeVolume(self.GetComputingModelPart())
             absolute_water_volume_error = water_volume_after_transport -  self.__initial_water_system_volume
             water_cut_element_error = absolute_water_volume_error /water_cut_volume_after_transport
-            air_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementPositiveVolume(self.GetComputingModelPart())
+            air_cut_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidCutElementsPositiveVolume(self.GetComputingModelPart())
             air_cut_element_error = absolute_water_volume_error / air_cut_volume_after_transport
         else:
             water_cut_element_error = 0.0
@@ -559,14 +556,14 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        computing_model_part = self.GetComputingModelPart()
+        model = self.main_model_part.GetModel()
+        print(model)
         linear_solver = self._GetLevelsetLinearSolver()
-        print(linear_solver)
         fractional_splitting_settings = self.settings["fractional_splitting_settings"]
         if domain_size == 2:
-            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(computing_model_part,linear_solver, fractional_splitting_settings)
+            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(model, linear_solver, fractional_splitting_settings)
         else:
-            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess3D(computing_model_part, linear_solver, fractional_splitting_settings)
+            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess3D(model, linear_solver, fractional_splitting_settings)
         return fractional_splitting_process
 
 
