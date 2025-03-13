@@ -24,6 +24,6 @@ public:
     virtual ~YieldSurface() = default;
 
     [[nodiscard]] virtual double YieldFunctionValue(const Vector& rPrincipalStress) const     = 0;
-    [[nodiscard]] virtual Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const = 0;
+    [[nodiscard]] virtual Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const = 0;
 };
 } // namespace Kratos.

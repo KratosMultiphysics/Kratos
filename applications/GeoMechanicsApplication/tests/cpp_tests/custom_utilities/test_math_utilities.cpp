@@ -63,18 +63,18 @@ KRATOS_TEST_CASE_IN_SUITE(Normalized_Throws_WhenInputtingZeroVector, KratosGeoMe
 KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Matrix stress_matrix = ZeroMatrix(3, 3);
+    Matrix stress_tensor = ZeroMatrix(3, 3);
     // clang-format off
-    stress_matrix <<= 10.0, 40.0, 0.0,
+    stress_tensor <<= 10.0, 40.0, 0.0,
                       40.0, 50.0, 0.0,
                       0.0, 0.0, 20.0;
     // clang-format on
 
-    double angle           = MathUtils<>::DegreesToRadians(30.0);
+    const auto angle           = MathUtils<>::DegreesToRadians(30.0);
     Matrix rotation_matrix = ZeroMatrix(3, 3);
     rotation_matrix <<= std::cos(angle), -std::sin(angle), 0.0, std::sin(angle), std::cos(angle),
         0.0, 0.0, 0.0, 1.0;
-    Matrix result = GeoMechanicsMathUtilities::RotateTensor(stress_matrix, rotation_matrix);
+    const auto result = GeoMechanicsMathUtilities::RotateSecondOrderTensor(stress_tensor, rotation_matrix);
 
     Matrix expected_result = ZeroMatrix(3, 3);
     // clang-format off

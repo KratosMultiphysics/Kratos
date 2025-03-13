@@ -51,6 +51,8 @@ ConstitutiveLaw::Pointer MohrCoulombWithTensionCutOff::Clone() const
     p_result->mStressVector          = mStressVector;
     p_result->mStressVectorFinalized = mStressVectorFinalized;
     p_result->mStrainVectorFinalized = mStrainVectorFinalized;
+    p_result->mCoulombYieldSurface = mCoulombYieldSurface;
+    p_result->mTensionCutOff = mTensionCutOff;
     return p_result;
 }
 
@@ -84,7 +86,7 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
                                         const GeometryType& rElementGeometry,
                                         const ProcessInfo&  rCurrentProcessInfo) const
 {
-    ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
     CheckProperty(rMaterialProperties, GEO_COHESION);
     CheckProperty(rMaterialProperties, GEO_FRICTION_ANGLE);
@@ -92,14 +94,13 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
     CheckProperty(rMaterialProperties, GEO_TENSILE_STRENGTH);
     CheckProperty(rMaterialProperties, YOUNG_MODULUS);
     CheckProperty(rMaterialProperties, POISSON_RATIO);
-    return 0;
+    return result;
 }
 
 void MohrCoulombWithTensionCutOff::CheckProperty(const Properties& rMaterialProperties,
                                                  const Kratos::Variable<double>& rVariable) const
 {
-    constexpr auto min_value = 0.0;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable) || rMaterialProperties[rVariable] < min_value)
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable) || rMaterialProperties[rVariable] < 0.0)
         << rVariable.Name()
         << " is not defined or has an invalid value for property: " << rMaterialProperties.Id()
         << std::endl;
@@ -130,11 +131,11 @@ void MohrCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMateria
 {
     const auto friction_angle_in_rad = MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]);
     const auto cohesion = rMaterialProperties[GEO_COHESION];
-    const auto dilatancy_angle = MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]);
-    const auto tension_cutoff = rMaterialProperties[GEO_TENSILE_STRENGTH];
+    const auto dilatancy_angle_in_rad = MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]);
+    const auto tensile_strength = rMaterialProperties[GEO_TENSILE_STRENGTH];
 
-    mCoulombYieldSurface = CoulombYieldSurface(friction_angle_in_rad, cohesion, dilatancy_angle);
-    mTensionCutOff       = TensionCutoff(tension_cutoff);
+    mCoulombYieldSurface = CoulombYieldSurface(friction_angle_in_rad, cohesion, dilatancy_angle_in_rad);
+    mTensionCutOff       = TensionCutoff(tensile_strength);
 }
 
 void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
@@ -200,15 +201,12 @@ Vector MohrCoulombWithTensionCutOff::ReturnStressAtRegularFailureZone(const Vect
                                                                       double FrictionAngle,
                                                                       double Cohesion) const
 {
-    const auto flowDerivative = mCoulombYieldSurface.DerivateOfFlowFunction(rPrincipalTrialStressVector);
+    const auto flow_derivative = mCoulombYieldSurface.DerivativeOfFlowFunction(rPrincipalTrialStressVector);
     const auto cof1 = (1.0 + std::sin(FrictionAngle)) / (1.0 - std::sin(FrictionAngle));
     const auto cof2 = 2.0 * Cohesion * std::cos(FrictionAngle) / (1.0 - std::sin(FrictionAngle));
-    const auto det  = cof1 * flowDerivative[0] - flowDerivative[2];
-    const auto lambda = (rPrincipalTrialStressVector[2] + cof2 - rPrincipalTrialStressVector[0] * cof1) / det;
-    auto result = rPrincipalTrialStressVector;
-    result[0]   = lambda * flowDerivative[0] + rPrincipalTrialStressVector[0];
-    result[2]   = result[0] * cof1 - cof2;
-    return result;
+    const auto numerator  = cof1 * flow_derivative[0] - flow_derivative[2];
+    const auto lambda = (rPrincipalTrialStressVector[2] + cof2 - rPrincipalTrialStressVector[0] * cof1) / numerator;
+    return rPrincipalTrialStressVector + lambda * flow_derivative;;
 }
 
 bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const
@@ -254,11 +252,11 @@ Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(double FrictionAngle, 
 }
 
 Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
-                                                                double        YoungModulus,
-                                                                double        PoissonRatio) const
+                                                                double        YoungsModulus,
+                                                                double        PoissonsRatio) const
 {
     return mStressVectorFinalized +
-           prod(mpConstitutiveDimension->CalculateElasticMatrix(YoungModulus, PoissonRatio),
+           prod(mpConstitutiveDimension->CalculateElasticMatrix(YoungsModulus, PoissonsRatio),
                 rStrainVector - mStrainVectorFinalized);
 }
 
@@ -274,6 +272,8 @@ void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
+    //rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
+    //rSerializer.save("TensionCutOff", mTensionCutOff);
 }
 
 void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
@@ -282,5 +282,7 @@ void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("StressVector", mStressVector);
     rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
+    //rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
+    //rSerializer.load("TensionCutOff", mTensionCutOff);
 }
 } // Namespace Kratos

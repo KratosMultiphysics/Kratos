@@ -26,10 +26,10 @@ public:
 
     CoulombYieldSurface() = default;
 
-    CoulombYieldSurface(double FrictionAngle, double Cohesion, double DilatationAngle);
+    CoulombYieldSurface(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rPrincipalStress) const override;
-    [[nodiscard]] Vector DerivateOfFlowFunction(const Vector& rPrincipalStress) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const override;
 
 private:
     double mFrictionAngle   = 0.0;

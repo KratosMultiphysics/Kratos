@@ -47,7 +47,7 @@ public:
     bool                                   IsIncremental() override;
     bool                                   RequiresInitializeMaterialResponse() override;
     StressMeasure                          GetStressMeasure() override;
-    SizeType                               GetStrainSize() const override;
+    [[nodiscard]] SizeType                 GetStrainSize() const override;
     StrainMeasure                          GetStrainMeasure() override;
     void                                   InitializeMaterial(const Properties&     rMaterialProperties,
                                                               const Geometry<Node>& rElementGeometry,
@@ -59,7 +59,6 @@ public:
                const ProcessInfo&  rCurrentProcessInfo) const override;
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector, const Matrix& rRotationMatrix) const;
 
 private:
     std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
@@ -69,14 +68,14 @@ private:
     CoulombYieldSurface                       mCoulombYieldSurface;
     TensionCutoff                             mTensionCutOff;
 
-    void CheckProperty(const Properties& rMaterialProperties, const Kratos::Variable<double>& rVariable) const;
-    Vector CalculateTrialStressVector(const Vector& rStrainVector, double YoungModulus, double PoissonRatio) const;
-    double CalculateApex(double FrictionAngle, double Cohesion) const;
-    Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensionCutoff) const;
-    Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, double TensionCutoff) const;
-    Vector             ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
+    void CheckProperty(const Properties& rMaterialProperties, const Variable<double>& rVariable) const;
+    Vector CalculateTrialStressVector(const Vector& rStrainVector, double YoungsModulus, double PoissonsRatio) const;
+    [[nodiscard]] double CalculateApex(double FrictionAngle, double Cohesion) const;
+    [[nodiscard]] Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensileStrength) const;
+    [[nodiscard]] Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, double TensileStrength) const;
+    [[nodiscard]] Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
                                                       const Vector& rCornerPoint) const;
-    Vector             ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
+    [[nodiscard]] Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
                                                         double        FrictionAngle,
                                                         double        Cohesion) const;
     [[nodiscard]] bool IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;

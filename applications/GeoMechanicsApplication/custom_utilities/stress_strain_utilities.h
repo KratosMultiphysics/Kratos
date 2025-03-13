@@ -43,7 +43,6 @@ public:
     static void                CalculatePrincipalStresses(const Vector& rCauchyStressVector,
                                                           Vector&       rPrincipalStressVector,
                                                           Matrix&       rEigenVectorsMatrix);
-    static Vector RotateStressMatrix(const Matrix& rStressMatrix, const Matrix& rRotationMatrix, std::size_t StressVectorSize);
     static void ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix);
     static Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector,
                                           const Matrix& rRotationMatrix,

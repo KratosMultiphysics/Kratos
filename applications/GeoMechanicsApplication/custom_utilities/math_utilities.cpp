@@ -36,10 +36,9 @@ Matrix GeoMechanicsMathUtilities::VectorToDiagonalMatrix(const Vector& rVector)
     return result;
 }
 
-Matrix GeoMechanicsMathUtilities::RotateTensor(const Matrix& rTensor, const Matrix& rRotationMatrix)
+Matrix GeoMechanicsMathUtilities::RotateSecondOrderTensor(const Matrix& rTensor, const Matrix& rRotationMatrix)
 {
-    Matrix temp = prod(rTensor, trans(rRotationMatrix));
-    return prod(rRotationMatrix, temp);
+    return prod(rRotationMatrix, Matrix{prod(rTensor, trans(rRotationMatrix))});
 }
 
 } // namespace Kratos

@@ -183,7 +183,7 @@ void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStre
                                                        Matrix&       rEigenVectorsMatrix)
 {
     Matrix principal_stress_matrix;
-    MathUtils<double>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rCauchyStressVector),
+    MathUtils<>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rCauchyStressVector),
                                               rEigenVectorsMatrix, principal_stress_matrix, 1.0e-16, 20);
     rPrincipalStressVector = ZeroVector(3);
     for (int i = 0; i < 3; ++i) {
@@ -208,9 +208,9 @@ Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalSt
                                                       const Matrix& rRotationMatrix,
                                                       std::size_t   StressVectorSize)
 {
-    Matrix principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
-    Matrix rotated_stress_matrix =
-        GeoMechanicsMathUtilities::RotateTensor(principal_stress_matrix, rRotationMatrix);
+    const auto principal_stress_matrix = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
+    const auto rotated_stress_matrix =
+        GeoMechanicsMathUtilities::RotateSecondOrderTensor(principal_stress_matrix, rRotationMatrix);
     return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 

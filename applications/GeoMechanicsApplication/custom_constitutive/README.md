@@ -53,13 +53,13 @@ Where:
 
 The Mohr-Coulomb failure criterion is defined as:
 
-$$F_{mc}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\phi} - C \cos⁡{\phi} = 0$$
+$$F_{mc}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\phi} - c \cos⁡{\phi} = 0$$
 
 where:
 
 - $\sigma_1$ = maximum principal stress component
 - $\sigma_3$ = minimum principal stress component
-- $C$ = cohesion
+- $c$ = cohesion
 - $\phi$ = Internal friction angle.
 
 This criterion represents a linear envelope in the Mohr stress space, approximating the shear strength of a material under different stress states.
@@ -75,13 +75,13 @@ Combination of these two, it yiels to the following figure:
 <img src="documentation_data/mohr-coulomb-with-tension-cutoff-zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
 
 
-### Implementation in Numerical Models
+### Implementation
 
 To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulations, the following steps are followed:
 
 1. Calculate the trial stress by: 
 
-$$\boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + E \Delta \boldsymbol{\epsilon}$$
+$$\boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + \boldsymbol{\mathrm{C}} \Delta \boldsymbol{\epsilon}$$
 
 2. Extract the principal stresses $\sigma_1 \ge \sigma_2 \ge \sigma_3$ for the calculated trial stress, and calculate the rotation matrix.
 
@@ -91,7 +91,11 @@ $$\boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + E \Delta \boldsymbol{\ep
   - If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.
   - If the trial stress falls in the axial zone. The trial stress then needs to be mapped back to the cutoff curve.
   - If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.
-  - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve rong the normal direction of flow function.
+  - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve along the normal direction of flow function. The flow function is defined by
+  
+  $$G(\figma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}$$
+  
+  where $psi$ is the dilatancy angle.
 
 5. If after mapping, the condidition $\sigma_1 >= \sigma_2 >= \sigma_3$ is not valid, rearrang the principal stresses and repeat the process, namely go to point 3.
 

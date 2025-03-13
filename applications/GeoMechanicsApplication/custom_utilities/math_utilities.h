@@ -37,7 +37,7 @@ public:
     }
 
     [[nodiscard]] static Matrix VectorToDiagonalMatrix(const Vector& rVector);
-    [[nodiscard]] static Matrix RotateTensor(const Matrix& rTensor, const Matrix& rRotationMatrix);
+    [[nodiscard]] static Matrix RotateSecondOrderTensor(const Matrix& rTensor, const Matrix& rRotationMatrix);
 
 }; // class GeoMechanicsMathUtilities
 

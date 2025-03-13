@@ -19,8 +19,8 @@
 namespace Kratos
 {
 
-CoulombYieldSurface::CoulombYieldSurface(double FrictionAngle, double Cohesion, double DilatationAngle)
-    : mFrictionAngle{FrictionAngle}, mCohesion{Cohesion}, mDilatationAngle{DilatationAngle}
+CoulombYieldSurface::CoulombYieldSurface(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad)
+    : mFrictionAngle{FrictionAngleInRad}, mCohesion{Cohesion}, mDilatationAngle{DilatationAngleInRad}
 {
 }
 
@@ -31,7 +31,7 @@ double CoulombYieldSurface::YieldFunctionValue(const Vector& rPrincipalStress) c
            mCohesion * std::cos(mFrictionAngle);
 }
 
-Vector CoulombYieldSurface::DerivateOfFlowFunction(const Vector& rPrincipalStress) const
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rPrincipalStress) const
 {
     Vector result(3);
     result <<= 0.5 * (1.0 + std::sin(mDilatationAngle)), 0.0, -0.5 * (1.0 - std::sin(mDilatationAngle));
