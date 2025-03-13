@@ -325,7 +325,44 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
 
     // Assert
     expected_cauchy_stress_vector <<= 10.0, 10.0, 0.0, 0.0;
-    // KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyWithLargeTensialStrength,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 20.0);
+    parameters.SetMaterialProperties(properties);
+    ProcessInfo process;
+
+    Geometry<Node> dummyGeometry;
+    Vector         dummyVector;
+    law.InitializeMaterial(properties, dummyGeometry, dummyVector);
+
+    // Act
+    Vector cauchy_stress_vector = ZeroVector(4);
+    cauchy_stress_vector <<= 22.0, 20.0, 18.0, 0.0;
+    Vector strain_vector = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
+    law.FinalizeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+    Vector mapped_stress_vector;
+    law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
+
+    // Assert
+    Vector expected_cauchy_stress_vector(4);
+    expected_cauchy_stress_vector <<= 14.2814800674211450, 14.2814800674211450, 14.2814800674211450, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
