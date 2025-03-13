@@ -93,9 +93,9 @@ $$\boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + \boldsymbol{\mathrm{C}} 
   - If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.
   - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve along the normal direction of flow function. The flow function is defined by
   
-  $$G(\figma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}$$
+  $$G(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}$$
   
-  where $psi$ is the dilatancy angle.
+  where $\psi$ is the dilatancy angle.
 
 5. If after mapping, the condidition $\sigma_1 >= \sigma_2 >= \sigma_3$ is not valid, rearrang the principal stresses and repeat the process, namely go to point 3.
 
