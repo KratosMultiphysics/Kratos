@@ -535,7 +535,7 @@ namespace Kratos
                 CalculateReactions,
                 ReformDofAtEachIteration,
                 CalculateNormDxFlag);
-            mpSolvingStrategy->SetEchoLevel(0);
+            mpSolvingStrategy->SetEchoLevel(mConvectionSettings["echo_level"].GetInt());
             mpSolvingStrategy->Check();
             mpSolvingStrategy->Solve();
         }

@@ -1,8 +1,10 @@
-﻿import KratosMultiphysics
+﻿import os
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import os
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
+# from KratosMultiphysics.gid_output_process import GiDOutputProcess
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+
 def GetFilePath(fileName):
     file_path = os.path.abspath(
         os.path.join(
@@ -89,11 +91,9 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
         # Compute the BDF
         KratosMultiphysics.TimeDiscretization.BDF(2).ComputeAndSaveBDFCoefficients(model_part.ProcessInfo)
 
-        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        # Set and execute convection strategy
         linear_solver = linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
-
-        KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
             "element_type": "ns_fractional_velocity_convection",
             "model_part_name":"Main"
@@ -104,12 +104,10 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
 
         # Expected Results: The expected outcome is a velocity field that remains constant throughout the domain,
         # matching the initial condition.
-        for node in model_part.Nodes:
-            if node.Id == 54:
-               velocity  = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
-               velocity_fractional  = node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY_X,0)
-               ref_value = velocity_fractional-velocity
-
+        ref_node = model_part.GetNode(54)
+        velocity  = ref_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
+        velocity_fractional  = ref_node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY_X,0)
+        ref_value = velocity_fractional - velocity
         self.assertAlmostEqual(ref_value, 1e-10)
 
     def test_navier_stokes_fractional_convection_gradient_field_2D(self):
@@ -152,16 +150,13 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
         # Compute the BDF
         KratosMultiphysics.TimeDiscretization.BDF(2).ComputeAndSaveBDFCoefficients(model_part.ProcessInfo)
 
-        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        # Set and execute convection strategy
         linear_solver = linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
-        KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
-
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
             "element_type": "ns_fractional_velocity_convection",
             "model_part_name":"Main"
-            }""")
-
+        }""")
         KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(current_model,
             linear_solver,
             levelset_convection_settings).Execute()
@@ -171,13 +166,10 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
         # it converges in one iteration because the convection of the vector field equals
         # the past acceleration, which, given the data used, matches the convection of the velocity field at \(n\),
         # resulting in a zero residual.
-
-        for node in model_part.Nodes:
-            if node.Id == 54:
-               velocity  = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
-               velocity_fractional  = node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY_X,0)
-               ref_value = velocity_fractional-velocity
-
+        ref_node = model_part.GetNode(54)
+        velocity  = ref_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
+        velocity_fractional  = ref_node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY_X,0)
+        ref_value = velocity_fractional - velocity
         self.assertAlmostEqual(ref_value, 1e-10)
 
     def test_navier_stokes_fractional_convection_acceleration_field_2D(self):
@@ -221,25 +213,21 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
         # Compute the BDF
         KratosMultiphysics.TimeDiscretization.BDF(2).ComputeAndSaveBDFCoefficients(model_part.ProcessInfo)
 
-        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        # Set and execute convection strategy
         linear_solver = linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
-
-        KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
             "element_type": "ns_fractional_velocity_convection",
             "model_part_name":"Main"
         }""")
-        for node in model_part.Nodes:
-            if node.Id == 54:
-               velocity  = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
-               velocity_fractional  = node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY_X,0)
-               ref_value = velocity_fractional-velocity
-
-
         KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(current_model,
             linear_solver,
             levelset_convection_settings).Execute()
+
+        ref_node = model_part.GetNode(54)
+        velocity  = ref_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
+        velocity_fractional  = ref_node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY_X,0)
+        ref_value = velocity_fractional - velocity
         self.assertAlmostEqual(ref_value, -651.9)
 
 if __name__ == '__main__':
