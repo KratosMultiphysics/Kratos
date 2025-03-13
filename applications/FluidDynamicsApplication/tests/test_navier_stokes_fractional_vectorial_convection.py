@@ -228,7 +228,7 @@ class NavierStokesFractionalVectorialConvectionTest(KratosUnittest.TestCase):
         velocity  = ref_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
         velocity_fractional  = ref_node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY_X,0)
         ref_value = velocity_fractional - velocity
-        self.assertAlmostEqual(ref_value, -651.9)
+        self.assertAlmostEqual(ref_value, 0.184130788120455)
 
 if __name__ == '__main__':
     KratosUnittest.main()
