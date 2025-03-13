@@ -3,6 +3,10 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
     .src.defines import CompressibleNavierStokesDefines as defs
 
 
+def NimaFlux():
+    pass
+
+
 def ComputeEulerJacobianMatrix(dofs, params):
     """This function calculates the Euler Jacobian matrix for convection"""
 
