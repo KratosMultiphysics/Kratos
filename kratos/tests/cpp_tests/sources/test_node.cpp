@@ -65,7 +65,7 @@ namespace Kratos {
          p_node->FastGetSolutionStepValue(VELOCITY_X) = 32.4;
          p_node->Set(ACTIVE, true);
  
-         Node::Pointer p_clone_of_node = p_node->Clone();
+         Node::Pointer p_clone_of_node = p_node->Clone(1);
  
          KRATOS_EXPECT_EQ(p_clone_of_node->Id(), 1);
          KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_node->FastGetSolutionStepValue(DISTANCE), 12.1);
