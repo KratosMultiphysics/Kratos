@@ -72,20 +72,21 @@ private:
     Vector CalculateTrialStressVector(const Vector& rStrainVector, double YoungsModulus, double PoissonsRatio) const;
     [[nodiscard]] double CalculateApex(double FrictionAngle, double Cohesion) const;
     [[nodiscard]] Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensileStrength) const;
-    [[nodiscard]] Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, double TensileStrength) const;
+    [[nodiscard]] Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector,
+                                                 double        TensileStrength) const;
     [[nodiscard]] Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
-                                                      const Vector& rCornerPoint) const;
+                                                        const Vector& rCornerPoint) const;
     [[nodiscard]] Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
-                                                        double        FrictionAngle,
-                                                        double        Cohesion) const;
-    [[nodiscard]] bool IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
-    [[nodiscard]] bool IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
-                                           double        TensileStrength,
-                                           double        Apex,
-                                           const Vector& rCornerPoint) const;
-    [[nodiscard]] bool IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
-                                                  double        DilatancyAngle,
-                                                  const Vector& rCornerPoint) const;
+                                                          double        FrictionAngle,
+                                                          double        Cohesion) const;
+    [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
+    [[nodiscard]] bool   IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
+                                             double        TensileStrength,
+                                             double        Apex,
+                                             const Vector& rCornerPoint) const;
+    [[nodiscard]] bool   IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
+                                                    double        DilatancyAngle,
+                                                    const Vector& rCornerPoint) const;
 
     // Serialization
     friend class Serializer;

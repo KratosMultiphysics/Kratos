@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutK
     // clang-format on
 
     const auto angle           = MathUtils<>::DegreesToRadians(30.0);
-    Matrix rotation_matrix = ZeroMatrix(3, 3);
+    Matrix     rotation_matrix = ZeroMatrix(3, 3);
     rotation_matrix <<= std::cos(angle), -std::sin(angle), 0.0, std::sin(angle), std::cos(angle),
         0.0, 0.0, 0.0, 1.0;
     const auto result = GeoMechanicsMathUtilities::RotateSecondOrderTensor(stress_tensor, rotation_matrix);

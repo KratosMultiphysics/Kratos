@@ -32,6 +32,10 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const override;
 
 private:
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+
     double mTensileStrength = 0.0;
 
 }; // Class TensionCutoff

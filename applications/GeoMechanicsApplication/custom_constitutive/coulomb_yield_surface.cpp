@@ -38,4 +38,8 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rPrincipalStr
     return result;
 }
 
+void CoulombYieldSurface::save(Serializer& rSerializer) const {}
+
+void CoulombYieldSurface::load(Serializer& rSerializer) {}
+
 } // Namespace Kratos

@@ -18,12 +18,20 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class YieldSurface
 {
 public:
     virtual ~YieldSurface() = default;
 
-    [[nodiscard]] virtual double YieldFunctionValue(const Vector& rPrincipalStress) const     = 0;
+    [[nodiscard]] virtual double YieldFunctionValue(const Vector& rPrincipalStress) const       = 0;
     [[nodiscard]] virtual Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const = 0;
+
+private:
+    friend class Serializer;
+    virtual void save(Serializer& rSerializer) const = 0;
+    virtual void load(Serializer& rSerializer)       = 0;
 };
+
 } // namespace Kratos.

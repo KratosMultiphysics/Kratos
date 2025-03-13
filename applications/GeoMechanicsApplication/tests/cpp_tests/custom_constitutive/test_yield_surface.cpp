@@ -12,20 +12,24 @@
 
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
+#include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "utilities/math_utils.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <string>
+
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto           friction_angle = MathUtils<>::DegreesToRadians(45.0);
-    constexpr double cohesion       = 2.0;
-    const auto dilatancy_angle = MathUtils<>::DegreesToRadians(0.0);
+    const auto       friction_angle  = MathUtils<>::DegreesToRadians(45.0);
+    constexpr double cohesion        = 2.0;
+    const auto       dilatancy_angle = MathUtils<>::DegreesToRadians(0.0);
 
     CoulombYieldSurface coulomb_yield_surface(friction_angle, cohesion, dilatancy_angle);
 
@@ -55,6 +59,27 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
 
     principal_stress <<= 1.0, 0.5, 0.1;
     KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(principal_stress), -1.0, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto     scoped_registration = ScopedSerializerRegistrationOfAllYieldSurfaces{};
+    constexpr auto tensile_strength    = 2.0;
+    auto p_tension_cut_off = std::unique_ptr<YieldSurface>(std::make_unique<TensionCutoff>(tensile_strength));
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_tension_cut_off);
+    auto p_loaded_tension_cut_off = std::unique_ptr<YieldSurface>{};
+    serializer.load("test_tag"s, p_loaded_tension_cut_off);
+
+    // Assert
+    ASSERT_NE(p_loaded_tension_cut_off, nullptr);
+    auto principal_stresses = Vector(3);
+    principal_stresses <<= tensile_strength, 0.0, 0.0;
+    KRATOS_EXPECT_NEAR(p_loaded_tension_cut_off->YieldFunctionValue(principal_stresses), 0.0,
+                       Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
