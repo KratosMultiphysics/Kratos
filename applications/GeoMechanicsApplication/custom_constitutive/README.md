@@ -97,7 +97,7 @@ $$\boldsymbol{\sigma}^{trial} = \boldsymbol{\sigma}^0 + \boldsymbol{\mathrm{C}} 
   
   where $\psi$ is the dilatancy angle.
 
-5. If after mapping, the condidition $\sigma_1 >= \sigma_2 >= \sigma_3$ is not valid, rearrang the principal stresses and repeat the process, namely go to point 3.
+5. If after mapping, the condidition $\sigma_1 \ge \sigma_2 \ge \sigma_3$ is not valid, rearrang the principal stresses and repeat the process, namely go to point 3.
 
 6. Rotate the mapped stress vector back, by appying the rotation matrix.
 
