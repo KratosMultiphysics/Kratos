@@ -714,6 +714,127 @@ class SphericElementGlobalPhysicsCalculator
 
     }; // Class SphericElementGlobalPhysicsCalculator
 
+    class ContactElementGlobalPhysicsCalculator
+    {
+     public:
+
+     typedef ModelPart::ElementsContainerType ElementsArrayType;
+
+     KRATOS_CLASS_POINTER_DEFINITION(ContactElementGlobalPhysicsCalculator);
+
+      /// Default constructor.
+
+      ContactElementGlobalPhysicsCalculator(){}
+
+      /// Destructor.
+
+      virtual ~ContactElementGlobalPhysicsCalculator(){}
+
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
+
+      std::vector<std::vector<double>> CalculateTotalStressTensor(ModelPart& r_model_part, double Lx, double Ly, double Lz)
+      {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        //Matrix measured_total_stress_tensor(3, 3, 0.0);
+        std::vector<std::vector<double>> measured_total_stress_tensor(3, std::vector<double>(3));
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        double dx, dy, dz;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+
+                dx = x_0 - x_1;
+                if (dx > 0.5 * Lx){
+                    dx -= Lx;
+                }
+                else if (dx < -0.5 * Lx){
+                    dx += Lx;
+                }
+                
+                dy = y_0 - y_1;
+                if (dy > 0.5 * Ly){
+                    dy -= Ly;
+                }
+                else if (dy < -0.5 * Ly){
+                    dy += Ly;
+                }
+
+                dz = z_0 - z_1;
+                if (dz > 0.5 * Lz){
+                    dz -= Lz;
+                }
+                else if (dz < -0.5 * Lz){
+                    dz += Lz;
+                }
+
+                const array_1d<double, 3>& contact_force = (it)->GetGeometry()[0].FastGetSolutionStepValue(GLOBAL_CONTACT_FORCE);
+
+                s_00 += contact_force[0] * dx;
+                s_01 += contact_force[0] * dy;
+                s_02 += contact_force[0] * dz;
+                s_10 += contact_force[1] * dx;
+                s_11 += contact_force[1] * dy;
+                s_12 += contact_force[1] * dz;
+                s_20 += contact_force[2] * dx;
+                s_21 += contact_force[2] * dy;
+                s_22 += contact_force[2] * dz;
+            }
+        }
+
+        measured_total_stress_tensor[0][0] = s_00;
+        measured_total_stress_tensor[0][1] = s_01;
+        measured_total_stress_tensor[0][2] = s_02;
+        measured_total_stress_tensor[1][0] = s_10;
+        measured_total_stress_tensor[1][1] = s_11;
+        measured_total_stress_tensor[1][2] = s_12;
+        measured_total_stress_tensor[2][0] = s_20;
+        measured_total_stress_tensor[2][1] = s_21;
+        measured_total_stress_tensor[2][2] = s_22;
+
+        return measured_total_stress_tensor;
+      }
+
+      private:
+
+        std::vector<unsigned int> mElementsPartition;
+
+        ElementsArrayType::iterator GetElementPartitionBegin(ModelPart& r_model_part, unsigned int k)
+        {
+            ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+            return (pElements.ptr_begin() + mElementsPartition[k]);
+        }
+    
+        ElementsArrayType::iterator GetElementPartitionEnd(ModelPart& r_model_part, unsigned int k)
+        {
+            ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+            return (pElements.ptr_begin() + mElementsPartition[k + 1]);
+        }
+
+        ///@name Static Member r_variables
+        ///@{
+
+
+        ///@}
+        ///@name Member r_variables
+        ///@{
+
+
+    }; // Class ContactElementGlobalPhysicsCalculator
+
 ///@}
 
 ///@name Type Definitions

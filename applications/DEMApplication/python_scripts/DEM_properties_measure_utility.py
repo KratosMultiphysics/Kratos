@@ -11,6 +11,7 @@ class DEMPropertiesMeasureUtility:
         self.contact_model_part = contact_model_part
         self.DEM_parameters = DEM_parameters
         self.graphs_path = graphs_path
+        self.ContactElementGlobalPhysicsCalculator = ContactElementGlobalPhysicsCalculator()
 
     def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type, domain_size=[1,1,1]):        
         '''
@@ -505,10 +506,11 @@ class DEMPropertiesMeasureUtility:
 
         if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
             
+
             bounding_box_volume = Lx * Ly * Lz
-            
             total_tensor = np.zeros((3, 3))
 
+            '''
             for element in self.contact_model_part.Elements:
         
                 x_0 = element.GetNode(0).X
@@ -542,11 +544,17 @@ class DEMPropertiesMeasureUtility:
                 contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
                 vector_l = np.array([dx, dy, dz])
                 tensor = np.outer(contact_force_vector, vector_l)
-                total_tensor += tensor
+                total_tensor += tensor'''
             
-            total_tensor = total_tensor / bounding_box_volume
+            temp_total_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensor(self.contact_model_part, Lx, Ly, Lz)
+            
+            for i in range(3):
+                for j in range(3):
+                    total_tensor[i][j] = temp_total_tensor[i][j]
 
-            return total_tensor
+            averaged_total_tensor = total_tensor / bounding_box_volume
+
+            return averaged_total_tensor
         
         else:
             
