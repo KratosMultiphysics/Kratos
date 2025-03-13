@@ -85,6 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/renumbering_nodes_utility.h"
 #include "custom_utilities/stationarity_check.h"
 #include "custom_utilities/error_norm_calculator_utility.h"
+#include "custom_utilities/error_norm_torus.h"
 #include "custom_utilities/averaging_variables_utility.h"
 
 namespace Kratos{
@@ -277,6 +278,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("Evaluate", &TimeDependantForceField::Evaluate)
         .def("GetPorosityField", &TimeDependantForceField::GetPorosityField)
         ;
+
+    // py::class_<PoiseuilleTorus, PoiseuilleTorus::Pointer, VelocityField> (m, "PoiseuilleTorus")
+    //     .def(py::init<const double, const double, const double>())
+    //     ;
 
     py::class_<SpaceTimeRule> (m, "SpaceTimeRule")
         .def(py::init<>())
@@ -566,6 +571,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("GetL2ScalarErrorNorm", &ErrorNormCalculator::GetL2ScalarErrorNorm)
         .def("GetH1ScalarErrorSemiNorm", &ErrorNormCalculator::GetH1ScalarErrorSemiNorm)
         .def("GetH1VectorErrorSemiNorm", &ErrorNormCalculator::GetH1VectorErrorSemiNorm)
+        ;
+
+    py::class_<ErrorNormTorusCalculator> (m, "ErrorNormTorusCalculator")
+        .def(py::init<const double, const double, const double>())
         ;
 
     py::class_<MeshRotationUtility> (m, "MeshRotationUtility")

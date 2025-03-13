@@ -1,0 +1,259 @@
+#include "error_norm_torus.h"
+
+
+namespace Kratos
+{
+    double ErrorNormTorusCalculator::getDistanceToCenter(const array_1d<double, 3>& coor)
+    {
+        double major_dist = std::sqrt(coor[0] * coor[0] + coor[1] * coor[1]);
+        double minor_dist = major_dist - mMajorRadius;
+        double distance = std::sqrt(minor_dist * minor_dist + coor[2] * coor[2]);
+
+        return distance;
+    }
+
+    double ErrorNormTorusCalculator::getVelocityModule(const array_1d<double, 3>& coor)
+    {
+        double rho = getDistanceToCenter(coor) / mMinorRadius;
+        return mCenterVelocity * (1 - rho * rho);
+    }
+
+    void ErrorNormTorusCalculator::CalculateVelocity(const array_1d<double, 3>& coor, array_1d<double, 3>& vel)
+    {
+        double velocity_module = getVelocityModule(coor);
+        double major_dist_2 = coor[0] * coor[0] + coor[1] * coor[1];
+        double major_dist = std::sqrt(major_dist_2);
+        double sin_theta = coor[0] / major_dist, cos_theta = coor[1] / major_dist;
+
+        vel[0] = velocity_module * cos_theta;
+        vel[1] = velocity_module * (-1.0 * sin_theta);
+        vel[2] = 0.0;
+    }
+
+    void ErrorNormTorusCalculator::CalculateMaterialAcceleration(const array_1d<double, 3>& coor, array_1d<double, 3>& accel)
+    {
+        double velocity_module = getVelocityModule(coor);
+        double major_dist_2 = coor[0] * coor[0] + coor[1] * coor[1];
+
+        accel[0] = -(coor[0] / major_dist_2) * velocity_module * velocity_module;
+        accel[1] = -(coor[1] / major_dist_2) * velocity_module * velocity_module;
+        accel[2] = 0.0;
+    }
+
+    double ErrorNormTorusCalculator::getMaterialAccelerationL2NormExactGaussPointsValues(ModelPart& r_model_part, const Variable<array_1d<double,3>>& variable)
+    {
+
+        double total_area = 0.0, result = 0.0;
+        ProcessInfo process_info = r_model_part.GetProcessInfo();
+        const unsigned int dim = process_info[DOMAIN_SIZE];
+        const int number_of_elements = r_model_part.NumberOfElements();
+
+        // Compute L2 error = sum_e sum_g sum_d W_g * (u_d(x_g) - u_d,exact(x_g))^2,
+        // where u_d and u_d,exact are the piecewise functions of the variable and the exact variable, respectively
+        for (int e = 0; e < number_of_elements; e++)
+        {
+            ModelPart::ElementsContainerType::iterator rElement = r_model_part.ElementsBegin() + e;
+
+            const GeometryType& r_geometry = rElement->GetGeometry();
+            unsigned int num_nodes = r_geometry.size();
+            const GeometryData::IntegrationMethod integration_method = rElement->GetIntegrationMethod();
+            const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
+            const auto& r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+            Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
+
+            ShapeFunctionDerivativesArrayType shape_derivatives;
+            Vector DetJ;
+            r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
+
+            // Material acceleration at gauss points for the recovered field
+            Matrix fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            for (unsigned g = 0; g < r_number_integration_points; g++)
+            {
+                for (unsigned n = 0; n < num_nodes; n++)
+                {
+                    array_1d<double, 3> fluid_accel_nodal = r_geometry[n].FastGetSolutionStepValue(MATERIAL_ACCELERATION);
+                    for (unsigned i = 0; i < dim; i++)
+                    {
+                        fluid_accel_gauss_points(g, i) += fluid_accel_nodal[i] * NContainer(g, n);
+                    }
+                }
+            }
+
+            // std::cout << "fluid_accel_gauss_points = \n" << fluid_accel_gauss_points << std::endl;
+            // std::cout << "exact_var_values_at_gauss_points = \n" << exact_var_values_at_gauss_points << std::endl << std::endl;
+
+            // Compute the error of the material acceleration computed using the derivatives of the shape function
+            for (unsigned int g = 0; g < r_number_integration_points; g++){
+                double weight = DetJ[g] * integration_points[g].Weight();
+
+                // Exact fluid's acceleration at gauss points
+                array_1d<double, 3> global_coord_gauss_point;
+                r_geometry.GlobalCoordinates(global_coord_gauss_point, g);
+                array_1d<double, 3> exact_material_acceleration_gauss_point;
+                CalculateMaterialAcceleration(global_coord_gauss_point, exact_material_acceleration_gauss_point);
+
+                for (unsigned int d = 0; d < dim; d++)
+                {
+                    // Integrate the difference between exact and computed variable
+                    result += weight * std::pow(fluid_accel_gauss_points(g, d) - exact_material_acceleration_gauss_point[d], 2.0);
+                }
+            }
+            total_area += r_geometry.Area();
+        }
+        return std::sqrt(result / total_area);
+    }
+
+    double ErrorNormTorusCalculator::getMaterialAccelerationL2NormUsingShapeFunctionsExactNodesValues(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rExact_Variable)
+    {
+        double total_area = 0.0, result = 0.0;
+        ProcessInfo process_info = r_model_part.GetProcessInfo();
+        const unsigned int dim = process_info[DOMAIN_SIZE];
+        const int number_of_elements = r_model_part.NumberOfElements();
+
+        // Compute L2 error = sum_e sum_g sum_d W_g * (u_d(x_g) - u_d,exact(x_g))^2,
+        // where u_d and u_d,exact are the piecewise functions of the variable and the exact variable, respectively
+        for (int e = 0; e < number_of_elements; e++)
+        {
+            ModelPart::ElementsContainerType::iterator rElement = r_model_part.ElementsBegin() + e;
+
+            const GeometryType& r_geometry = rElement->GetGeometry();
+            unsigned int num_nodes = r_geometry.size();
+            const GeometryData::IntegrationMethod integration_method = rElement->GetIntegrationMethod();
+            const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
+            const auto& r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+            Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
+
+            ShapeFunctionDerivativesArrayType shape_derivatives;
+            Vector DetJ;
+            r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
+
+            // Velocities and exact var values evaluated at gauss points
+            Matrix vel_gauss_points = ZeroMatrix(r_number_integration_points, dim), exact_var_values_at_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            for (unsigned g = 0; g < r_number_integration_points; g++)
+            {
+                for (unsigned n = 0; n < num_nodes; n++)
+                {
+                    array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
+                    array_1d<double, 3> exact_var_node_values = r_geometry[n].FastGetSolutionStepValue(rExact_Variable);
+                    for (unsigned i = 0; i < dim; i++)
+                    {
+                        vel_gauss_points(g, i) += u_nodal[i] * NContainer(g, n);
+                        exact_var_values_at_gauss_points(g, i) += exact_var_node_values[i] * NContainer(g, n);
+                    }
+                }
+            }
+
+            // Fluid acceleration at gauss points
+            Matrix fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            for (unsigned g = 0; g < r_number_integration_points; g++)
+            {
+                for (unsigned n = 0; n < num_nodes; n++)
+                {
+                    array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
+                    for (unsigned i = 0; i < dim; i++)
+                    {
+                        for (unsigned j = 0; j < dim; j++)
+                        {
+                            fluid_accel_gauss_points(g, i) += vel_gauss_points(g, j) * (shape_derivatives[g](n, j) * u_nodal[i]);
+                        }
+                    }
+                }
+            }
+
+            // std::cout << "fluid_accel_gauss_points = \n" << fluid_accel_gauss_points << std::endl;
+            // std::cout << "exact_var_values_at_gauss_points = \n" << exact_var_values_at_gauss_points << std::endl << std::endl;
+
+            // Compute the error of the material acceleration computed using the derivatives of the shape function
+            for (unsigned int g = 0; g < r_number_integration_points; g++){
+                double weight = DetJ[g] * integration_points[g].Weight();
+                for (unsigned int d = 0; d < dim; d++)
+                {
+                    // Integrate the difference between exact and computed variable
+                    result += weight * std::pow(fluid_accel_gauss_points(g, d) - exact_var_values_at_gauss_points(g, d), 2.0);
+                }
+            }
+            total_area += r_geometry.Area();
+        }
+        return std::sqrt(result / total_area);
+    }
+
+    double ErrorNormTorusCalculator::getMaterialAccelerationL2NormUsingShapeFunctionsExactGaussPointsValues(ModelPart& r_model_part)
+    {
+        double total_area = 0.0, result = 0.0;
+        ProcessInfo process_info = r_model_part.GetProcessInfo();
+        const unsigned int dim = process_info[DOMAIN_SIZE];
+        const int number_of_elements = r_model_part.NumberOfElements();
+
+        // Compute L2 error = sum_e sum_g sum_d W_g * (u_d(x_g) - u_d,exact(x_g))^2,
+        // where u_d and u_d,exact are the piecewise functions of the variable and the exact variable, respectively
+        for (int e = 0; e < number_of_elements; e++)
+        {
+            ModelPart::ElementsContainerType::iterator rElement = r_model_part.ElementsBegin() + e;
+
+            const GeometryType& r_geometry = rElement->GetGeometry();
+            unsigned int num_nodes = r_geometry.size();
+            const GeometryData::IntegrationMethod integration_method = rElement->GetIntegrationMethod();
+            const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
+            const auto& r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+            Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
+
+            ShapeFunctionDerivativesArrayType shape_derivatives;
+            Vector DetJ;
+            r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
+
+
+            // Velocities and exact var values evaluated at gauss points
+            Matrix vel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            for (unsigned g = 0; g < r_number_integration_points; g++)
+            {
+                for (unsigned n = 0; n < num_nodes; n++)
+                {
+                    array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
+                    for (unsigned i = 0; i < dim; i++)
+                    {
+                        vel_gauss_points(g, i) += u_nodal[i] * NContainer(g, n);
+                    }
+                }
+            }
+
+            // Fluid acceleration at gauss points
+            Matrix fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            for (unsigned g = 0; g < r_number_integration_points; g++)
+            {
+                for (unsigned n = 0; n < num_nodes; n++)
+                {
+                    array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
+                    for (unsigned i = 0; i < dim; i++)
+                    {
+                        for (unsigned j = 0; j < dim; j++)
+                        {
+                            fluid_accel_gauss_points(g, i) += vel_gauss_points(g, j) * (shape_derivatives[g](n, j) * u_nodal[i]);
+                        }
+                    }
+                }
+            }
+
+            // std::cout << "fluid_accel_gauss_points = \n" << fluid_accel_gauss_points << std::endl;
+            // std::cout << "exact_var_values_at_gauss_points = \n" << exact_var_values_at_gauss_points << std::endl << std::endl;
+
+            // Compute the error of the material acceleration computed using the derivatives of the shape function
+            for (unsigned int g = 0; g < r_number_integration_points; g++){
+                double weight = DetJ[g] * integration_points[g].Weight();
+
+                // Exact fluid's acceleration at gauss points
+                array_1d<double, 3> global_coord_gauss_point;
+                r_geometry.GlobalCoordinates(global_coord_gauss_point, g);
+                array_1d<double, 3> exact_material_acceleration_gauss_point;
+                CalculateMaterialAcceleration(global_coord_gauss_point, exact_material_acceleration_gauss_point);
+
+                for (unsigned int d = 0; d < dim; d++)
+                {
+                    // Integrate the difference between exact and computed variable
+                    result += weight * std::pow(fluid_accel_gauss_points(g, d) - exact_material_acceleration_gauss_point[d], 2.0);
+                }
+            }
+            total_area += r_geometry.Area();
+        }
+        return std::sqrt(result / total_area);
+    }
+}
