@@ -44,6 +44,34 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWi
     KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(principal_stress), -1.0, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto     scoped_registration     = ScopedSerializerRegistrationOfAllYieldSurfaces{};
+    const auto     friction_angle          = MathUtils<>::DegreesToRadians(60.0);
+    constexpr auto cohesion                = 2.0;
+    const auto     dilatancy_angle         = MathUtils<>::DegreesToRadians(30.0);
+    auto           p_coulomb_yield_surface = std::unique_ptr<YieldSurface>(
+        std::make_unique<CoulombYieldSurface>(friction_angle, cohesion, dilatancy_angle));
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_coulomb_yield_surface);
+    auto p_loaded_coulomb_yield_surface = std::unique_ptr<YieldSurface>{};
+    serializer.load("test_tag"s, p_loaded_coulomb_yield_surface);
+
+    // Assert
+    ASSERT_NE(p_loaded_coulomb_yield_surface, nullptr);
+    auto principal_stresses = Vector(3);
+    principal_stresses <<= 1.0, 1.0, 1.0;
+    KRATOS_EXPECT_NEAR(p_loaded_coulomb_yield_surface->YieldFunctionValue(principal_stresses),
+                       0.5 * std::sqrt(3.0) - 1, Defaults::absolute_tolerance);
+    auto expected_derivative = Vector(3);
+    expected_derivative <<= 0.75, 0.0, -0.25;
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_coulomb_yield_surface->DerivativeOfFlowFunction(principal_stresses),
+                              expected_derivative, Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     double tension_cutoff = 2.0;

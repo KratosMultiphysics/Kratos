@@ -12,6 +12,7 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
+#include "includes/serializer.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
@@ -38,8 +39,18 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rPrincipalStr
     return result;
 }
 
-void CoulombYieldSurface::save(Serializer& rSerializer) const {}
+void CoulombYieldSurface::save(Serializer& rSerializer) const
+{
+    rSerializer.save("FrictionAngle", mFrictionAngle);
+    rSerializer.save("Cohesion", mCohesion);
+    rSerializer.save("DilatationAngle", mDilatationAngle);
+}
 
-void CoulombYieldSurface::load(Serializer& rSerializer) {}
+void CoulombYieldSurface::load(Serializer& rSerializer)
+{
+    rSerializer.load("FrictionAngle", mFrictionAngle);
+    rSerializer.load("Cohesion", mCohesion);
+    rSerializer.load("DilatationAngle", mDilatationAngle);
+}
 
 } // Namespace Kratos
