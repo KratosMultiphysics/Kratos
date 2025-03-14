@@ -390,30 +390,31 @@ class DEMPropertiesMeasureUtility:
         TotalParticleNumber = 0
         reference_particle = np.empty((0, 3))
         reference_particle[:] = 0.0
+        
         for node in self.spheres_model_part.Nodes:
 
-                r = node.GetSolutionStepValue(RADIUS)
-                x = node.X
-                y = node.Y
-                z = node.Z
+            r = node.GetSolutionStepValue(RADIUS)
+            x = node.X
+            y = node.Y
+            z = node.Z
 
-                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+            center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
 
-                if center_to_sphere_distance < radius:
+            if center_to_sphere_distance < radius:
 
-                    this_particle_position = np.array([x, y, z])
+                this_particle_position = np.array([x, y, z])
 
-                    if center_to_sphere_distance < min_reference_particle_to_center_distance:
-                        min_reference_particle_to_center_distance = center_to_sphere_distance
-                        if not IsTheFirstParticle:
-                            particle_positions = np.vstack((particle_positions, reference_particle))
-                            TotalParticleNumber += 1
-                        reference_particle = this_particle_position
-                        if IsTheFirstParticle:
-                            IsTheFirstParticle = False
-                    else:
-                        particle_positions = np.vstack((particle_positions, this_particle_position))
+                if center_to_sphere_distance < min_reference_particle_to_center_distance:
+                    min_reference_particle_to_center_distance = center_to_sphere_distance
+                    if not IsTheFirstParticle:
+                        particle_positions = np.vstack((particle_positions, reference_particle))
                         TotalParticleNumber += 1
+                    reference_particle = this_particle_position
+                    if IsTheFirstParticle:
+                        IsTheFirstParticle = False
+                else:
+                    particle_positions = np.vstack((particle_positions, this_particle_position))
+                    TotalParticleNumber += 1
         
         distances = np.linalg.norm(particle_positions - reference_particle, axis=1)
 
