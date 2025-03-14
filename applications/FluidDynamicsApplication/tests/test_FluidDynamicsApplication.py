@@ -55,6 +55,7 @@ from test_compute_y_plus_process import ComputeYPlusProcessTest
 from test_fluid_computation_processes import FluidComputationProcessesTest
 from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorrectionTest
 from apply_wall_law_process_test import ApplyWallLawProcessTest
+from test_navier_stokes_fractional_vectorial_convection import NavierStokesFractionalVectorialConvectionTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -131,6 +132,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesFractionalVectorialConvectionTest]))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
