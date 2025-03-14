@@ -23,17 +23,13 @@ class DEMPropertiesMeasureUtility:
         if type == "porosity":
 
             measured_porosity = self.SphericElementGlobalPhysicsCalculator.CalculatePorosityWithinSphere(self.spheres_model_part, radius, [center_x, center_y, center_z])
-
             return measured_porosity
         
         if type == "averaged_coordination_number":
             
             if self.DEM_parameters["ContactMeshOption"].GetBool():
-                
                 averaged_coordination_number = self.ContactElementGlobalPhysicsCalculator.CalculateAveragedCoordinationNumberWithinSphere(self.spheres_model_part, self.contact_model_part, radius, [center_x, center_y, center_z])
-                
                 return averaged_coordination_number
-
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
         
@@ -222,7 +218,6 @@ class DEMPropertiesMeasureUtility:
                 averaged_total_particle_force_tensor_modulus_square = total_particle_force_tensor_modulus_square / particle_number_count
             
             if self.DEM_parameters["ContactMeshOption"].GetBool():
-                
                 total_contact_force_tensor_modulus_square = 0.0
                 averaged_contact_force_modulus_square = 0.0
                 total_contact_number  = 0
@@ -260,7 +255,6 @@ class DEMPropertiesMeasureUtility:
                 else:
                     return 0.0
             else:
-
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
 
         if type == "strain":
@@ -269,17 +263,11 @@ class DEMPropertiesMeasureUtility:
     def MeasureSphereForGettingGlobalStressTensor(self, Lx, Ly, Lz):
 
         if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
-            
             bounding_box_volume = Lx * Ly * Lz
-
             total_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensor(self.contact_model_part, Lx, Ly, Lz)
-
             averaged_total_tensor = np.array(total_tensor) / bounding_box_volume
-
             return averaged_total_tensor
-        
         else:
-            
             raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
     
     def MeasureSphereForGettingRadialDistributionFunction(self, radius, center_x, center_y, center_z, delta_r, d_mean):
@@ -302,9 +290,7 @@ class DEMPropertiesMeasureUtility:
             center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
 
             if center_to_sphere_distance < radius:
-
                 this_particle_position = np.array([x, y, z])
-
                 if center_to_sphere_distance < min_reference_particle_to_center_distance:
                     min_reference_particle_to_center_distance = center_to_sphere_distance
                     if not IsTheFirstParticle:
@@ -318,13 +304,10 @@ class DEMPropertiesMeasureUtility:
                     TotalParticleNumber += 1
         
         distances = np.linalg.norm(particle_positions - reference_particle, axis=1)
-
         max_distance = radius
         num_bins = int(max_distance // delta_r)
         bin_edges = np.linspace(0, max_distance, num_bins + 1)
-
         hist, _ = np.histogram(distances, bins=bin_edges)
-
         bin_width = bin_edges[1] - bin_edges[0]
         measure_sphere_volume = 4/3 * math.pi * radius * radius * radius
         rdf = hist / (4 * np.pi * bin_edges[1:]**2 * bin_width * TotalParticleNumber / measure_sphere_volume)
