@@ -349,12 +349,20 @@ double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
  * @param rValues The constitutive law parameters
  */
 KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L);
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhiY(const Properties& rProperties, const double L);
 
 void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix);
 
 void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector, Vector& rStressVector);
+
+/**
+ * @brief This function builds a Frenet-Serret rotation matrix from local to global in 3D
+ * This is valid for STRAIGHT lines
+ * @param rGeometry: The geometry of the line element
+ */
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

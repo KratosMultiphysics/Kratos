@@ -63,7 +63,7 @@ void LinearTimoshenkoBeamElement2D2N::InitializeMaterial()
         const auto& r_properties = GetProperties();
         auto N_values            = Vector();
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
         }
     } else
@@ -106,7 +106,8 @@ void LinearTimoshenkoBeamElement2D2N::EquationIdVector(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    const auto& r_geometry = this->GetGeometry();
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
 
@@ -115,14 +116,15 @@ void LinearTimoshenkoBeamElement2D2N::EquationIdVector(
     if (rResult.size() != dofs_per_node * number_of_nodes)
         rResult.resize(dofs_per_node * number_of_nodes, false);
 
-    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_Z);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos ).EquationId();
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
