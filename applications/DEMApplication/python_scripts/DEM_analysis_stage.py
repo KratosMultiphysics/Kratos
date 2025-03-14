@@ -850,7 +850,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type):
         
-        return self.DEMPropertiesMeasureUtility.MeasureCubicForGettingPackingProperties(side_length, center_x, center_y, center_z, type)
+        raise Exception("MeasureCubicForGettingPackingProperties() is not avaiable anymore. It can be found in Commit:861eeac")
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
