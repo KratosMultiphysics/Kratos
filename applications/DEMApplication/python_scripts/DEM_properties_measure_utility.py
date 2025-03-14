@@ -36,48 +36,12 @@ class DEMPropertiesMeasureUtility:
         if type == "fabric_tensor":
 
             if self.DEM_parameters["ContactMeshOption"].GetBool():
-                
-                total_tensor = np.empty((3, 3))
-                total_tensor[:] = 0.0
-                total_contact_number  = 0
-
-                for element in self.contact_model_part.Elements:
-            
-                    x_0 = element.GetNode(0).X
-                    x_1 = element.GetNode(1).X
-                    y_0 = element.GetNode(0).Y
-                    y_1 = element.GetNode(1).Y
-                    z_0 = element.GetNode(0).Z
-                    z_1 = element.GetNode(1).Z
-                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
-                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
-
-                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
-                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
-
-                    if center_to_sphere_distance_0 < (radius - r_0) or center_to_sphere_distance_1 < (radius - r_1):
-
-                        vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
-                        v1_norm = np.linalg.norm(vector1)
-                        if v1_norm:
-                            vector1_unit = vector1 / v1_norm
-                        tensor = np.outer(vector1_unit, vector1_unit)
-                        total_tensor += tensor
-                        total_contact_number += 1
-                
-                if total_contact_number:
-                    measured_fabric_tensor = total_tensor / total_contact_number
-                else:
-                    measured_fabric_tensor = np.empty((3, 3))
-
+                measured_fabric_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateFabricTensorWithinSphere(self.contact_model_part, radius, [center_x, center_y, center_z])
+                measured_fabric_tensor = np.array(measured_fabric_tensor)
                 deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
-
                 second_invariant_of_deviatoric_tensor = (0.5 * np.sum(deviatoric_tensor * deviatoric_tensor))**0.5
-
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
-                
                 return eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor
-
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
             
@@ -155,7 +119,6 @@ class DEMPropertiesMeasureUtility:
             particle_id_positions_and_radius[:] = 0.0
             particle_number_count = 0
             for node in self.spheres_model_part.Nodes:
-
                 r = node.GetSolutionStepValue(RADIUS)
                 x = node.X
                 y = node.Y
@@ -164,7 +127,6 @@ class DEMPropertiesMeasureUtility:
                 center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
 
                 if center_to_sphere_distance < (radius - r):
-
                     particle_number_count += 1
                     this_particle_info = np.array([particle_number_count,x, y, z, r])
                     particle_id_positions_and_radius = np.vstack((particle_id_positions_and_radius, this_particle_info))

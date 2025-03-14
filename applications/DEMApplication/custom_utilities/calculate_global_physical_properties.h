@@ -902,6 +902,76 @@ class ContactElementGlobalPhysicsCalculator
 
     }
 
+    std::vector<std::vector<double>> CalculateFabricTensorWithinSphere(ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        std::vector<std::vector<double>> measured_fabric_tensor(3, std::vector<double>(3));
+
+        double total_tensor[3][3];
+        total_tensor[0][0] = total_tensor[0][1] = total_tensor[0][2] = total_tensor[1][0] = total_tensor[1][1] = total_tensor[1][2] = total_tensor[2][0] = total_tensor[2][1] = total_tensor[2][2] = 0.0;
+        double total_contact_number = 0;
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22, total_contact_number)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+
+                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+
+                if (center_to_sphere_distance_0 < (radius - r_0) || center_to_sphere_distance_1 < (radius - r_1)) {
+                    double vector1[3] = {x_1 - x_0, y_1 - y_0, z_1 - z_0};
+                    double v1_norm = std::sqrt(std::pow(vector1[0], 2) + std::pow(vector1[1], 2) + std::pow(vector1[2], 2));
+                    double vector1_unit[3] = {vector1[0] / v1_norm, vector1[1] / v1_norm, vector1[2] / v1_norm};
+                    double tensor[3][3];
+
+                    for (int i = 0; i < 3; i++){
+                        for (int j = 0; j < 3; j++){
+                            tensor[i][j] = vector1_unit[i] * vector1_unit[j];
+                        }
+                    }
+
+                    s_00 += tensor[0][0];
+                    s_01 += tensor[0][1];
+                    s_02 += tensor[0][2];
+                    s_10 += tensor[1][0];
+                    s_11 += tensor[1][1];
+                    s_12 += tensor[1][2];
+                    s_20 += tensor[2][0];
+                    s_21 += tensor[2][1];
+                    s_22 += tensor[2][2];
+                    total_contact_number += 1;
+                }
+            }
+        }
+
+        if (total_contact_number) {
+            measured_fabric_tensor[0][0] = s_00 / total_contact_number;
+            measured_fabric_tensor[0][1] = s_01 / total_contact_number;
+            measured_fabric_tensor[0][2] = s_02 / total_contact_number;
+            measured_fabric_tensor[1][0] = s_10 / total_contact_number;
+            measured_fabric_tensor[1][1] = s_11 / total_contact_number;
+            measured_fabric_tensor[1][2] = s_12 / total_contact_number;
+            measured_fabric_tensor[2][0] = s_20 / total_contact_number;
+            measured_fabric_tensor[2][1] = s_21 / total_contact_number;
+            measured_fabric_tensor[2][2] = s_22 / total_contact_number;
+        }
+
+        return measured_fabric_tensor;
+    }
+
     double CalculateAveragedCoordinationNumberWithinSphere(ModelPart& sphere_model_part, ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
     {
         OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
