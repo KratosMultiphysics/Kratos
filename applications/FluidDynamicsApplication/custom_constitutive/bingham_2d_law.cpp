@@ -98,12 +98,7 @@ void  Bingham2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     const double g = std::max(gamma_dot, min_gamma_dot);
 
     double Regularization = 1.0 - std::exp(-m*g);
-    KRATOS_WATCH(Regularization)
     const double mu_effective = mu + Regularization * sigma_y / g;
-    KRATOS_WATCH(mu_effective)
-
-    //     KRATOS_WATCH( mu_effective )
-
     const double trS = S[0]+S[1]+S[2];
     const double eps_vol = trS/3.0;
 
@@ -111,7 +106,6 @@ void  Bingham2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     StressVector[0] = 2.0*mu_effective*(S[0] - eps_vol);
     StressVector[1] = 2.0*mu_effective*(S[1] - eps_vol);
     StressVector[2] = mu_effective*S[2];
-    KRATOS_WATCH(StressVector)
 
     if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
     {
