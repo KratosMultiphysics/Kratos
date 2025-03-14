@@ -23,33 +23,37 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(CheckVectorPermutation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Vector vector(5);
+    auto vector = Vector(5);
     vector <<= 1.0, 2.0, 3.0, 4.0, 5.0;
-    std::vector<int> indices = {4, 3, 2, 1, 0};
+    const auto indices = std::vector<int>{4, 3, 2, 1, 0};
 
-    // Act
-    Vector result = GenericUtilities::PermutedVector(vector, indices);
-
-    // Assert
-    Vector expected_result(5);
+    // Act & assert
+    auto expected_result = Vector(5);
     expected_result <<= 5.0, 4.0, 3.0, 2.0, 1.0;
-    KRATOS_EXPECT_VECTOR_EQ(result, expected_result);
+    KRATOS_EXPECT_VECTOR_EQ(GenericUtilities::PermutedVector(vector, indices), expected_result);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckMatrixPermutation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Matrix matrix(4, 4);
-    matrix <<= 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0;
-    std::vector<int> indices = {3, 2, 1, 0};
+    auto matrix = Matrix(4, 4);
+    // clang-format off
+    matrix <<= 1.0, 0.0, 0.0, 0.0,
+               0.0, 1.0, 0.0, 0.0,
+               0.0, 0.0, 1.0, 0.0,
+               0.0, 0.0, 0.0, 1.0;
+    // clang-format on
+    const auto indices = std::vector<int>{3, 2, 1, 0};
 
-    // Act
-    Matrix result = GenericUtilities::MatrixWithPermutedColumns(matrix, indices);
-
-    // Assert
-    Matrix expected_result(4, 4);
-    expected_result <<= 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0;
-    KRATOS_EXPECT_MATRIX_EQ(result, expected_result);
+    // Act & assert
+    auto expected_result = Matrix(4, 4);
+    // clang-format off
+    expected_result <<= 0.0, 0.0, 0.0, 1.0,
+                        0.0, 0.0, 1.0, 0.0,
+                        0.0, 1.0, 0.0, 0.0,
+                        1.0, 0.0, 0.0, 0.0;
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_EQ(GenericUtilities::MatrixWithPermutedColumns(matrix, indices), expected_result);
 }
 
 } // namespace Kratos::Testing
