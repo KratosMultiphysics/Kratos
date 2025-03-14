@@ -123,7 +123,6 @@ void FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(
     double EffectiveViscosity,
     Matrix& rC) {
 
-    rC.clear();
     constexpr double two_thirds = 2./3.;
     constexpr double four_thirds = 4./3.;
 

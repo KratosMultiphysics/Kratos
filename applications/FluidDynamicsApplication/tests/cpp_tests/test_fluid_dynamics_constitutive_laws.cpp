@@ -607,8 +607,7 @@ namespace Kratos {
                 KRATOS_EXPECT_NEAR(stress_vector(i), 0.0, tolerance);
             }
 	    }
-
-        /**
+            /**
          * Checks the Bingham fluid 3D constitutive law.
          */
         KRATOS_TEST_CASE_IN_SUITE(Bingham3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
@@ -730,6 +729,5 @@ namespace Kratos {
             KRATOS_EXPECT_VECTOR_NEAR(stress_vector, stress_vector_reference, tolerance);
             KRATOS_EXPECT_MATRIX_NEAR(c_matrix, c_matrix_reference, tolerance);
         }
-
-    } // namespace Testing
+	} // namespace Testing
 }  // namespace Kratos.
