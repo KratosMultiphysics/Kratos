@@ -23,7 +23,7 @@ def Factory(model: KM.Model, parameters: KM.Parameters, optimization_problem: Op
 
 class SubdivisionSurfaceControl(Control):
     """
-    CAD-based shape control using subdivision surfaces. 
+    CAD-based shape control using subdivision surfaces.
     The kind of subdivision scheme defines the shape of the limit surface.
 
     This allows the optimization of open and closed shell geometries.
@@ -82,11 +82,11 @@ class SubdivisionSurfaceControl(Control):
         control_polygon = np.zeros((self.control_polygon_model_part.NumberOfNodes(), 3))
         for idx, node in enumerate(self.control_polygon_model_part.Nodes):
             control_polygon[idx,:] = np.array([node.X, node.Y, node.Z])
-        
+
         KM.Expression.CArrayExpressionIO.Read(
             self.control_field, control_polygon
         )
-        
+
         # only need to do it once, updating the control variables should suffice
         # create the mapping relation between fem mesh and control polygon
         # mapping_relation = KM.Expression.NodalExpression(self.controlled_model_part)
@@ -122,7 +122,7 @@ class SubdivisionSurfaceControl(Control):
         # pdb.set_trace()
 
         self.is_initialized = True
-    
+
     def Check(self) -> None:
         pass
 
@@ -144,7 +144,7 @@ class SubdivisionSurfaceControl(Control):
 
     def GetControlField(self) -> ContainerExpressionTypes:
         return self.control_field   # characteristic values on the control polygon
-    
+
     def GetPhysicalField(self) -> ContainerExpressionTypes:
         physical_shape_field = KM.Expression.NodalExpression(self.controlled_model_part)
         KM.Expression.NodalPositionExpressionIO.Read(physical_shape_field, KM.Configuration.Initial)
@@ -168,8 +168,8 @@ class SubdivisionSurfaceControl(Control):
         control_gradient = self.ProjectBackward(physical_gradient)
         # KOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(self.GetControlField(), physical_gradient, self.inverse_mapping_relation_matrix, self.control_polygon_model_part.Nodes)
         # KratosOA.ExpressionUtils.ComputeNodalVariableProductWithEntityMatrix(output_values, nodal_values, KratosOA.HELMHOLTZ_MASS_MATRIX, self.model_part.Elements)
-        print("MapGradient :: physical_gradient:\n", physical_gradient.Evaluate())
-        print("MapGradient :: control_gradient:\n", control_gradient.Evaluate())
+        # print("MapGradient :: physical_gradient:\n", physical_gradient.Evaluate())
+        # print("MapGradient :: control_gradient:\n", control_gradient.Evaluate())
 
         # filtered_gradient = self.filter.BackwardFilterIntegratedField(KOA.ExpressionUtils.ExtractData(physical_gradient, self.model_part))
 
@@ -199,12 +199,12 @@ class SubdivisionSurfaceControl(Control):
         # print("Update :: new_control_field:\n", new_control_field.Evaluate())
         # print("Update :: self.control_field.PrintData():\n", self.control_field.Evaluate())
         # print("Update :: NormL2(self.control_field - new_control_field): ", KM.Expression.Utils.NormL2(self.control_field - new_control_field))
-        
+
         if not IsSameContainerExpression(new_control_field, self.GetEmptyControlField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.control_polygon_model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
         # import pdb
         # pdb.set_trace()
-        
+
         if KM.Expression.Utils.NormL2(self.control_field - new_control_field) > 1e-15:
             # update the control SHAPE field
             control_update = new_control_field - self.control_field
@@ -219,13 +219,13 @@ class SubdivisionSurfaceControl(Control):
             self._UpdateMesh(new_physical_field)
 
             return True
-        return False  
-    
+        return False
+
     def _UpdateControlPolygon(self, new_control_field) -> None:
         KM.Expression.NodalPositionExpressionIO.Write(new_control_field, KM.Configuration.Initial)
         KM.Expression.NodalPositionExpressionIO.Write(new_control_field, KM.Configuration.Current)
 
-    
+
     def _UpdateMesh(self, new_physical_field: ContainerExpressionTypes) -> None:
         # physical_field = self.GetPhysicalField()
         KM.Expression.NodalPositionExpressionIO.Write(new_physical_field, KM.Configuration.Initial)
@@ -233,6 +233,6 @@ class SubdivisionSurfaceControl(Control):
 
     def GetControllingObjects(self):
         return self.controlling_objects
-            
+
 
 
