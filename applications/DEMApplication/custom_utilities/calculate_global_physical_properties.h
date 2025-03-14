@@ -837,6 +837,71 @@ class ContactElementGlobalPhysicsCalculator
         return measured_total_stress_tensor;
     }
 
+    std::vector<std::vector<double>> CalculateTotalStressTensorWithinSphere(ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        std::vector<std::vector<double>> measured_stress_tensor(3, std::vector<double>(3));
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+                double r   = 0.5 * (r_0 + r_1);
+
+                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+
+                if (center_to_sphere_distance_0 < (radius - r) || center_to_sphere_distance_1 < (radius - r)) {
+                    const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
+                    double contact_force_vector[3] = {contact_force[0], contact_force[1], contact_force[2]};
+                    double vector_l[3] = {x_0 - x_1, y_0 - y_1, z_0 - z_1};
+                    double tensor[3][3];
+
+                    for (int i = 0; i < 3; i++){
+                        for (int j = 0; j < 3; j++){
+                            tensor[i][j] = contact_force_vector[i] * vector_l[j];
+                        }
+                    }
+
+                    s_00 += tensor[0][0];
+                    s_01 += tensor[0][1];
+                    s_02 += tensor[0][2];
+                    s_10 += tensor[1][0];
+                    s_11 += tensor[1][1];
+                    s_12 += tensor[1][2];
+                    s_20 += tensor[2][0];
+                    s_21 += tensor[2][1];
+                    s_22 += tensor[2][2];
+                }
+            }
+        }
+
+        measured_stress_tensor[0][0] = s_00;
+        measured_stress_tensor[0][1] = s_01;
+        measured_stress_tensor[0][2] = s_02;
+        measured_stress_tensor[1][0] = s_10;
+        measured_stress_tensor[1][1] = s_11;
+        measured_stress_tensor[1][2] = s_12;
+        measured_stress_tensor[2][0] = s_20;
+        measured_stress_tensor[2][1] = s_21;
+        measured_stress_tensor[2][2] = s_22;
+
+        return measured_stress_tensor;
+
+    }
+
     double CalculateAveragedCoordinationNumberWithinSphere(ModelPart& sphere_model_part, ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
     {
         OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
