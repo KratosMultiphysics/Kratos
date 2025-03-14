@@ -130,7 +130,7 @@ class DEMPropertiesMeasureUtility:
                         else:
                             continue
 
-                particle_is_inside = 0
+                particle_number_inside = 0
                 for node in self.spheres_model_part.Nodes:
                     x = node.X
                     y = node.Y
@@ -138,7 +138,7 @@ class DEMPropertiesMeasureUtility:
                     r = node.GetSolutionStepValue(RADIUS)
                     center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
                     if center_to_sphere_distance < (radius - r):
-                        particle_is_inside += 1
+                        particle_number_inside += 1
 
                 if total_contact_number:
                     measured_non_homogenized_conductivity_tensor = total_tensor/measure_sphere_volume
@@ -147,14 +147,7 @@ class DEMPropertiesMeasureUtility:
 
                 conductivity_tensor_trace = (measured_non_homogenized_conductivity_tensor[0][0] + measured_non_homogenized_conductivity_tensor[1][1] + measured_non_homogenized_conductivity_tensor[2][2])/3
 
-                deviatoric_tensor = 0.0
-
-                second_invariant_of_deviatoric_tensor = 0.0
-
-                eigenvalues = 0.0
-
-                return particle_is_inside, [measured_non_homogenized_conductivity_tensor[0][0],measured_non_homogenized_conductivity_tensor[1][1],measured_non_homogenized_conductivity_tensor[2][2]], \
-                        conductivity_tensor_trace, angles_xy, angles_xz, angles_yz
+                return particle_number_inside, [measured_non_homogenized_conductivity_tensor[0][0],measured_non_homogenized_conductivity_tensor[1][1],measured_non_homogenized_conductivity_tensor[2][2]], conductivity_tensor_trace, angles_xy, angles_xz, angles_yz
                 
         if type == "voronoi_input_data":
 

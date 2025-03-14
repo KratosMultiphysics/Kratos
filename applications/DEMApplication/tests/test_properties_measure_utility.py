@@ -69,11 +69,11 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             self.assertAlmostEqual(measured_fabric_tensor[2][2], expected_value_fabric_tensor_2[2], delta=tolerance)
 
             #conductivity tensor
-            particle_is_inside, measured_non_homogenized_conductivity_tensor_diag, conductivity_tensor_trace, angles_xy, angles_xz, angles_yz = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'conductivity_tensor')
-            expected_value_particle_is_inside = 158
+            particle_number_inside, measured_non_homogenized_conductivity_tensor_diag, conductivity_tensor_trace, angles_xy, angles_xz, angles_yz = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'conductivity_tensor')
+            expected_value_particle_number_inside = 158
             expected_value_non_homogenized_conductivity_tensor_diag = [0.00018685665243645613, 0.00019179140007165844, 0.0001641981581927237]
             expected_value_conductivity_tensor_trace = 0.00018094873690027943
-            self.assertAlmostEqual(particle_is_inside, expected_value_particle_is_inside, delta=tolerance)
+            self.assertAlmostEqual(particle_number_inside, expected_value_particle_number_inside, delta=tolerance)
             self.assertAlmostEqual(measured_non_homogenized_conductivity_tensor_diag[0], expected_value_non_homogenized_conductivity_tensor_diag[0], delta=tolerance)
             self.assertAlmostEqual(measured_non_homogenized_conductivity_tensor_diag[1], expected_value_non_homogenized_conductivity_tensor_diag[1], delta=tolerance)
             self.assertAlmostEqual(measured_non_homogenized_conductivity_tensor_diag[2], expected_value_non_homogenized_conductivity_tensor_diag[2], delta=tolerance)
