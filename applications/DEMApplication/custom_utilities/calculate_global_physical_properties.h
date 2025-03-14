@@ -75,6 +75,36 @@ class SphericElementGlobalPhysicsCalculator
         return added_volume;
       }
 
+      double CalculatePorosityWithinSphere(ModelPart& r_model_part, const double radius, const array_1d<double, 3>& center)
+      {
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          double sphere_volume_inside_range = 0.0;
+          const double total_volume = 4.0 / 3.0 * Globals::Pi * radius * radius * radius;
+
+          #pragma omp parallel for reduction(+ : sphere_volume_inside_range)
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  
+                  if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+                      SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
+                      const double particle_radius = r_spheric_particle.GetRadius();
+                      const array_1d<double, 3>& particle_coordinates = r_spheric_particle.GetGeometry()[0].Coordinates();
+                      const double distance = std::sqrt(std::pow(particle_coordinates[0] - center[0], 2) + std::pow(particle_coordinates[1] - center[1], 2) + std::pow(particle_coordinates[2] - center[2], 2));
+                      if (distance < radius - particle_radius) {
+                        sphere_volume_inside_range += 4.0 / 3.0 * Globals::Pi * particle_radius * particle_radius * particle_radius;
+                      } else if (distance <= radius + particle_radius) {
+                        const double other_part_d = radius - (radius * radius + distance * distance - particle_radius * particle_radius) / (distance * 2);
+                        const double my_part_d = particle_radius - (particle_radius * particle_radius + distance * distance - radius * radius) / (distance * 2);
+                        const double cross_volume = Globals::Pi * other_part_d * other_part_d * (radius - 1.0 / 3.0 * other_part_d) + Globals::Pi * my_part_d * my_part_d * (particle_radius - 1.0 / 3.0 * my_part_d);
+                        sphere_volume_inside_range += cross_volume;
+                      }
+                  }
+              }
+          }
+          return 1.0 - sphere_volume_inside_range / total_volume;
+      }
+
       //***************************************************************************************************************
       //***************************************************************************************************************
       // Returns the minimum value of a double variable in the model part.

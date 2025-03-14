@@ -221,6 +221,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<SphericElementGlobalPhysicsCalculator, SphericElementGlobalPhysicsCalculator::Pointer >(m, "SphericElementGlobalPhysicsCalculator")
         .def(py::init<ModelPart&>())
         .def("CalculateTotalVolume", &SphericElementGlobalPhysicsCalculator::CalculateTotalVolume)
+        .def("CalculatePorosityWithinSphere", &SphericElementGlobalPhysicsCalculator::CalculatePorosityWithinSphere)
         .def("CalculateTotalMass", &SphericElementGlobalPhysicsCalculator::CalculateTotalMass)
         .def("CalculateMaxNodalVariable", &SphericElementGlobalPhysicsCalculator::CalculateMaxNodalVariable)
         .def("CalculateMinNodalVariable", &SphericElementGlobalPhysicsCalculator::CalculateMinNodalVariable)

@@ -11,6 +11,7 @@ class DEMPropertiesMeasureUtility:
         self.contact_model_part = contact_model_part
         self.DEM_parameters = DEM_parameters
         self.graphs_path = graphs_path
+        self.SphericElementGlobalPhysicsCalculator = SphericElementGlobalPhysicsCalculator(self.spheres_model_part)
         self.ContactElementGlobalPhysicsCalculator = ContactElementGlobalPhysicsCalculator()
 
     def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type, domain_size=[1,1,1]):        
@@ -21,34 +22,7 @@ class DEMPropertiesMeasureUtility:
         '''
         if type == "porosity":
 
-            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
-            sphere_volume_inside_range = 0.0
-            measured_porosity = 0.0
-
-            for node in self.spheres_model_part.Nodes:
-                
-                r = node.GetSolutionStepValue(RADIUS)
-                x = node.X
-                y = node.Y
-                z = node.Z
-
-                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
-
-                if center_to_sphere_distance < (radius - r):
-
-                    sphere_volume_inside_range += 4/3 * math.pi * r * r * r
-
-                elif center_to_sphere_distance <= (radius + r):
-
-                    other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
-
-                    my_part_d = r - (r * r + center_to_sphere_distance * center_to_sphere_distance - radius * radius) / (center_to_sphere_distance * 2)
-                    
-                    cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
-                    
-                    sphere_volume_inside_range += cross_volume
-            
-            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
+            measured_porosity = self.SphericElementGlobalPhysicsCalculator.CalculatePorosityWithinSphere(self.spheres_model_part, radius, [center_x, center_y, center_z])
 
             return measured_porosity
         
