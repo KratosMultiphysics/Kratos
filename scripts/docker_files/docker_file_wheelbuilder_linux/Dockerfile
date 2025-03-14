@@ -1,4 +1,4 @@
-FROM quay.io/pypa/manylinux2014_x86_64
+FROM registry.access.redhat.com/ubi8-init
 
 ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_1
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
