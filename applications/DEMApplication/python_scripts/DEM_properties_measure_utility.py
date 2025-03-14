@@ -52,66 +52,6 @@ class DEMPropertiesMeasureUtility:
 
             return measured_porosity
         
-        if type == "porosity_periodic":
-
-            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
-            sphere_volume_inside_range = 0.0
-            measured_porosity = 0.0
-            
-            center_list = [[center_x, center_y, center_z]]
-            offsets = [
-                (domain_size[0], 0, 0),
-                (-domain_size[0], 0, 0),
-                (0, domain_size[1], 0),
-                (0, -domain_size[1], 0),
-                (0, 0, domain_size[2]),
-                (0, 0, -domain_size[2])
-            ]
-
-            for offset in offsets:
-                new_center_x = center_x + offset[0]
-                new_center_y = center_y + offset[1]
-                new_center_z = center_z + offset[2]
-                
-                if abs(new_center_x - center_x) < 2 * radius and abs(new_center_y - center_y) < 2 * radius and abs(new_center_z - center_z) < 2 * radius:
-                    center_list.append([new_center_x, new_center_y, new_center_z])
-                    
-                    for second_offset in offsets:
-                        new_center_x2 = new_center_x + second_offset[0]
-                        new_center_y2 = new_center_y + second_offset[1]
-                        new_center_z2 = new_center_z + second_offset[2]
-                        
-                        if abs(new_center_x2 - center_x) < 2 * radius and abs(new_center_y2 - center_y) < 2 * radius and abs(new_center_z2 - center_z) < 2 * radius:
-                            center_list.append([new_center_x2, new_center_y2, new_center_z2])
-
-            for center in center_list:
-                for node in self.spheres_model_part.Nodes:
-                    
-                    r = node.GetSolutionStepValue(RADIUS)
-                    x = node.X
-                    y = node.Y
-                    z = node.Z
-
-                    center_to_sphere_distance = ((x - center[0])**2 + (y - center[1])**2 + (z - center[2])**2)**0.5
-
-                    if center_to_sphere_distance < (radius - r):
-
-                        sphere_volume_inside_range += 4/3 * math.pi * r * r * r
-
-                    elif center_to_sphere_distance <= (radius + r):
-
-                        other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
-
-                        my_part_d = r - (r * r + center_to_sphere_distance * center_to_sphere_distance - radius * radius) / (center_to_sphere_distance * 2)
-                        
-                        cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
-                        
-                        sphere_volume_inside_range += cross_volume
-            
-            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
-
-            return measured_porosity
-        
         if type == "averaged_coordination_number":
             
             measured_coordination_number = 0
