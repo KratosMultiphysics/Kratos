@@ -54,7 +54,9 @@ public:
                                                               const Geometry<Node>& rElementGeometry,
                                                               const Vector&         rShapeFunctionsValues) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+    using ConstitutiveLaw::SetValue;
     int  Check(const Properties&   rMaterialProperties,
                const GeometryType& rElementGeometry,
                const ProcessInfo&  rCurrentProcessInfo) const override;
