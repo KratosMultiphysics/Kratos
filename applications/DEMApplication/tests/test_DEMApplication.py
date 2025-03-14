@@ -110,7 +110,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_dem_3d_smooth_joint_model.TestSmoothJointModel("test_SmoothJointModel_1"))
     smallSuite.addTest(test_moving_periodic_boundary.TestMovingPeriodicBoundary("test_MovingPeriodicBoundary"))
     smallSuite.addTest(test_servo_control.TestServoControl("test_ServoControl"))
-    smallSuite.addTest(test_properties_measure_utility.PropertiesMeasureUtilityTestSolution("test_PropertiesMeasureUtility"))
+    smallSuite.addTest(test_properties_measure_utility.TestPropertiesMeasureUtility("test_PropertiesMeasureUtility"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

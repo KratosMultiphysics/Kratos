@@ -465,7 +465,6 @@ class DEMPropertiesMeasureUtility:
         if type == "strain":
             pass
     
-    #TODO: This function can be removed in the furture if not needed
     def MeasureSphereForGettingGlobalStressTensor(self, Lx, Ly, Lz):
 
         if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
@@ -541,6 +540,7 @@ class DEMPropertiesMeasureUtility:
         output_file_name = "rdf_data_of_size_" + str(radius * 2) +".txt"
         np.savetxt(os.path.join(self.graphs_path, output_file_name), data_to_save, fmt='%.6f', delimiter='\t', comments='')
 
+    #TODO: This function can be removed in the furture if not needed
     def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type):
         '''
         This is a function to establish a cubic with 'side_length' to measure local packing properties
