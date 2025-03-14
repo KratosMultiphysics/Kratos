@@ -134,14 +134,11 @@ void MohrCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMateria
                                                       const Geometry<Node>&,
                                                       const Vector&)
 {
-    const auto friction_angle_in_rad = MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]);
-    const auto cohesion = rMaterialProperties[GEO_COHESION];
-    const auto dilatancy_angle_in_rad =
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]);
-    const auto tensile_strength = rMaterialProperties[GEO_TENSILE_STRENGTH];
-
-    mCoulombYieldSurface = CoulombYieldSurface(friction_angle_in_rad, cohesion, dilatancy_angle_in_rad);
-    mTensionCutOff = TensionCutoff(tensile_strength);
+    mCoulombYieldSurface =
+        CoulombYieldSurface(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]),
+                            rMaterialProperties[GEO_COHESION],
+                            MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
+    mTensionCutOff = TensionCutoff(rMaterialProperties[GEO_TENSILE_STRENGTH]);
 }
 
 void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
