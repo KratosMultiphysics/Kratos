@@ -304,14 +304,10 @@ class DEMPropertiesMeasureUtility:
             
 
             bounding_box_volume = Lx * Ly * Lz
-            total_tensor = np.zeros((3, 3))
-            temp_total_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensor(self.contact_model_part, Lx, Ly, Lz)
-            
-            for i in range(3):
-                for j in range(3):
-                    total_tensor[i][j] = temp_total_tensor[i][j]
 
-            averaged_total_tensor = total_tensor / bounding_box_volume
+            total_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensor(self.contact_model_part, Lx, Ly, Lz)
+
+            averaged_total_tensor = np.array(total_tensor) / bounding_box_volume
 
             return averaged_total_tensor
         
