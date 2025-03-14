@@ -192,7 +192,8 @@ void TetrahedralMeshOrientationCheck::Execute()
 
     //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     for (auto& r_cond : mrModelPart.Conditions()) {
-        KRATOS_ERROR_IF(r_cond.IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
+        const GeometryData::KratosGeometryType geometry_type = r_cond.GetGeometry().GetGeometryType();
+        KRATOS_ERROR_IF((r_cond.IsNot(VISITED)) && (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
     }
 
     if (cond_switch_count > 0) {
