@@ -38,6 +38,12 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
+            "builder_and_solver_settings" : {
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings" : { }
+            },
+            "multi_point_constraints_used": true,
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
