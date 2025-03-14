@@ -363,7 +363,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyWithLargeTensialStrength,
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyWithLargeTensileStrength,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -383,9 +383,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummyGeometry, dummyVector);
 
     // Act
-    Vector cauchy_stress_vector = ZeroVector(4);
+    auto cauchy_stress_vector = Vector(4);
     cauchy_stress_vector <<= 22.0, 20.0, 18.0, 0.0;
-    Vector strain_vector = ZeroVector(4);
+    auto strain_vector = Vector{ZeroVector(4)};
     parameters.SetStrainVector(strain_vector);
     parameters.SetStressVector(cauchy_stress_vector);
     law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, process);
@@ -395,7 +395,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.GetValue(CAUCHY_STRESS_VECTOR, mapped_stress_vector);
 
     // Assert
-    Vector expected_cauchy_stress_vector(4);
+    auto expected_cauchy_stress_vector = Vector(4);
     expected_cauchy_stress_vector <<= 14.2814800674211450, 14.2814800674211450, 14.2814800674211450, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(mapped_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
