@@ -4379,12 +4379,12 @@ Begin Elements UPwSmallStrainElement2D3N
   1227  9  195 199 206
 End Elements
 
-Begin Elements GeoLinearTrussElement2D2N
+Begin Elements LinearTrussElement2D2N
   2869  11  602 537
   2870  11  537 513
 End Elements
 
-Begin Elements GeoCableElement3D2N
+Begin Elements CableElement3D2N
   2871  12  1235 1248
   2872  12  1248 1272
   2873  12  1272 1308

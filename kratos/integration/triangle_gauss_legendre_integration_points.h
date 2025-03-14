@@ -108,7 +108,6 @@ public:
 
 }; // Class TriangleGaussLegendreIntegrationPoints2
 
-
 class TriangleGaussLegendreIntegrationPoints3
 {
 public:
