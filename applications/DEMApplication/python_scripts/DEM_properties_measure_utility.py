@@ -192,68 +192,9 @@ class DEMPropertiesMeasureUtility:
             
         if type == "unbalanced_force":
 
-            total_particle_force_tensor_modulus_square = 0.0
-            averaged_total_particle_force_tensor_modulus_square = 0.0
-            particle_number_count = 0
-
-            for node in self.spheres_model_part.Nodes:
-
-                r = node.GetSolutionStepValue(RADIUS)
-                x = node.X
-                y = node.Y
-                z = node.Z
-
-                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
-
-                if center_to_sphere_distance < (radius - r):
-                    total_force_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    total_force_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    total_force_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-                    total_force_vector = np.array([total_force_x, total_force_y, total_force_z])
-                    total_force_vector_modulus = np.linalg.norm(total_force_vector)
-                    total_particle_force_tensor_modulus_square += total_force_vector_modulus**2
-                    particle_number_count += 1
-            
-            if particle_number_count:
-                averaged_total_particle_force_tensor_modulus_square = total_particle_force_tensor_modulus_square / particle_number_count
-            
             if self.DEM_parameters["ContactMeshOption"].GetBool():
-                total_contact_force_tensor_modulus_square = 0.0
-                averaged_contact_force_modulus_square = 0.0
-                total_contact_number  = 0
-
-                for element in self.contact_model_part.Elements:
-            
-                    x_0 = element.GetNode(0).X
-                    x_1 = element.GetNode(1).X
-                    y_0 = element.GetNode(0).Y
-                    y_1 = element.GetNode(1).Y
-                    z_0 = element.GetNode(0).Z
-                    z_1 = element.GetNode(1).Z
-                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
-                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
-                    r   = 0.5 * (r_0 + r_1)
-
-                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
-                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
-
-                    if (center_to_sphere_distance_0 < (radius - r)) or (center_to_sphere_distance_1 < (radius - r)):
-                        
-                        local_contact_force_X = element.GetValue(LOCAL_CONTACT_FORCE)[0]
-                        local_contact_force_Y = element.GetValue(LOCAL_CONTACT_FORCE)[1]
-                        local_contact_force_Z = element.GetValue(LOCAL_CONTACT_FORCE)[2]
-                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
-                        contact_force_vector_modulus = np.linalg.norm(contact_force_vector)
-                        total_contact_force_tensor_modulus_square += contact_force_vector_modulus**2
-                        total_contact_number += 1
-                
-                if total_contact_number:
-                    averaged_contact_force_modulus_square = total_contact_force_tensor_modulus_square / total_contact_number
-                                             
-                if averaged_contact_force_modulus_square:
-                    return (averaged_total_particle_force_tensor_modulus_square / averaged_contact_force_modulus_square)**0.5
-                else:
-                    return 0.0
+                measured_unbalanced_force = self.ContactElementGlobalPhysicsCalculator.CalculateUnbalancedForceWithinSphere(self.spheres_model_part, self.contact_model_part, radius, [center_x, center_y, center_z])
+                return measured_unbalanced_force
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
 

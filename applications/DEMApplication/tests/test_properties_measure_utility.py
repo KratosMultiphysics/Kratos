@@ -94,6 +94,11 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             self.assertAlmostEqual(stress_tensor[2][1], expected_value_stress_tensor_2[1], delta=tolerance)
             self.assertAlmostEqual(stress_tensor[2][2], expected_value_stress_tensor_2[2], delta=tolerance)
 
+            #unbalanced force
+            measured_unbalanced_force = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'unbalanced_force')
+            expected_value_unbalanced_force = 0.08382835943747109
+            self.assertAlmostEqual(measured_unbalanced_force, expected_value_unbalanced_force, delta=tolerance)
+
     def Finalize(self):
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
