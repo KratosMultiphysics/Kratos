@@ -598,6 +598,32 @@ class SphericElementGlobalPhysicsCalculator
             sum_of_contact_forces[2] = sum_of_contact_forces_z;
             return sum_of_contact_forces;
       }
+
+      double CalculateSumOfParticlesWithinSphere(ModelPart& sphere_model_part, const double radius, const array_1d<double, 3>& center)
+      {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), sphere_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        double total_particle_number = 0;
+
+        #pragma omp parallel for reduction(+ : total_particle_number)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(sphere_model_part, k); it != GetElementPartitionEnd(sphere_model_part, k); ++it){
+
+                double r = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double x = (it)->GetGeometry()[0].X();
+                double y = (it)->GetGeometry()[0].Y();
+                double z = (it)->GetGeometry()[0].Z();
+
+                double center_to_sphere_distance = std::sqrt(std::pow(x - center[0], 2) + std::pow(y - center[1], 2) + std::pow(z - center[2], 2));
+
+                if (center_to_sphere_distance < (radius - r)) {
+                    total_particle_number += 1;
+                }
+            }
+        }
+        return total_particle_number;
+      }
+
       //***************************************************************************************************************
       //***************************************************************************************************************
         ///@}

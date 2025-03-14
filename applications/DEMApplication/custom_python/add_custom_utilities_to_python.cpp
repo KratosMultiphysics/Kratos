@@ -239,6 +239,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
         .def("CalculateSumOfInternalForces", &SphericElementGlobalPhysicsCalculator::CalculateSumOfInternalForces)
         .def("CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius", &SphericElementGlobalPhysicsCalculator::CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius)
+        .def("CalculateSumOfParticlesWithinSphere", &SphericElementGlobalPhysicsCalculator::CalculateSumOfParticlesWithinSphere)
         ;
     
     py::class_<ContactElementGlobalPhysicsCalculator, ContactElementGlobalPhysicsCalculator::Pointer >(m, "ContactElementGlobalPhysicsCalculator")

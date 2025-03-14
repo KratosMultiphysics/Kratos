@@ -112,15 +112,7 @@ class DEMPropertiesMeasureUtility:
                         else:
                             continue
 
-                particle_number_inside = 0
-                for node in self.spheres_model_part.Nodes:
-                    x = node.X
-                    y = node.Y
-                    z = node.Z
-                    r = node.GetSolutionStepValue(RADIUS)
-                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
-                    if center_to_sphere_distance < (radius - r):
-                        particle_number_inside += 1
+                particle_number_inside = self.SphericElementGlobalPhysicsCalculator.CalculateSumOfParticlesWithinSphere(self.spheres_model_part, radius, [center_x, center_y, center_z])
 
                 if total_contact_number:
                     measured_non_homogenized_conductivity_tensor = total_tensor/measure_sphere_volume
