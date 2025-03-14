@@ -94,7 +94,7 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
                   rMaterialProperties[GEO_COHESION] /
                       std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
     CheckProperty(rMaterialProperties, YOUNG_MODULUS);
-    CheckProperty(rMaterialProperties, POISSON_RATIO);
+    CheckProperty(rMaterialProperties, POISSON_RATIO, 0.5);
     return result;
 }
 
@@ -102,18 +102,13 @@ void MohrCoulombWithTensionCutOff::CheckProperty(const Properties&       rMateri
                                                  const Variable<double>& rVariable,
                                                  std::optional<double>   MaxValue) const
 {
-    if (MaxValue.has_value()) {
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable) || rMaterialProperties[rVariable] < 0.0 ||
-                            rMaterialProperties[rVariable] > MaxValue.value())
-            << rVariable.Name()
-            << " is not defined or has an invalid value for property: " << rMaterialProperties.Id()
-            << std::endl;
-        return;
-    }
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable) || rMaterialProperties[rVariable] < 0.0)
-        << rVariable.Name()
-        << " is not defined or has an invalid value for property: " << rMaterialProperties.Id()
-        << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable))
+        << rVariable.Name() << " is not defined for property " << rMaterialProperties.Id() << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[rVariable] < 0.0 ||
+                    (MaxValue.has_value() && rMaterialProperties[rVariable] > MaxValue.value()))
+        << "value of " << rVariable.Name() << " for property " << rMaterialProperties.Id()
+        << " is out of range: " << rMaterialProperties[rVariable] << " is not in [0.0, "
+        << (MaxValue ? std::to_string(*MaxValue) + "]" : "->") << std::endl;
 }
 
 ConstitutiveLaw::StressMeasure MohrCoulombWithTensionCutOff::GetStressMeasure()
