@@ -744,7 +744,7 @@ class SphericElementGlobalPhysicsCalculator
 
     }; // Class SphericElementGlobalPhysicsCalculator
 
-    class ContactElementGlobalPhysicsCalculator
+class ContactElementGlobalPhysicsCalculator
     {
      public:
 
@@ -752,20 +752,20 @@ class SphericElementGlobalPhysicsCalculator
 
      KRATOS_CLASS_POINTER_DEFINITION(ContactElementGlobalPhysicsCalculator);
 
-      /// Default constructor.
+    /// Default constructor.
 
-      ContactElementGlobalPhysicsCalculator(){}
+    ContactElementGlobalPhysicsCalculator(){}
 
-      /// Destructor.
+    /// Destructor.
 
-      virtual ~ContactElementGlobalPhysicsCalculator(){}
+    virtual ~ContactElementGlobalPhysicsCalculator(){}
 
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
-      std::vector<std::vector<double>> CalculateTotalStressTensor(ModelPart& r_model_part, double Lx, double Ly, double Lz)
-      {
+    std::vector<std::vector<double>> CalculateTotalStressTensor(ModelPart& r_model_part, double Lx, double Ly, double Lz)
+    {
         OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
         std::vector<std::vector<double>> measured_total_stress_tensor(3, std::vector<double>(3));
 
@@ -835,9 +835,9 @@ class SphericElementGlobalPhysicsCalculator
         measured_total_stress_tensor[2][2] = s_22;
 
         return measured_total_stress_tensor;
-      }
+    }
 
-      private:
+    private:
 
         std::vector<unsigned int> mElementsPartition;
 
