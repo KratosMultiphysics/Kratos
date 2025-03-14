@@ -81,6 +81,8 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                     "tau_nodal":true
                 }
             },
+            "energy_measurement":true,
+            "file_name" : "energy.txt",
             "outlet_inflow_limiter_settings":{
                 "apply_inflow_limiter": false,
                 "inflow_model_part_name":""
@@ -226,6 +228,12 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
+        self.energy_process_activation = self.settings["energy_measurement"].GetBool()
+        if self.energy_process_activation:
+            self.post_file_name = self.settings["file_name"].GetString()
+            domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            self.my_energy_process = KratosCFD.EnergyCheckProcess(self.main_model_part, domain_size, self.post_file_name)
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def Check(self):
@@ -303,6 +311,8 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         if self.outlet_inflow_limiter:
             # TODO:This should be incorporated into the outlet hydraulic process in the future.
              KratosHydraulics.HydraulicFluidAuxiliaryUtilities.ApplyOutletInflowLimiter(self.inflow_model_part_name, KratosMultiphysics.VELOCITY)
+        if self.energy_process_activation:
+            self.my_energy_process.Execute()
 
 
     def _ComputeStepInitialWaterVolume(self):
