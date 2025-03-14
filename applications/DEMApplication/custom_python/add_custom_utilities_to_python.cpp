@@ -244,6 +244,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<ContactElementGlobalPhysicsCalculator, ContactElementGlobalPhysicsCalculator::Pointer >(m, "ContactElementGlobalPhysicsCalculator")
         .def(py::init<>())
         .def("CalculateTotalStressTensor", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensor)
+        .def("CalculateAveragedCoordinationNumberWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateAveragedCoordinationNumberWithinSphere)
         ;
 
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;

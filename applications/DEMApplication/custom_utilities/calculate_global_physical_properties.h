@@ -837,6 +837,69 @@ class ContactElementGlobalPhysicsCalculator
         return measured_total_stress_tensor;
     }
 
+    double CalculateAveragedCoordinationNumberWithinSphere(ModelPart& sphere_model_part, ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        double total_particle_number = 0.0;
+        double total_contact_number = 0.0;
+
+        #pragma omp parallel for reduction(+ : total_contact_number)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+
+                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+
+                if (center_to_sphere_distance_0 < (radius - r_0)) {
+                    total_contact_number += 1;
+                }
+
+                if (center_to_sphere_distance_1 < (radius - r_1)) {
+                    total_contact_number += 1;
+                }
+            }
+        }
+
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), sphere_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+        #pragma omp parallel for reduction(+ : total_particle_number)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(sphere_model_part, k); it != GetElementPartitionEnd(sphere_model_part, k); ++it){
+
+                double r = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double x = (it)->GetGeometry()[0].X();
+                double y = (it)->GetGeometry()[0].Y();
+                double z = (it)->GetGeometry()[0].Z();
+
+                double center_to_sphere_distance = std::sqrt(std::pow(x - center[0], 2) + std::pow(y - center[1], 2) + std::pow(z - center[2], 2));
+
+                if (center_to_sphere_distance < (radius - r)) {
+                    total_particle_number += 1;
+                }
+            }
+        }
+        
+        double measured_coordination_number = 0.0;
+
+        if (total_particle_number) {
+            measured_coordination_number = total_contact_number / total_particle_number;
+        }
+
+        return measured_coordination_number;
+
+    }
+
     private:
 
         std::vector<unsigned int> mElementsPartition;

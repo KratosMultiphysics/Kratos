@@ -28,47 +28,11 @@ class DEMPropertiesMeasureUtility:
         
         if type == "averaged_coordination_number":
             
-            measured_coordination_number = 0
             if self.DEM_parameters["ContactMeshOption"].GetBool():
                 
-                total_particle_number = 0
-                total_contact_number  = 0
-                for element in self.contact_model_part.Elements:
-            
-                    x_0 = element.GetNode(0).X
-                    x_1 = element.GetNode(1).X
-                    y_0 = element.GetNode(0).Y
-                    y_1 = element.GetNode(1).Y
-                    z_0 = element.GetNode(0).Z
-                    z_1 = element.GetNode(1).Z
-                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
-                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
-
-                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
-                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
-
-                    if center_to_sphere_distance_0 < (radius - r_0):
-                        total_contact_number += 1
-
-                    if center_to_sphere_distance_1 < (radius - r_1):
-                        total_contact_number += 1
-
-                for node in self.spheres_model_part.Nodes:
-
-                    r = node.GetSolutionStepValue(RADIUS)
-                    x = node.X
-                    y = node.Y
-                    z = node.Z
-
-                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
-
-                    if center_to_sphere_distance < (radius - r):
-                        total_particle_number += 1    
+                averaged_coordination_number = self.ContactElementGlobalPhysicsCalculator.CalculateAveragedCoordinationNumberWithinSphere(self.spheres_model_part, self.contact_model_part, radius, [center_x, center_y, center_z])
                 
-                if total_particle_number:
-                    measured_coordination_number = total_contact_number / total_particle_number
-                
-                return measured_coordination_number
+                return averaged_coordination_number
 
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
