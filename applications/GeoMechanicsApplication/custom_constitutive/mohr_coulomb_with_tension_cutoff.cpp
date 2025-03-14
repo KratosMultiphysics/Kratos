@@ -18,7 +18,6 @@
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/serializer.h"
 
 namespace
 {
@@ -279,23 +278,4 @@ void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLa
     mStressVectorFinalized = mStressVector;
 }
 
-void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
-{
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    rSerializer.save("StressVector", mStressVector);
-    rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
-    rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-    // rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
-    // rSerializer.save("TensionCutOff", mTensionCutOff);
-}
-
-void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    rSerializer.load("StressVector", mStressVector);
-    rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
-    rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-    // rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
-    // rSerializer.load("TensionCutOff", mTensionCutOff);
-}
 } // Namespace Kratos

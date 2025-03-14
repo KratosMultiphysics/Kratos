@@ -25,8 +25,8 @@
 
 namespace Kratos
 {
+
 class ConstitutiveLawDimension;
-class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombWithTensionCutOff : public ConstitutiveLaw
 {
@@ -92,10 +92,6 @@ private:
     [[nodiscard]] bool   IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
                                                     double        DilatancyAngle,
                                                     const Vector& rCornerPoint) const;
-
-    // Serialization
-    friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
 }; // Class MohrCoulombWithTensionCutOff
+
 } // namespace Kratos
