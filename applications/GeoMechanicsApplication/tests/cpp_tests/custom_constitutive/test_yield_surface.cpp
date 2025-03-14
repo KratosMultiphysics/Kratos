@@ -108,6 +108,10 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, Kra
     principal_stresses <<= tensile_strength, 0.0, 0.0;
     KRATOS_EXPECT_NEAR(p_loaded_tension_cut_off->YieldFunctionValue(principal_stresses), 0.0,
                        Defaults::absolute_tolerance);
+    auto expected_derivative = Vector(3);
+    expected_derivative <<= 1.0, 0.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_tension_cut_off->DerivativeOfFlowFunction(principal_stresses),
+                              expected_derivative, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
