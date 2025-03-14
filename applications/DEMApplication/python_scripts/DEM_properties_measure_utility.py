@@ -475,18 +475,14 @@ class DEMPropertiesMeasureUtility:
                         particle_positions = np.vstack((particle_positions, this_particle_position))
                         TotalParticleNumber += 1
         
-        # Calculation of distances from reference particles to other particles
         distances = np.linalg.norm(particle_positions - reference_particle, axis=1)
 
-        # Set histogram parameters
         max_distance = radius
         num_bins = int(max_distance // delta_r)
         bin_edges = np.linspace(0, max_distance, num_bins + 1)
 
-        # Calculate histogram
         hist, _ = np.histogram(distances, bins=bin_edges)
 
-        # Normalized histogram
         bin_width = bin_edges[1] - bin_edges[0]
         measure_sphere_volume = 4/3 * math.pi * radius * radius * radius
         rdf = hist / (4 * np.pi * bin_edges[1:]**2 * bin_width * TotalParticleNumber / measure_sphere_volume)
@@ -787,60 +783,6 @@ class DEMPropertiesMeasureUtility:
             output_file_name = "voronoi_input_data_of_size_" + str(side_length) +".txt"
             fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
             np.savetxt(os.path.join(self.graphs_path, output_file_name), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
-
-        if type == "stress_tensor_modulus":
-            
-            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
-                
-                measure_cubic_volume = side_length ** 3
-                total_tensor        = np.empty((3, 3))
-                total_tensor[:]     = 0.0
-                stress_tensor_modulus = 0.0
-
-                for element in self.contact_model_part.Elements:
-            
-                    x_0 = element.GetNode(0).X
-                    x_1 = element.GetNode(1).X
-                    y_0 = element.GetNode(0).Y
-                    y_1 = element.GetNode(1).Y
-                    z_0 = element.GetNode(0).Z
-                    z_1 = element.GetNode(1).Z
-                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
-                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
-                    r   = 0.5 * (r_0 + r_1)
-
-                    sphere_0_is_inside = False
-                    sphere_1_is_inside = False
-
-                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
-                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
-                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
-                                sphere_0_is_inside = True
-
-                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
-                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
-                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
-                                sphere_1_is_inside = True
-
-                    if sphere_0_is_inside or sphere_1_is_inside:
-                        
-                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
-                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
-                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
-                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
-                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
-                        tensor = np.outer(contact_force_vector, vector_l)
-                        total_tensor += tensor
-
-                total_tensor = total_tensor / measure_cubic_volume
-
-                stress_tensor_modulus = np.linalg.norm(total_tensor)
-                
-                return stress_tensor_modulus
-            
-            else:
-                
-                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
         
         if type == "stress_tensor":
             
