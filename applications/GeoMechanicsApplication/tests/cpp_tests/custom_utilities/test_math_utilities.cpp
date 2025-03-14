@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckVectorToDiagonalMatrix, KratosGeoMechanicsFastSui
 KRATOS_TEST_CASE_IN_SUITE(CheckDiagonalMatrixToVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Matrix matrix = ZeroMatrix(3, 3);
+    auto matrix = Matrix(3, 3);
     // clang-format off
     matrix <<= 10.0, 40.0, 0.0,
                40.0, 50.0, 0.0,
@@ -117,11 +117,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckDiagonalMatrixToVector, KratosGeoMechanicsFastSui
     // clang-format on
 
     // Act
-    Vector result = GeoMechanicsMathUtilities::DiagonalMatrixToVector(matrix);
+    const auto result = GeoMechanicsMathUtilities::DiagonalOfMatrixToVector(matrix);
 
     // Assert
-    Vector expected_result = ZeroVector(3);
+    auto expected_result = Vector(3);
     expected_result <<= 10.0, 50.0, 20.0;
     KRATOS_EXPECT_VECTOR_EQ(result, expected_result);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = GeoMechanicsMathUtilities::DiagonalOfMatrixToVector(Matrix(3, 2)), "Error: Attempting to convert diagonal of matrix to vector, but matrix has fewer columns than rows");
 }
 } // namespace Kratos::Testing
