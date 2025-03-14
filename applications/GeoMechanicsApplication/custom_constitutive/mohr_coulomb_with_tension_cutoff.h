@@ -16,6 +16,7 @@
 
 // System includes
 #include <cmath>
+#include <optional>
 
 // Project includes
 #include "custom_constitutive/coulomb_yield_surface.h"
@@ -68,7 +69,9 @@ private:
     CoulombYieldSurface                       mCoulombYieldSurface;
     TensionCutoff                             mTensionCutOff;
 
-    void CheckProperty(const Properties& rMaterialProperties, const Variable<double>& rVariable) const;
+    void CheckProperty(const Properties&       rMaterialProperties,
+                       const Variable<double>& rVariable,
+                       std::optional<double>   MaxValue = std::nullopt) const;
     Vector CalculateTrialStressVector(const Vector& rStrainVector, double YoungsModulus, double PoissonsRatio) const;
     [[nodiscard]] double CalculateApex(double FrictionAngle, double Cohesion) const;
     [[nodiscard]] Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensileStrength) const;

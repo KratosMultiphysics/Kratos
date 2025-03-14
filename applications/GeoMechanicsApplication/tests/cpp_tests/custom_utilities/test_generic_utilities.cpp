@@ -40,10 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckMatrixPermutation, KratosGeoMechanicsFastSuiteWit
 {
     // Arrange
     Matrix matrix(4, 4);
-    matrix <<= 1.0, 0.0, 0.0, 0.0,
-               0.0, 1.0, 0.0, 0.0,
-               0.0, 0.0, 1.0, 0.0,
-               0.0, 0.0, 0.0, 1.0;
+    matrix <<= 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0;
     std::vector<int> indices = {3, 2, 1, 0};
 
     // Act
@@ -51,12 +48,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckMatrixPermutation, KratosGeoMechanicsFastSuiteWit
 
     // Assert
     Matrix expected_result(4, 4);
-    expected_result <<=  0.0, 0.0, 0.0, 1.0,
-                         0.0, 0.0, 1.0, 0.0,
-                         0.0, 1.0, 0.0, 0.0,
-                         1.0, 0.0, 0.0, 0.0;
+    expected_result <<= 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0;
     KRATOS_EXPECT_MATRIX_EQ(result, expected_result);
 }
-
 
 } // namespace Kratos::Testing

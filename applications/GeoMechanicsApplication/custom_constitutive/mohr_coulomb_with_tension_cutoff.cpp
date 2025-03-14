@@ -90,16 +90,27 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
 
     CheckProperty(rMaterialProperties, GEO_COHESION);
     CheckProperty(rMaterialProperties, GEO_FRICTION_ANGLE);
-    CheckProperty(rMaterialProperties, GEO_DILATANCY_ANGLE);
-    CheckProperty(rMaterialProperties, GEO_TENSILE_STRENGTH);
+    CheckProperty(rMaterialProperties, GEO_DILATANCY_ANGLE, rMaterialProperties[GEO_FRICTION_ANGLE]);
+    CheckProperty(rMaterialProperties, GEO_TENSILE_STRENGTH,
+                  rMaterialProperties[GEO_COHESION] /
+                      std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
     CheckProperty(rMaterialProperties, YOUNG_MODULUS);
     CheckProperty(rMaterialProperties, POISSON_RATIO);
     return result;
 }
 
-void MohrCoulombWithTensionCutOff::CheckProperty(const Properties& rMaterialProperties,
-                                                 const Kratos::Variable<double>& rVariable) const
+void MohrCoulombWithTensionCutOff::CheckProperty(const Properties&       rMaterialProperties,
+                                                 const Variable<double>& rVariable,
+                                                 std::optional<double>   MaxValue) const
 {
+    if (MaxValue.has_value()) {
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable) || rMaterialProperties[rVariable] < 0.0 ||
+                            rMaterialProperties[rVariable] > MaxValue.value())
+            << rVariable.Name()
+            << " is not defined or has an invalid value for property: " << rMaterialProperties.Id()
+            << std::endl;
+        return;
+    }
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable) || rMaterialProperties[rVariable] < 0.0)
         << rVariable.Name()
         << " is not defined or has an invalid value for property: " << rMaterialProperties.Id()

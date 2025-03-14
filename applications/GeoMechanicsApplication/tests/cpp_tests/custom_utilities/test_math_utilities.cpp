@@ -86,4 +86,42 @@ KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutK
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckVectorToDiagonalMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Vector vector = ZeroVector(4);
+    vector <<= 3.0, 4.0, 5.0, 6.0;
+
+    // Act
+    Matrix result = GeoMechanicsMathUtilities::VectorToDiagonalMatrix(vector);
+
+    // Assert
+    Matrix expected_result = ZeroMatrix(4, 4);
+    // clang-format off
+    expected_result <<= 3.0, 0.0, 0.0, 0.0,
+                        0.0, 4.0, 0.0, 0.0,
+                        0.0, 0.0, 5.0, 0.0,
+                        0.0, 0.0, 0.0, 6.0;
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_EQ(result, expected_result);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckDiagonalMatrixToVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Matrix matrix = ZeroMatrix(3, 3);
+    // clang-format off
+    matrix <<= 10.0, 40.0, 0.0,
+               40.0, 50.0, 0.0,
+               0.0, 0.0, 20.0;
+    // clang-format on
+
+    // Act
+    Vector result = GeoMechanicsMathUtilities::DiagonalMatrixToVector(matrix);
+
+    // Assert
+    Vector expected_result = ZeroVector(3);
+    expected_result <<= 10.0, 50.0, 20.0;
+    KRATOS_EXPECT_VECTOR_EQ(result, expected_result);
+}
 } // namespace Kratos::Testing
