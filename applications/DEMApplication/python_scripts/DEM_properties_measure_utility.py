@@ -45,6 +45,24 @@ class DEMPropertiesMeasureUtility:
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
             
+        if type == "stress_tensor":
+            
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+                total_stress_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensorWithinSphere(self.contact_model_part, radius, [center_x, center_y, center_z])
+                averaged_stress_tensor = np.array(total_stress_tensor) / measure_sphere_volume
+                return averaged_stress_tensor
+            else:
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
+        if type == "unbalanced_force":
+
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                measured_unbalanced_force = self.ContactElementGlobalPhysicsCalculator.CalculateUnbalancedForceWithinSphere(self.spheres_model_part, self.contact_model_part, radius, [center_x, center_y, center_z])
+                return measured_unbalanced_force
+            else:
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+        
         if type == "conductivity_tensor":
 
             if self.DEM_parameters["ContactMeshOption"].GetBool():
@@ -134,24 +152,6 @@ class DEMPropertiesMeasureUtility:
             output_file_name = "voronoi_input_data_of_size_" + str(radius) +".txt"
             fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
             np.savetxt(os.path.join(self.graphs_path, output_file_name), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
-        
-        if type == "stress_tensor":
-            
-            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
-                measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
-                total_stress_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensorWithinSphere(self.contact_model_part, radius, [center_x, center_y, center_z])
-                averaged_stress_tensor = np.array(total_stress_tensor) / measure_sphere_volume
-                return averaged_stress_tensor
-            else:
-                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
-            
-        if type == "unbalanced_force":
-
-            if self.DEM_parameters["ContactMeshOption"].GetBool():
-                measured_unbalanced_force = self.ContactElementGlobalPhysicsCalculator.CalculateUnbalancedForceWithinSphere(self.spheres_model_part, self.contact_model_part, radius, [center_x, center_y, center_z])
-                return measured_unbalanced_force
-            else:
-                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
 
         if type == "strain":
             pass
