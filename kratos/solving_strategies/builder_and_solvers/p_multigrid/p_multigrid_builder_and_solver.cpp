@@ -520,6 +520,24 @@ PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Create(typename TSolver::Poi
 // --------------------------------------------------------- //
 
 
+std::optional<std::size_t> FindNodeIndex(std::size_t NodeId,
+                                         Kratos::ModelPart::NodesContainerType::const_iterator itNodeBegin,
+                                         Kratos::ModelPart::NodesContainerType::const_iterator itNodeEnd) noexcept
+{
+    const auto it = std::lower_bound(itNodeBegin,
+                                     itNodeEnd,
+                                     NodeId,
+                                     [](const Kratos::Node& r_node, std::size_t target_id){
+                                        return r_node.Id() < target_id;
+                                     });
+    if (it == itNodeEnd or it->Id() != NodeId) {
+        return {};
+    } else {
+        return std::distance(itNodeBegin, it);
+    }
+}
+
+
 template <class TSparse, class TDense, class TSolver>
 void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename Interface::TSchemeType::Pointer pScheme,
                                                                      ModelPart& rModelPart)
@@ -529,10 +547,14 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
     // Allocate auxiliary arrays
     using DofsVectorType = ModelPart::DofsVectorType;
     this->GetDofSet().clear();
-    const auto& r_current_process_info = rModelPart.GetProcessInfo();
+    const auto& r_process_info = rModelPart.GetProcessInfo();
 
     std::unordered_set<Node::DofType::Pointer, DofPointerHasher> dof_global_set;
     dof_global_set.reserve(rModelPart.NumberOfElements() * 20);
+    std::vector<std::atomic<std::uint8_t>> hanging_nodes(rModelPart.Nodes().size());
+    std::fill(hanging_nodes.begin(),
+              hanging_nodes.end(),
+              static_cast<std::uint8_t>(1));
 
     // Fill the global DOF set array
     #pragma omp parallel
@@ -548,44 +570,24 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
         const int number_of_elements = static_cast<int>(r_elements_array.size());
 
         #pragma omp for schedule(guided, 512) nowait
-        for (int i = 0; i < number_of_elements; ++i) {
-            // Get current element iterator
-            const auto it_elem = r_elements_array.cbegin() + i;
-
-            // Gets list of DOF involved on every element
-            if (it_elem->IsActive()) {
-                it_elem->GetDofList(tls_dofs, r_current_process_info);
+        for (int i_entity=0; i_entity<number_of_elements; ++i_entity) {
+            const auto& r_entity = *(r_elements_array.begin() + i_entity);
+            if (r_entity.IsActive()) {
+                r_entity.GetDofList(tls_dofs, r_process_info);
                 dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
-            }
-        }
-
-//        // Add the DOFs from the model part conditions
-//        const auto& r_conditions_array = rModelPart.Conditions();
-//        const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-//        KRATOS_INFO_IF("BlockBuildDofArrayUtility", this->GetEchoLevel() > 2) << "Initializing conditions loop" << std::endl;
-//
-//        #pragma omp for  schedule(guided, 512) nowait
-//        for (int i = 0; i < number_of_conditions; ++i) {
-//            // Get current condition iterator
-//            const auto it_cond = r_conditions_array.cbegin() + i;
-//
-//            // Gets list of DOF involved on every condition
-//            if (it_cond->IsActive()) {
-//                it_cond->GetDofList(tls_dofs, r_current_process_info);
-//                dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
-//            }
-//        }
+            } // r_entity.IsActive()
+        } // for i_entity in range(number_of_elements)
 
         // Collect DoFs from constraints.
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
         #pragma omp for schedule(guided, 512) nowait
-        for (int i = 0; i < number_of_constraints; ++i) {
+        for (int i_entity=0; i_entity<number_of_constraints; ++i_entity) {
             // Get current constraint iterator
-            const auto it_const = rModelPart.MasterSlaveConstraints().begin() + i;
+            const auto it_entity = rModelPart.MasterSlaveConstraints().begin() + i_entity;
 
             // Trigger Dof index updates.
-            it_const->GetDofList(tls_dofs, tls_constraint_dofs, r_current_process_info);
+            it_entity->GetDofList(tls_dofs, tls_constraint_dofs, r_process_info);
 
             // Different behavior depending on whether MasterSlaveConstraint or MultifreedomConstraint.
             if (tls_dofs.empty() and not tls_constraint_dofs.empty()) {
@@ -596,14 +598,32 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
                 dofs_tmp_set.insert(tls_dofs.begin(), tls_dofs.end());
                 dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
             }
-        }
+        } // for i_entity in range(number_of_constraints)
 
         // Merge all the sets in one thread
         #pragma omp critical
         {
             dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
         }
-    }
+    } // pragma omp parallel
+
+    // Make sure that conditions act exclusively on collected DoFs.
+    block_for_each(rModelPart.Conditions().begin(),
+                   rModelPart.Conditions().end(),
+                   DofsVectorType(),
+                   [&r_process_info, &dof_global_set](const Condition& r_condition, auto& r_tls_dofs){
+                        if (r_condition.IsActive()) {
+                            r_condition.GetDofList(r_tls_dofs, r_process_info);
+                            for (Dof<typename TDense::DataType>* p_dof : r_tls_dofs) {
+                                const auto it = dof_global_set.find(p_dof);
+                                KRATOS_ERROR_IF(it == dof_global_set.end())
+                                    << "condition " << r_condition.Id() << " "
+                                    << "acts on " << p_dof->GetVariable().Name() << " "
+                                    << "of node " << p_dof->Id() << ", "
+                                    << "which is not part of any element or constraint.";
+                            } // for p_dof in r_tls_dofs
+                        } // if r_condition.IsActive()
+                   });
 
     // Fill and sort the provided DOF array from the auxiliary global DOFs set
     this->GetDofSet().reserve(dof_global_set.size());

@@ -408,11 +408,11 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
                     found_diagonal = true;
                     rLhs.value_data()[i_entry] = DiagonalScaleFactor;
                 } else {
-                    rLhs.value_data()[i_entry] = 0.0;
+                    rLhs.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                 }
             } // for i_entry in range(i_entry_begin, i_entry_end)
 
-            rRhs[i_dof] = 0.0;
+            rRhs[i_dof] = static_cast<typename TSparse::DataType>(0);
         } /*if r_dof.IsFixed()*/ else {
             // Zero out the column which is associated with the zero'ed row.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
@@ -426,7 +426,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
                         << "related to dof " << r_dof.GetVariable().Name() << " "
                         << "of node " << r_dof.Id();
                 } /*if i_column == i_dof*/ else if (it_column_dof->IsFixed()) {
-                    rLhs.value_data()[i_entry] = 0.0;
+                    rLhs.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                 }
 
             } // for i_entry in range(i_entry_begin, i_entry_end)

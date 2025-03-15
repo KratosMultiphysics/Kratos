@@ -40,6 +40,7 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
       mRhs(),
       mDofSet(),
       mIndirectDofSet(),
+      mDofMap(),
       mpConstraintAssembler(),
       mpSolver(),
       mMaybeChild(),
@@ -158,7 +159,8 @@ void PGrid<TSparse,TDense>::MakeLhsTopology(ModelPart& rModelPart,
         mRestrictionOperator,
         mpVariableList,
         mDofSet,
-        mIndirectDofSet);
+        mIndirectDofSet,
+        mDofMap);
 
     // ConstraintAssembler::Allocate is deliberately not invoked here because the relation matrix
     // and constraint gap vector are passed from the fine level in PGrid::Assemble, and mapped
@@ -263,29 +265,60 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
 
 template <class TSparse, class TDense>
 void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
-                                                     typename IndirectDofSet::const_iterator itParentDofEnd,
+                                                     [[maybe_unused]] typename IndirectDofSet::const_iterator itParentDofEnd,
                                                      const DiagonalScaling& rDiagonalScaling)
 {
-    KRATOS_TRY
 
     if (mIndirectDofSet.empty()) return;
 
+    // Apply dirichlet conditions on the restriction operator.
+    KRATOS_TRY
+    block_for_each(mIndirectDofSet.begin(),
+                   mIndirectDofSet.end(),
+                   [this, itParentDofBegin](const Dof<double>& r_dof){
+        const std::size_t i_dof = r_dof.EquationId();
+        const typename TSparse::IndexType i_entry_begin = mRestrictionOperator.index1_data()[i_dof];
+        const typename TSparse::IndexType i_entry_end = mRestrictionOperator.index1_data()[i_dof + 1];
+
+        if (r_dof.IsFixed()) {
+            // Zero out the whole row, except the entry related to the dof on the fine grid.
+            const auto i_fine_dof = mDofMap[i_dof];
+            for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+                const auto i_column = mRestrictionOperator.index2_data()[i_entry];
+                if (i_column == i_fine_dof) {
+                    mRestrictionOperator.value_data()[i_entry] = static_cast<typename TSparse::DataType>(1);
+                } else {
+                    mRestrictionOperator.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
+                }
+            } // for i_entry in range(i_entry_begin, i_entry_end)
+        } /*if r_dof.IsFixed()*/ else {
+            // Zero out the column which is associated with the zero'ed row.
+            for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+                const auto i_column = mRestrictionOperator.index2_data()[i_entry];
+                const auto it_column_dof = itParentDofBegin + i_column;
+                if (it_column_dof->IsFixed()) {
+                    mRestrictionOperator.value_data()[i_entry] = 0.0;
+                }
+            } // for i_entry in range(i_entry_begin, i_entry_end)
+        } /*not r_dof.IsFixed()*/
+    });
+    KRATOS_CATCH("")
+
+    // Apply dirichlet conditions on the prolongation operator.
+    // @todo make this more efficient.
+    KRATOS_TRY
+    mProlongationOperator = decltype(mProlongationOperator)();
+    SparseMatrixMultiplicationUtility::TransposeMatrix(mProlongationOperator, mRestrictionOperator, 1.0);
+    KRATOS_CATCH("")
+
+    // Apply dirichlet conditions on the LHS.
+    KRATOS_TRY
     Kratos::ApplyDirichletConditions<TSparse,TDense>(
         mLhs,
         mRhs,
         mIndirectDofSet.begin(),
         mIndirectDofSet.end(),
         GetDiagonalScaleFactor<TSparse>(mLhs, rDiagonalScaling));
-
-    Kratos::ApplyDirichletConditions<TSparse,TDense>(
-        mRestrictionOperator,
-        mRhs,
-        mIndirectDofSet.begin(),
-        mIndirectDofSet.end(),
-        itParentDofBegin,
-        itParentDofEnd,
-        static_cast<typename TDense::DataType>(1));
-
     KRATOS_CATCH("")
 }
 
@@ -327,8 +360,11 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
 {
     #ifndef NDEBUG
     KRATOS_TRY
-    CheckMatrix<typename TSparse::DataType,MatrixChecks::All>(mRestrictionOperator);
-    CheckMatrix<typename TSparse::DataType,MatrixChecks::RowsAreSorted|MatrixChecks::ColumnsAreSorted>(mProlongationOperator);
+    CheckMatrix<typename TSparse::DataType,
+                MatrixChecks::All>(mRestrictionOperator);
+    CheckMatrix<typename TSparse::DataType,
+                MatrixChecks::RowsAreSorted
+              | MatrixChecks::ColumnsAreSorted>(mProlongationOperator);
     KRATOS_CATCH("")
     #endif
 
@@ -340,13 +376,6 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     TSparse::SetToZero(mRhs);
     TSparse::SetToZero(mSolution);
     axpy_prod(mRestrictionOperator, rParentRhs, mRhs, boost::numeric::ublas::row_major_tag());
-    //for (std::size_t i_dof=0ul; i_dof<mIndirectDofSet.size(); ++i_dof) {
-    //    const auto& r_dof = *(mIndirectDofSet.begin() + i_dof);
-    //    if (r_dof.IsFixed()) {
-    //        const auto equation_id = r_dof.EquationId();
-    //        mRhs[equation_id] = 0;
-    //    }
-    //}
     KRATOS_CATCH("")
 
     // Impose constraints and solve the coarse system.

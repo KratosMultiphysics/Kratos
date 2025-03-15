@@ -22,6 +22,7 @@
 // System includes
 #include <memory> // std::shared_ptr
 #include <optional> // std::optional
+#include <vector> // std::vector
 
 
 namespace Kratos {
@@ -117,6 +118,8 @@ private:
     > mDofSet;
 
     IndirectDofSet mIndirectDofSet;
+
+    std::vector<std::size_t> mDofMap;
 
     std::shared_ptr<ConstraintAssembler<TSparse,TDense>> mpConstraintAssembler;
 

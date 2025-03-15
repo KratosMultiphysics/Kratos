@@ -222,7 +222,7 @@ struct AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Impl
     using Interface = AugmentedLagrangeConstraintAssembler<TSparse,TDense>;
 
     /// @brief A map associating slave IDs with constraint indices and the number of constraint objects referencing it.
-    std::unordered_map<std::size_t,     //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
+    std::unordered_map<std::size_t,         //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
                        std::pair<
                             std::size_t,    //< row index of the constraint equation in the relation matrix
                             std::size_t     //< number of constraint objects defining the equation

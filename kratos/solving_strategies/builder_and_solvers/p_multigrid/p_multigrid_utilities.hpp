@@ -261,6 +261,8 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
 /// @param FineSystemSize Number of rows in the fine system's left hand side matrix.
 /// @param rRestrictionOperator Output matrix to which the restriction operator will be written.
 /// @param rDofSet @ref Output vector containing the @ref Dof "DoFs" of the coarse system.
+/// @param rIndirectDofSet An array of pointers pointing to @ref Dof "dofs" in @p rDofSet.
+/// @param rDofMap An index map relating fine DoFs to their coarse counterparts.
 /// @warning This function assumes that elements use every @ref Dof of their nodes. This may
 ///          not always be true (e.g.: coupled analyses on overlapping domains and shared
 ///          @ref Node "nodes" but different Dofs).
@@ -271,7 +273,8 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                               typename TUblasSparseSpace<TValue>::MatrixType& rRestrictionOperator,
                               const VariablesList::Pointer& rpVariableList,
                               std::vector<std::pair<NodalData,Dof<double>>>& rDofSet,
-                              PointerVectorSet<Dof<double>>& rIndirectDofSet)
+                              PointerVectorSet<Dof<double>>& rIndirectDofSet,
+                              std::vector<std::size_t>& rDofMap)
 {
     static_assert(OrderReduction == std::numeric_limits<unsigned>::max(),
                   "The current implementation requires geometries to be always reduced to their linear equivalents in a single step.");
@@ -406,14 +409,18 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     } // destroy locks
 
     // Construct a fine DoF index => coarse DoF index map.
-    std::vector<std::size_t> dof_map(FineSystemSize);
+    rDofMap.clear();
+    rDofMap.resize(FineSystemSize, std::numeric_limits<std::size_t>::max());
 
     KRATOS_TRY
     std::size_t i_coarse_dof = 0ul;
     std::size_t entry_count = 0ul;
     for (std::size_t i_fine_dof=0ul; i_fine_dof<FineSystemSize; ++i_fine_dof) {
-        dof_map[i_fine_dof] = rows[i_fine_dof].first.empty() ? i_coarse_dof : i_coarse_dof++;
         entry_count += rows[i_fine_dof].first.size();
+        if (not rows[i_fine_dof].first.empty()) {
+            rDofMap[i_coarse_dof] = i_fine_dof;
+            ++i_coarse_dof;
+        } // if not ros[i_fine_dof].first.empty()
     } // for i_fine_dof in range(FineSystemSize)
 
     // No need to keep the higher order rows (i.e.: the empty rows) anymore => erase them.
@@ -506,12 +513,12 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     } // for i_coarse_dof in range(rows.size())
     KRATOS_CATCH("")
 
-    // Fill CSR from COO representation.
+    // Fill the CSR matrix from COO representation.
     KRATOS_TRY
     using TLS = std::vector<std::pair<std::size_t,TValue>>;
     IndexPartition<std::size_t>(rows.size()).for_each(TLS(),
-                                                      [&rows, &rRestrictionOperator, &dof_map](const std::size_t i_coarse_dof,
-                                                                                               TLS& r_tls) {
+                                                      [&rows, &rRestrictionOperator](const std::size_t i_coarse_dof,
+                                                                                     TLS& r_tls) {
         const std::size_t i_entry_begin = rRestrictionOperator.index1_data()[i_coarse_dof];
         [[maybe_unused]] const std::size_t i_entry_end = rRestrictionOperator.index1_data()[i_coarse_dof + 1];
 
