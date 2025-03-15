@@ -7,15 +7,15 @@ from KratosMultiphysics.SystemIdentificationApplication.responses.damage_detecti
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
-        raise RuntimeError(f"TemperatureDetectionResponse instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"PressureDetectionResponse instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"TemperatureDetectionResponse instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return TemperatureDetectionResponse(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+        raise RuntimeError(f"PressureDetectionResponse instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return PressureDetectionResponse(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
 
-class TemperatureDetectionResponse(DamageDetectionResponse):
+class PressureDetectionResponse(DamageDetectionResponse):
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return [Kratos.TEMPERATURE]
+        return [Kratos.PRESSURE]
 
     def _GetResponsePrefix(self) -> str:
-        return "TemperatureDetectionResponse"
+        return "PressureDetectionResponse"
