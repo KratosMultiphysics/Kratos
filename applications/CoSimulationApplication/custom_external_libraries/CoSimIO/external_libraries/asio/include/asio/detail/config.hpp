@@ -2224,7 +2224,7 @@
 # endif // !defined(ASIO_DISABLE_STD_COROUTINE)
 #endif // !defined(ASIO_HAS_STD_COROUTINE)
 
-// Compiler support for the the [[nodiscard]] attribute.
+// Compiler support for the [[nodiscard]] attribute.
 #if !defined(ASIO_NODISCARD)
 # if defined(__has_cpp_attribute)
 #  if __has_cpp_attribute(nodiscard)
