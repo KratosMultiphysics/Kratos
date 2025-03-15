@@ -27,9 +27,9 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto       friction_angle  = MathUtils<>::DegreesToRadians(45.0);
-    constexpr double cohesion        = 2.0;
-    const auto       dilatancy_angle = MathUtils<>::DegreesToRadians(0.0);
+    constexpr auto friction_angle  = MathUtils<>::DegreesToRadians(45.0);
+    constexpr auto cohesion        = 2.0;
+    constexpr auto dilatancy_angle = MathUtils<>::DegreesToRadians(0.0);
 
     CoulombYieldSurface coulomb_yield_surface(friction_angle, cohesion, dilatancy_angle);
 
@@ -48,9 +48,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterfac
 {
     // Arrange
     const auto     scoped_registration     = ScopedSerializerRegistrationOfAllYieldSurfaces{};
-    const auto     friction_angle          = MathUtils<>::DegreesToRadians(60.0);
+    constexpr auto friction_angle          = MathUtils<>::DegreesToRadians(60.0);
     constexpr auto cohesion                = 2.0;
-    const auto     dilatancy_angle         = MathUtils<>::DegreesToRadians(30.0);
+    constexpr auto dilatancy_angle         = MathUtils<>::DegreesToRadians(30.0);
     auto           p_coulomb_yield_surface = std::unique_ptr<YieldSurface>(
         std::make_unique<CoulombYieldSurface>(friction_angle, cohesion, dilatancy_angle));
     auto serializer = StreamSerializer{};
