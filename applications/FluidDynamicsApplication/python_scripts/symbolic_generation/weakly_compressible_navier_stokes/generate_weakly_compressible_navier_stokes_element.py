@@ -224,7 +224,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ##  Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p - sigma*v_gauss
+    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p - 0.0*sigma*v_gauss
     if convective_term:
         vel_residual -= rho*convective_term_gauss.transpose()
 

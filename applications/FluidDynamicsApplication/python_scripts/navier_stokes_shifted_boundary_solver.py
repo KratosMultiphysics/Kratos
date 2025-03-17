@@ -65,10 +65,10 @@ class ShiftedBoundaryFormulation(object):
         # Get names of boundary model parts, whether they enclose and area and set post-processing computations for them
         self.boundary_model_part_names = formulation_settings["boundary_model_parts"].GetStringArray()
         self.enclosed_areas = formulation_settings["enclosed_areas"].GetStringArray()
-        if len(self.enclosed_areas) is 0:
+        if len(self.enclosed_areas) == 0:
             self.enclosed_areas = ['none'] * len(self.boundary_model_part_names)
         else:
-            if len(self.enclosed_areas) is not len(self.boundary_model_part_names):
+            if len(self.enclosed_areas) != len(self.boundary_model_part_names):
                 err_msg = 'Provided array of \'enclosed_areas\' must have the same length as \'boundary_model_parts\'.'
                 raise Exception(err_msg)
             else:
@@ -207,6 +207,10 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
+        #TODO TEST deactivate darcy term
+        for ele in self.GetComputingModelPart().Elements:
+            ele.SetValue(KratosCFD.RESISTANCE, 0.0)
+
         # Create shifted-boundary meshless interface utility and calculate extension operator requiring nodal and elemental neighbors
         self.__SetUpInterfaceUtility()
 
@@ -297,7 +301,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         if len(self.sbm_interface_utilities) == 1:
             self.sbm_interface_utilities[0].CalculateAndAddPointBasedInterface()
-        else:
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
+
+        elif len(self.sbm_interface_utilities) > 1:
             # Interface flags should be reset for the volume/ computing model part once before skin model parts are (newly) embedded
             self.sbm_interface_utilities[0].ResetFlags()
 
@@ -309,7 +315,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
             # To be done after locating the skin points because elements in which skin points are located
             # might not be intersected by tessellated skin and might be marked as boundary here
-            sbm_interface_utility.SetInterfaceFlags()
+            self.sbm_interface_utilities[0].SetInterfaceFlags()
 
             # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
             self.sbm_interface_utilities[0].DeactivateElementsAndNodes()
@@ -323,5 +329,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             #TODO Search for enclosed volumes and fix the pressure of one node if it has not been fixed yet? (instead of defining enclosed_areas)
             #sbm_interface_utilities[0].FixEnclosedVolumesPressure()
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
+
+        else:
+            KratosMultiphysics.Logger.PrintWarning('Shifted-boundary interface utility was not set up because no boundary model part was given.')
 

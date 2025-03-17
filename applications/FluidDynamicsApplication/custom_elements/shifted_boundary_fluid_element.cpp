@@ -242,9 +242,17 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 const std::size_t n_bd_points = r_sur_bd_geom.PointsNumber();  // number of nodes of the surrogate face
                 const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
 
-                // Get integration points and their shape function values of the surrogate boundary face
+                // Get integration points and their global shape function values of the surrogate boundary face
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(integration_method);  // matrix of SF values F_{ij}, where i is integration pt index and j is SF index
                 const std::vector<IntegrationPoint<3>> & r_integration_points = r_sur_bd_geom.IntegrationPoints(integration_method);
+                
+                // Get local shape function derivatives and values for determinant of Jacobian
+                //DenseVector<Matrix> sur_bd_DN_DX;
+                //Vector sur_bd_detJ;
+                //r_sur_bd_geom.ShapeFunctionsIntegrationPointsGradients(sur_bd_DN_DX, sur_bd_detJ, integration_method);
+                const DenseVector<Matrix>& r_sur_bd_DN_DXi = r_sur_bd_geom.ShapeFunctionsLocalGradients(integration_method); // Vector of matrices of size n_bd_pointsXDim-1
+                VectorType sur_bd_detJ;
+                r_sur_bd_geom.DeterminantOfJacobian(sur_bd_detJ, integration_method);
 
                 // Get the gradient of the node opposite of the surrogate face
                 // Note that this is used to calculate the normal as n = - DN_DX_opposite_node / norm_2(DN_DX_opposite_node)
@@ -262,8 +270,8 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 //double weight = Dim * size_parent / h_sur_bd;
 
                 // Get detJ for all integration points of the surrogate boundary face
-                VectorType int_pt_detJs;
-                r_sur_bd_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
+                //VectorType int_pt_detJs;
+                //r_sur_bd_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
 
                 // Compute the required projections using the boundary's normal, the elements constitutive matrix (C) and the strain matrix (B) - constant for simplex element //TODO ?!
                 BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
@@ -279,11 +287,29 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
                 // Loop over the integration points of the surrogate boundary face for the numerical integration of the surrogate boundary flux
                 for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); ++i_int_pt) {
+
+                    // Compute derivatives of shape functions at integration point in local coordinates
+                    Matrix J_inv_int_pt, J_int_pt;
+                    double detJ_int_pt;
+                    r_sur_bd_geom.Jacobian(J_int_pt, i_int_pt, integration_method);  // Matrix of size n_bd_pointsXDim-1
+                    if (Dim == 2) {
+                        J_inv_int_pt = ZeroMatrix(Dim-1, Dim);
+                        // for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                        //     J_inv_int_pt(0, i_bd_node) = 1.0 / J_int_pt(i_bd_node);
+                        // }
+                        J_inv_int_pt(0, 0) = -1.0 / J_int_pt(0);
+                        J_inv_int_pt(0, 1) = 1.0 / J_int_pt(1);
+                    } else { //TODO check for 3D!!
+                        MathUtils<double>::InvertMatrix(J_int_pt, J_inv_int_pt, detJ_int_pt);
+                    }
+                    const Matrix DN_DX_int_pt = prod(r_sur_bd_DN_DXi[i_int_pt], J_inv_int_pt);  // Matrix product of size n_bd_pointsXDim-1 with size Dim-1XDim
+
                     // Fill the shape functions auxiliary transpose matrix and the pressure to Voigt notation operator matrix for the surrogate boundary integration point
                     // NOTE that the local face IDs are already taken into account in the assembly
                     BoundedMatrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
                     BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
                     BoundedMatrix<double, LocalSize, Dim> N_aux_p = ZeroMatrix(Dim, LocalSize);
+                    BoundedMatrix<double, LocalSize, Dim> DN_DX_aux_p = ZeroMatrix(Dim, LocalSize);
                     std::size_t node_id_in_element;
                     for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
                         node_id_in_element = sur_bd_local_ids[i_bd_node+1];
@@ -291,11 +317,14 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                             N_aux_trans(node_id_in_element*BlockSize+d, d)               = r_sur_bd_N(i_int_pt, i_bd_node);
                             pres_to_voigt_matrix_op(d, node_id_in_element*BlockSize+Dim) = r_sur_bd_N(i_int_pt, i_bd_node);
                             N_aux_p(d, node_id_in_element*BlockSize+Dim)                 = r_sur_bd_N(i_int_pt, i_bd_node);
+                            DN_DX_aux_p(d, node_id_in_element*BlockSize+Dim)             = DN_DX_int_pt(d,i_bd_node); //, d);
                         }
                     }
+                    // KRATOS_WATCH(DN_DX_int_pt)
+                    // KRATOS_WATCH(DN_DX_aux_p);
 
                     // Calculate integration point weight by multiplying its detJ with its gauss weight
-                    const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
+                    const double int_pt_weight = sur_bd_detJ[i_int_pt] * r_integration_points[i_int_pt].Weight();
 
                     // Contribution coming from the shear stress operator
                     aux_LHS += int_pt_weight * prod(N_aux_trans, aux_matrix_ACB);
@@ -307,12 +336,53 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     //TODO TEST no error for snake in hydrostatic reservoir
                     const BoundedMatrix<double, LocalSize, Dim> N_normal_proj_matrix = prod(N_aux_trans, normal_proj_matrix);
                     aux_LHS -= int_pt_weight * prod(N_normal_proj_matrix, N_aux_p);
+                    
+                    // Get elemental data
+                    const BoundedMatrix<double, NumNodes, Dim>& f_ext = data.BodyForce;
+                    const array_1d<double, NumNodes> rho = data.Density;
+                    const double dyn_tau = data.DynamicTau;
+                    const double dt = data.DeltaTime;
+                    const double mu = data.EffectiveViscosity;
+                    const double h = data.ElementSize;
+
+                    // Calculate external force and density at integration point
+                    const BoundedVector<double, NumNodes> N_int_pt = row(r_sur_bd_N, i_int_pt);
+                    array_1d<double,Dim> f_int_pt = ZeroVector(Dim);
+                    double rho_int_pt = 0.0;
+                    for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                        node_id_in_element = sur_bd_local_ids[i_bd_node+1];
+                        rho_int_pt += r_sur_bd_N(i_int_pt, i_bd_node) * rho(node_id_in_element);
+                        for (std::size_t d = 0; d < Dim; ++d) {
+                            f_int_pt(d) += r_sur_bd_N(i_int_pt, i_bd_node) * f_ext(node_id_in_element, d);
+                        }
+                    }
+
+                    // Calculate subscale stabilization constant tau_1
+                    const double tau_1 = 1.0 / ( rho_int_pt*dyn_tau/dt + 4.0*mu/(h*h) );
+
+                    //TODO TEST Add subscales interface pressure gradient term 
+                    const BoundedMatrix<double, LocalSize, Dim> N_p_normal_proj_matrix = prod(trans(N_aux_p), normal_proj_matrix);
+                    // KRATOS_WATCH(N_p_normal_proj_matrix);
+                    //aux_LHS += int_pt_weight * tau_1 * prod(N_p_normal_proj_matrix, DN_DX_aux_p);
+
+                    array_1d<double,LocalSize> aux_values;
+                    this->GetCurrentValuesVector(data, aux_values);
+                    Matrix aux2_LHS = -prod(N_p_normal_proj_matrix, DN_DX_aux_p);
+                    Vector aux_RHS = prod(-aux2_LHS, aux_values);
+                    // KRATOS_WATCH(aux2_LHS);
+                    // KRATOS_WATCH(aux_RHS);
+
+                    // KRATOS_WATCH(f_int_pt);
+
+                    //TODO TEST Add subscales interface external force term
+                    //rRightHandSideVector -= int_pt_weight * tau_1 * rho_int_pt * prod(N_p_normal_proj_matrix, f_int_pt);
+                    //KRATOS_WATCH(-prod(N_p_normal_proj_matrix, f_int_pt));
                 }
             }
 
             // Add boundary traction of the element's surrogate boundaries to the system
             array_1d<double,LocalSize> values;
-            this->GetCurrentValuesVector(data,values);
+            this->GetCurrentValuesVector(data, values);
             rLeftHandSideMatrix -= aux_LHS;
             rRightHandSideVector += prod(aux_LHS, values);
         }

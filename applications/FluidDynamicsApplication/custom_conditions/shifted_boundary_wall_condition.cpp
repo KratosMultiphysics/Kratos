@@ -29,6 +29,7 @@
 
 // Application includes
 #include "shifted_boundary_wall_condition.h"
+#include <algorithm>
 #include <boost/numeric/ublas/vector.hpp>
 #include <cstddef>
 #include <string>
@@ -193,12 +194,17 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     const std::size_t n_nodes = local_size / BlockSize;
 
     // Get meshless geometry data (for the integration point)
-    const double parent_size = this->GetValue(ELEMENT_H);               // parent element size
+    double parent_size = this->GetValue(ELEMENT_H);               // parent element size
     const double weight = GetValue(INTEGRATION_WEIGHT);                 // integration weight for the integration point
     const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);                 // shape function values for all cloud points (VectorType)
     const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud points (MatrixType)
     array_1d<double,3> normal = GetValue(NORMAL);                       // boundary normal at the integration point
     normal /= norm_2(normal);
+
+    // Ignore 0D skin elements
+    if (weight < 1e-10) {
+        return;
+    }
 
     // Set whether the shear stress term is adjoint consistent (1.0) or adjoint inconsistent (-1.0) for Nitsche imposition
     // NOTE that adjoint inconsistent formulation enjoys improved inf-sup stability for any value of the penalty constant according to Winter et al. (2018)

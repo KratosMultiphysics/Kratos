@@ -193,8 +193,10 @@ public:
     template <std::size_t TDim>
     void CalculatePressureAtSkinNodesTemplated();
     void CalculatePressureAtSkinNodes();
-    //void CalculateVelocityAtSkinNodes(); 
-    //void CalculateDragForceAtSkinPoints(); 
+    template <std::size_t TDim>
+    void CalculateVelocityAtSkinNodesTemplated(); 
+    void CalculateVelocityAtSkinNodes(); 
+    //void CalculateTractionAtSkinPoints();  //TODO for NURBS?? 
     template <std::size_t TDim>
     void CalculateSkinDragTemplated();
     void CalculateSkinDrag();

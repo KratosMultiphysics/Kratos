@@ -822,6 +822,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("CalculateAndAddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddSkinIntegrationPointConditions)
         .def("FixEnclosedVolumesPressure", &ShiftedBoundaryPointBasedInterfaceUtility::FixEnclosedVolumesPressure)
         .def("CalculatePressureAtSkinNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodes)
+        .def("CalculateVelocityAtSkinNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodes)
         .def("CalculateSkinDrag", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDrag)
     ;
 
