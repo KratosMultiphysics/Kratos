@@ -19,7 +19,7 @@ namespace Kratos::Testing
 
 namespace
 {
-    void SetLinearSystem(
+    std::size_t SetLinearSystem(
         CsrMatrix<>& rLHS,
         SystemVector<>& rRHS)
     {
@@ -40,6 +40,9 @@ namespace
         aux_data[3] = 5.0;
         aux_data[4] = 1.0;
         rRHS = SystemVector<>(aux_data);
+
+        // Return the system size
+        return rRHS.size();
     }
 }
 
@@ -48,9 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
     // Set up the system to be solved
     CsrMatrix<> LHS;
     SystemVector<> RHS;
-    std::cout << "Before set up" << std::endl;
-    SetLinearSystem(LHS, RHS);
-    std::cout << "After set up" << std::endl;
+    const std::size_t system_size = SetLinearSystem(LHS, RHS);
 
     // Set the linear solver to be tested
     Parameters amgcl_settings(R"({
@@ -62,12 +63,12 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
     auto p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>>(amgcl_settings);
 
     // Solve the problem
-    SystemVector<> sol;
+    SystemVector<> sol(system_size);
     p_linear_solver->Solve(LHS, sol, RHS);
 
     // Check the obtained results
-    KRATOS_WATCH(sol)
-
+    std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
+    KRATOS_EXPECT_VECTOR_NEAR(sol.data(), ref_sol, 1e-12);
 }
 
 }
