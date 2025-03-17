@@ -44,4 +44,15 @@ public:
         ScopedSerializerRegistrationOfAllStressStatePolicies&&) noexcept = default;
 };
 
+class ScopedSerializerRegistrationOfAllYieldSurfaces
+{
+public:
+    ScopedSerializerRegistrationOfAllYieldSurfaces();
+    ~ScopedSerializerRegistrationOfAllYieldSurfaces();
+    ScopedSerializerRegistrationOfAllYieldSurfaces(const ScopedSerializerRegistrationOfAllYieldSurfaces&) = delete;
+    ScopedSerializerRegistrationOfAllYieldSurfaces& operator=(const ScopedSerializerRegistrationOfAllYieldSurfaces&) = delete;
+    ScopedSerializerRegistrationOfAllYieldSurfaces(ScopedSerializerRegistrationOfAllYieldSurfaces&&) noexcept = default;
+    ScopedSerializerRegistrationOfAllYieldSurfaces& operator=(ScopedSerializerRegistrationOfAllYieldSurfaces&&) noexcept = default;
+};
+
 } // namespace Kratos::Testing

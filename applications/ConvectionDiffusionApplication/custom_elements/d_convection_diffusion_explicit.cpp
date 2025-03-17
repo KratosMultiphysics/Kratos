@@ -147,7 +147,7 @@ void DConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
 
     // Iterate over integration points to update subscales on the gauss point
     for (unsigned int g = 0; g < integration_points.size(); g++) {
-        // Caluclate N on the gauss point "g"
+        // Calculate N on the gauss point "g"
         rData.N = row(rData.N_gausspoint,g);
         // Compute tau
         this->DCalculateTau(rData);
@@ -219,7 +219,7 @@ void DConvectionDiffusionExplicit<2,3>::DCalculateRightHandSideInternal(
     const auto& prj = rData.oss_projection;
     const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
+    // This is explicitly done to minimize the matrix accesses
     // The notation DN_i_j means shape function for node i in dimension j
     const double& DN_DX_0_0 = rData.DN_DX(0, 0);
     const double& DN_DX_0_1 = rData.DN_DX(0, 1);
@@ -395,7 +395,7 @@ void DConvectionDiffusionExplicit<3,4>::DCalculateRightHandSideInternal(
     const auto& prj = rData.oss_projection;
     const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
+    // This is explicitly done to minimize the matrix accesses
     // The notation DN_i_j means shape function for node i in dimension j
     const double& DN_DX_0_0 = rData.DN_DX(0,0);
     const double& DN_DX_0_1 = rData.DN_DX(0,1);
@@ -677,7 +677,7 @@ void DConvectionDiffusionExplicit<2,3>::DCalculateOrthogonalSubgridScaleRHSInter
     const auto& v = rData.convective_velocity;
     const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
+    // This is explicitly done to minimize the matrix accesses
     // The notation DN_i_j means shape function for node i in dimension j
     const double& DN_DX_0_0 = rData.DN_DX(0, 0);
     const double& DN_DX_0_1 = rData.DN_DX(0, 1);
@@ -775,7 +775,7 @@ void DConvectionDiffusionExplicit<3,4>::DCalculateOrthogonalSubgridScaleRHSInter
     const auto& v = rData.convective_velocity;
     const auto& phi_subscale_gauss = mUnknownSubScale;
     // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
+    // This is explicitly done to minimize the matrix accesses
     // The notation DN_i_j means shape function for node i in dimension j
     const double& DN_DX_0_0 = rData.DN_DX(0,0);
     const double& DN_DX_0_1 = rData.DN_DX(0,1);
