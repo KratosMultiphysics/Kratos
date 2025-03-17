@@ -1,7 +1,6 @@
 import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.MeshingApplication as Meshing
 import os
 
 def GetFilePath(fileName):
