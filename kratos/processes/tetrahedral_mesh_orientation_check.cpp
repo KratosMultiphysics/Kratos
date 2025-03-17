@@ -51,7 +51,8 @@ void TetrahedralMeshOrientationCheck::Execute()
         GeometryType& r_geometry = it_elem->GetGeometry();
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || //acceptable linear geoms
+            geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D6) { //acceptable quadratic geoms
             const bool switched = this->Orient(r_geometry);
             if (switched)
                 elem_switch_count++;
@@ -81,7 +82,8 @@ void TetrahedralMeshOrientationCheck::Execute()
 
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || //acceptable linear geoms
+            geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D6 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D3) { //acceptable quadratic geoms
             DenseVector<int> ids(r_geometry.size());
 
             for(IndexType i=0; i<ids.size(); i++) {
@@ -110,7 +112,8 @@ void TetrahedralMeshOrientationCheck::Execute()
         GeometryType& r_geometry = it_elem->GetGeometry();
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || //acceptable linear geoms
+            geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D6) { //acceptable quadratic geoms
             // Allocate a work array long enough to contain the Ids of a face
             DenseVector<int> aux( r_geometry.size() - 1);
 
@@ -194,7 +197,8 @@ void TetrahedralMeshOrientationCheck::Execute()
     for (auto& r_cond : mrModelPart.Conditions()) {
         const GeometryType& r_geometry = r_cond.GetGeometry();
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || //acceptable linear geoms
+            geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D6 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D3) { //acceptable quadratic geoms
             KRATOS_ERROR_IF(r_cond.IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
         }
     }
