@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Aron Noordam
 //
 
 #include "linear_nodal_extrapolator.h"
@@ -107,9 +108,8 @@ void LinearNodalExtrapolator::AddRowsForMidsideNodes(const GeometryType& rGeomet
 
 std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::CreateLowerOrderGeometry(const GeometryType& rGeometry)
 {
-    // Sofar this works for 3, 4, 6 and 8 node planar elements
+    // Sofar this works for 3, 4, 6 and 8 node planar elements and 4, 8, 10 and 20 node volume elements
     // for 2 and 3 node line elements the extension is straightforward.
-    // for volume elements ( hexa, tetra, wedge ) the midside node interpolation step is more elaborate
     switch (rGeometry.size()) {
     case 6:
         return std::make_unique<Triangle2D3<Node>>(rGeometry(0), rGeometry(1), rGeometry(2));
@@ -123,7 +123,6 @@ std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::
             return nullptr;
         }
     case 10:
-
         return std::make_unique<Tetrahedra3D4<Node>>(rGeometry(0), rGeometry(1), rGeometry(2), rGeometry(3));
 
     case 20:
