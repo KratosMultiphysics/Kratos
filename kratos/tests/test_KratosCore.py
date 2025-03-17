@@ -93,6 +93,7 @@ import test_stl_io
 import test_find_conditions_neighbours_process
 import test_calculate_nodal_distance_to_skin_process
 import test_compute_nodal_gradient_process
+import test_search_wrapper
 import test_voxel_modeler
 import test_model_part_utils_connectivity_generations
 import test_duplicate_mesh_modeler
@@ -100,6 +101,7 @@ import test_obj_io
 import test_import_obj_modeler
 import test_vectorized_interpolation
 import test_clean_up_problematic_triangles_modeler
+import test_tetrahedral_mesh_orientation_check
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -217,6 +219,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_find_conditions_neighbours_process.TestFindConditionsNeighboursProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_nodal_distance_to_skin_process.TestCalculateNodalDistanceToSkinProcessCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_compute_nodal_gradient_process.TestComputeNodalGradientProcessCoarseSphere]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_search_wrapper.TestSearchWrapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestVoxelMeshModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestOpenStructureVoxelizer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestBoundaryConditionVoxelizer]))
@@ -226,6 +229,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_import_obj_modeler.TestImportOBJModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vectorized_interpolation.TestVectorizedInterpolation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_clean_up_problematic_triangles_modeler.TestCleanUpProblematicTrianglesModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tetrahedral_mesh_orientation_check.TestTetrahedralMeshOrientationCheck]))
 
 
     if sympy_available:
