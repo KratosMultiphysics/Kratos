@@ -234,9 +234,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSi
     std::vector<array_1d<double, 3>> calculated_fluid_flux_at_integration_points;
     element->CalculateOnIntegrationPoints(
         FLUID_FLUX_VECTOR, calculated_fluid_flux_at_integration_points, process_info);
-    for (auto i = std::size_t{0}; i < calculated_fluid_flux_at_integration_points.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_fluid_flux_at_integration_points[i],
-                                           (array_1d<double, 3>{0., 9.084, 0.}), Defaults::relative_tolerance);
+    for (const auto& calculated_fluid_flux : calculated_fluid_flux_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+            calculated_fluid_flux, (array_1d<double, 3>{0., 9.084, 0.}), Defaults::relative_tolerance);
     }
 }
 
@@ -260,15 +260,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
     // Assert
     Matrix expected_left_hand_side(9, 9);
     // clang-format off
-    expected_left_hand_side <<= 5000000,0,-5000000,0,0,0,0,0,0,
-                                0,2500000,2500000,-2500000,-2500000,0,0,0,0,
-                               -5000000,2500000,7500000,-2500000,-2500000,0,0,0,0,
-                                0,-2500000,-2500000,7500000,2500000,-5000000,0,0,0,
-                                0,-2500000,-2500000,2500000,2500000,0,0,0,0,
-                                0,0,0,-5000000,0,5000000,0,0,0,
-                                0,0,0,0,0,0,-0.00045419999999999998,0.00045419999999999998,0,
-                                0,0,0,0,0,0,0.00045419999999999998,-0.00090839999999999996,0.00045419999999999998,
-                                0,0,0,0,0,0,0,0.00045419999999999998,-0.00045419999999999998;
+    expected_left_hand_side <<= 5000000, 0, -5000000, 0, 0, 0, 0, 0, 0,
+                                0, 2500000, 2500000, -2500000, -2500000, 0, 0, 0, 0,
+                               -5000000, 2500000, 7500000, -2500000, -2500000, 0, 0, 0, 0,
+                                0, -2500000, -2500000, 7500000, 2500000, -5000000, 0, 0, 0,
+                                0, -2500000, -2500000, 2500000, 2500000, 0, 0, 0, 0,
+                                0, 0, 0, -5000000, 0, 5000000, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, -0.0004542, 0.0004542, 0,
+                                0, 0, 0, 0, 0, 0, 0.0004542, -0.0009084, 0.0004542,
+                                0, 0, 0, 0, 0, 0, 0, 0.0004542, -0.0004542;
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
@@ -319,50 +319,50 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
                                           calculated_values_at_integration_points, process_info);
     Vector expected_values_at_integration_point(4);
     expected_values_at_integration_point <<= 300000, 150000, 0, -75000;
-    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
-                                           expected_values_at_integration_point, Defaults::relative_tolerance);
+    for (const auto& calculated_cauchy_stress_vector : calculated_values_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_cauchy_stress_vector, expected_values_at_integration_point,
+                                           Defaults::relative_tolerance);
     }
 
     element->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, calculated_values_at_integration_points, process_info);
     expected_values_at_integration_point <<= 310000, 160000, 10000, -75000;
-    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
-                                           expected_values_at_integration_point, Defaults::relative_tolerance);
+    for (const auto& calculated_total_stress_vector : calculated_values_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_total_stress_vector, expected_values_at_integration_point,
+                                           Defaults::relative_tolerance);
     }
 
     element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR,
                                           calculated_values_at_integration_points, process_info);
     expected_values_at_integration_point <<= 0.03, 0.015, 0, -0.015;
-    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
+    for (const auto& calculated_engineering_strain_vector : calculated_values_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_engineering_strain_vector,
                                            expected_values_at_integration_point, Defaults::relative_tolerance);
     }
 
     element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,
                                           calculated_values_at_integration_points, process_info);
-    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
+    for (const auto& calculated_green_lagrange_strain_vector : calculated_values_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_green_lagrange_strain_vector,
                                            expected_values_at_integration_point, Defaults::relative_tolerance);
     }
 
     // getting a value from properties
-    Vector initial_strain_vectop(4);
-    initial_strain_vectop <<= 10000, -10000, 5000, -5000;
-    element->GetProperties().SetValue(INITIAL_STRAIN_VECTOR, initial_strain_vectop);
+    Vector initial_strain_vector(4);
+    initial_strain_vector <<= 10000, -10000, 5000, -5000;
+    element->GetProperties().SetValue(INITIAL_STRAIN_VECTOR, initial_strain_vector);
     element->CalculateOnIntegrationPoints(INITIAL_STRAIN_VECTOR,
                                           calculated_values_at_integration_points, process_info);
-    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
-                                           initial_strain_vectop, Defaults::relative_tolerance);
+    for (const auto& calculated_initial_strain_vector : calculated_values_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_initial_strain_vector, initial_strain_vector,
+                                           Defaults::relative_tolerance);
     }
 
     // getting values from a constitutive law
     calculated_values_at_integration_points.clear();
     element->CalculateOnIntegrationPoints(KIRCHHOFF_STRESS_VECTOR,
                                           calculated_values_at_integration_points, process_info);
-    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
-        KRATOS_EXPECT_EQ(calculated_values_at_integration_points[i].empty(), true);
+    for (const auto& kirchhoff_stress_vector : calculated_values_at_integration_points) {
+        KRATOS_EXPECT_EQ(kirchhoff_stress_vector.empty(), true);
     }
 }
 
@@ -473,7 +473,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_FinalizeSolutionStep, KratosGeoM
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForFluidFluxCheck(element);
     element->Initialize(process_info);
-    element->InitializeNonLinearIteration(process_info);
+    element->FinalizeNonLinearIteration(process_info);
 
     // Act
     element->FinalizeSolutionStep(process_info);
@@ -513,7 +513,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
     // Assert
     std::vector<Vector> calculated_cauchy_stress_vectors;
     element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, calculated_cauchy_stress_vectors, process_info);
-
     KRATOS_EXPECT_EQ(calculated_cauchy_stress_vectors.size(), cauchy_stress_vectors.size());
     for (auto i = std::size_t{0}; i < calculated_cauchy_stress_vectors.size(); ++i) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_cauchy_stress_vectors[i],
@@ -548,27 +547,31 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
 
     element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_TENSOR, calculated_tensors, process_info);
     expected_tensor <<= 0.03, -0.0075, 0, -0.0075, 0.015, 0, 0, 0, 0;
-    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_tensor, Defaults::relative_tolerance);
+    for (const auto& calculated_engineering_strain_tensor : calculated_tensors) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_engineering_strain_tensor, expected_tensor,
+                                           Defaults::relative_tolerance);
     }
 
     element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, calculated_tensors, process_info);
-    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_tensor, Defaults::relative_tolerance);
+    for (const auto& calculated_green_lagrange_strain_tensor : calculated_tensors) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_green_lagrange_strain_tensor, expected_tensor,
+                                           Defaults::relative_tolerance);
     }
 
     element->CalculateOnIntegrationPoints(PERMEABILITY_MATRIX, calculated_tensors, process_info);
     Matrix expected_matrix(2, 2);
     expected_matrix <<= 9.084e-06, 0, 0, 9.084e-06;
-    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_matrix, Defaults::relative_tolerance);
+    for (const auto& calculated_permeability_matrix : calculated_tensors) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_permeability_matrix, expected_matrix,
+                                           Defaults::relative_tolerance);
     }
 
     // getting from constitutive law
     element->CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX, calculated_tensors, process_info);
     expected_matrix <<= 0, 0, 0, 0;
-    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_matrix, Defaults::relative_tolerance);
+    for (const auto& calculated_constitutive_matrix : calculated_tensors) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_constitutive_matrix, expected_matrix,
+                                           Defaults::relative_tolerance);
     }
 }
 
