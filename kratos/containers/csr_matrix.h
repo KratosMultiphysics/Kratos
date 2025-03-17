@@ -115,18 +115,30 @@ public:
         SetValue(0.0);
     }
 
-    CsrMatrix(const MatrixMapType& matrix_map)
+    CsrMatrix(const MatrixMapType& MatrixMap)
     {
+        // Set sparse graph from matrix map
         SparseGraph<TIndexType> Agraph;
-        for(const auto& item : matrix_map){
+        for (const auto& item : MatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             Agraph.AddEntry(I,J);
         }
         Agraph.Finalize();
 
+        // Set up CSR matrix arrays and sizes from sparse graph
+        TIndexType row_data_size = 0;
+        TIndexType col_data_size = 0;
+        Agraph.ExportCSRArrays(mpRowIndicesData, row_data_size, mpColIndicesData, col_data_size);
+        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, row_data_size);
+        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, col_data_size);
+        mNrows = size1();
+        ComputeColSize();
+        ResizeValueData(mColIndices.size());
+
+        // Assemble data from matrix map
         this->BeginAssemble();
-        for(const auto item : matrix_map){
+        for (const auto item : MatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             TDataType value = item.second;

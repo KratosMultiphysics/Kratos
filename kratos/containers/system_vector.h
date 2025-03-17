@@ -185,7 +185,11 @@ public:
     }
 
     /// Assignment operator.
-    SystemVector& operator=(SystemVector const& rOtherVector){
+    SystemVector& operator=(SystemVector const& rOtherVector)
+    {
+        mpComm = rOtherVector.mpComm;
+        mData.resize(rOtherVector.size(), false);
+
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] = rOtherVector[i];
         });
