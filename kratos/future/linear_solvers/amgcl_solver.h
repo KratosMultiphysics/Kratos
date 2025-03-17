@@ -106,7 +106,7 @@ void KRATOS_API(KRATOS_CORE) AMGCLSolve(
 template<
     class TMatrixType,
     class TVectorType,
-    class TReordererType = Reorderer<TMatrixType, TVectorType> >
+    class TReordererType = Future::Reorderer<TMatrixType, TVectorType> >
 class AMGCLSolver : public Future::LinearSolver< TMatrixType, TVectorType, TReordererType>
 {
 public:

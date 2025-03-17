@@ -163,6 +163,7 @@ public:
         : mpModelPart(&rModelPart)
         , mpScheme(pScheme)
         , mpLinearSolver(pLinearSolver)
+        , mMoveMeshFlag(MoveMeshFlag)
         , mReformDofSetAtEachStep(ReformDofSetAtEachStep)
         , mComputeReactions(ComputeReactions)
     {
@@ -507,9 +508,11 @@ public:
      */
     Parameters GetDefaultParameters() const
     {
+        //TODO: move_mesh_flag --> move_mesh (provide backwards compatibility)
         Parameters default_parameters = Parameters(R"(
         {
             "name"                         : "linear_strategy",
+            "move_mesh"                    : false,
             "reform_dofs_at_each_step"     : false,
             "compute_reactions"            : false,
             "linear_solver_settings"       : {},
@@ -790,6 +793,7 @@ protected:
     void AssignSettings(const Parameters ThisParameters)
     {
         // BaseType::AssignSettings(ThisParameters); // TODO: Once we have a base class
+        mMoveMeshFlag = ThisParameters["move_mesh"].GetBool();
         mComputeReactions = ThisParameters["compute_reactions"].GetBool();
         mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
 

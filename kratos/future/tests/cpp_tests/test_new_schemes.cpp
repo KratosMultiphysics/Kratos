@@ -218,22 +218,35 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    auto p_amgcl_solver = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>(amgcl_settings);
-    auto p_skyline_lu_solver = Future::SkylineLUFactorizationSolver<CsrMatrix<>, SystemVector<>>();
+    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
+    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
-    // // Parameters strategy_settings = Parameters(R"({
-    // // })");
-    // // auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>(r_test_model_part, strategy_settings);
-    // using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
-    // auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>(r_test_model_part, p_scheme, p_amgcl_solver);
-    // p_strategy->Initialize();
-    // p_strategy->Check();
-    // p_strategy->InitializeSolutionStep();
-    // p_strategy->Predict();
-    // p_strategy->SolveSolutionStep();
-    // p_strategy->FinalizeSolutionStep();
-    // p_strategy->Clear();
+    Parameters strategy_settings = Parameters(R"({
+        "move_mesh" : false
+    })");
+    auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>(r_test_model_part, p_scheme, p_amgcl_solver);
+
+    // Apply Dirichlet BCs
+    auto p_node_1 = r_test_model_part.pGetNode(1);
+    p_node_1->Fix(DISTANCE);
+    p_node_1->FastGetSolutionStepValue(DISTANCE, 0, 1.0);
+
+    // Solve the problem
+    p_strategy->Initialize();
+    p_strategy->Check();
+    p_strategy->InitializeSolutionStep();
+    p_strategy->Predict();
+    p_strategy->SolveSolutionStep();
+    p_strategy->FinalizeSolutionStep();
+    p_strategy->Clear();
+
+    // Check results
+    std::cout << std::setprecision(12) << r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE) << std::endl;
+    std::cout << std::setprecision(12) << r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE) << std::endl;
+    std::cout << std::setprecision(12) << r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE) << std::endl;
+
 #else
     true;
 #endif
