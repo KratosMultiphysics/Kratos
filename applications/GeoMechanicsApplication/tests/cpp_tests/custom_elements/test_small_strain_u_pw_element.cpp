@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMech
     KRATOS_EXPECT_EQ(p_integration_method, expected_integration_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCheckDoesNotThrowOnCorrectInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info                     = ProcessInfo{};
@@ -209,7 +209,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCheckDoesNotThrowOnCorrectInput, 
     KRATOS_EXPECT_EQ(element->Check(process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info = ProcessInfo{};
@@ -240,7 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateRightHandSid
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateLeftHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info = ProcessInfo{};
@@ -274,7 +274,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateLeftHandSide
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info = ProcessInfo{};
@@ -296,7 +296,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeSolutionStep, KratosGeo
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIterationAndCalculateOnIntegrationPointsVectors,
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndCalculateOnIntegrationPointsVectors,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -366,7 +366,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIterationAndCa
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculateOnIntegrationPointsVariables, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVariables, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info = ProcessInfo{};
@@ -460,7 +460,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculateOnIntegrationPointsVaria
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementFinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info = ProcessInfo{};
@@ -484,7 +484,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementFinalizeSolutionStep, KratosGeoMe
     KRATOS_EXPECT_DOUBLE_EQ(element->GetGeometry()[2].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 4.542);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementSetValuesOnIntegrationPointsMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info = ProcessInfo{};
