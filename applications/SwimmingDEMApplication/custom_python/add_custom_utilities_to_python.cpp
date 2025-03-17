@@ -279,10 +279,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("GetPorosityField", &TimeDependantForceField::GetPorosityField)
         ;
 
-    // py::class_<PoiseuilleTorus, PoiseuilleTorus::Pointer, VelocityField> (m, "PoiseuilleTorus")
-    //     .def(py::init<const double, const double, const double>())
-    //     ;
-
     py::class_<SpaceTimeRule> (m, "SpaceTimeRule")
         .def(py::init<>())
         ;
@@ -575,6 +571,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<ErrorNormTorusCalculator> (m, "ErrorNormTorusCalculator")
         .def(py::init<const double, const double, const double>())
+        .def("getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues", &ErrorNormTorusCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues)
+        .def("getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues", &ErrorNormTorusCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues)
+        .def("getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues", &ErrorNormTorusCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues)
+        .def("getL2NormFluidAccelWithRecoveryUsingGaussExactValues", &ErrorNormTorusCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues)
         ;
 
     py::class_<MeshRotationUtility> (m, "MeshRotationUtility")

@@ -23,8 +23,6 @@
 #include "includes/kratos_parameters.h"
 #include "includes/process_info.h"
 
-#include "swimming_DEM_application.h"
-
 namespace Kratos
 {
 
@@ -47,28 +45,28 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ErrorNormTorusCalculator);
 
-ErrorNormTorusCalculator(const double major_radius, const double minor_radius, const double center_velocity): mMajorRadius(major_radius), mMinorRadius(minor_radius), mCenterVelocity(center_velocity)
-{}
+    ErrorNormTorusCalculator(const double major_radius, const double minor_radius, const double center_velocity): mMajorRadius(major_radius), mMinorRadius(minor_radius), mCenterVelocity(center_velocity)
+    {}
 
-virtual ~ErrorNormTorusCalculator(){}
+    double getDistanceToCenter(const array_1d<double, 3>& coor);
+    double getVelocityModule(const array_1d<double, 3>& coor);
+    array_1d<double, 3> getVelocity(const array_1d<double, 3>& coor);
+    void CalculateMaterialAcceleration(const array_1d<double, 3>& coor, array_1d<double, 3>& accel);
 
-double getDistanceToCenter(const array_1d<double, 3>& coor);
-double getVelocityModule(const array_1d<double, 3>& coor);
-double getThetaAngle(const array_1d<double, 3>& coor);
-void CalculateVelocity(const array_1d<double, 3>& coor, array_1d<double, 3>& vel);
-void CalculateMaterialAcceleration(const array_1d<double, 3>& coor, array_1d<double, 3>& accel);
+    double getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues(ModelPart& r_model_part);   // Get the L2 norm using the shape functions (no recovered field)
+    double getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues(ModelPart& r_model_part);  // Get the L2 norm using the recovered field at the nodes, and then interpolated at the gauss points
+    double getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues(ModelPart& r_model_part);   // Get the L2 norm using the shape functions (no recovered field)
+    double getL2NormFluidAccelWithRecoveryUsingGaussExactValues(ModelPart& r_model_part);  // Get the L2 norm using the exact values 
 
-double getMaterialAccelerationL2NormExactGaussPointsValues(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rExact_Variable);
-double getMaterialAccelerationL2NormUsingShapeFunctionsExactNodesValues(ModelPart& r_model_part, const Variable<array_1d<double,3>>& rExact_Variable);
-double getMaterialAccelerationL2NormUsingShapeFunctionsExactGaussPointsValues(ModelPart& r_model_part);
+    virtual ~ErrorNormTorusCalculator(){}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
 private:
-const double mMajorRadius;
-const double mMinorRadius;
-const double mCenterVelocity;
+    const double mMajorRadius;
+    const double mMinorRadius;
+    const double mCenterVelocity;
 
 }; // Class ErrorNormTorusCalculator
 
