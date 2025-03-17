@@ -319,7 +319,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIterationAndCa
                                           calculated_values_at_integration_points, process_info);
     Vector expected_values_at_integration_point(4);
     expected_values_at_integration_point <<= 300000, 150000, 0, -75000;
-    ;
     for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
                                            expected_values_at_integration_point, Defaults::relative_tolerance);
@@ -350,7 +349,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIterationAndCa
     // getting a value from properties
     Vector initial_strain_vectop(4);
     initial_strain_vectop <<= 10000, -10000, 5000, -5000;
-    ;
     element->GetProperties().SetValue(INITIAL_STRAIN_VECTOR, initial_strain_vectop);
     element->CalculateOnIntegrationPoints(INITIAL_STRAIN_VECTOR,
                                           calculated_values_at_integration_points, process_info);
@@ -389,7 +387,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculateOnIntegrationPointsVaria
     element->CalculateOnIntegrationPoints(VON_MISES_STRESS, calculated_values_at_integration_points, process_info);
     Vector expected_values_at_integration_point(3);
     expected_values_at_integration_point <<= 290474, 290474, 290474;
-    ;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
