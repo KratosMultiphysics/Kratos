@@ -18,8 +18,11 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solving_strategies/schemes/new_scheme.h"
 #include "utilities/builtin_timer.h"
+
+#ifdef KRATOS_USE_FUTURE
+#include "future/solving_strategies/schemes/new_scheme.h"
+#endif
 
 namespace Kratos
 {

@@ -21,12 +21,12 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "testing/testing.h"
-#include "solving_strategies/schemes/new_scheme.h"
-#include "solving_strategies/strategies/linear_strategy.h"
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
+#include "future/solving_strategies/schemes/new_scheme.h"
+#include "future/solving_strategies/strategies/linear_strategy.h"
 #endif
 
 namespace Kratos::Testing
