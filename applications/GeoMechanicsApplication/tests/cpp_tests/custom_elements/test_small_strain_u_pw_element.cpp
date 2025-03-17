@@ -8,9 +8,9 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Wijtze Pieter Kikstra
+//                   Gennady Markelov
 //
 
-#include "containers/variable.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
