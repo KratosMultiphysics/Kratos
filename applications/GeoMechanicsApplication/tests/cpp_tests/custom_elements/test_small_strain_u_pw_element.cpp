@@ -66,19 +66,35 @@ std::shared_ptr<Properties> SetProperties()
     return p_properties;
 }
 
-void SetSolutionStepValues(const intrusive_ptr<UPwSmallStrainElement<2, 3>>& rElement)
+void SetSolutionStepValuesForFluidFluxCheck(const intrusive_ptr<UPwSmallStrainElement<2, 3>>& rElement)
 {
-    const auto zero_array_1d = array_1d<double, 3>{0.0, 0.0, 0.0};
+    const auto zero_values = array_1d<double, 3>{0.0, 0.0, 0.0};
     for (auto& r_node : rElement->GetGeometry()) {
-        r_node.FastGetSolutionStepValue(DISPLACEMENT) = zero_array_1d;
-        r_node.FastGetSolutionStepValue(VELOCITY)     = zero_array_1d;
+        r_node.FastGetSolutionStepValue(DISPLACEMENT) = zero_values;
+        r_node.FastGetSolutionStepValue(VELOCITY)     = zero_values;
         // Zero acceleration -> no Fluid Body Flow
-        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = zero_array_1d;
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = zero_values;
         // Zero pressure gradient -> no permeability flow
         r_node.FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
         r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
     }
     rElement->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 2.0E4;
+}
+
+void SetSolutionStepValuesForGeneralCheck(const intrusive_ptr<UPwSmallStrainElement<2, 3>>& rElement)
+{
+    const auto zero_values = array_1d<double, 3>{0.0, 0.0, 0.0};
+    const auto gravity     = array_1d<double, 3>{0.0, -10.0, 0.0};
+
+    for (auto& r_node : rElement->GetGeometry()) {
+        r_node.FastGetSolutionStepValue(VELOCITY)            = zero_values;
+        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity;
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE)      = 1.0E4;
+        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE)   = 0.0;
+    }
+    rElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{-0.015, 0.0, 0.0};
+    rElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.015, 0.00, 0.0};
+    rElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.015, 0.0};
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -187,7 +203,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCheckDoesNotThrowOnCorrectInput, 
 
     Model model;
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
-    SetSolutionStepValues(element);
+    SetSolutionStepValuesForGeneralCheck(element);
 
     // Act, no exceptions on correct input
     KRATOS_EXPECT_EQ(element->Check(process_info), 0);
@@ -203,7 +219,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateRightHandSid
 
     Model model;
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
-    SetSolutionStepValues(element);
+    SetSolutionStepValuesForFluidFluxCheck(element);
 
     // Act
     element->Initialize(process_info);
@@ -234,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculatesSteadyStateLeftHandSide
 
     Model model;
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
-    SetSolutionStepValues(element);
+    SetSolutionStepValuesForGeneralCheck(element);
 
     // Act
     element->Initialize(process_info);
@@ -268,7 +284,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeSolutionStep, KratosGeo
 
     Model model;
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
-    SetSolutionStepValues(element);
+    SetSolutionStepValuesForGeneralCheck(element);
 
     // Act, no exceptions on correct input
     element->Initialize(process_info);
@@ -280,19 +296,19 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeSolutionStep, KratosGeo
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIterationAndCalculateOnIntegrationPoints,
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIterationAndCalculateOnIntegrationPointsVectors,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info = ProcessInfo{};
     // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
-    process_info[VELOCITY_COEFFICIENT]    = 0.0;
+    process_info[DT_PRESSURE_COEFFICIENT] = 1.0;
+    process_info[VELOCITY_COEFFICIENT]    = 1.0;
 
     Model model;
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
-    SetSolutionStepValues(element);
+    SetSolutionStepValuesForGeneralCheck(element);
     element->Initialize(process_info);
 
     // Act and Assert
@@ -301,30 +317,24 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIterationAndCa
     std::vector<Vector> calculated_values_at_integration_points;
     element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
                                           calculated_values_at_integration_points, process_info);
-    Vector expected_values_at_integration_point = ZeroVector(4);
+    Vector expected_values_at_integration_point(4);
+    expected_values_at_integration_point <<= 300000, 150000, 0, -75000;
+    ;
     for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
                                            expected_values_at_integration_point, Defaults::relative_tolerance);
     }
 
     element->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, calculated_values_at_integration_points, process_info);
-    std::vector<Vector> expected_values_at_integration_points;
-    expected_values_at_integration_point <<= 11666.666, 11666.666, 11666.666, 0;
-    expected_values_at_integration_points.push_back(expected_values_at_integration_point);
-    expected_values_at_integration_points.push_back(expected_values_at_integration_point);
-    expected_values_at_integration_point <<= 16666.666, 16666.666, 16666.666, 0;
-    expected_values_at_integration_points.push_back(expected_values_at_integration_point);
-    expected_values_at_integration_point <<= 11666.666, 11666.666, 11666.666, 0;
-    expected_values_at_integration_points.push_back(expected_values_at_integration_point);
+    expected_values_at_integration_point <<= 310000, 160000, 10000, -75000;
     for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
-                                           expected_values_at_integration_points[i],
-                                           Defaults::relative_tolerance);
+                                           expected_values_at_integration_point, Defaults::relative_tolerance);
     }
 
     element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR,
                                           calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point = ZeroVector(4);
+    expected_values_at_integration_point <<= 0.03, 0.015, 0, -0.015;
     for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
                                            expected_values_at_integration_point, Defaults::relative_tolerance);
@@ -337,12 +347,120 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementInitializeNonLinearIterationAndCa
                                            expected_values_at_integration_point, Defaults::relative_tolerance);
     }
 
-    // getting values from a constitutive law
-    element->CalculateOnIntegrationPoints(BIOT_STRAIN_VECTOR, calculated_values_at_integration_points, process_info);
+    // getting a value from properties
+    Vector initial_strain_vectop(4);
+    initial_strain_vectop <<= 10000, -10000, 5000, -5000;
+    ;
+    element->GetProperties().SetValue(INITIAL_STRAIN_VECTOR, initial_strain_vectop);
+    element->CalculateOnIntegrationPoints(INITIAL_STRAIN_VECTOR,
+                                          calculated_values_at_integration_points, process_info);
     for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points[i],
-                                           expected_values_at_integration_point, Defaults::relative_tolerance);
+                                           initial_strain_vectop, Defaults::relative_tolerance);
     }
+
+    // getting values from a constitutive law
+    calculated_values_at_integration_points.clear();
+    element->CalculateOnIntegrationPoints(KIRCHHOFF_STRESS_VECTOR,
+                                          calculated_values_at_integration_points, process_info);
+    for (auto i = std::size_t{0}; i < calculated_values_at_integration_points.size(); ++i) {
+        KRATOS_EXPECT_EQ(calculated_values_at_integration_points[i].empty(), true);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculateOnIntegrationPointsVariables, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto process_info = ProcessInfo{};
+    // No storage, no dynamics, only statics and steady state
+    process_info[DT_PRESSURE_COEFFICIENT] = 1.0;
+    process_info[VELOCITY_COEFFICIENT]    = 1.0;
+
+    Model model;
+    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
+    SetSolutionStepValuesForGeneralCheck(element);
+    element->Initialize(process_info);
+
+    // Act and Assert
+    element->InitializeNonLinearIteration(process_info);
+
+    std::vector<double> calculated_values_at_integration_points;
+    element->CalculateOnIntegrationPoints(VON_MISES_STRESS, calculated_values_at_integration_points, process_info);
+    Vector expected_values_at_integration_point(3);
+    expected_values_at_integration_point <<= 290474, 290474, 290474;
+    ;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(MEAN_EFFECTIVE_STRESS,
+                                          calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 150000, 150000, 150000;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(MEAN_STRESS, calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 160000, 160000, 160000;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(ENGINEERING_VON_MISES_STRAIN,
+                                          calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 0.0244949, 0.0244949, 0.0244949;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(ENGINEERING_VOLUMETRIC_STRAIN,
+                                          calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 0.045, 0.045, 0.045;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_VON_MISES_STRAIN,
+                                          calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 0.0244949, 0.0244949, 0.0244949;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_VOLUMETRIC_STRAIN,
+                                          calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 0.045, 0.045, 0.045;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(DEGREE_OF_SATURATION,
+                                          calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 1, 1, 1;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(HYDRAULIC_HEAD, calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= -0.833333, -0.833333, -0.3333333;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(CONFINED_STIFFNESS, calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 1e+07, 1e+07, 1e+07;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    element->CalculateOnIntegrationPoints(SHEAR_STIFFNESS, calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 5e+06, 5e+06, 5e+06;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    // get value from properties
+    element->CalculateOnIntegrationPoints(BULK_MODULUS_FLUID, calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 200, 200, 200;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
+
+    // get value from constitutive law
+    calculated_values_at_integration_points.clear();
+    element->CalculateOnIntegrationPoints(STRAIN_ENERGY, calculated_values_at_integration_points, process_info);
+    expected_values_at_integration_point <<= 0, 0, 0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
+                                       expected_values_at_integration_point, Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementFinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -356,7 +474,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementFinalizeSolutionStep, KratosGeoMe
     Model model;
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
-    SetSolutionStepValues(element);
+    SetSolutionStepValuesForFluidFluxCheck(element);
     element->Initialize(process_info);
     element->InitializeNonLinearIteration(process_info);
 
@@ -369,7 +487,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementFinalizeSolutionStep, KratosGeoMe
     KRATOS_EXPECT_DOUBLE_EQ(element->GetGeometry()[2].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 4.542);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementSetValuesOnIntegrationPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementSetValuesOnIntegrationPointsMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto process_info = ProcessInfo{};
@@ -380,7 +498,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementSetValuesOnIntegrationPoints, Kra
     Model model;
     auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
-    SetSolutionStepValues(element);
+    SetSolutionStepValuesForGeneralCheck(element);
     element->Initialize(process_info);
 
     // Act
@@ -405,46 +523,56 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementSetValuesOnIntegrationPoints, Kra
                                            cauchy_stress_vectors[i], Defaults::relative_tolerance);
     }
 
-    std::vector<Matrix> calculated_cauchy_stress_tensors;
-    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, calculated_cauchy_stress_tensors, process_info);
-    Matrix stress_tensor(3, 3);
-    stress_tensor <<= 1000, 4000, 0, 4000, 2000, 0, 0, 0, 3000;
-    std::vector<Matrix> expected_cauchy_stress_tensors;
-    expected_cauchy_stress_tensors.push_back(stress_tensor);
-    stress_tensor <<= 2000, 5000, 0, 5000, 3000, 0, 0, 0, 4000;
-    expected_cauchy_stress_tensors.push_back(stress_tensor);
-    stress_tensor <<= 3000, 6000, 0, 6000, 4000, 0, 0, 0, 5000;
-    expected_cauchy_stress_tensors.push_back(stress_tensor);
-    for (auto i = std::size_t{0}; i < calculated_cauchy_stress_tensors.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_cauchy_stress_tensors[i],
-                                           expected_cauchy_stress_tensors[i], Defaults::relative_tolerance);
+    std::vector<Matrix> calculated_tensors;
+    element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, calculated_tensors, process_info);
+    Matrix expected_tensor(3, 3);
+    expected_tensor <<= 1000, 4000, 0, 4000, 2000, 0, 0, 0, 3000;
+    std::vector<Matrix> expected_tensors;
+    expected_tensors.push_back(expected_tensor);
+    expected_tensor <<= 2000, 5000, 0, 5000, 3000, 0, 0, 0, 4000;
+    expected_tensors.push_back(expected_tensor);
+    expected_tensor <<= 3000, 6000, 0, 6000, 4000, 0, 0, 0, 5000;
+    expected_tensors.push_back(expected_tensor);
+    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_tensors[i], Defaults::relative_tolerance);
     }
-}
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElementCalculateOnIntegrationPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto process_info = ProcessInfo{};
-    // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
-    process_info[VELOCITY_COEFFICIENT]    = 0.0;
+    element->CalculateOnIntegrationPoints(TOTAL_STRESS_TENSOR, calculated_tensors, process_info);
+    expected_tensors.clear();
+    expected_tensor <<= 11000, 4000, 0, 4000, 12000, 0, 0, 0, 13000;
+    expected_tensors.push_back(expected_tensor);
+    expected_tensor <<= 12000, 5000, 0, 5000, 13000, 0, 0, 0, 14000;
+    expected_tensors.push_back(expected_tensor);
+    expected_tensor <<= 13000, 6000, 0, 6000, 14000, 0, 0, 0, 15000;
+    expected_tensors.push_back(expected_tensor);
+    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_tensors[i], Defaults::relative_tolerance);
+    }
 
-    Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
-    element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
-    SetSolutionStepValues(element);
-    element->Initialize(process_info);
-    element->InitializeNonLinearIteration(process_info);
-    element->FinalizeSolutionStep(process_info);
+    element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_TENSOR, calculated_tensors, process_info);
+    expected_tensor <<= 0.03, -0.0075, 0, -0.0075, 0.015, 0, 0, 0, 0;
+    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_tensor, Defaults::relative_tolerance);
+    }
 
-    // Act and Assert
-    std::vector<double> calculated_bishop_coefficient_vector;
-    element->CalculateOnIntegrationPoints(BISHOP_COEFFICIENT, calculated_bishop_coefficient_vector, process_info);
+    element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, calculated_tensors, process_info);
+    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_tensor, Defaults::relative_tolerance);
+    }
 
-    std::vector<double> expected_bishop_coefficient_vector{1, 1, 1};
+    element->CalculateOnIntegrationPoints(PERMEABILITY_MATRIX, calculated_tensors, process_info);
+    Matrix expected_matrix(2, 2);
+    expected_matrix <<= 9.084e-06, 0, 0, 9.084e-06;
+    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_matrix, Defaults::relative_tolerance);
+    }
 
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_bishop_coefficient_vector,
-                                       expected_bishop_coefficient_vector, Defaults::relative_tolerance);
+    // getting from constitutive law
+    element->CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX, calculated_tensors, process_info);
+    expected_matrix <<= 0, 0, 0, 0;
+    for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_matrix, Defaults::relative_tolerance);
+    }
 }
 
 } // namespace Kratos::Testing
