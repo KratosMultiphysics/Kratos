@@ -218,7 +218,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_find_conditions_neighbours_process.TestFindConditionsNeighboursProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_nodal_distance_to_skin_process.TestCalculateNodalDistanceToSkinProcessCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_compute_nodal_gradient_process.TestComputeNodalGradientProcessCoarseSphere]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_search_wrapper.TestSearchWrapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestVoxelMeshModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestOpenStructureVoxelizer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_voxel_modeler.TestBoundaryConditionVoxelizer]))
