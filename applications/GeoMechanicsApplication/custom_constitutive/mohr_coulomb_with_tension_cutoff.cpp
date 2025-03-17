@@ -19,6 +19,8 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <cmath>
+
 namespace
 {
 
@@ -100,7 +102,7 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
 
 void MohrCoulombWithTensionCutOff::CheckProperty(const Properties&       rMaterialProperties,
                                                  const Variable<double>& rVariable,
-                                                 std::optional<double>   MaxValue) const
+                                                 std::optional<double>   MaxValue)
 {
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable))
         << rVariable.Name() << " is not defined for property " << rMaterialProperties.Id() << std::endl;
@@ -183,7 +185,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 }
 
 Vector MohrCoulombWithTensionCutOff::ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector,
-                                                             double TensileStrength) const
+                                                             double TensileStrength)
 {
     Vector result = rPrincipalTrialStressVector;
     result[0]     = TensileStrength;
@@ -192,7 +194,7 @@ Vector MohrCoulombWithTensionCutOff::ReturnStressAtAxialZone(const Vector& rPrin
 }
 
 Vector MohrCoulombWithTensionCutOff::ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
-                                                                    const Vector& rCornerPoint) const
+                                                                    const Vector& rCornerPoint)
 {
     Vector result = rPrincipalTrialStressVector;
     result[0]     = rCornerPoint[0] + rCornerPoint[1];
@@ -231,18 +233,18 @@ bool MohrCoulombWithTensionCutOff::IsStressAtAxialZone(const Vector& rPrincipalT
 
 bool MohrCoulombWithTensionCutOff::IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
                                                               double        DilatancyAngle,
-                                                              const Vector& rCornerPoint) const
+                                                              const Vector& rCornerPoint)
 {
     const auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(rPrincipalTrialStresses);
     return trial_sigma_tau[0] - rCornerPoint[0] - (trial_sigma_tau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
 }
 
-double MohrCoulombWithTensionCutOff::CalculateApex(double FrictionAngle, double Cohesion) const
+double MohrCoulombWithTensionCutOff::CalculateApex(double FrictionAngle, double Cohesion)
 {
     return Cohesion / std::tan(FrictionAngle);
 }
 
-Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensileStrength) const
+Vector MohrCoulombWithTensionCutOff::CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensileStrength)
 {
     // Check whether the tension cut-off lies beyond the apex
     auto result = Vector{ZeroVector(2)};

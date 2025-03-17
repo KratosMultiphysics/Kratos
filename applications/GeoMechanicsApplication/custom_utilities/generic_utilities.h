@@ -31,7 +31,7 @@ public:
     static VectorType PermutedVector(const VectorType& rVector, const IndexSequenceType& rIndices)
     {
         auto result = VectorType(rVector.size());
-        std::transform(rIndices.begin(), rIndices.end(), result.begin(),
+        std::transform(std::begin(rIndices), std::end(rIndices), result.begin(),
                        [&rVector](auto Index) { return rVector[Index]; });
         return result;
     }
