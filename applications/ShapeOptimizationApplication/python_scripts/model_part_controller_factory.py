@@ -43,6 +43,12 @@ class ModelPartController:
                 "max_neighbor_nodes" : 10000,
                 "damping_regions"    : []
             },
+            "thickness_damping" : {
+                "apply_damping"      : false,
+                "recalculate_damping": false,
+                "max_neighbor_nodes" : 10000,
+                "damping_regions"    : []
+            },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
             }
@@ -52,6 +58,7 @@ class ModelPartController:
         self.model_settings["model_import_settings"].ValidateAndAssignDefaults(default_settings["model_import_settings"])
         self.model_settings["damping"].ValidateAndAssignDefaults(default_settings["damping"])
         self.model_settings["direction_damping"].ValidateAndAssignDefaults(default_settings["direction_damping"])
+        self.model_settings["thickness_damping"].ValidateAndAssignDefaults(default_settings["thickness_damping"])
 
         for direction_damping_settings in self.model_settings["direction_damping"]["damping_regions"].values():
             if not direction_damping_settings.Has("max_neighbor_nodes"):
@@ -73,6 +80,7 @@ class ModelPartController:
 
         self.design_surface = None
         self.damping_utility = None
+        self.thickness_damping_utility = None
         self.direction_dampings = []
 
     # --------------------------------------------------------------------------
@@ -81,6 +89,29 @@ class ModelPartController:
         self.__IdentifyDesignSurface()
 
         self.mesh_controller.Initialize()
+
+    def ModifyInitialProperties(self):
+
+        # Search for the maximum property id in the current model
+        # Note that this operation is required to be performed after
+        # the properties have been already set by reading the materials.json
+        max_prop_id = -1
+        model_part_names = self.model.GetModelPartNames()
+        for model_part_name in model_part_names:
+            for prop in self.model.GetModelPart(model_part_name).Properties:
+                if prop.Id > max_prop_id:
+                    max_prop_id = prop.Id
+        max_prop_id = self.optimization_model_part.GetCommunicator().GetDataCommunicator().MaxAll(max_prop_id)
+
+        # copy thickness property and assign to each element and condition
+        for element in self.optimization_model_part.Elements:
+            new_property = KM.Properties(element.Properties)
+            new_property.Id = max_prop_id + 1
+            new_property.SetValue(KM.THICKNESS, element.Properties.GetValue(KM.THICKNESS))
+            element.Properties = new_property
+            condition = self.optimization_model_part.GetCondition(element.Id)
+            condition.Properties = new_property
+            max_prop_id += 1
 
     def InitializeDamping(self):
         """Initialize damping utilities, should be called after mapper is initialized"""
@@ -94,6 +125,11 @@ class ModelPartController:
                 KSO.DirectionDampingUtilities(
                     self.design_surface, direction_damping_settings
                 )
+            )
+
+        if self.model_settings["thickness_damping"]["apply_damping"].GetBool():
+            self.thickness_damping_utility = KSO.ThicknessDampingUtilities(
+                self.design_surface, self.model_settings["thickness_damping"]
             )
 
     # --------------------------------------------------------------------------
@@ -123,6 +159,17 @@ class ModelPartController:
                         self.design_surface, direction_damping_settings
                     )
                 )
+        if self.model_settings["thickness_damping"]["recalculate_damping"].GetBool():
+            self.thickness_damping_utility = KSO.DampingUtilities(
+                self.design_surface, self.model_settings["thickness_damping"]
+            )
+
+    # --------------------------------------------------------------------------
+    def UpdateThicknessAccordingInputVariable(self, InputVariable):
+        self.mesh_controller.UpdateThicknessAccordingInputVariable(InputVariable)
+
+    def UpdateThicknessAccordingInitialAndInputVariable(self, InputVariable):
+        self.mesh_controller.UpdateThicknessAccordingInitialAndInputVariable(InputVariable)
 
     # --------------------------------------------------------------------------
     def SetMeshToReferenceMesh(self):
@@ -163,6 +210,11 @@ class ModelPartController:
 
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.damping_utility.DampNodalVariable(variable)
+
+    # --------------------------------------------------------------------------
+    def DampNodalThicknessVariableIfSpecified(self, variable):
+        if self.model_settings["thickness_damping"]["apply_damping"].GetBool():
+            self.thickness_damping_utility.DampNodalVariable(variable)
 
     # --------------------------------------------------------------------------
     def ComputeUnitSurfaceNormals(self):

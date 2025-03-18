@@ -27,6 +27,7 @@ from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_trust_
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_bead_optimization import ValueLoggerBeadOptimization
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_gradient_projection import ValueLoggerGradientProjection
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_relaxed_gradient_projection import ValueLoggerRelaxedGradientProjection
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_thickness_relaxed_gradient_projection import ValueLoggerThicknessRelaxedGradientProjection
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_shape_fraction_optimization import ValueLoggerShapeFractionOptimization
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.sensitivity_heatmap_logger import (
     SensitivityHeatmapLoggerSteepestDescent,
@@ -55,6 +56,7 @@ class DataLogger():
             "sensitivity_heatmap"       : false,
             "sensitivity_heatmap_settings": {},
             "nodal_results"             : [ "SHAPE_CHANGE" ],
+            "condition_results"         : [],
             "output_format"             : { "name": "vtk" }
         }""")
 
@@ -74,14 +76,19 @@ class DataLogger():
             return ValueLoggerSteepestDescent( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "penalized_projection":
             return ValueLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )
-        elif AlgorithmName == "gradient_projection":
+        elif AlgorithmName == "gradient_projection" or AlgorithmName == "free_thickness_optimization" \
+            or AlgorithmName == "free_thickness_optimization_v2" or AlgorithmName == "thickness_optimization" \
+            or AlgorithmName == "free_thickness_optimization_v3":
             return ValueLoggerGradientProjection( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "trust_region":
             return ValueLoggerTrustRegion( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "bead_optimization":
             return ValueLoggerBeadOptimization( self.Communicator, self.OptimizationSettings )
-        elif AlgorithmName == "relaxed_gradient_projection":
+        elif AlgorithmName == "relaxed_gradient_projection" or AlgorithmName == "free_thickness_optimization_v2_rgp" \
+            or AlgorithmName == "free_thickness_optimization_v3_rgp":
             return ValueLoggerRelaxedGradientProjection(self.Communicator, self.OptimizationSettings)
+        elif AlgorithmName == "free_thickness_rgp":
+            return ValueLoggerThicknessRelaxedGradientProjection(self.Communicator, self.OptimizationSettings)
         elif AlgorithmName == "shape_fraction_optimization":
             return ValueLoggerShapeFractionOptimization( self.Communicator, self.OptimizationSettings )
         else:

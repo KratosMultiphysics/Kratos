@@ -80,14 +80,14 @@
             "project_gradient_on_surface_normals" : true
         }],
         "constraints" : [],
-        "design_variables" : {
+        "design_variables" : [{
             "type"  : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.5,
                 "max_nodes_in_filter_radius" : 1000
             }
-        },
+        }],
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
             "max_iterations"     : 5,

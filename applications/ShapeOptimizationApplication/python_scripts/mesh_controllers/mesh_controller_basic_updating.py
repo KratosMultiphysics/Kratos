@@ -32,4 +32,23 @@ class MeshControllerBasicUpdating(MeshController):
         KSO.MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(variable)
         KM.Logger.PrintInfo("ShapeOpt", "Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
+    # --------------------------------------------------------------------------
+    def UpdateThicknessAccordingInputVariable(self, variable):
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Starting to update the thickness")
+        startTime = timer.time()
+        KSO.MeshControllerUtilities(self.OptimizationModelPart).UpdateThicknessAccordingInputVariable(variable)
+        # KSO.MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(variable)
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for updating the thickness = ",round(timer.time() - startTime,2),"s")
+
+    # --------------------------------------------------------------------------
+    def UpdateThicknessAccordingInitialAndInputVariable(self, variable):
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Starting to update the thickness")
+        startTime = timer.time()
+        KSO.MeshControllerUtilities(self.OptimizationModelPart).UpdateThicknessAccordingInitialAndInputVariable(variable)
+        # KSO.MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(variable)
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for updating the thickness = ",round(timer.time() - startTime,2),"s")
+
+
 # ==============================================================================

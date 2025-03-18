@@ -4,6 +4,10 @@ This module contains an interface to the total volume response function
 import time as timer
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
+except ImportError:
+    KSM = None
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 
 class TotalVolume(ResponseFunctionInterface):
@@ -49,8 +53,14 @@ class TotalVolume(ResponseFunctionInterface):
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         return self.gradient
 
+    def GetElementalGradient(self, variable):
+        if variable != KSM.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
+        return gradient
+
     @staticmethod
     def _GetLabel():
         return "TotalVolume"
-
-

@@ -10,6 +10,10 @@
 
 import time as timer
 import KratosMultiphysics as KM
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
+except ImportError:
+    KSM = None
 from KratosMultiphysics import Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 
@@ -127,6 +131,14 @@ class PackagingResponseBase(ResponseFunctionInterface):
         if variable != KM.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         return self.gradient
+
+    def GetElementalGradient(self, variable):
+        if variable != KSM.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
+        return gradient
 
     def _CalculateDistances(self):
         raise NotImplementedError("_CalculateDistances needs to be implemented by the derived class!")

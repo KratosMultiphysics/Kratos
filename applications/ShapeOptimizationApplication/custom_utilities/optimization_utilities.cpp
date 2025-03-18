@@ -280,6 +280,52 @@ void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,
     }
 }
 
+void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,
+    Matrix& rMatrix,
+    const std::vector<Variable<double>*>& rVariables
+)
+{
+    if ((rMatrix.size1() != rModelPart.NumberOfNodes() || rMatrix.size2() !=  rVariables.size())){
+        rMatrix.resize(rModelPart.NumberOfNodes(), rVariables.size());
+    }
+
+    int i=0;
+    for (auto & node_i : rModelPart.Nodes())
+    {
+        int j=0;
+        for (Variable<double>* p_variable_j : rVariables)
+        {
+            const Variable<double>& r_variable_j = *p_variable_j;
+            double& variable = node_i.FastGetSolutionStepValue(r_variable_j);
+            rMatrix(i, j) = variable;
+            ++j;
+        }
+        ++i;
+    }
+}
+
+void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,
+    Matrix& rMatrix,
+    const std::vector<Vector*>& rGradientVectors
+)
+{
+    const int number_of_design_variables = rGradientVectors[0]->size();
+
+    if ((rMatrix.size1() != number_of_design_variables || rMatrix.size2() !=  rGradientVectors.size())){
+        rMatrix.resize(number_of_design_variables, rGradientVectors.size());
+    }
+
+    for (int i = 0; i < number_of_design_variables; ++i)
+    {
+        int j=0;
+        for (Vector* p_variable_j : rGradientVectors)
+        {
+            rMatrix(i, j) = (*p_variable_j)[i];
+            ++j;
+        }
+    }
+}
+
 void OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection(
     Vector& rObjectiveGradient,
     Matrix& rConstraintGradients,

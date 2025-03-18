@@ -157,7 +157,10 @@ public:
 
 		// First gradients are initialized
 		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
-
+		for (auto& elem_i : mrModelPart.Elements())
+		{
+			elem_i.SetValue(THICKNESS_SENSITIVITY, 0.0);
+		}
 
 		// Gradient calculation
 		// 1st step: Calculate partial derivative of response function w.r.t. node coordinates
@@ -282,6 +285,19 @@ protected:
 					// Assemble sensitivity to node
 					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 				}
+
+				// Pertubation, gradient analysis and recovery of t
+				Vector perturbed_RHS = Vector(0);
+
+				const double t = elem_i.GetProperties().GetValue(THICKNESS);
+				const double perturbed_t = t + mDelta;
+				elem_i.GetProperties().SetValue(THICKNESS, perturbed_t);
+				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
+				elem_i.GetProperties().SetValue(THICKNESS, t);
+				const double gradient = 0.5 * inner_prod(u, (perturbed_RHS - RHS) / mDelta);
+
+				double& sens = elem_i.GetValue(THICKNESS_SENSITIVITY);
+				sens += gradient;
 			}
 		}
 
@@ -336,6 +352,19 @@ protected:
 					// Assemble shape gradient to node
 					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 				}
+
+				// Pertubation, gradient analysis and recovery of t
+				Vector perturbed_RHS = Vector(0);
+
+				const double t = cond_i.GetProperties().GetValue(THICKNESS);
+				const double perturbed_t = t + mDelta;
+				cond_i.GetProperties().SetValue(THICKNESS, perturbed_t);
+				cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
+				cond_i.GetProperties().SetValue(THICKNESS, t);
+				const double gradient = 0.5 * inner_prod(u, (perturbed_RHS - RHS) / mDelta);
+
+				double& sens = cond_i.GetValue(THICKNESS_SENSITIVITY);
+				sens += gradient;
 			}
 		}
 
@@ -399,6 +428,7 @@ protected:
 					// Assemble shape gradient to node
 					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 				}
+
 			}
 		}
 		KRATOS_CATCH("");

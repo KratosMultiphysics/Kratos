@@ -149,6 +149,7 @@ private:
 
     // Variables for mapping
     SparseMatrixType mMappingMatrix;
+    SparseMatrixType mMappingMatrixScalar;
     double mFilterRadius;
 
     Kratos::unique_ptr<SymmetryBase> mpSymmetry;

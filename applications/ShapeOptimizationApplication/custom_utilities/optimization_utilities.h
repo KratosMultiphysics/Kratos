@@ -152,6 +152,21 @@ public:
         Matrix& rMatrix,
         const std::vector<Variable<array_3d>*>& rVariables);
 
+    /**
+     * Assemble the values of the nodal scalar variables into a dense matrix.
+     * One column per variable is created.
+     */
+    static void AssembleMatrix(ModelPart& rModelPart,
+        Matrix& rMatrix,
+        const std::vector<Variable<double>*>& rVariables);
+
+    /**
+     * Assemble the values of gradient vectors into a dense matrix.
+     * One column per variable is created.
+     */
+    static void AssembleMatrix(ModelPart& rModelPart,
+        Matrix& rMatrix,
+        const std::vector<Vector*>& rGradientVectors);
 
     /**
      * Calculate the projection of the objective gradient into the subspace tangent to

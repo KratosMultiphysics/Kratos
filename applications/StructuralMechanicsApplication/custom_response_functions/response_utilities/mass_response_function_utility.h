@@ -222,6 +222,13 @@ public:
 
 		}
 
+		// thickness sensitivity
+		for(auto& element_i : mrModelPart.Elements())
+		{
+			const double gradient = element_i.GetGeometry().Area();
+			element_i.SetValue(THICKNESS_SENSITIVITY, gradient);
+		}
+
 		KRATOS_CATCH("");
 	}
 

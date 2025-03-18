@@ -45,7 +45,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
         self.optimization_settings = optimization_settings
-        self.mapper_settings = optimization_settings["design_variables"]["filter"]
+        self.mapper_settings = optimization_settings["design_variables"][0]["filter"]
 
         self.analyzer = analyzer
         self.communicator = communicator

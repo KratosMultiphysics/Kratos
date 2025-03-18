@@ -47,6 +47,10 @@ FaceAngleResponseFunctionUtility::FaceAngleResponseFunctionUtility(ModelPart& rM
 		KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
 
 	mConsiderOnlyInitiallyFeasible = ResponseSettings["consider_only_initially_feasible"].GetBool();
+	mCheckBothFaceSides = ResponseSettings["check_both_face_sides"].GetBool();
+
+	const double tol = ResponseSettings["tolerance"].GetDouble();
+	mSinTolerance = std::sin(tol * Globals::Pi / 180);
 }
 
 void FaceAngleResponseFunctionUtility::Initialize()
@@ -149,8 +153,16 @@ double FaceAngleResponseFunctionUtility::CalculateConditionValue(const Condition
 	const array_3d local_coords = ZeroVector(3);
 	const array_3d face_normal = rFace.GetGeometry().UnitNormal(local_coords);
 
-	// positive inner product results in negative nodal value to conform to g_i < 0
-	return - ((inner_prod(mMainDirection, face_normal)) - mSinMinAngle);
+	double g_i = 0.0;
+
+	if (mCheckBothFaceSides) {
+		g_i = std::abs(inner_prod(mMainDirection, face_normal)) - mSinTolerance;
+	} else {
+		// positive inner product results in negative nodal value to conform to g_i < 0
+		g_i = - ((inner_prod(mMainDirection, face_normal)) - mSinMinAngle) - mSinTolerance;
+	}
+
+	return g_i;
 }
 
 } // namespace Kratos.

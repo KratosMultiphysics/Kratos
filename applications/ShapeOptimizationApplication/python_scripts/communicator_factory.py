@@ -52,6 +52,10 @@ class Communicator:
         self.list_of_requests[response_id]["calculateGradient"] = True
 
     # --------------------------------------------------------------------------
+    def requestThicknessGradientOf(self, response_id):
+        self.list_of_requests[response_id]["calculateThicknessGradient"] = True
+
+    # --------------------------------------------------------------------------
     def isRequestingValueOf(self, response_id):
         if response_id not in self.list_of_requests.keys():
             return False
@@ -64,6 +68,13 @@ class Communicator:
             return False
         else:
             return self.list_of_requests[response_id]["calculateGradient"]
+
+    # --------------------------------------------------------------------------
+    def isRequestingThicknessGradientOf(self, response_id):
+        if response_id not in self.list_of_requests.keys():
+            return False
+        else:
+            return self.list_of_requests[response_id]["calculateThicknessGradient"]
 
     # --------------------------------------------------------------------------
     def reportValue(self, response_id, value):
@@ -84,6 +95,11 @@ class Communicator:
 
         standardized_gradient = self.__translateGradientToStandardForm(response_id, gradient)
         self.__storeStandardizedGradient(response_id, standardized_gradient)
+
+    # --------------------------------------------------------------------------
+    def reportThicknessGradient(self, response_id, gradient):
+        standardized_gradient = self.__translateThicknessGradientToStandardForm(response_id, gradient)
+        self.__storeStandardizedThicknessGradient(response_id, standardized_gradient)
 
     # --------------------------------------------------------------------------
     def getValue(self, response_id):
@@ -110,6 +126,12 @@ class Communicator:
         return self.list_of_responses[response_id]["standardized_gradient"]
 
     # --------------------------------------------------------------------------
+    def getStandardizedThicknessGradient(self, response_id):
+        if self.list_of_responses[response_id]["standardized_thickness_gradient"] is None:
+            raise RuntimeError("The requested standardized_thickness_gradient for ", response_id, " is None!")
+        return self.list_of_responses[response_id]["standardized_thickness_gradient"]
+
+    # --------------------------------------------------------------------------
     @classmethod
     def __ExtractResponseSettingsRecursively(cls, response_settings):
         list_of_settings = []
@@ -131,7 +153,7 @@ class Communicator:
 
         for response in response_settings:
             response_id = response["identifier"].GetString()
-            list_of_requests[response_id] = {"calculateValue": False, "calculateGradient": False}
+            list_of_requests[response_id] = {"calculateValue": False, "calculateGradient": False, "calculateThicknessGradient": False}
 
         return list_of_requests
 
@@ -245,6 +267,19 @@ class Communicator:
         return gradient
 
     # --------------------------------------------------------------------------
+    def __translateThicknessGradientToStandardForm(self, response_id, gradient):
+        response_type = self.list_of_responses[response_id]["type"]
+        scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
+
+        if response_type == "maximization" or response_type == ">" or response_type == ">=":
+            scaling_factor *= -1
+
+        for value in gradient.values():
+            value *= scaling_factor
+
+        return gradient
+
+    # --------------------------------------------------------------------------
     def __storeValue(self, response_id, value):
         self.list_of_responses[response_id]["value"] = value
 
@@ -255,5 +290,9 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __storeStandardizedGradient(self, response_id, gradient):
         self.list_of_responses[response_id]["standardized_gradient"] = gradient
+
+    # --------------------------------------------------------------------------
+    def __storeStandardizedThicknessGradient(self, response_id, gradient):
+        self.list_of_responses[response_id]["standardized_thickness_gradient"] = gradient
 
 # ==============================================================================
