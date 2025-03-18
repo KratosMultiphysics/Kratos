@@ -7,12 +7,11 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Mohamed Nabi
-//                   Richard Faasse
+//  Main authors:    Richard Faasse
 //
+
 #include "fluid_body_flow_calculator.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 
 #include <custom_utilities/element_utilities.hpp>
