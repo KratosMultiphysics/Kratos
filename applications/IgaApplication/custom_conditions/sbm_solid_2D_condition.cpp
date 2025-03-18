@@ -138,7 +138,7 @@ namespace Kratos
 
         // Compute the normals
         array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 2> normal_physical_space;
+        array_1d<double, 3> normal_physical_space;
         array_1d<double, 3> normal_parameter_space;
 
         r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
@@ -185,10 +185,18 @@ namespace Kratos
         InvJ0_23(0,2) = 0;
         InvJ0_23(1,2) = 0;
 
-        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
-        normal_physical_space[2] = 0.0;
+        array_1d<double, 2> normal_parameter_space_2D;
+        array_1d<double, 2> normal_physical_space_2D;
+        normal_parameter_space_2D[0] = normal_parameter_space[0];
+        normal_parameter_space_2D[1] = normal_parameter_space[1];
 
-        normal_physical_space /= norm_2(normal_physical_space);
+        normal_physical_space_2D = prod(trans(InvJ0), normal_parameter_space_2D);
+        // normal_physical_space[2] = 0.0;
+
+        normal_physical_space_2D /= norm_2(normal_physical_space_2D);
+
+        normal_physical_space[0] = normal_physical_space_2D[0]; normal_physical_space[1] = normal_physical_space_2D[1];
+        normal_physical_space[2] = 0;
 
         SetValue(NORMAL, normal_physical_space);
 

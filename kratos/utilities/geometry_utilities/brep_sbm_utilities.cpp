@@ -147,6 +147,7 @@ namespace Kratos
                 return i_row-1;
             }
         }
+        return rSpans.size();
     }
 
     // 3D

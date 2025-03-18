@@ -106,7 +106,7 @@ namespace Kratos
 
         const SizeType master_number_of_knot_spans_u = floor((master_domain_length_u + epsilon)/master_knot_step_uv[0]);
         const SizeType master_number_of_knot_spans_v = floor((master_domain_length_v + epsilon)/master_knot_step_uv[1]);
-        mSparseBrepMatrixMaster.resize(master_number_of_knot_spans_u+1, master_number_of_knot_spans_v+1,1);
+        mSparseBrepMatrixMaster.resize(master_number_of_knot_spans_u+1, master_number_of_knot_spans_v+1, false);
 
         for (auto& r_geometry_master : mrMasterModelPart->Geometries()) {
 
@@ -135,7 +135,7 @@ namespace Kratos
 
         const SizeType slave_number_of_knot_spans_u = floor((slave_domain_length_u + epsilon)/slave_knot_step_uv[0]);
         const SizeType slave_number_of_knot_spans_v = floor((slave_domain_length_v + epsilon)/slave_knot_step_uv[1]);
-        mSparseBrepMatrixSlave.resize(slave_number_of_knot_spans_u+1, slave_number_of_knot_spans_v+1,1);
+        mSparseBrepMatrixSlave.resize(slave_number_of_knot_spans_u+1, slave_number_of_knot_spans_v+1,false);
 
         for (auto& r_geometry_slave : mrSlaveModelPart->Geometries()) {
 
@@ -342,6 +342,15 @@ namespace Kratos
 
                 IndexType idNewNode = mrSlaveSkinModelPart->GetRootModelPart().Nodes().size()+1;
                 auto new_slave_skin_node = new Node(idNewNode, best_curve_projection);
+
+
+                // std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::app);
+                //         outputFile <<  best_skin_node.X() << " " << best_skin_node.Y() << " "  << new_slave_skin_node->X() << " " << new_slave_skin_node->Y() <<"\n";
+                //         outputFile.close();
+
+                std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::app);
+                        outputFile <<  best_skin_node.X() << " " << best_skin_node.Y() << " "  << gp_in_brep->Center().X() << " " << gp_in_brep->Center().Y() <<"\n";
+                        outputFile.close();
 
                 //-------------------------------------------------------------
                 //  START SEARCH
@@ -631,7 +640,6 @@ namespace Kratos
 
         //----------------------------
         // get displacement of the reference integration point on the surrogate
-        CoordinatesArrayType surrogate_point_displacement = ZeroVector(2);
         auto& surrogate_point_geometry = gp_list(1);
         SizeType number_of_control_points = surrogate_point_geometry->size();
         const SizeType mat_size = number_of_control_points * 2;
@@ -683,6 +691,7 @@ namespace Kratos
         rPointDeformedCoordinates[0] = rPointGlobalCoordinates[0] + point_displacement[0];
         rPointDeformedCoordinates[1] = rPointGlobalCoordinates[1] + point_displacement[1];
     }
+
 
 
     void IgaContactProcessSbm::GetDeformedGradient(
@@ -751,7 +760,6 @@ namespace Kratos
 
         //----------------------------
         // get displacement of the reference integration point on the surrogate
-        CoordinatesArrayType surrogate_point_displacement = ZeroVector(2);
         auto& surrogate_point_geometry = gp_list(1);
         SizeType number_of_control_points = surrogate_point_geometry->size();
         const SizeType mat_size = number_of_control_points * 2;
@@ -896,7 +904,7 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 2 >& displacement = rGeometry(i)->GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& displacement = rGeometry(i)->GetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * 2;
 
             rValues[index] = displacement[0];
@@ -917,26 +925,20 @@ namespace Kratos
         const double Accuracy)
     {
         // Intialize variables
-        double residual, delta_t;
+        double residual = 0.0, delta_t = 0.0;
+        distance = 0.0;
 
-        CoordinatesArrayType projected_point_local_coordinates(3);
-
-        std::vector<array_1d<double, 3>> curve_derivatives(3);
-
-        std::vector<Vector> derivatives_on_deformed;
-        array_1d<double, 3> distance_vector;
-
+        std::vector<array_1d<double, 3>> curve_derivatives(3, ZeroVector(3));
+        array_1d<double, 3> distance_vector = ZeroVector(3);
+        
         Vector gradient_derivatives_updated = ZeroVector(3);
         Vector hessian_derivatives_updated = ZeroVector(3);
 
-        const double Acc = Accuracy;
+        CoordinatesArrayType projected_point_deformed_global_coordinates = ZeroVector(3);
+        Matrix projected_point_gradient_deformation = ZeroMatrix(2, 2);
+        Matrix projected_point_hessian_deformation = ZeroMatrix(2, 3);
 
-        Vector projected_point_global_displacement;
-        CoordinatesArrayType projected_point_deformed_global_coordinates(3);
-        Matrix projected_point_gradient_deformation = ZeroMatrix(2,2);
-        Matrix projected_point_hessian_deformation = ZeroMatrix(2,3);
-
-        CoordinatesArrayType current_point_global_coordinates(3);
+        CoordinatesArrayType current_point_global_coordinates = ZeroVector(3);
 
         Vector curve_interval(2);
         auto interval = rPairedGeometry.DomainInterval();
@@ -947,7 +949,7 @@ namespace Kratos
 
         for (IndexType i_guess = 0; i_guess < rNumberOfInitialGuesses; i_guess++)
         {   
-            residual = Acc + 1;
+            residual = Accuracy + 1;
             CoordinatesArrayType t = ZeroVector(3);
             t[0] = curve_interval[0] +  (curve_interval[1]- curve_interval[0])/(rNumberOfInitialGuesses-1) * float(i_guess);
 
@@ -963,6 +965,12 @@ namespace Kratos
                 current_point_global_coordinates = curve_derivatives[0]; // undeformed
 
                 // deformed position
+
+                if (current_point_global_coordinates[0] < 0)
+                {
+                    KRATOS_WATCH(current_point_global_coordinates)
+                    exit(0);
+                }
                 GetDeformedPosition(current_point_global_coordinates, *mrSlaveModelPart, mSparseBrepMatrixSlave, projected_point_deformed_global_coordinates);
 
                 // // NEW
@@ -989,7 +997,7 @@ namespace Kratos
                 distance_vector = projected_point_deformed_global_coordinates - rPointGlobalCoordinates;
                 distance = norm_2(distance_vector);
 
-                if (distance < Acc) // Acc
+                if (distance < Accuracy) // Acc
                 {
                     rProjectedPointLocalCoordinates = t;
                     rProjectedPointGlobalCoordinates = current_point_global_coordinates;
@@ -998,7 +1006,7 @@ namespace Kratos
 
                 // Compute the residual
                 residual = inner_prod(distance_vector, gradient_derivatives_updated);
-                if (std::abs(residual) < Acc) // Acc
+                if (std::abs(residual) < Accuracy) // Acc
                 {
                     if (std::isnan(residual)) break;
                     else 
@@ -1015,13 +1023,15 @@ namespace Kratos
                 }
 
                 // Compute the increment
-                delta_t = residual / (inner_prod(hessian_derivatives_updated, distance_vector) + pow(norm_2(gradient_derivatives_updated), 2));
-
+                double denom = inner_prod(hessian_derivatives_updated, distance_vector) + pow(norm_2(gradient_derivatives_updated), 2);
+                if (std::abs(denom) < 1e-10) denom = 1e-10;  // Avoid division by zero
+                delta_t = residual / denom;
+                
                 // Increment the parametric coordinate
                 t[0] -= delta_t;
 
                 // Check if the increment is too small and if yes return true
-                if (norm_2(delta_t *gradient_derivatives_updated) < Acc) // Acc
+                if (norm_2(delta_t *gradient_derivatives_updated) < Accuracy) // Acc
                 {
                     double to_check = norm_2(delta_t * gradient_derivatives_updated);
                     if (std::isnan(to_check)) break;
@@ -1061,12 +1071,12 @@ namespace Kratos
                 }
                 //----
                 if (t[0] > curve_interval_min && t[0] < curve_interval_max) check = 1;
-                else if (std::abs(t[0] - curve_interval_min) < 1e-6) {
-                    // t[0] = b_rep_interval_min; 
+                else if (std::abs(t[0] - curve_interval_min) < 1e-7) {
+                    t[0] = curve_interval_min; 
                     check = 2;
                 }
-                else if (std::abs(t[0] - curve_interval_max) < 1e-6) {
-                    // t[0] = b_rep_interval_max; 
+                else if (std::abs(t[0] - curve_interval_max) < 1e-7) {
+                    t[0] = curve_interval_max; 
                     check = 2;
                 }
 

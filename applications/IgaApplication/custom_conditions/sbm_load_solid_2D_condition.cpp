@@ -130,6 +130,15 @@ namespace Kratos
         } else
             KRATOS_ERROR << ":::[SBMLoadSolid2DCondition]::: Error, no NEIGHBOUR NODE OR CONDITIONS SPECIFIED" << std::endl;
         
+        // //FIXME:
+        Vector meshSize_uv = this->GetValue(MARKER_MESHES);
+        double h = std::min(meshSize_uv[0], meshSize_uv[1]);
+
+        // projection = r_geometry.Center().Coordinates()-0.5*h*normal_parameter_space;
+        // true_n = normal_parameter_space;
+
+
+
         mTrueNormal = true_n;
         projection[0] = projection_node.X();                     
         projection[1] = projection_node.Y() ;
@@ -137,12 +146,6 @@ namespace Kratos
         d[1] = projection[1] - r_geometry.Center().Y();
         mDistance = d;
         // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-
-        //TODO: remove
-        // std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-        // outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
-        // outputFile.close();
-        SetValue(SKIN_MASTER_COORDINATES, projection);
         
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
@@ -164,9 +167,7 @@ namespace Kratos
 
         int basisFunctionsOrder;
 
-        Vector meshSize_uv = this->GetValue(MARKER_MESHES);
-        double h = std::min(meshSize_uv[0], meshSize_uv[1]);
-        if (dim == 3) {h = std::min(h,  meshSize_uv[2]);}
+        
 
         // Compute basis function order (Note: it is not allow to use different orders in different directions)
         basisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
@@ -228,6 +229,8 @@ namespace Kratos
 
         const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
 
+        SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
+
         Vector old_displacement(mat_size);
         GetValuesVector(old_displacement);
 
@@ -261,21 +264,25 @@ namespace Kratos
 
         Values.SetStressVector(this_constitutive_variables.StressVector);
         Values.SetConstitutiveMatrix(this_constitutive_variables.ConstitutiveMatrix);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Matrix& r_D = Values.GetConstitutiveMatrix();
-        //---------------------
-        
 
         //------------------------------
         Matrix DB_sum = prod(r_D, B_sum); //
 
         Matrix DB = prod(r_D, B); //
 
+        const Vector& r_stress = Values.GetStressVector();
+
+        const Vector r_stress_extension = prod(DB_sum, old_displacement);
+        //---------------------
+
 
         // dot product n cdot n_tilde
         n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1];
-        double n_tautilde = true_n[0] * tangent_parameter_space[0] + true_n[1] * tangent_parameter_space[1];
+
+        // double n_tautilde = true_n[0] * tangent_parameter_space[0] + true_n[1] * tangent_parameter_space[1];
 
         double integration_factor = IntToReferenceWeight;
         for (IndexType i = 0; i < number_of_nodes; i++) {
@@ -295,9 +302,24 @@ namespace Kratos
                         
                         rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor * n_ntilde;
                     }
-
                 }
             }
+
+
+            // for (IndexType zdim = 0; zdim < 2; zdim++) {
+                
+            //     Vector sigma_n_u = ZeroVector(2);
+            //     sigma_n_u[0] = (r_stress[0]* normal_parameter_space[0] + r_stress[2]* normal_parameter_space[1]);
+            //     sigma_n_u[1] = (r_stress[2]* normal_parameter_space[0] + r_stress[1]* normal_parameter_space[1]);
+
+            //     rRightHandSideVector[2*i+zdim] += H(0,i)*sigma_n_u[zdim]  * IntToReferenceWeight;
+
+            //     Vector extended_sigma_n_u = ZeroVector(2);
+            //     extended_sigma_n_u[0] = (r_stress_extension[0]* true_n[0] + r_stress_extension[2]* true_n[1]);
+            //     extended_sigma_n_u[1] = (r_stress_extension[2]* true_n[0] + r_stress_extension[1]* true_n[1]);
+
+            //     rRightHandSideVector[2*i+zdim] -= H(0,i)*extended_sigma_n_u[zdim] * n_ntilde * IntToReferenceWeight;
+            // }
         }
 
         // // Assembly     
@@ -307,7 +329,7 @@ namespace Kratos
             double E = this->GetProperties().GetValue(YOUNG_MODULUS);
             Vector g_N = ZeroVector(2);
 
-            // When "analysis_type" is "linear" temper = 0
+            // // When "analysis_type" is "linear" temper = 0
             // const double x = projection[0];
             // const double y = projection[1];
 
@@ -539,7 +561,7 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 2 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * 2;
 
             rValues[index] = displacement[0];

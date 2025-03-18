@@ -313,12 +313,15 @@ public:
                 double normal_gap_master = inner_prod(gap, normal_master);
                 double normal_gap_slave = -inner_prod(gap, normal_slave);
 
-                double tangent_gap_master = norm_2(gap - normal_master*normal_gap_master);
+                double check_value_gap = -(0.5*normal_gap_master + 0.5* normal_gap_slave);
+
+                double tangent_gap_master = norm_2(gap - 0.5*normal_master*normal_gap_master + 0.5 * normal_slave*normal_gap_slave);
 
                 double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
 
-                double young_modulus = i_cond->GetValue(YOUNG_MODULUS_MASTER); //TODO:
-                const double gamma = 1; //100/(200+100);
+                double young_modulus_master = i_cond->GetValue(YOUNG_MODULUS_MASTER); 
+                double young_modulus_slave = i_cond->GetValue(YOUNG_MODULUS_SLAVE); 
+                const double gamma = young_modulus_slave/(young_modulus_master + young_modulus_slave);
 
                 double true_normal_stress_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
                                                 (normal_stress_master[2]* normal_master[0] + normal_stress_master[1]* normal_master[1])*normal_master[1];
@@ -327,23 +330,22 @@ public:
                                                 (normal_stress_slave[2]* normal_slave[0] + normal_stress_slave[1]* normal_slave[1])*normal_slave[1];
 
 
-                int segment_index = (int) count_cond/n_GP_per_segment;
-                double check_value = -(true_normal_stress_master+young_modulus*normal_gap_master);
+                // int segment_index = (int) count_cond/n_GP_per_segment;
+                // double check_value = -(true_normal_stress_master+young_modulus*normal_gap_master);
 
-                double check_value_gap = -(gamma*normal_gap_master + (1-gamma)* normal_gap_slave);
-                double check_value_stress = -(gamma*true_normal_stress_master + (1-gamma) *true_normal_stress_slave)/young_modulus;
-                // double check_value = -(yound_modulus*normal_gap);
+                
+                double check_value_stress = -(gamma*true_normal_stress_master + (1-gamma) *true_normal_stress_slave)/std::min(young_modulus_master, young_modulus_slave);
+                // // double check_value = -(yound_modulus*normal_gap);
 
-                length[segment_index] += weight;
-                check_per_segment[segment_index] += weight*check_value;
+                // length[segment_index] += weight;
+                // check_per_segment[segment_index] += weight*check_value;
 
-                check_per_segment_stress[segment_index] += check_value_stress;
-                check_per_segment_gap[segment_index] += check_value_gap;
+                // check_per_segment_stress[segment_index] += check_value_stress;
+                // check_per_segment_gap[segment_index] += check_value_gap;
 
                 // // FIXME:
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 1e-2)
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.01)
                 // {
-                //     KRATOS_WATCH(i_cond->GetValue(SKIN_MASTER_COORDINATES))
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
                 //     {
                 //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
