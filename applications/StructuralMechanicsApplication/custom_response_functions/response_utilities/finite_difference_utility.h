@@ -82,9 +82,30 @@ public:
             rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
             rNode.Coordinates()[coord_dir] -= rPertubationSize;
         }
+        else if( rDesignVariable == TEMPERATURE )
+        {
+            // define working variables
+            Vector RHS_perturbed;
+
+            rOutput.resize(rRHS.size(), false);
+
+            // perturb the design variable
+            rNode.FastGetSolutionStepValue(rDesignVariable) += rPertubationSize;
+
+            // compute LHS after perturbation
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+
+            // compute derivative of RHS w.r.t. design variable with finite differences
+            noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
+
+            // unperturb the design variable
+            rNode.FastGetSolutionStepValue(rDesignVariable) -= rPertubationSize;
+
+        }
         else
         {
-            KRATOS_WARNING("FiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            KRATOS_WARNING("FiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << ". " << std::endl
+            << "Supported variables are SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z, TEMPERATURE." << std::endl;
             if ( (rOutput.size() != 0) )
                 rOutput.resize(0,false);
         }

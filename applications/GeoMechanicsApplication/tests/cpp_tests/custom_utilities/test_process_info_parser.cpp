@@ -54,15 +54,15 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
                                      R"(
             }
         ],
-        "auxiliar_process_list":
+        "auxiliary_process_list":
         [
             {
-                "process_name": "AuxiliarProcess1",
+                "process_name": "AuxiliaryProcess1",
                 "Parameters":)" + parameterString +
                                      R"(
             },
             {
-                "process_name": "AuxiliarProcess2",
+                "process_name": "AuxiliaryProcess2",
                 "Parameters":)" + parameterString +
                                      R"(
             }
@@ -80,8 +80,8 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
         ProcessParameters{"ConstraintProcess2", Parameters{parameterString}},
         ProcessParameters{"LoadProcess1", Parameters{parameterString}},
         ProcessParameters{"LoadProcess2", Parameters{parameterString}},
-        ProcessParameters{"AuxiliarProcess1", Parameters{parameterString}},
-        ProcessParameters{"AuxiliarProcess2", Parameters{parameterString}}};
+        ProcessParameters{"AuxiliaryProcess1", Parameters{parameterString}},
+        ProcessParameters{"AuxiliaryProcess2", Parameters{parameterString}}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
