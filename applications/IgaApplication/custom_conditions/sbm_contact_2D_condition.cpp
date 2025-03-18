@@ -47,7 +47,9 @@ namespace Kratos
         this->SetValue(NORMAL_MASTER, normal_true_master);
         this->SetValue(NORMAL_SLAVE, normal_true_slave);
 
-        this->SetValue(NORMAL, normal_true_master);
+        Vector true_normal_mean = normal_true_master*0.5 - normal_true_slave*0.5;
+
+        this->SetValue(NORMAL, true_normal_mean);
         
         // // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
         // std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::app);
@@ -182,7 +184,8 @@ namespace Kratos
         const Matrix& N_slave = r_geometry_slave.ShapeFunctionsValues(this->GetIntegrationMethod());
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX_slave) = prod(DN_De_slave[0],InvJ0_slave);
+        // noalias(DN_DX_slave) = prod(DN_De_slave[0],InvJ0_slave);
+        noalias(DN_DX_slave) = DN_De_slave[0];
 
         r_geometry_slave.Jacobian(J0_slave,this->GetIntegrationMethod());
 
@@ -352,19 +355,9 @@ namespace Kratos
                     H_taylor_term += ComputeTaylorTerm(derivative, mDistanceSlave[0], n_k, mDistanceSlave[1], k);
                 }
             }
-            H_sum_slave(0,i) = H_taylor_term + N_slave(0, i);;
+            H_sum_slave(0,i) = H_taylor_term + N_slave(0, i);
         }
                                                                                                                 
-
-
-        // //-----------
-        // // COMPUTE NORMAL GAP AND CHECK CONDITION
-        const double normal_gap_true = this->GetValue(NORMAL_GAP);
-
-        const double initial_normal_gap_true = inner_prod(projection_node_slave - projection_node_master, normal_true_master);
-
-        // Differential area
-
         //FIXME:
         Vector meshSize_uv = this->GetValue(MARKER_MESHES);
         double h = std::min(meshSize_uv[0], meshSize_uv[1]);
@@ -383,16 +376,26 @@ namespace Kratos
 
         double penalty_integration = penalty * IntToReferenceWeight;
 
+        // //-----------
+        
+        const double gamma = (*mpPropSlave)[YOUNG_MODULUS]/((*mpPropSlave)[YOUNG_MODULUS] + (*mpPropMaster)[YOUNG_MODULUS]);
+
+        Vector normal_true_mean = 0.5*normal_true_master - 0.5*normal_true_slave; // - (1-gamma)*slave_normal_physical_space;
+        const double n_ntilde_mean = inner_prod(normal_surrogate_master_3D, normal_true_mean);
+
+        // // COMPUTE NORMAL GAP AND CHECK CONDITION
+        const double normal_gap_true = this->GetValue(NORMAL_GAP);
+
+        const double initial_normal_gap_true = inner_prod(projection_node_slave - projection_node_master, normal_true_mean);
+
         // // Assembly
-        const double gamma = 1.0;//(*mpPropSlave)[YOUNG_MODULUS]/((*mpPropSlave)[YOUNG_MODULUS] + (*mpPropMaster)[YOUNG_MODULUS]);
-
-        Vector normal_mean = normal_surrogate_master_3D; // - (1-gamma)*slave_normal_physical_space;
-
         if (this->GetValue(ACTIVATION_LEVEL) == 1) {
 
             // MASTER
             Matrix DB_master = prod(r_D_master,B_master);
+            Matrix DB_slave = prod(r_D_slave,B_slave);
             Matrix DB_sum_master = prod(r_D_master,B_sum_master);
+            Matrix DB_sum_slave = prod(r_D_slave,B_sum_slave);
             for (IndexType i = 0; i < number_of_nodes_master; i++) {
                 for (IndexType j = 0; j < number_of_nodes_master; j++) {
                     
@@ -412,17 +415,28 @@ namespace Kratos
 
                             // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
 
-                            double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_master[0] + sigma_w_n[1]*normal_true_master[1];
+                            double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_mean[0] + sigma_w_n[1]*normal_true_mean[1];
 
                             // E(u_1) \dot n_true = H_sum_master[j] * n_true[jdim]
                             //----------------------------------
-                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*sigma_w_n_dot_n_true * H_sum_master(0,j) * normal_true_master[jdim]
+                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*sigma_w_n_dot_n_true * H_sum_master(0,j) * normal_true_mean[jdim]
                                                                  * IntToReferenceWeight;
+
+
+                            // // // FIXME: additional nitsche terms
+                            Vector extension_sigma_w_n(2);
+                            extension_sigma_w_n[0] = (DB_sum_master(0, iglob)* normal_true_mean[0] + DB_sum_master(2, iglob)* normal_true_mean[1]);
+                            extension_sigma_w_n[1] = (DB_sum_master(2, iglob)* normal_true_mean[0] + DB_sum_master(1, iglob)* normal_true_mean[1]);
+                            double extension_sigma_w_n_n = extension_sigma_w_n[0]*normal_true_mean[0] + extension_sigma_w_n[1]*normal_true_mean[1];
+
+                            rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*(1-gamma)*H_sum_master(0,j)*extension_sigma_w_n_n * n_ntilde_mean * normal_true_mean[jdim]
+                                                                 * IntToReferenceWeight;
+
 
                             // // // PENALTY g_n = 0:
                             // // //*********************************************** */
-                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*normal_true_master[idim]
-                                                                *H_sum_master(0,j)*normal_true_master[jdim]*penalty_integration;
+                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*normal_true_mean[idim]
+                                                                *H_sum_master(0,j)*normal_true_mean[jdim]*penalty_integration;
 
                             // FLUX 
                             // [sigma_1(u) \dot n_tilde] \dot * w_1)
@@ -435,23 +449,25 @@ namespace Kratos
 
 
                             // SBM FLUX CORRECTION
-                            // -([{sigma_N} - E(sigma \dot n \dot n)](n \dot n_tilde) (n\dot w)) + 
-                            // - ([{0} - E(sigma \dot n \dot tau)](n \dot n_tilde) (tau\dot w))
+                            // 1) +  E(sigma) \dot n (n \dot n_tilde) w 
+                            // 2) - \sigma_N (n \dot n_tilde) (n \dot w) 
+
+                            // ** \sigma_N = gamma*E(sigma_1(u))\dot n \dot n + (1-gamma) * E(sigma_2(u)\dot n \dot n)
 
                             // 1) [E(sigma_1(u)) \dot n] (n \dot n_tilde) \dot * w_1
                             //*********************************************** */
                             Vector extension_sigma_u_n(2);
-                            extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* normal_true_master[0] + DB_sum_master(2, jglob)* normal_true_master[1]);
-                            extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* normal_true_master[0] + DB_sum_master(1, jglob)* normal_true_master[1]);
+                            extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* normal_true_mean[0] + DB_sum_master(2, jglob)* normal_true_mean[1]);
+                            extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* normal_true_mean[0] + DB_sum_master(1, jglob)* normal_true_mean[1]);
 
-                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*extension_sigma_u_n[idim] * IntToReferenceWeight * n_ntilde_master;
+                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*extension_sigma_u_n[idim] * IntToReferenceWeight * n_ntilde_mean;
 
 
                             // 2) -[E(sigma_1(u)) \dot n]\dot n (n \dot n_tilde) (n \dot * w_1)
                             //*********************************************** */
-                            double extension_sigma_u_n_n = extension_sigma_u_n[0]*normal_true_master[0] + extension_sigma_u_n[1]*normal_true_master[1];
+                            double extension_sigma_u_n_n = extension_sigma_u_n[0]*normal_true_mean[0] + extension_sigma_u_n[1]*normal_true_mean[1];
 
-                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*extension_sigma_u_n_n * n_ntilde_master * normal_true_master[idim]
+                            rLeftHandSideMatrix(iglob, jglob) -= gamma*H_master(0,i)*extension_sigma_u_n_n * n_ntilde_mean * normal_true_mean[idim]
                                                                  * IntToReferenceWeight;
 
                         }
@@ -469,6 +485,7 @@ namespace Kratos
 
                         for (IndexType jdim = 0; jdim < 2; jdim++) {
                             const int jglob = 2*j+jdim+2*number_of_nodes_master;
+                            const int j_index = 2*j+jdim;
 
                             // // PENALTY FREE g_n = 0
 
@@ -480,17 +497,40 @@ namespace Kratos
 
                             // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
 
-                            double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_master[0] + sigma_w_n[1]*normal_true_master[1];
+                            double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_mean[0] + sigma_w_n[1]*normal_true_mean[1];
 
                             // E(u_1) \dot n_true = H_sum_master[j] * n_true[jdim]
                             //----------------------------------
-                            rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*sigma_w_n_dot_n_true * H_sum_slave(0,j) * normal_true_master[jdim]
+                            rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*sigma_w_n_dot_n_true * H_sum_slave(0,j) * normal_true_mean[jdim]
+                                                                 * IntToReferenceWeight;
+
+
+                            // // // FIXME: additional nitsche terms
+                            Vector extension_sigma_w_n(2);
+                            extension_sigma_w_n[0] = (DB_sum_master(0, iglob)* normal_true_mean[0] + DB_sum_master(2, iglob)* normal_true_mean[1]);
+                            extension_sigma_w_n[1] = (DB_sum_master(2, iglob)* normal_true_mean[0] + DB_sum_master(1, iglob)* normal_true_mean[1]);
+                            double extension_sigma_w_n_n = extension_sigma_w_n[0]*normal_true_mean[0] + extension_sigma_w_n[1]*normal_true_mean[1];
+
+                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*(1-gamma)*H_sum_slave(0,j)*extension_sigma_w_n_n * n_ntilde_mean * normal_true_mean[jdim]
                                                                  * IntToReferenceWeight;
 
                             // // // PENALTY g_n = 0:
                             // // //*********************************************** */
-                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*normal_true_master[idim]
-                                                                *H_sum_slave(0,j)*normal_true_master[jdim]*penalty_integration;
+                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*normal_true_mean[idim]
+                                                                *H_sum_slave(0,j)*normal_true_mean[jdim]*penalty_integration;
+
+
+                            /// SBM FLUX CORRECTION 
+                            // 2) -[E(sigma_1(u)) \dot n]\dot n (n \dot n_tilde) (n \dot * w_1)
+                            //*********************************************** */
+                            Vector extension_sigma_u_n(2);
+                            extension_sigma_u_n[0] = (DB_sum_slave(0, j_index)* normal_true_mean[0] + DB_sum_slave(2, j_index)* normal_true_mean[1]);
+                            extension_sigma_u_n[1] = (DB_sum_slave(2, j_index)* normal_true_mean[0] + DB_sum_slave(1, j_index)* normal_true_mean[1]);
+
+                            double extension_sigma_u_n_n = extension_sigma_u_n[0]*normal_true_mean[0] + extension_sigma_u_n[1]*normal_true_mean[1];
+
+                            rLeftHandSideMatrix(iglob, jglob) -= (1-gamma)*H_master(0,i)*extension_sigma_u_n_n * n_ntilde_mean * normal_true_mean[idim]
+                                                                 * IntToReferenceWeight;
                         }
                     }
                 }
@@ -504,39 +544,67 @@ namespace Kratos
                     
                     for (IndexType idim = 0; idim < 2; idim++) {
                         const int iglob = 2*i+idim +2*number_of_nodes_master;
+                        const int i_index = 2*i+idim;
 
                         for (IndexType jdim = 0; jdim < 2; jdim++) {
                             const int jglob = 2*j+jdim;
 
-                            // FLUX 
-                            // [sigma_1(u) \dot n_tilde] \dot * w_1)
-                            //*********************************************** */
+
+                            // FIXME: additional nitsche terms
+                            Vector extension_sigma_w_n(2);
+                            extension_sigma_w_n[0] = (DB_sum_slave(0, i_index)* normal_true_mean[0] + DB_sum_slave(2, i_index)* normal_true_mean[1]);
+                            extension_sigma_w_n[1] = (DB_sum_slave(2, i_index)* normal_true_mean[0] + DB_sum_slave(1, i_index)* normal_true_mean[1]);
+                            double extension_sigma_w_n_n = extension_sigma_w_n[0]*normal_true_mean[0] + extension_sigma_w_n[1]*normal_true_mean[1];
+
+                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*(1-gamma)*H_sum_master(0,j)*extension_sigma_w_n_n * n_ntilde_mean * normal_true_mean[jdim]
+                                                                 * IntToReferenceWeight;
+
+                            
+                            // // // PENALTY g_n = 0:
+                            // // //*********************************************** */
+                            rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*normal_true_mean[idim]
+                                                                *H_sum_master(0,j)*normal_true_mean[jdim]*penalty_integration;
+
+                                                                
+
+                            // // // FLUX 
+                            // // [sigma_1(u) \dot n_tilde] \dot * w_1)
+                            // //*********************************************** */
                             Vector sigma_u_n(2);
                             sigma_u_n[0] = (DB_master(0, jglob)* normal_surrogate_master_2D[0] + DB_master(2, jglob)* normal_surrogate_master_2D[1]);
                             sigma_u_n[1] = (DB_master(2, jglob)* normal_surrogate_master_2D[0] + DB_master(1, jglob)* normal_surrogate_master_2D[1]);
 
-                            rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*sigma_u_n[idim] * IntToReferenceWeight;
+                            double sigma_u_n_n = sigma_u_n[0]*normal_true_mean[0] + sigma_u_n[1]*normal_true_mean[1];
+                            rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*sigma_u_n_n * normal_true_mean[idim] * IntToReferenceWeight;
 
 
-                            // SBM FLUX CORRECTION
-                            // -([{sigma_N} - E(sigma \dot n \dot n)](n \dot n_tilde) (n\dot w)) + 
-                            // - ([{0} - E(sigma \dot n \dot tau)](n \dot n_tilde) (tau\dot w))
+                            // // penalty free on slave (NOT WORKING)
+                            // Vector sigma_w_n(2);
+                            // sigma_w_n[0] = (DB_slave(0, i_index)* normal_surrogate_slave_2D[0] + DB_slave(2, i_index)* normal_surrogate_slave_2D[1]);
+                            // sigma_w_n[1] = (DB_slave(2, i_index)* normal_surrogate_slave_2D[0] + DB_slave(1, i_index)* normal_surrogate_slave_2D[1]);
 
-                            // 1) [E(sigma_1(u)) \dot n] (n \dot n_tilde) \dot * w_1
-                            //*********************************************** */
-                            Vector extension_sigma_u_n(2);
-                            extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* normal_true_master[0] + DB_sum_master(2, jglob)* normal_true_master[1]);
-                            extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* normal_true_master[0] + DB_sum_master(1, jglob)* normal_true_master[1]);
+                            // double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_mean[0] + sigma_w_n[1]*normal_true_mean[1];
 
-                            rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*extension_sigma_u_n[idim] * IntToReferenceWeight * n_ntilde_master;
+                            // // E(u_1) \dot n_true = H_sum_master[j] * n_true[jdim]
+                            // //----------------------------------
+                            // rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*sigma_w_n_dot_n_true * H_sum_master(0,j) * normal_true_mean[jdim]
+                            //                                      * IntToReferenceWeight;
 
 
-                            // 2) -[E(sigma_1(u)) \dot n]\dot n (n \dot n_tilde) (n \dot * w_1)
-                            //*********************************************** */
-                            double extension_sigma_u_n_n = extension_sigma_u_n[0]*normal_true_master[0] + extension_sigma_u_n[1]*normal_true_master[1];
 
-                            rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*extension_sigma_u_n_n * n_ntilde_master * normal_true_master[idim]
-                                                                 * IntToReferenceWeight;
+                            // // TODO: new version with the shift
+
+                            // /// SBM FLUX CORRECTION 
+                            // // 2) -[E(sigma_1(u)) \dot n]\dot n (n \dot n_tilde) (n \dot * w_1)
+                            // //*********************************************** */
+                            // Vector extension_sigma_u_n(2);
+                            // extension_sigma_u_n[0] = (DB_sum_master(0, j)* normal_true_mean[0] + DB_sum_master(2, j)* normal_true_mean[1]);
+                            // extension_sigma_u_n[1] = (DB_sum_master(2, j)* normal_true_mean[0] + DB_sum_master(1, j)* normal_true_mean[1]);
+
+                            // double extension_sigma_u_n_n = extension_sigma_u_n[0]*normal_true_mean[0] + extension_sigma_u_n[1]*normal_true_mean[1];
+
+                            // rLeftHandSideMatrix(iglob, jglob) -= gamma*H_slave(0,i)*extension_sigma_u_n_n * n_ntilde_mean * normal_true_mean[idim]
+                            //                                      * IntToReferenceWeight;
 
                         }
 
@@ -544,6 +612,84 @@ namespace Kratos
                 }
             }
 
+            // SLAVE
+            for (IndexType i = 0; i < number_of_nodes_slave; i++) {
+                for (IndexType j = 0; j < number_of_nodes_slave; j++) {
+                    
+                    for (IndexType idim = 0; idim < 2; idim++) {
+                        const int iglob = 2*i+idim+2*number_of_nodes_master;
+                        const int i_index = 2*i+idim;
+
+                        for (IndexType jdim = 0; jdim < 2; jdim++) {
+                            const int jglob = 2*j+jdim+2*number_of_nodes_master;
+                            const int j_index = 2*j+jdim;
+
+                            
+                            // // // FIXME: additional nitsche terms
+                            Vector extension_sigma_w_n(2);
+                            extension_sigma_w_n[0] = (DB_sum_slave(0, i_index)* normal_true_mean[0] + DB_sum_slave(2, i_index)* normal_true_mean[1]);
+                            extension_sigma_w_n[1] = (DB_sum_slave(2, i_index)* normal_true_mean[0] + DB_sum_slave(1, i_index)* normal_true_mean[1]);
+                            double extension_sigma_w_n_n = extension_sigma_w_n[0]*normal_true_mean[0] + extension_sigma_w_n[1]*normal_true_mean[1];
+
+                            rLeftHandSideMatrix(iglob, jglob) += Guglielmo_innovation*(1-gamma)*H_sum_slave(0,j)*extension_sigma_w_n_n * n_ntilde_mean * normal_true_mean[jdim]
+                                                                 * IntToReferenceWeight;
+                            
+                            // // // PENALTY g_n = 0:
+                            // // //*********************************************** */
+                            rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*normal_true_mean[idim]
+                                                                *H_sum_slave(0,j)*normal_true_mean[jdim]*penalty_integration;
+
+
+
+
+                            // // TODO: new version with the shift
+                            // // FLUX
+                            // // [sigma_2 \dot n2_tilde] \dot w
+                            // Vector sigma_u_n(2);
+                            // sigma_u_n[0] = (DB_slave(0, j_index)* normal_surrogate_slave_2D[0] + DB_slave(2, j_index)* normal_surrogate_slave_2D[1]);
+                            // sigma_u_n[1] = (DB_slave(2, j_index)* normal_surrogate_slave_2D[0] + DB_slave(1, j_index)* normal_surrogate_slave_2D[1]);
+
+                            // rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*sigma_u_n[idim] * IntToReferenceWeight;
+
+
+                            // // penalty free on slave (NOT WORKING)
+                            // Vector sigma_w_n(2);
+                            // sigma_w_n[0] = (DB_slave(0, i_index)* normal_surrogate_slave_2D[0] + DB_slave(2, i_index)* normal_surrogate_slave_2D[1]);
+                            // sigma_w_n[1] = (DB_slave(2, i_index)* normal_surrogate_slave_2D[0] + DB_slave(1, i_index)* normal_surrogate_slave_2D[1]);
+
+                            // double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_mean[0] + sigma_w_n[1]*normal_true_mean[1];
+
+                            // // E(u_1) \dot n_true = H_sum_master[j] * n_true[jdim]
+                            // //----------------------------------
+                            // rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*sigma_w_n_dot_n_true * H_sum_slave(0,j) * normal_true_mean[jdim]
+                            //                                      * IntToReferenceWeight;
+
+
+                            // // SBM FLUX CORRECTION
+                            // // 1) +  E(sigma) \dot n (n \dot n_tilde) w 
+                            // // 2) - \sigma_N (n \dot n_tilde) (n \dot w) 
+
+                            // // ** \sigma_N = gamma*E(sigma_1(u))\dot n \dot n + (1-gamma) * E(sigma_2(u)\dot n \dot n)
+
+                            // // 1) [E(sigma_1(u)) \dot n] (n \dot n_tilde) \dot * w_1
+                            // //*********************************************** */
+                            // Vector extension_sigma_u_n(2);
+                            // extension_sigma_u_n[0] = (DB_sum_slave(0, j_index)* normal_true_mean[0] + DB_sum_slave(2, j_index)* normal_true_mean[1]);
+                            // extension_sigma_u_n[1] = (DB_sum_slave(2, j_index)* normal_true_mean[0] + DB_sum_slave(1, j_index)* normal_true_mean[1]);
+
+                            // // rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*extension_sigma_u_n[idim] * IntToReferenceWeight * n_ntilde_mean;
+
+
+                            // // 2) -[E(sigma_1(u)) \dot n]\dot n (n \dot n_tilde) (n \dot * w_1)
+                            // //*********************************************** */
+                            // double extension_sigma_u_n_n = extension_sigma_u_n[0]*normal_true_mean[0] + extension_sigma_u_n[1]*normal_true_mean[1];
+
+                            // rLeftHandSideMatrix(iglob, jglob) += (1-gamma)*H_slave(0,i)*extension_sigma_u_n_n * n_ntilde_mean * normal_true_mean[idim]
+                            //                                      * IntToReferenceWeight;
+                        }
+                    }
+                }
+            }
 
             if (CalculateResidualVectorFlag) {
 
@@ -556,7 +702,7 @@ namespace Kratos
                         // // PENALTY TERM:
                         // //*********************************************** */
                         // rRightHandSideVector[iglob] -= H_master(0,i)*gn[idim]* penalty_integration;
-                        rRightHandSideVector[iglob] -= H_master(0,i)*initial_normal_gap_true*normal_true_master[idim]*penalty_integration;
+                        rRightHandSideVector[iglob] += H_master(0,i)*initial_normal_gap_true*normal_true_mean[idim]*penalty_integration;
                         
 
                         // // PENALTY FREE g_n = 0
@@ -568,10 +714,59 @@ namespace Kratos
 
                         // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
 
-                        double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_master[0] + sigma_w_n[1]*normal_true_master[1];
+                        double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_mean[0] + sigma_w_n[1]*normal_true_mean[1];
                         //----------------------------------
                         rRightHandSideVector[iglob] -= Guglielmo_innovation*sigma_w_n_dot_n_true * initial_normal_gap_true
                                                                 * IntToReferenceWeight;
+
+
+                        // // FIXME: additional nitsche terms
+                        Vector extension_sigma_w_n(2);
+                        extension_sigma_w_n[0] = (DB_sum_master(0, iglob)* normal_true_mean[0] + DB_sum_master(2, iglob)* normal_true_mean[1]);
+                        extension_sigma_w_n[1] = (DB_sum_master(2, iglob)* normal_true_mean[0] + DB_sum_master(1, iglob)* normal_true_mean[1]);
+                        double extension_sigma_w_n_n = extension_sigma_w_n[0]*normal_true_mean[0] + extension_sigma_w_n[1]*normal_true_mean[1];
+
+                        rRightHandSideVector[iglob] += Guglielmo_innovation*(1-gamma)*initial_normal_gap_true*extension_sigma_w_n_n * n_ntilde_mean
+                                                                * IntToReferenceWeight;
+                    }
+                }
+
+                // SLAVE
+                for (IndexType i = 0; i < number_of_nodes_slave; i++) {
+
+                    for (IndexType idim = 0; idim < 2; idim++) {
+                        
+                        const int iglob = 2*i+idim + 2*number_of_nodes_master;
+                        const int i_index = 2*i + idim;
+
+
+                        // FIXME: additional nitsche terms
+                        Vector extension_sigma_w_n(2);
+                        extension_sigma_w_n[0] = (DB_sum_slave(0, i_index)* normal_true_mean[0] + DB_sum_slave(2, i_index)* normal_true_mean[1]);
+                        extension_sigma_w_n[1] = (DB_sum_slave(2, i_index)* normal_true_mean[0] + DB_sum_slave(1, i_index)* normal_true_mean[1]);
+                        double extension_sigma_w_n_n = extension_sigma_w_n[0]*normal_true_mean[0] + extension_sigma_w_n[1]*normal_true_mean[1];
+
+                        rRightHandSideVector[iglob] -= Guglielmo_innovation*(1-gamma)*initial_normal_gap_true*extension_sigma_w_n_n * n_ntilde_mean
+                                                                * IntToReferenceWeight;
+
+                        // PENALTY TERM:
+                        //*********************************************** */
+                        rRightHandSideVector[iglob] -= H_slave(0,i)*initial_normal_gap_true*normal_true_mean[idim]*penalty_integration;
+                        
+
+                        // // // PENALTY FREE g_n = 0
+                        // // // rhs ->  [(\sigma_1(w) \dot n_tilde) \dot n] * [-g_true_{n,0}] * (n\dot n])
+                        // // //*********************************************** */
+                        // Vector sigma_w_n(2);
+                        // sigma_w_n[0] = (DB_slave(0, i_index)* normal_surrogate_slave_2D[0] + DB_master(2, i_index)* normal_surrogate_slave_2D[1]);
+                        // sigma_w_n[1] = (DB_slave(2, i_index)* normal_surrogate_slave_2D[0] + DB_master(1, i_index)* normal_surrogate_slave_2D[1]);
+
+                        // // double sigma_w_n_dot_n = sigma_w_n[idim] * normal_physical_space[idim];
+
+                        // double sigma_w_n_dot_n_true = sigma_w_n[0]*normal_true_mean[0] + sigma_w_n[1]*normal_true_mean[1];
+                        // //----------------------------------
+                        // rRightHandSideVector[iglob] -= Guglielmo_innovation*sigma_w_n_dot_n_true * initial_normal_gap_true
+                        //                                         * IntToReferenceWeight;
                     }
                 }
             }
@@ -962,8 +1157,11 @@ namespace Kratos
         SetValue(SKIN_MASTER_COORDINATES, projection_node_master);
         SetValue(SKIN_SLAVE_COORDINATES, projection_node_slave);
 
-        Vector true_normal_master = (projection_node_master.GetValue(NORMAL));//-projection_node_slave.GetValue(NORMAL))/2;
-        double normal_gap = inner_prod(skin_slave_coord_deformed - skin_master_coord_deformed, true_normal_master);
+        Vector true_normal_master = (projection_node_master.GetValue(NORMAL));
+        Vector true_normal_slave = (projection_node_slave.GetValue(NORMAL));
+        
+        Vector true_normal_mean = true_normal_master*0.5 - true_normal_slave*0.5;
+        double normal_gap = inner_prod(skin_slave_coord_deformed - skin_master_coord_deformed, true_normal_mean);
 
         SetValue(NORMAL_GAP, normal_gap);
         // double tangential_gap = norm_2((deformed_pos_slave - deformed_pos_master) - normal_gap * normal_physical_space);
