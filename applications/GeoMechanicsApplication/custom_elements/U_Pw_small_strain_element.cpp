@@ -739,7 +739,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             // Compute infinitesimal strain
             Variables.StrainVector =
                 StressStrainUtilities::CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
-
             rOutput[integration_point].resize(Variables.StrainVector.size(), false);
             rOutput[integration_point] = Variables.StrainVector;
         }
