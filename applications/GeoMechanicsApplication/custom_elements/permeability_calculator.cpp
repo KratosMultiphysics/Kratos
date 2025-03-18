@@ -23,7 +23,10 @@ PermeabilityCalculator::PermeabilityCalculator(InputProvider InputProvider)
 {
 }
 
-std::optional<Matrix> PermeabilityCalculator::LHSContribution() { return CalculatePermeabilityMatrix(); }
+std::optional<Matrix> PermeabilityCalculator::LHSContribution()
+{
+    return CalculatePermeabilityMatrix();
+}
 
 std::optional<Vector> PermeabilityCalculator::RHSContribution()
 {

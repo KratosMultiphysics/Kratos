@@ -108,7 +108,8 @@ public:
         rRightHandSideVector = ZeroVector{TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
-            if (const auto RHSContribution = (calculator->RHSContribution())) rRightHandSideVector += *RHSContribution;
+            if (const auto RHSContribution = (calculator->RHSContribution()))
+                rRightHandSideVector += *RHSContribution;
         }
     }
 
@@ -116,8 +117,9 @@ public:
     {
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
         for (const auto& rContribution : mContributions) {
-            const auto calculator      = CreateCalculator(rContribution, rCurrentProcessInfo);
-            if (const auto LHSContribution = calculator->LHSContribution()) rLeftHandSideMatrix += *LHSContribution;
+            const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
+            if (const auto LHSContribution = calculator->LHSContribution())
+                rLeftHandSideMatrix += *LHSContribution;
         }
     }
 
@@ -406,10 +408,8 @@ private:
 
     auto MakeLocalSpaceDimensionGetter() const
     {
-        return
-            [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
+        return [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
     }
-
 
     [[nodiscard]] DofsVectorType GetDofs() const
     {
