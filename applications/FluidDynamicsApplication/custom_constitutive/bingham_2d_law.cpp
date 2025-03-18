@@ -58,37 +58,24 @@ Bingham2DLaw::~Bingham2DLaw()
 {
 }
 
-ConstitutiveLaw::SizeType Bingham2DLaw::WorkingSpaceDimension() {
-    return 2;
-}
-
-ConstitutiveLaw::SizeType Bingham2DLaw::GetStrainSize() const {
-    return 3;
-}
-
-
 void  Bingham2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
+   //-----------------------------//
 
-    //-----------------------------//
-
-    //a.-Check if the constitutive parameters are passed correctly to the law calculation
-    //CheckParameters(rValues);
-
-    //b.- Get Values to compute the constitutive law:
+    //Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
-    Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the lenght of the expressions
+    const Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the lenght of the expressions
     Vector& StressVector                  = rValues.GetStressVector();
 
     //-----------------------------//
 
     //1.- Lame constants
-    const double mu          = MaterialProperties[DYNAMIC_VISCOSITY];
+    const double mu         = MaterialProperties[DYNAMIC_VISCOSITY];
     const double sigma_y    = MaterialProperties[YIELD_STRESS];
-    const double m    = MaterialProperties[REGULARIZATION_COEFFICIENT];
+    const double m          = MaterialProperties[REGULARIZATION_COEFFICIENT];
 
     const double gamma_dot = std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + S[2]*S[2]);
 
@@ -113,11 +100,6 @@ void  Bingham2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     }
 }
 
-std::string Bingham2DLaw::Info() const {
-    return "Bingham2DLaw";
-}
-
-
 //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 //************************************************************************************
 
@@ -139,20 +121,6 @@ int Bingham2DLaw::Check(
     }
 
     return 0;
-
-}
-
-
-double Bingham2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    return rParameters.GetConstitutiveMatrix()(3,3);
-}
-
-void Bingham2DLaw::save(Serializer& rSerializer) const {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
-}
-
-void Bingham2DLaw::load(Serializer& rSerializer) {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
 }
 
 } // Namespace Kratos

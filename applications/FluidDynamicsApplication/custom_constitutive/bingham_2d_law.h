@@ -9,10 +9,7 @@
 //
 //  Main authors:    Uxue Chasco
 //
-// TODO: Cambiarlo por el pragam once
-#if !defined (KRATOS_BINGHAM_LAW_2D_H_INCLUDED)
-#define  KRATOS_BINGHAM_LAW_2D_H_INCLUDED
-
+#pragma once
 // System includes
 
 // External includes
@@ -22,35 +19,41 @@
 
 namespace Kratos
 {
+
 /**
- * Defines a 2D Bingham non-Newtonian constitutive law
- * This material law is defined by the parameters:
- * 1) DYNAMIC_VISCOSITY
- * 2) YIELD_STRESS
- * 3) REGULARIZATION_COEFFICIENT
- */
+ * @class Bingham2DLaw
+ * @ingroup FluidDynamicsApplication
+ * @brief This law defines a Bingham model for non-Newtonian fluids in two dimensions.
+ * @details The Bingham model implementation has been done considering Papanastasiou regularization.
+ * @author Uxue Chasco
+*/
 
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) Bingham2DLaw : public FluidConstitutiveLaw
 {
 public:
-    /**
-     * Type Definitions
-     */
+    ///@name Type Definitions
+    ///@{
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
+
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
+
     /**
      * Counted pointer of Bingham2DLaw
      */
 
     KRATOS_CLASS_POINTER_DEFINITION(Bingham2DLaw);
 
-    /**
-     * Life Cycle
-     */
+    ///@name Lyfe Cycle
+    ///@{
 
     /**
-     * Default constructor.
+     * @brief Default constructor.
      */
     Bingham2DLaw();
 
@@ -61,57 +64,70 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
-     * Copy constructor.
+     * @brief Copy constructor.
      */
     Bingham2DLaw (const Bingham2DLaw& rOther);
 
-
     /**
-     * Destructor.
+     * @brief Destructor.
      */
     ~Bingham2DLaw() override;
 
-    /**
-     * Operators
-     */
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
-     * Operations needed by the base class:
+     * @brief Dimension of the law:
      */
+    SizeType WorkingSpaceDimension() override
+    {
+    return Dimension;
+    };
 
     /**
-     * @return Working space dimension constitutive law
+     * @brief Size of the strain vector (in Voigt notation) for the constitutive law
      */
-    SizeType WorkingSpaceDimension() override;
+    SizeType GetStrainSize() const override
+    {
+    return VoigtSize;
+    };
 
     /**
-     * @return Size of the strain vector (in Voigt notation) for the constitutive law
+     * @brief Computes the material response: Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues The Internalvalues of the law
+     * @see   Parameters
      */
-    SizeType GetStrainSize() const override;
-
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
     /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
      * @param rMaterialProperties
      * @param rElementGeometry
      * @param rCurrentProcessInfo
-     * @return
+     * @return 0 if OK, 1 otherwise
      */
     int Check(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
     /**
-     * Input and output
+     * @brief Turn back information as a string.
      */
-    /**
-     * Turn back information as a string.
-     */
-    std::string Info() const override;
+    std::string Info() const override
+    {
+        return "Bingham2DLaw";
+    };
 
 
 protected:
@@ -128,8 +144,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
-    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+    /**
+     * @brief Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+     */
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override {
+        return rParameters.GetConstitutiveMatrix()(3,3);
+    };
 
     ///@}
 
@@ -164,11 +184,13 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
+    }
 
-    void load(Serializer& rSerializer) override;
-
+    void load(Serializer& rSerializer) override {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
+    }
 
 }; // Class Bingham2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_BINGHAM_LAW_2D_H_INCLUDED  defined
