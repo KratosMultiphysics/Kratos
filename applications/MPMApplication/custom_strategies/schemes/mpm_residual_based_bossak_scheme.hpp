@@ -468,7 +468,7 @@ public:
 
             // rotate forces stored in REACTION to global coordinates on conforming boundaries
             if (mRotationTool.IsConformingSlip(rConstNode) ) {
-                mRotationTool.RotateVector(rConstNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
+                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
             }
         });
         
