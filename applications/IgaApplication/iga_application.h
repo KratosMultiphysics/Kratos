@@ -37,8 +37,8 @@
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
-#include "custom_conditions/sbm_neumann_laplacian_condition.h"
-#include "custom_conditions/sbm_dirichlet_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_condition_neumann.h"
+#include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -136,8 +136,8 @@ private:
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
-    const SbmDirichletLaplacianCondition mSbmDirichletLaplacianCondition;
-    const SbmNeumannLaplacianCondition mSbmNeumannLaplacianCondition;
+    const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
+    const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
 
     // Modelers
     const IgaModeler mIgaModeler;

@@ -22,15 +22,15 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class KRATOS_API(IGA_APPLICATION) SbmNeumannLaplacianCondition
+class KRATOS_API(IGA_APPLICATION) SbmLaplacianConditionDirichlet
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of SbmNeumannLaplacianCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmNeumannLaplacianCondition);
+    /// Counted pointer definition of SbmLaplacianConditionDirichlet
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmLaplacianConditionDirichlet);
 
     /// Size types
     using SizeType = std::size_t;
@@ -41,14 +41,14 @@ public:
     ///@{
 
     /// Constructor with Id and geometry
-    SbmNeumannLaplacianCondition(
+    SbmLaplacianConditionDirichlet(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    SbmNeumannLaplacianCondition(
+    SbmLaplacianConditionDirichlet(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -56,11 +56,11 @@ public:
     {};
 
     /// Default constructor
-    SbmNeumannLaplacianCondition() : Condition()
+    SbmLaplacianConditionDirichlet() : Condition()
     {};
 
     /// Destructor
-    virtual ~SbmNeumannLaplacianCondition() override
+    virtual ~SbmLaplacianConditionDirichlet() override
     {};
 
     ///@}
@@ -74,7 +74,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SbmNeumannLaplacianCondition>(
+        return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(
             NewId, pGeom, pProperties);
     };
 
@@ -85,7 +85,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SbmNeumannLaplacianCondition>(
+        return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -135,8 +135,7 @@ public:
     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
     * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -145,8 +144,7 @@ public:
     */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Check
@@ -163,14 +161,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"SbmNeumannLaplacianCondition\" #" << Id();
+        buffer << "\"SbmLaplacianConditionDirichlet\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"SbmNeumannLaplacianCondition\" #" << Id();
+        rOStream << "\"SbmLaplacianConditionDirichlet\" #" << Id();
     }
 
     /// Print object's data.
@@ -214,7 +212,7 @@ private:
      * 
      * @param H_sum_vec 
      */
-    void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
+    void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
     
     /**
      * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -244,28 +242,20 @@ private:
         double dx, IndexType k_x, 
         double dy, IndexType k_y, 
         double dz, IndexType k_z);
-    
-    /**
-     * @brief Compute the factorial of a positive integer n
-     * 
-     * @param n 
-     * @return unsigned long long 
-     */
-    unsigned long long factorial(IndexType n); 
 
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;
-    array_1d<double, 3> mTrueNormal;
-    double mTrueDotSurrogateNormal;
     Vector mDistanceVector;
     unsigned int mDim;
+    double mPenalty;
+    double mNitschePenalty;
     IndexType mBasisFunctionsOrder;
-    NodeType mProjectionNode;
+    NodeType* mpProjectionNode;
 
     ///@}
 
-}; // Class SbmNeumannLaplacianCondition
+}; // Class SbmLaplacianConditionDirichlet
 
 }  // namespace Kratos.
 

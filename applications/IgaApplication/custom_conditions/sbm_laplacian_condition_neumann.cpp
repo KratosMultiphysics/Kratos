@@ -20,19 +20,19 @@
 #include "includes/convection_diffusion_settings.h"
 
 // Application includes
-#include "custom_conditions/sbm_neumann_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_condition_neumann.h"
 
 
 namespace Kratos
 {
 
-void SbmNeumannLaplacianCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void SbmLaplacianConditionNeumann::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMemberVariables();
     InitializeSbmMemberVariables();
 }
 
-void SbmNeumannLaplacianCondition::CalculateLocalSystem(
+void SbmLaplacianConditionNeumann::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -55,8 +55,8 @@ void SbmNeumannLaplacianCondition::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
 
     // Integration
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     // Initialize DN_DX
     Matrix DN_DX(number_of_nodes,mDim);
@@ -91,7 +91,7 @@ void SbmNeumannLaplacianCondition::CalculateLocalSystem(
     Vector t_N(number_of_nodes);
     for (IndexType i = 0; i < number_of_nodes; ++i)
     {
-        t_N[i] = mProjectionNode.GetValue(HEAT_FLUX);
+        t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
     }
     // Neumann Contributions
     noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
@@ -108,11 +108,11 @@ void SbmNeumannLaplacianCondition::CalculateLocalSystem(
 
 }
 
-void SbmNeumannLaplacianCondition::InitializeMemberVariables()
+void SbmLaplacianConditionNeumann::InitializeMemberVariables()
 {
     // Compute class memeber variables
     const auto& r_geometry = this->GetGeometry();
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
@@ -130,7 +130,7 @@ void SbmNeumannLaplacianCondition::InitializeMemberVariables()
     mNormalPhysicalSpace = mNormalParameterSpace; // prod(trans(J0[0]),mNormalParameterSpace);
 }
 
-void SbmNeumannLaplacianCondition::InitializeSbmMemberVariables()
+void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
     // Retrieve projection
@@ -149,10 +149,10 @@ void SbmNeumannLaplacianCondition::InitializeSbmMemberVariables()
     } else {
         closestNodeId = 0;
     }
-    mProjectionNode = candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
+    mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
     mDistanceVector.resize(3);
-    noalias(mDistanceVector) = mProjectionNode - r_geometry.Center().Coordinates();
+    noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
     // loopIdentifier is inner or outer
     std::string loopIdentifier = this->GetValue(IDENTIFIER);
@@ -192,7 +192,7 @@ void SbmNeumannLaplacianCondition::InitializeSbmMemberVariables()
     mTrueDotSurrogateNormal = inner_prod(mNormalParameterSpace, mTrueNormal);
 }
 
-void SbmNeumannLaplacianCondition::CalculateLeftHandSide(
+void SbmLaplacianConditionNeumann::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -206,8 +206,8 @@ void SbmNeumannLaplacianCondition::CalculateLeftHandSide(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
 
     // Integration
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     // Initialize DN_DX
     Matrix DN_DX(number_of_nodes,mDim);
@@ -241,7 +241,7 @@ void SbmNeumannLaplacianCondition::CalculateLeftHandSide(
 }
 
 
-void SbmNeumannLaplacianCondition::CalculateRightHandSide(
+void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -257,11 +257,11 @@ void SbmNeumannLaplacianCondition::CalculateRightHandSide(
         rCurrentProcessInfo);
 }
 
-void SbmNeumannLaplacianCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
+void SbmLaplacianConditionNeumann::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
     // Compute all the derivatives of the basis functions involved
     std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
@@ -337,37 +337,38 @@ void SbmNeumannLaplacianCondition::ComputeGradientTaylorExpansionContribution(Ma
     }    
 }
 
-unsigned long long SbmNeumannLaplacianCondition::factorial(IndexType n) 
-{
-    if (n == 0) return 1;
-    unsigned long long result = 1;
-    for (IndexType i = 2; i <= n; ++i) result *= i;
-    return result;
-}
-
 // Function to compute a single term in the Taylor expansion
-double SbmNeumannLaplacianCondition::ComputeTaylorTerm(double derivative, double dx, IndexType n_k, double dy, IndexType k)
+double SbmLaplacianConditionNeumann::ComputeTaylorTerm(
+    const double derivative, 
+    const double dx, 
+    const IndexType n_k, 
+    const double dy, 
+    const IndexType k)
 {
-    return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (factorial(k) * factorial(n_k));    
+    return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
 }
 
-double SbmNeumannLaplacianCondition::ComputeTaylorTerm3D(double derivative, double dx, IndexType k_x, double dy, IndexType k_y, double dz, IndexType k_z)
+double SbmLaplacianConditionNeumann::ComputeTaylorTerm3D(
+    const double derivative, 
+    const double dx, 
+    const IndexType k_x, 
+    const double dy, 
+    const IndexType k_y, 
+    const double dz, 
+    const IndexType k_z)
 {   
-    return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (factorial(k_x) * factorial(k_y) * factorial(k_z));    
+    return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));    
 }
 
 
-int SbmNeumannLaplacianCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+int SbmLaplacianConditionNeumann::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
-        << "No penalty factor (PENALTY_FACTOR) defined in property of SbmNeumannLaplacianCondition" << std::endl;
     return 0;
 }
 
-void SbmNeumannLaplacianCondition::EquationIdVector(
+void SbmLaplacianConditionNeumann::EquationIdVector(
     EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo
-) const
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
@@ -384,10 +385,9 @@ void SbmNeumannLaplacianCondition::EquationIdVector(
     }
 }
 
-void SbmNeumannLaplacianCondition::GetDofList(
+void SbmLaplacianConditionNeumann::GetDofList(
     DofsVectorType& rElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo
-) const
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     const auto& r_unknown_var = p_settings->GetUnknownVariable();

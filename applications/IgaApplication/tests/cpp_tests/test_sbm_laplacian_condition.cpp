@@ -14,8 +14,8 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "test_creation_utility.h"
-#include "custom_conditions/sbm_dirichlet_laplacian_condition.h"
-#include "custom_conditions/sbm_neumann_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
+#include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "includes/convection_diffusion_settings.h"
 
 namespace Kratos::Testing
@@ -25,7 +25,10 @@ namespace
     typedef std::size_t SizeType;
 
     typename Condition::Pointer GetSbmDirichletLaplacianCondition(
-          ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint, double penalty)
+          ModelPart& rModelPart, 
+          SizeType PolynomialDegree, 
+          IntegrationPoint<3> IntegrationPoint, 
+          double penalty)
     {
         // Set the element properties
         auto p_elem_prop = rModelPart.CreateNewProperties(0);
@@ -55,11 +58,14 @@ namespace
         mesh_size[1] = 0.1;
         p_quadrature_point->SetValue(MARKER_MESHES, mesh_size);
 
-        return Kratos::make_intrusive<SbmDirichletLaplacianCondition>(1, p_quadrature_point, p_elem_prop);
+        return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(1, p_quadrature_point, p_elem_prop);
     }
     
     typename Condition::Pointer GetSbmNeumannLaplacianCondition(
-          ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint, double penalty)
+          ModelPart& rModelPart, 
+          SizeType PolynomialDegree, 
+          IntegrationPoint<3> IntegrationPoint, 
+          double penalty)
     {
         // Set the element properties
         auto p_elem_prop = rModelPart.CreateNewProperties(0);
@@ -89,7 +95,7 @@ namespace
         mesh_size[1] = 0.1;
         p_quadrature_point->SetValue(MARKER_MESHES, mesh_size);
 
-        return Kratos::make_intrusive<SbmNeumannLaplacianCondition>(1, p_quadrature_point, p_elem_prop);
+        return Kratos::make_intrusive<SbmLaplacianConditionNeumann>(1, p_quadrature_point, p_elem_prop);
     }
 }
 
