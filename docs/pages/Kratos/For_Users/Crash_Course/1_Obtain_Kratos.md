@@ -24,13 +24,13 @@ This means that you cannot double-click Kratos and start, but rather use its com
 
 So the first part of this course will cover where to find these software, how to install it, and how to prepare it to run Kratos.
 
-⚠️ If you are using MacOS, you are unable to install software in your computer, or you have any other problem, you can follow this course in a GoogleColab Notebook that you can copy from [here]().
+⚠️ If you are using MacOS, you are unable to install software in your computer, or you have any other problem, you can follow this course in a GoogleColab Notebook that you can copy from [here](https://colab.research.google.com/drive/1wG4qkGHmmlAEzW-izg5KWnxQYpbT4fZv).
 
 ## 2. Install Python
 
 If Python is not installed on your system, you can download it from the official [Python Website](https://www.python.org/) website. 
 
-Kratos is availiable for **Windows** and **Linux** from versions **3.8** to **3.12** so please select one of those.
+⚠️ Kratos is availiable for **Windows** and **Linux** from versions **3.8** to **3.12** so please select one of those.
 
 ## 2.1 Create a python virtual environment:
 
@@ -48,7 +48,7 @@ python -m venv kratos_venv
 This will create an isolated environment for Kratos. To activate or deactivate it, use the following commands:
 
 Windows:
-```ps1
+```bash
 # In cmd.exe
 kratos_venv\bin\activate.bat
 
@@ -73,6 +73,8 @@ Once your virtual environment is activated, install the `KratosMultiphysics-all`
 python -m pip install KratosMultiphysics-all
 ```
 {: data-lang="Bash"}
+
+⚠️ If you are a windows user, please also install [Windows Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 To verify the installation, run the following test in a Python session:
 

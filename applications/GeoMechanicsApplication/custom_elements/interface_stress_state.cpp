@@ -11,6 +11,7 @@
 //
 #include "interface_stress_state.h"
 #include "geo_mechanics_application_constants.h"
+#include "includes/serializer.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -76,4 +77,15 @@ Vector InterfaceStressState::DefineInterfaceVoigtVector()
 
 const Vector InterfaceStressState::VoigtVectorInterface2D =
     InterfaceStressState::DefineInterfaceVoigtVector();
+
+void InterfaceStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void InterfaceStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
+}
+
 } // namespace Kratos

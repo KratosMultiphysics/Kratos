@@ -28,11 +28,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricLineNormalFluidFlux2DDif
 public:
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricLineNormalFluidFlux2DDiffOrderCondition);
 
@@ -50,19 +47,16 @@ public:
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     std::string Info() const override;
 
 protected:
-    // Member Variables
-
-    double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
+    double CalculateIntegrationCoefficient(IndexType                          PointNumber,
                                            const GeometryType::JacobiansType& JContainer,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
 private:
-    // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

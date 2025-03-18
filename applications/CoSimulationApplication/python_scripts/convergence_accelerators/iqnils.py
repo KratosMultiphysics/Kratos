@@ -59,7 +59,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         k = col
         num_old_matrices = len( self.v_old_matrices )
 
-        if self.V_old == [] and self.W_old == []: # No previous vectors to reuse
+        if len(self.V_old) == 0 and len(self.W_old) == 0: # No previous vectors to reuse
             if k == 0:
                 ## For the first iteration in the first time step, do relaxation only
                 if self.echo_level > 3:
@@ -143,7 +143,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## FinalizeSolutionStep()
     # Finalizes the current time step and initializes the next time step.
     def FinalizeSolutionStep( self ):
-        if self.V_new != [] and self.W_new != []:
+        if len(self.V_new) != 0 and len(self.W_new) != 0:
             self.v_old_matrices.appendleft( self.V_new )
             self.w_old_matrices.appendleft( self.W_new )
         if self.v_old_matrices and self.w_old_matrices:
