@@ -47,45 +47,35 @@ TransientPwInterfaceElement <|-- SteadyStatePwInterfaceElement
 SteadyStatePwInterfaceElement <|-- SteadyStatePwPipingElement
 UPwSmallStrainInterfaceElement <|-- UPwSmallStrainLinkInterfaceElement
 
-class LineInterfaceElement #LightGreen
+class LineInterfaceElement
 Element <|-- LineInterfaceElement
 
 ''Thermal
-class TransientThermalElement #LightGreen
+class TransientThermalElement
 Element <|-- TransientThermalElement
 '
 '
 'Structural
-class GeoTrussElementBase #Orange
-class GeoTrussElement #Orange
-class GeoCableElement #Orange
-class GeoLinearTrussElement #Orange
-
-Element <|-- GeoTrussElementBase
-GeoTrussElementBase <|-- GeoTrussElement
-GeoTrussElementBase <|-- GeoLinearTrussElement
-GeoTrussElement <|-- GeoCableElement
-
-class CrBeamElement2D2N_Structural #LightGrey
-class GeoCrBeamElement2D2N #Orange
-class CrBeamElementLinear2D2N_Structural #LightGrey
-class GeoCrBeamElementLinear2D2N #Orange
+class CrBeamElement2D2N_Structural
+class GeoCrBeamElement2D2N
+class CrBeamElementLinear2D2N_Structural
+class GeoCrBeamElementLinear2D2N
 
 Element <|-- CrBeamElement2D2N_Structural
 CrBeamElement2D2N_Structural <|-- GeoCrBeamElement2D2N
 CrBeamElement2D2N_Structural <|-- CrBeamElementLinear2D2N_Structural
 CrBeamElementLinear2D2N_Structural <|-- GeoCrBeamElementLinear2D2N
 
-class CrBeamElement3D2N_Structural #LightGrey
-class GeoCrBeamElement3D2N #Orange
-class GeoCrBeamElementLinear3D2N #Orange
+class CrBeamElement3D2N_Structural
+class GeoCrBeamElement3D2N
+class GeoCrBeamElementLinear3D2N
 
 Element <|-- CrBeamElement3D2N_Structural
 CrBeamElement3D2N_Structural <|-- GeoCrBeamElement3D2N
 CrBeamElement3D2N_Structural <|-- GeoCrBeamElementLinear3D2N
 
-class GeoStructuralBaseElement #Orange
-class GeoCurvedBeamElement #Orange
+class GeoStructuralBaseElement
+class GeoCurvedBeamElement
 
 Element <|-- GeoStructuralBaseElement
 GeoStructuralBaseElement <|-- GeoCurvedBeamElement
