@@ -23,6 +23,7 @@
 #include "includes/kratos_components.h" // KratosComponents
 #include "utilities/proxies.h" // MakeProxy
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE, KRATOS_PROFILE_SCOPE_MILLI
+#include "utilities/builtin_timer.h" // BuiltinTimer
 
 // System includes
 #include <optional> // std::optional
@@ -121,9 +122,9 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
             // Perform smoothing on the fine grid.
             TSparse::SetToZero(rSolutionUpdate); //< do I need this?
-            mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolutionUpdate, rResidual);
+            //mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolutionUpdate, rResidual);
             mpInterface->GetLinearSystemSolver()->Solve(rLhs, rSolutionUpdate, rResidual);
-            mpInterface->GetLinearSystemSolver()->FinalizeSolutionStep(rLhs, rSolutionUpdate, rResidual);
+            //mpInterface->GetLinearSystemSolver()->FinalizeSolutionStep(rLhs, rSolutionUpdate, rResidual);
 
             // Update the fine solution.
             TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
@@ -909,10 +910,12 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
     ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
 
     // Solve constrained assembled system.
+    BuiltinTimer timer;
     if (not mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart) and 1 <= mpImpl->mVerbosity) {
         std::cerr << this->Info() << ": root grid: failed to solve the assembled system\n";
     }
-
+    KRATOS_INFO_IF("PMultigridBuilderAndSolver", 2 <= mpImpl->mVerbosity)
+        << "Linear solution took " << timer << "\n";
     KRATOS_CATCH("")
 }
 
@@ -931,6 +934,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
                                                                             typename Interface::TSystemVectorType& rRhs)
 {
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
+
+    KRATOS_TRY
+    BuiltinTimer timer;
+
     TSparse::SetToZero(rRhs);
     mpImpl->template Assemble</*AssembleLHS=*/false,/*AssembleRHS=*/true>(rModelPart,
                                                                           *pScheme,
@@ -939,6 +946,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
     block_for_each(this->GetDofSet(), [&rRhs](Dof<typename TDense::DataType>& rDof){
         rDof.GetSolutionStepReactionValue() = -rRhs[rDof.EquationId()];
     });
+
+    KRATOS_INFO_IF("PMultigridBuilderAndSolver", 2 <= mpImpl->mVerbosity)
+        << "Computing reactions took " << timer << "\n";
+    KRATOS_CATCH("")
 }
 
 
