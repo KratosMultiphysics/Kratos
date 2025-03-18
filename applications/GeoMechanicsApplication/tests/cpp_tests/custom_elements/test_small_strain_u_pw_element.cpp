@@ -168,11 +168,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_DoFList, KratosGeoMechanicsFastS
     std::vector<std::string> variable_names;
     std::transform(degrees_of_freedom.cbegin(), degrees_of_freedom.cend(), std::back_inserter(variable_names),
                    [](const auto& rpDof) { return rpDof->GetVariable().Name(); });
-    const std::vector<std::string> desired_variable_list{
+    const std::vector<std::string> expected_variable_names{
         "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_X",
         "DISPLACEMENT_Y", "WATER_PRESSURE", "WATER_PRESSURE", "WATER_PRESSURE"};
 
-    KRATOS_EXPECT_EQ(variable_names, desired_variable_list);
+    KRATOS_EXPECT_EQ(variable_names, expected_variable_names);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -184,12 +184,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMech
     const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
                                               std::make_unique<PlaneStrainStressState>());
 
-    // Act
-    const auto p_integration_method = element.GetIntegrationMethod();
-
-    // Assert
-    constexpr auto expected_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    KRATOS_EXPECT_EQ(p_integration_method, expected_integration_method);
+    // Act and Assert
+    KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -198,10 +194,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput,
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
-    auto process_info = ProcessInfo{};
 
     // Act, no exceptions on correct input
-    KRATOS_EXPECT_EQ(element->Check(process_info), 0);
+    KRATOS_EXPECT_EQ(element->Check(ProcessInfo{}), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -210,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSi
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForFluidFluxCheck(element);
-    auto process_info = ProcessInfo{};
+    const auto process_info = ProcessInfo{};
 
     // Act
     element->Initialize(process_info);
@@ -237,7 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
-    auto process_info = ProcessInfo{};
+    const auto process_info = ProcessInfo{};
 
     // Act
     element->Initialize(process_info);
@@ -267,7 +262,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeSolutionStep, KratosGe
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
-    auto process_info = ProcessInfo{};
+    const auto process_info = ProcessInfo{};
 
     // Act, no exceptions on correct input
     element->Initialize(process_info);
@@ -287,7 +282,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
-    auto process_info = ProcessInfo{};
+    const auto process_info = ProcessInfo{};
     element->Initialize(process_info);
 
     // Act and Assert
@@ -341,7 +336,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
     element->CalculateOnIntegrationPoints(KIRCHHOFF_STRESS_VECTOR,
                                           calculated_values_at_integration_points, process_info);
     for (const auto& kirchhoff_stress_vector : calculated_values_at_integration_points) {
-        KRATOS_EXPECT_EQ(kirchhoff_stress_vector.empty(), true);
+        KRATOS_EXPECT_TRUE(kirchhoff_stress_vector.empty());
     }
 }
 
@@ -352,7 +347,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVari
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
-    auto process_info = ProcessInfo{};
+    const auto process_info = ProcessInfo{};
     element->Initialize(process_info);
 
     // Act and Assert
@@ -442,7 +437,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_FinalizeSolutionStep, KratosGeoM
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForFluidFluxCheck(element);
-    auto process_info = ProcessInfo{};
+    const auto process_info = ProcessInfo{};
     element->Initialize(process_info);
     element->FinalizeNonLinearIteration(process_info);
 
@@ -462,7 +457,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
-    auto process_info = ProcessInfo{};
+    const auto process_info = ProcessInfo{};
     element->Initialize(process_info);
 
     // Act
