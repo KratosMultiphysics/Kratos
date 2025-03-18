@@ -32,6 +32,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombWithTensionCutOff : publi
 public:
     KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombWithTensionCutOff);
 
+    MohrCoulombWithTensionCutOff() = default;
     explicit MohrCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
