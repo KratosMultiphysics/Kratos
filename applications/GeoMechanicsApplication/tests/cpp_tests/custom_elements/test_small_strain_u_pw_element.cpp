@@ -160,9 +160,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_DoFList, KratosGeoMechanicsFastS
     const auto p_element = CreateUPwSmallStrainElementWithUPwDofs(model, std::make_shared<Properties>());
 
     // Act
-    const auto              dummy_process_info = ProcessInfo{};
     Element::DofsVectorType degrees_of_freedom;
-    p_element->GetDofList(degrees_of_freedom, dummy_process_info);
+    p_element->GetDofList(degrees_of_freedom, ProcessInfo{});
 
     // Assert
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 9);
@@ -196,13 +195,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMech
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto process_info                     = ProcessInfo{};
-    process_info[DT_PRESSURE_COEFFICIENT] = 1.0;
-    process_info[VELOCITY_COEFFICIENT]    = 1.0;
-
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
+    auto process_info = ProcessInfo{};
 
     // Act, no exceptions on correct input
     KRATOS_EXPECT_EQ(element->Check(process_info), 0);
@@ -211,14 +207,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput,
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto process_info = ProcessInfo{};
-    // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
-    process_info[VELOCITY_COEFFICIENT]    = 0.0;
-
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForFluidFluxCheck(element);
+    auto process_info = ProcessInfo{};
 
     // Act
     element->Initialize(process_info);
@@ -242,14 +234,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSi
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto process_info = ProcessInfo{};
-    // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
-    process_info[VELOCITY_COEFFICIENT]    = 0.0;
-
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
+    auto process_info = ProcessInfo{};
 
     // Act
     element->Initialize(process_info);
@@ -276,14 +264,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto process_info = ProcessInfo{};
-    // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
-    process_info[VELOCITY_COEFFICIENT]    = 0.0;
-
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
+    auto process_info = ProcessInfo{};
 
     // Act, no exceptions on correct input
     element->Initialize(process_info);
@@ -299,15 +283,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto process_info = ProcessInfo{};
-    // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 1.0;
-    process_info[VELOCITY_COEFFICIENT]    = 1.0;
-
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
+    auto process_info = ProcessInfo{};
     element->Initialize(process_info);
 
     // Act and Assert
@@ -368,15 +348,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVariables, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto process_info = ProcessInfo{};
-    // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 1.0;
-    process_info[VELOCITY_COEFFICIENT]    = 1.0;
-
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
+    auto process_info = ProcessInfo{};
     element->Initialize(process_info);
 
     // Act and Assert
@@ -462,15 +438,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVari
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto process_info = ProcessInfo{};
-    // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
-    process_info[VELOCITY_COEFFICIENT]    = 0.0;
-
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForFluidFluxCheck(element);
+    auto process_info = ProcessInfo{};
     element->Initialize(process_info);
     element->FinalizeNonLinearIteration(process_info);
 
@@ -486,15 +458,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_FinalizeSolutionStep, KratosGeoM
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto process_info = ProcessInfo{};
-    // No storage, no dynamics, only statics and steady state
-    process_info[DT_PRESSURE_COEFFICIENT] = 0.0;
-    process_info[VELOCITY_COEFFICIENT]    = 0.0;
-
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
+    auto process_info = ProcessInfo{};
     element->Initialize(process_info);
 
     // Act
