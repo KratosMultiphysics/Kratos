@@ -1,3 +1,11 @@
+# Element hierarchy
+The complete element hierarchy is shown in the following uml diagram:
+
+![element_hierarchy.svg](element_hierarchy.svg)
+
+Note that this structure is under construction and will be updated such that the hierarchy is conceptually more consistent with the general idea of class inheritance structures.
+
+
 # U-Pw Continuum Elements
 
 For simulating soil behavior, the geomechanics application offers continuum elements that take into account the displacement field ($u$) as well as the pore water pressure field ($p_w$). In fact, the two fields can be coupled.

@@ -50,6 +50,13 @@ UPwSmallStrainInterfaceElement <|-- UPwSmallStrainLinkInterfaceElement
 class LineInterfaceElement
 Element <|-- LineInterfaceElement
 
+'Pw Elements
+class TransientPwLineElement
+class GeoSteadyStatePwPipingElement
+
+Element <|-- TransientPwLineElement
+Element <|-- GeoSteadyStatePwPipingElement
+
 ''Thermal
 class TransientThermalElement
 Element <|-- TransientThermalElement
@@ -79,6 +86,5 @@ class GeoCurvedBeamElement
 
 Element <|-- GeoStructuralBaseElement
 GeoStructuralBaseElement <|-- GeoCurvedBeamElement
-
 
 @enduml
