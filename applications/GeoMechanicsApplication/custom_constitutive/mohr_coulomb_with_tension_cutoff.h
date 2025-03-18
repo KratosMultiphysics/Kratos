@@ -70,21 +70,9 @@ private:
     CoulombYieldSurface                       mCoulombYieldSurface;
     TensionCutoff                             mTensionCutOff;
 
-    static void                 CheckProperty(const Properties&       rMaterialProperties,
-                                              const Variable<double>& rVariable,
-                                              std::optional<double>   MaxValue = std::nullopt);
-    [[nodiscard]] Vector        CalculateTrialStressVector(const Vector& rStrainVector,
-                                                           double        YoungsModulus,
-                                                           double        PoissonsRatio) const;
-    [[nodiscard]] static double CalculateApex(double FrictionAngle, double Cohesion);
-    [[nodiscard]] static Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensileStrength);
-    [[nodiscard]] static Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector,
-                                                        double        TensileStrength);
-    [[nodiscard]] static Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
-                                                               const Vector& rCornerPoint);
-    [[nodiscard]] Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
-                                                          double        FrictionAngle,
-                                                          double        Cohesion) const;
+    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
+                                                    double        YoungsModulus,
+                                                    double        PoissonsRatio) const;
     [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
     [[nodiscard]] bool   IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
                                              double        TensileStrength,
