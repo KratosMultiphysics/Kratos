@@ -578,6 +578,8 @@ class DEMAnalysisStage(AnalysisStage):
             self.CalculateBoundingBoxMoveVelocityIsotropic(measured_global_stress)
         elif servo_loading_type == "anisotropic":
             self.CalculateBoundingBoxMoveVelocityAnisotropic(measured_global_stress)
+        elif servo_loading_type == "triaxail_loading":
+            self.CalculateBoundingBoxMoveVelocityTriaxailLoading(measured_global_stress)
     
     def CalculateBoundingBoxMoveVelocityIsotropic(self, measured_global_stress):
 
@@ -618,6 +620,29 @@ class DEMAnalysisStage(AnalysisStage):
             self.bounding_box_move_velocity[0] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[0])
         if abs(self.bounding_box_move_velocity[1]) > bonuding_box_move_velocity_max:
             self.bounding_box_move_velocity[1] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[1])
+        if abs(self.bounding_box_move_velocity[2]) > bonuding_box_move_velocity_max:
+            self.bounding_box_move_velocity[2] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[2])
+
+    def CalculateBoundingBoxMoveVelocityTriaxailLoading(self, measured_global_stress):
+
+        servo_loading_stress = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingStress"].GetVector()
+        servo_loading_factor = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFactor"].GetDouble()
+        d50 = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["MeanParticleDiameterD50"].GetDouble()
+        Youngs_modulus = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["ParticleYoungsModulus"].GetDouble()
+        
+        delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        servo_loading_coefficient = servo_loading_factor * d50 / (delta_time * Youngs_modulus)
+        stress_difference = [servo_loading_stress[0] - measured_global_stress[0][0], servo_loading_stress[1] - measured_global_stress[1][1], servo_loading_stress[2] - measured_global_stress[2][2]]
+        self.bounding_box_move_velocity[0] = stress_difference[0] * servo_loading_coefficient
+        self.bounding_box_move_velocity[2] = stress_difference[2] * servo_loading_coefficient
+
+        # the loading velocity is defined by the user
+        triaxial_loading_velocity = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["TriaxialLoadingVelocity"].GetDouble()
+        self.bounding_box_move_velocity[1] = triaxial_loading_velocity
+
+        bonuding_box_move_velocity_max = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingVelocityMax"].GetDouble()
+        if abs(self.bounding_box_move_velocity[0]) > bonuding_box_move_velocity_max:
+            self.bounding_box_move_velocity[0] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[0])
         if abs(self.bounding_box_move_velocity[2]) > bonuding_box_move_velocity_max:
             self.bounding_box_move_velocity[2] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[2])
 
