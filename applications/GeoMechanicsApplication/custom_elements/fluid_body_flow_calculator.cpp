@@ -27,7 +27,7 @@ std::optional<Matrix> FluidBodyFlowCalculator::LHSContribution() { return std::n
 std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
 {
     const auto    shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
-    const Matrix& r_N_container              = mInputProvider.GetNContainer();
+    const Matrix& r_N_container            = mInputProvider.GetNContainer();
 
     const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
@@ -36,7 +36,8 @@ std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
         r_properties, mInputProvider.GetLocalSpaceDimension());
 
     RetentionLaw::Parameters RetentionParameters(r_properties);
-    const auto projected_gravity_on_integration_points = mInputProvider.GetProjectedGravityForIntegrationPoints();
+    const auto               projected_gravity_on_integration_points =
+        mInputProvider.GetProjectedGravityForIntegrationPoints();
     Vector fluid_body_vector = ZeroVector(shape_function_gradients[0].size1());
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
@@ -49,7 +50,7 @@ std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
                  ScalarVector(1, projected_gravity_on_integration_points[integration_point_index])) *
             integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
     }
-    return fluid_body_vector;
+    return std::make_optional(fluid_body_vector);
 }
 
 std::pair<std::optional<Matrix>, std::optional<Vector>> FluidBodyFlowCalculator::LocalSystemContribution()

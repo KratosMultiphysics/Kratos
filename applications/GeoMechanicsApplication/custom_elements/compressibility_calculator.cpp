@@ -23,12 +23,12 @@ CompressibilityCalculator::CompressibilityCalculator(InputProvider rInputProvide
 
 std::optional<Matrix> CompressibilityCalculator::LHSContribution()
 {
-    return LHSContribution(CalculateCompressibilityMatrix());
+    return std::make_optional(LHSContribution(CalculateCompressibilityMatrix()));
 }
 
 std::optional<Vector> CompressibilityCalculator::RHSContribution()
 {
-    return RHSContribution(CalculateCompressibilityMatrix());
+    return std::make_optional(RHSContribution(CalculateCompressibilityMatrix()));
 }
 
 Vector CompressibilityCalculator::RHSContribution(const Matrix& rCompressibilityMatrix) const
@@ -44,7 +44,8 @@ Matrix CompressibilityCalculator::LHSContribution(const Matrix& rCompressibility
 std::pair<std::optional<Matrix>, std::optional<Vector>> CompressibilityCalculator::LocalSystemContribution()
 {
     const auto compressibility_matrix = CalculateCompressibilityMatrix();
-    return {LHSContribution(compressibility_matrix), RHSContribution(compressibility_matrix)};
+    return {std::make_optional(LHSContribution(compressibility_matrix)),
+            std::make_optional(RHSContribution(compressibility_matrix))};
 }
 
 Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const

@@ -24,12 +24,12 @@ FilterCompressibilityCalculator::FilterCompressibilityCalculator(InputProvider A
 
 std::optional<Matrix> FilterCompressibilityCalculator::LHSContribution()
 {
-    return LHSContribution(CalculateCompressibilityMatrix());
+    return std::make_optional(LHSContribution(CalculateCompressibilityMatrix()));
 }
 
 std::optional<Vector> FilterCompressibilityCalculator::RHSContribution()
 {
-    return RHSContribution(CalculateCompressibilityMatrix());
+    return std::make_optional(RHSContribution(CalculateCompressibilityMatrix()));
 }
 
 Vector FilterCompressibilityCalculator::RHSContribution(const Matrix& rCompressibilityMatrix) const
@@ -45,7 +45,8 @@ Matrix FilterCompressibilityCalculator::LHSContribution(const Matrix& rCompressi
 std::pair<std::optional<Matrix>, std::optional<Vector>> FilterCompressibilityCalculator::LocalSystemContribution()
 {
     const auto compressibility_matrix = CalculateCompressibilityMatrix();
-    return {LHSContribution(compressibility_matrix), RHSContribution(compressibility_matrix)};
+    return {std::make_optional(LHSContribution(compressibility_matrix)),
+            std::make_optional(RHSContribution(compressibility_matrix))};
 }
 
 Matrix FilterCompressibilityCalculator::CalculateCompressibilityMatrix() const
