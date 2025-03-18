@@ -215,14 +215,16 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         if ((np.abs(self.normalized_coupling_functional_weights[0]) < 1e-10) or (np.sum(np.abs(self.normalized_fluid_functional_weights)) < 1e-10)):
             fluid_functional_weights = np.zeros(self.normalized_fluid_functional_weights.size)
         else:
-            fluid_functional_weights  = self.normalized_fluid_functional_weights
-            fluid_functional_weights *= self.normalized_coupling_functional_weights[0] / abs(self.initial_fluid_functional)
+            fluid_functional_weights  = self.normalized_fluid_functional_weights * self.normalized_coupling_functional_weights[0]
+            if (abs(self.initial_fluid_functional) > 1e-15):
+                fluid_functional_weights /= abs(self.initial_fluid_functional)
         # transport
         if ((np.abs(self.normalized_coupling_functional_weights[1]) < 1e-10) or (np.sum(np.abs(self.normalized_transport_functional_weights)) < 1e-10)):
             transport_functional_weights = np.zeros(self.normalized_transport_functional_weights.size)
         else:
-            transport_functional_weights  = self.normalized_transport_functional_weights
-            transport_functional_weights *= self.normalized_coupling_functional_weights[1] / abs(self.initial_transport_functional)
+            transport_functional_weights  = self.normalized_transport_functional_weights * self.normalized_coupling_functional_weights[1]
+            if (abs(self.initial_transport_functional) > 1e-15):
+                transport_functional_weights /= abs(self.initial_transport_functional)
         return np.concatenate((fluid_functional_weights, transport_functional_weights))
 
     def _EvaluateFunctional(self, print_functional=False):

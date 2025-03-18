@@ -20,7 +20,8 @@ def CreateSolver(model, custom_settings, isAdjointSolver = False):
 class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
     def __init__(self, model, custom_settings, isAdjointSolver = False):
-        super().__init__(model,custom_settings,)
+        self._SetLinearSolverSettings(custom_settings)
+        super().__init__(model,custom_settings)
         self.is_adjoint = isAdjointSolver
         self._SetUpTopologyOptimization(custom_settings)
         print_str = "Construction of FluidTopologyOptimizationSolver "
@@ -28,7 +29,21 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
             print_str += "for Adjoint problem "
         print_str +=  "finished."
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, print_str)
-        
+
+    def _SetLinearSolverSettings(self, settings, tolerance = 1e-8, max_it = 5000):
+        linear_solver_settings = KratosMultiphysics.Parameters("""{
+                                                                "solver_type": "amgcl",
+                                                                "smoother_type":"ilu0",
+                                                                "krylov_type":"gmres",
+                                                                "coarsening_type":"aggregation",
+                                                                "max_iteration": """ + str(max_it) + """,
+                                                                "tolerance": """ + str(tolerance) + """,
+                                                                "scaling": false
+                                                                }""")
+        if (not settings.Has("linear_solver_settings")):
+            settings.AddEmptyValue("linear_solver_settings")            
+        settings["linear_solver_settings"] = linear_solver_settings
+
     def _SetUpTopologyOptimization(self,settings):
         if (self.element_name != "FluidTopologyOptimizationElement"):
             print("[WARNING]", self.__class__.__name__, "element_name: \'", self.element_name, "\' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")

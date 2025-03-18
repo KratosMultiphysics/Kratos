@@ -321,7 +321,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self._SetFunctionalWeights()
             self._ResetFunctionalOutput()
         self._UpdateRelevantAdjointVariables()
-        self._SolveAdjointProblem() # ADJOINT NAVIER-STOKES PROBLEM SOLUTION   
+        self._SolveAdjointProblem() # ADJOINT NAVIER-STOKES PROBLEM SOLUTION
     
     def _GeometricalPreprocessing(self):
         """
@@ -634,16 +634,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         value_void  = physics_parameter_values[0]
         value_solid = physics_parameter_values[1]
         power       = physics_parameter_values[2]
+        power_multiplier, start_it, end_it = self._GetPolynomialPhysicsParameterPowerScaling()
         if (power < 1.0):
             power = 1.0
         power_multiplier = 10.0
         power_max   = power_multiplier*power
-        min_it = 5.0
-        max_it = 100.0
-        if (self.opt_it < min_it):
+        if (self.opt_it < start_it):
             eff_power = power
-        elif (self.opt_it <= max_it):
-            eff_power = power + (power_max-power)*(self.opt_it-min_it)/(max_it-min_it)
+        elif (self.opt_it <= end_it):
+            eff_power = power + (power_max-power)*(self.opt_it-start_it)/(end_it-start_it)
         else:
             eff_power = power_max
         if (value_void <= value_solid): 
@@ -653,6 +652,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             physics_parameter = value_solid - (value_solid-value_void)*((1.0-design_parameter)**eff_power)
             physics_parameter_derivative_wrt_design_base = eff_power*(value_solid-value_void)*((1.0-design_parameter)**(eff_power-1))
         return physics_parameter, physics_parameter_derivative_wrt_design_base
+    
+    def _GetPolynomialPhysicsParameterPowerScaling(self, power_multiplier=10.0, start_it=5, end_it=100):
+        return power_multiplier, start_it, end_it
     
     def _UpdateResistanceDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()

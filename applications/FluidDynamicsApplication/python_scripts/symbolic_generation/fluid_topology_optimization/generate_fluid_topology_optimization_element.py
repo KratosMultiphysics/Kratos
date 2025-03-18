@@ -283,6 +283,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_funct_vorticity_adj   = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
         rv_adj += functional_weights[0]*rv_funct_resistance_adj + functional_weights[1]*rv_funct_strain_rate_adj + functional_weights[2]*rv_funct_vorticity_adj
 
+    ## HANDLE EVENTUAL TRANSPORT COUPLING TERMS  
     if (transport_coupling):
         # Transport Problem Solution (if only fluid is = 0)
         t     = DefineVector('t',nnodes) # transprot scalar
@@ -298,7 +299,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_transport_coupling_adj = -t_ConvCoeff_gauss*(w_adj_gauss.transpose()*(grad_t*t_adj_gauss))
         rv_adj += rv_transport_coupling_adj
 
-    #     # HANDLE ADJOINT FORCING TERMS  
+        # HANDLE ADJOINT FORCING TERMS  
         if (include_functionals):
             rv_funct_transport_convection_adj = -t_ConvCoeff_gauss * t_gauss * (grad_t.transpose()*w_adj_gauss)
             rv_adj += functional_weights[6]*rv_funct_transport_convection_adj
