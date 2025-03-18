@@ -126,7 +126,7 @@ SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPa
         SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_displacements};
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrec
     KRATOS_EXPECT_EQ(wrapper.GetNumberOfIterations(), 5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetEndTimeFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetEndTimeFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
@@ -144,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetEndTimeFromStrategyWrapper_ReturnsCorrectNumber, Kr
     KRATOS_EXPECT_DOUBLE_EQ(wrapper.GetEndTime(), 17.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SolveSolutionStepFromStrategyWrapper_ReturnsCorrectState, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SolveSolutionStepFromStrategyWrapper_ReturnsCorrectState, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(SolveSolutionStepFromStrategyWrapper_ReturnsCorrectSta
     KRATOS_EXPECT_EQ(wrapper.SolveSolutionStep(), TimeStepEndState::ConvergenceState::converged);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SetEndTimeFromStrategyWrapper, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SetEndTimeFromStrategyWrapper, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model      model;
     auto&      r_model_part = CreateDummyModelPart(model);
@@ -165,7 +165,7 @@ KRATOS_TEST_CASE_IN_SUITE(SetEndTimeFromStrategyWrapper, KratosGeoMechanicsFastS
     KRATOS_EXPECT_DOUBLE_EQ(r_model_part.GetProcessInfo()[TIME], end_time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetTimeIncrementFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetTimeIncrementFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
@@ -174,7 +174,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetTimeIncrementFromStrategyWrapper_ReturnsCorrectNumb
     KRATOS_EXPECT_DOUBLE_EQ(wrapper.GetTimeIncrement(), 3.4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SetTimeIncrementFromStrategyWrapper, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SetTimeIncrementFromStrategyWrapper, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model      model;
     auto&      r_model_part   = CreateDummyModelPart(model);
@@ -186,7 +186,7 @@ KRATOS_TEST_CASE_IN_SUITE(SetTimeIncrementFromStrategyWrapper, KratosGeoMechanic
     KRATOS_EXPECT_EQ(r_model_part.GetProcessInfo()[DELTA_TIME], time_increment);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetStepNumberFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetStepNumberFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
@@ -195,7 +195,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetStepNumberFromStrategyWrapper_ReturnsCorrectNumber,
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
@@ -207,7 +207,7 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMecha
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part     = CreateDummyModelPart(model);
@@ -233,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMech
     KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), expected_total_displacement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part     = CreateDummyModelPart(model);
@@ -254,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanic
     KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(INCREMENTAL_DISPLACEMENT), expected_incremental_displacement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosition, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosition, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part     = CreateDummyModelPart(model);
@@ -275,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosit
     KRATOS_EXPECT_VECTOR_EQ(p_node->Coordinates(), expected_position_after_displacement)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndWaterPressuresOnRequest, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndWaterPressuresOnRequest, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part     = CreateDummyModelPart(model);
@@ -302,7 +302,7 @@ KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndWaterPressuresOnRequest, K
     KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(WATER_PRESSURE, 0), old_water_pressure);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsOnRequest, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsOnRequest, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part     = CreateDummyModelPart(model);
