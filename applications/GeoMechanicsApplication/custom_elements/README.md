@@ -1,4 +1,5 @@
 # Element hierarchy
+
 The complete element hierarchy is shown in the following uml diagram:
 
 ![element_hierarchy.svg](element_hierarchy.svg)
