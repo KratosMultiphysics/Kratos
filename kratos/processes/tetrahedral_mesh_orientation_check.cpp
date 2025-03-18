@@ -35,6 +35,8 @@ KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,ALLOW_REPEATED_CONDITIO
 /***********************************************************************************/
 /***********************************************************************************/
 
+typedef TetrahedralMeshOrientationCheck::SizeType SizeType;
+
 void TetrahedralMeshOrientationCheck::Execute()
 {
     KRATOS_TRY;
@@ -49,10 +51,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
     for (auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
         GeometryType& r_geometry = it_elem->GetGeometry();
-        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
-
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || //acceptable linear geoms
-            geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D6) { //acceptable quadratic geoms
+        if (SupportedElement(r_geometry)) { //acceptable quadratic geoms
             const bool switched = this->Orient(r_geometry);
             if (switched)
                 elem_switch_count++;
@@ -80,10 +79,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
         GeometryType& r_geometry = it_cond->GetGeometry();
 
-        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
-
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || //acceptable linear geoms
-            geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D6 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D3) { //acceptable quadratic geoms
+        if(SupportedCondition(r_geometry)) { 
             DenseVector<int> ids(r_geometry.size());
 
             for(IndexType i=0; i<ids.size(); i++) {
@@ -108,27 +104,26 @@ void TetrahedralMeshOrientationCheck::Execute()
     // Now loop for all the elements and for each face of the element check if it is in the "faces_map"
     // if it happens to be there check the orientation
     SizeType cond_switch_count = 0;
+    // Allocate a work array long enough to contain the Ids of a face
+    DenseVector<int> aux;
+    DenseMatrix<int> boundaries_nodes;
     for (auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
         GeometryType& r_geometry = it_elem->GetGeometry();
-        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
+        if (SupportedElement(r_geometry)){ //acceptable quadratic geoms
+            IndexType n_boundaries = BoundariesEntitiesNumber(r_geometry);
+            aux.resize(NumberOfNodesInEachBoundary(r_geometry));
+            NodesOfBoundaries(r_geometry, boundaries_nodes); //getting the nodes of each of the n_boundaries of the element
+            const array_1d<double,3> elem_center = r_geometry.Center();
+            const SizeType first_node_id_of_elem = r_geometry[0].Id();
+            // Loop over the faces(edges in 2d geoms)
+            for(IndexType i_face=0; i_face< n_boundaries; i_face++) {
+                aux = row(boundaries_nodes, i_face);
 
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || //acceptable linear geoms
-            geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D6) { //acceptable quadratic geoms
-            // Allocate a work array long enough to contain the Ids of a face
-            DenseVector<int> aux( r_geometry.size() - 1);
-
-            // Loop over the faces
-            for(IndexType outer_node_index=0; outer_node_index< r_geometry.size(); outer_node_index++) {
-                IndexType localindex_node_on_face = 0;
-                // We put in "aux" the indices of all of the nodes which do not
-                // coincide with the face_index we are currently considering telling in other words:
-                // face_index will contain the local_index of the node which is NOT on the face
-                // localindex_node_on_face the local_index of one of the nodes on the face
-                IndexType counter = 0;
-                for(IndexType i=0; i<r_geometry.size(); i++) {
-                    if(i != outer_node_index) {
-                        aux[counter++] = r_geometry[i].Id();
-                        localindex_node_on_face = i;
+                //finding local index of node that is part of the face
+                IndexType localindex_node_on_face = 1; //default option. but if first node is contained, then we assign it as 0:
+                for(IndexType face_node_id : aux ) {
+                    if(face_node_id==first_node_id_of_elem){
+                        localindex_node_on_face=0;
                     }
                 }
 
@@ -162,7 +157,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
                     // Do a dotproduct with the DenseVector that goes from
                     // "outer_node_index" to any of the nodes in aux;
-                    array_1d<double,3> lvec = r_geometry[outer_node_index]-r_geometry[localindex_node_on_face];
+                    array_1d<double,3> lvec = elem_center-r_geometry[localindex_node_on_face];
 
                     const double dotprod = inner_prod(lvec, face_normal);
 
@@ -196,9 +191,7 @@ void TetrahedralMeshOrientationCheck::Execute()
     //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     for (auto& r_cond : mrModelPart.Conditions()) {
         const GeometryType& r_geometry = r_cond.GetGeometry();
-        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || //acceptable linear geoms
-            geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D6 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D3) { //acceptable quadratic geoms
+        if(SupportedCondition(r_geometry)){ //acceptable quadratic geoms
             KRATOS_ERROR_IF(r_cond.IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
         }
     }
@@ -266,5 +259,78 @@ bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeometry)
         return false;
     }
 }
+
+bool TetrahedralMeshOrientationCheck::LinearElement(const GeometryType& rGeometry)
+{
+    const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
+    return (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3);
+}
+
+bool TetrahedralMeshOrientationCheck::SupportedElement(const GeometryType& rGeometry)
+{
+    const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
+    return (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || //acceptable linear geoms
+            geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D6); //acceptable quadratic geoms
+}
+
+bool TetrahedralMeshOrientationCheck::SupportedCondition(const GeometryType& rGeometry)
+{
+    const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
+    return (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || //acceptable linear geoms
+            geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D6 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D3); //acceptable quadratic geoms
+}
+
+SizeType TetrahedralMeshOrientationCheck::BoundariesEntitiesNumber(const GeometryType& rGeometry) 
+{
+    const SizeType dimension = rGeometry.LocalSpaceDimension();
+    if (dimension == 3) {
+        return rGeometry.FacesNumber();
+    } else if (dimension == 2) {
+        return rGeometry.EdgesNumber();
+    }
+    return 0;
+}
+
+SizeType TetrahedralMeshOrientationCheck::NumberOfNodesInEachBoundary(const GeometryType& rGeometry) 
+{
+    const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
+    if  (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){
+        return 3;
+    } else if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3){
+        return 2;
+    } else if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10){
+        return 6;
+    } else if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D6){
+        return 3;
+    }
+    return 0;
+}
+
+void TetrahedralMeshOrientationCheck::NodesOfBoundaries(const GeometryType& rGeometry, DenseMatrix<int>& rNodesIds){
+    IndexType n_boundaries = BoundariesEntitiesNumber(rGeometry);
+    IndexType nodes_in_boundary = NumberOfNodesInEachBoundary(rGeometry);
+    rNodesIds.resize(n_boundaries,nodes_in_boundary);
+    if(LinearElement(rGeometry)){
+        for(IndexType outer_node_index=0; outer_node_index< BoundariesEntitiesNumber(rGeometry); outer_node_index++) {
+            // We put in rNodesIds the indices of all of the nodes which do not
+            // coincide with the face_index we are currently considering telling in other words:
+            // face_index will contain the local_index of the node which is NOT on the face
+            IndexType counter = 0;
+            for(IndexType i=0; i<rGeometry.size(); i++) {
+                if(i != outer_node_index) {
+                    rNodesIds(outer_node_index,counter++) = rGeometry[i].Id();
+                }
+            }
+        }
+    } else { //quadratic element
+        const auto& faces = rGeometry.GenerateFaces();
+        for(IndexType outer_node_index=0; outer_node_index< faces.size(); outer_node_index++) {
+            for(IndexType i=0; i<faces[outer_node_index].size(); i++) {
+                rNodesIds(outer_node_index,i) = faces[outer_node_index][i].Id();  
+            }
+        }
+    }
+}
+
 
 } // namespace Kratos

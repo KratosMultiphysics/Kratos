@@ -13,7 +13,7 @@ class TestTetrahedralMeshOrientationCheck(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/cube_few_elements"))
         model_part_io.ReadModelPart(model_part)
 
         check_mesh = KratosMultiphysics.TetrahedralMeshOrientationCheck(model_part, True)
@@ -26,7 +26,7 @@ class TestTetrahedralMeshOrientationCheck(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_quadratic"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/quadratic_cube_few_elements"))
         model_part_io.ReadModelPart(model_part)
 
         check_mesh = KratosMultiphysics.TetrahedralMeshOrientationCheck(model_part, True)
