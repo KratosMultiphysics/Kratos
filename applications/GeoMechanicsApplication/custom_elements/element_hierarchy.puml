@@ -1,0 +1,94 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class Element
+
+'UPW
+class UPwBaseElement
+
+class UPwSmallStrainElement
+class DrainedUPwSmallStrainElement
+class TransientPwElement
+class SteadyStatePwElement
+class UndrainedUPwSmallStrainElement
+class UPwSmallStrainFICElement
+class UPwUpdatedLagrangianFICElement
+class UPwUpdatedLagrangianElement
+
+class UPwSmallStrainInterfaceElement
+class TransientPwInterfaceElement
+class SteadyStatePwInterfaceElement
+class SteadyStatePwPipingElement
+class UPwSmallStrainLinkInterfaceElement
+
+Element <|-- UPwBaseElement
+UPwBaseElement <|-- UPwSmallStrainElement
+
+UPwSmallStrainElement <|-- DrainedUPwSmallStrainElement
+UPwSmallStrainElement <|-- TransientPwElement
+TransientPwElement <|-- SteadyStatePwElement
+UPwSmallStrainElement <|-- UndrainedUPwSmallStrainElement
+UPwSmallStrainElement <|-- UPwSmallStrainFICElement
+UPwSmallStrainFICElement <|-- UPwUpdatedLagrangianFICElement
+UPwSmallStrainElement <|-- UPwUpdatedLagrangianElement
+
+'
+'
+'Diff Order
+class SmallStrainUPwDiffOrderElement
+class UpdatedLagrangianUPwDiffOrderElement
+
+UPwBaseElement <|-- SmallStrainUPwDiffOrderElement
+SmallStrainUPwDiffOrderElement <|-- UpdatedLagrangianUPwDiffOrderElement
+
+UPwBaseElement <|-- UPwSmallStrainInterfaceElement
+UPwSmallStrainInterfaceElement <|-- TransientPwInterfaceElement
+TransientPwInterfaceElement <|-- SteadyStatePwInterfaceElement
+SteadyStatePwInterfaceElement <|-- SteadyStatePwPipingElement
+UPwSmallStrainInterfaceElement <|-- UPwSmallStrainLinkInterfaceElement
+
+class LineInterfaceElement #LightGreen
+Element <|-- LineInterfaceElement
+
+''Thermal
+class TransientThermalElement #LightGreen
+Element <|-- TransientThermalElement
+'
+'
+'Structural
+class GeoTrussElementBase #Orange
+class GeoTrussElement #Orange
+class GeoCableElement #Orange
+class GeoLinearTrussElement #Orange
+
+Element <|-- GeoTrussElementBase
+GeoTrussElementBase <|-- GeoTrussElement
+GeoTrussElementBase <|-- GeoLinearTrussElement
+GeoTrussElement <|-- GeoCableElement
+
+class CrBeamElement2D2N_Structural #LightGrey
+class GeoCrBeamElement2D2N #Orange
+class CrBeamElementLinear2D2N_Structural #LightGrey
+class GeoCrBeamElementLinear2D2N #Orange
+
+Element <|-- CrBeamElement2D2N_Structural
+CrBeamElement2D2N_Structural <|-- GeoCrBeamElement2D2N
+CrBeamElement2D2N_Structural <|-- CrBeamElementLinear2D2N_Structural
+CrBeamElementLinear2D2N_Structural <|-- GeoCrBeamElementLinear2D2N
+
+class CrBeamElement3D2N_Structural #LightGrey
+class GeoCrBeamElement3D2N #Orange
+class GeoCrBeamElementLinear3D2N #Orange
+
+Element <|-- CrBeamElement3D2N_Structural
+CrBeamElement3D2N_Structural <|-- GeoCrBeamElement3D2N
+CrBeamElement3D2N_Structural <|-- GeoCrBeamElementLinear3D2N
+
+class GeoStructuralBaseElement #Orange
+class GeoCurvedBeamElement #Orange
+
+Element <|-- GeoStructuralBaseElement
+GeoStructuralBaseElement <|-- GeoCurvedBeamElement
+
+
+@enduml
