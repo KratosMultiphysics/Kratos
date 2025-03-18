@@ -467,8 +467,8 @@ public:
             const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
 
             // rotate forces stored in REACTION to global coordinates on conforming boundaries
-            if (mRotationTool.IsConformingSlip(rNode) ) {
-                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
+            if (mRotationTool.IsConformingSlip(rConstNode) ) {
+                mRotationTool.RotateVector(rConstNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
             }
         });
         
