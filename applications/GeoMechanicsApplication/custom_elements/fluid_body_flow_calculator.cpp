@@ -11,10 +11,8 @@
 //
 
 #include "fluid_body_flow_calculator.h"
-#include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 #include "includes/cfd_variables.h"
-
-#include <custom_utilities/element_utilities.hpp>
 
 namespace Kratos
 {
@@ -28,13 +26,13 @@ Matrix FluidBodyFlowCalculator::LHSContribution() { return {}; }
 
 Vector FluidBodyFlowCalculator::RHSContribution()
 {
-    const auto shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
-    const Matrix& N_container = mInputProvider.GetNContainer();
+    const auto    shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+    const Matrix& N_container              = mInputProvider.GetNContainer();
 
     const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
-    const auto&                 r_properties = mInputProvider.GetElementProperties();
-    const auto constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(r_properties, 1);
+    const auto& r_properties        = mInputProvider.GetElementProperties();
+    const auto  constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(r_properties, 1);
 
     RetentionLaw::Parameters RetentionParameters(r_properties);
 
@@ -55,6 +53,9 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     return fluid_body_vector;
 }
 
-std::pair<Matrix, Vector> FluidBodyFlowCalculator::LocalSystemContribution() { return {{}, RHSContribution()}; }
+std::pair<Matrix, Vector> FluidBodyFlowCalculator::LocalSystemContribution()
+{
+    return {{}, RHSContribution()};
+}
 
 } // namespace Kratos

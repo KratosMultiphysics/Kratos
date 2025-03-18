@@ -116,7 +116,7 @@ public:
     {
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
         for (const auto& rContribution : mContributions) {
-            const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
+            const auto calculator      = CreateCalculator(rContribution, rCurrentProcessInfo);
             const auto LHSContribution = calculator->LHSContribution();
             if (LHSContribution.size1() != 0) rLeftHandSideMatrix += LHSContribution;
         }

@@ -29,9 +29,9 @@ public:
     struct InputProvider {
         InputProvider(std::function<const Properties&()> GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
-                      std::function<const Matrix&()>     GetNContainer,
-                      std::function<Vector()>            GetIntegrationCoefficients,
-                      std::function<Vector()>            GetProjectedGravityForIntegrationPoints,
+                      std::function<const Matrix&()>                             GetNContainer,
+                      std::function<Vector()> GetIntegrationCoefficients,
+                      std::function<Vector()> GetProjectedGravityForIntegrationPoints,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients)
 
             : GetElementProperties(std::move(GetElementProperties)),
@@ -43,10 +43,10 @@ public:
         {
         }
 
-        std::function<const Properties&()>             GetElementProperties;
-        std::function<const Matrix&()>                 GetNContainer;
-        std::function<Vector()>                        GetIntegrationCoefficients;
-        std::function<Vector()>                        GetProjectedGravityForIntegrationPoints;
+        std::function<const Properties&()> GetElementProperties;
+        std::function<const Matrix&()>     GetNContainer;
+        std::function<Vector()>            GetIntegrationCoefficients;
+        std::function<Vector()>            GetProjectedGravityForIntegrationPoints;
         std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
     };
