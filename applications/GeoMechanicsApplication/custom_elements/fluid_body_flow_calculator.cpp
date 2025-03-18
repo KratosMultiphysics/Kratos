@@ -22,7 +22,7 @@ FluidBodyFlowCalculator::FluidBodyFlowCalculator(InputProvider AnInputProvider)
 {
 }
 
-std::optional<Matrix> FluidBodyFlowCalculator::LHSContribution() { return {}; }
+std::optional<Matrix> FluidBodyFlowCalculator::LHSContribution() { return std::nullopt; }
 
 std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
 {
@@ -56,7 +56,7 @@ std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
 
 std::pair<std::optional<Matrix>, std::optional<Vector>> FluidBodyFlowCalculator::LocalSystemContribution()
 {
-    return {{}, RHSContribution()};
+    return {std::nullopt, RHSContribution()};
 }
 
 } // namespace Kratos
