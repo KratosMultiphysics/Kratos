@@ -19,6 +19,7 @@
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "filter_compressibility_calculator.h"
+#include "fluid_body_flow_calculator.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
@@ -89,14 +90,14 @@ public:
     {
         KRATOS_TRY
 
-        rRightHandSideVector = CalculateFluidBodyVector();
+        rRightHandSideVector = ZeroVector{TNumNodes};
         rLeftHandSideMatrix  = ZeroMatrix{TNumNodes, TNumNodes};
 
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             const auto [LHSContribution, RHSContribution] = calculator->LocalSystemContribution();
-            rLeftHandSideMatrix += LHSContribution;
-            rRightHandSideVector += RHSContribution;
+            if (LHSContribution.size1() != 0) rLeftHandSideMatrix += LHSContribution;
+            if (!RHSContribution.empty()) rRightHandSideVector += RHSContribution;
         }
 
         KRATOS_CATCH("")
@@ -104,7 +105,7 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
-        rRightHandSideVector = CalculateFluidBodyVector();
+        rRightHandSideVector = ZeroVector{TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             rRightHandSideVector += calculator->RHSContribution();
@@ -116,7 +117,8 @@ public:
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
-            rLeftHandSideMatrix += calculator->LHSContribution();
+            const auto LHSContribution = calculator->LHSContribution();
+            if (LHSContribution.size1() != 0) rLeftHandSideMatrix += LHSContribution;
         }
     }
 
@@ -266,7 +268,7 @@ private:
         return result;
     }
 
-    array_1d<double, TNumNodes> CalculateFluidBodyVector() const
+    Vector CalculateFluidBodyVector() const
     {
         Vector det_J_container;
         GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
@@ -286,7 +288,7 @@ private:
 
         const auto projected_gravity = CalculateProjectedGravityAtIntegrationPoints(N_container);
 
-        array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
+        Vector fluid_body_vector = ZeroVector(TNumNodes);
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
@@ -342,6 +344,8 @@ private:
                     CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
             }
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
+        case CalculationContribution::FluidBodyFlow:
+            return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider(rCurrentProcessInfo));
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;
         }
@@ -368,6 +372,15 @@ private:
         return PermeabilityCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeIntegrationCoefficientsGetter(),
             MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter());
+    }
+
+    FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider(const ProcessInfo& rCurrentProcessInfo)
+    {
+        return FluidBodyFlowCalculator::InputProvider(
+            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
+            MakeIntegrationCoefficientsGetter(), MakeProjectedGravityForIntegrationPointsGetter(),
+            MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter(),
+            MakeShapeFunctionLocalGradientsGetter());
     }
 
     auto MakePropertiesGetter()

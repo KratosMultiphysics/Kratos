@@ -36,7 +36,7 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithoutPWDofs(const Propertie
                                                                  const Geometry<Node>::Pointer& rGeometry)
 {
     auto result = TransientPwLineElement<2, 2>{
-        1, rGeometry, rProperties, {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        1, rGeometry, rProperties, {CalculationContribution::Permeability, CalculationContribution::Compressibility, CalculationContribution::FluidBodyFlow}};
 
     return result;
 }
@@ -71,7 +71,7 @@ intrusive_ptr<Element> CreatePwLineElementWithoutPWDofs(ModelPart& rModelPart, c
     nodes.push_back(rModelPart.CreateNewNode(1, 1.0, 1.0, 0.0));
     const auto                                 p_geometry = std::make_shared<Line2D2<Node>>(nodes);
     const std::vector<CalculationContribution> contirbutions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility};
+        CalculationContribution::Permeability, CalculationContribution::Compressibility, CalculationContribution::FluidBodyFlow};
     auto element = make_intrusive<TransientPwLineElement<2, 2>>(
         rModelPart.NumberOfElements() + 1, p_geometry, rProperties, contirbutions);
     rModelPart.AddElement(element);
