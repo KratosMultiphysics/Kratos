@@ -32,7 +32,8 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
     const auto& r_properties        = mInputProvider.GetElementProperties();
-    const auto  constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(r_properties, 1);
+    const auto  constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(
+        r_properties, mInputProvider.GetLocalSpaceDimension());
 
     RetentionLaw::Parameters RetentionParameters(r_properties);
 

@@ -343,7 +343,7 @@ private:
         return FluidBodyFlowCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
             MakeIntegrationCoefficientsGetter(), MakeProjectedGravityForIntegrationPointsGetter(),
-            MakeShapeFunctionLocalGradientsGetter());
+            MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter());
     }
 
     auto MakePropertiesGetter()
@@ -404,6 +404,13 @@ private:
             return dN_dX_container;
         };
     }
+
+    auto MakeLocalSpaceDimensionGetter() const
+    {
+        return
+            [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
+    }
+
 
     [[nodiscard]] DofsVectorType GetDofs() const
     {

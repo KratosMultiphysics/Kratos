@@ -32,14 +32,16 @@ public:
                       std::function<const Matrix&()>                             GetNContainer,
                       std::function<Vector()> GetIntegrationCoefficients,
                       std::function<Vector()> GetProjectedGravityForIntegrationPoints,
-                      std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients)
+                      std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
+                      std::function<std::size_t()> GetLocalSpaceDimension)
 
             : GetElementProperties(std::move(GetElementProperties)),
               GetNContainer(std::move(GetNContainer)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetProjectedGravityForIntegrationPoints(std::move(GetProjectedGravityForIntegrationPoints)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
-              GetShapeFunctionGradients(std::move(GetShapeFunctionGradients))
+              GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
+              GetLocalSpaceDimension(std::move(GetLocalSpaceDimension))
         {
         }
 
@@ -49,6 +51,7 @@ public:
         std::function<Vector()>            GetProjectedGravityForIntegrationPoints;
         std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
+        std::function<std::size_t()>                                 GetLocalSpaceDimension;
     };
 
     explicit FluidBodyFlowCalculator(InputProvider AnInputProvider);
