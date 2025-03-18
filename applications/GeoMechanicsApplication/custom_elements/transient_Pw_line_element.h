@@ -96,8 +96,8 @@ public:
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             const auto [LHSContribution, RHSContribution] = calculator->LocalSystemContribution();
-            if (LHSContribution.size1() != 0) rLeftHandSideMatrix += LHSContribution;
-            if (!RHSContribution.empty()) rRightHandSideVector += RHSContribution;
+            if (LHSContribution) rLeftHandSideMatrix += *LHSContribution;
+            if (RHSContribution) rRightHandSideVector += *RHSContribution;
         }
 
         KRATOS_CATCH("")
@@ -108,7 +108,7 @@ public:
         rRightHandSideVector = ZeroVector{TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
-            rRightHandSideVector += calculator->RHSContribution();
+            if (const auto RHSContribution = (calculator->RHSContribution())) rRightHandSideVector += *RHSContribution;
         }
     }
 
@@ -117,8 +117,7 @@ public:
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator      = CreateCalculator(rContribution, rCurrentProcessInfo);
-            const auto LHSContribution = calculator->LHSContribution();
-            if (LHSContribution.size1() != 0) rLeftHandSideMatrix += LHSContribution;
+            if (const auto LHSContribution = calculator->LHSContribution()) rLeftHandSideMatrix += *LHSContribution;
         }
     }
 

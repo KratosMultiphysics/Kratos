@@ -23,14 +23,14 @@ PermeabilityCalculator::PermeabilityCalculator(InputProvider InputProvider)
 {
 }
 
-Matrix PermeabilityCalculator::LHSContribution() { return CalculatePermeabilityMatrix(); }
+std::optional<Matrix> PermeabilityCalculator::LHSContribution() { return CalculatePermeabilityMatrix(); }
 
-Vector PermeabilityCalculator::RHSContribution()
+std::optional<Vector> PermeabilityCalculator::RHSContribution()
 {
     return RHSContribution(CalculatePermeabilityMatrix());
 }
 
-std::pair<Matrix, Vector> PermeabilityCalculator::LocalSystemContribution()
+std::pair<std::optional<Matrix>, std::optional<Vector>> PermeabilityCalculator::LocalSystemContribution()
 {
     const auto permeability_matrix = CalculatePermeabilityMatrix();
     return {permeability_matrix, RHSContribution(permeability_matrix)};

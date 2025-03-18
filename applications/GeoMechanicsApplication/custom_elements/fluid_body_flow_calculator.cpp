@@ -22,9 +22,9 @@ FluidBodyFlowCalculator::FluidBodyFlowCalculator(InputProvider AnInputProvider)
 {
 }
 
-Matrix FluidBodyFlowCalculator::LHSContribution() { return {}; }
+std::optional<Matrix> FluidBodyFlowCalculator::LHSContribution() { return {}; }
 
-Vector FluidBodyFlowCalculator::RHSContribution()
+std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
 {
     const auto    shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
     const Matrix& N_container              = mInputProvider.GetNContainer();
@@ -54,7 +54,7 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     return fluid_body_vector;
 }
 
-std::pair<Matrix, Vector> FluidBodyFlowCalculator::LocalSystemContribution()
+std::pair<std::optional<Matrix>, std::optional<Vector>> FluidBodyFlowCalculator::LocalSystemContribution()
 {
     return {{}, RHSContribution()};
 }

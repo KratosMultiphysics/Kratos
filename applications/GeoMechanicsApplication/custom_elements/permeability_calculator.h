@@ -46,9 +46,9 @@ public:
 
     explicit PermeabilityCalculator(InputProvider InputProvider);
 
-    Matrix                    LHSContribution() override;
-    Vector                    RHSContribution() override;
-    std::pair<Matrix, Vector> LocalSystemContribution() override;
+    std::optional<Matrix>                    LHSContribution() override;
+    std::optional<Vector>                    RHSContribution() override;
+    std::pair<std::optional<Matrix>, std::optional<Vector>> LocalSystemContribution() override;
 
 private:
     InputProvider mInputProvider;
