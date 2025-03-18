@@ -41,7 +41,7 @@ ModelPart& CreateModelPartWithUPwSolutionStepVariables(Model& rModel)
     return r_result;
 }
 
-std::shared_ptr<Properties> SetProperties()
+std::shared_ptr<Properties> CreateProperties()
 {
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
@@ -74,9 +74,8 @@ void SetSolutionStepValuesForFluidFluxCheck(const intrusive_ptr<UPwSmallStrainEl
         r_node.FastGetSolutionStepValue(VELOCITY)     = zero_values;
         // Zero acceleration -> no Fluid Body Flow
         r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = zero_values;
-        // Zero pressure gradient -> no permeability flow
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE)    = 1.0E4;
-        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = 0.0;
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE)      = 1.0E4;
+        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE)   = 0.0;
     }
     rElement->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 2.0E4;
 }
@@ -98,7 +97,7 @@ void SetSolutionStepValuesForGeneralCheck(const intrusive_ptr<UPwSmallStrainElem
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-intrusive_ptr<UPwSmallStrainElement<TDim, TNumNodes>> UPwSmallStrainElementWithUPwDofs(
+intrusive_ptr<UPwSmallStrainElement<TDim, TNumNodes>> CreateUPwSmallStrainElementWithUPwDofs(
     const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
 {
     auto p_result = make_intrusive<UPwSmallStrainElement<TDim, TNumNodes>>(
@@ -117,7 +116,7 @@ intrusive_ptr<UPwSmallStrainElement<TDim, TNumNodes>> UPwSmallStrainElementWithU
     return p_result;
 }
 
-auto UPwSmallStrainElementWithUPwDofs(Model& rModel, const Properties::Pointer& rProperties)
+auto CreateUPwSmallStrainElementWithUPwDofs(Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithUPwSolutionStepVariables(rModel);
 
@@ -126,7 +125,7 @@ auto UPwSmallStrainElementWithUPwDofs(Model& rModel, const Properties::Pointer& 
     nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<Triangle2D3<Node>>(nodes);
-    return UPwSmallStrainElementWithUPwDofs<2, 3>(rProperties, p_geometry);
+    return CreateUPwSmallStrainElementWithUPwDofs<2, 3>(rProperties, p_geometry);
 }
 
 } // namespace
@@ -157,8 +156,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CreateInstanceWithGeometryInput,
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_DoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model      model;
-    const auto p_element = UPwSmallStrainElementWithUPwDofs(model, std::make_shared<Properties>());
+    Model model;
+    const auto p_element = CreateUPwSmallStrainElementWithUPwDofs(model, std::make_shared<Properties>());
 
     // Act
     const auto              dummy_process_info = ProcessInfo{};
@@ -202,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput,
     process_info[VELOCITY_COEFFICIENT]    = 1.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
 
     // Act, no exceptions on correct input
@@ -218,7 +217,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSi
     process_info[VELOCITY_COEFFICIENT]    = 0.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForFluidFluxCheck(element);
 
     // Act
@@ -249,7 +248,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
     process_info[VELOCITY_COEFFICIENT]    = 0.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
 
     // Act
@@ -260,15 +259,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
     // Assert
     Matrix expected_left_hand_side(9, 9);
     // clang-format off
-    expected_left_hand_side <<= 5000000, 0, -5000000, 0, 0, 0, 0, 0, 0,
-                                0, 2500000, 2500000, -2500000, -2500000, 0, 0, 0, 0,
-                               -5000000, 2500000, 7500000, -2500000, -2500000, 0, 0, 0, 0,
-                                0, -2500000, -2500000, 7500000, 2500000, -5000000, 0, 0, 0,
-                                0, -2500000, -2500000, 2500000, 2500000, 0, 0, 0, 0,
-                                0, 0, 0, -5000000, 0, 5000000, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, -0.0004542, 0.0004542, 0,
-                                0, 0, 0, 0, 0, 0, 0.0004542, -0.0009084, 0.0004542,
-                                0, 0, 0, 0, 0, 0, 0, 0.0004542, -0.0004542;
+    expected_left_hand_side <<= 5000000,       0, -5000000,        0,        0,         0,          0,          0,          0,
+                                0,       2500000,  2500000, -2500000, -2500000,         0,          0,          0,          0,
+                               -5000000, 2500000,  7500000, -2500000, -2500000,         0,          0,          0,          0,
+                                0,      -2500000, -2500000,  7500000,  2500000, -5000000,           0,          0,          0,
+                                0,      -2500000, -2500000,  2500000,  2500000,         0,          0,          0,          0,
+                                0,             0,        0, -5000000,        0,  5000000,           0,          0,          0,
+                                0,             0,        0,        0,        0,         0, -0.0004542,  0.0004542,          0,
+                                0,             0,        0,        0,        0,         0,  0.0004542, -0.0009084,  0.0004542,
+                                0,             0,        0,        0,        0,         0,          0,  0.0004542, -0.0004542;
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
@@ -283,12 +282,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeSolutionStep, KratosGe
     process_info[VELOCITY_COEFFICIENT]    = 0.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(element);
 
     // Act, no exceptions on correct input
     element->Initialize(process_info);
-    element->InitializeSolutionStep(process_info);
+    EXPECT_NO_THROW(element->InitializeSolutionStep(process_info));
 
     // Assert
     for (const auto& r_node : element->GetGeometry()) {
@@ -306,7 +305,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
     process_info[VELOCITY_COEFFICIENT]    = 1.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
     element->Initialize(process_info);
@@ -357,7 +356,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
                                            Defaults::relative_tolerance);
     }
 
-    // getting values from a constitutive law
+    // getting values from a constitutive law: does nothing right now
     calculated_values_at_integration_points.clear();
     element->CalculateOnIntegrationPoints(KIRCHHOFF_STRESS_VECTOR,
                                           calculated_values_at_integration_points, process_info);
@@ -375,7 +374,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVari
     process_info[VELOCITY_COEFFICIENT]    = 1.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
     element->Initialize(process_info);
@@ -452,7 +451,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVari
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
-    // get value from constitutive law
+    // get value from constitutive law: currently returns zero values
     calculated_values_at_integration_points.clear();
     element->CalculateOnIntegrationPoints(STRAIN_ENERGY, calculated_values_at_integration_points, process_info);
     expected_values_at_integration_point <<= 0, 0, 0;
@@ -469,7 +468,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_FinalizeSolutionStep, KratosGeoM
     process_info[VELOCITY_COEFFICIENT]    = 0.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForFluidFluxCheck(element);
     element->Initialize(process_info);
@@ -493,7 +492,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
     process_info[VELOCITY_COEFFICIENT]    = 0.0;
 
     Model model;
-    auto  element = UPwSmallStrainElementWithUPwDofs(model, SetProperties());
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(element);
     element->Initialize(process_info);
@@ -566,7 +565,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
                                            Defaults::relative_tolerance);
     }
 
-    // getting from constitutive law
+    // returns zero matrix for non-implemented outputs
     element->CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX, calculated_tensors, process_info);
     expected_matrix <<= 0, 0, 0, 0;
     for (const auto& calculated_constitutive_matrix : calculated_tensors) {
