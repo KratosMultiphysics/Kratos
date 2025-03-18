@@ -108,7 +108,7 @@ public:
         rRightHandSideVector = ZeroVector{TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
-            if (const auto RHSContribution = (calculator->RHSContribution()))
+            if (const auto RHSContribution = calculator->RHSContribution())
                 rRightHandSideVector += *RHSContribution;
         }
     }
