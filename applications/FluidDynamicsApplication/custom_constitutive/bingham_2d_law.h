@@ -147,7 +147,8 @@ protected:
     /**
      * @brief Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
      */
-    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override {
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override
+    {
         return rParameters.GetConstitutiveMatrix()(3,3);
     };
 
