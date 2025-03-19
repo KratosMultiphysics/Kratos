@@ -851,6 +851,7 @@ void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    unsigned int voigt_dimension = 0;
 
     mFinalizedStep = false;
 
@@ -862,14 +863,24 @@ void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
+    array_1d<double,6> nodal_cauchy_stress_vector  = ZeroVector(6);
+
+    if (dimension==2) voigt_dimension=3;
+    if (dimension==3) voigt_dimension=6;
+    
 
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        for (unsigned int j = 0; j < dimension; j++)
-        {
+        for (unsigned int j = 0; j < dimension; j++){
             nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
             nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
+        
+              //std::cout<<nodal_cauchy_stress_vector[j]<<"\n";
+        }
+
+        for (unsigned int j = 0; j < voigt_dimension; j++){
+            nodal_cauchy_stress_vector[j] = r_N(0, i) * mMP.cauchy_stress_vector [j] * mMP.mass;
         }
 
         // Add in the predictor velocity increment for central difference explicit
@@ -885,6 +896,9 @@ void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentPro
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
+
+      
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
     }

@@ -15,11 +15,11 @@
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_retention/retention_law_factory.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/properties.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
-
-GeoThermalDispersionLaw::GeoThermalDispersionLaw() : mNumberOfDimensions{2} {}
 
 GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions)
     : mNumberOfDimensions{NumberOfDimensions}
@@ -28,21 +28,11 @@ GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions)
         << "Got invalid number of dimensions: " << mNumberOfDimensions << std::endl;
 }
 
-ConstitutiveLaw::Pointer GeoThermalDispersionLaw::Clone() const
+Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp) const
 {
-    return Kratos::make_shared<GeoThermalDispersionLaw>(*this);
-}
-
-SizeType GeoThermalDispersionLaw::WorkingSpaceDimension() { return mNumberOfDimensions; }
-
-Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp,
-                                                                 const ProcessInfo& rProcessInfo) const
-{
-    KRATOS_TRY
-
     Matrix result = ZeroMatrix(mNumberOfDimensions, mNumberOfDimensions);
 
-    RetentionLaw::Parameters parameters(rProp, rProcessInfo);
+    RetentionLaw::Parameters parameters(rProp);
     auto                     retention_law  = RetentionLawFactory::Clone(rProp);
     const double             saturation     = retention_law->CalculateSaturation(parameters);
     const double             water_fraction = rProp[POROSITY] * saturation;
@@ -53,7 +43,7 @@ Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Propertie
                    water_fraction * rProp[THERMAL_CONDUCTIVITY_WATER];
 
     if (mNumberOfDimensions >= 2) {
-        const auto y  = static_cast<int>(indexThermalFlux::Y);
+        const auto y = static_cast<int>(indexThermalFlux::Y);
         result(x, y) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
         result(y, y) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_YY] +
                        water_fraction * rProp[THERMAL_CONDUCTIVITY_WATER];
@@ -70,8 +60,6 @@ Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Propertie
     }
 
     return result;
-
-    KRATOS_CATCH("")
 }
 
 } // Namespace Kratos

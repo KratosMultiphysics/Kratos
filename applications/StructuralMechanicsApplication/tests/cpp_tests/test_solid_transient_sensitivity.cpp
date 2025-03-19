@@ -28,7 +28,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "utilities/sensitivity_builder.h"
 
 // Application includes

@@ -13,7 +13,6 @@ class AssignGravityToMaterialPointProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "MP_VOLUME_ACCELERATION",
                 "modulus"              : 1.0,
@@ -47,7 +46,6 @@ class AssignGravityToMaterialPointProcess(KratosMultiphysics.Process):
         self.gravity_acceleration = self.modulus * self.gravity_direction
 
     def ExecuteBeforeSolutionLoop(self):
-
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             # Assign gravity to MP after solver.Initialize() - only apply once at the beginning!
             for element in self.model_part.Elements:

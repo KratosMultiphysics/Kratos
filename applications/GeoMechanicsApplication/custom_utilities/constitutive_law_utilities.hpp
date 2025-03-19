@@ -15,14 +15,23 @@
 
 // Project includes
 #include "containers/variable.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
 
-class ConstitutiveLawUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 {
 public:
     static int GetStateVariableIndex(const Variable<double>& rThisVariable);
+
+    static void SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                          Vector&                      rStrainVector,
+                                          Matrix&                      rConstitutiveMatrix,
+                                          const Vector&                rN,
+                                          const Matrix&                rGradNpT,
+                                          const Matrix&                rF,
+                                          double                       detF);
 
 }; /* Class ConstitutiveLawUtilities*/
 

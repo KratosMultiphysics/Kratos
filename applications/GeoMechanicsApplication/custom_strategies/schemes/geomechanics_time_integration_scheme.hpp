@@ -77,55 +77,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void GetDofList(const Element& rElement, Element::DofsVectorType& rDofList, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        GetDofListImpl(rElement, rDofList, rCurrentProcessInfo);
-    }
-
-    void GetDofList(const Condition& rCondition, Condition::DofsVectorType& rDofList, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        GetDofListImpl(rCondition, rDofList, rCurrentProcessInfo);
-    }
-
-    template <typename T>
-    void GetDofListImpl(const T& rElementOrCondition, typename T::DofsVectorType& rDofList, const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (IsActive(rElementOrCondition))
-            rElementOrCondition.GetDofList(rDofList, rCurrentProcessInfo);
-    }
-
-    void EquationId(const Element&                 rElement,
-                    Element::EquationIdVectorType& rEquationId,
-                    const ProcessInfo&             rCurrentProcessInfo) override
-    {
-        EquationIdImpl(rElement, rEquationId, rCurrentProcessInfo);
-    }
-
-    void EquationId(const Condition&                 rCondition,
-                    Condition::EquationIdVectorType& rEquationId,
-                    const ProcessInfo&               rCurrentProcessInfo) override
-    {
-        EquationIdImpl(rCondition, rEquationId, rCurrentProcessInfo);
-    }
-
-    template <typename T>
-    void EquationIdImpl(const T&                          rElementOrCondition,
-                        typename T::EquationIdVectorType& rEquationId,
-                        const ProcessInfo&                rCurrentProcessInfo)
-    {
-        if (IsActive(rElementOrCondition))
-            rElementOrCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
-    }
-
-    void Initialize(ModelPart& rModelPart) override
-    {
-        Scheme<TSparseSpace, TDenseSpace>::Initialize(rModelPart);
-
-        KRATOS_TRY
-        SetTimeFactors(rModelPart);
-        KRATOS_CATCH("")
-    }
-
     void Predict(ModelPart& rModelPart, DofsArrayType&, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
     {
         this->UpdateVariablesDerivatives(rModelPart);

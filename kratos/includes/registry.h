@@ -151,6 +151,18 @@ public:
 
     static void RemoveItem(std::string const& ItemName);
 
+    /** Sets the current source of the registry
+     *  This function is used to keep track of which application is adding items to the registry
+     *  @param rCurrentSource The current source of the registry
+    */
+    static void SetCurrentSource(std::string const & rCurrentSource);
+
+    /** Gets the current source of the registry
+     *  This function is used to keep track of which application is adding items to the registry
+     *  @param return The current source of the registry
+    */
+    static std::string GetCurrentSource();
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -204,6 +216,17 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method throws an error message for a not found item.
+     * @param rFullName The full name of the item.
+     * @param rItemName The name of the item.
+     * @param pCurrentItem The current item.
+     */
+    static void NotFoundError(
+        const std::string& rFullName,
+        const std::string& rItemName,
+        RegistryItem* pCurrentItem
+        );
 
     ///@}
     ///@name Private  Access

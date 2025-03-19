@@ -26,7 +26,7 @@ namespace Kratos {
 ///@{
 
 template<class TContainerType>
-class SmoothClamper
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SmoothClamper
 {
 public:
     ///@name Type definitions

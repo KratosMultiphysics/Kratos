@@ -66,7 +66,7 @@ MmgIO<TMMGLibrary>::MmgIO(
         KRATOS_ERROR << "APPEND not compatible with MmgIO" << std::endl;
     }
 
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(rFilename + ".time");
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOutputFile(rFilename + ".time");
 
     /* We restart the MMG mesh and solution */
     mMmgUtilities.SetEchoLevel(mThisParameters["echo_level"].GetInt());

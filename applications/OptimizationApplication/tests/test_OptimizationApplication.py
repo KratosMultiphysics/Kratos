@@ -19,12 +19,15 @@ import symmetry_utilities_tests.symmetry_tests
 import test_execution_policies
 import test_optimization_info
 import test_optimization_utils
+import test_response_utilities
 import responses_tests.test_response_routine
 import responses_tests.test_overhang_response_function
 import responses_tests.test_mass_response_function
 import responses_tests.test_linear_strain_energy_response_function
 import responses_tests.test_standardized_responses
 import responses_tests.test_geometric_centroid_deviation_response_function
+import responses_tests.test_combined_response_function
+import responses_tests.test_discrete_value_residual_response_function
 import test_model_part_utils
 import test_model_part_controllers
 import test_connectivity_preserving_model_part_controller
@@ -85,6 +88,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_utils.TestOptimizationUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestOptAppModelPartUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtilities]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_response_utilities.TestResponseUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_response_routine.TestResponseRoutine]))
@@ -96,6 +100,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_overhang_response_function.TestOverHangResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_geometric_centroid_deviation_response_function.TestGeometricCentroidDeviationResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_combined_response_function.TestCombinedResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_discrete_value_residual_response_function.TestDiscreteValueResidualResponseFunctionExact]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_discrete_value_residual_response_function.TestDiscreteValueResidualResponseFunctionLogarithm]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
@@ -157,7 +164,6 @@ def AssembleTestSuites():
 # ==============================================================================
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     KratosUnittest.runTests(AssembleTestSuites())
 
 # ==============================================================================

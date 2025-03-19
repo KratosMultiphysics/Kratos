@@ -338,6 +338,8 @@ namespace Kratos
             // We iterate over the nodes
             auto& r_nodes = rModelPart.Nodes();
 
+            std::cout << "holi  --------------------------------------" << "\n";
+
             // If we consider rotation dofs
             const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
 

@@ -682,6 +682,11 @@ public:
      * the Output is given on integration points and characterizes the element
      * Calculate(..) methods are: OPTIONAL
      */
+    virtual void Calculate(const Variable<int>& rVariable,
+                           int& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     virtual void Calculate(const Variable<double>& rVariable,
                            double& Output,
@@ -691,6 +696,12 @@ public:
 
     virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void Calculate(const Variable<array_1d<double, 6 > >& rVariable,
+                           array_1d<double, 6 > & Output,
                            const ProcessInfo& rCurrentProcessInfo)
     {
     }
