@@ -524,3 +524,35 @@ class RomDatabase(object):
         Export the entire database to an Excel file.
         """
         self.generate_excel(full_tables=True)
+
+    def retrieve_mu_list_from_FOM_table(self):
+        mu_list = []
+        # Connect to the SQLite database
+        with sqlite3.connect(self.database_name) as conn:
+            # Create a cursor object
+            cursor = conn.cursor()
+            # Execute a SELECT query
+            cursor.execute("SELECT parameters FROM FOM")
+            # Fetch all rows
+            rows = cursor.fetchall()
+            # Iterate over the results
+            for row in rows:
+                mu_list.append([])
+                row_json = json.loads(row[0])
+                for i in range(len(row_json)):
+                    if 'generic_name_'+str(i) in row_json.keys():
+                       mu_list[-1].append(row_json['generic_name_'+str(i)])
+        # Close the connection
+        conn.close()
+        return mu_list
+    
+    def get_closest_mu_in_FOM(self, mu):
+        candidates_list = self.retrieve_mu_list_from_FOM_table()
+        if len(candidates_list) == 0:
+            return None
+        
+        candidates_list = np.array(candidates_list)
+        print(candidates_list)
+        mu_diff_norm = np.linalg.norm(candidates_list - mu, axis=1)
+        mu_init = candidates_list[np.argsort(mu_diff_norm)][0].tolist()
+        return mu_init

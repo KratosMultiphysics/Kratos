@@ -9,6 +9,7 @@ from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulat
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 from KratosMultiphysics.RomApplication.rom_nn_interface import NN_ROM_Interface
+from KratosMultiphysics.RomApplication.initialize_from_snapshot_process import InitializeFromSnapshotProcess
 
 
 class RomManager(object):
@@ -36,7 +37,8 @@ class RomManager(object):
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
         self.SetupErrorsDictionaries()
 
-    def Fit(self, mu_train=[None],mu_validation=[None]):
+    # def Fit(self, mu_train=[None],mu_validation=[None], mu_init_train=[None], mu_init_validation=[None]):
+    def Fit(self, mu_train=[None],mu_validation=[None], start_from_closest_mu=False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
@@ -45,8 +47,8 @@ class RomManager(object):
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                    self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
+                    self._LaunchFOM(mu_validation, start_from_closest_mu=start_from_closest_mu) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
@@ -56,7 +58,7 @@ class RomManager(object):
                     raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
+                    self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
                     self._LaunchROM(mu_train)
                 if any(item == "HROM" for item in training_stages):
@@ -72,8 +74,8 @@ class RomManager(object):
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
-                    self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
+                    self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
+                    self._LaunchFOM(mu_validation, start_from_closest_mu=start_from_closest_mu) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
@@ -83,7 +85,7 @@ class RomManager(object):
                     raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
+                    self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
                     self._ChangeRomFlags(simulation_to_run = "lspg")
                     self._LaunchROM(mu_train)
                 if any(item == "HROM" for item in training_stages):
@@ -104,7 +106,7 @@ class RomManager(object):
             elif type_of_decoder =="linear":
             ##########################
                 if any(item == "ROM" for item in training_stages):
-                    self._LaunchTrainROM(mu_train)
+                    self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
                     self._ChangeRomFlags(simulation_to_run = "TrainPG")
                     self._LaunchTrainPG(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "PG")
@@ -141,7 +143,7 @@ class RomManager(object):
         self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
 
 
-    def Test(self, mu_test=[None], mu_train=[None]):
+    def Test(self, mu_test=[None], mu_train=[None], start_from_closest_mu=False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
@@ -152,7 +154,8 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    print('SDADASDSADAS')
+                    self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
@@ -162,7 +165,7 @@ class RomManager(object):
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
                 if any(item == "HROM" for item in testing_stages):
@@ -178,7 +181,7 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
+                    self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
                     self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
@@ -187,7 +190,7 @@ class RomManager(object):
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
+                    self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "lspg")
                     self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
                 if any(item == "HROM" for item in testing_stages):
@@ -205,7 +208,7 @@ class RomManager(object):
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
-                    self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
+                    self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "PG")
                     self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
                 if any(item == "HROM" for item in testing_stages):
@@ -354,45 +357,65 @@ class RomManager(object):
         self.FOMvsHROM = {'Fit': None, 'Test': None}
 
 
-    def _LaunchTrainROM(self, mu_train):
+    # def _LaunchTrainROM(self, mu_train, mu_init_train):
+    def _LaunchTrainROM(self, mu_train, start_from_closest_mu=False):
         """
         This method should be parallel capable
         """
-        self._LaunchFOM(mu_train)
+        self._LaunchFOM(mu_train, start_from_closest_mu = start_from_closest_mu)
         self._LaunchComputeSolutionBasis(mu_train)
 
 
 
-    def _LaunchFOM(self, mu_train, gid_and_vtk_name='FOM_Fit'):
+    # def _LaunchFOM(self, mu_train, mu_train_init, gid_and_vtk_name='FOM_Fit'):
+    def _LaunchFOM(self, mu_train, start_from_closest_mu=False, gid_and_vtk_name='FOM_Fit'):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         NonConvergedSolutionsGathering = self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool()
+        failed_mu_list = []
         for Id, mu in enumerate(mu_train):
-            fom_in_database, _ = self.data_base.check_if_in_database("FOM", mu)
-            nonconverged_fom_in_database, _ = self.data_base.check_if_in_database("NonconvergedFOM", mu)
-            if not fom_in_database or (NonConvergedSolutionsGathering and not nonconverged_fom_in_database):
-                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-                parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
-                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-                self.UpdateMaterialParametersFile(materials_file_name, mu)
-                model = KratosMultiphysics.Model()
-                analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
-                if NonConvergedSolutionsGathering:
-                    simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
-                simulation.Run()
-                if not fom_in_database:
-                    self.data_base.add_to_database("QoI_FOM", mu, simulation.GetFinalData())
-                    for process in simulation._GetListOfOutputProcesses():
-                        if isinstance(process, CalculateRomBasisOutputProcess):
-                            BasisOutputProcess = process
-                    SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                    self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
-                if NonConvergedSolutionsGathering:
-                    self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
+            try:
+                print(f'Starting FOM simulation for mu: {mu}')
+                fom_in_database, _ = self.data_base.check_if_in_database("FOM", mu)
+                nonconverged_fom_in_database, _ = self.data_base.check_if_in_database("NonconvergedFOM", mu)
+                if not fom_in_database or (NonConvergedSolutionsGathering and not nonconverged_fom_in_database):
+                    parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                    parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+                    parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
+                    materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                    self.UpdateMaterialParametersFile(materials_file_name, mu)
+                    # if mu_train_init[0] is not None:
+                    if start_from_closest_mu is True:
+                        # print('Init mu: ', mu_train_init[Id])
+                        mu_init = self.data_base.get_closest_mu_in_FOM(mu)
+                        if mu_init is not None:
+                            print(f'Starting from initial mu: {mu_init}')
+                            parameters_copy = self._AddInitializeFromSnapshotProcessToProjectParameters(parameters_copy, mu_init)
+                    model = KratosMultiphysics.Model()
+                    analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+                    simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
+                    if NonConvergedSolutionsGathering:
+                        simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
+                    simulation.Run()
+                    if not fom_in_database:
+                        self.data_base.add_to_database("QoI_FOM", mu, simulation.GetFinalData())
+                        for process in simulation._GetListOfOutputProcesses():
+                            if isinstance(process, CalculateRomBasisOutputProcess):
+                                BasisOutputProcess = process
+                        SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                        self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
+                    if NonConvergedSolutionsGathering:
+                        self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
+            except:
+                print(f'FOM simulation for mu: {mu} failed. Moving on to next one')
+                failed_mu_list.append(mu)
 
+        self.GenerateDatabaseSummary()
+        
+        if len(failed_mu_list) > 0:
+            err_msg = f'Failed to simulate mu values: {failed_mu_list}'
+            raise Exception(err_msg)
 
 
     def _LaunchComputeSolutionBasis(self, mu_train):
@@ -866,9 +889,34 @@ class RomManager(object):
         parameters["output_processes"]["rom_output"].Append(rom_basis_parameters)
 
         return parameters
+    
 
+    def _AddInitializeFromSnapshotProcessToProjectParameters(self, parameters, mu_init):
+        if len(mu_init) > 0:
+            init_snapshot = self.data_base.get_snapshots_matrix_from_database([mu_init], table_name='FOM').reshape(-1)
+            if init_snapshot is None:
+                raise Exception(f"No snapshot found for initial mu: {mu_init}.")
+        
+            parameters["processes"].AddEmptyArray("rom_process")
 
+            process_parameters = KratosMultiphysics.Parameters("""{
+                "python_module" : "initialize_from_snapshot_process",
+                "kratos_module" : "KratosMultiphysics.RomApplication",
+                "process_name"  : "InitializeFromSnapshotProcess",
+                "help"          : "This process should initialize the simulation from a custom snapshot",
+                "Parameters"    : {}
+                }""")
 
+            process_parameters["Parameters"] = InitializeFromSnapshotProcess.GetDefaultParameters()
+            process_parameters["Parameters"]["nodal_unknowns"] = self.general_rom_manager_parameters["ROM"]["nodal_unknowns"]
+            process_parameters["Parameters"]["model_part_name"] = self.general_rom_manager_parameters["ROM"]["model_part_name"]
+            # process_parameters["Parameters"]["move_mesh"] = parameters["solver_settings"]["move_mesh"]
+            process_parameters["Parameters"]["initial_snapshot"].SetVector(init_snapshot.tolist())
+
+            parameters["processes"]["rom_process"].Append(process_parameters)
+
+        return parameters
+        
 
     def _StoreResultsByName(self,parameters,results_name,mu, Id):
 
@@ -893,8 +941,6 @@ class RomManager(object):
         parameters["output_processes"].RemoveValue("vtk_output")
 
         return parameters
-
-
 
     def _SetUpRomManagerParameters(self, input):
 
@@ -923,6 +969,7 @@ class RomManager(object):
                 "rom_basis_output_folder": "rom_data",
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
+                "snapshots_control_is_periodic": false,
                 "print_singular_values": false,
                 "use_non_converged_sols" : false,
                 "galerkin_rom_bns_settings": {
@@ -1047,7 +1094,8 @@ class RomManager(object):
             "rom_basis_output_folder",
             "nodal_unknowns",
             "snapshots_interval",
-            "print_singular_values"
+            "print_singular_values",
+            "snapshots_control_is_periodic"
         ]
 
         for key in keys_to_copy:
@@ -1082,6 +1130,7 @@ class RomManager(object):
                     "rom_manager" : false,      // set to false for manual manipulation of ROM via flags in the RomParameters
                     "snapshots_control_type": "step",
                     "snapshots_interval": 1.0,
+                    "snapshots_control_is_periodic": false,
                     "nodal_unknowns":  [],
                     "rom_basis_output_format": "json",
                     "rom_basis_output_name": "RomParameters",
@@ -1143,3 +1192,15 @@ class RomManager(object):
         except ImportError:
             err_msg = f'Failed to import the RomNeuralNetworkTrainer class. Make sure TensorFlow is properly installed.'
             raise Exception(err_msg)
+        
+
+    def GenerateFOMSnapshotsMatrix(self, mu_list):
+        for Id, mu in enumerate(mu_list):
+            in_database, _ = self.data_base.check_if_in_database("FOM", mu)
+            if not in_database:
+                err_msg = f'Missinf FOM simulation for mu: {mu}'
+                raise Exception(err_msg)
+            
+        snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name='FOM')
+        return snapshots_matrix
+        
