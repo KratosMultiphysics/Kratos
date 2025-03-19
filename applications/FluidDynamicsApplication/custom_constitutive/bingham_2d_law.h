@@ -190,7 +190,8 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
     }
 
-    void load(Serializer& rSerializer) override {
+    void load(Serializer& rSerializer) override
+    {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
     }
 
