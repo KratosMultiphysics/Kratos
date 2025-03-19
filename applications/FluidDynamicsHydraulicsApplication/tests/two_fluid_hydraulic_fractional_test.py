@@ -29,7 +29,6 @@ class TwoFluidHydraulicFractionalSolverTest(UnitTest.TestCase):
         self.print_output = False
         self.print_reference_values = False
 
-
     def testTwoFluidMassHydraulicFractionalSolverTestArtificialViscosity2D(self):
         self._artificial_viscosity = True
         self._mass_source = False
@@ -65,7 +64,6 @@ class TwoFluidHydraulicFractionalSolverTest(UnitTest.TestCase):
         self._mass_source = True
         self.problem_data = "all_activated"
         self._AuxiliaryRunTest("ProjectParametersFractional3D.json")
-
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):

@@ -1,7 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-import math
+
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosHydraulics
@@ -9,7 +9,7 @@ import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosHydraulics
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
-
+import math
 from pathlib import Path
 
 def CreateSolver(model, custom_settings):
@@ -22,7 +22,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "two_fluid_hydraulic",
+            "solver_type": "two_fluid_hydraulic_fractional",
             "model_part_name": "",
             "domain_size": -1,
             "model_import_settings": {
@@ -66,7 +66,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             "artificial_visocosity_settings":{
                 "limiter_coefficient": 1000
             },
-            "time_order": 2,
             "time_scheme": "bdf2",
             "fractional_splitting_settings":{
                 "element_type" : "ns_fractional_velocity_convection"
@@ -80,15 +79,12 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                     "dynamic_tau" : 1.0,
                     "tau_nodal":true
                 }
+            },                                                                       
+            "distance_reinitialization_settings":{
+                "reinitialization_type" :"variational",
+                "maximum_iterations" : 2,
+                "parallel_redistance_max_layers" : 25
             },
-            "outlet_inflow_limiter_settings":{
-                "apply_inflow_limiter": false,
-                "inflow_model_part_name":""
-            },                                  
-            "distance_reinitialization": "variational",
-            "parallel_redistance_max_layers" : 25,
-            "distance_smoothing": false,
-            "distance_smoothing_coefficient": 1.0,
             "distance_modification_settings": {
                 "model_part_name": "",
                 "distance_threshold": 1e-5,
@@ -129,12 +125,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.artificial_viscosity = self.settings["artificial_viscosity"].GetBool()
         if self.artificial_viscosity:
             self.artificial_limiter_coefficient = self.settings["artificial_visocosity_settings"]["limiter_coefficient"].GetDouble()
-        self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
-
-        self.outlet_inflow_limiter = self.settings["outlet_inflow_limiter_settings"]["apply_inflow_limiter"].GetBool()
-        if self.outlet_inflow_limiter:
-            self.inflow_model_part_name = self.settings["outlet_inflow_limiter_settings"]["apply_inflow_limiter"].GetString()
-
+        self._reinitialization_type = self.settings["distance_reinitialization_settings"]["reinitialization_type"].GetString()
         # Note that this will be computed only once in the first InitializeSolutionStep call
         self.__initial_water_system_volume = None
 
@@ -173,11 +164,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "DOF added correctly.")
 
-        # Instantiate the level set convection process
-        # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
-        # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
-        self._GetLevelSetConvectionProcess()
-
     def Initialize(self):
         computing_model_part = self.GetComputingModelPart()
         # Calculate boundary normals
@@ -193,18 +179,12 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         neighbour_search.Execute()
         elemental_neighbour_search = KratosMultiphysics.GenericFindElementalNeighboursProcess(computing_model_part)
         elemental_neighbour_search.Execute()
-        
-        #TODO: OJO CON EL TIME STEP ADAPTATIVO.
-        delta_time = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
-        print(delta_time)
-        bdf_vec = [1.5/delta_time, -2.0/delta_time, 0.5/delta_time]
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
 
-
-        # Set and initialize the solution strategy
+        # Set and Initialize the solution strategy
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         # Set nodal properties after setting distance(level-set).
         self._SetNodalProperties()
@@ -219,6 +199,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self._GetLevelSetConvectionProcess()
         self._GetNSFractionalSplittingProcess()
 
+        # Set the flag for the mass loss correction
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
@@ -247,14 +228,8 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # Perform the pure convection of the fractional velocity which corresponds to the first part of the NS fractional splitting. 
         self.__PerformNSFractionalSplitting()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Navier Stokes fractional convection part is performed.")
-        if self.outlet_inflow_limiter:
-            # TODO:This should be incorporated into the outlet hydraulic process in the future.
-             KratosHydraulics.HydraulicFluidAuxiliaryUtilities.ApplyOutletInflowLimiter(self.inflow_model_part_name, KratosMultiphysics.FRACTIONAL_VELOCITY)
-
-
-
+       
         # STEP II: Convect the free surface according to the fractional velocity 
-
         # Before doing this second step, the fractional velocity data is copied to the velocity data since the level set convection process takes velocity variable as convection variable. 
         # And the previous previous velocity is copied in an auxiliar variable
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.FRACTIONAL_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
@@ -275,6 +250,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # Accumulative water volume error ratio due to level set. Adding source term
         self._ComputeVolumeError()
 
+        # Calculate residual-based artificial viscosity
         if self.artificial_viscosity:
             self.__CalculateArtificialViscosity()
 
@@ -298,11 +274,9 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # Prepare distance correction for next step
         self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
         
+        # FinalizeSolutionStep of Navier-Stokes strategy 
         self._GetSolutionStrategy().FinalizeSolutionStep()
 
-        if self.outlet_inflow_limiter:
-            # TODO:This should be incorporated into the outlet hydraulic process in the future.
-             KratosHydraulics.HydraulicFluidAuxiliaryUtilities.ApplyOutletInflowLimiter(self.inflow_model_part_name, KratosMultiphysics.VELOCITY)
 
 
     def _ComputeStepInitialWaterVolume(self):
@@ -358,14 +332,14 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
     def __PerformNSFractionalSplitting(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         velocity_components = [KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Z]
-        fractional_velocity_componentes = [KratosCFD.FRACTIONAL_VELOCITY_X, KratosCFD.FRACTIONAL_VELOCITY_Y, KratosCFD.FRACTIONAL_VELOCITY_Z]
+        fractional_velocity_components = [KratosCFD.FRACTIONAL_VELOCITY_X, KratosCFD.FRACTIONAL_VELOCITY_Y, KratosCFD.FRACTIONAL_VELOCITY_Z]
         # Trasfer velocity node fixity to fractional velocity
         for i in range(domain_size):
-            self.VelocityBoundaryConditionFractional(fractional_velocity_componentes[i], velocity_components[i])
+            self.VelocityBoundaryConditionFractional(fractional_velocity_components[i], velocity_components[i])
         self._GetNSFractionalSplittingProcess().Execute()
         # Trasfer velocity slip condition to fractional velocity
         self.__SlipConditonFractionalFixity()
-
+    # TODO: Remove those methods as soon as a new  hydraulic slip process is done. 
     def __SlipConditonFractionalFixity(self):
         for node in self.GetComputingModelPart().Nodes:
             if node.Is(KratosMultiphysics.SLIP):
@@ -374,8 +348,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                 v= node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY)
                 v_prooj = self.DotProduct(v,n)
                 v-= v_prooj*n
-                node.SetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY,v)
-
+                node.SetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY,v) 
     def VelocityBoundaryConditionFractional(self, fractional_velocity_componentes, velocity_components):
         for node in self.GetComputingModelPart().Nodes:
             if node.IsFixed(velocity_components):
@@ -513,11 +486,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                 edge_based_level_set_convection_setttings)
         return edge_based_level_set_convection_process
 
-    def _GetEulerianFmAleProcess(self):
-        if not hasattr(self, '_eulerian_fm_convection_process'):
-            self._eulerian_fm_convection_process = self._CreateFmAleConvectionProcess()
-        return self._eulerian_fm_convection_process
-
     def _GetNSFractionalSplittingProcess(self):
         if not hasattr(self, '_ns_fractional_splitting_process'):
             self._ns_fractional_splitting_process = self._CreateFractionalNSplittingProcess()
@@ -557,7 +525,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         model = self.main_model_part.GetModel()
-        print(model)
         linear_solver = self._GetLevelsetLinearSolver()
         fractional_splitting_settings = self.settings["fractional_splitting_settings"]
         if domain_size == 2:
@@ -570,7 +537,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
     def _CreateDistanceReinitializationProcess(self):
         # Construct the variational distance calculation process
         if (self._reinitialization_type == "variational"):
-            maximum_iterations = 2 #TODO: Make this user-definable
+            maximum_iterations = self.settings["distance_reinitialization_settings"]["maximum_iterations"].GetInt()
             linear_solver = self._GetRedistancingLinearSolver()
             computing_model_part = self.GetComputingModelPart()
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
@@ -588,7 +555,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         elif (self._reinitialization_type == "parallel"):
             #TODO: move all this to solver settings
-            layers = self.settings["parallel_redistance_max_layers"].GetInt()
+            layers = self.settings["distance_reinitialization_settings"]["parallel_redistance_max_layers"].GetInt()
             parallel_distance_settings = KratosMultiphysics.Parameters("""{
                 "max_levels" : 25,
                 "max_distance" : 1.0,
