@@ -162,21 +162,14 @@ void UPwBaseElement::GetDofList(DofsVectorType& rElementalDofList, const Process
 
 GeometryData::IntegrationMethod UPwBaseElement::GetIntegrationMethod() const
 {
-    GeometryData::IntegrationMethod integration_method;
-
     switch (this->GetGeometry().GetGeometryOrderType()) {
     case GeometryData::Kratos_Cubic_Order:
-        integration_method = GeometryData::IntegrationMethod::GI_GAUSS_4;
-        break;
+        return GeometryData::IntegrationMethod::GI_GAUSS_4;
     case GeometryData::Kratos_Quartic_Order:
-        integration_method = GeometryData::IntegrationMethod::GI_GAUSS_5;
-        break;
+        return GeometryData::IntegrationMethod::GI_GAUSS_5;
     default:
-        integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
-
-    return integration_method;
 }
 
 void UPwBaseElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
