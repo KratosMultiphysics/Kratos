@@ -336,7 +336,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
     element->CalculateOnIntegrationPoints(KIRCHHOFF_STRESS_VECTOR,
                                           calculated_values_at_integration_points, process_info);
     for (const auto& kirchhoff_stress_vector : calculated_values_at_integration_points) {
-        KRATOS_EXPECT_TRUE(kirchhoff_stress_vector.empty());
+        KRATOS_EXPECT_TRUE(kirchhoff_stress_vector.empty())
     }
 }
 
