@@ -1103,7 +1103,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateElementalSystem(
         //KRATOS_WATCH(mMP.volume_acceleration);
         //KRATOS_WATCH(mMP.mass);
         //KRATOS_WATCH(Variables.BodyForceMP);
-        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass);
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass); // caso statico: il primo termine deve essere zero.
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
