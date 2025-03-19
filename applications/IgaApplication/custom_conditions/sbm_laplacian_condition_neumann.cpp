@@ -245,16 +245,26 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType mat_size = GetGeometry().size() * 1;
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    if (rRightHandSideVector.size() != number_of_nodes) {
+        rRightHandSideVector.resize(number_of_nodes, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
 
-    if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
-    noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-    MatrixType left_hand_side_matrix = ZeroMatrix(mat_size, mat_size);
-
-    CalculateLocalSystem(left_hand_side_matrix, rRightHandSideVector,
-        rCurrentProcessInfo);
+    // Integration
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+    
+    const Matrix& H = r_geometry.ShapeFunctionsValues();
+    
+    // Assembly
+    Vector t_N(number_of_nodes);
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
+    }
+    // Neumann Contributions
+    noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
 }
 
 void SbmLaplacianConditionNeumann::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)

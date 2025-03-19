@@ -90,9 +90,9 @@ void SbmLaplacianConditionDirichlet::CalculateLocalSystem(
 
     // Assembly
     // -(GRAD_w * n, u + GRAD_u * d + ...)
-    noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+    noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum) * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
     // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
-    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                       * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
     // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
     noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration ;
 
@@ -237,17 +237,52 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
 void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
-{
-    const SizeType mat_size = GetGeometry().size() * 1;
+{ 
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
-    if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
-    noalias(rRightHandSideVector) = ZeroVector(mat_size);
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    if (rRightHandSideVector.size() != number_of_nodes) {
+        rRightHandSideVector.resize(number_of_nodes, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
 
-    MatrixType left_hand_side_matrix = ZeroMatrix(mat_size, mat_size);
+    // Integration
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    
+    // Initialize DN_DX
+    Matrix DN_DX(number_of_nodes,mDim);
 
-    CalculateLocalSystem(left_hand_side_matrix, rRightHandSideVector,
-        rCurrentProcessInfo);
+    // Differential area
+    double penalty_integration = mPenalty * r_integration_points[0].Weight() ; // * std::abs(DetJ0);
+
+    // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
+    noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[0],InvJ0);
+
+    Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
+    
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        for (IndexType idim = 0; idim < mDim; idim++) {
+                DN_dot_n_vec(i)  += DN_DX(i, idim) * mNormalPhysicalSpace[idim];         
+        } 
+    }
+
+    // compute Taylor expansion contribution: H_sum_vec
+    Vector H_sum_vec = ZeroVector(number_of_nodes);
+    ComputeTaylorExpansionContribution (H_sum_vec);
+    
+    Matrix H_sum = ZeroMatrix(1, number_of_nodes);
+    noalias(row(H_sum, 0)) = H_sum_vec;
+
+    // Assembly
+    const double u_D_scalar = mpProjectionNode->GetValue(r_unknown_var);
+    noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration;
+    // Dirichlet BCs
+    noalias(rRightHandSideVector) -= mNitschePenalty * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
+
 }
 
 void SbmLaplacianConditionDirichlet::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
