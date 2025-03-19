@@ -858,23 +858,18 @@ class DEMAnalysisStage(AnalysisStage):
             self.time_old_print = self.time
 
     def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type, domain_size=[1,1,1]):        
-        
         return self.DEMPropertiesMeasureUtility.MeasureSphereForGettingPackingProperties(radius, center_x, center_y, center_z, type, domain_size)
     
     def MeasureSphereForGettingGlobalStressTensor(self):
-
         Lx = self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update
         Ly = self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update
         Lz = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
-
         return self.DEMPropertiesMeasureUtility.MeasureSphereForGettingGlobalStressTensor(Lx, Ly, Lz)
     
     def MeasureSphereForGettingRadialDistributionFunction(self, radius, center_x, center_y, center_z, delta_r, d_mean):
-        
         self.DEMPropertiesMeasureUtility.MeasureSphereForGettingRadialDistributionFunction(radius, center_x, center_y, center_z, delta_r, d_mean)
 
     def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type):
-        
         raise Exception("MeasureCubicForGettingPackingProperties() is not avaiable anymore. It can be found in Commit:861eeac")
 
 if __name__ == "__main__":
