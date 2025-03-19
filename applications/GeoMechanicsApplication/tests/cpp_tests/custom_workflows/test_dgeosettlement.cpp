@@ -65,7 +65,7 @@ void ExpectNumberOfMaterialCallsEqualTo(int expectedNumberOfMaterialCalls, const
     KRATOS_EXPECT_EQ(input_utility_from_settlement->NumberOfMaterialCalls(), expectedNumberOfMaterialCalls);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, KratosGeoMechanicsFastSuite)
 {
     bool has_thrown = false;
     try {
@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, KratosGeoMech
     KRATOS_EXPECT_FALSE(has_thrown) // No other way to check that the constructor does not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFastSuite)
 {
     KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
                                    std::make_unique<StubProcessInfoParser>(),
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFast
     ExpectNumberOfMaterialCallsEqualTo(1, settlement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, KratosGeoMechanicsFastSuite)
 {
     const std::string parameter_json_string_without_material_import_settings = R"(
                                                                                 {
@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, Kr
     ExpectNumberOfMaterialCallsEqualTo(0, settlement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, KratosGeoMechanicsFastSuite)
 {
     KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
                                    std::make_unique<StubProcessInfoParser>(),
@@ -132,13 +132,13 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, KratosGeoMech
     ExpectNumberOfReadCallsIsEqualToOne(settlement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstructKratosGeoSettlementWithEmptyInputUtilityThrows, KratosGeoMechanicsFastSuiteWithoutKernel){
+KRATOS_TEST_CASE_IN_SUITE(ConstructKratosGeoSettlementWithEmptyInputUtilityThrows, KratosGeoMechanicsFastSuite){
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosGeoSettlement settlement(nullptr,
                                                                      std::make_unique<StubProcessInfoParser>(),
                                                                      std::make_unique<StubTimeLoopExecutor>()),
                                       "Invalid Input Utility")}
 
-KRATOS_TEST_CASE_IN_SUITE(RunStage_PassesTheCorrectProcessReferences, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(RunStage_PassesTheCorrectProcessReferences, KratosGeoMechanicsFastSuite)
 {
     const std::string process_parameters_in_json_settings =
         R"(

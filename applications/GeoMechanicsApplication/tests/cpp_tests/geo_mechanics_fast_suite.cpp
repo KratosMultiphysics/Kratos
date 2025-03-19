@@ -15,6 +15,9 @@
 #include "geo_mechanics_application.h"
 #include "linear_solvers_application.h"
 
+#include <custom_solvers/eigen_direct_solver.h>
+#include <custom_solvers/eigen_sparse_lu_solver.h>
+
 namespace Kratos::Testing
 {
 
@@ -44,10 +47,13 @@ KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKern
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_TENSOR)
     // clang-format on
+
+    using SparseLUType          = EigenDirectSolver<EigenSparseLUSolver<double>>;
+    static auto SparseLUFactory = SparseLUType::Factory();
+    KRATOS_REGISTER_LINEAR_SOLVER("sparse_lu", SparseLUFactory);
 }
 
-KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite()
-    : KratosCoreFastSuite()
+KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite() : KratosCoreFastSuite()
 {
     mpGeoApp = std::make_shared<KratosGeoMechanicsApplication>();
     this->ImportApplicationIntoKernel(mpGeoApp);

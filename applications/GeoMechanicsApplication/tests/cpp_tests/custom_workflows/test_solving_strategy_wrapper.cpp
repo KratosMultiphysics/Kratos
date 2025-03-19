@@ -126,7 +126,8 @@ SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPa
         SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_displacements};
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
