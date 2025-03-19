@@ -46,6 +46,7 @@ from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolume
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 from test_modelers_sbm import TestModelersSbm as TTestModelersSbm
+from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbsModeler
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
 

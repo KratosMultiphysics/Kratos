@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.14.0)
+cmake_minimum_required (VERSION 3.15.0)
 
 project (KratosMultiphysics)
 set (CMAKE_CXX_STANDARD 17)
@@ -42,6 +42,11 @@ endif(POLICY CMP0135)
 if(POLICY CMP0177)
   cmake_policy(SET CMP0177 NEW)
 endif(POLICY CMP0177)
+
+# Boost config
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif(POLICY CMP0167)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
@@ -113,6 +118,7 @@ SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -D_DEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+set( CMAKE_MAP_IMPORTED_CONFIG_FULLDEBUG Debug)
 
 # Define internal CMake flags needed
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
@@ -283,6 +289,10 @@ if(${MSVC})
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+  # CMake does not select the correct runtime library for FullDebug now, no idea why
+  if( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebugDLL" CACHE STRING "" FORCE)
+  endif( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
