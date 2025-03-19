@@ -359,7 +359,7 @@ class MPMSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_X, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Y, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAHY_STRESS_VECTOR_Z,  model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Z,  model_part)
 
 
         if self.settings["pressure_dofs"].GetBool():
