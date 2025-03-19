@@ -25,8 +25,6 @@ Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexTy
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                          GeometryType::Pointer pGeom,
@@ -36,7 +34,6 @@ Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexTy
         NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -53,7 +50,7 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
     // Verify generic variables
-    ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+    ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
     // Verify specific properties
@@ -81,16 +78,15 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     }
 
     // Check constitutive law
-    if (mConstitutiveLawVector.size() > 0) {
+    if (!mConstitutiveLawVector.empty()) {
         return mConstitutiveLawVector[0]->Check(Prop, Geom, rCurrentProcessInfo);
     }
 
     return ierr;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                          ElementVariables& rVariables)
@@ -103,10 +99,9 @@ void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixT
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                          ElementVariables& rVariables,
@@ -123,10 +118,8 @@ void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorT
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template class UndrainedUPwSmallStrainElement<2, 3>;
 template class UndrainedUPwSmallStrainElement<2, 4>;

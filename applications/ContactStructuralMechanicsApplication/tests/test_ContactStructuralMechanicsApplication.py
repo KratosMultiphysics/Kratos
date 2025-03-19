@@ -1,9 +1,6 @@
 # Import Kratos
 import KratosMultiphysics
 
-# Import CPP tests
-import run_cpp_unit_tests
-
 # Import kratos_utilities
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 has_CL_application = kratos_utilities.CheckIfApplicationsAvailable("ConstitutiveLawsApplication")
@@ -178,8 +175,8 @@ from ValidationTests import ALMBlockTestFrictionalContact                       
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -546,10 +543,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

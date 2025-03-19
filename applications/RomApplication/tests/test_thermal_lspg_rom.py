@@ -9,9 +9,9 @@ import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_ut
 if kratos_utilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication"):
     import KratosMultiphysics.ConvectionDiffusionApplication
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
+from pathlib import Path
 
-
-def CustomizeSimulation(cls, global_model, parameters):
+def CustomizeSimulation(cls, global_model, parameters, mu = None):
 
     class CustomSimulation(cls):
 
@@ -105,6 +105,10 @@ class TestThermalLSPGRom(KratosUnittest.TestCase):
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
+        workfolders = ["thermal_static_test_files/LSPGROM/"]
+        for workfolder in workfolders:
+            with KratosUnittest.WorkFolderScope(workfolder, __file__):
+                kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data/rom_database'))
 
 ##########################################################################################
 

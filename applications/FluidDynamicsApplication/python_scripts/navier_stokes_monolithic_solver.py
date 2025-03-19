@@ -13,8 +13,8 @@ class StabilizedFormulation:
         self.element_name = None
         self.element_integrates_in_time = False
         self.element_has_nodal_properties = False
-        self.historical_nodal_properties_variables_list = []
-        self.non_historical_nodal_properties_variables_list = []
+        self.historical_nodal_variables_list = []
+        self.non_historical_nodal_variables_list = []
         self.process_data = {}
 
         #TODO: Keep this until the MonolithicWallCondition is removed to ensure backwards compatibility in solvers with no defined condition_name
@@ -38,9 +38,18 @@ class StabilizedFormulation:
                 self._SetUpWeaklyCompressible(settings)
             elif formulation == "axisymmetric_navier_stokes":
                 self._SetUpAxisymmetricNavierStokes(settings)
+            elif formulation == "p2p1":
+                self._SetUpP2P1(settings)
+            else:
+                formulation_list = ["qsvms", "dvms", "fic", "weakly_compressible", "axisymmetric_navier_stokes", "p2p1"]
+                err_msg = f"Wrong \'element_type\' : \'{formulation}\' provided. Available options are:\n"
+                for elem in formulation_list:
+                    err_msg += f"\t- {elem}\n"
+                # raise RuntimeError(err_msg) #TODO: Turn this into an error once the derived solvers handle this properly
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesMonolithicSolver", err_msg)
         else:
             print(settings)
-            raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
+            raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
     def SetProcessInfo(self,model_part):
         for variable,value in self.process_data.items():
@@ -74,7 +83,7 @@ class StabilizedFormulation:
 
         # set the nodal material properties flag
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosMultiphysics.VISCOSITY]
 
         # validate the non-newtonian parameters if necessary
         if self.non_newtonian_option:
@@ -162,8 +171,8 @@ class StabilizedFormulation:
 
         # set the nodal material properties flag
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
-        self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosCFD.SOLID_FRACTION_VELOCITY]
+        self.non_historical_nodal_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         #TODO: Remove SOUND_VELOCITY from ProcessInfo. Should be obtained from the properties.
@@ -181,6 +190,20 @@ class StabilizedFormulation:
         self.element_integrates_in_time = True
 
         # set the nodal material properties flag
+        self.element_has_nodal_properties = False
+
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+
+    def _SetUpP2P1(self,settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "p2p1",
+            "dynamic_tau": 1.0
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "IncompressibleNavierStokesP2P1Continuous"
+        self.condition_name = "NavierStokesP2P1ContinuousWallCondition"
+        self.element_integrates_in_time = True
         self.element_has_nodal_properties = False
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
@@ -277,10 +300,9 @@ class NavierStokesMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
 
-        # Adding variables required for the nodal material properties
-        if self.element_has_nodal_properties:
-            for variable in self.historical_nodal_properties_variables_list:
-                self.main_model_part.AddNodalSolutionStepVariable(variable)
+        # Adding variables required by the formulation (this includes the nodal material properties)
+        for variable in self.historical_nodal_variables_list:
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
 
         # Adding variables required for the periodic conditions
         if self.settings["consider_periodic_conditions"].GetBool() == True:
@@ -307,14 +329,26 @@ class NavierStokesMonolithicSolver(FluidSolver):
         # Perform the solver InitializeSolutionStep
         self._GetSolutionStrategy().InitializeSolutionStep()
 
+    def SolveSolutionStep(self):
+        # Call the base fluid solver to solve current time step
+        is_converged = super().SolveSolutionStep()
+
+        # If the P2-P1 element is used, postprocess the pressure in the quadratic nodes for the visualization
+        # Note that this must be done in here (not in the FinalizeSolutionStep) in case the SolveSolutionStep
+        # is called in a non-linear outer loop (e.g. from the FSI or the CHT solvers)
+        if self.element_name == "IncompressibleNavierStokesP2P1Continuous":
+            KratosCFD.FluidAuxiliaryUtilities.PostprocessP2P1ContinuousPressure(self.GetComputingModelPart())
+
+        return is_converged
+
     def _SetFormulation(self):
         self.formulation = StabilizedFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list
-        self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
+        self.historical_nodal_variables_list = self.formulation.historical_nodal_variables_list
+        self.non_historical_nodal_variables_list = self.formulation.non_historical_nodal_variables_list
 
     def _SetTimeSchemeBufferSize(self):
         scheme_type = self.settings["time_scheme"].GetString()
@@ -338,9 +372,9 @@ class NavierStokesMonolithicSolver(FluidSolver):
             self.settings["formulation"]["dynamic_tau"].SetDouble(0.0)
 
     def _SetNodalProperties(self):
-        set_density = KratosMultiphysics.DENSITY in self.historical_nodal_properties_variables_list
-        set_viscosity = KratosMultiphysics.VISCOSITY in self.historical_nodal_properties_variables_list
-        set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_properties_variables_list
+        set_density = KratosMultiphysics.DENSITY in self.historical_nodal_variables_list
+        set_viscosity = KratosMultiphysics.VISCOSITY in self.historical_nodal_variables_list
+        set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_variables_list
 
         # Get density and dynamic viscostity from the properties of the first element
         for el in self.main_model_part.Elements:

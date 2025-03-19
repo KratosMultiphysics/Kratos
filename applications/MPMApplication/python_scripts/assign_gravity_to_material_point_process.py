@@ -1,50 +1,62 @@
 import KratosMultiphysics
 import KratosMultiphysics.MPMApplication as KratosMPM
 
-def Factory(settings, Model):
-    if(not isinstance(settings, KratosMultiphysics.Parameters)):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.Process:
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object")
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignGravityToMaterialPointProcess(Model, settings["Parameters"])
+    return AssignGravityToMaterialPointProcess(model, settings["Parameters"])
 
-## All the processes python should be derived from "Process"
 class AssignGravityToMaterialPointProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    def __init__(self, Model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
         KratosMultiphysics.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "mesh_id"              : 0,
-                "model_part_name"      : "please_specify_model_part_name",
-                "variable_name"        : "MP_VOLUME_ACCELERATION",
-                "modulus"              : 1.0,
-                "constrained"          : true,
-                "direction"            : [0.0, 0.0, 0.0],
-                "local_axes"           : {}
-            }
-            """)
+        # "modulus" must be a number
+        if settings.Has("modulus") and not settings["modulus"].IsNumber():
+            raise Exception('Parameter "modulus" must be a number')
 
-        # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
-        if(settings.Has("modulus")):
-            if(settings["modulus"].IsString()):
-                default_settings["modulus"].SetString("0.0")
+        # "direction" must be a vector with three components
+        if settings.Has("direction"):
+            if not settings["direction"].IsVector() or settings["direction"].GetVector().Size() != 3:
+                raise Exception('Parameter "direction" must be a vector of length 3')
 
-        if(settings.Has("direction")):
-            if(settings["direction"].IsString()):
-                default_settings["direction"].SetString("Automatic")
+        # "variable_name" is not requires: gravity is assigned
+        # to variables "MP_ACCELERATION" and "MP_VOLUME_ACCELERATION"
+        if settings.Has("variable_name"):
+            settings.RemoveValue("variable_name")
+            wrn_msg  = 'Parameter "variable_name" has been removed and will be ignored: '
+            wrn_msg += 'gravity is assigned to "MP_VOLUME_ACCELERATION" and "MP_ACCELERATION".'
+            KratosMultiphysics.Logger.PrintWarning("AssignGravityToMaterialPointProcess", wrn_msg)
 
-        # Detect if variable_name is MP_VOLUME_ACCELERATION
-        if(settings.Has("variable_name")):
-            if(settings["variable_name"].GetString() != "MP_VOLUME_ACCELERATION"):
-                KratosMultiphysics.Logger.PrintInfo("Warning in apply gravity to material point", "Error in determining variable_name")
-                raise Exception('The assign_gravity_to_material_point_process only accepts \"MP_VOLUME_ACCELERATION\" as variable_name.')
+        # This parameter was not used and is removed
+        if settings.Has("constrained"):
+            settings.RemoveValue("constrained")
+            wrn_msg = 'Parameter "constrained" has been removed and will be ignored.'
+            KratosMultiphysics.Logger.PrintWarning("AssignGravityToMaterialPointProcess", wrn_msg)
 
-        settings.ValidateAndAssignDefaults(default_settings)
+        # This parameter was not used and is removed
+        if settings.Has("local_axes"):
+            settings.RemoveValue("local_axes")
+            wrn_msg = 'Parameter "local_axes" has been removed and will be ignored.'
+            KratosMultiphysics.Logger.PrintWarning("AssignGravityToMaterialPointProcess", wrn_msg)
 
-        # Default settings
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.modulus = settings["modulus"].GetDouble()
         self.gravity_direction = settings["direction"].GetVector()
         self.gravity_acceleration = self.modulus * self.gravity_direction
+
+    @staticmethod
+    def GetDefaultParameters():
+        return KratosMultiphysics.Parameters("""
+            {
+                "model_part_name"      : "please_specify_model_part_name",
+                "modulus"              : 1.0,
+                "direction"            : [0.0, 0.0, 0.0]
+            }
+            """)
 
     def ExecuteBeforeSolutionLoop(self):
 

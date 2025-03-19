@@ -207,6 +207,7 @@ namespace Kratos
         // Essential Boundary Conditions
         KRATOS_REGISTER_VARIABLE( MPC_BOUNDARY_CONDITION_TYPE )
         KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )
+        KRATOS_REGISTER_VARIABLE( PARTICLE_BASED_SLIP )
 
         // Nodal load variables
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
@@ -280,10 +281,10 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
-        // CL: Displacement-based Newtonian Fluid
+        // CL: Displacement-based Newtonian fluid
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluid3DLaw", mDispNewtonianFluid3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrain2DLaw", mDispNewtonianFluidPlaneStrain2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
+	KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrainUP2DLaw", mDispNewtonianFluidPlaneStrainUP2DLaw);
 
         //Register Flow Rules
@@ -319,7 +320,16 @@ namespace Kratos
 
         // Stabilization variables
         KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
-        KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
+	KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
+
+        // For friction
+        KRATOS_REGISTER_VARIABLE(STICK_FORCE)
+        KRATOS_REGISTER_VARIABLE(FRICTION_STATE)
+        KRATOS_REGISTER_VARIABLE(TANGENTIAL_PENALTY_FACTOR)
+        KRATOS_REGISTER_VARIABLE(FRICTION_ACTIVE)
+        KRATOS_REGISTER_VARIABLE(FRICTION_ASSIGNED)
+        KRATOS_REGISTER_VARIABLE(HAS_INITIAL_MOMENTUM)
+        KRATOS_REGISTER_VARIABLE(INITIAL_LOOP_COMPLETE)
     }
 
 }  // namespace Kratos.

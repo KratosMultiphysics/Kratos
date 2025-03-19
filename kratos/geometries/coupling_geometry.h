@@ -309,7 +309,7 @@ public:
     ///@{
 
     /* @brief Provides the combined spans of all geometry parts of this geometry
-     *        in local paramater coordinates of the geometry
+     *        in local parameter coordinates of the geometry
      *        according to its direction from LocalDirectionIndex.
      *
      * @param resulting vector of span intervals.
@@ -519,7 +519,7 @@ public:
         }
 
         KRATOS_ERROR_IF(mpGeometries.size() > 2)
-            << "CreateQuadraturePointGeometries not implemented for coupling of more than 2 geomtries. "
+            << "CreateQuadraturePointGeometries not implemented for coupling of more than 2 geometries. "
             << mpGeometries.size() << " are given." << std::endl;
     }
 
@@ -622,11 +622,21 @@ public:
     ///@name Geometry Family
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Composite;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Coupling_Geometry;

@@ -13,6 +13,8 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
+#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -24,8 +26,6 @@ Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::Create(
     return Element::Pointer(new UPwSmallStrainLinkInterfaceElement(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
@@ -196,8 +196,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
@@ -282,8 +280,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                        VectorType& rRightHandSideVector,
@@ -321,15 +317,17 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
     // Element variables
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
-    this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+    ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveParameters, Variables.StrainVector,
+                                                        Variables.ConstitutiveMatrix, Variables.Np,
+                                                        Variables.GradNpT, Variables.F, Variables.detF);
 
     // Auxiliary variables
     const double&          MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
@@ -377,8 +375,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
 
     KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template class UPwSmallStrainLinkInterfaceElement<2, 4>;
 template class UPwSmallStrainLinkInterfaceElement<3, 6>;

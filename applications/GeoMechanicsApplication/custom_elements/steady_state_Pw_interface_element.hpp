@@ -18,7 +18,7 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_interface_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -47,14 +47,11 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     explicit SteadyStatePwInterfaceElement(IndexType NewId = 0)
         : TransientPwInterfaceElement<TDim, TNumNodes>(NewId)
@@ -88,8 +85,6 @@ public:
 
     ~SteadyStatePwInterfaceElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
@@ -111,13 +106,7 @@ protected:
                             InterfaceElementVariables& rVariables,
                             unsigned int               GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Assignment operator.
     SteadyStatePwInterfaceElement& operator=(SteadyStatePwInterfaceElement const& rOther);
 

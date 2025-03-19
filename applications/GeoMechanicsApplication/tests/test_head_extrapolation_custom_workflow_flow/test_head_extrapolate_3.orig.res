@@ -6,7 +6,7 @@ Natural Coordinates: Given
 0.666667 0.166667
 0.166667 0.666667
 End GaussPoints
-Result "HYDRAULIC_HEAD" "Kratos" 0 Scalar OnNodes
+Result "HYDRAULIC_HEAD" "Kratos" 1 Scalar OnNodes
 Values
 1 -1
 2 -0.857143

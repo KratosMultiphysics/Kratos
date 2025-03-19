@@ -11,6 +11,7 @@
 //
 #include "plane_strain_stress_state.h"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -19,7 +20,7 @@ Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vect
 {
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
-    Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_AXISYMMETRIC, dimension * number_of_nodes);
+    Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_PLANE_STRAIN, dimension * number_of_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
@@ -59,6 +60,22 @@ Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrain
     result[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
     result[INDEX_2D_PLANE_STRAIN_XY] = strain_vector[2];
     return result;
+}
+
+const Vector& PlaneStrainStressState::GetVoigtVector() const { return VoigtVector2D; }
+
+SizeType PlaneStrainStressState::GetVoigtSize() const { return GetVoigtSize2D(); }
+
+SizeType PlaneStrainStressState::GetStressTensorSize() const { return GetStressTensorSize2D(); }
+
+void PlaneStrainStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void PlaneStrainStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
 }
 
 } // namespace Kratos

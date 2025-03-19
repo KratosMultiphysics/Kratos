@@ -167,6 +167,67 @@ public:
     }
 
     /**
+     * @brief Returns the local coordinates of a given arbitrary point for a given linear triangle
+     * @param rGeometry The geometry to be considered
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    template<class TGeometryType>
+    static inline typename TGeometryType::CoordinatesArrayType& PointLocalCoordinatesStraightEdgesTriangle(
+        const TGeometryType& rGeometry,
+        typename TGeometryType::CoordinatesArrayType& rResult,
+        const typename TGeometryType::CoordinatesArrayType& rPoint
+        )
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
+             "Geometry should be a triangle in order to use PointLocalCoordinatesStraightEdgesTriangle" << std::endl;
+
+        noalias(rResult) = ZeroVector(3);
+
+        array_1d<double, 3> tangent_xi  = rGeometry.GetPoint(1) - rGeometry.GetPoint(0);
+        tangent_xi /= norm_2(tangent_xi);
+        array_1d<double, 3> tangent_eta = rGeometry.GetPoint(2) - rGeometry.GetPoint(0);
+        tangent_eta /= norm_2(tangent_eta);
+
+        const auto center = rGeometry.Center();
+
+        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
+        for (IndexType i = 0; i < 3; ++i) {
+            rotation_matrix(0, i) = tangent_xi[i];
+            rotation_matrix(1, i) = tangent_eta[i];
+        }
+
+        typename TGeometryType::CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
+        noalias(aux_point_to_rotate) = rPoint - center.Coordinates();
+        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
+
+        array_1d<typename TGeometryType::CoordinatesArrayType, 3> points_rotated;
+        for (IndexType i = 0; i < 3; ++i) {
+            noalias(aux_point_to_rotate) = rGeometry.GetPoint(i).Coordinates() - center.Coordinates();
+            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
+        }
+
+        // Compute the Jacobian matrix and its determinant
+        BoundedMatrix<double, 2, 2> J;
+        J(0,0) = points_rotated[1][0] - points_rotated[0][0];
+        J(0,1) = points_rotated[2][0] - points_rotated[0][0];
+        J(1,0) = points_rotated[1][1] - points_rotated[0][1];
+        J(1,1) = points_rotated[2][1] - points_rotated[0][1];
+        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
+
+        const double eta = (J(1,0)*(points_rotated[0][0] - destination_point_rotated[0]) +
+                            J(0,0)*(destination_point_rotated[1] - points_rotated[0][1])) / det_J;
+        const double xi  = (J(1,1)*(destination_point_rotated[0] - points_rotated[0][0]) +
+                            J(0,1)*(points_rotated[0][1] - destination_point_rotated[1])) / det_J;
+
+        rResult(0) = xi;
+        rResult(1) = eta;
+
+        return rResult;
+    }
+
+    /**
      * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
      * @param rGeometry it is the array of nodes. It is expected to be a tetrahedra
      * @param rDN_DX a stack matrix of size 4*3 to store the shape function's derivatives
@@ -853,6 +914,103 @@ public:
         const auto min = std::min_element(distances.begin(), distances.end());
         return *min;
     }
+
+    /**
+     * @brief use separating axis theorem to test overlap between triangle and box
+     * @details Need to test for overlap in these directions:
+     * 1) the {x,y,(z)}-directions
+     * 2) normal of the triangle
+     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
+     * @param rBoxCenter The center of the box
+     * @param rBoxHalfSize The half size of the box
+     * @param rVertex0 The first vertex of the triangle
+     * @param rVertex1 The second vertex of the triangle
+     * @param rVertex2 The third vertex of the triangle
+     */
+    static bool TriangleBoxOverlap(
+        const Point& rBoxCenter,
+        const Point& rBoxHalfSize,
+        const Point& rVertex0,
+        const Point& rVertex1,
+        const Point& rVertex2
+        );
+
+    /**
+     * @brief Check if a plane intersects a box
+     * @see TriBoxOverlap
+     * @details Plane equation: rNormal*x+rDist=0
+     * @return bool intersection flag
+     * @param rNormal the plane normal
+     * @param rDist   distance to origin
+     * @param rMaxBox box corner from the origin
+     */
+    static bool PlaneBoxOverlap(
+        const array_1d<double,3>& rNormal,
+        const double Distance,
+        const array_1d<double,3>& rMaxBox
+        );
+
+private:
+
+    /**
+     * @brief AxisTestX
+     * @details This method returns true if there is a separating axis
+     * @param EdgeY, EdgeZ: i-edge coordinates
+     * @param AbsEdgeY, AbsEdgeZ: i-edge abs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestX(
+        const double EdgeY,
+        const double EdgeZ,
+        const double AbsEdgeY,
+        const double AbsEdgeZ,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
+
+    /**
+     * @brief AxisTestY
+     * @details This method returns true if there is a separating axis
+     * @param EdgeX, EdgeY: i-edge coordinates
+     * @param AbsEdgeX, AbsEdgeZ: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestY(
+        const double EdgeX,
+        const double EdgeY,
+        const double AbsEdgeX,
+        const double AbsEdgeZ,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
+
+    /**
+     * @brief AxisTestZ
+     * @details This method returns true if there is a separating axis
+     * @param EdgeX, EdgeY: i-edge coordinates
+     * @param AbsEdgeX, AbsEdgeY: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize Box half size
+     */
+    static bool AxisTestZ(
+        const double EdgeX,
+        const double EdgeY,
+        const double AbsEdgeX,
+        const double AbsEdgeY,
+        const array_1d<double,3>& rVertA,
+        const array_1d<double,3>& rVertC,
+        const Point& rBoxHalfSize
+        );
 };
 
 }  // namespace Kratos.

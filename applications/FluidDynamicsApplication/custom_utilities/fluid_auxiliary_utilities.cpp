@@ -25,6 +25,7 @@
 #include "utilities/reduction_utilities.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/rbf_shape_functions_utility.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "fluid_auxiliary_utilities.h"
@@ -49,6 +50,96 @@ double FluidAuxiliaryUtilities::CalculateFluidVolume(const ModelPart& rModelPart
     return fluid_volume;
 }
 
+
+double FluidAuxiliaryUtilities::CalculateFluidCutElementsPositiveVolume(const ModelPart& rModelPart)
+{
+
+    // Check that there are elements and distance variable in the nodal database
+    KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfElements() == 0) << "There are no elements in the provided model part. Fluid cut elements volume cannot be computed." << std::endl;
+    const auto &r_communicator = rModelPart.GetCommunicator();
+    if (r_communicator.LocalMesh().NumberOfNodes() != 0)
+    {
+        KRATOS_ERROR_IF_NOT(r_communicator.LocalMesh().NodesBegin()->SolutionStepsDataHas(DISTANCE)) << "Nodal solution step data has no \'DISTANCE\' variable. Positive cut elements volume cannot be computed" << std::endl;
+    }
+
+    double cut_positive_fluid_volume = 0.0;
+    if (r_communicator.LocalMesh().NumberOfElements() != 0)
+    {
+        // Set the modified shape functions fatory
+        const auto &r_geom_begin = r_communicator.LocalMesh().ElementsBegin()->GetGeometry();
+        auto mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_geom_begin);
+
+        // Calculate the positive volume
+        Vector nodal_distances(r_geom_begin.PointsNumber());
+        cut_positive_fluid_volume = block_for_each<SumReduction<double>>(rModelPart.GetCommunicator().LocalMesh().Elements(), nodal_distances, [&mod_sh_func_factory](Element &rElement, Vector &rNodalDistancesTLS)
+                                                                         {
+            // Set the distances vector to check if the element is split
+            const auto& r_geom = rElement.GetGeometry();
+            const std::size_t n_nodes = r_geom.PointsNumber();
+            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                rNodalDistancesTLS[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+            }
+            // Split element check
+            double elem_volume = 0.0;
+            if (IsSplit(rNodalDistancesTLS)) {
+                // Compute positive volume fraction with the modified shape functions
+                auto p_mod_sh_func = mod_sh_func_factory(rElement.pGetGeometry(), rNodalDistancesTLS);
+                elem_volume = p_mod_sh_func->ComputePositiveSideDomainSize();
+            }
+
+            // Return the value to be reduced
+            return elem_volume; });
+    }
+
+    // Synchronize among processors
+    r_communicator.GetDataCommunicator().SumAll(cut_positive_fluid_volume);
+
+    return cut_positive_fluid_volume;
+}
+
+double FluidAuxiliaryUtilities::CalculateFluidCutElementsNegativeVolume(const ModelPart& rModelPart)
+{
+    // Check that there are elements and distance variable in the nodal database
+    KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfElements() == 0) << "There are no elements in the provided model part. Fluid cut elements volume cannot be computed." << std::endl;
+    const auto &r_communicator = rModelPart.GetCommunicator();
+    if (r_communicator.LocalMesh().NumberOfNodes() != 0)
+    {
+        KRATOS_ERROR_IF_NOT(r_communicator.LocalMesh().NodesBegin()->SolutionStepsDataHas(DISTANCE)) << "Nodal solution step data has no \'DISTANCE\' variable. Positive cut elements volume cannot be computed" << std::endl;
+    }
+
+    double cut_negative_fluid_volume = 0.0;
+    if (r_communicator.LocalMesh().NumberOfElements() != 0)
+    {
+        // Set the modified shape functions fatory
+        const auto &r_geom_begin = r_communicator.LocalMesh().ElementsBegin()->GetGeometry();
+        auto mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_geom_begin);
+
+        // Calculate the positive volume
+        Vector nodal_distances(r_geom_begin.PointsNumber());
+        cut_negative_fluid_volume = block_for_each<SumReduction<double>>(rModelPart.GetCommunicator().LocalMesh().Elements(), nodal_distances, [&mod_sh_func_factory](Element &rElement, Vector &rNodalDistancesTLS)
+                                                                         {
+            // Set the distances vector to check if the element is split
+            const auto& r_geom = rElement.GetGeometry();
+            const std::size_t n_nodes = r_geom.PointsNumber();
+            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                rNodalDistancesTLS[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+            }
+            // Split element check
+            double elem_volume = 0.0;
+            if (IsSplit(rNodalDistancesTLS)) {
+                // Compute positive volume fraction with the modified shape functions
+                auto p_mod_sh_func = mod_sh_func_factory(rElement.pGetGeometry(), rNodalDistancesTLS);
+                elem_volume = p_mod_sh_func->ComputeNegativeSideDomainSize();
+            }
+            // Return the value to be reduced
+            return elem_volume; });
+    }
+
+    // Synchronize among processors
+    r_communicator.GetDataCommunicator().SumAll(cut_negative_fluid_volume);
+
+    return cut_negative_fluid_volume;
+}
 double FluidAuxiliaryUtilities::CalculateFluidPositiveVolume(const ModelPart& rModelPart)
 {
     // Check that there are elements and distance variable in the nodal database
@@ -474,6 +565,41 @@ double FluidAuxiliaryUtilities::FindMaximumEdgeLength(
     });
 
     return l_max;
+}
+
+void FluidAuxiliaryUtilities::PostprocessP2P1ContinuousPressure(ModelPart& rModelPart)
+{
+    // Reset VISITED flag to indicate the already postprocessed nodes
+    VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
+
+    // Loop the P2P1 elements to postprocess the pressure in edge midpoint nodes
+    // Note that there is no need to do MPI synchronization as we are updating the ghost nodes too
+    if (rModelPart.GetCommunicator().LocalMesh().NumberOfElements() != 0) {
+        // Check DOMAIN_SIZE
+        KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
+            << "DOMAIN_SIZE cannot be found in '" << rModelPart.FullName() << "' ProcessInfo container."<<  std::endl;
+        // Loop the elements to assign the edge midpoint nodes PRESSURE
+        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
+            block_for_each(rModelPart.Elements(), [](auto& rElement){
+                auto& r_geometry = rElement.GetGeometry();
+                KRATOS_ERROR_IF_NOT(r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D6);
+                PostprocessP2P1NodePressure(r_geometry, 3, 0, 1);
+                PostprocessP2P1NodePressure(r_geometry, 4, 1, 2);
+                PostprocessP2P1NodePressure(r_geometry, 5, 0, 2);
+            });
+        } else {
+            block_for_each(rModelPart.Elements(), [](auto& rElement){
+                auto& r_geometry = rElement.GetGeometry();
+                KRATOS_ERROR_IF_NOT(r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10);
+                PostprocessP2P1NodePressure(r_geometry, 4, 0, 1);
+                PostprocessP2P1NodePressure(r_geometry, 5, 1, 2);
+                PostprocessP2P1NodePressure(r_geometry, 6, 0, 2);
+                PostprocessP2P1NodePressure(r_geometry, 7, 0, 3);
+                PostprocessP2P1NodePressure(r_geometry, 8, 1, 3);
+                PostprocessP2P1NodePressure(r_geometry, 9, 2, 3);
+            });
+        }
+    }
 }
 
 } // namespace Kratos

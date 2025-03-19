@@ -23,6 +23,7 @@
 #include "adaptive_time_incrementor.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
@@ -72,6 +73,15 @@ double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
 double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
 {
     return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
+}
+
+std::optional<double> GetUserMinDeltaTimeFrom(const Parameters& rProjectParameters)
+{
+    return rProjectParameters["solver_settings"]["time_stepping"].Has("minimum_allowable_value")
+               ? std::make_optional(rProjectParameters["solver_settings"]["time_stepping"]
+                                                      ["minimum_allowable_value"]
+                                                          .GetDouble())
+               : std::nullopt;
 }
 
 std::size_t GetMinNumberOfIterationsFrom(const Parameters& rProjectParameters)
@@ -137,6 +147,8 @@ void KratosGeoSettlement::InitializeProcessFactory()
     mProcessFactory->AddCreator("SetParameterFieldProcess", MakeCreatorFor<SetParameterFieldProcess>());
     mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorFor<ApplyExcavationProcess>());
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorFor<ApplyK0ProcedureProcess>());
+    mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                                MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
 
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {
         KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";
@@ -188,14 +200,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
-        if (mpTimeLoopExecutor) {
-            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
-            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
-            mpTimeLoopExecutor->SetProcessObservables(process_observables);
-            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
-            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters, rWorkingDirectory));
-        }
-
         for (const auto& process : processes) {
             process->ExecuteInitialize();
         }
@@ -205,6 +209,12 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         }
 
         if (mpTimeLoopExecutor) {
+            mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
+            mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
+            mpTimeLoopExecutor->SetProcessObservables(process_observables);
+            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
+            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters, rWorkingDirectory));
+
             // For now, pass a dummy state. THIS PROBABLY NEEDS TO BE REFINED AT SOME POINT!
             TimeStepEndState start_of_loop_state;
             start_of_loop_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
@@ -266,6 +276,10 @@ void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
     rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+
+    // Variables that can be extrapolated from integration points to nodes
+    rModelPart.AddNodalSolutionStepVariable(TOTAL_STRESS_TENSOR);
+    rModelPart.AddNodalSolutionStepVariable(CAUCHY_STRESS_TENSOR);
 }
 
 void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart& rModelPart)
@@ -320,8 +334,8 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
         GetStartTimeFrom(rProjectParameters), GetEndTimeFrom(rProjectParameters),
         GetTimeIncrementFrom(rProjectParameters), GetMaxNumberOfCyclesFrom(rProjectParameters),
         GetReductionFactorFrom(rProjectParameters), GetIncreaseFactorFrom(rProjectParameters),
-        GetMaxDeltaTimeFactorFrom(rProjectParameters), GetMinNumberOfIterationsFrom(rProjectParameters),
-        GetMaxNumberOfIterationsFrom(rProjectParameters));
+        GetUserMinDeltaTimeFrom(rProjectParameters), GetMaxDeltaTimeFactorFrom(rProjectParameters),
+        GetMinNumberOfIterationsFrom(rProjectParameters), GetMaxNumberOfIterationsFrom(rProjectParameters));
 }
 
 std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const Parameters& rProjectParameters,
@@ -334,10 +348,8 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     GetMainModelPart().CloneTimeStep();
 
     if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool()) {
-        constexpr auto source_index      = std::size_t{0};
-        constexpr auto destination_index = std::size_t{1};
-        RestoreValuesOfNodalVariable(DISPLACEMENT, source_index, destination_index);
-        RestoreValuesOfNodalVariable(ROTATION, source_index, destination_index);
+        ResetValuesOfNodalVariable(DISPLACEMENT);
+        ResetValuesOfNodalVariable(ROTATION);
 
         VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
     }

@@ -694,8 +694,10 @@ namespace Kratos
         RecursionCount += 1;
         if (RecursionCount < MaxRecursions)
         {
+            (*rIntersectedGeometries.back())(0)->SetLock();
             if (!rIntersectedGeometries.back()->Has(GEOMETRY_NEIGHBOURS))
                 MPMSearchElementUtility::ConstructNeighbourRelations(*rIntersectedGeometries.back(), rBackgroundGridModelPart);
+            (*rIntersectedGeometries.back())(0)->UnSetLock();
             auto& geometry_neighbours = rIntersectedGeometries.back()->GetValue(GEOMETRY_NEIGHBOURS);
             bool check_geom;
             for (size_t i = 0; i < geometry_neighbours.size(); ++i) {

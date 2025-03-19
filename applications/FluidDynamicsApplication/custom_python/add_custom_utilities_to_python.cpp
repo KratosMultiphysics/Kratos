@@ -185,9 +185,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
         .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
+        .def_static("CalculateFluidCutElementsNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidCutElementsNegativeVolume)
+        .def_static("CalculateFluidCutElementsPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidCutElementsPositiveVolume)
         .def_static("MapVelocityFromSkinToVolumeRBF", &FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF)
         .def_static("FindMaximumEdgeLength", [](ModelPart& rModelPart){return FluidAuxiliaryUtilities::FindMaximumEdgeLength(rModelPart);})
         .def_static("FindMaximumEdgeLength", [](ModelPart& rModelPart, const bool CalculateNodalNeighbours){return FluidAuxiliaryUtilities::FindMaximumEdgeLength(rModelPart, CalculateNodalNeighbours);})
+        .def_static("PostprocessP2P1ContinuousPressure", [](ModelPart& rModelPart){return FluidAuxiliaryUtilities::PostprocessP2P1ContinuousPressure(rModelPart);})
         ;
 
     py::class_<FluidTestUtilities>(m, "FluidTestUtilities")
