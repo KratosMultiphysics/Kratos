@@ -38,7 +38,6 @@
 #include "custom_strategies/schemes/mpm_residual_based_simple_steady_scheme.hpp"
 #include "custom_strategies/schemes/mpm_residual_based_simple_steady_velocity_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/schemes/mpm_residual_based_bossak_velocity_scheme.hpp"
 
 
 //---builders and solvers
