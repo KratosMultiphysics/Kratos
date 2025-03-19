@@ -142,7 +142,7 @@ public:
     }
 
     ///@}
-    ///@name Mesh and Node Generation
+    ///@name Operations
     ///@{
 
     /**
