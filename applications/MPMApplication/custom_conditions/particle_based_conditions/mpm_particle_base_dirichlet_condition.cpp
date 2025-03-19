@@ -157,5 +157,3 @@ int MPMParticleBaseDirichletCondition::Check( const ProcessInfo& rCurrentProcess
 }
 
 } // Namespace Kratos
-
-

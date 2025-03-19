@@ -166,7 +166,6 @@ class MPMSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         # Calc residual, update momenta
-        print("I AM SOLVING -------------------------------------")
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
@@ -313,6 +312,7 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMPM.RESPROJ_DISPL)
         model_part.AddNodalSolutionStepVariable(KratosMPM.RESPROJ_PRESS)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_AREA)
+        model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
 
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
@@ -352,11 +352,14 @@ class MPMSolver(PythonSolver):
         if self.settings["velocity_formulation"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X, model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y, model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z, model_part)            
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z, model_part)
         else:
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAHY_STRESS_VECTOR_Z,  model_part)
 
 
         if self.settings["pressure_dofs"].GetBool():

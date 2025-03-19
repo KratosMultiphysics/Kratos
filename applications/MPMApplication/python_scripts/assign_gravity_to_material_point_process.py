@@ -59,7 +59,6 @@ class AssignGravityToMaterialPointProcess(KratosMultiphysics.Process):
             """)
 
     def ExecuteBeforeSolutionLoop(self):
-
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             # Assign gravity to MP after solver.Initialize() - only apply once at the beginning!
             for element in self.model_part.Elements:

@@ -365,6 +365,8 @@ void MPMUpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentP
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);
+    array_1d<double,6> nodal_cauchy_stress_vector  = ZeroVector(6);
+    unsigned int voigt_dimension = 0;
     double aux_MP_pressure = 0.0;
 
     for (unsigned int j=0; j<number_of_nodes; j++)
@@ -380,6 +382,10 @@ void MPMUpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentP
 
         // These are the values of nodal pressure evaluated in the initialize solution step
         const double& nodal_pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE,1);
+
+
+        if (dimension==2) voigt_dimension=3;
+        if (dimension==3) voigt_dimension=6;
 
         aux_MP_pressure += r_N(0, j) * nodal_pressure;
 
@@ -401,10 +407,15 @@ void MPMUpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentP
             nodal_inertia[j]  = r_N(0, i) * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
         }
 
+        for (unsigned int j = 0; j < voigt_dimension; j++){
+            nodal_cauchy_stress_vector[j] = r_N(0, i) * mMP.cauchy_stress_vector [j] * mMP.mass;
+        }
+
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0)  += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)   += nodal_inertia;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mpressure;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
 
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();

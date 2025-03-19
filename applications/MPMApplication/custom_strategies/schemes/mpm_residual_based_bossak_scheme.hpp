@@ -281,6 +281,51 @@ public:
         // modify reaction forces for material point particle slip conditions (Penalty)
         mRotationTool.CalculateReactionForces(mGridModelPart);
 
+
+        //------------------------------------------------
+
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const int number_of_nodes = rModelPart.NumberOfNodes();
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        array_1d<double, 3 > output;
+
+        //if orthogonal subscales are computed
+        if (CurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 3) {
+
+        KRATOS_INFO_IF("MPMResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
+            << "Computing OSS projections" << std::endl;
+
+        // Step1 - Inizialize nodal variables:
+        for (int i = 0; i < number_of_nodes; i++) {
+            ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+            noalias(it_node->FastGetSolutionStepValue(RESPROJ_DISPL)) = ZeroVector(3);
+            it_node->FastGetSolutionStepValue(RESPROJ_PRESS) = 0.0;
+            it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+        } 
+
+
+        // Step 2 - loop over the mp for computing residuals and interpolate it to the nodes
+       // std::cout << ".............numberofMP" << rModelPart.Elements().size()<<"\n";
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        for (int k = 0; k < nelements; k++) {
+            auto it_elem = el_begin + k;
+            it_elem->Calculate(RESPROJ_DISPL,output,CurrentProcessInfo); //RESPROJ_DISPL
+        } 
+
+
+
+        for (int i = 0; i < number_of_nodes; i++) {
+        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+        if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
+          it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
+        const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
+        it_node->FastGetSolutionStepValue(RESPROJ_DISPL) *= area_inverse;
+        it_node->FastGetSolutionStepValue(RESPROJ_PRESS) *= area_inverse; 
+
+        }
+        }
+
+
         if(mFrictionIsActive) {
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
         }
@@ -317,10 +362,12 @@ public:
         // Loop over the grid nodes performed to clear all nodal information
         block_for_each(rModelPart.Nodes(), [&](Node& rNode)
 		{
-            // Variables to be cleaned
+            // Variables to be cleaned            
             double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
             array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+            array_1d<double, 3 > & r_nodal_cauchy_stress_vector= rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
+
 
             array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
@@ -333,6 +380,7 @@ public:
             r_nodal_mass = 0.0;
             r_nodal_momentum.clear();
             r_nodal_inertia.clear();
+            r_nodal_cauchy_stress_vector.clear();
 
             r_nodal_displacement.clear();
             r_nodal_velocity.clear();

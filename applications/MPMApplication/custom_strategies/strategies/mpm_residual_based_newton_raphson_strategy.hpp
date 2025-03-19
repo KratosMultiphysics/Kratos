@@ -314,8 +314,7 @@ private:
             {
                 KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number << std::endl;
 
-                if (this->GetKeepSystemConstantDuringIterations() == false)
-        
+                if (this->GetKeepSystemConstantDuringIterations() == false)        
 		{
                     TSparseSpace::SetToZero(rA);
                     TSparseSpace::SetToZero(rDx);
@@ -342,9 +341,21 @@ private:
                 p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
             }
         }
+
+        std::cout<<"Number of non-linear iterations: "<<iteration_number<<"\n";
+
+        // Plot a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        {
+            if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
+
+
+            std::cout<<"MAX ITERATIONS EXCEEDED!!!!!!!!!!!!!!! "<<"\n";
+        }
         else
         {
             KRATOS_WARNING("MPMNewtonRaphsonStrategy") << "ATTENTION: no free DOFs!! " << std::endl;
+
         }
 
         // Updating the results stored in the database

@@ -249,6 +249,7 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RESPROJ_DISPL )
         KRATOS_REGISTER_VARIABLE( RESPROJ_PRESS )
         KRATOS_REGISTER_VARIABLE( NODAL_AREA )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_CAUCHY_STRESS_VECTOR )
 
 
         // Registering Constitutive Laws
@@ -281,7 +282,7 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
-        // CL: Displacement-based Newtonian fluid
+        // CL: Displacement-based Newtonian Fluid
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluid3DLaw", mDispNewtonianFluid3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrain2DLaw", mDispNewtonianFluidPlaneStrain2DLaw);
 	KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
@@ -320,8 +321,7 @@ namespace Kratos
 
         // Stabilization variables
         KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
-	KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
-
+        KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
         // For friction
         KRATOS_REGISTER_VARIABLE(STICK_FORCE)
         KRATOS_REGISTER_VARIABLE(FRICTION_STATE)
