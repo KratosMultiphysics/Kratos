@@ -66,6 +66,8 @@ void ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parame
 
 double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
 {
+    if (rProperties.Has(GEO_COHESION)) return rProperties[GEO_COHESION];
+
     return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_C_PARAMETER);
 }
 
