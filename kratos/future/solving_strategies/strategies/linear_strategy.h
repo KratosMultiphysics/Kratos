@@ -24,7 +24,7 @@
 #include "future/solving_strategies/schemes/new_scheme.h"
 #endif
 
-namespace Kratos
+namespace Kratos::Future
 {
 ///@name Kratos Globals
 ///@{
@@ -972,5 +972,5 @@ private:
 
 ///@}
 
-} /* namespace Kratos.*/
+} // namespace Kratos::Future
 

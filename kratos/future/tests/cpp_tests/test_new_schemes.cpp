@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
         },
         "echo_level" : 2
     })");
-    auto p_scheme = Kratos::make_unique<NewScheme<>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_unique<Future::NewScheme<>>(r_test_model_part, scheme_settings);
 
     // Create the DOF set and set the global ids
     // Note that in a standard case this happens at the strategy level
@@ -181,9 +181,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    auto p_dx = Kratos::make_shared<NewScheme<>::SystemVectorType>();
-    auto p_rhs = Kratos::make_shared<NewScheme<>::SystemVectorType>();
-    auto p_lhs = Kratos::make_shared<NewScheme<>::SystemMatrixType>();
+    auto p_dx = Kratos::make_shared<Future::NewScheme<>::SystemVectorType>();
+    auto p_rhs = Kratos::make_shared<Future::NewScheme<>::SystemVectorType>();
+    auto p_lhs = Kratos::make_shared<Future::NewScheme<>::SystemMatrixType>();
     p_scheme->ResizeAndInitializeVectors(dof_set, p_lhs, p_dx, p_rhs);
 
     // Call the build
@@ -217,7 +217,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
         },
         "echo_level" : 2
     })");
-    auto p_scheme = Kratos::make_shared<NewScheme<>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::NewScheme<>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
@@ -230,7 +230,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     Parameters strategy_settings = Parameters(R"({
         "move_mesh" : false
     })");
-    auto p_strategy = Kratos::make_unique<LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>,LinearSolverType>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);

@@ -34,7 +34,7 @@
 #include "future/linear_solvers/amgcl_solver.h"
 #endif
 
-namespace Kratos
+namespace Kratos::Future
 {
 ///@name Kratos Globals
 ///@{
@@ -855,4 +855,4 @@ private:
 
 }; // Class Scheme
 
-} // namespace Kratos.
+} // namespace Kratos::Future.
