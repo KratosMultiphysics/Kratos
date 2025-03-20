@@ -80,10 +80,8 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                     "tau_nodal":true
                 }
             },                                                                       
+            "distance_reinitialization_type" :"variational",
             "distance_reinitialization_settings":{
-                "reinitialization_type" :"variational",
-                "maximum_iterations" : 2,
-                "parallel_redistance_max_layers" : 25
             },
             "distance_modification_settings": {
                 "model_part_name": "",
@@ -119,13 +117,15 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.settings["levelset_convection_settings"].AddEmptyValue("convection_model_part_name").SetString("LevelSetConvectionModelPart")
        
         self.settings["fractional_splitting_settings"].AddEmptyValue("model_part_name").SetString(self.main_model_part.Name )
+               
+       
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
         self.artificial_viscosity = self.settings["artificial_viscosity"].GetBool()
         if self.artificial_viscosity:
             self.artificial_limiter_coefficient = self.settings["artificial_visocosity_settings"]["limiter_coefficient"].GetDouble()
-        self._reinitialization_type = self.settings["distance_reinitialization_settings"]["reinitialization_type"].GetString()
+        self._reinitialization_type = self.settings["distance_reinitialization_type"].GetString()
         # Note that this will be computed only once in the first InitializeSolutionStep call
         self.__initial_water_system_volume = None
 
@@ -262,7 +262,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
-
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
@@ -276,8 +275,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         
         # FinalizeSolutionStep of Navier-Stokes strategy 
         self._GetSolutionStrategy().FinalizeSolutionStep()
-
-
 
     def _ComputeStepInitialWaterVolume(self):
       
@@ -466,26 +463,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
         return self._level_set_convection_process
 
-    def _GetEdgeBasedLevelSetConvectionProcess(self):
-        if not hasattr(self, 'edge_based_level_set_convection_process'):
-            self.edge_based_level_set_convection_process = self._CreateEdgeBasedLevelSetConvectionProcess()
-        return self.edge_based_level_set_convection_process
-
-    def _CreateEdgeBasedLevelSetConvectionProcess(self):
-        # Construct the edge based level set convection process
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        # computing_model_part = self.GetModelPart()
-        edge_based_level_set_convection_setttings = self.settings["level_set_fct_settings"]
-        if domain_size == 2:
-            edge_based_level_set_convection_process = KratosMultiphysics.FluxCorrectedTransportConvectionProcess2D(
-                self.model,
-                edge_based_level_set_convection_setttings)
-        else:
-            edge_based_level_set_convection_process = KratosMultiphysics.FluxCorrectedTransportConvectionProcess3D(
-                self.model,
-                edge_based_level_set_convection_setttings)
-        return edge_based_level_set_convection_process
-
     def _GetNSFractionalSplittingProcess(self):
         if not hasattr(self, '_ns_fractional_splitting_process'):
             self._ns_fractional_splitting_process = self._CreateFractionalNSplittingProcess()
@@ -536,40 +513,31 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
     def _CreateDistanceReinitializationProcess(self):
         # Construct the variational distance calculation process
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        distance_reinitialization_settings = self.settings["distance_reinitialization_settings"]
+        distance_reinitialization_settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
         if (self._reinitialization_type == "variational"):
-            maximum_iterations = self.settings["distance_reinitialization_settings"]["maximum_iterations"].GetInt()
             linear_solver = self._GetRedistancingLinearSolver()
-            computing_model_part = self.GetComputingModelPart()
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            if domain_size == 2:
                 distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
-                    computing_model_part,
+                    self.model,
                     linear_solver,
-                    maximum_iterations,
-                    KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                    distance_reinitialization_settings)
             else:
                 distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
-                    computing_model_part,
+                    self.model,
                     linear_solver,
-                    maximum_iterations,
-                    KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                    distance_reinitialization_settings)
 
         elif (self._reinitialization_type == "parallel"):
-            #TODO: move all this to solver settings
-            layers = self.settings["distance_reinitialization_settings"]["parallel_redistance_max_layers"].GetInt()
-            parallel_distance_settings = KratosMultiphysics.Parameters("""{
-                "max_levels" : 25,
-                "max_distance" : 1.0,
-                "calculate_exact_distances_to_plane" : true
-            }""")
-            parallel_distance_settings["max_levels"].SetInt(layers)
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            if domain_size == 2:
                 distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess2D(
                     self.main_model_part,
-                    parallel_distance_settings)
+                    distance_reinitialization_settings)
             else:
                 distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess3D(
                     self.main_model_part,
-                    parallel_distance_settings)
+                    distance_reinitialization_settings)
         elif (self._reinitialization_type == "none"):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
         else:
