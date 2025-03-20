@@ -21,17 +21,16 @@ using namespace Kratos;
 
 double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int>& rIndexVariable)
 {
-    if (rProperties.Has(UMAT_PARAMETERS) && rProperties.Has(rIndexVariable)) {
-        const auto index = rProperties[rIndexVariable]; // 1-based index
-        KRATOS_DEBUG_ERROR_IF(index < 1 ||
-                              static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
-            << "Got out-of-bounds " << rIndexVariable.Name() << " (material ID: " << rProperties.Id()
-            << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
-        return rProperties[UMAT_PARAMETERS][index - 1];
-    }
+    KRATOS_ERROR_IF_NOT(rProperties.Has(UMAT_PARAMETERS) && rProperties.Has(rIndexVariable))
+        << "Material " << rProperties.Id() << " does not have UMAT_PARAMETERS and/or "
+        << rIndexVariable.Name() << "\n";
 
-    KRATOS_ERROR << "Material " << rProperties.Id() << " does not have UMAT_PARAMETERS and/or "
-                 << rIndexVariable.Name() << "\n";
+    const auto index = rProperties[rIndexVariable]; // 1-based index
+    KRATOS_DEBUG_ERROR_IF(index < 1 ||
+                          static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
+        << "Got out-of-bounds " << rIndexVariable.Name() << " (material ID: " << rProperties.Id()
+        << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
+    return rProperties[UMAT_PARAMETERS][index - 1];
 }
 
 } // namespace
