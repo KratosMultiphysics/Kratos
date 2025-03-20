@@ -291,7 +291,7 @@ private:
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
-            projected_gravity.push_back(
+            projected_gravity.emplace_back(
                 ScalarVector(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
                                                    body_acceleration.begin(), 0.0)));
         }
