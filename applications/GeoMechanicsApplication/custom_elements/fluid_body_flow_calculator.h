@@ -14,37 +14,44 @@
 
 #include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
+#include "includes/properties.h"
+#include "includes/ublas_interface.h"
 
 #include <utility>
+#include <vector>
 
 namespace Kratos
 {
 
-class PermeabilityCalculator : public ContributionCalculator
+class FluidBodyFlowCalculator : public ContributionCalculator
 {
 public:
     struct InputProvider {
         InputProvider(std::function<const Properties&()> GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
-                      std::function<Vector()>                        GetIntegrationCoefficients,
-                      std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
-                      std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients)
+                      std::function<Vector()>              GetIntegrationCoefficients,
+                      std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
+                      std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
+                      std::function<std::size_t()> GetLocalSpaceDimension)
+
             : GetElementProperties(std::move(GetElementProperties)),
-              GetRetentionLaws(std::move(GetRetentionLaws)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
-              GetNodalValues(std::move(GetNodalValuesOf)),
-              GetShapeFunctionGradients(std::move(GetShapeFunctionGradients))
+              GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
+              GetRetentionLaws(std::move(GetRetentionLaws)),
+              GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
+              GetLocalSpaceDimension(std::move(GetLocalSpaceDimension))
         {
         }
 
-        std::function<const Properties&()>                           GetElementProperties;
+        std::function<const Properties&()>   GetElementProperties;
+        std::function<Vector()>              GetIntegrationCoefficients;
+        std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints;
         std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
-        std::function<Vector()>                                      GetIntegrationCoefficients;
-        std::function<Vector(const Variable<double>&)>               GetNodalValues;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
+        std::function<std::size_t()>                                 GetLocalSpaceDimension;
     };
 
-    explicit PermeabilityCalculator(InputProvider InputProvider);
+    explicit FluidBodyFlowCalculator(InputProvider AnInputProvider);
 
     std::optional<Matrix>                    LHSContribution() override;
     Vector                                   RHSContribution() override;
@@ -52,9 +59,6 @@ public:
 
 private:
     InputProvider mInputProvider;
-
-    [[nodiscard]] Matrix CalculatePermeabilityMatrix() const;
-    [[nodiscard]] Vector RHSContribution(const Matrix& rPermeabilityMatrix) const;
 };
 
 } // namespace Kratos
