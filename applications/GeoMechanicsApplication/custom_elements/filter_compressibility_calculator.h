@@ -30,7 +30,7 @@ public:
         InputProvider(std::function<const Properties&()> GetElementProperties,
                       std::function<const Matrix&()>     GetNContainer,
                       std::function<Vector()>            GetIntegrationCoefficients,
-                      std::function<Vector()>            GetProjectedGravityForIntegrationPoints,
+                      std::function<std::vector<Vector>()>            GetProjectedGravityForIntegrationPoints,
                       std::function<double()>            GetMatrixScalarFactor,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
             : GetElementProperties(std::move(GetElementProperties)),
@@ -45,7 +45,7 @@ public:
         std::function<const Properties&()>             GetElementProperties;
         std::function<const Matrix&()>                 GetNContainer;
         std::function<Vector()>                        GetIntegrationCoefficients;
-        std::function<Vector()>                        GetProjectedGravityForIntegrationPoints;
+        std::function<std::vector<Vector>()>                        GetProjectedGravityForIntegrationPoints;
         std::function<double()>                        GetMatrixScalarFactor;
         std::function<Vector(const Variable<double>&)> GetNodalValues;
     };

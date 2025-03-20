@@ -45,7 +45,7 @@ std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
         noalias(fluid_body_vector) +=
             r_properties[DENSITY_WATER] * relative_permeability *
             prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix),
-                 ScalarVector(1, projected_gravity_on_integration_points[integration_point_index])) *
+                 projected_gravity_on_integration_points[integration_point_index]) *
             integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
     }
     return std::make_optional(fluid_body_vector);

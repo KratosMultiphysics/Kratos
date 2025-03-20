@@ -30,7 +30,7 @@ public:
         InputProvider(std::function<const Properties&()> GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
                       std::function<Vector()> GetIntegrationCoefficients,
-                      std::function<Vector()> GetProjectedGravityForIntegrationPoints,
+                      std::function<std::vector<Vector>()> GetProjectedGravityForIntegrationPoints,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
                       std::function<std::size_t()> GetLocalSpaceDimension)
 
@@ -45,7 +45,7 @@ public:
 
         std::function<const Properties&()> GetElementProperties;
         std::function<Vector()>            GetIntegrationCoefficients;
-        std::function<Vector()>            GetProjectedGravityForIntegrationPoints;
+        std::function<std::vector<Vector>()>            GetProjectedGravityForIntegrationPoints;
         std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
         std::function<std::size_t()>                                 GetLocalSpaceDimension;

@@ -60,7 +60,7 @@ Matrix FilterCompressibilityCalculator::CalculateCompressibilityMatrix() const
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
         const auto N = Vector{row(r_N_container, integration_point_index)};
         result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            N, CalculateElasticCapacity(projected_gravity_on_integration_points[integration_point_index]),
+            N, CalculateElasticCapacity(projected_gravity_on_integration_points[integration_point_index][0]),
             integration_coefficients[integration_point_index]);
     }
     return result;

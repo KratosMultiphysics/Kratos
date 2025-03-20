@@ -269,7 +269,7 @@ private:
         return result;
     }
 
-    Vector CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
+    std::vector<Vector> CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
     {
         const auto number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container{number_integration_points};
@@ -283,7 +283,8 @@ private:
             volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
         array_1d<double, TDim> body_acceleration;
 
-        Vector projected_gravity = ZeroVector(number_integration_points);
+        std::vector<Vector> projected_gravity;
+        projected_gravity.reserve(number_integration_points);
 
         for (unsigned int integration_point_index = 0;
              integration_point_index < number_integration_points; ++integration_point_index) {
@@ -291,8 +292,8 @@ private:
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
-            projected_gravity(integration_point_index) = std::inner_product(
-                tangent_vector.begin(), tangent_vector.end(), body_acceleration.begin(), 0.0);
+            projected_gravity.push_back(ScalarVector(1, std::inner_product(
+                tangent_vector.begin(), tangent_vector.end(), body_acceleration.begin(), 0.0)));
         }
         return projected_gravity;
     }
@@ -375,7 +376,7 @@ private:
 
     auto MakeProjectedGravityForIntegrationPointsGetter()
     {
-        return [this]() -> Vector {
+        return [this]() -> std::vector<Vector> {
             return CalculateProjectedGravityAtIntegrationPoints(
                 GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()));
         };
