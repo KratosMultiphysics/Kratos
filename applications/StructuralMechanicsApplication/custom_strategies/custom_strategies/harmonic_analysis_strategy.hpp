@@ -244,7 +244,7 @@ public:
             BuiltinTimer force_vector_build_time;
             if (r_force_vector.size() != system_size)
                 r_force_vector.resize(system_size, false);
-            TSparseSpace::SetToZero(r_force_vector);
+            r_force_vector = ZeroVector( system_size );
             p_builder_and_solver->BuildRHS(p_scheme,r_model_part,f);
 
             KRATOS_INFO_IF("Force Vector Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
