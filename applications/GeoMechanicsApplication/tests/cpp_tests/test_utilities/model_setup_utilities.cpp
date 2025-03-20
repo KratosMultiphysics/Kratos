@@ -20,6 +20,8 @@
 #include <custom_elements/three_dimensional_stress_state.h>
 #include <geometries/tetrahedra_3d_10.h>
 #include <geometries/tetrahedra_3d_4.h>
+#include <geometries/triangle_2d_10.h>
+#include <geometries/triangle_2d_15.h>
 #include <geometries/triangle_2d_3.h>
 #include <geometries/triangle_2d_6.h>
 
@@ -97,6 +99,63 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     auto element = make_intrusive<UPwSmallStrainElement<3, 4>>(
         1, Kratos::make_shared<Tetrahedra3D4<Node>>(nodes), result.CreateNewProperties(0),
         std::make_unique<ThreeDimensionalStressState>());
+
+    result.AddElement(element);
+
+    return result;
+}
+
+ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    ModelPart& result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(result, {{0.0, 0.0, 0.0},
+                                         {1.0, 0.0, 0.0},
+                                         {0.0, 1.0, 0.0},
+                                         {1.0 / 3.0, 0.0, 0.0},
+                                         {2.0 / 3.0, 0.0, 0.0},
+                                         {2.0 / 3.0, 1.0 / 3.0, 0.0},
+                                         {1.0 / 3.0, 2.0 / 3.0, 0.0},
+                                         {0.0, 2.0 / 3.0, 0.0},
+                                         {0.0, 1.0 / 3.0, 0.0},
+                                         {1.0 / 3.0, 1.0 / 3.0, 0.0}});
+    AddDofsToNodes(result.Nodes(), rNodalVariables);
+
+    auto element = make_intrusive<UPwSmallStrainElement<2, 10>>(
+        1, Kratos::make_shared<Triangle2D10<Node>>(nodes), result.CreateNewProperties(0),
+        std::make_unique<PlaneStrainStressState>());
+
+    result.AddElement(element);
+
+    return result;
+}
+
+ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    ModelPart& result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(result, {{0.00, 0.00, 0.0},
+                                         {1.00, 0.00, 0.0},
+                                         {0.00, 1.00, 0.0},
+                                         {0.25, 0.00, 0.0},
+                                         {0.50, 0.00, 0.0},
+                                         {0.75, 0.00, 0.0},
+                                         {0.75, 0.25, 0.0},
+                                         {0.50, 0.50, 0.0},
+                                         {0.25, 0.75, 0.0},
+                                         {0.00, 0.75, 0.0},
+                                         {0.00, 0.50, 0.0},
+                                         {0.00, 0.25, 0.0},
+                                         {0.25, 0.25, 0.0},
+                                         {0.50, 0.25, 0.0},
+                                         {0.25, 0.50, 0.0}});
+    AddDofsToNodes(result.Nodes(), rNodalVariables);
+
+    auto element = make_intrusive<UPwSmallStrainElement<2, 15>>(
+        1, Kratos::make_shared<Triangle2D15<Node>>(nodes), result.CreateNewProperties(0),
+        std::make_unique<PlaneStrainStressState>());
 
     result.AddElement(element);
 
