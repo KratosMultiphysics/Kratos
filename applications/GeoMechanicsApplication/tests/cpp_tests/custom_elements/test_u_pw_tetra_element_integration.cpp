@@ -17,7 +17,7 @@ namespace Kratos::Testing
 {
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTetrahedra3D10ElementReturnsGI_GAUS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTetrahedra3D10ElementReturnsGI_GAUSS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTetrahedra3D10ElementReturnsGI_GAUS_2, K
     KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D3ElementReturnsGI_GAUS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D3ElementReturnsGI_GAUSS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model       model;
@@ -39,7 +39,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D3ElementReturnsGI_GAUS_2, Krat
     KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D6ElementReturnsGI_GAUS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D6ElementReturnsGI_GAUSS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D6ElementReturnsGI_GAUS_2, Krat
     KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D10ElementReturnsGI_GAUS_4, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D10ElementReturnsGI_GAUSS_4, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model       model;
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D10ElementReturnsGI_GAUS_4, Kra
     KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D15ElementReturnsGI_GAUS_5, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D15ElementReturnsGI_GAUSS_5, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model       model;
