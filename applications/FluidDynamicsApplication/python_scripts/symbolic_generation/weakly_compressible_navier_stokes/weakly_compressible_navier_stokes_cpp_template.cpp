@@ -21,7 +21,7 @@
 
 // Application includes
 #include "weakly_compressible_navier_stokes.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+#include "data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 namespace Kratos
 {

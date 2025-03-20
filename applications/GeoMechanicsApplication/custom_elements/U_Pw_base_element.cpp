@@ -32,78 +32,52 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     // verify nodal variables and dofs
     for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-        if (rGeom[i].SolutionStepsDataHas(DISPLACEMENT) == false)
+        if (!rGeom[i].SolutionStepsDataHas(DISPLACEMENT))
             KRATOS_ERROR << "missing variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
 
-        if (rGeom[i].SolutionStepsDataHas(VELOCITY) == false)
+        if (!rGeom[i].SolutionStepsDataHas(VELOCITY))
             KRATOS_ERROR << "missing variable VELOCITY on node " << rGeom[i].Id() << std::endl;
 
-        if (rGeom[i].SolutionStepsDataHas(ACCELERATION) == false)
+        if (!rGeom[i].SolutionStepsDataHas(ACCELERATION))
             KRATOS_ERROR << "missing variable ACCELERATION on node " << rGeom[i].Id() << std::endl;
 
-        if (rGeom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
+        if (!rGeom[i].SolutionStepsDataHas(WATER_PRESSURE))
             KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
 
-        if (rGeom[i].SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
+        if (!rGeom[i].SolutionStepsDataHas(DT_WATER_PRESSURE))
             KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
 
-        if (rGeom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
+        if (!rGeom[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
             KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << rGeom[i].Id() << std::endl;
 
-        if (rGeom[i].HasDofFor(DISPLACEMENT_X) == false ||
-            rGeom[i].HasDofFor(DISPLACEMENT_Y) == false || rGeom[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_ERROR << "missing one of the dofs for the variable "
-                            "DISPLACEMENT on node "
+        if (!rGeom[i].HasDofFor(DISPLACEMENT_X) || !rGeom[i].HasDofFor(DISPLACEMENT_Y) ||
+            (this->GetGeometry().WorkingSpaceDimension() > 2 && !rGeom[i].HasDofFor(DISPLACEMENT_Z)))
+            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
                          << rGeom[i].Id() << std::endl;
 
-        if (rGeom[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE "
-                            "on node "
+        if (!rGeom[i].HasDofFor(WATER_PRESSURE))
+            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node "
                          << rGeom[i].Id() << std::endl;
     }
 
-    // Verify ProcessInfo variables
-
     // Verify properties
-    if (rProp.Has(DENSITY_SOLID) == false || rProp[DENSITY_SOLID] < 0.0)
+    if (!rProp.Has(DENSITY_SOLID) || rProp[DENSITY_SOLID] < 0.0)
         KRATOS_ERROR << "DENSITY_SOLID has Key zero, is not defined or has an "
                         "invalid value at element"
                      << this->Id() << std::endl;
 
-    if (rProp.Has(DENSITY_WATER) == false || rProp[DENSITY_WATER] < 0.0)
+    if (!rProp.Has(DENSITY_WATER) || rProp[DENSITY_WATER] < 0.0)
         KRATOS_ERROR << "DENSITY_WATER has Key zero, is not defined or has an "
                         "invalid value at element"
                      << this->Id() << std::endl;
 
-    if (rProp.Has(YOUNG_MODULUS) == false) {
-        if (rProp.Has(UDSM_NAME) == false)
-            KRATOS_ERROR << "YOUNG_MODULUS has Key zero or is not defined at "
-                            "element"
-                         << this->Id() << std::endl;
-    } else {
-        if (rProp[YOUNG_MODULUS] <= 0.0)
-            KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element" << this->Id() << std::endl;
-    }
+    if (!rProp.Has(BULK_MODULUS_SOLID) || rProp[BULK_MODULUS_SOLID] < 0.0)
+        KRATOS_ERROR
+            << "BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element"
+            << this->Id() << std::endl;
 
-    if (rProp.Has(POISSON_RATIO) == false) {
-        if (rProp.Has(UDSM_NAME) == false)
-            KRATOS_ERROR << "POISSON_RATIO has Key zero or is not defined at "
-                            "element"
-                         << this->Id() << std::endl;
-    } else {
-        const double& PoissonRatio = rProp[POISSON_RATIO];
-        if (PoissonRatio < 0.0 || PoissonRatio >= 0.5)
-            KRATOS_ERROR << "POISSON_RATIO has an invalid value at element" << this->Id() << std::endl;
-    }
-
-    if (rProp.Has(BULK_MODULUS_SOLID) == false || rProp[BULK_MODULUS_SOLID] < 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_SOLID has Key zero, is not defined or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (rProp.Has(POROSITY) == false || rProp[POROSITY] < 0.0 || rProp[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an "
-                        "invalid value at element"
+    if (!rProp.Has(POROSITY) || rProp[POROSITY] < 0.0 || rProp[POROSITY] > 1.0)
+        KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an invalid value at element"
                      << this->Id() << std::endl;
 
     if (this->GetGeometry().WorkingSpaceDimension() == 2) {
@@ -135,10 +109,8 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
 
     mRetentionLawVector.resize(number_of_integration_points);
-    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        mRetentionLawVector[i] = RetentionLawFactory::Clone(r_properties);
-        mRetentionLawVector[i]->InitializeMaterial(
-            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(mThisIntegrationMethod), i));
+    for (auto& r_retention_law : mRetentionLawVector) {
+        r_retention_law = RetentionLawFactory::Clone(r_properties);
     }
 
     if (mStressVector.size() != number_of_integration_points) {
@@ -148,17 +120,20 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             std::fill(r_stress_vector.begin(), r_stress_vector.end(), 0.0);
         }
     }
+    std::vector<Vector> strain_vectors(number_of_integration_points,
+                                       ZeroVector(GetStressStatePolicy().GetVoigtSize()));
 
     mStateVariablesFinalized.resize(number_of_integration_points);
+    ConstitutiveLaw::Parameters cl_values;
+    cl_values.SetProcessInfo(rCurrentProcessInfo);
+    cl_values.SetMaterialProperties(r_properties);
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        int nStateVariables = 0;
-        nStateVariables = mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
-        if (nStateVariables > 0) {
+        cl_values.SetStrainVector(strain_vectors[i]);
+        cl_values.SetStressVector(mStressVector[i]);
+        if (r_properties[CONSTITUTIVE_LAW]->Has(STATE_VARIABLES))
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
-        }
+        mConstitutiveLawVector[i]->InitializeMaterialResponseCauchy(cl_values);
     }
-
-    mIsInitialised = true;
 
     KRATOS_CATCH("")
 }
@@ -187,27 +162,14 @@ void UPwBaseElement::GetDofList(DofsVectorType& rElementalDofList, const Process
 
 GeometryData::IntegrationMethod UPwBaseElement::GetIntegrationMethod() const
 {
-    GeometryData::IntegrationMethod GI_GAUSS;
-
-    switch (this->GetGeometry().PointsNumber()) {
-    case 3:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
-    case 6:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
-    case 10:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
-        break;
-    case 15:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
-        break;
+    switch (this->GetGeometry().GetGeometryOrderType()) {
+    case GeometryData::Kratos_Cubic_Order:
+        return GeometryData::IntegrationMethod::GI_GAUSS_4;
+    case GeometryData::Kratos_Quartic_Order:
+        return GeometryData::IntegrationMethod::GI_GAUSS_5;
     default:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
-
-    return GI_GAUSS;
 }
 
 void UPwBaseElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -440,6 +402,7 @@ std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
 {
     auto result = std::vector<double>{};
+    result.reserve(rIntegrationPoints.size());
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
                    std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
         return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ, GetGeometry());
@@ -448,7 +411,7 @@ std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
 }
 
 void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
-    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int GPoint) const
+    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int IntegrationPointIndex) const
 {
     KRATOS_TRY
 
@@ -456,8 +419,8 @@ void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
-    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
-    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
+    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[IntegrationPointIndex], J0);
+    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
     MathUtils<double>::InvertMatrix(J0, InvJ0, detJ);
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 

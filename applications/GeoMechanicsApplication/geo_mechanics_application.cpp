@@ -27,6 +27,8 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication()
 
 void KratosGeoMechanicsApplication::Register()
 {
+    KratosApplication::Register();
+
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
                     << "    //         ___      ___            \n"
@@ -213,12 +215,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N)
 
     // Register geo structural elements
-    KRATOS_REGISTER_ELEMENT("GeoTrussElement2D2N", mGeoTrussElement2D2N)
-    KRATOS_REGISTER_ELEMENT("GeoTrussElement3D2N", mGeoTrussElement3D2N)
-    KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement2D2N", mGeoLinearTrussElement2D2N)
-    KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement3D2N", mGeoLinearTrussElement3D2N)
-    KRATOS_REGISTER_ELEMENT("GeoCableElement2D2N", mGeoCableElement2D2N)
-    KRATOS_REGISTER_ELEMENT("GeoCableElement3D2N", mGeoCableElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement3D2N", mGeoCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement2D2N", mGeoCrBeamElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear2D2N", mGeoCrBeamElementLinear2D2N)
@@ -347,11 +343,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition3D9N", mGeoTMicroClimateFluxCondition3D9N)
 
     // Register Constitutive Laws
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw", mBilinearCohesive3DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw", mBilinearCohesive2DLaw)
-
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw", mLinearPlaneStrainK0Law)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw", mElasticIsotropicK03DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElastic3DLaw", mLinearElastic3DLaw)
 
@@ -389,6 +380,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(DENSITY_SOLID)
     KRATOS_REGISTER_VARIABLE(BULK_MODULUS_SOLID)
     KRATOS_REGISTER_VARIABLE(BULK_MODULUS_FLUID)
+
+    // Mohr-Coulomb
+    KRATOS_REGISTER_VARIABLE(GEO_COHESION)
+    KRATOS_REGISTER_VARIABLE(GEO_FRICTION_ANGLE)
+    KRATOS_REGISTER_VARIABLE(GEO_DILATANCY_ANGLE)
+    KRATOS_REGISTER_VARIABLE(GEO_TENSILE_STRENGTH)
 
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_WATER)
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_SOLID)
@@ -530,14 +527,14 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(PIPE_EROSION)
     KRATOS_REGISTER_VARIABLE(PIPE_ACTIVE)
 
+    KRATOS_REGISTER_VARIABLE(FILTER_LENGTH)
+
     // UDSM
     KRATOS_REGISTER_VARIABLE(UDSM_NAME) // Also for UMAT
     KRATOS_REGISTER_VARIABLE(UDSM_NUMBER)
     KRATOS_REGISTER_VARIABLE(IS_FORTRAN_UDSM) // Also for UMAT
 
     KRATOS_REGISTER_VARIABLE(UMAT_PARAMETERS)
-
-    KRATOS_REGISTER_VARIABLE(NUMBER_OF_UMAT_STATE_VARIABLES)
     KRATOS_REGISTER_VARIABLE(INDEX_OF_UMAT_C_PARAMETER)
     KRATOS_REGISTER_VARIABLE(INDEX_OF_UMAT_PHI_PARAMETER)
 

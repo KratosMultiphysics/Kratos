@@ -159,7 +159,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.Excavate_sloot",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             true
         }
     }],
@@ -201,7 +200,7 @@
             "table":           [0,0,0]
         }
     }],
-        "auxiliar_process_list": [
+        "auxiliary_process_list": [
             {
                 "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",

@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(KRATOS_THERMAL_DEM_INTEGRATION_SCHEME_H_INCLUDED)
-#define KRATOS_THERMAL_DEM_INTEGRATION_SCHEME_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -91,5 +90,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // KRATOS_THERMAL_DEM_INTEGRATION_SCHEME_H_INCLUDED defined

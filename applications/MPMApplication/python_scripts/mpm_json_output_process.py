@@ -6,11 +6,11 @@ from KratosMultiphysics.json_utilities import read_external_json, write_external
 from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object")
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return MPMJsonOutputProcess(Model, settings["Parameters"])
-
-# All the processes python processes should be derived from "Process"
 
 class MPMJsonOutputProcess(JsonOutputProcess):
 
@@ -20,49 +20,52 @@ class MPMJsonOutputProcess(JsonOutputProcess):
         data["TIME"] = []
         count = 0
 
-        # Material points values
+        # Material point elements values
         for mp in self.sub_model_part.Elements:
             compute = self.__check_flag(mp)
 
-            if (compute == True):
-                if (self.resultant_solution == False):
-                    data["MP_" + str(mp.Id)] = {}
+            if compute:
+                mp_identifier = "MP_" + str(mp.Id)
+
+                if not self.resultant_solution:
+                    data[mp_identifier] = {}
                 else:
-                    data["RESULTANT"] = {}
+                    if count == 0:
+                        data["RESULTANT"] = {}
 
                 for i in range(self.params["gauss_points_output_variables"].size()):
                     out = self.params["gauss_points_output_variables"][i]
                     variable_name = out.GetString()
                     variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
-                    if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
-                        if (self.resultant_solution == False):
-                            data["MP_" + str(mp.Id)][variable_name] = []
+                    if variable_type == "Double" or variable_type == "Integer" or variable_type == "Component":
+                        if not self.resultant_solution:
+                            data[mp_identifier][variable_name] = []
                         else:
-                            if (count == 0):
+                            if count == 0:
                                 data["RESULTANT"][variable_name] = []
                     elif variable_type == "Array":
-                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
-                            if (self.resultant_solution == False):
-                                data["MP_" + str(mp.Id)][variable_name + "_X"] = []
-                                data["MP_" + str(mp.Id)][variable_name + "_Y"] = []
-                                data["MP_" + str(mp.Id)][variable_name + "_Z"] = []
+                        if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double":
+                            if not self.resultant_solution:
+                                data[mp_identifier][variable_name + "_X"] = []
+                                data[mp_identifier][variable_name + "_Y"] = []
+                                data[mp_identifier][variable_name + "_Z"] = []
                             else:
-                                if (count == 0):
+                                if count == 0:
                                     data["RESULTANT"][variable_name + "_X"] = []
                                     data["RESULTANT"][variable_name + "_Y"] = []
                                     data["RESULTANT"][variable_name + "_Z"] = []
                         else:
-                            if (self.resultant_solution == False):
-                                data["MP_" + str(mp.Id)][variable_name] = []
+                            if not self.resultant_solution:
+                                data[mp_identifier][variable_name] = []
                             else:
-                                if (count == 0):
+                                if count == 0:
                                     data["RESULTANT"][variable_name] = []
                     elif variable_type == "Vector":
-                        if (self.resultant_solution == False):
-                            data["MP_" + str(mp.Id)][variable_name] = []
+                        if not self.resultant_solution:
+                            data[mp_identifier][variable_name] = []
                         else:
-                            if (count == 0):
+                            if count == 0:
                                 data["RESULTANT"][variable_name] = []
 
                 count += 1
@@ -85,7 +88,9 @@ class MPMJsonOutputProcess(JsonOutputProcess):
             for mp in self.sub_model_part.Elements:
                 compute = self.__check_flag(mp)
 
-                if (compute == True):
+                if compute:
+                    mp_identifier = "MP_" + str(mp.Id)
+
                     for i in range(self.params["gauss_points_output_variables"].size()):
                         out = self.params["gauss_points_output_variables"][i]
                         variable_name = out.GetString()
@@ -94,22 +99,22 @@ class MPMJsonOutputProcess(JsonOutputProcess):
                         values_vector = mp.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
                         value = values_vector[0]
 
-                        if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
-                            if (self.resultant_solution == False):
-                                data["MP_" + str(mp.Id)][variable_name].append(value)
+                        if variable_type == "Double" or variable_type == "Integer" or variable_type == "Component":
+                            if not self.resultant_solution:
+                                data[mp_identifier][variable_name].append(value)
                             else:
-                                if (count == 0):
+                                if count == 0:
                                     data["RESULTANT"][variable_name].append(value)
                                 else:
                                     data["RESULTANT"][variable_name][-1] += value
                         elif variable_type == "Array":
-                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
-                                if (self.resultant_solution == False):
-                                    data["MP_" + str(mp.Id)][variable_name + "_X"].append(value[0])
-                                    data["MP_" + str(mp.Id)][variable_name + "_Y"].append(value[1])
-                                    data["MP_" + str(mp.Id)][variable_name + "_Z"].append(value[2])
+                            if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double":
+                                if not self.resultant_solution:
+                                    data[mp_identifier][variable_name + "_X"].append(value[0])
+                                    data[mp_identifier][variable_name + "_Y"].append(value[1])
+                                    data[mp_identifier][variable_name + "_Z"].append(value[2])
                                 else:
-                                    if (count == 0):
+                                    if count == 0:
                                         data["RESULTANT"][variable_name + "_X"].append(value[0])
                                         data["RESULTANT"][variable_name + "_Y"].append(value[1])
                                         data["RESULTANT"][variable_name + "_Z"].append(value[2])
@@ -118,23 +123,23 @@ class MPMJsonOutputProcess(JsonOutputProcess):
                                         data["RESULTANT"][variable_name + "_Y"][-1] += value[1]
                                         data["RESULTANT"][variable_name + "_Z"][-1] += value[2]
                             else:
-                                if (self.resultant_solution == False):
+                                if not self.resultant_solution:
                                     list = self.__kratos_vector_to__python_list(value)
-                                    data["MP_" + str(mp.Id)][variable_name ].append(list)
+                                    data[mp_identifier][variable_name].append(list)
                                 else:
                                     aux = 0.0
                                     for index in range(len(value)):
                                         aux += value[index]
-                                    if (count == 0):
-                                        data["RESULTANT"][variable_name ].append(aux)
+                                    if count == 0:
+                                        data["RESULTANT"][variable_name].append(aux)
                                     else:
-                                        data["RESULTANT"][variable_name ][-1] += aux
+                                        data["RESULTANT"][variable_name][-1] += aux
                         elif variable_type == "Vector":
-                            if (self.resultant_solution == False):
+                            if not self.resultant_solution:
                                 list = self.__kratos_vector_to__python_list(value)
-                                data["MP_" + str(mp.Id)][variable_name].append(list)
+                                data[mp_identifier][variable_name].append(list)
                             else:
-                                if (count == 0):
+                                if count == 0:
                                     list = self.__kratos_vector_to__python_list(value)
                                     data["RESULTANT"][variable_name][-1] += list
 
@@ -154,5 +159,4 @@ class MPMJsonOutputProcess(JsonOutputProcess):
         if self.flag != None:
             if component.Is(self.flag) == False:
                 return False
-
         return True

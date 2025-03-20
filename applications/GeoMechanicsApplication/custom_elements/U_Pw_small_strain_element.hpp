@@ -42,7 +42,6 @@ public:
     using SizeType = std::size_t;
     using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mIsInitialised;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
@@ -200,7 +199,7 @@ protected:
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
-    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
+    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex);
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
