@@ -11,8 +11,10 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -48,6 +50,36 @@ KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoM
     KRATOS_CHECK_MATRIX_NEAR(ConstitutiveParameters.GetDeformationGradientF(), deformation_gradient_F, 1e-12)
 
     KRATOS_CHECK_NEAR(ConstitutiveParameters.GetDeterminantF(), determinant_of_F, 1e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromGeoCohesionProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    properties.SetValue(GEO_COHESION, 2.0);
+
+    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetCohesion(properties), 2.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties      = Properties{};
+    auto umat_parameters = Vector{2};
+    umat_parameters <<= 2.0, 30.0;
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
+
+    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetCohesion(properties), 2.0);
+
+    properties.Erase(INDEX_OF_UMAT_C_PARAMETER);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::GetCohesion(properties),
+        "Material 0 does not have UMAT_PARAMETERS and/or INDEX_OF_UMAT_C_PARAMETER");
+
+    properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
+    properties.Erase(UMAT_PARAMETERS);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::GetCohesion(properties),
+        "Material 0 does not have UMAT_PARAMETERS and/or INDEX_OF_UMAT_C_PARAMETER");
 }
 
 } // namespace Kratos::Testing
