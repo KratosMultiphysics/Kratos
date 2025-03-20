@@ -515,6 +515,13 @@ public:
     {
         KRATOS_TRY
 
+        //TODO: To be discussed. I think that te base scheme should do what the current IncrementalUpdateStaticScheme does that is the following
+        block_for_each(rDofSet, [&Dx](DofType& rDof){
+            if (rDof.IsFree()) {
+                rDof.GetSolutionStepValue() += Dx[rDof.EquationId()];
+            }
+        });
+
         KRATOS_CATCH("")
     }
 

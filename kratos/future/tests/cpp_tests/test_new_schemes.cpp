@@ -158,6 +158,7 @@ static void SetUpTestSchemesModelPart(ModelPart& rModelPart)
 
 KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
 {
+#ifdef KRATOS_USE_FUTURE
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
@@ -196,6 +197,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
     expected_lhs(1,0) = -1.0; expected_lhs(1,1) = 2.0; expected_lhs(1,2) = -1.0;
     expected_lhs(2,0) = 0.0; expected_lhs(2,1) = -1.0; expected_lhs(2,2) = 2.0;
     KRATOS_CHECK_VECTOR_NEAR((*p_rhs), expected_rhs, tol);
+#else
+    true;
+#endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
@@ -243,10 +247,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     p_strategy->Clear();
 
     // Check results
-    std::cout << std::setprecision(12) << r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE) << std::endl;
-    std::cout << std::setprecision(12) << r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE) << std::endl;
-    std::cout << std::setprecision(12) << r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE) << std::endl;
-
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 1.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 2.0, 1.0e-12);
 #else
     true;
 #endif
