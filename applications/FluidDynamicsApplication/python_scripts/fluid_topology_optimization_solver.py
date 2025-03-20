@@ -15,40 +15,45 @@ from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver
 
 def CreateSolver(model, custom_settings, isAdjointSolver = False):
     solver_settings = custom_settings["solver_settings"]
-    return FluidTopologyOptimizationSolver(model, solver_settings, isAdjointSolver)
+    return FluidTopologyOptimizationSolver(model, solver_settings, is_adjoint_solver=isAdjointSolver)
 
 class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
-    def __init__(self, model, custom_settings, isAdjointSolver = False):
-        self._SetLinearSolverSettings(custom_settings)
+    @classmethod
+    def GetDefaultParameters(cls):
+        ##settings string in json format
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "linear_solver_settings": {
+                "solver_type": "amgcl",
+                "smoother_type":"ilu0",
+                "krylov_type":"gmres",
+                "coarsening_type":"aggregation", 
+                "max_iteration": 1000,
+                "tolerance": 1e-6,
+                "scaling": false
+                }
+        }""")
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
+
+    def __init__(self, model, custom_settings, is_adjoint_solver):
         super().__init__(model,custom_settings)
-        self.is_adjoint = isAdjointSolver
-        self._SetUpTopologyOptimization(custom_settings)
+        self._DefineAdjointSolver(is_adjoint_solver)
+        self._DefineElementsAndConditions()
         print_str = "Construction of FluidTopologyOptimizationSolver "
-        if isAdjointSolver:
+        if self.IsAdjoint():
             print_str += "for Adjoint problem "
         print_str +=  "finished."
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, print_str)
 
-    def _SetLinearSolverSettings(self, settings, tolerance = 1e-8, max_it = 5000):
-        linear_solver_settings = KratosMultiphysics.Parameters("""{
-                                                                "solver_type": "amgcl",
-                                                                "smoother_type":"ilu0",
-                                                                "krylov_type":"gmres",
-                                                                "coarsening_type":"aggregation",
-                                                                "max_iteration": """ + str(max_it) + """,
-                                                                "tolerance": """ + str(tolerance) + """,
-                                                                "scaling": false
-                                                                }""")
-        if (not settings.Has("linear_solver_settings")):
-            settings.AddEmptyValue("linear_solver_settings")            
-        settings["linear_solver_settings"] = linear_solver_settings
+    def _DefineAdjointSolver(self, isAdjointSolver):
+        self.is_adjoint = isAdjointSolver
 
-    def _SetUpTopologyOptimization(self,settings):
+    def _DefineElementsAndConditions(self):
         if (self.element_name != "FluidTopologyOptimizationElement"):
             print("[WARNING]", self.__class__.__name__, "element_name: \'", self.element_name, "\' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")
             self.element_name = "FluidTopologyOptimizationElement"
-
         self.condition_name = "NavierStokesWallCondition"
         self.element_integrates_in_time = True
         

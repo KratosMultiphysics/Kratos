@@ -163,15 +163,24 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         if (abs(self.functional_weights[8]) > 1e-10):
             print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "):", self.weighted_functionals[8]/self.initial_functional_abs_value)
 
-    def _SetFunctionalWeights(self, weights = [0,0,0,0,0,1,0,0,0]):
-        weights[0]=0.0 #fluid resistance
-        weights[1]=0.0 #fluid strain-rate
-        weights[2]=0.0 #fluid vorticity
+    def _InitializeFunctionalWeights(self):
+        transport_weights = self._ImportTransportFunctionalWeights()
+        weights = [0.0, 0.0, 0.0] + transport_weights
         self.n_functionals = len(weights)
         self.initial_functionals_values = np.zeros(self.n_functionals)
         self.functionals = np.zeros(self.n_functionals)
         self.functional_weights = self._NormalizeFunctionalWeights(np.asarray(weights))
-        self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, self.functional_weights)
+
+    def _ImportTransportFunctionalWeights(self):
+        transport_weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        functional_weights_parameters = self.optimization_parameters["optimization_settings"]["optimization_problem_settings"]["functional_weights"]["transport_functionals"]
+        transport_weights[0] = functional_weights_parameters["outlet_transport_scalar"].GetDouble()
+        transport_weights[1] = functional_weights_parameters["focus_region_transport_scalar"].GetDouble()
+        transport_weights[2] = functional_weights_parameters["conductivity_transfer"].GetDouble()
+        transport_weights[3] = functional_weights_parameters["convection_transfer"].GetDouble()
+        transport_weights[4] = functional_weights_parameters["decay_transfer"].GetDouble()
+        transport_weights[5] = functional_weights_parameters["source_transfer"].GetDouble()
+        return transport_weights
 
     def _EvaluateFunctional(self, print_functional=False):
         """
@@ -381,48 +390,33 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         print("--|CHECK| Check Physics Properties")
         self._GetSolver()._CheckMaterialProperties()
 
-    def _InitializePhysicsParameters(self, conductivity_parameters=[1e-4, 1e-2, 1.0], decay_parameters=[0.0, 0.0, 1.0], convection_coefficient_parameters=[0.0, 0.0, 1.0]):
+    def _InitializePhysicsParameters(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")
-        self._SetPhysicsParametersInterpolationMethods()
-        self._InitializeConductivity(conductivity_parameters)
-        self._InitializeDecay(decay_parameters)
-        self._InitializeConvectionCoefficient(convection_coefficient_parameters)
-        self._SetConvectiveVelocity()
-
-    def _SetPhysicsParametersInterpolationMethods(self, conductivity="hyperbolic", decay="hyperbolic", convection_coefficient="hyperbolic"):
-        self._SetConductivityInterpolationMethod(conductivity)
-        self._SetDecayInterpolationMethod(decay)
-        self._SetConvectionCoefficientInterpolationMethod(convection_coefficient)
-
-    def _SetConductivityInterpolationMethod(self, interpolation_method):
-        self.conductivity_interpolation_method = interpolation_method
-        
-    def _SetDecayInterpolationMethod(self, interpolation_method):
-        self.decay_interpolation_method = interpolation_method
-
-    def _SetConvectionCoefficientInterpolationMethod(self, interpolation_method):
-        self.convection_coefficient_interpolation_method = interpolation_method    
+        self._InitializeConductivity()
+        self._InitializeDecay()
+        self._InitializeConvectionCoefficient()
+        self._SetConvectiveVelocity()    
     
     def _SetConvectiveVelocity(self, constant_velocity=False, vel=[0,0,0]):
         self.is_constant_velocity = constant_velocity
         self.constant_velocity = vel
         self._GetSolver()._SetConvectiveVelocity(self.is_constant_velocity, self.constant_velocity)
 
-    def _InitializeConductivity(self, conductivity_parameters_values):
+    def _InitializeConductivity(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE CONDUCTIVITY")
-        self.conductivity_parameters = conductivity_parameters_values
+        self.conductivity_parameters = self.physics_parameters_settings["conductivity"] 
         self._ResetConductivity()
         self._UpdateConductivityVariable()
 
-    def _InitializeDecay(self, decay_parameters_values):
+    def _InitializeDecay(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE DECAY")
-        self.decay_parameters = decay_parameters_values
+        self.decay_parameters = self.physics_parameters_settings["decay"] 
         self._ResetDecay()
         self._UpdateDecayVariable()
 
-    def _InitializeConvectionCoefficient(self, convection_coefficient_parameters_values):
+    def _InitializeConvectionCoefficient(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE CONVECTION COEFFICIENT")
-        self.convection_coefficient_parameters = convection_coefficient_parameters_values
+        self.convection_coefficient_parameters = self.physics_parameters_settings["convection_coefficient"] 
         self._ResetConvectionCoefficient()
         self._UpdateConvectionCoefficientVariable()
 
@@ -490,13 +484,13 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self._UpdateConvectionCoefficientVariable()
     
     def _ComputeConductivity(self, design_parameter):
-        return self._ComputePhysicsParameter(self.conductivity_interpolation_method, self.conductivity_parameters, design_parameter)
+        return self._ComputePhysicsParameter(self.conductivity_parameters, design_parameter)
     
     def _ComputeDecay(self, design_parameter):
-        return self._ComputePhysicsParameter(self.decay_interpolation_method, self.decay_parameters, design_parameter)
+        return self._ComputePhysicsParameter(self.decay_parameters, design_parameter)
     
     def _ComputeConvectionCoefficient(self, design_parameter):
-        return self._ComputePhysicsParameter(self.convection_coefficient_interpolation_method, self.convection_coefficient_parameters, design_parameter)
+        return self._ComputePhysicsParameter(self.convection_coefficient_parameters, design_parameter)
 
     def _UpdateConductivityDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()

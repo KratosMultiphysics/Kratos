@@ -172,8 +172,14 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         if (abs(self.functional_weights[8]) > 1e-10):
             print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "):", self.weighted_functionals[8])
 
-
-    def _InitializeFunctionalWeights(self, fluid_weights = [1, 1, 0], transport_weights=[0,0,1,0,0,0], coupling_weights=[1,1]):
+    def _SetFunctionalWeights(self):
+        super()._SetFunctionalWeights()
+        self.EvaluateTotalFunctional()
+        
+    def _InitializeFunctionalWeights(self):
+        fluid_weights     = self._ImportFluidFunctionalWeights()
+        transport_weights = self._ImportTransportFunctionalWeights()
+        coupling_weights  = self._ImportCouplingFunctionalWeights()
         # normalize weights
         self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_weights))
         self.normalized_transport_functional_weights = self._NormalizeFunctionalWeights(np.asarray(transport_weights))
@@ -190,15 +196,16 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         self.fluid_functionals = np.zeros(self.n_fluid_functionals)
         self.transport_functionals = np.zeros(self.n_transport_functionals)
         self.functionals = np.zeros(self.n_functionals)
-
-    def _SetFunctionalWeights(self, fluid_weights = [1, 1, 0], transport_weights=[0,0,1,0,0,0], coupling_weights=[1,1]):
-        print("--|" + self.topology_optimization_stage_str + "| ---> Set Functional Weights")
-        self._InitializeFunctionalWeights(fluid_weights, transport_weights, coupling_weights)
         self.EvaluateFunctionals(print_functional=False)
         self._SetInitialFunctionals()
         self.functional_weights = self._RescaleFunctionalWeightsByInitialValues()
-        self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, self.functional_weights)
-        self.EvaluateTotalFunctional()
+
+    def _ImportCouplingFunctionalWeights(self):
+        coupling_weights = [0.0, 0.0]
+        functional_weights_parameters = self.optimization_parameters["optimization_settings"]["optimization_problem_settings"]["functional_weights"]["coupling"]
+        coupling_weights[0] = functional_weights_parameters["fluid"].GetDouble()
+        coupling_weights[1] = functional_weights_parameters["transport"].GetDouble()
+        return coupling_weights
 
     def _SetInitialFunctionals(self):
         self.initial_fluid_functional = np.dot(self.normalized_fluid_functional_weights, self.initial_fluid_functionals_values)
@@ -478,19 +485,12 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         print("--|CHECK| Check Physics Properties")
         self._GetSolver()._CheckMaterialProperties()
 
-    def _InitializePhysicsParameters(self, resistance_parameters=[0.0, 1e4, 1.0], conductivity_parameters=[1e-4, 1e-2, 1.0], decay_parameters=[0.0, 0.0, 1.0], convection_coefficient_parameters=[0.0, 0.0, 1.0]):
+    def _InitializePhysicsParameters(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")
-        self._SetPhysicsParametersInterpolationMethods()
-        self._InitializeResistance(resistance_parameters)
-        self._InitializeConductivity(conductivity_parameters)
-        self._InitializeDecay(decay_parameters)
-        self._InitializeConvectionCoefficient(convection_coefficient_parameters)
-
-    def _SetPhysicsParametersInterpolationMethods(self, resistance="hyperbolic", conductivity="hyperbolic", decay="hyperbolic", convection_coefficient="hyperbolic"):
-        self._SetResistanceInterpolationMethod(resistance)
-        self._SetConductivityInterpolationMethod(conductivity)
-        self._SetDecayInterpolationMethod(decay)
-        self._SetConvectionCoefficientInterpolationMethod(convection_coefficient)
+        self._InitializeResistance()
+        self._InitializeConductivity()
+        self._InitializeDecay()
+        self._InitializeConvectionCoefficient()
 
     def ResetPhysicsParameters(self):
         self._ResetResistance()

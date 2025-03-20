@@ -25,7 +25,7 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
             "domain_size" : -1,
             "echo_level": 0,
             "fluid_solver_settings": {
-                "solver_type": "navier_stokes_solver_vmsmonolithic",
+                "solver_type": "monolithic",
                 "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -46,11 +46,11 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
-    def __init__(self, model, custom_settings, is_adjoint_solver=False):
+    def __init__(self, model, custom_settings, is_adjoint_solver):
         ## Cal base class constructor
         super().__init__(model, custom_settings)
         ## Define if the adjoint problem
-        self._SetAdjointSolver(is_adjoint_solver)
+        self._DefineAdjointSolver(is_adjoint_solver)
         ## Get domain size
         self._SetDomainSize()
         ## Create subdomain solvers
@@ -75,7 +75,7 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
     def _CreateTransportSolver(self):
         self.transport_solver = transport_topology_optimization_solver.CreateSolver(self.model,self.settings["transport_solver_settings"], isAdjointSolver=self.IsAdjoint()) 
     
-    def _SetAdjointSolver(self, is_adjoint_solver):
+    def _DefineAdjointSolver(self, is_adjoint_solver):
         self.is_adjoint = is_adjoint_solver
         
     def AddVariables(self):
