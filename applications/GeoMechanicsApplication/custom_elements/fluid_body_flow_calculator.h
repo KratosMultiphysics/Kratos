@@ -29,23 +29,23 @@ public:
     struct InputProvider {
         InputProvider(std::function<const Properties&()> GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
-                      std::function<Vector()> GetIntegrationCoefficients,
-                      std::function<std::vector<Vector>()> GetProjectedGravityForIntegrationPoints,
+                      std::function<Vector()>              GetIntegrationCoefficients,
+                      std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
                       std::function<std::size_t()> GetLocalSpaceDimension)
 
             : GetElementProperties(std::move(GetElementProperties)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
-              GetProjectedGravityForIntegrationPoints(std::move(GetProjectedGravityForIntegrationPoints)),
+              GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
               GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
               GetLocalSpaceDimension(std::move(GetLocalSpaceDimension))
         {
         }
 
-        std::function<const Properties&()> GetElementProperties;
-        std::function<Vector()>            GetIntegrationCoefficients;
-        std::function<std::vector<Vector>()>            GetProjectedGravityForIntegrationPoints;
+        std::function<const Properties&()>   GetElementProperties;
+        std::function<Vector()>              GetIntegrationCoefficients;
+        std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints;
         std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
         std::function<std::size_t()>                                 GetLocalSpaceDimension;
@@ -53,9 +53,9 @@ public:
 
     explicit FluidBodyFlowCalculator(InputProvider AnInputProvider);
 
-    std::optional<Matrix>                                   LHSContribution() override;
-    std::optional<Vector>                                   RHSContribution() override;
-    std::pair<std::optional<Matrix>, std::optional<Vector>> LocalSystemContribution() override;
+    std::optional<Matrix>                    LHSContribution() override;
+    Vector                                   RHSContribution() override;
+    std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() override;
 
 private:
     InputProvider mInputProvider;

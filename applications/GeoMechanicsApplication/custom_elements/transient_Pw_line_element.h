@@ -97,7 +97,7 @@ public:
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             const auto [LHSContribution, RHSContribution] = calculator->LocalSystemContribution();
             if (LHSContribution) rLeftHandSideMatrix += *LHSContribution;
-            if (RHSContribution) rRightHandSideVector += *RHSContribution;
+            rRightHandSideVector += RHSContribution;
         }
 
         KRATOS_CATCH("")
@@ -108,8 +108,7 @@ public:
         rRightHandSideVector = ZeroVector{TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
-            if (const auto RHSContribution = calculator->RHSContribution())
-                rRightHandSideVector += *RHSContribution;
+            noalias(rRightHandSideVector) += calculator->RHSContribution();
         }
     }
 
@@ -292,8 +291,9 @@ private:
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
-            projected_gravity.push_back(ScalarVector(1, std::inner_product(
-                tangent_vector.begin(), tangent_vector.end(), body_acceleration.begin(), 0.0)));
+            projected_gravity.push_back(
+                ScalarVector(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
+                                                   body_acceleration.begin(), 0.0)));
         }
         return projected_gravity;
     }
@@ -343,8 +343,8 @@ private:
     FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider()
     {
         return FluidBodyFlowCalculator::InputProvider(
-            MakePropertiesGetter(), MakeRetentionLawsGetter(),
-            MakeIntegrationCoefficientsGetter(), MakeProjectedGravityForIntegrationPointsGetter(),
+            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeIntegrationCoefficientsGetter(),
+            MakeProjectedGravityForIntegrationPointsGetter(),
             MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter());
     }
 

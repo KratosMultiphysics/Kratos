@@ -23,9 +23,9 @@ class ContributionCalculator
 public:
     virtual ~ContributionCalculator() = default;
 
-    virtual std::optional<Matrix>                                   LHSContribution()         = 0;
-    virtual std::optional<Vector>                                   RHSContribution()         = 0;
-    virtual std::pair<std::optional<Matrix>, std::optional<Vector>> LocalSystemContribution() = 0;
+    virtual std::optional<Matrix>                    LHSContribution()         = 0;
+    virtual Vector                                   RHSContribution()         = 0;
+    virtual std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() = 0;
 };
 
 } // namespace Kratos

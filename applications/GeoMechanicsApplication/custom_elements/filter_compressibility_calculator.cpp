@@ -27,9 +27,9 @@ std::optional<Matrix> FilterCompressibilityCalculator::LHSContribution()
     return std::make_optional(LHSContribution(CalculateCompressibilityMatrix()));
 }
 
-std::optional<Vector> FilterCompressibilityCalculator::RHSContribution()
+Vector FilterCompressibilityCalculator::RHSContribution()
 {
-    return std::make_optional(RHSContribution(CalculateCompressibilityMatrix()));
+    return RHSContribution(CalculateCompressibilityMatrix());
 }
 
 Vector FilterCompressibilityCalculator::RHSContribution(const Matrix& rCompressibilityMatrix) const
@@ -42,11 +42,10 @@ Matrix FilterCompressibilityCalculator::LHSContribution(const Matrix& rCompressi
     return mInputProvider.GetMatrixScalarFactor() * rCompressibilityMatrix;
 }
 
-std::pair<std::optional<Matrix>, std::optional<Vector>> FilterCompressibilityCalculator::LocalSystemContribution()
+std::pair<std::optional<Matrix>, Vector> FilterCompressibilityCalculator::LocalSystemContribution()
 {
     const auto compressibility_matrix = CalculateCompressibilityMatrix();
-    return {std::make_optional(LHSContribution(compressibility_matrix)),
-            std::make_optional(RHSContribution(compressibility_matrix))};
+    return {std::make_optional(LHSContribution(compressibility_matrix)), RHSContribution(compressibility_matrix)};
 }
 
 Matrix FilterCompressibilityCalculator::CalculateCompressibilityMatrix() const
@@ -54,7 +53,7 @@ Matrix FilterCompressibilityCalculator::CalculateCompressibilityMatrix() const
     const auto& r_N_container            = mInputProvider.GetNContainer();
     const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
     const auto& projected_gravity_on_integration_points =
-        mInputProvider.GetProjectedGravityForIntegrationPoints();
+        mInputProvider.GetProjectedGravityAtIntegrationPoints();
     auto result = Matrix{ZeroMatrix{r_N_container.size2(), r_N_container.size2()}};
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {

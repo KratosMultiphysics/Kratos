@@ -24,9 +24,9 @@ FluidBodyFlowCalculator::FluidBodyFlowCalculator(InputProvider AnInputProvider)
 
 std::optional<Matrix> FluidBodyFlowCalculator::LHSContribution() { return std::nullopt; }
 
-std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
+Vector FluidBodyFlowCalculator::RHSContribution()
 {
-    const auto    shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+    const auto shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
 
     const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
@@ -36,22 +36,24 @@ std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
 
     RetentionLaw::Parameters retention_law_parameters(r_properties);
     const auto               projected_gravity_on_integration_points =
-        mInputProvider.GetProjectedGravityForIntegrationPoints();
-    Vector fluid_body_vector = ZeroVector(shape_function_gradients[0].size1());
+        mInputProvider.GetProjectedGravityAtIntegrationPoints();
+
+    auto result = Vector{ZeroVector(shape_function_gradients[0].size1())};
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
         const auto relative_permeability =
-            mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(retention_law_parameters);
-        noalias(fluid_body_vector) +=
+            mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(
+                retention_law_parameters);
+        noalias(result) +=
             r_properties[DENSITY_WATER] * relative_permeability *
             prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix),
                  projected_gravity_on_integration_points[integration_point_index]) *
             integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
     }
-    return std::make_optional(fluid_body_vector);
+    return result;
 }
 
-std::pair<std::optional<Matrix>, std::optional<Vector>> FluidBodyFlowCalculator::LocalSystemContribution()
+std::pair<std::optional<Matrix>, Vector> FluidBodyFlowCalculator::LocalSystemContribution()
 {
     return {LHSContribution(), RHSContribution()};
 }

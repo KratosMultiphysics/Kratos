@@ -28,15 +28,15 @@ std::optional<Matrix> PermeabilityCalculator::LHSContribution()
     return std::make_optional(CalculatePermeabilityMatrix());
 }
 
-std::optional<Vector> PermeabilityCalculator::RHSContribution()
+Vector PermeabilityCalculator::RHSContribution()
 {
-    return std::make_optional(RHSContribution(CalculatePermeabilityMatrix()));
+    return RHSContribution(CalculatePermeabilityMatrix());
 }
 
-std::pair<std::optional<Matrix>, std::optional<Vector>> PermeabilityCalculator::LocalSystemContribution()
+std::pair<std::optional<Matrix>, Vector> PermeabilityCalculator::LocalSystemContribution()
 {
     const auto permeability_matrix = CalculatePermeabilityMatrix();
-    return {std::make_optional(permeability_matrix), std::make_optional(RHSContribution(permeability_matrix))};
+    return {std::make_optional(permeability_matrix), RHSContribution(permeability_matrix)};
 }
 
 Vector PermeabilityCalculator::RHSContribution(const Matrix& rPermeabilityMatrix) const

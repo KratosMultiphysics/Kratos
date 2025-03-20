@@ -52,9 +52,9 @@ public:
 
     explicit CompressibilityCalculator(InputProvider rInputProvider);
 
-    std::optional<Matrix>                                   LHSContribution() override;
-    std::optional<Vector>                                   RHSContribution() override;
-    std::pair<std::optional<Matrix>, std::optional<Vector>> LocalSystemContribution() override;
+    std::optional<Matrix>                    LHSContribution() override;
+    Vector                                   RHSContribution() override;
+    std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() override;
 
 private:
     [[nodiscard]] Matrix CalculateCompressibilityMatrix() const;
