@@ -342,7 +342,7 @@ private:
     FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider()
     {
         return FluidBodyFlowCalculator::InputProvider(
-            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
+            MakePropertiesGetter(), MakeRetentionLawsGetter(),
             MakeIntegrationCoefficientsGetter(), MakeProjectedGravityForIntegrationPointsGetter(),
             MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter());
     }

@@ -27,7 +27,6 @@ std::optional<Matrix> FluidBodyFlowCalculator::LHSContribution() { return std::n
 std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
 {
     const auto    shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
-    const Matrix& r_N_container            = mInputProvider.GetNContainer();
 
     const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
@@ -35,15 +34,14 @@ std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
     const auto  constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(
         r_properties, mInputProvider.GetLocalSpaceDimension());
 
-    RetentionLaw::Parameters RetentionParameters(r_properties);
+    RetentionLaw::Parameters retention_law_parameters(r_properties);
     const auto               projected_gravity_on_integration_points =
         mInputProvider.GetProjectedGravityForIntegrationPoints();
     Vector fluid_body_vector = ZeroVector(shape_function_gradients[0].size1());
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
-        const auto N = Vector{row(r_N_container, integration_point_index)};
         const auto relative_permeability =
-            mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+            mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(retention_law_parameters);
         noalias(fluid_body_vector) +=
             r_properties[DENSITY_WATER] * relative_permeability *
             prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix),
@@ -55,7 +53,7 @@ std::optional<Vector> FluidBodyFlowCalculator::RHSContribution()
 
 std::pair<std::optional<Matrix>, std::optional<Vector>> FluidBodyFlowCalculator::LocalSystemContribution()
 {
-    return {std::nullopt, RHSContribution()};
+    return {LHSContribution(), RHSContribution()};
 }
 
 } // namespace Kratos
