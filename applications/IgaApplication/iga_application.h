@@ -21,7 +21,6 @@
 #include "custom_elements/truss_element.h"
 #include "custom_elements/truss_embedded_edge_element.h"
 #include "custom_elements/beam_thin_element_2D.h"
-// #include "custom_elements/beam_thick_element_2D.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
@@ -39,7 +38,8 @@
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
-#include "custom_conditions/sbm_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_condition_neumann.h"
+#include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -122,7 +122,6 @@ private:
     const TrussElement mTrussElement;
     const TrussEmbeddedEdgeElement mTrussEmbeddedEdgeElement;
     const BeamThinElement2D mBeamThinElement2D;
-    // const BeamThickElement2D mBeamThickElement2D;
     const IgaMembraneElement mIgaMembraneElement;
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
@@ -140,7 +139,8 @@ private:
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
-    const SBMLaplacianCondition mSBMLaplacianCondition;
+    const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
+    const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
 
     // Modelers
     const IgaModeler mIgaModeler;
