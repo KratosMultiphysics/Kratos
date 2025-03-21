@@ -1072,41 +1072,110 @@ class DEMAnalysisStage(AnalysisStage):
                     center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
                     center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
 
-                    if center_to_sphere_distance_0 < (radius - r_0):
+                    if center_to_sphere_distance_0 < (radius - r_0) or center_to_sphere_distance_1 < (radius - r_1):
+                        d = ((x_0 - x_1)**2 + (y_0 - y_1)**2 + (z_0 - z_1)**2)**0.5
+                        if d <= (r_0 + r_1):
+                            vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                            v1_norm = np.linalg.norm(vector1)
+                            if v1_norm:
+                                vector1_unit = vector1 / v1_norm
+                            tensor = np.outer(vector1_unit, vector1_unit)
+                            total_tensor += tensor
+                            total_contact_number += 1
+                        else:
+                            continue
 
-                        vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
-                        v1_norm = np.linalg.norm(vector1)
-                        if v1_norm:
-                            vector1_unit = vector1 / v1_norm
-                        tensor = np.outer(vector1_unit, vector1_unit)
-                        total_tensor += tensor
-                        total_contact_number += 1
-
-                    elif center_to_sphere_distance_1 < (radius - r_1):
-
-                        vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
-                        v1_norm = np.linalg.norm(vector1)
-                        if v1_norm:
-                            vector1_unit = vector1 / v1_norm
-                        tensor = np.outer(vector1_unit, vector1_unit)
-                        total_tensor += tensor
-                        total_contact_number += 1
-                
                 if total_contact_number:
                     measured_fabric_tensor = total_tensor / total_contact_number
+
                 else:
                     measured_fabric_tensor = np.empty((3, 3))
 
-                deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
+                deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3))
 
                 second_invariant_of_deviatoric_tensor = (0.5 * np.sum(deviatoric_tensor * deviatoric_tensor))**0.5
 
+                fabric_tensor_trace = (measured_fabric_tensor[0][0] + measured_fabric_tensor[1][1] + measured_fabric_tensor[2][2])/3
+
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
-                
-                return eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor
+
+                return eigenvalues, second_invariant_of_deviatoric_tensor, [measured_fabric_tensor[0][0],measured_fabric_tensor[1][1],measured_fabric_tensor[2][2]], fabric_tensor_trace
 
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+        if type == "conductivity_tensor":
+
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+                total_tensor = np.empty((3, 3))
+                total_tensor[:] = 0.0
+                total_contact_number = 0
+                angles_xy = []
+                angles_xz = []
+                angles_yz = []
+
+                for element in self.contact_model_part.Elements:
+
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+
+                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
+                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
+
+                    if center_to_sphere_distance_0 < (radius - r_0) or center_to_sphere_distance_1 < (radius - r_1):
+                        d = ((x_0 - x_1)**2 + (y_0 - y_1)**2 + (z_0 - z_1)**2)**0.5
+                        if d <= (r_0 + r_1):
+                            a = np.sqrt(4*r_0**2*d**2-(r_0**2+d**2-r_1**2)**2)/(2*d)
+                            contact_area = np.pi*a**2
+                            vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                            v1_norm = np.linalg.norm(vector1)
+                            if v1_norm:
+                                vector1_unit = vector1 / v1_norm
+                            theta_xz = np.arctan2((x_0 - x_1),(z_0 - z_1))*180/np.pi
+                            theta_xy = np.arctan2((x_0 - x_1),(y_0 - y_1))*180/np.pi
+                            theta_yz = np.arctan2((y_0 - y_1),(z_0 - z_1))*180/np.pi
+                            if theta_yz < 0: theta_yz += 360
+                            if theta_xz < 0: theta_xz += 360
+                            if theta_xy < 0: theta_xy += 360
+                            tensor = contact_area*d*np.outer(vector1_unit, vector1_unit)
+                            angles_xy.append(theta_xy)
+                            angles_xz.append(theta_xz)
+                            angles_yz.append(theta_yz)
+                            total_tensor += tensor
+                            total_contact_number += 1
+                        else:
+                            continue
+
+                particle_is_inside = 0
+                for node in self.spheres_model_part.Nodes:
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+                    r = node.GetSolutionStepValue(RADIUS)
+                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+                    if center_to_sphere_distance < (radius - r):
+                        particle_is_inside += 1
+
+                if total_contact_number:
+                    measured_non_homogenized_conductivity_tensor = total_tensor/measure_sphere_volume
+                else:
+                    measured_non_homogenized_conductivity_tensor = np.empty((3, 3))
+
+                conductivity_tensor_trace = (measured_non_homogenized_conductivity_tensor[0][0] + measured_non_homogenized_conductivity_tensor[1][1] + measured_non_homogenized_conductivity_tensor[2][2])/3
+
+                deviatoric_tensor = 0.0
+
+                second_invariant_of_deviatoric_tensor = 0.0
+
+                eigenvalues = 0.0
+
+                return particle_is_inside, [measured_non_homogenized_conductivity_tensor[0][0],measured_non_homogenized_conductivity_tensor[1][1],measured_non_homogenized_conductivity_tensor[2][2]], conductivity_tensor_trace, angles_xy, angles_xz, angles_yz
                 
         if type == "voronoi_input_data":
 
