@@ -88,6 +88,7 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
             {
                 mpc_force += Variables.N[i] * nodal_force * this->GetIntegrationWeight() / nodal_area;
             }
+            KRATOS_WARNING_IF( "NODAL_AREA", nodal_area < std::numeric_limits<double>::epsilon() ) << "Node " << r_geometry[i].Id() << " of condition " <<this->Id()<< " has zero value for NODAL_AREA " << std::endl;
         }
     }
 
