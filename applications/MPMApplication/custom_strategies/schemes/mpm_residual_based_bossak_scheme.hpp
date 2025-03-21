@@ -281,19 +281,15 @@ public:
         ClearReactionVariable();
         
         // Calculating as an intermediate step the nodal reaction forces due to the boundary particles
-        block_for_each(rModelPart.Conditions(), [&](Condition& rCondition)
+        block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
         {  
-            std::vector<bool> dummy;
-            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_NODAL_REACTIONS, dummy, r_current_process_info);
-
+            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_NODAL_REACTIONS, r_dummy, r_current_process_info);
         });
         
         // Calculating the reaction forces at the boundary particles due to the nodal reaction forces
-        block_for_each(rModelPart.Conditions(), [&](Condition& rCondition)
+        block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
         {  
-            std::vector<bool> dummy;
-            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_CONTACT_FORCE, dummy, r_current_process_info);
-            
+            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_CONTACT_FORCE, r_dummy, r_current_process_info);
         });  
 
         // clear nodal reaction values again
