@@ -103,7 +103,6 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
     const int IntValue,
-    std::size_t MeshId,
     const Flags Options
     ) : Process(Options),
         mrModelPart(rModelPart),
@@ -127,7 +126,6 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
     ModelPart& rModelPart,
     const Variable< bool >& rVariable,
     const bool BoolValue,
-    std::size_t MeshId,
     const Flags options
         ) : Process(options) ,
         mrModelPart(rModelPart),
