@@ -395,9 +395,9 @@ public:
         auto& f = *mpForceVector;
 
          // Build your RHS
-        auto& p_builder_and_solver = this->pGetBuilderAndSolver();
-        auto& p_scheme = this->pGetScheme();
-        p_builder_and_solver->BuildRHS(p_scheme,r_model_part,f);
+        //auto& p_builder_and_solver = this->pGetBuilderAndSolver();
+        //auto& p_scheme = this->pGetScheme();
+        //p_builder_and_solver->BuildRHS(p_scheme,r_model_part,f);
 
         ComplexType mode_weight;
         ComplexVectorType modal_displacement;
