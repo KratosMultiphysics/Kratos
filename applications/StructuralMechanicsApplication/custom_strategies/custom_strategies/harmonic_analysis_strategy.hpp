@@ -393,10 +393,10 @@ public:
 
         auto& f = *mpForceVector;
         block_for_each(this->pGetBuilderAndSolver()->GetDofSet(),
-                       [](Dof<double>& r_dof){
-                            if (not r_dof.IsFixed())
-                                r_dof.GetSolutionStepValue() = 0.0;
-                        });
+               [](Dof<double>& r_dof){
+                   if (!r_dof.IsFixed())
+                       r_dof.GetSolutionStepValue() = 0.0;
+               });
 
         // Build your RHS
         auto& p_builder_and_solver = this->pGetBuilderAndSolver();
