@@ -1004,6 +1004,11 @@ protected:
         if (pScheme->ElementsAreInitialized() == false)
             pScheme->InitializeElements(BaseType::GetModelPart());
 
+        //Initialize The MasterSlaveConstraints - OPERATIONS TO BE DONE ONCE
+        if (p_scheme->MasterSlaveConstraintsAreInitialized() == false)
+            p_scheme->InitializeMasterSlaveConstraints(BaseType::GetModelPart());
+
+
         //initialisation of the convergence criteria
         if (mpConvergenceCriteria->IsInitialized() == false)
             mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
