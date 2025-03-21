@@ -558,7 +558,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacityUsingUMatP
     element.Initialize(dummy_process_info);
 
     auto stress_vector = Vector{4};
-    stress_vector <<= -2.0, 0.0, 2.0, 0.0;
+    stress_vector <<= -1.5, 0.0, 1.5, 0.0;
     element.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
                                          std::vector<Vector>{3, stress_vector}, dummy_process_info);
 
@@ -568,7 +568,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacityUsingUMatP
 
     // Assert
     auto expected_shear_capacity_values = Vector{3};
-    expected_shear_capacity_values <<= 1.0, 1.0, 1.0;
+    expected_shear_capacity_values <<= 0.75, 0.75, 0.75;
     KRATOS_EXPECT_VECTOR_NEAR(actual_shear_capacity_values, expected_shear_capacity_values,
                               Defaults::absolute_tolerance);
 }
