@@ -29,7 +29,7 @@ public:
                                            double                          DoubleValue,
                                            std::size_t                     MeshId,
                                            const Flags&                    rOptions)
-        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, rOptions)
+        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, rOptions)
     {
     }
 
