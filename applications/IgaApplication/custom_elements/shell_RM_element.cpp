@@ -323,7 +323,7 @@ namespace Kratos
                 GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(
                 point_number,
-                kinematic_variables);
+                kinematic_variables);//testing
 
             // calculate B MATRICES
             Matrix B = ZeroMatrix(6, mat_size);
