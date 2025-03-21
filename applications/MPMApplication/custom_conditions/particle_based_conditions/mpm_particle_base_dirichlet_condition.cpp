@@ -100,7 +100,7 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            mpc_force = 1.0 * normal_force * m_normal;
+            mpc_force = normal_force * m_normal;
         else
             mpc_force = ZeroVector(3);
     }
