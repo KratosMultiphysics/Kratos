@@ -147,6 +147,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.OUTLET_NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE) # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
@@ -210,6 +211,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
+        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
         self.previous_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
@@ -239,6 +241,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # STEP I: NS Fractional part 1
         # Perform the pure convection of the fractional velocity which corresponds to the first part of the NS fractional splitting.
         self.__PerformNSFractionalSplitting()
+        self.vectorial_convection_iterations = self.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Navier Stokes fractional convection part is performed.")
 
         # STEP II: Convect the free surface according to the fractional velocity
@@ -248,6 +251,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.AUXILIAR_VECTOR_VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
 
         self.__PerformLevelSetConvection()
+        self.levelset_iterations = self.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
         # After the convection process, the velocity is copied back to the original state.
@@ -306,6 +310,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # Calculate the inlet and outlet volume discharges
         water_outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(), KratosMultiphysics.OUTLET)
         water_inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(), KratosMultiphysics.INLET)
+        KratosMultiphysics.Logger.PrintWarning( self.__class__.__name__, str(water_inlet_discharge) + "m3/s is the inlet discharge")
         inlet_water_volume = -current_dt * water_inlet_discharge
         outlet_water_volume = current_dt * water_outlet_discharge
         system_water_volume = inlet_water_volume + self.__initial_water_system_volume - outlet_water_volume

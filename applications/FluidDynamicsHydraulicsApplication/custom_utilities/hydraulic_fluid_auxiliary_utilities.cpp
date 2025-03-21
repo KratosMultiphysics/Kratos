@@ -270,12 +270,17 @@ void HydraulicFluidAuxiliaryUtilities::SetInletVelocity(
         if (rNode.GetValue(rDistanceVariable) < 0.0)
         {
             rNode.FastGetSolutionStepValue(VELOCITY) =  inlet_velocity;
+
             rNode.Fix(VELOCITY_X);
             rNode.Fix(VELOCITY_Y);
             rNode.Fix(VELOCITY_Z);
         }
         else{
             // The air velocity in the inlet node is assumed to be null.
+            // double alpha = (3.5-rNode.GetValue(rDistanceVariable))/3.5;
+
+
+            // rNode.FastGetSolutionStepValue(VELOCITY) = alpha*inlet_velocity;
             rNode.FastGetSolutionStepValue(VELOCITY_X) = 0.0;
             rNode.FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
             rNode.FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
@@ -292,7 +297,7 @@ void HydraulicFluidAuxiliaryUtilities::FreeInlet(ModelPart& rModelPart)
         rNode.Free(VELOCITY_X);
         rNode.Free(VELOCITY_Y);
         rNode.Free(VELOCITY_Z);
-        rNode.Free(DISTANCE);
+        // rNode.Free(DISTANCE);
     });
 }
 void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart, const Flags &rSkinFlag,  const Variable<double> &rDistanceVariable)
@@ -312,6 +317,7 @@ void HydraulicFluidAuxiliaryUtilities::CalculateNonIntersectedElementsArtificial
     double DynamicViscosityMax)
     {
     const auto &r_process_info = rModelPart.GetProcessInfo();
+
     block_for_each(rModelPart.Elements(), [&](Element &rElement)
     {
         double artificial_viscosity;

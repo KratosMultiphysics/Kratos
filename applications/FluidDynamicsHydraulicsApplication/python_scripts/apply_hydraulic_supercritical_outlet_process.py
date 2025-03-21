@@ -91,10 +91,8 @@ class ApplyHydraulicSuperCriticalOutletProcess(KratosMultiphysics.Process):
 
         current_time = self.outlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if current_time < 0.0:
-            self.outlet_model_part.ProcessInfo.SetValue(
-                KratosMultiphysics.TIME, 0.0)
-            current_time = current_time = self.outlet_model_part.ProcessInfo[
-                KratosMultiphysics.TIME]
+            self.outlet_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+            current_time = self.outlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True

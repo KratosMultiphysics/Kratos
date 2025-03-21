@@ -132,6 +132,38 @@ public:
      * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
      * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
      */
+    static void ApplyOutletInflowLimiter(ModelPart &rModelPart,
+    const Variable<array_1d<double,3>>& rVariable,
+    const Variable<array_1d<double, 3>>& rVariableNormal);
+
+    /**
+     * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
+     * @param  rModelPart Fluid Model Part
+     * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
+     */
+
+    static void FixingInflow(ModelPart &rModelPart,
+                            const Variable<array_1d<double, 3>> &rVariable,
+                            double DomainSize);
+
+    /**
+     * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
+     * @param  rModelPart Fluid Model Part
+     * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
+     */
+
+    static void ImposeOutletPressure(ModelPart &rModelPart,
+                                    double WaterDepth,
+                                    const Variable<double> &rDistanceVariable);
+
+    /**
+     * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
+     * @param  rModelPart Fluid Model Part
+     * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
+     */
 
     static void SetBoundaryWaterDepth(ModelPart &rModelPart,
                                       double WaterDepth,
@@ -154,7 +186,7 @@ public:
 
     ///@}
 
-private :
+    private :
 
     struct EdgeDataContainer
     {

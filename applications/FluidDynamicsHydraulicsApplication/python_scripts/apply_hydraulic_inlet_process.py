@@ -34,6 +34,8 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
         # Get the inlet model part , the inlet free surface (water depth) variable name and user tolerances.
         self.inlet_model_part = Model[settings["inlet_model_part_name"].GetString()]
+        self.main_model_part = Model[settings["main_model_part"].GetString()]
+
         variable_name =settings["water_depth_variable"].GetString()
         self.water_depth_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
         self.critical_depth_tolerance = settings["critical_depth_tolerance"].GetDouble()
@@ -66,6 +68,8 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
         # Get and check domain size
         self.domain_size = self.inlet_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.dt = self.inlet_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+
         if self.domain_size not in [2,3]:
             raise ValueError(f"Wrong 'DOMAIN_SIZE' value {self.domain_size} in ProcessInfo container.")
 
@@ -76,6 +80,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "inlet_model_part_name" : "",
+            "main_model_part":"",
             "value":{},
             "interval"        : [0.0,"End"],
             "water_depth_variable": "AUX_DISTANCE",
@@ -83,7 +88,6 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
             "critical_depth_tolerance":1e-8,
             "maximum_iterations":100,
             "gravity"      : 9.81
-
         }
         """)
         return default_settings
@@ -95,6 +99,7 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
 
         # For each time step obtain the corresponding inlet discharge value according to the external data type; table, function or value.
+        # TODO: This should be fixed in other code. Now it is done as a fast check
         current_time = self.inlet_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if current_time <0.0:
             self.inlet_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
@@ -112,13 +117,12 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
             elif self.discharge_value_is_table:
                 self.inlet_discharge = self.table.GetValue(current_time)
-
         #Calculate the initial water depth guess.
         if not self.initial_water_depth:
             self.initial_water_depth = KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.InitialWaterDepth(
                 self.inlet_model_part)
 
-        # Determine the critical water depth based on the given inlet discharge value and the shape of the inlet model part. It is an iterative process based on the bisection method.
+        # Determine the critical water depth based 10.0on the given inlet discharge value and the shape of the inlet model part. It is an iterative process based on the bisection method.
 
         # Define an interval within which the critical water depth belongs.
         # TODO: There is a more optimal way to define this interval in order to avoid iterations.
@@ -173,10 +177,11 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
         # KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletVelocity(
         #     self.inlet_model_part, inlet_velocity, self.water_depth_variable)
 
-        #Assign the identical value of the inlet water depth to the DISTANCE variable (free surface) for all nodes associated with the inlet model part.
+        # #Assign the identical value of the inlet water depth to the DISTANCE variable (free surface) for all nodes associated with the inlet model part.
         KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(
-            self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
-
+             self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
+        #Assign the identical value of the inlet water depth to the DISTANCE variable (free surface) for all nodes associated with the inlet model part.
+        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.SetInletFreeSurface(self.inlet_model_part, KratosMultiphysics.INLET, self.water_depth_variable)
 
     def ExecuteFinalizeSolutionStep(self):
         # Here we free all of the nodes in the inlet
@@ -206,3 +211,16 @@ class ApplyHydraulicInletProcess(KratosMultiphysics.Process):
 
 
 
+    def _GetDistanceGradientProcess(self):
+        if not hasattr(self, '_distance_gradient_process'):
+            self._distance_gradient_process = self._CreateDistanceGradientProcess()
+        return self._distance_gradient_process
+
+    def _CreateDistanceGradientProcess(self):
+        distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
+                self.main_model_part,
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.DISTANCE_GRADIENT,
+                KratosMultiphysics.NODAL_AREA)
+
+        return distance_gradient_process
