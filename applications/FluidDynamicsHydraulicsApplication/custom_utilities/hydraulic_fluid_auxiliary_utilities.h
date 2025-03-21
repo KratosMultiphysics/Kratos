@@ -63,7 +63,7 @@ public:
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @param rDistanceVariable Reference to the variable containing the distance
      * @param IsHistorical True if the distance is in the historical database, false otherwise
-     * @return Wetted perimeter 
+     * @return Wetted perimeter
      */
     static double CalculateWettedPetimeter(
         ModelPart &rModelPart,
@@ -130,12 +130,27 @@ public:
      * @brief  When there is inflow on a boundary considered as an outlet, this function retains only the tangential component, preventing inflows that cause instabilities.
      * @param  rModelPart Fluid Model Part
      * @param  rVariable it is possible to use the variable VELOCITY_FRACTIONAL or VELOCITY
-     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL 
+     * @param  rVariableNormal it is possible to use an auxiliar normal such as INLET_NORMAL
      */
-    static void ApplyOutletInflowLimiter(
-        ModelPart &rModelPart,
-        const Variable<array_1d<double,3>>& rVariable,
-        const Variable<array_1d<double, 3>>& rVariableNormal);    
+
+    static void SetBoundaryWaterDepth(ModelPart &rModelPart,
+                                      double WaterDepth,
+                                      const Variable<double> &rDistanceVariable);
+
+    static void AssignInletWaterDepth(ModelPart &rModelPart,
+                                      double InletVelocity,
+                                      double DeltaTime);
+    static void SummergedInletCheck(ModelPart &rModelPart,
+                                      double InletVelocity,
+                                      double DeltaTime);
+
+    static void InletFreeSurface(ModelPart &rModelPart);
+    /**
+     * @brief  Computes the nodal local froude number. It is important that each node will have each local Fr
+     * @param  rModelPart Fluid Model Part
+     */
+
+    static void ComputeNodalFroudeNumber(ModelPart &rModelPart);
 
     ///@}
 
