@@ -22,117 +22,6 @@
 #include "includes/cfd_variables.h"
 #include <numeric>
 
-namespace
-{
-
-Kratos::BoundedMatrix<double, 4, 4> GetExtrapolationMatrixFor3D4NElement()
-{
-    auto result = Kratos::BoundedMatrix<double, 4, 4>{};
-
-    result(0, 0) = -0.309016988749894905;
-    result(0, 1) = -0.3090169887498949046;
-    result(0, 2) = -0.309016988749894905;
-    result(0, 3) = 1.9270509662496847144;
-
-    result(1, 0) = 1.9270509662496847144;
-    result(1, 1) = -0.30901698874989490481;
-    result(1, 2) = -0.3090169887498949049;
-    result(1, 3) = -0.30901698874989490481;
-
-    result(2, 0) = -0.30901698874989490473;
-    result(2, 1) = 1.9270509662496847143;
-    result(2, 2) = -0.3090169887498949049;
-    result(2, 3) = -0.30901698874989490481;
-
-    result(3, 0) = -0.3090169887498949048;
-    result(3, 1) = -0.30901698874989490471;
-    result(3, 2) = 1.9270509662496847143;
-    result(3, 3) = -0.30901698874989490481;
-
-    return result;
-}
-
-Kratos::BoundedMatrix<double, 8, 8> GetExtrapolationMatrixFor3D8NElement()
-{
-    auto result = Kratos::BoundedMatrix<double, 8, 8>{};
-
-    result(0, 0) = 2.549038105676658;
-    result(0, 1) = -0.6830127018922192;
-    result(0, 2) = 0.18301270189221927;
-    result(0, 3) = -0.6830127018922192;
-    result(0, 4) = -0.6830127018922192;
-    result(0, 5) = 0.18301270189221927;
-    result(0, 6) = -0.04903810567665795;
-    result(0, 7) = 0.18301270189221927;
-
-    result(1, 0) = -0.6830127018922192;
-    result(1, 1) = 2.549038105676658;
-    result(1, 2) = -0.6830127018922192;
-    result(1, 3) = 0.18301270189221927;
-    result(1, 4) = 0.18301270189221927;
-    result(1, 5) = -0.6830127018922192;
-    result(1, 6) = 0.18301270189221927;
-    result(1, 7) = -0.04903810567665795;
-
-    result(2, 0) = 0.18301270189221927;
-    result(2, 1) = -0.6830127018922192;
-    result(2, 2) = 2.549038105676658;
-    result(2, 3) = -0.6830127018922192;
-    result(2, 4) = -0.04903810567665795;
-    result(2, 5) = 0.18301270189221927;
-    result(2, 6) = -0.6830127018922192;
-    result(2, 7) = 0.18301270189221927;
-
-    result(3, 0) = -0.6830127018922192;
-    result(3, 1) = 0.18301270189221927;
-    result(3, 2) = -0.6830127018922192;
-    result(3, 3) = 2.549038105676658;
-    result(3, 4) = 0.18301270189221927;
-    result(3, 5) = -0.04903810567665795;
-    result(3, 6) = 0.18301270189221927;
-    result(3, 7) = -0.6830127018922192;
-
-    result(4, 0) = -0.6830127018922192;
-    result(4, 1) = 0.18301270189221927;
-    result(4, 2) = -0.04903810567665795;
-    result(4, 3) = 0.18301270189221927;
-    result(4, 4) = 2.549038105676658;
-    result(4, 5) = -0.6830127018922192;
-    result(4, 6) = 0.18301270189221927;
-    result(4, 7) = -0.6830127018922192;
-
-    result(5, 0) = 0.18301270189221927;
-    result(5, 1) = -0.6830127018922192;
-    result(5, 2) = 0.18301270189221927;
-    result(5, 3) = -0.04903810567665795;
-    result(5, 4) = -0.6830127018922192;
-    result(5, 5) = 2.549038105676658;
-    result(5, 6) = -0.6830127018922192;
-    result(5, 7) = 0.18301270189221927;
-
-    result(6, 0) = -0.04903810567665795;
-    result(6, 1) = 0.18301270189221927;
-    result(6, 2) = -0.6830127018922192;
-    result(6, 3) = 0.18301270189221927;
-    result(6, 4) = 0.18301270189221927;
-    result(6, 5) = -0.6830127018922192;
-    result(6, 6) = 2.549038105676658;
-    result(6, 7) = -0.6830127018922192;
-
-    result(7, 0) = 0.18301270189221927;
-    result(7, 1) = -0.04903810567665795;
-    result(7, 2) = 0.18301270189221927;
-    result(7, 3) = -0.6830127018922192;
-    result(7, 4) = -0.6830127018922192;
-    result(7, 5) = 0.18301270189221927;
-    result(7, 6) = -0.6830127018922192;
-    result(7, 7) = 2.549038105676658;
-
-    return result;
-}
-
-} // namespace
-
 namespace Kratos
 {
 
@@ -1583,26 +1472,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateExtrapolationMatrix(Bounde
 {
     KRATOS_TRY
 
-    if constexpr ((TDim == 2u) && ((TNumNodes == 3u) || (TNumNodes == 4u))) {
-        const auto extrapolator = LinearNodalExtrapolator{};
-        const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
-            this->GetGeometry(), this->GetIntegrationMethod());
-        KRATOS_ERROR_IF_NOT(result.size1() == TNumNodes)
-            << "Extrapolation matrix has unexpected number of rows: " << result.size1()
-            << " (expected " << TNumNodes << ")" << std::endl;
-        KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
-            << "Extrapolation matrix has unexpected number of columns: " << result.size2()
-            << " (expected " << TNumNodes << ")" << std::endl;
-        rExtrapolationMatrix = result;
-    } else if constexpr ((TDim == 3u) && (TNumNodes == 4u)) {
-        rExtrapolationMatrix = ::GetExtrapolationMatrixFor3D4NElement();
-    } else if constexpr ((TDim == 3u) && (TNumNodes == 8u)) {
-        rExtrapolationMatrix = ::GetExtrapolationMatrixFor3D8NElement();
-    } else {
-        KRATOS_ERROR << "undefined number of nodes in CalculateExtrapolationMatrix "
-                        "... TNumNodes:"
-                     << TNumNodes << " element: " << this->Id() << std::endl;
-    }
+    const auto extrapolator = LinearNodalExtrapolator{};
+    const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
+        this->GetGeometry(), this->GetIntegrationMethod());
+    KRATOS_ERROR_IF_NOT(result.size1() == TNumNodes)
+        << "Extrapolation matrix has unexpected number of rows: " << result.size1() << " (expected "
+        << TNumNodes << ")" << std::endl;
+    KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
+        << "Extrapolation matrix has unexpected number of columns: " << result.size2()
+        << " (expected " << TNumNodes << ")" << std::endl;
+    rExtrapolationMatrix = result;
 
     KRATOS_CATCH("")
 }
