@@ -119,8 +119,7 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     std::vector<bool>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != 1)
-        rValues.resize(1);
+    rValues.resize(1);
 
     if (rVariable == MPC_CALCULATE_NODAL_REACTIONS) {
         this->CalculateNodalReactions(rCurrentProcessInfo);
