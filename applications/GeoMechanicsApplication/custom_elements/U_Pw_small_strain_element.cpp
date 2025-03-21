@@ -1476,8 +1476,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateExtrapolationMatrix(Bounde
     const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
         this->GetGeometry(), this->GetIntegrationMethod());
     KRATOS_ERROR_IF_NOT(result.size1() == TNumNodes)
-        << "Extrapolation matrix has unexpected number of rows: " << result.size1()
-        << " (expected " << TNumNodes << ")" << std::endl;
+        << "Extrapolation matrix has unexpected number of rows: " << result.size1() << " (expected "
+        << TNumNodes << ")" << std::endl;
     KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
         << "Extrapolation matrix has unexpected number of columns: " << result.size2()
         << " (expected " << TNumNodes << ")" << std::endl;
