@@ -499,6 +499,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 std::inner_product(shape_function_values.begin(), shape_function_values.end(),
                                    nodal_hydraulic_head.begin(), 0.0);
         }
+    } else if (rVariable == GEO_SHEAR_CAPACITY) {
+        const auto c   = ConstitutiveLawUtilities::GetCohesion(GetProperties());
+        const auto phi = ConstitutiveLawUtilities::GetFrictionAngle(GetProperties());
+        auto       calculate_shear_capacity = [c, phi](const auto& rStressVector) {
+            return StressStrainUtilities::CalculateMohrCoulombShearCapacity(rStressVector, c, phi);
+        };
+        std::transform(mStressVector.cbegin(), mStressVector.cend(), rOutput.begin(), calculate_shear_capacity);
     } else {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
