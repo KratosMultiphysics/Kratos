@@ -190,7 +190,6 @@ protected:
     double mDoubleValue = 0.0; /// Double value.
     int mIntValue = 0;         /// Integer value.
     bool mBoolValue = false;   /// Boolean value.
-    std::size_t mMeshId = 0;   /// Mesh ID.
 
     ///@}
 private:
