@@ -70,8 +70,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             "file_name" : "energy.txt",
             "time_scheme": "bdf2",
             "fractional_splitting_settings":{
-                "element_type" : "ns_fractional_velocity_convection",
-                "echo_level":1
+                "element_type" : "ns_fractional_velocity_convection"
              },
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
@@ -170,6 +169,9 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
     def Initialize(self):
         computing_model_part = self.GetComputingModelPart()
+
+        for prop in self.main_model_part.Properties:
+            print(f"Property ID: {prop.Id}")
         # Calculate boundary normals
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
             computing_model_part,
@@ -197,6 +199,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self._GetDistanceModificationProcess().ExecuteInitialize()
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
+
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
@@ -219,9 +222,9 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         )
         if self.energy_process_activation:
             self.post_file_name = self.settings["file_name"].GetString()
-            domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             self.my_energy_process = KratosCFD.EnergyCheckProcess(
-                self.main_model_part, domain_size, self.post_file_name)
+                self.main_model_part, self.domain_size, self.post_file_name)
+
 
     def Check(self):
         super().Check()
@@ -521,13 +524,14 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        model = self.main_model_part.GetModel()
         linear_solver = self._GetLevelsetLinearSolver()
         fractional_splitting_settings = self.settings["fractional_splitting_settings"]
         if domain_size == 2:
-            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(model, linear_solver, fractional_splitting_settings)
+            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(
+            self.model, linear_solver, fractional_splitting_settings)
         else:
-            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess3D(model, linear_solver, fractional_splitting_settings)
+            fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess3D(
+             self.model, linear_solver, fractional_splitting_settings)
         return fractional_splitting_process
 
 
@@ -587,7 +591,9 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             KratosMultiphysics.Logger.PrintWarning("Provided distance correction \'deactivate_full_negative_elements\' is \'True\'. Setting to \'False\' to avoid deactivating the negative volume (e.g. water).")
 
         # Create and return the distance correction process
-        return KratosCFD.DistanceModificationProcess(self.model, distance_modification_settings)
+        return KratosCFD.DistanceModificationProcess(
+            self.model,
+            distance_modification_settings)
 
     def _HydraulicBoundaryConditionCheck(self,boundary,name):
         # Check if there are inlet and outlet
@@ -595,7 +601,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
         if not not_boundary_nodes:
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, name +" condition is not defined in the model part.")
-
     def SolveSolutionStep(self):
         is_converged = super().SolveSolutionStep()
         self.ns_iterations = self.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]
