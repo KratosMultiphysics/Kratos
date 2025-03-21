@@ -85,8 +85,8 @@ void MultiscaleRefiningProcess::ExecuteRefinement()
 {
     // Initialize the maps
     IndexIndexMapType node_tag, elem_tag, cond_tag;
-    AssignUniqueModelPartCollectionTagUtility model_part_collection(mrCoarseModelPart);
-    model_part_collection.ComputeTags(node_tag, cond_tag, elem_tag, mCollections);
+    AssignUniqueModelPartCollectionTagUtility model_part_collection;
+    model_part_collection.ComputeTags(mrCoarseModelPart, node_tag, cond_tag, elem_tag, mCollections);
 
     // Get the Id's
     IndexType node_id, elem_id, cond_id;
