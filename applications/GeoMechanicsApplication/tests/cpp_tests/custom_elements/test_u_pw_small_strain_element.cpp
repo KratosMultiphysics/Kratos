@@ -538,18 +538,14 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacityUsingUMatParameters,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacity, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto element_id   = std::size_t{1};
     auto           p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
-    auto umat_parameters = Vector{2};
-    umat_parameters <<= 2.0, 0.0;
-    p_properties->SetValue(UMAT_PARAMETERS, umat_parameters);
-    p_properties->SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
-    p_properties->SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
+    p_properties->SetValue(GEO_COHESION, 2.0);
+    p_properties->SetValue(GEO_FRICTION_ANGLE, 0.0);
 
     auto element = UPwSmallStrainElement<2, 3>{
         element_id, std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry()),
