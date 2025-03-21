@@ -47,24 +47,24 @@ namespace ShiftedBoundaryUtilityInternals {
     //TODO
     template <std::size_t TDim>
     double CalculatePointDistance(
-        const Geometry<Node>& rObjectGeometry, 
+        const Geometry<Node>& rObjectGeometry,
         const Point& rPoint);
 
     template <std::size_t TDim>
     Plane3D CreateIntersectionPlane(const std::vector<array_1d<double,3>>& rIntPtsVector);
 
     void VoigtTransformForProduct(
-        const array_1d<double,3>& rVector, 
+        const array_1d<double,3>& rVector,
         BoundedMatrix<double,2,3>& rVoigtMatrix);
 
     void VoigtTransformForProduct(
-        const array_1d<double,3>& rVector, 
+        const array_1d<double,3>& rVector,
         BoundedMatrix<double,3,6>& rVoigtMatrix);
 
     template <std::size_t TDim>
     void CalculateStrainMatrix(
-        const Matrix& rDN_DX, 
-        const std::size_t& NumNodes, 
+        const Matrix& rDN_DX,
+        const std::size_t& NumNodes,
         Matrix& rB);
 
 }  // namespace ShiftedBoundaryUtilityInternals
@@ -193,8 +193,11 @@ public:
     template <std::size_t TDim>
     void CalculatePressureAtSkinNodesTemplated();
     void CalculatePressureAtSkinNodes();
-    //void CalculateVelocityAtSkinNodes(); 
-    //void CalculateDragForceAtSkinPoints(); 
+    template <std::size_t TDim>
+    void CalculateVelocityAtSkinNodesTemplated();
+    void CalculateVelocityAtSkinNodes();
+    //void CalculateVelocityAtSkinNodes();
+    //void CalculateDragForceAtSkinPoints();
     template <std::size_t TDim>
     void CalculateSkinDragTemplated();
     void CalculateSkinDrag();
@@ -249,13 +252,13 @@ protected:
     ///@{
 
     ModelPart* mpModelPart = nullptr;
-    //TODO needs to be discretized to be used for FindIntersectedGeometricalObjectsProcess. 
+    //TODO needs to be discretized to be used for FindIntersectedGeometricalObjectsProcess.
     // Also right now integration points of mpSkinModelPart (1 GP) are taken as skin points with area and normal.
-    ModelPart* mpSkinModelPart = nullptr;  
+    ModelPart* mpSkinModelPart = nullptr;
     ModelPart* mpBoundarySubModelPart = nullptr;
 
     std::string mSkinModelPartName = "";
-    
+
     SkinPointsToElementsMapType mSkinPointsMap;
     //TODO too big to store - (only) necessary for calculation of values at skin
     SidesVectorToElementsMapType mSidesVectorMap;
@@ -413,8 +416,8 @@ protected:
 
     template <std::size_t TDim>
     bool CalculateUnknownsForBothSidesOfSplitElement(
-        const ElementType::Pointer pElement, 
-        Vector& rPositiveSideUnknowns, 
+        const ElementType::Pointer pElement,
+        Vector& rPositiveSideUnknowns,
         Vector& rNegativeSideUnknowns);
 
     //TODO

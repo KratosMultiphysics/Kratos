@@ -557,13 +557,14 @@ namespace Kratos
         // Create the interface conditions
         //TODO: THIS CAN BE PARALLEL (WE JUST NEED TO MAKE CRITICAL THE CONDITION ID UPDATE)? And adding the condition????
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
-        std::size_t n_skin_pt_conditions_not_added = 0;
-        bool successfully_added_pos;
-        bool successfully_added_neg;
+        std::size_t n_skin_points = 0;
+        std::size_t n_skin_pt_conditions_added_pos = 0;
+        std::size_t n_skin_pt_conditions_added_neg = 0;
 
         for (const auto& [p_element, skin_points_data_vector]: mSkinPointsMap) {
             const auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
+            n_skin_points += skin_points_data_vector.size();
 
             // For each side of the boundary separately (positive and negative side of gamma), create a pointer vector with all the nodes that affect that side of the current element
             // To be used in the creation of the condition. Positive side refers to adding the positive side's nodes of the element and the negative node's support cloud nodes.
@@ -593,22 +594,22 @@ namespace Kratos
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
                 // NOTE that the boundary normal is negative in order to point outwards (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
-                successfully_added_pos = AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
+                n_skin_pt_conditions_added_pos += AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
                 mExtensionOperatorMap, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
                 // NOTE that boundary normal is opposite (from negative to positive side)
-                successfully_added_neg = AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
+                n_skin_pt_conditions_added_neg += AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
                 mExtensionOperatorMap, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/false);
-
-                if (!successfully_added_pos || !successfully_added_neg) {
-                    n_skin_pt_conditions_not_added++;
-                }
             }
         }
-        if (n_skin_pt_conditions_not_added > 0) {
-            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Integration point conditions were NOT successfully added for at least one side of "
-                << n_skin_pt_conditions_not_added << " skin points." << std::endl;
+        if (n_skin_pt_conditions_added_pos != n_skin_points) {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Integration point conditions were NOT successfully added for the positive side of "
+                << n_skin_points-n_skin_pt_conditions_added_pos << " skin points." << std::endl;
+        }
+        if (n_skin_pt_conditions_added_neg != n_skin_points) {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Integration point conditions were NOT successfully added for the negative side of "
+                << n_skin_points-n_skin_pt_conditions_added_neg << " skin points." << std::endl;
         }
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin point conditions were added." << std::endl;
     }
@@ -821,6 +822,62 @@ namespace Kratos
         });
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_skin_nodes_without_correct_extension > 0)
             << "The pressure at " << n_skin_nodes_without_correct_extension << " skin nodes was calculated without valid extension." << std::endl;
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodes()
+    {
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        switch (n_dim) {
+            case 2:
+                CalculateVelocityAtSkinNodesTemplated<2>();
+                break;
+            case 3:
+                CalculateVelocityAtSkinNodesTemplated<3>();
+                break;
+            default:
+                KRATOS_ERROR << "Wrong domain size.";
+        }
+    }
+
+    template <std::size_t TDim>
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated()
+    {
+        // Create the bin-based point locator (TDim here makes template necessary)
+        const std::size_t point_locator_max_results = 10000;
+        const double point_locator_tolerance = 1.0e-5;
+        BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
+        point_locator.UpdateSearchDatabase();
+
+        // Initialize counter for number of skin nodes that can not be calculated properly
+        std::size_t n_skin_nodes_without_correct_extension = 0;
+
+        // For each skin node interpolate the positive and negative side pressure from the fluid mesh
+        LockObject mutex_valid_ex;
+        block_for_each(mpSkinModelPart->Nodes(), [&](NodeType& rSkinNode){
+            // Locate node in fluid mesh (should be inside a deactivated element)
+            Vector skin_node_N(TDim+1); //TODO this restricts the use to tri and tetra
+            Element::Pointer p_element = nullptr;
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
+            const bool is_found = point_locator.FindPointOnMesh(
+                rSkinNode.Coordinates(), skin_node_N, p_element,
+                search_results.begin(), point_locator_max_results, point_locator_tolerance);
+
+            // If the skin node is found, interpolate the POSITIVE_FACE_PRESSURE from the PRESSURE
+            if (is_found) {
+                // Get positive and negative side pressure variables of skin node
+                array_1d<double,3>& r_skin_u_pos = rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY);
+                array_1d<double,3>& r_skin_u_neg = rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY);
+
+                // Calculate pressure at skin node for positive and negative side of Gamma
+                const bool p_calculated_successfully = CalculateVelocityAtSplitElementSkinPoint(p_element, skin_node_N, r_skin_u_pos, r_skin_u_neg);
+                if (!p_calculated_successfully) {
+                    std::scoped_lock<LockObject> lock(mutex_valid_ex);
+                    n_skin_nodes_without_correct_extension++;
+                }
+            }
+        });
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_skin_nodes_without_correct_extension > 0)
+            << "The velocity at " << n_skin_nodes_without_correct_extension << " skin nodes was calculated without valid extension." << std::endl;
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDrag()
@@ -1232,12 +1289,12 @@ namespace Kratos
             // Check whether extension exists for node
             const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
 
-            // The extension needs to be used for nodes of the element which are located on the other side of the pressure that is being calculated
+            // The extension needs to be used for nodes of the element which are located on the other side of the velocity that is being calculated
             if (sides_vector[i_node] > 0.0) {
                 rPositiveSideVelocity += i_node_N * p_node->FastGetSolutionStepValue(VELOCITY);
                 if (extension_found) {
                     const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
+                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the velocity at the support node
                     for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
                         //const auto& r_support_node_data = *it_data;
                         const auto p_support_node = std::get<0>(*it_data);
@@ -1248,7 +1305,7 @@ namespace Kratos
             } else {
                 if (extension_found) {
                     const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
+                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the velocity at the support node
                     for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
                         //const auto& r_support_node_data = *it_data;
                         const auto p_support_node = std::get<0>(*it_data);
@@ -1443,7 +1500,7 @@ namespace Kratos
                 // NOTE that for a positive dot product the node is saved as being on the positive side of the boundary, negative dot product equals negative side
                 for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                     auto& r_node = r_geom[i_node];
-                    const array_1d<double,3> skin_pt_to_node = r_node.Coordinates() - skin_pt_position;
+                    const array_1d<double,3> skin_pt_to_node = r_node.Coordinates() - skin_pt_position;  // Should never be zero because of node modifications
                     const double dot_product = inner_prod(skin_pt_to_node, skin_pt_area_normal);
                     double& side_voting = r_node.FastGetSolutionStepValue(DISTANCE);
                     {
@@ -1481,6 +1538,7 @@ namespace Kratos
             // Store a vector deciding on the positive and negative side of the element's nodes
             // NOTE that the positive side of the boundary equals a positive inwards skin normal, negative dot product equals a negative inward skin normal
             // NOTE that it is necessary to define the side of points of gamma_tilde here for the search of the support clouds afterwards (SetLateralSupportCloud)
+            // NOTE that this will cause troubles if inverted elements exist as opposed to having a local definition of sides
             Vector sides_vector(n_nodes);
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 auto& r_node = r_geom[i_node];
@@ -1740,7 +1798,7 @@ namespace Kratos
     {
         // Create an auxiliary set with all the cloud nodes that affect the current element for each side separately
         // NOTE that a node can only be found if sufficient cloud nodes were found for the creation of the extension basis
-        // NOTE that only active nodes are part of the node cloud
+        // NOTE that only active nodes are part of the extension operator support nodes
         NodesCloudSetType cloud_nodes_set_pos;
         NodesCloudSetType cloud_nodes_set_neg;
         const auto& r_geom = rElement.GetGeometry();
@@ -2067,6 +2125,9 @@ namespace Kratos
 
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated<2>();
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated<3>();
+
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated<2>();
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated<3>();
 
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated<2>();
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated<3>();
