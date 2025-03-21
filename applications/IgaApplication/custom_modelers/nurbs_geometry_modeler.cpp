@@ -106,7 +106,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{
     void NurbsGeometryModeler::CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
-        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part)
+        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool AddSurfaceToModelPart)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
@@ -176,8 +176,8 @@ namespace Kratos
         // Set up weights. Required in case no refinement is performed.
         Vector WeightsRefined(points.size(),1.0);
         
-        // In some cases there is no need of add the surface geometry, add_surface_to_model_part is true by default
-        if (add_surface_to_model_part) {
+        // In some cases there is no need of add the surface geometry, AddSurfaceToModelPart is true by default
+        if (AddSurfaceToModelPart) {
             // Add geometry to model part
             if( mParameters.Has("geometry_name") ){
                 p_surface_geometry->SetId(mParameters["geometry_name"].GetString());
