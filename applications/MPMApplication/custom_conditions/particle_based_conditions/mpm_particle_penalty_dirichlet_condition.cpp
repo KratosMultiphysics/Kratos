@@ -93,20 +93,6 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
     }
 }
 
-void MPMParticlePenaltyDirichletCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-    // At the beginning of NonLinearIteration, REACTION has to be reset to zero
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(REACTION).clear();
-        r_geometry[i].UnSetLock();
-    }
-}
-
 //************************************************************************************
 //************************************************************************************
 
@@ -253,7 +239,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void MPMParticlePenaltyDirichletCondition::CalculateNodalReactions(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -311,56 +297,8 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
             r_geometry[i].UnSetLock();
         }
     }
-    this->CalculateInterfaceContactForce( rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
-}
-
-void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo )
-{
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-    // Prepare variables
-    GeneralVariables Variables;
-    const double & r_mpc_area = this->GetIntegrationWeight();
-    MPMShapeFunctionPointValues(Variables.N);
-
-    // Interpolate the force to mpc_force assuming linear shape function
-    array_1d<double, 3 > mpc_force = ZeroVector(3);
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        double nodal_area  = 0.0;
-        if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
-            nodal_area= r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
-
-        const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
-
-        if (nodal_area > std::numeric_limits<double>::epsilon())
-        {
-            mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
-        }
-    }
-
-    // Apply in the normal contact direction and allow releasing motion
-    if (Is(CONTACT))
-    {
-        // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(mpc_force, m_normal);
-
-        // This check is done to avoid sticking forces
-        if (normal_force > 0.0)
-            mpc_force = -1.0 * normal_force * m_normal;
-        else
-            mpc_force = ZeroVector(3);
-    }
-    // Apply a sticking contact
-    else{
-        mpc_force *= -1.0;
-    }
-
-    // Set Contact Force
-    m_contact_force = mpc_force;
 }
 
 void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
