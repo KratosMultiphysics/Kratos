@@ -77,7 +77,7 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
+        if (std::abs(Variables.N[i]) > std::numeric_limits<double>::epsilon())
         {
             auto r_geometry = GetGeometry();
             
