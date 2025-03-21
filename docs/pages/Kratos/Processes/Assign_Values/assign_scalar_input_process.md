@@ -25,7 +25,6 @@ Assigns the value.
 ```json
 {
     "model_part_name"    : "please_specify_model_part_name",
-    "mesh_id"            : 0,
     "variable_name"      : "SPECIFY_VARIABLE_NAME",
     "interval"           : ["begin", "end"],
     "file"               : "",
@@ -37,9 +36,6 @@ Assigns the value.
 
 ##### `model_part_name`
 Name of the modelpart in wich the field variable will be applied
-
-##### `mesh_id`
-Id of the internal mesh to which the process will be applied. Default `0`.
 
 ##### `variable_name`
 Name of the variable in which the field value will be applied.

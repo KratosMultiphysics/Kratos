@@ -69,7 +69,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             """
         {
             "help"            : "This sets the initial conditions in terms of imposed strain, stress or deformation gradient",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "dimension"       : 3,
             "imposed_strain"  : ["0*t","0*t","0*t",0,0,0],

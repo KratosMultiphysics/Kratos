@@ -15,7 +15,6 @@ class ApplyInletProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id"         : 0,
             "model_part_name" : "",
             "variable_name"   : "VELOCITY",
             "modulus"         : 0.0,

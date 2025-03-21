@@ -38,7 +38,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_ends",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
@@ -51,7 +50,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_sym_XY",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,true],
@@ -64,7 +62,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_sym_XZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
@@ -77,7 +74,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_sym_YZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
@@ -90,7 +86,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_ends",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,true,true],
@@ -103,7 +98,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_sym_XY",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,true,false],
@@ -116,7 +110,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_sym_XZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
@@ -129,7 +122,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_sym_YZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,true,true],
@@ -144,7 +136,6 @@
         "help"          : "This process sets a scalar variable value over a condition",
         "process_name"  : "AssignScalarVariableToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfacePressure3D_Surface_Q4_thick",
             "variable_name"   : "POSITIVE_FACE_PRESSURE",
             "value"           : 2040.37,
@@ -156,7 +147,6 @@
         "help"          : "This process sets a scalar variable value over a condition",
         "process_name"  : "AssignScalarVariableToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfacePressure3D_Surface_Q4_thin",
             "variable_name"   : "POSITIVE_FACE_PRESSURE",
             "value"           : 2040.37,
@@ -168,7 +158,6 @@
         "help"          : "This process sets a scalar variable value over a condition",
         "process_name"  : "AssignScalarVariableToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfacePressure3D_Surface_T3_thick",
             "variable_name"   : "POSITIVE_FACE_PRESSURE",
             "value"           : 2040.37,
@@ -180,7 +169,6 @@
         "help"          : "This process sets a scalar variable value over a condition",
         "process_name"  : "AssignScalarVariableToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfacePressure3D_Surface_T3_thin",
             "variable_name"   : "POSITIVE_FACE_PRESSURE",
             "value"           : 2040.37,

@@ -46,7 +46,6 @@ class MmgProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "help"                             : "This process remeshes using MMG library. This process uses different utilities and processes",
-            "mesh_id"                          : 0,
             "filename"                         : "out",
             "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "blocking_threshold_size"          : false,
