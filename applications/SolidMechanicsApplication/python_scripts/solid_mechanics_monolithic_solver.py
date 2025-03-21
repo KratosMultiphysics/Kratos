@@ -69,7 +69,7 @@ class MonolithicSolver(object):
                 "max_iteration": 10
             },
             "linear_solver_settings":{
-                "solver_type": "ExternalSolversApplication.super_lu",
+                "solver_type": "amgcl",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
@@ -337,6 +337,7 @@ class MonolithicSolver(object):
     def _create_linear_solver(self):
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+
         return linear_solver
 
     def _create_builder_and_solver(self):
