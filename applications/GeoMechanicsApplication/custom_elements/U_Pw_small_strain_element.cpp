@@ -1583,26 +1583,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateExtrapolationMatrix(Bounde
 {
     KRATOS_TRY
 
-    if constexpr ((TDim == 2u) && ((TNumNodes == 3u) || (TNumNodes == 4u))) {
-        const auto extrapolator = LinearNodalExtrapolator{};
-        const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
-            this->GetGeometry(), this->GetIntegrationMethod());
-        KRATOS_ERROR_IF_NOT(result.size1() == TNumNodes)
-            << "Extrapolation matrix has unexpected number of rows: " << result.size1()
-            << " (expected " << TNumNodes << ")" << std::endl;
-        KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
-            << "Extrapolation matrix has unexpected number of columns: " << result.size2()
-            << " (expected " << TNumNodes << ")" << std::endl;
-        rExtrapolationMatrix = result;
-    } else if constexpr ((TDim == 3u) && (TNumNodes == 4u)) {
-        rExtrapolationMatrix = ::GetExtrapolationMatrixFor3D4NElement();
-    } else if constexpr ((TDim == 3u) && (TNumNodes == 8u)) {
-        rExtrapolationMatrix = ::GetExtrapolationMatrixFor3D8NElement();
-    } else {
-        KRATOS_ERROR << "undefined number of nodes in CalculateExtrapolationMatrix "
-                        "... TNumNodes:"
-                     << TNumNodes << " element: " << this->Id() << std::endl;
-    }
+    const auto extrapolator = LinearNodalExtrapolator{};
+    const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
+        this->GetGeometry(), this->GetIntegrationMethod());
+    KRATOS_ERROR_IF_NOT(result.size1() == TNumNodes)
+        << "Extrapolation matrix has unexpected number of rows: " << result.size1()
+        << " (expected " << TNumNodes << ")" << std::endl;
+    KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
+        << "Extrapolation matrix has unexpected number of columns: " << result.size2()
+        << " (expected " << TNumNodes << ")" << std::endl;
+    rExtrapolationMatrix = result;
 
     KRATOS_CATCH("")
 }
