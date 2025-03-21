@@ -53,6 +53,8 @@ public:
     void                                   InitializeMaterial(const Properties&     rMaterialProperties,
                                                               const Geometry<Node>& rElementGeometry,
                                                               const Vector&         rShapeFunctionsValues) override;
+    void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
+    void    GetLawFeatures(Features& rFeatures) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
@@ -70,6 +72,7 @@ private:
     Vector                                    mStrainVectorFinalized;
     CoulombYieldSurface                       mCoulombYieldSurface;
     TensionCutoff                             mTensionCutOff;
+    bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
                                                     double        YoungsModulus,

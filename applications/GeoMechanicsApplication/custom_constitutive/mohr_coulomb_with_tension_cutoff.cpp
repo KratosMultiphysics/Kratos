@@ -119,10 +119,11 @@ ConstitutiveLaw::Pointer MohrCoulombWithTensionCutOff::Clone() const
 
 Vector& MohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
+
     if (rThisVariable == CAUCHY_STRESS_VECTOR) {
         rValue = mStressVector;
     } else {
-        KRATOS_ERROR << "Can't get value of " << rThisVariable.Name() << ": unsupported variable\n";
+        rValue = ConstitutiveLaw::GetValue(rThisVariable, rValue);
     }
     return rValue;
 }
@@ -190,9 +191,39 @@ void MohrCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMateria
     mTensionCutOff = TensionCutoff(rMaterialProperties[GEO_TENSILE_STRENGTH]);
 }
 
+void MohrCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& rValues)
+{
+    if (!mIsModelInitialized) {
+        mStressVectorFinalized = rValues.GetStressVector();
+        mStrainVectorFinalized = rValues.GetStrainVector();
+        mIsModelInitialized    = true;
+    }
+}
+
+void MohrCoulombWithTensionCutOff::GetLawFeatures(Features& rFeatures)
+{
+    rFeatures.mOptions.Set(mpConstitutiveDimension->GetSpatialType());
+    rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
+    rFeatures.mOptions.Set(ISOTROPIC);
+
+    rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
+    rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+
+    rFeatures.mStrainSize     = GetStrainSize();
+    rFeatures.mSpaceDimension = WorkingSpaceDimension();
+}
+
 void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     const auto& r_prop = rParameters.GetMaterialProperties();
+
+    double       young_module = r_prop[YOUNG_MODULUS];
+    double       poisson_ratio = r_prop[POISSON_RATIO];
+    const Flags& r_options = rParameters.GetOptions();
+    if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        rParameters.GetConstitutiveMatrix() =
+            mpConstitutiveDimension->CalculateElasticMatrix(young_module, poisson_ratio);
+    }
 
     const auto trail_stress_vector = CalculateTrialStressVector(
         rParameters.GetStrainVector(), r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
@@ -230,12 +261,14 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
     mStressVector = StressStrainUtilities::RotatePrincipalStresses(
         principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
+
+    rParameters.GetStressVector() = mStressVector;
 }
 
 bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const
 {
-    return mCoulombYieldSurface.YieldFunctionValue(rPrincipalStresses) <= 0.0 &&
-           mTensionCutOff.YieldFunctionValue(rPrincipalStresses) <= 0.0;
+    return mCoulombYieldSurface.YieldFunctionValue(rPrincipalStresses) <= 1.0e-12 &&
+           mTensionCutOff.YieldFunctionValue(rPrincipalStresses) <= 1.0e-12;
 }
 
 bool MohrCoulombWithTensionCutOff::IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
