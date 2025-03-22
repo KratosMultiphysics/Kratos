@@ -27,7 +27,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   SimoExponentialThermalHardeningRule& SimoExponentialThermalHardeningRule::operator=(SimoExponentialThermalHardeningRule const& rOther)
