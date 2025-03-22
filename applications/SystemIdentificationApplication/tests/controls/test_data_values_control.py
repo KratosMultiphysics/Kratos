@@ -5,6 +5,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.SystemIdentificationApplication.controls.data_values_control import DataValuesControl
 
+@kratos_unittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class TestDataValuesControl(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -100,14 +101,14 @@ class TestDataValuesControl(kratos_unittest.TestCase):
             node.SetValue(KratosSM.TEMPERATURE_SENSITIVITY, 1)
         Kratos.Expression.VariableExpressionIO.Read(physical_gradient, KratosSM.TEMPERATURE_SENSITIVITY, 0)
         mapped_gradient = self.temperature_control.MapGradient({Kratos.TEMPERATURE: physical_gradient})
-        # physical = -2.5 
-        # ProjectBackward: phi = 0.5 - sin(asin(1-2*(physical - min)/delta)/3) = 0.3263518223 
+        # physical = -2.5
+        # ProjectBackward: phi = 0.5 - sin(asin(1-2*(physical - min)/delta)/3) = 0.3263518223
         # CalculateForwardProjectionGradient: d_physical/d_phi = (6*phi - 6*phi²)*delta = 13.19077862357725
         # d_J/d_physical = 1 (input given above)
         # BackwardFilterIntegratedField: d_J/d_physical * d_physical/d_phi -> d_J/d_control (mapped gradient)
         # For Integrated type: domain_size (of node_1) = element_area / num_nodes = 0.125 / 3 = 0.0416667
         # BackwardFilterIntegratedField: (1 * 13.19077862357725) / 0.0416667 = 316.57868697 (mapped gradient)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(mapped_gradient), 316.57868697, 4) 
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(mapped_gradient), 316.57868697, 4)
 
     def test_Update(self):
         update_field = self.temperature_control.GetEmptyField()
@@ -119,11 +120,11 @@ class TestDataValuesControl(kratos_unittest.TestCase):
         temperature_field = self.temperature_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.25, 4)
         # ForwardFilter: control_update -> phi_update (Here, filter radius ~ 0. Therefore, both are the same = 0.25)
-        # physical = -2.5 
+        # physical = -2.5
         # phi = 0.5 - sin(asin(1-2*(physical - min)/delta)/3) = 0.3263518223
         # phi_updated = phi_current + phi_update = 0.3263518223 + 0.25 = 0.5763518223
         # ProjectForward: phi_updated -> physical_updated
-        # physical_updated = physical_min + phi_updated²*(3 - 2*phi_updated)* delta = 1.136375322   
+        # physical_updated = physical_min + phi_updated²*(3 - 2*phi_updated)* delta = 1.136375322
         self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(temperature_field), 1.136375322, 6)
 
 if __name__ == "__main__":

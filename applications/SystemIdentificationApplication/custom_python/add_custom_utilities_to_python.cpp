@@ -23,7 +23,7 @@
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/mask_utils.h"
 #include "custom_utilities/smooth_clamper.h"
-#include "custom_utilities/sensor_generator_utils.h"
+#include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/distance_matrix.h"
 
 // Include base h
@@ -96,8 +96,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddMaskUtilsToPython<ModelPart::ConditionsContainerType>(mask_utils);
     AddMaskUtilsToPython<ModelPart::ElementsContainerType>(mask_utils);
 
-    auto sensor_generator_utils = m.def_submodule("SensorGeneratorUtils");
-    sensor_generator_utils.def("IsPointInGeometry", &SensorGeneratorUtils::IsPointInGeometry, py::arg("point"), py::arg("geometry"));
+    auto sensor_utils = m.def_submodule("SensorUtils");
+    sensor_utils.def("IsPointInGeometry", &SensorUtils::IsPointInGeometry, py::arg("point"), py::arg("geometry"));
+    sensor_utils.def("CreateSensorView", &SensorUtils::CreateSensorView, py::arg("sensor"), py::arg("expression_name"));
 
     py::class_<DistanceMatrix, DistanceMatrix::Pointer>(m, "DistanceMatrix")
         .def(py::init<>())
