@@ -521,8 +521,8 @@ protected:
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         Values.SetStrainVector(rData.strain);       //this is the input parameter
-        Values.SetStressVector(rData.stress);       //this is an ouput parameter
-        Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
+        Values.SetStressVector(rData.stress);       //this is an output parameter
+        Values.SetConstitutiveMatrix(rData.C);      //this is an output parameter
 
         //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
         //this is ok under the hypothesis that no history dependent behaviour is employed
