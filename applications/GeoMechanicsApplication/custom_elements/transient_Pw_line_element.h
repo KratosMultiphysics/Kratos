@@ -125,16 +125,12 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (TNumNodes) {
-        case 2:
-        case 3:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
         case 4:
             return GeometryData::IntegrationMethod::GI_GAUSS_3;
         case 5:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                         << std::endl;
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
     }
 
