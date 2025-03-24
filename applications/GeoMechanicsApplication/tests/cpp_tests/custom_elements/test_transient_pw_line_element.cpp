@@ -12,10 +12,10 @@
 
 #include "containers/model.h"
 #include "custom_elements/transient_pw_line_element.h"
-#include "geometries/triangle_2d_10.h"
-#include "geometries/triangle_2d_15.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include <boost/numeric/ublas/assignment.hpp>
+
+#include <geometries/line_2d_4.h>
+#include <geometries/line_2d_5.h>
 
 using namespace Kratos;
 
