@@ -392,17 +392,24 @@ public:
         const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
 
         auto& f = *mpForceVector;
-        block_for_each(this->pGetBuilderAndSolver()->GetDofSet(),
-               [](Dof<double>& r_dof){
-                   if (!r_dof.IsFixed())
-                       r_dof.GetSolutionStepValue() = 0.0;
-               });
-
-        // Build your RHS
-        auto& p_builder_and_solver = this->pGetBuilderAndSolver();
-        auto& p_scheme = this->pGetScheme();
         TSparseSpace::SetToZero(f);
-        p_builder_and_solver->BuildRHS(p_scheme,r_model_part,f);
+
+        // Build the RHS manually to avoid the residual formulation
+        for (auto cond_it = r_model_part.ConditionsBegin(); cond_it != r_model_part.ConditionsEnd(); cond_it++){
+            DenseVectorType rhs;
+            EquationIdVectorType equation_id;
+            
+            cond_it->CalculateRightHandSide(rhs, r_process_info);
+            cond_it->EquationIdVector(equation_id, r_process_info);
+
+            // Assemble into global vector
+            for (IndexType i = 0; i < equation_id.size(); ++i) {
+                const IndexType global_index = equation_id[i];
+                if (global_index < f.size()) { 
+                    f[global_index] += rhs[i];
+                }
+            }
+        }
 
         ComplexType mode_weight;
         ComplexVectorType modal_displacement;
