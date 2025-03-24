@@ -58,6 +58,8 @@ public:
     // The size type definition
     using SizeType = std::size_t;
 
+    using ConstLawIntegratorType = TConstLawIntegratorType;
+
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
 
