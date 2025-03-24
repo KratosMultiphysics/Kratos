@@ -25,29 +25,27 @@ class ParametrizedIntegrationMethodSuite
 const Element& CreateElementWithSpecificGeometry(Model& rModel, const std::string& rGeometryDescription)
 {
     if (rGeometryDescription == "Triangle2D3N") {
-        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(rModel);
-        return rModel.GetModelPart("Main").Elements().front();
+        return ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(rModel).Elements().front();
     }
     if (rGeometryDescription == "Triangle2D6N") {
-        ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(rModel);
-        return rModel.GetModelPart("Main").Elements().front();
+        return ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(rModel)
+            .Elements()
+            .front();
     }
     if (rGeometryDescription == "Triangle2D10N") {
-        ModelSetupUtilities::CreateModelPartWithASingle2D10NElement(rModel);
-        return rModel.GetModelPart("Main").Elements().front();
+        return ModelSetupUtilities::CreateModelPartWithASingle2D10NElement(rModel).Elements().front();
     }
     if (rGeometryDescription == "Triangle2D15N") {
-        ModelSetupUtilities::CreateModelPartWithASingle2D15NElement(rModel);
-        return rModel.GetModelPart("Main").Elements().front();
+        return ModelSetupUtilities::CreateModelPartWithASingle2D15NElement(rModel).Elements().front();
     }
     if (rGeometryDescription == "Tetrahedra3D10N") {
-        ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(rModel);
-        return rModel.GetModelPart("Main").Elements().front();
+        return ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(rModel)
+            .Elements()
+            .front();
     }
 
     KRATOS_ERROR << "Geometry description not recognized: " << rGeometryDescription << std::endl;
 }
-
 
 TEST_P(ParametrizedIntegrationMethodSuite, TestElementReturnsCorrectIntegrationMethod)
 {
