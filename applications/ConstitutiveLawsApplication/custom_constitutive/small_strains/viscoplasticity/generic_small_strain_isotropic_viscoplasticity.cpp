@@ -139,7 +139,7 @@ void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::Finali
     double equivalent_stress;
     ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
 
-    const double F = equivalent_stress - threshold;
+    const double F = equivalent_stress - r_threshold;
 
     if (F >= 0.0) {
         BoundedArrayType deviatoric_stress_vector;
@@ -150,7 +150,7 @@ void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::Finali
         const auto& r_props = rValues.GetMaterialProperties();
         const double mu = r_props[MIU];
         const double sensitivity = r_props[DP_EPSILON];
-        const double plastic_multiplier = (std::pow(equivalent_stress / threshold, 1.0 / sensitivity) - 1.0) / mu;
+        const double plastic_multiplier = (std::pow(equivalent_stress / r_threshold, 1.0 / sensitivity) - 1.0) / mu;
 
         array_1d<double, VoigtSize> g_flux;
         ConstLawIntegratorType::YieldSurfaceType::CalculatePlasticPotentialDerivative(predictive_stress_vector, deviatoric_stress_vector, J2, g_flux, rValues);
@@ -162,8 +162,9 @@ void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::Finali
 
         r_plastic_dissipation += inner_prod(rValues.GetStressVector(), plastic_strain_increment) / g;
         noalias(r_plastic_strain) += plastic_strain_increment;
-        ConstLawIntegratorType::CalculateEquivalentStressThreshold(r_plastic_dissipation, 1, 0, r_threshold, 0, rValues, 0, characteristic_length);
 
+        double dummy;
+        ConstLawIntegratorType::CalculateEquivalentStressThreshold(r_plastic_dissipation, 1, 0, r_threshold, dummy, rValues, dummy, characteristic_length);
     }
 }
 
