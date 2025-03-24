@@ -16,9 +16,6 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler.hpp" // ConstraintAssembler
 #include "includes/kratos_parameters.h" // Parameters
 
-// System includes
-#include <optional> // std::optional
-
 
 namespace Kratos {
 
@@ -33,6 +30,9 @@ public:
     AugmentedLagrangeConstraintAssembler() noexcept;
 
     AugmentedLagrangeConstraintAssembler(Parameters Settings);
+
+    AugmentedLagrangeConstraintAssembler(Parameters Settings,
+                                         std::string&& rInstanceName);
 
     ~AugmentedLagrangeConstraintAssembler();
 

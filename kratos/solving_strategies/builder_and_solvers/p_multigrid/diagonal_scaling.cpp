@@ -133,7 +133,7 @@ void NormalizeRows(typename TSparse::MatrixType& rLhs,
             for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 const auto i_column = rLhs.index2_data()[i_entry];
                 const auto value = rLhs.value_data()[i_entry];
-                KRATOS_ERROR_IF(i_column != i_row and value) << "the diagonal of row " << i_row << " vanishes, but has off-diagonal components";
+                KRATOS_ERROR_IF(i_column != i_row && value) << "the diagonal of row " << i_row << " vanishes, but has off-diagonal components";
                 //if (i_column == i_row) rLhs.value_data()[i_entry] = static_cast<typename TSparse::DataType>(1);
             } // for i_entry in range(i_entry_begin, i_entry_end)
             //KRATOS_ERROR_IF(rRhs[i_row]) << "row " << i_row << " is empty, but the corresponding RHS component is " << rRhs[i_row];

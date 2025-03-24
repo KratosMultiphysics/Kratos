@@ -42,7 +42,7 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
         << "(" << rRight.size1() << "x" << rRight.size2() << ")";
 
     // Early exit on empty update matrix.
-    if (not rRight.size1() or not rRight.size2() or not rRight.nnz()) return;
+    if (!rRight.size1() || !rRight.size2() || !rRight.nnz()) return;
 
     KRATOS_ERROR_IF_NOT(rRight.nnz() <= rLeft.nnz());
 
@@ -107,7 +107,7 @@ MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
         << " and "
         << "(" << rRight.size1() << "x" << rRight.size2() << ")";
 
-    if (not rRight.size1() or not rRight.size2() or not rRight.nnz()) return;
+    if (!rRight.size1() || !rRight.size2() || !rRight.nnz()) return;
 
     // Declare new containers for the merged matrix.
     typename MatrixType::index_array_type row_extents(rLeft.index1_data().size());
@@ -330,7 +330,7 @@ void MapEntityContribution(TEntity& rEntity,
                            typename TSparse::VectorType* pRhs,
                            LockObject* pLockBegin)
 {
-    if constexpr (AssembleLHS or AssembleRHS) {
+    if constexpr (AssembleLHS || AssembleRHS) {
         if (rEntity.IsActive()) {
             if constexpr (AssembleLHS) {
                 if constexpr (AssembleRHS) {
@@ -537,7 +537,7 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
                     for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                         const auto i_column = rMatrix.index2_data()[i_entry];
                         const auto entry = rMatrix.value_data()[i_entry];
-                        KRATOS_ERROR_IF(abs_diagonal <= std::abs(entry) and i_column != i_row)
+                        KRATOS_ERROR_IF(abs_diagonal <= std::abs(entry) && i_column != i_row)
                             << "row " << i_row << " of the input matrix is not diagonally dominant "
                             << "(entry in column " << i_column << " {"
                             << entry << "} has a larger magnitude than the diagonal {"

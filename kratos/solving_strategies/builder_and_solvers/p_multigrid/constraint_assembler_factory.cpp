@@ -23,21 +23,22 @@ namespace Kratos {
 
 template <class TSparse, class TDense>
 typename ConstraintAssembler<TSparse,TDense>::Pointer
-ConstraintAssemblerFactory(Parameters Settings)
+ConstraintAssemblerFactory(Parameters Settings,
+                           std::string&& rInstanceName)
 {
     KRATOS_TRY
     const std::string imposition_name = Settings["method"].Get<std::string>();
     if (imposition_name == "none") {
-        return std::make_shared<NoOpConstraintAssembler<TSparse,TDense>>(Settings);
-    } else if (imposition_name == "master_slave_elimination") {
-        return std::make_shared<MasterSlaveConstraintAssembler<TSparse,TDense>>(Settings);
+        return std::make_shared<NoOpConstraintAssembler<TSparse,TDense>>(Settings, std::move(rInstanceName));
+    } else if (imposition_name == "master_slave") {
+        return std::make_shared<MasterSlaveConstraintAssembler<TSparse,TDense>>(Settings, std::move(rInstanceName));
     } else if (imposition_name == "augmented_lagrange") {
-        return std::make_shared<AugmentedLagrangeConstraintAssembler<TSparse,TDense>>(Settings);
+        return std::make_shared<AugmentedLagrangeConstraintAssembler<TSparse,TDense>>(Settings, std::move(rInstanceName));
     } else {
         std::stringstream message;
         message << "Unsupported constraint imposition \"" << imposition_name << "\". Options are:\n"
                 << "\t\"none\"\n"
-                << "\t\"master_slave_elimination\"\n"
+                << "\t\"master_slave\"\n"
                 << "\t\"augmented_lagrange\"";
         KRATOS_ERROR << message.str();
     }
@@ -45,8 +46,8 @@ ConstraintAssemblerFactory(Parameters Settings)
 }
 
 
-#define KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY(TSparse, TDense)                                            \
-    template ConstraintAssembler<TSparse,TDense>::Pointer ConstraintAssemblerFactory<TSparse,TDense>(Parameters)
+#define KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY(TSparse, TDense)                                                        \
+    template ConstraintAssembler<TSparse,TDense>::Pointer ConstraintAssemblerFactory<TSparse,TDense>(Parameters, std::string&&)
 
 KRATOS_INSTANTIATE_CONSTRAINT_ASSEMBLER_FACTORY(TUblasSparseSpace<double>, TUblasDenseSpace<double>);
 

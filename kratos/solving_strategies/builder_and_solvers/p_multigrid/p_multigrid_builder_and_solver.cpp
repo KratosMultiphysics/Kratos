@@ -140,7 +140,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                 if (3 <= mVerbosity) {
                     std::stringstream residual_stream;
                     residual_stream << std::setprecision(8) << std::scientific<< relative_residual_norm;
-                    std::cout << mpInterface->Info() << ": root grid: "
+                    std::cout << "Grid 0: "
                               << "multigrid iteration " << i_multigrid_iteration
                               << " residual " << residual_stream.str()
                               << "\n";
@@ -202,7 +202,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
             // Check for constraint convergence.
             constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
-        } while (not constraint_status.finished);
+        } while (!constraint_status.finished);
 
         return ConstraintLoopStatus {/*residual_norm=*/TSparse::TwoNorm(residual) / initial_residual_norm,
                                      /*constraint_status=*/constraint_status};
@@ -244,16 +244,16 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
         // Emit status.
         if (1 <= mVerbosity) {
-            if (not constraint_status.converged)
-                std::cerr << mpInterface->Info() << ": constraints failed to converge\n";
+            if (!constraint_status.converged)
+                std::cerr << "Grid 0: constraints failed to converge\n";
 
             const std::string residual_norm_string = (std::stringstream() << std::setprecision(8) << std::scientific<< residual_norm).str();
             if (mTolerance < residual_norm) {
-                std::cerr << mpInterface->Info() << ": failed to converge "
+                std::cerr << "Grid 0: failed to converge "
                           << "(residual " << residual_norm_string << ")\n";
             } /*if mTolerance < residual_norm*/ else {
                 if (2 <= mVerbosity)
-                    std::cout << mpInterface->Info() << ": residual "
+                    std::cout << "Grid 0: residual "
                               << residual_norm_string << "\n";
             }
         } // if 1 <= mVerbosity
@@ -275,7 +275,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                         rRhs,
                                         mpInterface->GetDofSet());
 
-        return residual_norm <= mTolerance and constraint_status.converged;
+        return residual_norm <= mTolerance && constraint_status.converged;
         KRATOS_CATCH("")
     }
 
@@ -467,7 +467,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                         this->mMaybeHierarchy.value());
         } // if mMaybeHierarchy
 
-        //if constexpr (AssembleLHS and AssembleRHS)
+        //if constexpr (AssembleLHS && AssembleRHS)
         //    NormalizeSystem<TSparse>(*pMaybeLhs.value(),
         //                             *pMaybeRhs.value(),
         //                             GetDiagonalScaleFactor<TSparse>(*pMaybeLhs.value(),
@@ -591,7 +591,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
             it_entity->GetDofList(tls_dofs, tls_constraint_dofs, r_process_info);
 
             // Different behavior depending on whether MasterSlaveConstraint or MultifreedomConstraint.
-            if (tls_dofs.empty() and not tls_constraint_dofs.empty()) {
+            if (tls_dofs.empty() && !tls_constraint_dofs.empty()) {
                 // Multifreedom constraint.
                 dofs_tmp_set.insert(tls_constraint_dofs.begin(), tls_constraint_dofs.end());
             } else {
@@ -869,11 +869,11 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
 
     // Solve constrained assembled system.
     BuiltinTimer timer;
-    if (not mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart) and 1 <= mpImpl->mVerbosity) {
-        std::cerr << this->Info() << ": root grid: failed to solve the assembled system\n";
+    if (!mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart) && 1 <= mpImpl->mVerbosity) {
+        std::cerr << this->Info() << "Grid 0: failed to solve the assembled system\n";
     }
-    KRATOS_INFO_IF("PMultigridBuilderAndSolver", 2 <= mpImpl->mVerbosity)
-        << "Linear solution took " << timer << "\n";
+    KRATOS_INFO_IF(this->Info(), 2 <= mpImpl->mVerbosity)
+        << ": Linear solution took " << timer << "\n";
     KRATOS_CATCH("")
 }
 
@@ -905,7 +905,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
         rDof.GetSolutionStepReactionValue() = -rRhs[rDof.EquationId()];
     });
 
-    KRATOS_INFO_IF("PMultigridBuilderAndSolver", 2 <= mpImpl->mVerbosity)
+    KRATOS_INFO_IF(this->Info(), 2 <= mpImpl->mVerbosity)
         << "Computing reactions took " << timer << "\n";
     KRATOS_CATCH("")
 }
@@ -935,7 +935,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
     mpImpl->mTolerance = Settings["tolerance"].Get<double>();
 
     // Set multifreedom constraint imposition strategy.
-    mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition_settings"]);
+    mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition_settings"],
+                                                                               "Grid 0 constraints");
 
     // Construct the top level smoother.
     Parameters smoother_settings = Settings["smoother_settings"];

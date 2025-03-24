@@ -22,7 +22,8 @@ namespace Kratos {
 
 template <class TSparseSpace, class TDenseSpace>
 typename ConstraintAssembler<TSparseSpace,TDenseSpace>::Pointer
-ConstraintAssemblerFactory(Parameters Settings);
+ConstraintAssemblerFactory(Parameters Settings,
+                           std::string&& rInstanceName);
 
 
 } // namespace Kratos

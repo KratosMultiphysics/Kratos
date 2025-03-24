@@ -32,8 +32,12 @@ public:
         : NoOpConstraintAssembler(Parameters())
     {}
 
-    NoOpConstraintAssembler([[maybe_unused]] Parameters Settings) noexcept
-        : Base(ConstraintImposition::None)
+    NoOpConstraintAssembler(Parameters Settings)
+        : NoOpConstraintAssembler(Settings, "unnamed")
+    {}
+
+    NoOpConstraintAssembler(Parameters, std::string&& rInstanceName) noexcept
+        : Base(ConstraintImposition::None, std::move(rInstanceName))
     {}
 
     Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,

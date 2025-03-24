@@ -46,11 +46,15 @@ public:
     using ConstraintArray = PointerVectorSet<MasterSlaveConstraint, IndexedObject>;
 
     ConstraintAssembler() noexcept
-        : ConstraintAssembler(ConstraintImposition::MasterSlave)
+        : ConstraintAssembler(ConstraintImposition::MasterSlave, "unnamed")
     {}
 
-    ConstraintAssembler(ConstraintImposition Method)
-        : DataValueContainer()
+    ConstraintAssembler(ConstraintImposition Method,
+                        std::string&& rInstanceName)
+        : DataValueContainer(),
+          mRelationMatrix(),
+          mConstraintGapVector(),
+          mName(std::move(rInstanceName))
     {
         std::string method_name;
 
@@ -66,7 +70,7 @@ public:
                 break;
             default:
                 // Other imposition methods are not implemented yet.
-                KRATOS_ERROR << "Unsupported constraint imposition method: " << (int)Method;
+                KRATOS_ERROR << "Unsupported constraint imposition: " << (int)Method;
         } // switch Method
 
         this->SetValue(ConstraintAssembler::GetImpositionVariable(), method_name);
@@ -220,6 +224,11 @@ public:
         return mConstraintGapVector;
     }
 
+    const std::string& GetName() const noexcept
+    {
+        return mName;
+    }
+
 protected:
     // PGrid inherits an assembled unconstrained system, as well as an assembled relation matrix,
     // and constructs a restriction operator it can use to directly compute the system and relation
@@ -249,6 +258,8 @@ private:
     typename TSparse::MatrixType mRelationMatrix;
 
     typename TSparse::VectorType mConstraintGapVector;
+
+    std::string mName;
 }; // class ConstraintImposition
 
 

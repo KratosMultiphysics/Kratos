@@ -70,7 +70,8 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
         static_assert(!std::is_same_v<value_type,value_type>, "unhandled sparse space type");
     }
 
-    mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition_settings"]);
+    mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition_settings"],
+                                                                       "Grid " + std::to_string(mDepth) + " constraints");
     mVerbosity = Settings["verbosity"].Get<int>();
 
     const int max_depth = Settings["max_depth"].Get<int>();
@@ -95,7 +96,7 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
         const std::string solver_name = LeafSolverSettings["solver_type"].Get<std::string>();
         using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
 
-        if (not SolverFactoryRegistry::Has(solver_name)) {
+        if (!SolverFactoryRegistry::Has(solver_name)) {
             std::stringstream message;
             message << "PMultigridBuilderAndSolver: "
                     << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
@@ -396,15 +397,15 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
         linear_solver_status = mpSolver->Solve(mLhs, mSolution, mRhs);
         mpSolver->FinalizeSolutionStep(mLhs, mSolution, mRhs);
         constraint_status = mpConstraintAssembler->FinalizeSolutionStep(mLhs, mSolution, mRhs, i_iteration);
-    } while (not constraint_status.finished);
+    } while (!constraint_status.finished);
 
     // Emit status.
     if (1 <= mVerbosity) {
-        if (not linear_solver_status)
-            std::cerr << "PMultigridBuilderAndSolver: grid " << mDepth << ": failed to converge\n";
+        if (!linear_solver_status)
+            std::cerr << "Grid " << mDepth << ": failed to converge\n";
 
-        if (not constraint_status.converged)
-            std::cerr << "PMultigridBuilderAndSolver: grid " << mDepth << ": failed to converge constraints\n";
+        if (!constraint_status.converged)
+            std::cerr << "Grid " << mDepth << ": failed to converge constraints\n";
     }
 
     mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
@@ -419,7 +420,7 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     axpy_prod(mProlongationOperator, mSolution, rParentSolution, boost::numeric::ublas::row_major_tag());
     KRATOS_CATCH("")
 
-    return linear_solver_status and constraint_status.converged;
+    return linear_solver_status && constraint_status.converged;
 }
 
 

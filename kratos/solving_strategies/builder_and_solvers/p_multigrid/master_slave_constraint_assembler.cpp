@@ -31,7 +31,14 @@ MasterSlaveConstraintAssembler<TSparse,TDense>::MasterSlaveConstraintAssembler()
 
 template <class TSparse, class TDense>
 MasterSlaveConstraintAssembler<TSparse,TDense>::MasterSlaveConstraintAssembler(Parameters Settings)
-    : Base(ConstraintImposition::MasterSlave),
+    : MasterSlaveConstraintAssembler(Settings, "unnamed")
+{}
+
+
+template <class TSparse, class TDense>
+MasterSlaveConstraintAssembler<TSparse,TDense>::MasterSlaveConstraintAssembler(Parameters Settings,
+                                                                               std::string&& rInstanceName)
+    : Base(ConstraintImposition::MasterSlave, std::move(rInstanceName)),
       mSlaveIds(),
       mMasterIds(),
       mInactiveSlaveIds(),

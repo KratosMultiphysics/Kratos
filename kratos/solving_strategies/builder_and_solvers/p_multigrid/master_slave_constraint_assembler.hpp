@@ -32,6 +32,9 @@ public:
 
     MasterSlaveConstraintAssembler(Parameters Settings);
 
+    MasterSlaveConstraintAssembler(Parameters Settings,
+                                   std::string&& rInstanceName);
+
     /// @copydoc Base::Allocate
     void Allocate(const typename Base::ConstraintArray& rConstraints,
                   const ProcessInfo& rProcessInfo,

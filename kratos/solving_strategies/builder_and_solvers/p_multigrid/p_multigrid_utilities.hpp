@@ -417,7 +417,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     std::size_t entry_count = 0ul;
     for (std::size_t i_fine_dof=0ul; i_fine_dof<FineSystemSize; ++i_fine_dof) {
         entry_count += rows[i_fine_dof].first.size();
-        if (not rows[i_fine_dof].first.empty()) {
+        if (!rows[i_fine_dof].first.empty()) {
             rDofMap[i_coarse_dof] = i_fine_dof;
             ++i_coarse_dof;
         } // if not ros[i_fine_dof].first.empty()

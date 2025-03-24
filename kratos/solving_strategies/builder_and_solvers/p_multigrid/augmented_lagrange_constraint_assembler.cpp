@@ -26,39 +26,6 @@ namespace Kratos {
 namespace detail {
 
 
-/// @brief Checks whether two sorted sets have at least one item in common.
-/// @tparam TIndex Set value type.
-/// @param itLeftBegin Pointer to the beginning of the first set.
-/// @param itLeftEnd Sentinel of the first set.
-/// @param itRightBegin Pointer to the beginning of the second set.
-/// @param itRightEnd Sentinel of the second set.
-/// @return True if the two sets have a non-empty intersection, false otherwise.
-template <class TIndex>
-bool HasIntersection(const TIndex* itLeftBegin,
-                     const TIndex* itLeftEnd,
-                     const TIndex* itRightBegin,
-                     const TIndex* itRightEnd) noexcept
-{
-    // Early exit on empty ranges.
-    if (itLeftBegin == itLeftEnd or itRightBegin == itRightEnd)
-        return false;
-
-    /// @todo Shrink the search ranges to only process overlapping index spaces.
-
-    auto it_left = itLeftBegin;
-    auto it_right = itRightBegin;
-    while (it_left < itLeftEnd) {
-        if (*it_left == *it_right) return true;
-        it_right = std::lower_bound(it_right, itRightEnd, *it_left);
-        if (it_right == itRightEnd) return false;
-        else if (*it_right == *it_left) return true;
-        else it_left = std::lower_bound(it_left, itLeftEnd, *it_right);
-    } // for it_left in range(itLeftBegin, itLeftEnd)
-
-    return false;
-}
-
-
 void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIndices,
                                   std::vector<std::size_t>& rDofIds,
                                   MasterSlaveConstraint::MatrixType& rRelationMatrix,
@@ -131,6 +98,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                               typename TSparse::VectorType& rConstraintGaps,
                               TItDof itDofBegin,
                               [[maybe_unused]] TItDof itDofEnd,
+                              const std::string& rConstraintAssemblerName,
                               int Verbosity)
 {
     KRATOS_TRY
@@ -204,8 +172,8 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
         total_forced_dirichlet_dof_count += forced_dirichlet_dof_count;
     } while (forced_dirichlet_dof_count);
 
-    if (2 <= Verbosity and total_forced_dirichlet_dof_count) {
-        std::cout << "AugmentedLagrangeConstraintAssembler: "
+    if (2 <= Verbosity && total_forced_dirichlet_dof_count) {
+        std::cout << rConstraintAssemblerName << ": "
                   << "propagated Dirichlet conditions to " << total_forced_dirichlet_dof_count << " DoFs "
                   << "in " << iteration_count - 1 << " iterations\n";
     }
@@ -244,11 +212,22 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstrain
 
 template <class TSparse, class TDense>
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstraintAssembler(Parameters Settings)
-    : Base(ConstraintImposition::AugmentedLagrange),
+    : AugmentedLagrangeConstraintAssembler(Settings, "unnamed")
+{
+}
+
+
+template <class TSparse, class TDense>
+AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstraintAssembler(Parameters Settings,
+                                                                                           std::string&& rInstanceName)
+    : Base(ConstraintImposition::AugmentedLagrange, std::move(rInstanceName)),
       mpImpl(new Impl{/*mConstraintIdToIndexMap: */std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>(),
                       /*mMaybeTransposeRelationMatrix: */std::optional<typename TSparse::MatrixType>(),
                       /*mVerbosity: */1})
 {
+    KRATOS_INFO_IF(this->Info(), 2 <= mpImpl->mVerbosity && !this->GetName().empty())
+        << ": aliased to " << this->GetName();
+
     Settings.ValidateAndAssignDefaults(AugmentedLagrangeConstraintAssembler::GetDefaultParameters());
 
     Vector algorithmic_parameters(3);
@@ -502,6 +481,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                                      this->GetConstraintGapVector(),
                                                      rDofSet.begin(),
                                                      rDofSet.end(),
+                                                     this->GetName(),
                                                      mpImpl->mVerbosity);
 
     KRATOS_CATCH("")
@@ -525,6 +505,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
     //                                                 this->GetConstraintGapVector(),
     //                                                 itDofBegin,
     //                                                 itDofEnd,
+    //                                                 this->GetName(),
     //                                                 mpImpl->mVerbosity);
 
     // Fetch function-wide constants.
@@ -616,7 +597,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
     // Decide whether to keep looping.
     const auto constraint_norm = TSparse::TwoNorm(constraint_residual);
     if (3 <= this->mpImpl->mVerbosity)
-        std::cout << "AugmentedLagrangeConstraintAssembler: iteration " << iIteration
+        std::cout << this->GetName() << ": iteration " << iIteration
                   << " constraint residual " << (std::stringstream() << std::scientific << std::setprecision(8) << constraint_norm).str()
                   << "\n";
 
@@ -625,7 +606,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
 
     if (converged) {
         if (2 <= mpImpl->mVerbosity)
-            std::cout << "AugmentedLagrangeConstraintAssembler: constraints converged (residual "
+            std::cout << this->GetName() << ": constraints converged (residual "
                       << (std::stringstream() << std::scientific << std::setprecision(8) << constraint_norm).str()
                       << ")\n";
         return typename Base::Status {/*finished=*/true, /*converged=*/true};
@@ -633,8 +614,8 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
         if (static_cast<int>(iIteration) < max_iterations) {
             return typename Base::Status {/*finished=*/false, /*converged=*/false};
         } /*if iIteration < max_iterations*/ else {
-            if (1 <= mpImpl->mVerbosity and not converged)
-                std::cerr << "AugmentedLagrangeConstraintAssembler: constraints failed to converge (residual "
+            if (1 <= mpImpl->mVerbosity && !converged)
+                std::cerr << this->GetName() << ": constraints failed to converge (residual "
                           << (std::stringstream() << std::scientific << std::setprecision(8) << constraint_norm).str()
                           << ")\n";
             return typename Base::Status {/*finished=*/true, /*converged=*/false};
@@ -681,7 +662,7 @@ typename TSparse::MatrixType&
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetTransposeRelationMatrix()
 {
     KRATOS_TRY
-    if (not mpImpl->mMaybeTransposeRelationMatrix.has_value()) {
+    if (!mpImpl->mMaybeTransposeRelationMatrix.has_value()) {
         mpImpl->mMaybeTransposeRelationMatrix.emplace();
         SparseMatrixMultiplicationUtility::TransposeMatrix(mpImpl->mMaybeTransposeRelationMatrix.value(),
                                                            this->GetRelationMatrix());
