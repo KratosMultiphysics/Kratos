@@ -22,6 +22,8 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 
+#include <string>
+
 namespace Kratos
 {
 
@@ -98,37 +100,17 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        if (GetGeometry().LocalSpaceDimension() == 1) {
-            switch (TNumNodes) {
-            case 2:
-            case 3:
-                return GeometryData::IntegrationMethod::GI_GAUSS_2;
-            case 4:
-                return GeometryData::IntegrationMethod::GI_GAUSS_3;
-            case 5:
-                return GeometryData::IntegrationMethod::GI_GAUSS_5;
-            default:
-                KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                             << std::endl;
-            }
-        }
-
-        switch (TNumNodes) {
-        case 3:
-        case 4:
-        case 6:
-        case 8:
-        case 9:
-        case 20:
-        case 27:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
-        case 10:
+        switch (this->GetGeometry().GetGeometryType()) {
+        case GeometryData::KratosGeometryType::Kratos_Line2D4:
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D10:
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10:
             return GeometryData::IntegrationMethod::GI_GAUSS_4;
-        case 15:
+        case GeometryData::KratosGeometryType::Kratos_Line2D5:
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D15:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                         << std::endl;
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
     }
 
