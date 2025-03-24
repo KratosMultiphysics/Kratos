@@ -207,7 +207,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
     if (2 <= Verbosity and total_forced_dirichlet_dof_count) {
         std::cout << "AugmentedLagrangeConstraintAssembler: "
                   << "propagated Dirichlet conditions to " << total_forced_dirichlet_dof_count << " DoFs "
-                  << "in " << iteration_count << " iterations\n";
+                  << "in " << iteration_count - 1 << " iterations\n";
     }
     KRATOS_CATCH("")
 }
