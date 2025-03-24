@@ -21,22 +21,22 @@
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
 
 // Yield surfaces
-#include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
+// #include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
+// #include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+// #include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
+// #include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+// #include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+// #include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+// #include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+// #include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
+// #include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
+// #include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+// #include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
+// #include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
@@ -44,8 +44,50 @@ namespace Kratos
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
 
-} // End CalculateMaterialResponseCauchy
+    // We get the strain vector
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    // We get the constitutive tensor
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+
+    // Integrate Stress plasticity
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+
+    if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
+    }
+    this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+
+    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+
+    double threshold           = GetThreshold();
+    double plastic_dissipation = GetPlasticDissipation();
+    Vector plastic_strain      = GetPlasticStrain();
+
+    BoundedArrayType predictive_stress_vector;
+
+    noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+    this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
+
+    double equivalent_stress;
+    TConstLawIntegratorType::TYieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
+
+    const double F = equivalent_stress - threshold;
+
+    if (F >= 0.0) {
+        const double plastic_multiplier = ()
+    }
+
+
+
+
+
+
+
+
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

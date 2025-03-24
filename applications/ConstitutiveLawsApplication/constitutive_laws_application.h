@@ -50,7 +50,7 @@
 #include "custom_constitutive/small_strains/damage/d_plus_d_minus_damage_masonry_3d.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_kinematic_plasticity_factory.h"
-#include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_viscoplasticity.h"
+#include "custom_constitutive/small_strains/viscoplasticity/generic_small_strain_isotropic_viscoplasticity.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/finite_strain_isotropic_plasticity_factory.h"
