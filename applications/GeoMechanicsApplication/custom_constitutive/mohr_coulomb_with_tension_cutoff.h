@@ -15,7 +15,6 @@
 #pragma once
 
 // System includes
-#include <cmath>
 #include <optional>
 
 // Project includes
@@ -57,9 +56,9 @@ public:
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
-    int  Check(const Properties&   rMaterialProperties,
-               const GeometryType& rElementGeometry,
-               const ProcessInfo&  rCurrentProcessInfo) const override;
+    [[nodiscard]] int Check(const Properties&   rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const ProcessInfo&  rCurrentProcessInfo) const override;
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
@@ -71,27 +70,17 @@ private:
     CoulombYieldSurface                       mCoulombYieldSurface;
     TensionCutoff                             mTensionCutOff;
 
-    void CheckProperty(const Properties&       rMaterialProperties,
-                       const Variable<double>& rVariable,
-                       std::optional<double>   MaxValue = std::nullopt) const;
-    Vector CalculateTrialStressVector(const Vector& rStrainVector, double YoungsModulus, double PoissonsRatio) const;
-    [[nodiscard]] double CalculateApex(double FrictionAngle, double Cohesion) const;
-    [[nodiscard]] Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensileStrength) const;
-    [[nodiscard]] Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector,
-                                                 double        TensileStrength) const;
-    [[nodiscard]] Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector,
-                                                        const Vector& rCornerPoint) const;
-    [[nodiscard]] Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVector,
-                                                          double        FrictionAngle,
-                                                          double        Cohesion) const;
+    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
+                                                    double        YoungsModulus,
+                                                    double        PoissonsRatio) const;
     [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
     [[nodiscard]] bool   IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
                                              double        TensileStrength,
                                              double        Apex,
                                              const Vector& rCornerPoint) const;
-    [[nodiscard]] bool   IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
-                                                    double        DilatancyAngle,
-                                                    const Vector& rCornerPoint) const;
+    [[nodiscard]] static bool IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
+                                                         double        DilatancyAngle,
+                                                         const Vector& rCornerPoint);
 }; // Class MohrCoulombWithTensionCutOff
 
 } // namespace Kratos
