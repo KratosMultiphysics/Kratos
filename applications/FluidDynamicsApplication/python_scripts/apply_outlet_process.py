@@ -66,10 +66,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             raise Exception("Outlet external pressure settings variable_name is not EXTERNAL_PRESSURE.")
         elif (pres_settings["value"].IsString()):
             if (pres_settings["value"].GetString == ""):
-                raise Exception("Outlet pressure function sting is empty.")
+                raise Exception("Outlet pressure function string is empty.")
         elif (ext_pres_settings["value"].IsString()):
             if (ext_pres_settings["value"].GetString == ""):
-                raise Exception("Outlet external pressure function sting is empty.")
+                raise Exception("Outlet external pressure function string is empty.")
 
         self.hydrostatic_outlet = settings["hydrostatic_outlet"].GetBool()
         self.h_top = settings["h_top"].GetDouble()
