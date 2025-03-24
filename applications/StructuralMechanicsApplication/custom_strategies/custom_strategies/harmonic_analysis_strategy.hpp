@@ -80,6 +80,8 @@ public:
 
     typedef DenseVector<ComplexType> ComplexVectorType;
 
+    typedef std::vector<std::size_t> EquationIdVectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
