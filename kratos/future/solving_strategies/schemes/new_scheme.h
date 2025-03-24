@@ -172,6 +172,7 @@ public:
 
         // Set up the assembly helper
         Parameters build_settings = ThisParameters["build_settings"];
+        build_settings.AddInt("echo_level", ThisParameters["echo_level"].GetInt());
         mpAssemblyHelper = Kratos::make_unique<AssemblyHelperType>(rModelPart, build_settings);
     }
 
@@ -610,8 +611,7 @@ public:
             "name" : "new_scheme",
             "build_settings" : {
                 "build_type" : "block",
-                "scaling_type" : "max_diagonal",
-                "scaling_value" : 1.0
+                "scaling_type" : "max_diagonal"
             },
             "echo_level" : 0,
             "calculate_reactions" : false

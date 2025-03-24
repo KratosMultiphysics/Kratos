@@ -13,6 +13,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "future/linear_solvers/amgcl_solver.h"
+#include "future/linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos::Testing
 {
@@ -44,6 +45,27 @@ namespace
         // Return the system size
         return rRHS.size();
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversSkylineLUFactorizationSolver, KratosCoreFutureSuite)
+{
+    // Set up the system to be solved
+    CsrMatrix<> LHS;
+    SystemVector<> RHS;
+    const std::size_t system_size = SetLinearSystem(LHS, RHS);
+
+    // Set the linear solver to be tested
+    Parameters skyline_lu_settings(R"({
+    })");
+    auto p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<CsrMatrix<>, SystemVector<>>>(skyline_lu_settings);
+
+    // Solve the problem
+    SystemVector<> sol(system_size);
+    p_linear_solver->Solve(LHS, sol, RHS);
+
+    // Check the obtained results
+    std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
+    KRATOS_EXPECT_VECTOR_NEAR(sol.data(), ref_sol, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)

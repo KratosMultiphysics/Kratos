@@ -483,7 +483,7 @@ public:
 
 
 
-template<class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>, class TReordererType = Reorderer<TMatrixType, TVectorType> >
+template<class TMatrixType, class TVectorType, class TReordererType = Reorderer<TMatrixType, TVectorType> >
 class SkylineLUFactorizationSolver : public Future::DirectSolver<TMatrixType, TVectorType, TReordererType>
 {
 public:
