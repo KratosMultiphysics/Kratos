@@ -673,4 +673,132 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D27N, KratosGe
     ValidateThermalElement(model_part);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TransientThermalElement_GetIntegrationMethodForAllRegisteredElements,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto          p_properties = std::make_shared<Properties>();
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+
+    // Act and Assert
+    auto p_transient_thermal_line_element_2D2N = make_intrusive<TransientThermalElement<2, 2>>(
+        1, std::make_shared<Line2D2<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_2D2N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    auto p_transient_thermal_line_element_3D2N = make_intrusive<TransientThermalElement<2, 2>>(
+        1, std::make_shared<Line3D2<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_3D2N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
+    auto p_transient_thermal_line_element_2D3N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Line2D3<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_2D3N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    auto p_transient_thermal_line_element_3D3N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Line3D3<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_3D3N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    auto p_transient_thermal_element_2D3N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D3N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(4, 0.5, 0.0, 0.0));
+    auto p_transient_thermal_line_element_2D4N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Line2D4<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_2D4N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_3);
+
+    auto p_transient_thermal_element_2D4N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Quadrilateral2D4<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D4N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    auto p_transient_thermal_element_3D4N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Tetrahedra3D4<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D4N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(5, 1.0, 0.5, 0.0));
+    auto p_transient_thermal_line_element_2D5N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Line2D5<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_2D5N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_5);
+
+    nodes.push_back(make_intrusive<Node>(6, 0.5, 0.5, 0.0));
+    auto p_transient_thermal_element_2D6N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Triangle2D6<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D6N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(7, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(8, 0.5, 0.5, 0.0));
+    auto p_transient_thermal_element_2D8N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Quadrilateral2D8<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D8N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    auto p_transient_thermal_element_3D8N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D8N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(9, 0.5, 0.5, 0.0));
+    auto p_transient_thermal_element_2D9N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Quadrilateral2D9<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D9N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(10, 0.5, 0.5, 0.0));
+    auto p_transient_thermal_element_2D10N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Triangle2D10<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D10N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_4);
+
+    auto p_transient_thermal_element_3D10N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Tetrahedra3D10<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D10N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_4);
+
+    nodes.push_back(make_intrusive<Node>(11, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(12, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(13, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(14, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(15, 0.5, 0.5, 0.0));
+
+    auto p_transient_thermal_element_2D15N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Triangle2D15<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D15N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_5);
+
+    nodes.push_back(make_intrusive<Node>(16, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(17, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(18, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(19, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(20, 0.5, 0.5, 0.0));
+
+    auto p_transient_thermal_element_3D20N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Hexahedra3D20<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D20N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(21, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(22, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(23, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(24, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(25, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(26, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(27, 0.5, 0.5, 0.0));
+
+    auto p_transient_thermal_element_3D27N = make_intrusive<TransientThermalElement<2, 3>>(
+        1, std::make_shared<Hexahedra3D27<Node>>(nodes), p_properties);
+    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D27N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+}
+
 } // namespace Kratos::Testing
