@@ -40,6 +40,13 @@ public:
                                                 const Vector&              rDisplacements,
                                                 bool                       UseHenckyStrain,
                                                 std::size_t                VoigtSize);
+    static void                CalculatePrincipalStresses(const Vector& rCauchyStressVector,
+                                                          Vector&       rPrincipalStressVector,
+                                                          Matrix&       rEigenVectorsMatrix);
+    static void ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix);
+    static Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector,
+                                          const Matrix& rRotationMatrix,
+                                          std::size_t   StressVectorSize);
 
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
