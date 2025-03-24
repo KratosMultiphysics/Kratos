@@ -541,7 +541,7 @@ public:
                 }
             }
 
-            if(old_ndof == -1 or old_ndof != ndof)
+            if(old_ndof == -1 || old_ndof != ndof)
                 mBlockSize = 1;
             else
                 mBlockSize = ndof;
