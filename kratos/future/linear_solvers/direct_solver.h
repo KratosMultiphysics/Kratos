@@ -38,7 +38,7 @@ namespace Kratos::Future
    right hand sides and their operators.
    - TReordererType which specify type of the Orderer that performs the reordering of matrix to optimize the solution.
 */
-template<class TMatrixType, class TVectorType, class TReordererType = Reorderer<TMatrixType, TVectorType> >
+template<class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>, class TReordererType = Reorderer<TMatrixType, TVectorType> >
 class DirectSolver : public Future::LinearSolver<TMatrixType, TVectorType, TReordererType>
 {
 public:

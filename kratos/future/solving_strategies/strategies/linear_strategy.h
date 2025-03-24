@@ -122,7 +122,7 @@ public:
         : mpModelPart(&rModelPart)
     {
         // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
         // Set flags to start the calculations correctly

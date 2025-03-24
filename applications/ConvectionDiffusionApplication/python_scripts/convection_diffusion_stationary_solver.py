@@ -46,7 +46,11 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_solver.Convection
 
         # As the (no) time integration is managed by the element, we set a "fake" scheme to perform the solution update
         if not self.main_model_part.IsDistributed():
-            convection_diffusion_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+            # convection_diffusion_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+            scheme_settings = KratosMultiphysics.Parameters("""{}""")
+            convection_diffusion_scheme = KratosMultiphysics.Future.NewScheme(
+                self.GetComputingModelPart(),
+                scheme_settings)
         else:
             convection_diffusion_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticScheme()
 
