@@ -17,7 +17,7 @@
 #include "utilities/math_utils.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-#include "generic_small_strain_isotropic_plasticity.h"
+#include "generic_small_strain_isotropic_viscoplasticity.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
 
 // Yield surfaces
