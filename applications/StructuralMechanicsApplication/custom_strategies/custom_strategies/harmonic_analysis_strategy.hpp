@@ -397,18 +397,22 @@ public:
         TSparseSpace::SetToZero(f);
 
         // Build the RHS manually to avoid the residual formulation
-        for (auto cond_it = r_model_part.ConditionsBegin(); cond_it != r_model_part.ConditionsEnd(); cond_it++){
-            DenseVectorType rhs;
-            EquationIdVectorType equation_id;
-            
-            cond_it->CalculateRightHandSide(rhs, r_process_info);
-            cond_it->EquationIdVector(equation_id, r_process_info);
+        IndexPartition<std::size_t>(r_model_part.NumberOfConditions()).for_each(
+        std::tuple<DenseVectorType, EquationIdVectorType>{},
+        [&r_model_part, &r_process_info, &f](const std::size_t Index, auto& rTLS) {
+            auto& r_condition = *(r_model_part.ConditionsBegin() + Index);
+
+            auto& rhs = std::get<0>(rTLS);
+            auto& equation_id = std::get<1>(rTLS);
+
+            r_condition.CalculateRightHandSide(rhs, r_process_info);
+            r_condition.EquationIdVector(equation_id, r_process_info);
 
             // Assemble into global vector
             for (IndexType i = 0; i < equation_id.size(); ++i) {
-                     f[equation_id[i]] += rhs[i];
+                AtomicAdd(f[equation_id[i]], rhs[i]);
             }
-        }
+        });
 
         ComplexType mode_weight;
         ComplexVectorType modal_displacement;
