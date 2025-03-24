@@ -31,25 +31,25 @@ namespace py = pybind11;
 
 void AddStrategiesToPython(py::module& m)
 {
-    using SchemeType = Future::NewScheme<CsrMatrix<>, SystemVector<>>;
-    py::class_<SchemeType, typename SchemeType::Pointer, Flags>(m,"NewScheme")
-        // .def(py::init<>())
+    using FutureSchemeType = Future::NewScheme<CsrMatrix<>, SystemVector<>>;
+    py::class_<FutureSchemeType, typename FutureSchemeType::Pointer, Flags>(m, "NewScheme")
+        .def(py::init<>())
         // .def(py::init<ModelPart&, Parameters>())
         // .def("Execute",&Future::Process::Execute)
         // .def("Info",&Future::Process::Info)
         // .def("__str__", PrintObject<Future::Process>)
     ;
 
-    // Pack everything under the "Future" submodule
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>, LinearSolverType>;
-    py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, Flags>(m,"LinearStrategy")
-        // .def(py::init<>())
-        // .def(py::init<ModelPart&, Parameters>())
-        // .def("Execute",&Future::Process::Execute)
-        // .def("Info",&Future::Process::Info)
-        // .def("__str__", PrintObject<Future::Process>)
-    ;
+    // // Pack everything under the "Future" submodule
+    // using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    // using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>, LinearSolverType>;
+    // py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, Flags>(m,"LinearStrategy")
+    //     // .def(py::init<>())
+    //     // .def(py::init<ModelPart&, Parameters>())
+    //     // .def("Execute",&Future::Process::Execute)
+    //     // .def("Info",&Future::Process::Info)
+    //     // .def("__str__", PrintObject<Future::Process>)
+    // ;
 }
 
 }  // namespace Kratos::Future::Python.

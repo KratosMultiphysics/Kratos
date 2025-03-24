@@ -24,4 +24,4 @@
 namespace Kratos::Future::Python
 {
     void AddStrategiesToPython(pybind11::module &m);
-}  // namespace Kratos::Python.
+}  // namespace Kratos::Future::Python.

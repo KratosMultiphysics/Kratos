@@ -21,6 +21,7 @@
 
 // Future Extensions
 #include "future/python/add_processes_to_python.h"
+#include "future/python/add_strategies_to_python.h"
 
 namespace Kratos::Future::Python
 {
@@ -30,6 +31,8 @@ namespace py = pybind11;
 void AddFutureToPython(py::module& m)
 {
     AddProcessesToPython(m);
+
+    AddStrategiesToPython(m);
 }
 
 }  // namespace Kratos::Future::Python.
