@@ -361,6 +361,14 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters &rValues,
+        const Vector& rPlasticStrain);
+
     ///@}
     ///@name Access
     ///@{
@@ -436,14 +444,6 @@ protected:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method computes the tangent tensor
-     * @param rValues The constitutive law parameters and flags
-     */
-    void CalculateTangentTensor(
-        ConstitutiveLaw::Parameters &rValues,
-        const Vector& rPlasticStrain);
 
     ///@}
     ///@name Private  Access

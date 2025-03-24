@@ -95,7 +95,7 @@ void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::Calcul
             noalias(rValues.GetStressVector()) = predictive_stress_vector - prod(r_constitutive_matrix, plastic_strain_increment);
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                CalculateTangentTensor(rValues, plastic_strain); // this modifies the ConstitutiveMatrix
+                BaseType::CalculateTangentTensor(rValues, plastic_strain); // this modifies the ConstitutiveMatrix
             }
         } else {
             noalias(rValues.GetStressVector()) = predictive_stress_vector;
@@ -109,7 +109,62 @@ void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::Calcul
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
 
+    // We get the strain vector
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    // We get the constitutive tensor
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+
+    // Integrate Stress plasticity
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+
+    if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
+    }
+    this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+
+    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+
+    double& r_threshold           = GetThreshold();
+    double& r_plastic_dissipation = GetPlasticDissipation();
+    Vector& r_plastic_strain      = GetPlasticStrain();
+
+    BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
+
+    noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+    this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
+
+    double equivalent_stress;
+    ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
+
+    const double F = equivalent_stress - threshold;
+
+    if (F >= 0.0) {
+        BoundedArrayType deviatoric_stress_vector;
+        double I1, J2;
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
+
+        const auto& r_props = rValues.GetMaterialProperties();
+        const double mu = r_props[MIU];
+        const double sensitivity = r_props[DP_EPSILON];
+        const double plastic_multiplier = (std::pow(equivalent_stress / threshold, 1.0 / sensitivity) - 1.0) / mu;
+
+        array_1d<double, VoigtSize> g_flux;
+        ConstLawIntegratorType::YieldSurfaceType::CalculatePlasticPotentialDerivative(predictive_stress_vector, deviatoric_stress_vector, J2, g_flux, rValues);
+
+        const array_1d<double, VoigtSize> plastic_strain_increment = plastic_multiplier * g_flux;
+        noalias(rValues.GetStressVector()) = predictive_stress_vector - prod(r_constitutive_matrix, plastic_strain_increment);
+
+        const double g = r_props[FRACTURE_ENERGY] / characteristic_length;
+
+        r_plastic_dissipation += inner_prod(rValues.GetStressVector(), plastic_strain_increment) / g;
+        noalias(r_plastic_strain) += plastic_strain_increment;
+        ConstLawIntegratorType::CalculateEquivalentStressThreshold(r_plastic_dissipation, 1, 0, r_threshold, 0, rValues, 0, characteristic_length);
+
+    }
 }
 
 /***********************************************************************************/
