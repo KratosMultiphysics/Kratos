@@ -17,10 +17,10 @@
 
 // Project includes
 #include "containers/model.h"
-
 #include "processes/process.h"
-
 #include "geometries/coupling_geometry.h"
+#include "geometries/brep_curve_on_surface.h"
+#include "geometries/quadrature_point_curve_on_surface_geometry.h"
 
 namespace Kratos
 {
@@ -34,6 +34,20 @@ namespace Kratos
 class KRATOS_API(IGA_APPLICATION) CombineSolidShellModelPartsProcess 
     : public Process
 {
+     
+    typedef Geometry<Point> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointerType;
+
+    typedef array_1d<double, 3> CoordinatesArrayType;
+
+    typedef CouplingGeometry<Point> CouplingGeometryType;    
+
+    typedef std::vector<CoordinatesArrayType> CoordinatesArrayVectorType;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+    typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
+
+
 public:
     ///@name Type Definitions
     ///@{
@@ -43,6 +57,7 @@ public:
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -62,8 +77,9 @@ public:
     ///@{
 
     // Minas Declare here the operations you want to use
-
     void ExecuteInitialize();
+
+    void CombineModelParts();
     void RecursiveAddEntities(ModelPart& TwinModelPart, ModelPart& ModelPart) ;
     void ReorderGeometryIds(size_t& CoupleIdCounter, ModelPart& mModelPart);
     void ReorderNodeIds(size_t& CoupleIdCounter, ModelPart& mModelPart);
@@ -72,6 +88,13 @@ public:
     void ReorderMasterSlaveConstraintIds(size_t& CoupleIdCounter, ModelPart& mModelPart);
     void ReorderPropertyIds(size_t& CoupleIdCounter, ModelPart& mModelPart);
 
+    void projectIntergrationPointsToMidsurface(GeometryType& ShellCurveOnCouplingInterface, 
+        GeometryType::IntegrationPointsArrayType& GlobalCoordinates_IntegrationPoints_Solid,
+        GeometryType::IntegrationPointsArrayType& GlobalCoordinates_IntegrationPoints_Shell);
+    void GetIntergrationPointsFromInterfacePart(ModelPart& mModelPart, GeometryType::IntegrationPointsArrayType& aaa);
+    void writeVTKFile(const std::string& filename, const PointerVector<CouplingGeometry<Node>> Coupled_Quadrature_Point_Geometries, size_t selectpart);
+
+        
     ///@}
     ///@name Input and output
     ///@{
