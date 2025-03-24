@@ -39,6 +39,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.optimization_parameters = KratosMultiphysics.Parameters(parameter_file.read())
         self.physics_parameters_settings = self.optimization_parameters["physics_parameters_settings"]
         self.optimization_settings       = self.optimization_parameters["optimization_settings"]
+        self.ValidateOptimizationParameters()
 
     def _SetTopologyOptimizationName(self):
         self.topology_optimization_name = "FLUID"
@@ -548,6 +549,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (count_opt_nodes != self.n_opt_design_parameters):
             print("!!! WARNING: wrong initialization of the Optimization Domain Nodes Mask")
 
+    def _GetModelPartNodesSubset(self, model_part, node_ids):
+        return [model_part.GetNode(node_id) for node_id in node_ids]
+
     def _ExtractVariableInOptimizationDomain(self, variable):
         return variable[self.optimization_domain_nodes_mask]
     
@@ -707,7 +711,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         mask = self._GetOptimizationDomainNodesMask()
         resistance_derivative_wrt_design_projected = self.resistance_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.resistance_derivative_wrt_design = resistance_derivative_wrt_design_projected
-        self.resistance_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(resistance_derivative_wrt_design_projected)[mask]
+        self.resistance_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(resistance_derivative_wrt_design_projected[mask])
     
     def _UpdateResistanceVariable(self):
         self._GetSolver()._UpdateResistanceVariable(self.resistance)
@@ -999,7 +1003,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.volume_constraint = self.volume_fraction - self.max_volume_fraction
         volume_constraint_derivatives_wrt_design_projected = volume_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
         self.constraints[0] = self.volume_constraint
-        self.constraints_derivatives_wrt_design[0,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected)[mask]
+        self.constraints_derivatives_wrt_design[0,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected[mask])
 
     def _EvaluateWSSConstraintAndDerivative(self):
         dumb = 0
@@ -1236,21 +1240,23 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.diffusive_filter_radius = 1e-10
         print("--|" + self.topology_optimization_stage_str + "| ---> Build Nodes Connectivity Matrix")
         mp = self._GetComputingModelPart()
-        points = self._GetNodesSetCoordinates(mp.Nodes)
+        mask = self._GetOptimizationDomainNodesMask()
+        only_opt_mp_nodes = self._GetModelPartNodesSubset(mp, mask+1)
+        points = self._GetNodesSetCoordinates(only_opt_mp_nodes)
         nodes_tree = KDTree(points)
         self.nodes_connectivity_matrix = nodes_tree.sparse_distance_matrix(nodes_tree, self.diffusive_filter_radius, output_type="dok_matrix").tocsr()
         self.nodes_connectivity_matrix.data *= -1
         self.nodes_connectivity_matrix.data += self.diffusive_filter_radius
-        self.nodes_connectivity_Weights_sum = np.array(self.nodes_connectivity_matrix.sum(axis=1)).flatten()  # Sum of each row as a 1D array
+        self.nodes_connectivity_weights_sum = np.array(self.nodes_connectivity_matrix.sum(axis=1)).flatten()  # Sum of each row as a 1D array
         # Normalization step: Divide non-zero entries by the corresponding row sum
         row_indices = np.repeat(np.arange(self.nodes_connectivity_matrix.shape[0]), np.diff(self.nodes_connectivity_matrix.indptr))
-        self.nodes_connectivity_matrix.data /= self.nodes_connectivity_Weights_sum[row_indices]
+        self.nodes_connectivity_matrix.data /= self.nodes_connectivity_weights_sum[row_indices]
 
     def _ApplyDesignParameterDiffusiveFilter(self, design_parameter):
         print("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter:", self.apply_diffusive_filter)
         self.design_parameter_filtered = design_parameter
         mask = self._GetOptimizationDomainNodesMask()
-        self.design_parameter_filtered[mask] = self._ApplyDiffusiveFilter(design_parameter)[mask]
+        self.design_parameter_filtered[mask] = self._ApplyDiffusiveFilter(design_parameter[mask])
 
     def _ApplyDesignParameterProjectiveFilter(self, design_parameter):
         print("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter:", self.apply_projective_filter)
@@ -1403,4 +1409,103 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _EvaluateRequiredGradients(self):
         pass
+
+    def GetDefaultPhysicsParametersSettings(self):
+        ##settings string in json format
+        default_physics_parameters_settings = KratosMultiphysics.Parameters("""
+        {
+            "resistance": {
+                "interpolation_method": "hyperbolic",
+                "value_void"        : 0.0,
+                "value_full"        : 1e4,
+                "interpolation_slope": {
+                    "initial_slope": 1.0,
+                    "final_slope"  : 1.0,
+                    "iterations"   : [2,50]
+                }
+            }
+        }""")
+        default_physics_parameters_settings.AddMissingParameters(self.GetBasePhysicsParametersSettings())
+        return default_physics_parameters_settings
+    
+    def GetBasePhysicsParametersSettings(self):
+        ##settings string in json format
+        base_physics_parameters_settings = KratosMultiphysics.Parameters("""
+        {
+            "resistance": {},                                                                
+            "conductivity": {},
+            "decay": {},
+            "convection_coefficient": {}                                                     
+        }""")
+        return base_physics_parameters_settings
+    
+    def GetDefaultOptimizationSettings(self):
+        ##settings string in json format
+        default_optimization_settings = KratosMultiphysics.Parameters("""
+        {
+            "min_max_iterations": [1,100],
+            "change_tolerance"  : 1e-5,
+            "optimizer_settings": {
+                "optimizer"    : "mma",
+                "values_range" : [0.0,1.0],
+                "max_outer_it" : 1,
+                "kkt_tolerance": 1e-12
+            },
+            "diffusive_filter_settings": {
+                "use_filter" : true,
+                "filter_type": "discrete" ,
+                "radius"     : 0.01
+            },
+            "projective_filter_settings": {
+                "use_filter"              : true,
+                "min_max_mean"            : [0.2,0.5],
+                "min_max_projection_slope": [1e-10, 2],
+                "activation_change"       : 1e-2
+            },
+            "remeshing_settings": {
+                "remesh"   : false,
+                "level_set": 0.15 ,
+                "min_max_element_size": [0.01, 0.1]
+            },
+            "optimization_problem_settings": {
+                "functional_weights": {
+                    "fluid_functionals": {
+                        "resistance" : 1.0,
+                        "strain_rate": 1.0,
+                        "vorticity"  : 0.0
+                    }
+                },
+                "constraints_settings": {
+                    "volume_constraint_settings": {
+                        "fluid_or_solid": "fluid",
+                        "max_volume_fraction" : 0.4
+                    }
+                },
+                "initial_design_value": 0.0
+            }
+        }""")
+        default_optimization_settings.AddMissingParameters(self.GetBaseOptimizationSettings())
+        return default_optimization_settings
+    
+    def GetBaseOptimizationSettings(self):
+        ##settings string in json format
+        base_physics_parameters_settings = KratosMultiphysics.Parameters("""
+        {
+            "min_max_iterations": [],
+            "change_tolerance"  : 0.0,
+            "optimizer_settings": {},
+            "diffusive_filter_settings": {},
+            "projective_filter_settings": {},
+            "remeshing_settings": {},
+            "optimization_problem_settings": {}                                                  
+        }""")
+        return base_physics_parameters_settings
+    
+    def ValidateOptimizationParameters(self):
+        """This function validates the settings of the solver
+        """
+        default_physics_parameters_settings = self.GetDefaultPhysicsParametersSettings()
+        self.physics_parameters_settings.ValidateAndAssignDefaults(default_physics_parameters_settings)
+        default_optimization_settings = self.GetDefaultOptimizationSettings()
+        self.optimization_settings.ValidateAndAssignDefaults(default_optimization_settings)
         

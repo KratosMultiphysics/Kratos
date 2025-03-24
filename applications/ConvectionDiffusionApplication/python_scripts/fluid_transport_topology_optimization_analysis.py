@@ -379,9 +379,12 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         """
         This method computes the Focus Region Concentration functional: int_{\Gamma_{out}}{c}
         """
+        if (self.first_iteration):
+            self.SetTargetFocusRegionTransportScalar()
+        t_target = self.target_focus_region_transport_scalar
         focus_mp = self._FindAdjointVolumeSourceProcess().model_part
         focus_nodes_list = [(node.Id-1) for node in focus_mp.Nodes]
-        t_focus_sq = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(focus_mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))**2
+        t_focus_sq = (np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(focus_mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))-t_target)**2
         self.transport_functionals[1] = np.dot(self.nodal_domain_sizes[focus_nodes_list], t_focus_sq)
         if (self.first_iteration):
             self.initial_transport_functionals_values[1] = self.transport_functionals[1] 
@@ -454,9 +457,6 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         else:
             print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional")
 
-    def SetTargetOutletTransportScalar(self, target_transport_scalar=0.0):
-        self.target_outlet_transport_scalar = target_transport_scalar
-
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
         return self._ComputeFunctionalDerivativesFluidFunctionalContribution() + self._ComputeFunctionalDerivativesTransportFunctionalContribution()
     
@@ -509,6 +509,37 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         self._UpdateConductivity()
         self._UpdateDecay()
         self._UpdateConvectionCoefficient()
+    
+    def GetDefaultOptimizationSettings(self):
+        ##settings string in json format
+        default_optimization_settings = KratosMultiphysics.Parameters("""
+        {
+            "optimization_problem_settings": {
+                "functional_weights": {
+                    "fluid_functionals": {
+                        "resistance" : 1.0,
+                        "strain_rate": 1.0,
+                        "vorticity"  : 0.0
+                    },
+                    "transport_functionals":
+                    {
+                        "outlet_transport_scalar"      : 0.0,
+                        "focus_region_transport_scalar": 0.0,
+                        "conductivity_transfer"        : 1.0,
+                        "convection_transfer"          : 0.0,
+                        "decay_transfer"               : 0.0,
+                        "source_transfer"              : 0.0
+                    },
+                    "coupling" : {
+                        "fluid"    : 1.0,
+                        "transport": 1.0
+                    }
+                }
+            }
+        }""")
+        default_optimization_settings.AddMissingParameters(super().GetDefaultOptimizationSettings())
+        return default_optimization_settings
+        
         
 
 

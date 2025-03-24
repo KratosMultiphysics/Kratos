@@ -313,7 +313,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_conv_adj   = -rho*(v_adj_gauss.transpose()*(grad_w_adj*v_ns_gauss)) 
         # Velocity convection driven by the adjoint velocity: called ADJOINT RESISTANCE caouse we can write (alphaI+grad(U))u_a * w
         # additional term appearing in the ADJ_NS system w.r.t. the NS eqs.
-        rv_conv_adj  += -rho*(w_adj_gauss.transpose()*(grad_v_ns*v_adj_gauss))
+        rv_conv_adj  += -rho*(w_adj_gauss.transpose()*(grad_v_ns.transpose()*v_adj_gauss))
         rv_adj += rv_conv_adj # save CONVECTION residual into TOTAL element residual
     # END HANDLE CONVECTION
 
@@ -365,7 +365,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         momentum_residual_adj += -alpha*v_adj_gauss
         if (convective_term):
             momentum_residual_adj +=  rho*grad_v_adj*v_ns_gauss
-            momentum_residual_adj += -rho*grad_v_ns*v_adj_gauss
+            momentum_residual_adj += -rho*grad_v_ns.transpose()*v_adj_gauss
 
         ## Include adjoint forcing terms coming from the functional definition
         if (include_functionals):
@@ -388,7 +388,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_stab_adj +=  pressure_adj_subscale*div_w_adj
         if (convective_term):
             rv_stab_adj += -rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_ns_gauss) # 1st stab convective residual: convective term
-            rv_stab_adj += -rho*w_adj_gauss.transpose()*(grad_v_ns*velocity_adj_subscale)  # 2nd stab convective residual: adjoint resistance term
+            rv_stab_adj += -rho*w_adj_gauss.transpose()*(grad_v_ns.transpose()*velocity_adj_subscale)  # 2nd stab convective residual: adjoint resistance term
         rv_adj += rv_stab_adj # save STABILIZATION residual into TOTAL element residual
     # END HANDLE STABILIZATION
 

@@ -268,9 +268,12 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         """
         This method computes the Focus Region Concentration functional: int_{\Gamma_{out}}{c}
         """
+        if (self.first_iteration):
+            self.SetTargetFocusRegionTransportScalar()
+        t_target = self.target_focus_region_transport_scalar
         focus_mp = self._FindAdjointVolumeSourceProcess().model_part
         focus_nodes_list = [(node.Id-1) for node in focus_mp.Nodes]
-        t_focus_sq = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(focus_mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))**2
+        t_focus_sq = (np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(focus_mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))-t_target)**2
         self.functionals[4] = np.dot(self.nodal_domain_sizes[focus_nodes_list], t_focus_sq)
         if (self.first_iteration):
             self.initial_functionals_values[4] = self.functionals[4] 
@@ -346,6 +349,9 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     def SetTargetOutletTransportScalar(self, target_transport_scalar=0.0):
         self.target_outlet_transport_scalar = target_transport_scalar
 
+    def SetTargetFocusRegionTransportScalar(self, target_transport_scalar=0.0):
+        self.target_focus_region_transport_scalar = target_transport_scalar
+
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
         return self._ComputeFunctionalDerivativesTransportFunctionalContribution()
     
@@ -383,8 +389,9 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
 
     def _UpdateOptimizationTemperatureVariable(self):
         focus_mp = self._FindAdjointVolumeSourceProcess().model_part
+        target_t = self.target_focus_region_transport_scalar
         for node in focus_mp.Nodes:
-            node.SetSolutionStepValue(KratosCD.OPTIMIZATION_TEMPERATURE, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+            node.SetSolutionStepValue(KratosCD.OPTIMIZATION_TEMPERATURE, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-target_t)
         
     def _CheckMaterialProperties(self):
         print("--|CHECK| Check Physics Properties")
@@ -510,7 +517,64 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self.convection_coefficient_derivative_wrt_design = convection_coefficient_derivative_wrt_design_projected
         self.convection_coefficient_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(convection_coefficient_derivative_wrt_design_projected)[mask]
 
-
+    def GetDefaultPhysicsParametersSettings(self):
+        ##settings string in json format
+        default_physics_parameters_settings = KratosMultiphysics.Parameters("""
+        {
+            "conductivity": {
+                "interpolation_method": "polynomial",
+                "value_void"        : 1e-4,
+                "value_full"        : 1e-4,
+                "interpolation_slope": {
+                    "initial_slope": 1.0,
+                    "final_slope"  : 10.0,
+                    "iterations"   : [2,50]
+                }
+            },
+            "decay": {
+                "interpolation_method": "polynomial",
+                "value_void"        : 0.0,
+                "value_full"        : 0.0,
+                "interpolation_slope": {
+                    "initial_slope": 1.0,
+                    "final_slope"  : 10.0,
+                    "iterations"   : [2,50]
+                }
+            },
+            "convection_coefficient": {
+                "interpolation_method": "polynomial",
+                "value_void"        : 1.0,
+                "value_full"        : 1.0,
+                "interpolation_slope": {
+                    "initial_slope": 1.0,
+                    "final_slope"  : 10.0,
+                    "iterations"   : [2,50]
+                }
+            }
+        }""")
+        default_physics_parameters_settings.AddMissingParameters(super().GetDefaultPhysicsParametersSettings())
+        return default_physics_parameters_settings
+    
+    def GetDefaultOptimizationSettings(self):
+        ##settings string in json format
+        default_optimization_settings = KratosMultiphysics.Parameters("""
+        {
+            "optimization_problem_settings": {
+                "functional_weights": {
+                    "transport_functionals":
+                    {
+                        "outlet_transport_scalar"      : 0.0,
+                        "focus_region_transport_scalar": 0.0,
+                        "conductivity_transfer"        : 1.0,
+                        "convection_transfer"          : 0.0,
+                        "decay_transfer"               : 0.0,
+                        "source_transfer"              : 0.0
+                    }
+                }
+            }
+        }""")
+        default_optimization_settings.AddMissingParameters(super().GetDefaultOptimizationSettings())
+        return default_optimization_settings
 
 
 
