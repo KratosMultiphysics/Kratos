@@ -394,7 +394,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         }
 
         // Assemble constraints.
-        // Constraint assemble MUST happen before assembling the unconstrained system,
+        // Constraint assembly MUST happen before assembling the unconstrained system,
         // because constraints may have to propagate dirichlet conditions, and dirichlet
         // conditions are partly imposed during element assembly.
         mpConstraintAssembler->Assemble(
@@ -461,7 +461,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                 rModelPart,
                                 pMaybeLhs.has_value() ? pMaybeLhs.value() : nullptr,
                                 pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr,
-                                *this->mpConstraintAssembler);
+                                *this->mpConstraintAssembler,
+                                mpInterface->GetDofSet());
                         },
                         this->mMaybeHierarchy.value());
         } // if mMaybeHierarchy
@@ -545,7 +546,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
 {
     KRATOS_TRY;
 
-    // Allocate auxiliary arrays
     using DofsVectorType = ModelPart::DofsVectorType;
     this->GetDofSet().clear();
     const auto& r_process_info = rModelPart.GetProcessInfo();
@@ -821,48 +821,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
     } // if mMaybeHierarchy
 
     KRATOS_CATCH("")
-
-//    const std::size_t system_size = rLhs.size1();
-//        Vector scaling_factors (system_size);
-//
-//        const auto it_dof_iterator_begin = this->mDofSet.begin();
-//
-//        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-//        IndexPartition<std::size_t>(this->mDofSet.size()).for_each([&](std::size_t Index){
-//            auto it_dof_iterator = it_dof_iterator_begin + Index;
-//            if (it_dof_iterator->IsFixed()) {
-//                scaling_factors[Index] = 0.0;
-//            } else {
-//                scaling_factors[Index] = 1.0;
-//            }
-//        });
-//
-//        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
-//        TSparse::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rLhs, rRhs, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
-//
-//        auto* Avalues = rLhs.value_data().begin();
-//        std::size_t* Arow_indices = rLhs.index1_data().begin();
-//        std::size_t* Acol_indices = rLhs.index2_data().begin();
-//
-//        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
-//            const std::size_t col_begin = Arow_indices[Index];
-//            const std::size_t col_end = Arow_indices[Index+1];
-//            const auto k_factor = scaling_factors[Index];
-//            if (k_factor == 0.0) {
-//                // Zero out the whole row, except the diagonal
-//                for (std::size_t j = col_begin; j < col_end; ++j)
-//                    if (Acol_indices[j] != Index )
-//                        Avalues[j] = 0.0;
-//
-//                // Zero out the RHS
-//                rRhs[Index] = 0.0;
-//            } else {
-//                // Zero out the column which is associated with the zero'ed row
-//                for (std::size_t j = col_begin; j < col_end; ++j)
-//                    if(scaling_factors[ Acol_indices[j] ] == 0 )
-//                        Avalues[j] = 0.0;
-//            }
-//        });
 }
 
 

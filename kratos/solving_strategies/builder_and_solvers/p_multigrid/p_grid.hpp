@@ -58,7 +58,8 @@ public:
     void Assemble(const ModelPart& rModelPart,
                   const typename TParentSparse::MatrixType* pParentLhs,
                   const typename TParentSparse::VectorType* pParentRhs,
-                  const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler);
+                  const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
+                  IndirectDofSet& rParentDofSet);
 
     void ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
                                   typename IndirectDofSet::const_iterator itParentDofEnd,

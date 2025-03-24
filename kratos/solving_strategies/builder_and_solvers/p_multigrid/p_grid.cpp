@@ -142,31 +142,9 @@ void PGrid<TSparse,TDense>::MakeLhsTopology(ModelPart& rModelPart,
                                             [[maybe_unused]] const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
                                             const IndirectDofSet& rParentDofSet)
 {
-    KRATOS_TRY
-
-    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-    // The restriction operator immediately constructs the linear equivalent,
-    // because arbitrary-level coarsening strategies are not supported yet. The problem
-    // is that when going from a generic polynomial level q to some other lower polynomial
-    // level p!=1, new nodes must be introduced that do not exist in the original fine mesh.
-    // This wouldn't be a huge problem by itself, but deciding on DoF indices on the coarse
-    // level would be quite painful and require keeping track of the coarse grid's topology
-    // in some manner.
-    MakePRestrictionOperator<std::numeric_limits<unsigned>::max(),typename TSparse::DataType>(
-        rModelPart,
-        rParentLhs.size1(),
-        rParentDofSet,
-        mRestrictionOperator,
-        mpVariableList,
-        mDofSet,
-        mIndirectDofSet,
-        mDofMap);
-
     // ConstraintAssembler::Allocate is deliberately not invoked here because the relation matrix
     // and constraint gap vector are passed from the fine level in PGrid::Assemble, and mapped
     // to this level by the restriction operator.
-
-    KRATOS_CATCH("")
 }
 
 
@@ -177,13 +155,40 @@ template <bool AssembleLHS,
 void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
                                      const typename TParentSparse::MatrixType* pParentLhs,
                                      const typename TParentSparse::VectorType* pParentRhs,
-                                     const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler)
+                                     const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
+                                     IndirectDofSet& rParentDofSet)
 {
     KRATOS_TRY
     using SparseUtils = SparseMatrixMultiplicationUtility;
 
+    // Assemble LHS matrix.
     if constexpr (AssembleLHS) {
         KRATOS_ERROR_IF_NOT(pParentLhs);
+
+        // The restriction operator immediately constructs the linear equivalent,
+        // because arbitrary-level coarsening strategies are not supported yet. The problem
+        // is that when going from a generic polynomial level q to some other lower polynomial
+        // level p!=1, new nodes must be introduced that do not exist in the original fine mesh.
+        // This wouldn't be a huge problem by itself, but deciding on DoF indices on the coarse
+        // level would be quite painful and require keeping track of the coarse grid's topology
+        // in some manner.
+        //
+        // Note:
+        // One might argue that the construction of the restriction operator could happen
+        // during the allocation stage, but the problem is that some constraint imposition
+        // methods (such as lagrange or its augmented version) may mutate the DoFs during their
+        // assembly. As a result, the restriction operator implicitly depends on the constraint
+        // imposition method of the fine grid, meaning it must be constructed AFTER constraint
+        // assembly.
+        MakePRestrictionOperator<std::numeric_limits<unsigned>::max(),typename TSparse::DataType>(
+            const_cast<ModelPart&>(rModelPart),
+            pParentLhs->size1(),
+            rParentDofSet,
+            mRestrictionOperator,
+            mpVariableList,
+            mDofSet,
+            mIndirectDofSet,
+            mDofMap);
 
         // Compute the coarse LHS matrix.
         typename TSparse::MatrixType left_multiplied_lhs;
@@ -192,7 +197,7 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
         SparseUtils::MatrixMultiplication(left_multiplied_lhs, mProlongationOperator, mLhs);
     } // if AssembleLHS
 
-
+    // Assemble RHS vector.
     if constexpr (AssembleRHS) {
         // Sanity checks
         KRATOS_ERROR_IF_NOT(pParentRhs);
@@ -482,19 +487,23 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
     template void PGrid<TSparse,TDense>::Assemble<false,false,TParentSparse>(const ModelPart&,                                  \
                                                                              const typename TParentSparse::MatrixType*,         \
                                                                              const typename TParentSparse::VectorType*,         \
-                                                                             const ConstraintAssembler<TParentSparse,TDense>&); \
+                                                                             const ConstraintAssembler<TParentSparse,TDense>&,  \
+                                                                             PointerVectorSet<Dof<double>>&);                   \
     template void PGrid<TSparse,TDense>::Assemble<true,false,TParentSparse>(const ModelPart&,                                   \
                                                                             const typename TParentSparse::MatrixType*,          \
                                                                             const typename TParentSparse::VectorType*,          \
-                                                                            const ConstraintAssembler<TParentSparse,TDense>&);  \
+                                                                            const ConstraintAssembler<TParentSparse,TDense>&,  \
+                                                                            PointerVectorSet<Dof<double>>&);                   \
     template void PGrid<TSparse,TDense>::Assemble<false,true,TParentSparse>(const ModelPart&,                                   \
                                                                             const typename TParentSparse::MatrixType*,          \
                                                                             const typename TParentSparse::VectorType*,          \
-                                                                            const ConstraintAssembler<TParentSparse,TDense>&);  \
+                                                                            const ConstraintAssembler<TParentSparse,TDense>&,  \
+                                                                            PointerVectorSet<Dof<double>>&);                   \
     template void PGrid<TSparse,TDense>::Assemble<true,true,TParentSparse>(const ModelPart&,                                    \
                                                                            const typename TParentSparse::MatrixType*,           \
                                                                            const typename TParentSparse::VectorType*,           \
-                                                                           const ConstraintAssembler<TParentSparse,TDense>&);   \
+                                                                           const ConstraintAssembler<TParentSparse,TDense>&,  \
+                                                                           PointerVectorSet<Dof<double>>&);                   \
     template void PGrid<TSparse,TDense>::Initialize<TParentSparse>(ModelPart&,                                                  \
                                                                    const TParentSparse::MatrixType&,                            \
                                                                    const TParentSparse::VectorType&,                            \
