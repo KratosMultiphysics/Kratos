@@ -75,7 +75,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -100,7 +100,7 @@ public:
         GeometryType::Pointer pGeometry);
 
     /**
-     * @brief Constuctor using geometry and properties.
+     * @brief Constructor using geometry and properties.
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
@@ -137,7 +137,7 @@ public:
     /**
      * @brief Returns a pointer to a new FluidElement element, created using given input.
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
@@ -169,7 +169,7 @@ public:
         MatrixType &rLHS);
 
     /**
-     * @brief Computes the RHS Gaus  pt. contribution
+     * @brief Computes the RHS Gauss pt. contribution
      * This method computes the contribution to the RHS of a Gauss pt.
      * @param rData Reference to the element data container
      * @param rRHS Reference to the Right Hand Side vector to be filled
