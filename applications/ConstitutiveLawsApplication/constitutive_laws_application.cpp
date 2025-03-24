@@ -80,6 +80,7 @@ void KratosConstitutiveLawsApplication::Register()
     /// Plasticity
 
     /* Small strain */
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicViscoPlasticity3DVonMisesVonMises", mSmallStrainIsotropicViscoPlasticityPlasticity3DVonMisesVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DVonMisesVonMises", mSmallStrainIsotropicPlasticity3DVonMisesVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb", mSmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DVonMisesDruckerPrager", mSmallStrainIsotropicPlasticity3DVonMisesDruckerPrager);
