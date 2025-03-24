@@ -42,9 +42,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     switch (TNumNodes) {
-    case 2:
-    case 3:
-        return GeometryData::IntegrationMethod::GI_GAUSS_2;
     case 4:
         return GeometryData::IntegrationMethod::GI_GAUSS_3;
     case 5:
