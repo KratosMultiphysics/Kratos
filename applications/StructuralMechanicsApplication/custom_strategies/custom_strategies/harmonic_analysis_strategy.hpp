@@ -406,10 +406,7 @@ public:
 
             // Assemble into global vector
             for (IndexType i = 0; i < equation_id.size(); ++i) {
-                const IndexType global_index = equation_id[i];
-                if (global_index < f.size()) { 
-                    f[global_index] += rhs[i];
-                }
+                     f[equation_id[i]] += rhs[i];
             }
         }
 
