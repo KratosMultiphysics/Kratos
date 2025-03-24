@@ -11,7 +11,7 @@
 //
 
 #include "containers/model.h"
-#include "custom_elements/transient_pw_line_element.h"
+#include "custom_elements/transient_Pw_line_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <geometries/line_2d_4.h>
