@@ -22,8 +22,6 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 
-#include <string>
-
 namespace Kratos
 {
 
