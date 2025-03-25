@@ -25,8 +25,9 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_GetIntegrationMethodForAllRegisteredElements,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const std::vector<CalculationContribution> contributions = {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow};
+    const std::vector<CalculationContribution> contributions = {
+        CalculationContribution::Permeability, CalculationContribution::Compressibility,
+        CalculationContribution::FluidBodyFlow};
     PointerVector<Node> nodes;
     nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
@@ -38,7 +39,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_GetIntegrationMethodForAllRegis
                      GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     auto p_transient_pw_line_element_3D2N = make_intrusive<TransientPwLineElement<3, 2>>(
-    1, std::make_shared<Line3D2<Node>>(nodes), contributions);
+        1, std::make_shared<Line3D2<Node>>(nodes), contributions);
     KRATOS_EXPECT_EQ(p_transient_pw_line_element_3D2N->GetIntegrationMethod(),
                      GeometryData::IntegrationMethod::GI_GAUSS_2);
 
@@ -64,7 +65,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_GetIntegrationMethodForAllRegis
         1, std::make_shared<Line2D5<Node>>(nodes), contributions);
     KRATOS_EXPECT_EQ(p_transient_pw_line_element_2D5N->GetIntegrationMethod(),
                      GeometryData::IntegrationMethod::GI_GAUSS_5);
-
 }
 
 } // namespace Kratos::Testing

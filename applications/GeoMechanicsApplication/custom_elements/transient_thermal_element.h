@@ -98,14 +98,14 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        switch (this->GetGeometry().GetGeometryType()) {
-        case GeometryData::KratosGeometryType::Kratos_Line2D4:
-            return GeometryData::IntegrationMethod::GI_GAUSS_3;
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D10:
-        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10:
-            return GeometryData::IntegrationMethod::GI_GAUSS_4;
-        case GeometryData::KratosGeometryType::Kratos_Line2D5:
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D15:
+        switch (this->GetGeometry().GetGeometryOrderType()) {
+        case GeometryData::Kratos_Cubic_Order:
+            if (this->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D10) {
+                return GeometryData::IntegrationMethod::GI_GAUSS_4;
+            } else {
+                return GeometryData::IntegrationMethod::GI_GAUSS_3;
+            }
+        case GeometryData::Kratos_Quartic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
             return GeometryData::IntegrationMethod::GI_GAUSS_2;

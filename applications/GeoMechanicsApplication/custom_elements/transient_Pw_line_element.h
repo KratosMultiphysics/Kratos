@@ -124,10 +124,10 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        switch (TNumNodes) {
-        case 4:
+        switch (this->GetGeometry().GetGeometryOrderType()) {
+        case GeometryData::Kratos_Cubic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_3;
-        case 5:
+        case GeometryData::Kratos_Quartic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
             return GeometryData::IntegrationMethod::GI_GAUSS_2;

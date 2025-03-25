@@ -763,7 +763,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientThermalElement_GetIntegrationMethodForAllRegi
     auto p_transient_thermal_element_3D10N = make_intrusive<TransientThermalElement<3, 10>>(
         1, std::make_shared<Tetrahedra3D10<Node>>(nodes), p_properties);
     KRATOS_EXPECT_EQ(p_transient_thermal_element_3D10N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_4);
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(11, 0.5, 0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(12, 0.5, 0.5, 0.0));
