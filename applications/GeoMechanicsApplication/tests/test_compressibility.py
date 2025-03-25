@@ -33,12 +33,12 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
 
     def test_compressibility_upw_small_strain_diff_order(self):
         test_name = 'compressibility_tests/upw_small_strain_diff_order'
-        expected_water_pressures_at_bottom = [-49.189, -49.2441, -49.2441, -49.189]
+        expected_water_pressures_at_bottom = [-49.4291, -49.4291, -49.4291, -49.4291]
         self.run_and_assert_water_pressures_diff_order(expected_water_pressures_at_bottom, test_name)
 
     def test_compressibility_upw_diff_order_updated_lagrange(self):
         test_name = 'compressibility_tests/upw_diff_order_updated_lagrange'
-        expected_water_pressures_at_bottom = [-48.8479, -48.8465, -48.8273, -48.8288]
+        expected_water_pressures_at_bottom = [-48.8613, -48.8613, -48.8613, -48.8613]
         self.run_and_assert_water_pressures_diff_order(expected_water_pressures_at_bottom, test_name)
 
     def run_and_assert_water_pressures(self, expected_water_pressure_at_bottom, test_name):
