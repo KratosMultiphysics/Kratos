@@ -333,18 +333,43 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                        std::vector<Triplet>(),
                        [&rows, &locks, &hanging_nodes, &rModelPart, &find_node_index, &rParentIndirectDofSet](const Element& r_element, std::vector<Triplet>& r_tls) {
             if (r_element.IsActive()) {
-                r_tls.clear();
                 const auto& r_geometry = r_element.GetGeometry();
 
                 // Fetch the local restriction operator of the element.
+                r_tls.clear();
                 MakePRestrictionOperator<OrderReduction,TValue,LocalIndex>(r_geometry, std::back_inserter(r_tls));
 
                 for (const auto& [i_row, i_column, value] : r_tls) {
                     auto& r_row_dofs = r_geometry[i_row].GetDofs();
                     const auto& r_column_dofs = r_geometry[i_column].GetDofs();
-                    KRATOS_ERROR_IF_NOT(r_row_dofs.size() == r_column_dofs.size());
+                    KRATOS_DEBUG_ERROR_IF_NOT(r_row_dofs.size() == r_column_dofs.size());
 
                     if (!r_row_dofs.empty()) {
+                        // Find the first DoF in the parent's set.
+                        auto it_first_dof = std::lower_bound(rParentIndirectDofSet.begin(),
+                                                             rParentIndirectDofSet.end(),
+                                                             **r_row_dofs.begin(),
+                                                             [&r_row_dofs](const Dof<double>& r_parent_dof, const Dof<double>& r_dof){
+                                                                return r_parent_dof.Id() < r_dof.Id();
+                                                             });
+                        if (it_first_dof == rParentIndirectDofSet.end()) continue;
+
+                        // Find which DoFs are included from the node.
+                        std::vector<bool> included_dofs(r_row_dofs.size(), false);
+                        {
+                            const auto i_row_node = r_row_dofs.front()->Id();
+                            auto it_parent_dof = it_first_dof;
+                            for (std::size_t i_component=0ul; i_component<r_row_dofs.size(); ++i_component) {
+                                const Dof<double>& r_row_dof = *r_row_dofs[i_component];
+                                if (it_parent_dof->Id() == i_row_node) {
+                                    if (it_parent_dof->GetVariable().Key() == r_row_dof.GetVariable().Key()) {
+                                        included_dofs[i_component] = true;
+                                        ++it_parent_dof;
+                                    }
+                                } else break;
+                            } // for i_component in range(r_row_dofs.size())
+                        }
+
                         // No need acquire the mutexes of all row DoFs, since all
                         // nodes are assumed to have an identical set of DoFs.
                         // ==> set the lock related to the first DoF in the set.
@@ -352,8 +377,8 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
                         const unsigned component_count = r_row_dofs.size();
                         for (unsigned i_component=0u; i_component<component_count; ++i_component) {
+                            if (!included_dofs[i_component]) continue;
                             Dof<double>* p_fine_row_dof = r_row_dofs[i_component].get();
-                            if (rParentIndirectDofSet.find(*p_fine_row_dof) == rParentIndirectDofSet.end()) continue;
 
                             const std::size_t i_row_dof = p_fine_row_dof->EquationId();
                             rows[i_row_dof].second = p_fine_row_dof;
