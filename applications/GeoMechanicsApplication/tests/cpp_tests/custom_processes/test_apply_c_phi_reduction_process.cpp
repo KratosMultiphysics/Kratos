@@ -27,31 +27,14 @@ ModelPart& SetGeometryAndMesh(Model& rModel)
     result.CreateNewProperties(0);
 
     auto p_node1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto p_node2 = make_intrusive<Node>(2, 0.0, 0.5, 0.0);
-    auto p_node3 = make_intrusive<Node>(3, 0.0, 1.0, 0.0);
-    auto p_node4 = make_intrusive<Node>(4, 0.5, 0.0, 0.0);
-    auto p_node5 = make_intrusive<Node>(5, 0.5, 0.5, 0.0);
-    auto p_node6 = make_intrusive<Node>(6, 0.5, 1.0, 0.0);
-    auto p_node7 = make_intrusive<Node>(7, 1.0, 0.0, 0.0);
-    auto p_node8 = make_intrusive<Node>(8, 1.0, 0.5, 0.0);
-    auto p_node9 = make_intrusive<Node>(9, 1.0, 1.0, 0.0);
+    auto p_node2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    auto p_node3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    auto p_node4 = make_intrusive<Node>(4, 0.0, 1.0, 0.0);
 
     result.AddElement(make_intrusive<Element>(
-        1, std::make_shared<Triangle2D3<Node>>(p_node1, p_node5, p_node2), result.pGetProperties(0)));
+        1, std::make_shared<Triangle2D3<Node>>(p_node1, p_node2, p_node3), result.pGetProperties(0)));
     result.AddElement(make_intrusive<Element>(
-        2, std::make_shared<Triangle2D3<Node>>(p_node1, p_node4, p_node5), result.pGetProperties(0)));
-    result.AddElement(make_intrusive<Element>(
-        3, std::make_shared<Triangle2D3<Node>>(p_node5, p_node6, p_node3), result.pGetProperties(0)));
-    result.AddElement(make_intrusive<Element>(
-        4, std::make_shared<Triangle2D3<Node>>(p_node2, p_node5, p_node6), result.pGetProperties(0)));
-    result.AddElement(make_intrusive<Element>(
-        5, std::make_shared<Triangle2D3<Node>>(p_node4, p_node8, p_node5), result.pGetProperties(0)));
-    result.AddElement(make_intrusive<Element>(
-        6, std::make_shared<Triangle2D3<Node>>(p_node4, p_node7, p_node8), result.pGetProperties(0)));
-    result.AddElement(make_intrusive<Element>(
-        7, std::make_shared<Triangle2D3<Node>>(p_node5, p_node9, p_node6), result.pGetProperties(0)));
-    result.AddElement(make_intrusive<Element>(
-        8, std::make_shared<Triangle2D3<Node>>(p_node5, p_node8, p_node9), result.pGetProperties(0)));
+        3, std::make_shared<Triangle2D3<Node>>(p_node1, p_node3, p_node4), result.pGetProperties(0)));
 
     return result;
 }
