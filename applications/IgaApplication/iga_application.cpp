@@ -20,6 +20,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mBeamThinElement2D(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mBeamThickElement2D(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mIgaMembraneElement(0, Element::GeometryType::Pointer(
@@ -73,6 +75,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("TrussElement", mTrussElement)
     KRATOS_REGISTER_ELEMENT("TrussEmbeddedEdgeElement", mTrussEmbeddedEdgeElement)
     KRATOS_REGISTER_ELEMENT("BeamThinElement2D", mBeamThinElement2D)
+    KRATOS_REGISTER_ELEMENT("BeamThickElement2D", mBeamThickElement2D)
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
@@ -114,6 +117,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(PRESTRESS_CAUCHY)
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(PRESTRESS)
     KRATOS_REGISTER_VARIABLE(TANGENTS)
+
+    KRATOS_REGISTER_VARIABLE(CROSS_SECTIONAL_ROTATION)
 
     KRATOS_REGISTER_VARIABLE(FORCE_PK2_1D)
     KRATOS_REGISTER_VARIABLE(FORCE_CAUCHY_1D)
