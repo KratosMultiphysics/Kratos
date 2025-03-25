@@ -29,11 +29,11 @@ public:
     static std::vector<Kratos::Point> CreatePointsFor2D15NElement();
     static std::vector<Kratos::Point> CreatePointsFor3D10NElement();
 
-    static Element::Pointer Create2D3NElement(const PointerVector<Node>& nodes,
+    static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D3NElement();
 
-    static Element::Pointer Create2D6NElement(const PointerVector<Node>& nodes,
+    static Element::Pointer Create2D6NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D6NElement();
 

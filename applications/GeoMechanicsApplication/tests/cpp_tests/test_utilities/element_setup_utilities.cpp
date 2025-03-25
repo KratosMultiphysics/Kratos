@@ -12,15 +12,13 @@
 
 #include "element_setup_utilities.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_elements/three_dimensional_stress_state.h"
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/triangle_2d_10.h"
+#include "geometries/triangle_2d_15.h"
 #include "geometries/triangle_2d_3.h"
-
-#include <custom_elements/three_dimensional_stress_state.h>
-#include <geometries/tetrahedra_3d_10.h>
-#include <geometries/triangle_2d_10.h>
-#include <geometries/triangle_2d_15.h>
-#include <geometries/triangle_2d_6.h>
+#include "geometries/triangle_2d_6.h"
 
 namespace
 {
@@ -30,6 +28,7 @@ using namespace Kratos;
 PointerVector<Node> GenerateNodes(const std::vector<Point>& rPoints)
 {
     PointerVector<Node> nodes;
+    nodes.reserve(rPoints.size());
     for (const auto& r_point : rPoints) {
         nodes.push_back(make_intrusive<Node>(nodes.size() + 1, r_point.X(), r_point.Y(), r_point.Z()));
     }
@@ -80,10 +79,10 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D15NElement()
             {0.25, 0.25, 0.0}, {0.50, 0.25, 0.0}, {0.25, 0.50, 0.0}};
 }
 
-Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& nodes,
+Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<2, 3>>(1, Kratos::make_shared<Triangle2D3<Node>>(nodes), rProperties,
+    return make_intrusive<UPwSmallStrainElement<2, 3>>(1, Kratos::make_shared<Triangle2D3<Node>>(rNodes), rProperties,
                                                        std::make_unique<PlaneStrainStressState>());
 }
 
@@ -92,10 +91,10 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement()
     return Create2D3NElement(GenerateNodes(CreatePointsFor2D3NElement()), std::make_shared<Properties>(0));
 }
 
-Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& nodes,
+Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<2, 6>>(1, Kratos::make_shared<Triangle2D6<Node>>(nodes), rProperties,
+    return make_intrusive<UPwSmallStrainElement<2, 6>>(1, Kratos::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
                                                        std::make_unique<PlaneStrainStressState>());
 }
 
