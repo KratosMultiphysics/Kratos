@@ -33,13 +33,11 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
 
     def test_compressibility_upw_small_strain_diff_order(self):
         test_name = 'compressibility_tests/upw_small_strain_diff_order'
-        expected_water_pressures_at_bottom = [-49.4291, -49.4291, -49.4291, -49.4291]
-        self.run_and_assert_water_pressures_diff_order(expected_water_pressures_at_bottom, test_name)
+        self.run_and_assert_water_pressures(-49.4291, test_name)
 
     def test_compressibility_upw_diff_order_updated_lagrange(self):
         test_name = 'compressibility_tests/upw_diff_order_updated_lagrange'
-        expected_water_pressures_at_bottom = [-48.8613, -48.8613, -48.8613, -48.8613]
-        self.run_and_assert_water_pressures_diff_order(expected_water_pressures_at_bottom, test_name)
+        self.run_and_assert_water_pressures(-48.8613, test_name)
 
     def run_and_assert_water_pressures(self, expected_water_pressure_at_bottom, test_name):
         output_data = self.run_simulation(test_name)
@@ -47,16 +45,6 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
         for water_pressure_at_top in water_pressures_at_top:
             self.assertAlmostEqual(water_pressure_at_top, 0.0, 6)
         for water_pressure_at_bottom in water_pressures_at_bottom:
-            self.assertAlmostEqual(water_pressure_at_bottom, expected_water_pressure_at_bottom, 4)
-
-    def run_and_assert_water_pressures_diff_order(self, expected_water_pressures_at_bottom, test_name):
-        output_data = self.run_simulation(test_name)
-
-        water_pressures_at_bottom, water_pressures_at_top = self.get_water_pressures(output_data)
-        for water_pressure_at_top in water_pressures_at_top:
-            self.assertAlmostEqual(water_pressure_at_top, 0.0, 6)
-        for water_pressure_at_bottom, expected_water_pressure_at_bottom in (
-                zip(water_pressures_at_bottom, expected_water_pressures_at_bottom)):
             self.assertAlmostEqual(water_pressure_at_bottom, expected_water_pressure_at_bottom, 4)
 
     @staticmethod
