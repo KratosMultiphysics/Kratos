@@ -99,7 +99,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
             convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("HEAT_FLUX_ADJ"))
             convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("FACE_HEAT_FLUX_ADJ"))
         else:
-            print("\n ERROR: _PrepareTransportSettings in the wrong topology optimization stage.\n")
+            KratosMultiphysics.Logger.PrintError("Calling '_PrepareTransportSettings' in the wrong topology optimization stage.")
         
     def _GetPhysicsMainModelPartsList(self):
         return [self._GetPhysicsSolver().main_model_part]
@@ -174,12 +174,14 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     def _ImportTransportFunctionalWeights(self):
         transport_weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         functional_weights_parameters = self.optimization_parameters["optimization_settings"]["optimization_problem_settings"]["functional_weights"]["transport_functionals"]
-        transport_weights[0] = functional_weights_parameters["outlet_transport_scalar"].GetDouble()
-        transport_weights[1] = functional_weights_parameters["focus_region_transport_scalar"].GetDouble()
-        transport_weights[2] = functional_weights_parameters["conductivity_transfer"].GetDouble()
-        transport_weights[3] = functional_weights_parameters["convection_transfer"].GetDouble()
-        transport_weights[4] = functional_weights_parameters["decay_transfer"].GetDouble()
-        transport_weights[5] = functional_weights_parameters["source_transfer"].GetDouble()
+        transport_weights[0] = functional_weights_parameters["outlet_transport_scalar"]["weight"].GetDouble()
+        if (abs(transport_weights[0] > 1e-10)):
+            KratosMultiphysics.Logger.PrintError("OUTLET_TRANSPORT_SCALAR FUNCTIONAL NOT WORKIUNG AND ITS WEIGHT IS DIFFERENT FROM ZERO", "Running '_ImportTransportFunctionalWeights' with the wrong transport_weights[0].")
+        transport_weights[1] = functional_weights_parameters["focus_region_transport_scalar"]["weight"].GetDouble()
+        transport_weights[2] = functional_weights_parameters["conductivity_transfer"]["weight"].GetDouble()
+        transport_weights[3] = functional_weights_parameters["convection_transfer"]["weight"].GetDouble()
+        transport_weights[4] = functional_weights_parameters["decay_transfer"]["weight"].GetDouble()
+        transport_weights[5] = functional_weights_parameters["source_transfer"]["weight"].GetDouble()
         return transport_weights
 
     def _EvaluateFunctional(self, print_functional=False):
@@ -236,9 +238,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         """
         This method computes the Outlet Concentration functional: int_{\Gamma_{out}}{1/2(c-c_target)^2}
         """
-        if (self.first_iteration):
-            self.SetTargetOutletTransportScalar()
-        outlet_mp = self._FindAdjointSurfaceSourceProcess().model_part
+        outlet_mp = self._GetSubModelPart(self._GetTransportModelPart(), self.target_outlet_transport_scalar_model_part_name)
         integral_value = 0.0
         integral_value_sq = 0.0
         for condition in outlet_mp.Conditions:
@@ -268,10 +268,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         """
         This method computes the Focus Region Concentration functional: int_{\Gamma_{out}}{c}
         """
-        if (self.first_iteration):
-            self.SetTargetFocusRegionTransportScalar()
         t_target = self.target_focus_region_transport_scalar
-        focus_mp = self._FindAdjointVolumeSourceProcess().model_part
+        focus_mp = self._GetSubModelPart(self._GetTransportModelPart(), self.target_focus_region_transport_scalar_model_part_name)
         focus_nodes_list = [(node.Id-1) for node in focus_mp.Nodes]
         t_focus_sq = (np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(focus_mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))-t_target)**2
         self.functionals[4] = np.dot(self.nodal_domain_sizes[focus_nodes_list], t_focus_sq)
@@ -346,11 +344,15 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         else:
             print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional")
 
-    def SetTargetOutletTransportScalar(self, target_transport_scalar=0.0):
-        self.target_outlet_transport_scalar = target_transport_scalar
+    def SetTargetOutletTransportScalar(self):
+        functional_settings = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["transport_functionals"]["outlet_transport_scalar"]
+        self.target_outlet_transport_scalar_model_part_name = functional_settings["outlet_model_part"].GetString()
+        self.target_outlet_transport_scalar = functional_settings["target_value"].GetDouble()
 
-    def SetTargetFocusRegionTransportScalar(self, target_transport_scalar=0.0):
-        self.target_focus_region_transport_scalar = target_transport_scalar
+    def SetTargetFocusRegionTransportScalar(self):
+        functional_settings = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["transport_functionals"]["focus_region_transport_scalar"]
+        self.target_focus_region_transport_scalar_model_part_name = functional_settings["focus_region_model_part"].GetString()
+        self.target_focus_region_transport_scalar = functional_settings["target_value"].GetDouble()
 
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
         return self._ComputeFunctionalDerivativesTransportFunctionalContribution()
@@ -383,12 +385,16 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     def _UpdateRelevantAdjointVariables(self):
         super()._UpdateRelevantAdjointVariables()
         if (abs(self.functional_weights[3]) > 1e-10):
+            if (self.first_iteration):
+                self.SetTargetOutletTransportScalar()
             self._SetTransportSurfaceSourceFromFunctional()
         if (abs(self.functional_weights[4]) > 1e-10):
+            if (self.first_iteration):
+                self.SetTargetFocusRegionTransportScalar()
             self._UpdateOptimizationTemperatureVariable()
 
     def _UpdateOptimizationTemperatureVariable(self):
-        focus_mp = self._FindAdjointVolumeSourceProcess().model_part
+        focus_mp = self._GetSubModelPart(self._GetTransportModelPart(), self.target_focus_region_transport_scalar_model_part_name)
         target_t = self.target_focus_region_transport_scalar
         for node in focus_mp.Nodes:
             node.SetSolutionStepValue(KratosCD.OPTIMIZATION_TEMPERATURE, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-target_t)
@@ -503,19 +509,22 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         mask = self._GetOptimizationDomainNodesMask()
         conductivity_derivative_wrt_design_projected = self.conductivity_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.conductivity_derivative_wrt_design = conductivity_derivative_wrt_design_projected
-        self.conductivity_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(conductivity_derivative_wrt_design_projected)[mask]
+        self.conductivity_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(conductivity_derivative_wrt_design_projected[mask])
 
     def _UpdateDecayDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
         decay_derivative_wrt_design_projected = self.decay_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.decay_derivative_wrt_design = decay_derivative_wrt_design_projected
-        self.decay_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(decay_derivative_wrt_design_projected)[mask]
+        self.decay_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(decay_derivative_wrt_design_projected[mask])
 
     def _UpdateConvectionCoefficientDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
         convection_coefficient_derivative_wrt_design_projected = self.convection_coefficient_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.convection_coefficient_derivative_wrt_design = convection_coefficient_derivative_wrt_design_projected
-        self.convection_coefficient_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(convection_coefficient_derivative_wrt_design_projected)[mask]
+        self.convection_coefficient_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(convection_coefficient_derivative_wrt_design_projected[mask])
+
+    def _GetTransportModelPart(self):
+        return self._GetMainModelPart()
 
     def GetDefaultPhysicsParametersSettings(self):
         ##settings string in json format
@@ -561,16 +570,38 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         {
             "optimization_problem_settings": {
                 "functional_weights": {
-                    "transport_functionals":
-                    {
-                        "outlet_transport_scalar"      : 0.0,
-                        "focus_region_transport_scalar": 0.0,
-                        "conductivity_transfer"        : 1.0,
-                        "convection_transfer"          : 0.0,
-                        "decay_transfer"               : 0.0,
-                        "source_transfer"              : 0.0
+                    "transport_functionals": {
+                        "outlet_transport_scalar" : {
+                            "weight"    : 0.0,
+                            "outlet_model_part": "Outlet",
+                            "target_value": 0.0
+                        },
+                        "focus_region_transport_scalar" : {
+                            "weight"    : 0.0,
+                            "focus_region_model_part": "FocusRegion",
+                            "target_value": 0.0
+                        },
+                        "conductivity_transfer" : {
+                            "weight": 1.0
+                        },
+                        "convection_transfer" : {
+                            "weight": 0.0
+                        },
+                        "decay_transfer" : {
+                            "weight": 0.0
+                        },
+                        "source_transfer" : {
+                            "weight": 0.0
+                        }
                     }
-                }
+                },
+                "constraints_settings": {
+                    "volume_constraint_settings": {
+                        "fluid_or_solid": "fluid",
+                        "max_volume_fraction" : 0.4
+                    }
+                },
+                "initial_design_value": 0.0
             }
         }""")
         default_optimization_settings.AddMissingParameters(super().GetDefaultOptimizationSettings())

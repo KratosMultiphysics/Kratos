@@ -149,7 +149,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._ModelersSetupModelPart()
         # Prepare Solvers : ImportModelPart -> PrepareModelPart -> AddDofs)
         self.PrepareSolvers()
-        # # Set the Functionals Weights for the Optimization
         # Modify Initial
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -229,10 +228,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ImportFluidFunctionalWeights(self):
         fluid_weights = [0.0, 0.0, 0.0]
         functional_weights_parameters = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["fluid_functionals"]
-        fluid_weights[0] = functional_weights_parameters["resistance"].GetDouble()
-        fluid_weights[1] = functional_weights_parameters["strain_rate"].GetDouble()
-        fluid_weights[2] = functional_weights_parameters["vorticity"].GetDouble()
+        fluid_weights[0] = functional_weights_parameters["resistance"]["weight"].GetDouble()
+        fluid_weights[1] = functional_weights_parameters["strain_rate"]["weight"].GetDouble()
+        fluid_weights[2] = functional_weights_parameters["vorticity"]["weight"].GetDouble()
         return fluid_weights
+    
 
     def _NormalizeFunctionalWeights(self, weights):
         weights_sum = np.sum(np.abs(weights))
@@ -343,11 +343,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._CheckMaterialProperties()
         self._UpdateRelevantPhysicsVariables()
         self._SolvePhysicsProblem() # NAVIER-STOKES PROBLEM SOLUTION
+        self._PrintOnlyPhysics()
         if (self.first_iteration):
             self._SetFunctionalWeights()
             self._ResetFunctionalOutput()
         self._UpdateRelevantAdjointVariables()
         self._SolveAdjointProblem() # ADJOINT NAVIER-STOKES PROBLEM SOLUTION
+
+    def _PrintOnlyPhysics(self, print=False):
+        if (print):
+            self.OutputSolutionStep()
     
     def _GeometricalPreprocessing(self):
         """
@@ -440,7 +445,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             count = count+1
             node.Id = count
         if (count != len(mp.Nodes)):
-            print("\nERROR: wrong reordering of nodes ids. The counted number of nodes is different from len(mp.Nodes)\n")
+            KratosMultiphysics.Logger.PrintError("Wrong reordering of nodes ids. The counted number of nodes is different from len(mp.Nodes).")
         self.n_nodes = count
         self.n_elements = len(mp.Elements)
 
@@ -455,7 +460,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             count = count+1
             el.Id = count
         if (count != len(mp.Elements)):
-            print("\nERROR: wrong reordering of elements ids. The counted number of elements is different from len(mp.Elements)\n")
+            KratosMultiphysics.Logger.PrintError("Wrong reordering of elements ids. The counted number of elements is different from len(mp.Elements).")
         self.n_elements = count
     
     def _ComputeNodalDomainSizes(self):
@@ -859,6 +864,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return self.functional, self._ExtractVariableInOptimizationDomain(self.functional_derivatives_wrt_design), self.constraints, self.constraints_derivatives_wrt_design
     
     def _EvaluateConstraintsAndDerivatives(self):
+         print("--|" + self.topology_optimization_stage_str + "| EVALUATE CONSTRAINTS AND DERIVATIVES")
          self._EvaluateVolumeConstraintAndDerivative()
 
     def _EvaluateFunctionalAndDerivatives(self, print_functional=False):
@@ -1076,12 +1082,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """    
         return self._GetSolver().GetMainModelPart()
     
-    def _GetSubModelPart(self, sub_model_part_name):
+    def _GetFluidModelPart(self):
+        return self._GetMainModelPart()
+    
+    def _GetSubModelPart(self, super_model_part, sub_model_part_name):
         """
         This method returns the selected sub model part for the current solver
         """  
-        if (self._GetMainModelPart().HasSubModelPart(sub_model_part_name)):  
-            return self._GetMainModelPart().GetSubModelPart(sub_model_part_name)
+        if (super_model_part.HasSubModelPart(sub_model_part_name)):  
+            return super_model_part.GetSubModelPart(sub_model_part_name)
         else:
             return None
     
@@ -1089,7 +1098,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method returns the optimization domain model part for the current solver
         """  
-        opt_domain = self._GetSubModelPart("GENERIC_domain-optimization_domain")
+        opt_domain = self._GetSubModelPart(self._GetMainModelPart(), "GENERIC_domain-optimization_domain")
         if (opt_domain is None):
             return self._GetMainModelPart()
         else:
@@ -1099,7 +1108,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method returns the non-optimization domain model part for the current solver
         """  
-        return self._GetSubModelPart("GENERIC_domain-non_optimization_domain")
+        return self._GetSubModelPart(self._GetMainModelPart(), "GENERIC_domain-non_optimization_domain")
 
     def _GetNodes(self):
         """
@@ -1339,8 +1348,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                                                             "interpolation_error"              : 0.004,
                                                             "mesh_dependent_constant"          : 0.1
                                                     },
-                                                    "minimal_size"                      : """ + str(min_size) + """,
-                                                    "maximal_size"                      : """ + str(max_size) + """,
+                                                    "minimal_size"                      : """ + str(self.remeshing_min_element_size) + """,
+                                                    "maximal_size"                      : """ + str(self.remeshing_max_element_size) + """,
                                                     "enforce_current"                   : false,
                                                     "anisotropy_remeshing"              : true,
                                                     "enforced_anisotropy_parameters":{
@@ -1452,12 +1461,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 "kkt_tolerance": 1e-12
             },
             "diffusive_filter_settings": {
-                "use_filter" : true,
+                "use_filter" : false,
                 "filter_type": "discrete" ,
                 "radius"     : 0.01
             },
             "projective_filter_settings": {
-                "use_filter"              : true,
+                "use_filter"              : false,
                 "min_max_mean"            : [0.2,0.5],
                 "min_max_projection_slope": [1e-10, 2],
                 "activation_change"       : 1e-2
@@ -1470,9 +1479,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "optimization_problem_settings": {
                 "functional_weights": {
                     "fluid_functionals": {
-                        "resistance" : 1.0,
-                        "strain_rate": 1.0,
-                        "vorticity"  : 0.0
+                        "resistance" : {
+                            "weight": 1.0
+                        },
+                        "strain_rate" : {
+                            "weight": 1.0
+                        },
+                        "vorticity" : {
+                            "weight": 0.0
+                        }
                     }
                 },
                 "constraints_settings": {

@@ -87,20 +87,7 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
             # self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             print("--|" + top_opt_stage_str + "| FINALIZE SOLUTION STEP")
             self.FinalizeSolutionStep()
-        print("--|" + top_opt_stage_str + "| END SOLUTION LOOP")
-
-    def _PrepareTransportSettings(self):
-        convention_diffusion_settings = self._GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
-        if (self.IsPhysicsStage()):
-            convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable("TEMPERATURE"))
-            convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("HEAT_FLUX"))
-            convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("FACE_HEAT_FLUX"))
-        elif (self.IsAdjointStage()):
-            convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable("TEMPERATURE_ADJ"))
-            convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("HEAT_FLUX_ADJ"))
-            convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("FACE_HEAT_FLUX_ADJ"))
-        else:
-            print("\n ERROR: _PrepareTransportSettings in the wrong topology optimization stage.\n")
+        print("--|" + top_opt_stage_str + "| END SOLUTION LOOP")            
         
     def _GetPhysicsMainModelPartsList(self):
         return [self._GetFluidSolver().main_model_part, self._GetTransportSolver().main_model_part]
@@ -517,24 +504,53 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
             "optimization_problem_settings": {
                 "functional_weights": {
                     "fluid_functionals": {
-                        "resistance" : 1.0,
-                        "strain_rate": 1.0,
-                        "vorticity"  : 0.0
+                        "resistance" : {
+                            "weight": 1.0
+                        },
+                        "strain_rate" : {
+                            "weight": 1.0
+                        },
+                        "vorticity" : {
+                            "weight": 0.0
+                        }
                     },
                     "transport_functionals":
                     {
-                        "outlet_transport_scalar"      : 0.0,
-                        "focus_region_transport_scalar": 0.0,
-                        "conductivity_transfer"        : 1.0,
-                        "convection_transfer"          : 0.0,
-                        "decay_transfer"               : 0.0,
-                        "source_transfer"              : 0.0
+                        "outlet_transport_scalar" : {
+                            "weight"    : 0.0,
+                            "outlet_model_part": "Outlet",
+                            "target_value": 0.0
+                        },
+                        "focus_region_transport_scalar" : {
+                            "weight"    : 0.0,
+                            "focus_region_model_part": "FocusRegion",
+                            "target_value": 0.0
+                        },
+                        "conductivity_transfer" : {
+                            "weight": 1.0
+                        },
+                        "convection_transfer" : {
+                            "weight": 0.0
+                        },
+                        "decay_transfer" : {
+                            "weight": 0.0
+                        },
+                        "source_transfer" : {
+                            "weight": 0.0
+                        }
                     },
                     "coupling" : {
                         "fluid"    : 1.0,
                         "transport": 1.0
                     }
-                }
+                },
+                "constraints_settings": {
+                    "volume_constraint_settings": {
+                        "fluid_or_solid": "fluid",
+                        "max_volume_fraction" : 0.4
+                    }
+                },
+                "initial_design_value": 0.0
             }
         }""")
         default_optimization_settings.AddMissingParameters(super().GetDefaultOptimizationSettings())
