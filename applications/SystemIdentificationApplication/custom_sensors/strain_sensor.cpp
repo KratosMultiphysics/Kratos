@@ -84,7 +84,7 @@ Parameters StrainSensor::GetDefaultParameters()
 
 Parameters StrainSensor::GetSensorParameters() const
 {
-    auto parameters = this->GetSensorParameters();
+    auto parameters = BaseType::GetSensorParameters();
     parameters.AddString("type", "strain_sensor");
 
     switch (mStrainType) {

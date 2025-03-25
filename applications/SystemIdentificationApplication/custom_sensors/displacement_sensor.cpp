@@ -99,7 +99,7 @@ DisplacementSensor::DisplacementSensor(
 
 Parameters DisplacementSensor::GetSensorParameters() const
 {
-    auto parameters = Sensor::GetSensorParameters();
+    auto parameters = BaseType::GetSensorParameters();
     parameters.AddString("type", "displacement_sensor");
     parameters.AddVector("direction", mDirection);
     return parameters;
