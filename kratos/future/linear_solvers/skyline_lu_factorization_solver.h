@@ -239,8 +239,9 @@ public:
         for (IndexType i = 0; i < A.size1(); ++i) {
             const IndexType row_begin = A.index1_data()[i];
             const IndexType row_end = A.index1_data()[i+1];
-            for (IndexType j = row_begin; j < row_end; ++j) {
-                entry = A.value_data()[j];
+            for (IndexType aux_j = row_begin; aux_j < row_end; ++aux_j) {
+                entry = A.value_data()[aux_j];
+                IndexType j = A.index2_data()[aux_j];
                 newi = invperm[i];
                 newj = invperm[j];
                 if( entry != 0 )
@@ -285,8 +286,9 @@ public:
         for (IndexType i = 0; i < A.size1(); ++i) {
             const IndexType row_begin = A.index1_data()[i];
             const IndexType row_end = A.index1_data()[i+1];
-            for (IndexType j = row_begin; j < row_end; ++j) {
-                entry = A.value_data()[j];
+            for (IndexType aux_j = row_begin; aux_j < row_end; ++aux_j) {
+                IndexType j = A.index2_data()[aux_j];
+                entry = A.value_data()[aux_j];
                 newi = invperm[i];
                 newj = invperm[j];
                 if (entry != 0.00)
