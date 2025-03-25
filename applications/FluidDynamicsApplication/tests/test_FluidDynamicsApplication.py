@@ -61,7 +61,7 @@ def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
-    "small", "nighlty" and "all"
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -134,7 +134,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesFractionalVectorialConvectionTest]))
 
-    # For very long tests that should not be in nighly and you can use to validate
+    # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
