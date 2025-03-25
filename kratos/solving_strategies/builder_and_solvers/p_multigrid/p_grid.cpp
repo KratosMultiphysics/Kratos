@@ -165,6 +165,7 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
 
     // Assemble LHS matrix.
     if constexpr (AssembleLHS) {
+        BuiltinTimer timer;
         KRATOS_ERROR_IF_NOT(pParentLhs);
 
         // The restriction operator immediately constructs the linear equivalent,
@@ -182,26 +183,24 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
         // assembly. As a result, the restriction operator implicitly depends on the constraint
         // imposition method of the fine grid, meaning it must be constructed AFTER constraint
         // assembly.
-        {
-            BuiltinTimer timer;
-            MakePRestrictionOperator<std::numeric_limits<unsigned>::max(),typename TSparse::DataType>(
-                const_cast<ModelPart&>(rModelPart),
-                pParentLhs->size1(),
-                rParentDofSet,
-                mRestrictionOperator,
-                mpVariableList,
-                mDofSet,
-                mIndirectDofSet,
-                mDofMap);
-            KRATOS_INFO_IF("Grid " + std::to_string(mDepth), 2 <= this->mVerbosity)
-                << ": grid construction took " << timer << "\n";
-        }
+        MakePRestrictionOperator<std::numeric_limits<unsigned>::max(),typename TSparse::DataType>(
+            const_cast<ModelPart&>(rModelPart),
+            pParentLhs->size1(),
+            rParentDofSet,
+            mRestrictionOperator,
+            mpVariableList,
+            mDofSet,
+            mIndirectDofSet,
+            mDofMap);
 
         // Compute the coarse LHS matrix.
         typename TSparse::MatrixType left_multiplied_lhs;
         SparseUtils::MatrixMultiplication(mRestrictionOperator, *pParentLhs, left_multiplied_lhs);
         SparseUtils::TransposeMatrix(mProlongationOperator, mRestrictionOperator, 1.0);
         SparseUtils::MatrixMultiplication(left_multiplied_lhs, mProlongationOperator, mLhs);
+
+        KRATOS_INFO_IF("Grid " + std::to_string(mDepth), 2 <= this->mVerbosity)
+            << ": grid construction took " << timer << "\n";
     } // if AssembleLHS
 
     // Assemble RHS vector.
