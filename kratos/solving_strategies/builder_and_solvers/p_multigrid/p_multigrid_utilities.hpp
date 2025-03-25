@@ -500,7 +500,6 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
         rIndirectDofSet.insert(rIndirectDofSet.end(), &rDofSet.back().second);
     }
-    rIndirectDofSet.Sort();
     KRATOS_CATCH("")
 
     // Fill restriction operator row extents.
