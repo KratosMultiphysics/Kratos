@@ -20,6 +20,7 @@
 #include "includes/kratos_components.h" // KratosComponents
 #include "utilities/profiler.h" // KRATOS_PROFILE_SCOPE
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
+#include "utilities/builtin_timer.h" // BuiltinTimer
 
 // System includes
 #include <limits> // std::numeric_limits
@@ -181,15 +182,20 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
         // assembly. As a result, the restriction operator implicitly depends on the constraint
         // imposition method of the fine grid, meaning it must be constructed AFTER constraint
         // assembly.
-        MakePRestrictionOperator<std::numeric_limits<unsigned>::max(),typename TSparse::DataType>(
-            const_cast<ModelPart&>(rModelPart),
-            pParentLhs->size1(),
-            rParentDofSet,
-            mRestrictionOperator,
-            mpVariableList,
-            mDofSet,
-            mIndirectDofSet,
-            mDofMap);
+        {
+            BuiltinTimer timer;
+            MakePRestrictionOperator<std::numeric_limits<unsigned>::max(),typename TSparse::DataType>(
+                const_cast<ModelPart&>(rModelPart),
+                pParentLhs->size1(),
+                rParentDofSet,
+                mRestrictionOperator,
+                mpVariableList,
+                mDofSet,
+                mIndirectDofSet,
+                mDofMap);
+            KRATOS_INFO_IF("Grid " + std::to_string(mDepth), 2 <= this->mVerbosity)
+                << ": grid construction took " << timer << "\n";
+        }
 
         // Compute the coarse LHS matrix.
         typename TSparse::MatrixType left_multiplied_lhs;
