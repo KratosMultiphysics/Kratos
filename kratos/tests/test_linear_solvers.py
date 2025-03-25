@@ -15,7 +15,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             settings = all_settings["test_list"][i]
             self._auxiliary_test_function(settings)
 
-    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/small_A.mm"):
+    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"):
         space = KratosMultiphysics.UblasSparseSpace()
 
         #read the matrices
@@ -29,13 +29,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         b = KratosMultiphysics.Vector(n)
         space.SetToZeroVector(b)
 
-        # for i in range(len(b)):
-        #     b[i] = i/len(b)
-        b[0] = 3.0
-        b[1] = 7.0
-        b[2] = 2.0
-        b[3] = 5.0
-        b[4] = 1.0
+        for i in range(len(b)):
+            b[i] = i/len(b)
 
         x = KratosMultiphysics.Vector(n)
         #KratosMultiphysics.ReadMatrixMarketVector("b.mm",b)
@@ -75,96 +70,96 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         self.assertTrue(achieved_norm <= target_norm)
 
 
-    # def test_tfqmr_in_core(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "tfqmr",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 500,
-    #                     "preconditioner_type" : "ilu0"
-    #                 },
-    #                 {
-    #                     "solver_type" : "tfqmr",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 500,
-    #                     "preconditioner_type" : "diagonal"
-    #                 },
-    #                 {
-    #                     "solver_type" : "tfqmr",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 1000,
-    #                     "preconditioner_type" : "none"
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_tfqmr_in_core(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "tfqmr",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "ilu0"
+                    },
+                    {
+                        "solver_type" : "tfqmr",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "diagonal"
+                    },
+                    {
+                        "solver_type" : "tfqmr",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 1000,
+                        "preconditioner_type" : "none"
+                    }
+                ]
+            }
+            """)
 
-    # def test_cg_in_core(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "cg",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 500,
-    #                     "preconditioner_type" : "diagonal"
-    #                 },
-    #                 {
-    #                     "solver_type" : "cg",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 1000,
-    #                     "preconditioner_type" : "none"
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_cg_in_core(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "cg",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "diagonal"
+                    },
+                    {
+                        "solver_type" : "cg",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 1000,
+                        "preconditioner_type" : "none"
+                    }
+                ]
+            }
+            """)
 
-    # def test_deflated_cg_in_core(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "deflated_cg"
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_deflated_cg_in_core(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "deflated_cg"
+                    }
+                ]
+            }
+            """)
 
-    # def test_bicgstab_in_core(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "bicgstab",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 500,
-    #                     "preconditioner_type" : "ilu0",
-    #                     "scaling": false
-    #                 },
-    #                 {
-    #                     "solver_type" : "bicgstab",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 500,
-    #                     "preconditioner_type" : "ilu0",
-    #                     "scaling": false
-    #                 },
-    #                 {
-    #                     "solver_type" : "bicgstab",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 500,
-    #                     "preconditioner_type" : "diagonal"
-    #                 },
-    #                 {
-    #                     "solver_type" : "bicgstab",
-    #                     "tolerance" : 1.0e-6,
-    #                     "max_iteration" : 500,
-    #                     "preconditioner_type" : "none"
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_bicgstab_in_core(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "bicgstab",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "ilu0",
+                        "scaling": false
+                    },
+                    {
+                        "solver_type" : "bicgstab",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "ilu0",
+                        "scaling": false
+                    },
+                    {
+                        "solver_type" : "bicgstab",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "diagonal"
+                    },
+                    {
+                        "solver_type" : "bicgstab",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "none"
+                    }
+                ]
+            }
+            """)
 
     def test_skyline_lu(self):
         self._RunParametrized("""
@@ -178,254 +173,254 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    # def test_bicgstab_iluk(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
+    def test_bicgstab_iluk(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
 
-    #                     "solver_type" : "amgcl",
-    #                     "smoother_type":"iluk",
-    #                     "krylov_type": "bicgstab",
-    #                     "coarsening_type": "aggregation",
-    #                     "max_iteration": 100,
-    #                     "provide_coordinates": false,
-    #                     "gmres_krylov_space_dimension": 100,
-    #                     "verbosity" : 0,
-    #                     "tolerance": 1e-6,
-    #                     "scaling": false,
-    #                     "block_size": 1,
-    #                     "use_block_matrices_if_possible" : true,
-    #                     "coarse_enough" : 100
-    #                 }
-    #             ]
-    #         }
-    #         """)
+                        "solver_type" : "amgcl",
+                        "smoother_type":"iluk",
+                        "krylov_type": "bicgstab",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 0,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
 
-    # def test_lgmres_iluk(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
+    def test_lgmres_iluk(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
 
-    #                     "solver_type" : "amgcl",
-    #                     "smoother_type":"iluk",
-    #                     "krylov_type": "lgmres",
-    #                     "coarsening_type": "aggregation",
-    #                     "max_iteration": 300,
-    #                     "provide_coordinates": false,
-    #                     "gmres_krylov_space_dimension": 100,
-    #                     "verbosity" : 0 ,
-    #                     "tolerance": 1e-6,
-    #                     "scaling": false,
-    #                     "block_size": 1,
-    #                     "use_block_matrices_if_possible" : true,
-    #                     "coarse_enough" : 100
-    #                 }
-    #             ]
-    #         }
-    #         """)
+                        "solver_type" : "amgcl",
+                        "smoother_type":"iluk",
+                        "krylov_type": "lgmres",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 300,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 0 ,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
 
-    # def test_amgcl_unpreconditioned(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "bicgstab",
-    #                     "preconditioner_type": "dummy",
-    #                     "verbosity" : 1
-    #                 },
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "gmres",
-    #                     "preconditioner_type": "dummy",
-    #                     "verbosity" : 1
-    #                 },
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "lgmres",
-    #                     "preconditioner_type": "dummy",
-    #                     "verbosity" : 1
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_amgcl_unpreconditioned(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "bicgstab",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "gmres",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    }
+                ]
+            }
+            """)
 
-    # def test_amgcl_no_amg_only_preconditioner(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "lgmres",
-    #                     "smoother_type":"ilu0",
-    #                     "preconditioner_type": "relaxation",
-    #                     "verbosity" : 1
-    #                 },
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "lgmres",
-    #                     "smoother_type":"ilu0",
-    #                     "preconditioner_type": "relaxation",
-    #                     "verbosity" : 1,
-    #                     "block_size" : 2
-    #                 },
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "lgmres",
-    #                     "smoother_type":"iluk",
-    #                     "preconditioner_type": "relaxation",
-    #                     "verbosity" : 1
-    #                 },
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "lgmres",
-    #                     "smoother_type":"spai0",
-    #                     "preconditioner_type": "relaxation",
-    #                     "verbosity" : 1
-    #                 },
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "lgmres",
-    #                     "smoother_type":"damped_jacobi",
-    #                     "preconditioner_type": "relaxation",
-    #                     "verbosity" : 1
-    #                 },
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "lgmres",
-    #                     "smoother_type":"gauss_seidel",
-    #                     "preconditioner_type": "relaxation",
-    #                     "verbosity" : 1
-    #                 },
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "krylov_type": "lgmres",
-    #                     "smoother_type":"chebyshev",
-    #                     "preconditioner_type": "relaxation",
-    #                     "verbosity" : 1
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_amgcl_no_amg_only_preconditioner(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"ilu0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"ilu0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1,
+                        "block_size" : 2
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"iluk",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"spai0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"damped_jacobi",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"gauss_seidel",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"chebyshev",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    }
+                ]
+            }
+            """)
 
-    # def test_amgcl_bicgstab_ilu0(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "smoother_type":"ilu0",
-    #                     "krylov_type": "bicgstab",
-    #                     "coarsening_type": "aggregation",
-    #                     "max_iteration": 100,
-    #                     "provide_coordinates": false,
-    #                     "gmres_krylov_space_dimension": 100,
-    #                     "verbosity" : 0,
-    #                     "tolerance": 1e-6,
-    #                     "scaling": false,
-    #                     "block_size": 1,
-    #                     "use_block_matrices_if_possible" : true,
-    #                     "coarse_enough" : 100
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_amgcl_bicgstab_ilu0(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amgcl",
+                        "smoother_type":"ilu0",
+                        "krylov_type": "bicgstab",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 0,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
 
-    # def test_amgcl_idr_ilu0(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "smoother_type":"ilu0",
-    #                     "krylov_type": "idrs",
-    #                     "coarsening_type": "aggregation",
-    #                     "max_iteration": 100,
-    #                     "provide_coordinates": false,
-    #                     "gmres_krylov_space_dimension": 100,
-    #                     "verbosity" : 0,
-    #                     "tolerance": 1e-6,
-    #                     "scaling": false,
-    #                     "block_size": 1,
-    #                     "use_block_matrices_if_possible" : true,
-    #                     "coarse_enough" : 100
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_amgcl_idr_ilu0(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amgcl",
+                        "smoother_type":"ilu0",
+                        "krylov_type": "idrs",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 0,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
 
-    # def test_amgcl_bicgstab_spai0(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type" : "amgcl",
-    #                     "smoother_type":"spai0",
-    #                     "krylov_type": "bicgstab",
-    #                     "coarsening_type": "aggregation",
-    #                     "max_iteration": 100,
-    #                     "provide_coordinates": false,
-    #                     "gmres_krylov_space_dimension": 100,
-    #                     "verbosity" : 1,
-    #                     "tolerance": 1e-6,
-    #                     "scaling": false,
-    #                     "block_size": 1,
-    #                     "use_block_matrices_if_possible" : true,
-    #                     "coarse_enough" : 100
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_amgcl_bicgstab_spai0(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amgcl",
+                        "smoother_type":"spai0",
+                        "krylov_type": "bicgstab",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 1,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
 
-    # def test_cg_spai0(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
+    def test_cg_spai0(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
 
-    #                     "solver_type" : "amgcl",
-    #                     "smoother_type":"spai0",
-    #                     "krylov_type": "cg",
-    #                     "coarsening_type": "ruge_stuben",
-    #                     "max_iteration": 100,
-    #                     "provide_coordinates": false,
-    #                     "gmres_krylov_space_dimension": 100,
-    #                     "verbosity" : 1,
-    #                     "tolerance": 1e-6,
-    #                     "scaling": false,
-    #                     "block_size": 1,
-    #                     "use_block_matrices_if_possible" : true,
-    #                     "coarse_enough" : 100
-    #                 }
-    #             ]
-    #         }
-    #         """)
+                        "solver_type" : "amgcl",
+                        "smoother_type":"spai0",
+                        "krylov_type": "cg",
+                        "coarsening_type": "ruge_stuben",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 1,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
 
 
-    # def test_amgcl_bicgstabl(self):
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #             {
+    def test_amgcl_bicgstabl(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                {
 
-    #                     "solver_type" : "amgcl",
-    #                     "smoother_type":"iluk",
-    #                     "krylov_type": "bicgstabl",
-    #                     "coarsening_type": "aggregation",
-    #                     "max_iteration": 100,
-    #                     "provide_coordinates": false,
-    #                     "gmres_krylov_space_dimension": 100,
-    #                     "verbosity" : 0,
-    #                     "tolerance": 1e-6,
-    #                     "scaling": false,
-    #                     "block_size": 1,
-    #                     "use_block_matrices_if_possible" : true,
-    #                     "coarse_enough" : 100
-    #             }]
-    #         }
-    #         """)
+                        "solver_type" : "amgcl",
+                        "smoother_type":"iluk",
+                        "krylov_type": "bicgstabl",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 0,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                }]
+            }
+            """)
 
 if __name__ == '__main__':
     KratosUnittest.main()
