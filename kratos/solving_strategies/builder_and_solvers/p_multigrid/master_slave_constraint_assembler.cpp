@@ -221,7 +221,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse
             SparseMatrixMultiplicationUtility::TransposeMatrix(transposed_relation_matrix, this->GetRelationMatrix(), 1.0);
 
             typename TSparse::VectorType b_modified(rRhs.size());
-            TSparse::Mult(transposed_relation_matrix, rRhs, b_modified);
+            BalancedProduct<TSparse>(transposed_relation_matrix, rRhs, b_modified);
             TSparse::Copy(b_modified, rRhs);
 
             SparseMatrixMultiplicationUtility::MatrixMultiplication(transposed_relation_matrix, rLhs, left_multiplied_lhs);
@@ -264,9 +264,9 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize(typename TSparse::
     KRATOS_TRY
     typename TSparse::VectorType original_solution(rSolution.size());
     TSparse::SetToZero(original_solution);
-    TSparse::Mult(this->GetRelationMatrix(),
-                  rSolution,
-                  original_solution);
+    BalancedProduct<TSparse>(this->GetRelationMatrix(),
+                             rSolution,
+                             original_solution);
     rSolution.swap(original_solution);
     KRATOS_CATCH("")
 }

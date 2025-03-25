@@ -542,9 +542,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
                               -penalty_factor,
                               this->GetConstraintGapVector());
 
-        TSparse::Mult(r_transpose_relation_matrix,
-                      lagrange_multipliers,
-                      rhs_term);
+        TSparse::SetToZero(rhs_term);
+        BalancedProduct<TSparse>(r_transpose_relation_matrix,
+                                 lagrange_multipliers,
+                                 rhs_term);
 
         TSparse::UnaliasedAdd(rRhs,
                               -1.0,
@@ -565,14 +566,14 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeSolutionSte
     // Compute the constraint residuals.
     typename TSparse::VectorType constraint_residual(this->GetConstraintGapVector().size());
     TSparse::SetToZero(constraint_residual);
-    TSparse::Mult(this->GetRelationMatrix(), rSolution, constraint_residual);
+    BalancedProduct<TSparse>(this->GetRelationMatrix(), rSolution, constraint_residual);
     TSparse::UnaliasedAdd(constraint_residual, 1.0, this->GetConstraintGapVector());
 
     // Update the RHS.
     typename TSparse::VectorType rhs_update(rRhs.size());
     TSparse::SetToZero(rhs_update);
     TSparse::InplaceMult(constraint_residual, -this->GetPenaltyFactor());
-    TSparse::Mult(this->GetTransposeRelationMatrix(), constraint_residual, rhs_update);
+    BalancedProduct<TSparse>(this->GetTransposeRelationMatrix(), constraint_residual, rhs_update);
     TSparse::UnaliasedAdd(rRhs, 1.0, rhs_update);
 
     KRATOS_CATCH("")
@@ -591,7 +592,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
     // Compute the constraint residuals.
     typename TSparse::VectorType constraint_residual(this->GetConstraintGapVector().size());
     TSparse::SetToZero(constraint_residual);
-    TSparse::Mult(this->GetRelationMatrix(), rSolution, constraint_residual);
+    BalancedProduct<TSparse>(this->GetRelationMatrix(), rSolution, constraint_residual);
     TSparse::UnaliasedAdd(constraint_residual, 1.0, this->GetConstraintGapVector());
 
     // Decide whether to keep looping.
