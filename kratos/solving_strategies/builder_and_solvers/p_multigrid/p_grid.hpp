@@ -55,7 +55,7 @@ public:
     template <bool AssembleLHS,
               bool AssembleRHS,
               class TParentSparse>
-    void Assemble(const ModelPart& rModelPart,
+    void Assemble(ModelPart& rModelPart,
                   const typename TParentSparse::MatrixType* pParentLhs,
                   const typename TParentSparse::VectorType* pParentRhs,
                   const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,

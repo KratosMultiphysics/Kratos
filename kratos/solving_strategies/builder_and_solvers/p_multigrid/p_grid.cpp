@@ -154,7 +154,7 @@ template <class TSparse, class TDense>
 template <bool AssembleLHS,
           bool AssembleRHS,
           class TParentSparse>
-void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
+void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
                                      const typename TParentSparse::MatrixType* pParentLhs,
                                      const typename TParentSparse::VectorType* pParentRhs,
                                      const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
@@ -184,7 +184,7 @@ void PGrid<TSparse,TDense>::Assemble(const ModelPart& rModelPart,
         // imposition method of the fine grid, meaning it must be constructed AFTER constraint
         // assembly.
         MakePRestrictionOperator<std::numeric_limits<unsigned>::max(),typename TSparse::DataType>(
-            const_cast<ModelPart&>(rModelPart),
+            rModelPart,
             pParentLhs->size1(),
             rParentDofSet,
             mRestrictionOperator,
@@ -490,26 +490,26 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
                                                                         const typename TParentSparse::MatrixType&,              \
                                                                         const ConstraintAssembler<TParentSparse,TDense>&,       \
                                                                         const PointerVectorSet<Dof<double>>&);                  \
-    template void PGrid<TSparse,TDense>::Assemble<false,false,TParentSparse>(const ModelPart&,                                  \
+    template void PGrid<TSparse,TDense>::Assemble<false,false,TParentSparse>(ModelPart&,                                        \
                                                                              const typename TParentSparse::MatrixType*,         \
                                                                              const typename TParentSparse::VectorType*,         \
                                                                              const ConstraintAssembler<TParentSparse,TDense>&,  \
                                                                              PointerVectorSet<Dof<double>>&);                   \
-    template void PGrid<TSparse,TDense>::Assemble<true,false,TParentSparse>(const ModelPart&,                                   \
+    template void PGrid<TSparse,TDense>::Assemble<true,false,TParentSparse>(ModelPart&,                                         \
                                                                             const typename TParentSparse::MatrixType*,          \
                                                                             const typename TParentSparse::VectorType*,          \
-                                                                            const ConstraintAssembler<TParentSparse,TDense>&,  \
-                                                                            PointerVectorSet<Dof<double>>&);                   \
-    template void PGrid<TSparse,TDense>::Assemble<false,true,TParentSparse>(const ModelPart&,                                   \
+                                                                            const ConstraintAssembler<TParentSparse,TDense>&,   \
+                                                                            PointerVectorSet<Dof<double>>&);                    \
+    template void PGrid<TSparse,TDense>::Assemble<false,true,TParentSparse>(ModelPart&,                                         \
                                                                             const typename TParentSparse::MatrixType*,          \
                                                                             const typename TParentSparse::VectorType*,          \
-                                                                            const ConstraintAssembler<TParentSparse,TDense>&,  \
-                                                                            PointerVectorSet<Dof<double>>&);                   \
-    template void PGrid<TSparse,TDense>::Assemble<true,true,TParentSparse>(const ModelPart&,                                    \
+                                                                            const ConstraintAssembler<TParentSparse,TDense>&,   \
+                                                                            PointerVectorSet<Dof<double>>&);                    \
+    template void PGrid<TSparse,TDense>::Assemble<true,true,TParentSparse>(ModelPart&,                                          \
                                                                            const typename TParentSparse::MatrixType*,           \
                                                                            const typename TParentSparse::VectorType*,           \
-                                                                           const ConstraintAssembler<TParentSparse,TDense>&,  \
-                                                                           PointerVectorSet<Dof<double>>&);                   \
+                                                                           const ConstraintAssembler<TParentSparse,TDense>&,    \
+                                                                           PointerVectorSet<Dof<double>>&);                     \
     template void PGrid<TSparse,TDense>::Initialize<TParentSparse>(ModelPart&,                                                  \
                                                                    const TParentSparse::MatrixType&,                            \
                                                                    const TParentSparse::VectorType&,                            \
