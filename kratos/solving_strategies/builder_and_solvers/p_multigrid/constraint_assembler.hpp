@@ -25,6 +25,7 @@
 namespace Kratos {
 
 
+/// @brief Enum class representing imposition methods for multifreedom constraints.
 enum class ConstraintImposition
 {
     None                = 0,
@@ -35,6 +36,7 @@ enum class ConstraintImposition
 }; // enum class ConstraintImposition
 
 
+/// @brief Interface for assembling and imposing multifreedom constraints.
 template <class TSparse, class TDense>
 class ConstraintAssembler : public DataValueContainer
 {
