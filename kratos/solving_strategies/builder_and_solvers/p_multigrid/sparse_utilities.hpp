@@ -553,10 +553,10 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
 }
 
 
-template <class TSparse>
-void BalancedProduct(const typename TSparse::MatrixType& rLhs,
-                     const typename TSparse::VectorType& rRhs,
-                     typename TSparse::VectorType& rOutput) noexcept
+template <class TLHSSparse, class TRHSSparse, class TOutputSparse>
+void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
+                     const typename TRHSSparse::VectorType& rRhs,
+                     typename TOutputSparse::VectorType& rOutput) noexcept
 {
     // Create partition for entries in the matrix.
     const auto thread_count = ParallelUtilities::GetNumThreads();
@@ -578,7 +578,7 @@ void BalancedProduct(const typename TSparse::MatrixType& rLhs,
         // Find the initial row's index.
         const auto it_initial_row = std::lower_bound(rLhs.index1_data().begin(),
                                                      rLhs.index1_data().end(),
-                                                     static_cast<typename TSparse::IndexType>(i_chunk_begin));
+                                                     static_cast<typename TLHSSparse::IndexType>(i_chunk_begin));
         std::size_t i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);
         if (i_row != i_chunk_begin) --i_row;
 
@@ -592,7 +592,7 @@ void BalancedProduct(const typename TSparse::MatrixType& rLhs,
 
             const auto it_column_end = rLhs.index2_data().begin() + i_end;
             auto it_entry = rLhs.value_data().begin() + i_begin;
-            auto contribution = static_cast<typename TSparse::DataType>(0);
+            auto contribution = static_cast<typename TOutputSparse::DataType>(0);
 
             for (auto it_column=rLhs.index2_data().begin() + i_begin; it_column!=it_column_end; ++it_column, ++it_entry) {
                 const auto i_column = *it_column;

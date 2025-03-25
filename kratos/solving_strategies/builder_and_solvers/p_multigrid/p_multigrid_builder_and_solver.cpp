@@ -116,7 +116,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
                 // Update the fine residual.
                 TSparse::SetToZero(rResidualUpdate);
-                BalancedProduct<TSparse>(rLhs, rSolutionUpdate, rResidualUpdate);
+                BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidualUpdate);
                 TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
             } // if mMaybeHierarchy
 
@@ -131,7 +131,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
             // Update the fine residual.
             TSparse::SetToZero(rResidualUpdate);
-            BalancedProduct<TSparse>(rLhs, rSolutionUpdate, rResidualUpdate);
+            BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidualUpdate);
             TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
 
             // Emit status and check for convergence.
@@ -186,7 +186,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             // Initialize the constraint assembler and update residuals.
             mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
             TSparse::SetToZero(residual_update);
-            BalancedProduct<TSparse>(rLhs, rSolution, residual_update);
+            BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolution, residual_update);
             TSparse::Copy(rRhs, residual);
             TSparse::UnaliasedAdd(residual, -1.0, residual_update);
 

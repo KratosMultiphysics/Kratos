@@ -386,7 +386,7 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     // so I'm directly invoking the UBLAS template that does support it.
     TSparse::SetToZero(mRhs);
     TSparse::SetToZero(mSolution);
-    axpy_prod(mRestrictionOperator, rParentRhs, mRhs, boost::numeric::ublas::row_major_tag());
+    BalancedProduct<TSparse,TParentSparse,TSparse>(mRestrictionOperator, rParentRhs, mRhs);
     KRATOS_CATCH("")
 
     // Impose constraints and solve the coarse system.
@@ -422,7 +422,7 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     // sparse spaces do not support computing the products of arguments with different value types,
     // so I'm directly invoking the UBLAS template that does support it.
     TParentSparse::SetToZero(rParentSolution);
-    axpy_prod(mProlongationOperator, mSolution, rParentSolution, boost::numeric::ublas::row_major_tag());
+    BalancedProduct<TSparse,TSparse,TParentSparse>(mProlongationOperator, mSolution, rParentSolution);
     KRATOS_CATCH("")
 
     return linear_solver_status && constraint_status.converged;
