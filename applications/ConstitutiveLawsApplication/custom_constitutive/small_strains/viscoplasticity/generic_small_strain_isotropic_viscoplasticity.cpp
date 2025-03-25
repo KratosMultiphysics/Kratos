@@ -85,7 +85,8 @@ void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::Calcul
     
             const auto& r_props = rValues.GetMaterialProperties();
             const double mu = r_props[MIU];
-            const double sensitivity = r_props[DP_EPSILON];
+            const double sensitivity = r_props.Has(DP_EPSILON) ? r_props[DP_EPSILON] : 1.0; 
+            // Perzyna model
             const double plastic_multiplier = (std::pow(equivalent_stress / threshold, 1.0 / sensitivity) - 1.0) / mu;
     
             array_1d<double, VoigtSize> g_flux;
@@ -163,9 +164,28 @@ void GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::Finali
         r_plastic_dissipation += inner_prod(rValues.GetStressVector(), plastic_strain_increment) / g;
         noalias(r_plastic_strain) += plastic_strain_increment;
 
-        double dummy;
+        double dummy = 0.0;
         ConstLawIntegratorType::CalculateEquivalentStressThreshold(r_plastic_dissipation, 1, 0, r_threshold, dummy, rValues, dummy, characteristic_length);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+int GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    int check_visco = 0;
+    if (!rMaterialProperties.Has(MIU)) {
+        check_visco++;
+        KRATOS_ERROR << "The MIU variable is not defined in the properties..." << std::endl;
+    }
+    return check_visco;
 }
 
 /***********************************************************************************/
