@@ -43,39 +43,7 @@ class MechanicalSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
-        old_unused_settings = [
-            "use_computing_model_part",
-            "computing_model_part_name",
-            "problem_domain_sub_model_part_list",
-            "processes_sub_model_part_list"
-        ]
-
-        for old_setting in old_unused_settings:
-            if custom_settings.Has(old_setting):
-                KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", 'Settings contain no longer used setting, please remove it: "{}"'.format(old_setting))
-                custom_settings.RemoveValue(old_setting)
-
-
-        settings_have_use_block_builder = custom_settings.Has("block_builder")
-        if settings_have_use_block_builder:
-            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
-            if not custom_settings.Has("builder_and_solver_settings"):
-                custom_settings.AddEmptyValue("builder_and_solver_settings")
-
-            custom_settings["builder_and_solver_settings"].AddValue("use_block_builder", custom_settings["block_builder"])
-            custom_settings.RemoveValue("block_builder")
-
-        settings_have_line_search = custom_settings.Has("line_search")
-        if settings_have_line_search:
-            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
-            if custom_settings["line_search"].GetBool():
-                if not custom_settings.Has("solving_strategy_settings"):
-                    custom_settings.AddEmptyValue("solving_strategy_settings")
-
-                custom_settings["solving_strategy_settings"].AddEmptyValue("type")
-                custom_settings["solving_strategy_settings"]["type"].SetString("line_search")
-            custom_settings.RemoveValue("line_search")
-
+        self.__ConvertDeprecatedSettings(custom_settings)
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
 
@@ -141,7 +109,6 @@ class MechanicalSolver(PythonSolver):
             },
             "builder_and_solver_settings" : {
                 "type" : "block",
-                "use_lagrange_BS"   : false,
                 "advanced_settings" : { }
             },
             "clear_storage": false,
@@ -379,9 +346,10 @@ class MechanicalSolver(PythonSolver):
         return self._linear_solver
 
     def _GetBuilderAndSolver(self):
+        builder_and_solver_type: str = self.settings["builder_and_solver_settings"]["type"].GetString()
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._CreateBuilderAndSolver()
-        elif not self.settings["builder_and_solver_settings"]["type"].GetString() == "block": # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+        elif builder_and_solver_type == "elimination": # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
             if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
                 self.settings["multi_point_constraints_used"].SetBool(True)
                 self._builder_and_solver = self._CreateBuilderAndSolver()
@@ -389,9 +357,10 @@ class MechanicalSolver(PythonSolver):
         return self._builder_and_solver
 
     def _GetSolutionStrategy(self):
+        builder_and_solver_type: str = self.settings["builder_and_solver_settings"]["type"].GetString()
         if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._CreateSolutionStrategy()
-        elif not self.settings["builder_and_solver_settings"]["type"].GetString() == "block": # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+        elif builder_and_solver_type == "elimination": # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
             if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
                 self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         return self._mechanical_solution_strategy
@@ -487,23 +456,29 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
-    def _CreateBuilderAndSolver(self):
-        linear_solver = self._GetLinearSolver()
-        if self.settings["builder_and_solver_settings"]["type"].GetString() == "block":
+    def _CreateBuilderAndSolver(self) -> KratosMultiphysics.BuilderAndSolver:
+        if not self.settings["builder_and_solver_settings"].Has("type"):
+            return self.__DeprecatedBuilderAndSolverFactory()
+
+        linear_solver: KratosMultiphysics.LinearSolver = self._GetLinearSolver()
+        builder_and_solver_name: str = self.settings["builder_and_solver_settings"]["type"].GetString()
+
+        if builder_and_solver_name == "block":
             bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
-            if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
-            else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
-        elif self.settings["builder_and_solver_settings"]["type"].GetString() == "p_multigrid":
-            parameters = self.settings["builder_and_solver_settings"]["advanced_settings"]
-            builder_and_solver = KratosMultiphysics.PMultigridBuilderAndSolver(linear_solver, parameters)
-        else:
+            return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+        elif builder_and_solver_name == "block_lagrange":
+            return KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
+        elif builder_and_solver_name == "elimination":
             if self.settings["multi_point_constraints_used"].GetBool():
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+                return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
             else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        return builder_and_solver
+                return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        else:
+            message: str = f"Invalid type for builder and solver '{builder_and_solver_name}'. Options are:\n"
+            message += "'block'\n"
+            message += "'block_lagrange'\n"
+            message += "'elimination'"
+            raise ValueError(message)
 
     def _CreateScheme(self):
         """Create the solution scheme for the structural problem.
@@ -587,3 +562,59 @@ class MechanicalSolver(PythonSolver):
                                                                 self._GetBuilderAndSolver(),
                                                                 settings)
         return solving_strategy
+
+    def __ConvertDeprecatedSettings(self, settings: KratosMultiphysics.Parameters) -> None:
+        old_unused_settings = [
+            "use_computing_model_part",
+            "computing_model_part_name",
+            "problem_domain_sub_model_part_list",
+            "processes_sub_model_part_list"
+        ]
+
+        for old_setting in old_unused_settings:
+            if settings.Has(old_setting):
+                KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", 'Settings contain no longer used setting, please remove it: "{}"'.format(old_setting))
+                settings.RemoveValue(old_setting)
+
+        settings_have_use_block_builder = settings.Has("block_builder")
+        if settings_have_use_block_builder:
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
+            if not settings.Has("builder_and_solver_settings"):
+                settings.AddEmptyValue("builder_and_solver_settings")
+
+            settings["builder_and_solver_settings"].AddValue("use_block_builder", settings["block_builder"])
+            settings.RemoveValue("block_builder")
+
+        settings_have_line_search = settings.Has("line_search")
+        if settings_have_line_search:
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
+            if settings["line_search"].GetBool():
+                if not settings.Has("solving_strategy_settings"):
+                    settings.AddEmptyValue("solving_strategy_settings")
+
+                settings["solving_strategy_settings"].AddEmptyValue("type")
+                settings["solving_strategy_settings"]["type"].SetString("line_search")
+            settings.RemoveValue("line_search")
+
+        if settings.Has("builder_and_solver_settings") and not settings["builder_and_solver_settings"].Has("type"):
+            kratos_utilities.IssueDeprecationWarning(
+                "MechanicalSolver",
+                "Using deprecated builder and solver settings. Provide 'type' and 'advanced_settings' in the new system.")
+            bs_settings = settings["builder_and_solver_settings"]
+            updated_bs_settings = KratosMultiphysics.Parameters("""{}""")
+            if bs_settings.Has("use_block_builder"):
+                if bs_settings["use_block_builder"].GetBool():
+                    if bs_settings.Has("use_lagrange_BS") and bs_settings["use_lagrange_BS"].GetBool():
+                        updated_bs_settings.AddString("type", "block_lagrange")
+                    else:
+                        updated_bs_settings.AddString("type", "block")
+                else:
+                    updated_bs_settings.AddString("type", "elimination")
+            else:
+                updated_bs_settings.AddString("type", "block")
+
+            if bs_settings.Has("advanced_settings"):
+                updated_bs_settings.AddValue("advanced_settings", bs_settings["advanced_settings"])
+
+            settings.RemoveValue("builder_and_solver_settings")
+            settings.AddValue("builder_and_solver_settings", updated_bs_settings)
