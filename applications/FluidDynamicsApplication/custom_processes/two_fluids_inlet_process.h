@@ -92,7 +92,7 @@ public:
 
     /**
      * @brief Function to smooth the distance field.
-     * A continuous transition from the inlet distance the the distance field inside the domain shall be achieved.
+     * A continuous transition from the inlet distance the distance field inside the domain shall be achieved.
      */
     void SmoothDistanceField();
 

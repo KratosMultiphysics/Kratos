@@ -122,7 +122,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     // Verify that the constitutive law has the correct dimension
 
     // Check constitutive law
-    if (mRetentionLawVector.size() > 0) {
+    if (!mRetentionLawVector.empty()) {
         return mRetentionLawVector[0]->Check(Prop, rCurrentProcessInfo);
     }
 
@@ -200,13 +200,7 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
                                                                unsigned int      GPoint)
 {
     KRATOS_TRY;
-
-    noalias(rRightHandSideVector) +=
-        -prod(GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-                  rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-                  rVariables.RelativePermeability, rVariables.IntegrationCoefficient),
-              rVariables.PressureVector);
-
+    this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("")

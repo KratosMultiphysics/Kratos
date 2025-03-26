@@ -529,6 +529,9 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
     ModelPart& rSurrogateModelPartInner
     ) 
 {
+    
+    KRATOS_INFO("::[SnakeSbmProcess]::") << "Inner :: Check layers in 2D" << std::endl;
+
     // Snake 2D works with a raycasting technique from each of the two directions
 
     const double knot_step_u = knot_vector_u[1]-knot_vector_u[0];
@@ -688,6 +691,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
     ModelPart& rSurrogateModelPartOuter)
 {
 
+    KRATOS_INFO("::[SnakeSbmProcess]::") << "Outer :: Check layers in 2D" << std::endl;
+
     // CHECK ALL THE EXTERNAL KNOT SPANS
 
     // LEFT BOUNDARY
@@ -729,6 +734,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
                 }
         }
     }
+
+    KRATOS_INFO("::[SnakeSbmProcess]::") << "Outer :: Starting Creation of Surrogate_Model_Part_Outer" << std::endl;
     
     // Snake 2D works with a raycasting technique from each of the two directions
     IndexType id_surrogate_first_node = rSurrogateModelPartOuter.GetRootModelPart().NumberOfNodes() + 1;

@@ -1,6 +1,6 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.DelaunayMeshingApplication import *
+#from KratosMultiphysics.DelaunayMeshingApplication import *
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
