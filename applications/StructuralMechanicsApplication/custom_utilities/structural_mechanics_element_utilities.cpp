@@ -689,7 +689,13 @@ BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometr
     t /= norm_2(t);
 
     n.clear();
-    n[1] = 1.0;
+
+    if (rGeometry.Has(LOCAL_AXIS_2)) {
+        noalias(n) = rGeometry.GetValue(LOCAL_AXIS_2);
+    } else {
+        // Default
+        n[1] = 1.0;
+    }
 
     if (norm_2(t-n) <= 1.0e-8) { // colineal, hence we use another aux vector
         n.clear();
