@@ -199,8 +199,8 @@ public:
     {
         msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,Create<TDataType>));
         msRegisteredObjectsName.insert(RegisteredObjectsNameContainerType::value_type(typeid(TDataType).name(), rName));
-	//std::cout<<" REGISTERED OBJECT "<<rName<<" TypeID "<<typeid (TDataType).name()<<std::endl;
-	//msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
+    //std::cout<<" REGISTERED OBJECT "<<rName<<" TypeID "<<typeid (TDataType).name()<<std::endl;
+    //msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
     }
 
     static void Deregister(const std::string& rName)
@@ -515,7 +515,7 @@ public:
     void load(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
     {
         load_trace_point(rTag);
-	//rObject = array_1d<TDataType, TDimension>(); //it generates a warnning --> commented 23/09/2015 <--
+    //rObject = array_1d<TDataType, TDimension>(); //it generates a warnning --> commented 23/09/2015 <--
         for(SizeType i = 0 ; i < TDimension ; i++)
             load("E", rObject[i]);
 //    read(rObject);
@@ -566,16 +566,16 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
-	KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<double>)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<double>)
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<float>)
 
-	template<class TDataType, std::size_t TDataSize>
-	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
-	{
-		save_trace_point(rTag);
-		for (SizeType i = 0; i < TDataSize; i++)
-			save("E", rObject[i]);
-	}
+    template<class TDataType, std::size_t TDataSize>
+    void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
+    {
+        save_trace_point(rTag);
+        for (SizeType i = 0; i < TDataSize; i++)
+            save("E", rObject[i]);
+    }
 
     template<class TDataType>
     void save(std::string const & rTag, std::vector<TDataType> const& rObject)
@@ -703,10 +703,10 @@ public:
     bool IsDerived(TDataType * pValue)
     {
       if (strcmp(typeid(TDataType).name(), typeid(*pValue).name()) != 0) {
-	return true;
+    return true;
       }
       else {
-	return false;
+    return false;
       }
       // bool is_derived = (typeid(TDataType) != typeid(*pValue));
 //    std::cout << "for TDataType : " << typeid(TDataType).name() << " and *pValue type : " << typeid(*pValue).name() << " is derived : " << is_derived << std::endl;
@@ -813,7 +813,7 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::size_t)
 #endif
-	KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<double>)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<double>)
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<float>)
 
 
