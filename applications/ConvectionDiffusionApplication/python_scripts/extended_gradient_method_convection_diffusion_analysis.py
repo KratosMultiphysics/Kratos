@@ -583,8 +583,8 @@ class ExtendedGradientMethodConvectionDiffusionAnalysis(AnalysisStage):
             solution_derivative_x.append(solution_gradients[0]), solution_derivative_y.append(solution_gradients[1])
             
         # Create RBF interpolator
-        solution_derivative_x_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_x, neigbours=30, function='linear') 
-        solution_derivative_y_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_y, neigbours=30, function='linear')
+        #solution_derivative_x_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_x, neigbours=30, function='linear') 
+        #solution_derivative_y_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_y, neigbours=30, function='linear')
         # solution_derivative_x_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_x, neigbours=5, function='linear') 
         # solution_derivative_y_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_y, neigbours=5, function='linear')
         # solution_derivative_x_rbf_interpolator = Rbf(x_coordinates, y_coordinates, solution_derivative_x, function='multiquadric') 
