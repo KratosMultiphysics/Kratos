@@ -1,0 +1,206 @@
+[H[2J[3J-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+[0m-- No KRATOS_SOURCE_DIR is defined, using: /home/camarotti/Software/kratos[0m
+[0m-- No KRATOS_BINARY_DIR is defined, using: /home/camarotti/Software/kratos/build/Release[0m
+[0m-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER[0m
+-- Found Git: /usr/bin/git (found version "2.43.0") 
+-- Additional default options were set for GCC
+-- CMAKE_SYSTEM_NAME = Linux
+-- CMAKE_CXX_COMPILER_ID = GNU
+-- CMAKE_CXX_FLAGS =  -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override
+-- CMAKE_C_FLAGS =  -funroll-loops -Wall -Wl,--no-as-needed -ldl
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.12.3", minimum required is "3.6") 
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.12.so
+-- LTO is Disabled
+-- AR VERSION: /usr/bin/ar
+-- Python version used for the interface will be 3.12
+-- User defined install dir /home/camarotti/python_venv/kratos_release/lib/python3.12/site-packages
+-- "KRATOS_SHARED_MEMORY_PARALLELIZATION" not defined, defaulting to "OpenMP"
+-- Found OpenMP_C: -fopenmp (found version "4.5") 
+-- Found OpenMP_CXX: -fopenmp (found version "4.5") 
+-- Found OpenMP: TRUE (found version "4.5")  
+-- Using OpenMP for shared memory parallelization
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.83.0/BoostConfig.cmake (found version "1.83.0")  
+-- Boost include directory found with find_package
+-- Boost library deduced from root directory
+-- Boost include directory: /usr/include
+-- Boost library directory: /lib
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.3")  
+[0m
+-- CMAKE_BUILD_TYPE ........ Release
+[0m
+[0mWARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)[0m
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring applications (ENV):
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/LinearSolversApplication'[0m
+[0m**** configuring KratosLinearSolversApplication ****[0m
+[0m-- MKLROOT = /home/camarotti/intel/oneapi/mkl/2024.2[0m
+-- Looking for a Fortran compiler
+-- Looking for a Fortran compiler - /usr/bin/f95
+-- The Fortran compiler identification is GNU 13.3.0
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Check for working Fortran compiler: /usr/bin/f95 - skipped
+-- Found OpenMP_C: -fopenmp (found version "4.5") 
+-- Found OpenMP_CXX: -fopenmp (found version "4.5") 
+-- Found OpenMP_Fortran: -fopenmp (found version "4.5") 
+-- Found OpenMP: TRUE (found version "4.5")  
+[0madditional default options were set for gfortran[0m
+[0m----------------------****************---------------------- CMAKE_Fortran_FLAGS =  -fopenmp -w -w -O3 -ffree-line-length-none -ffixed-line-length-none -cpp -fPIC -DMKL -std=legacy[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/StructuralMechanicsApplication'[0m
+[0m**** configuring KratosStructuralMechanicsApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/FluidDynamicsApplication'[0m
+[0m**** configuring KratosFluidDynamicsApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/IgaApplication'[0m
+[0m**** configuring KratosIgaApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/CoSimulationApplication'[0m
+[0m**** configuring KratosCoSimulationApplication ****[0m
+[0mCMake Deprecation Warning at applications/CoSimulationApplication/custom_external_libraries/CoSimIO/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+[0m
+[0mBuilding the CoSimIO with the following configuration:[0m
+[0m    CO_SIM_IO_BUILD_TYPE:      Release[0m
+[0m    CO_SIM_IO_BUILD_MPI:       OFF[0m
+[0m    CO_SIM_IO_BUILD_TESTING:   OFF[0m
+[0m    CO_SIM_IO_BUILD_C:         OFF[0m
+[0m    CO_SIM_IO_BUILD_PYTHON:    OFF[0m
+[0m    CO_SIM_IO_BUILD_FORTRAN:   OFF[0m
+[0m    CO_SIM_IO_STRICT_COMPILER: OFF[0m
+[0m[0m
+[0mCMAKE_CXX_FLAGS: -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -fopenmp -std=c++17[0m
+[0mCMAKE_C_FLAGS: -funroll-loops -Wall -Wl,--no-as-needed -ldl -fopenmp -std=c89[0m
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/MappingApplication'[0m
+[0m**** configuring KratosMappingApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/MeshMovingApplication'[0m
+[0m**** configuring KratosMeshMovingApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/ConstitutiveLawsApplication'[0m
+[0m**** configuring KratosConstitutiveLawsApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/CompressiblePotentialFlowApplication'[0m
+[0m**** configuring KratosCompressiblePotentialFlowApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/ConvectionDiffusionApplication'[0m
+[0m**** configuring KratosConvectionDiffusionApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/OptimizationApplication'[0m
+[0m**** configuring KratosOptimizationApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/StatisticsApplication'[0m
+[0m**** configuring KratosStatisticsApplication ****[0m
+[0m	Adding application '/home/camarotti/Software/kratos/scripts/../applications/HDF5Application'[0m
+[0m**** configuring KratosHDF5Application ****[0m
+-- Searching for serial HDF5 libraries.
+-- Found HDF5: /usr/lib/x86_64-linux-gnu/hdf5/serial/libhdf5.so;/usr/lib/x86_64-linux-gnu/libcrypto.so;/usr/lib/x86_64-linux-gnu/libcurl.so;/usr/lib/x86_64-linux-gnu/libpthread.a;/usr/lib/x86_64-linux-gnu/libsz.so;/usr/lib/x86_64-linux-gnu/libz.so;/usr/lib/x86_64-linux-gnu/libdl.a;/usr/lib/x86_64-linux-gnu/libm.so (found version "1.10.10") found components: C 
+-- Using serial HDF5 libraries.
+[0m
+***********************************************************************
+[0m
+[0m        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:
+[0m
+[0m        LinearSolversApplication[0m
+[0m        StructuralMechanicsApplication[0m
+[0m        FluidDynamicsApplication[0m
+[0m        IgaApplication[0m
+[0m        CoSimulationApplication[0m
+[0m        MappingApplication[0m
+[0m        MeshMovingApplication[0m
+[0m        ConstitutiveLawsApplication[0m
+[0m        CompressiblePotentialFlowApplication[0m
+[0m        ConvectionDiffusionApplication[0m
+[0m        OptimizationApplication[0m
+[0m        StatisticsApplication[0m
+[0m        HDF5Application[0m
+[0m
+        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:
+[0m
+[0m
+***********************************************************************
+[0m
+[0m
+List of upcoming API-breaking and behavior changes:[0m
+[0m	 Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977[0m
+[0m	 Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024[0m
+[0m	 Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243[0m
+[0m	 Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598[0m
+[0m	 Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769[0m
+[0m	 Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774[0m
+[0m	 Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK[0m
+-- clipper : /home/camarotti/Software/kratos/external_libraries/clipper
+-- tinyexpr : /home/camarotti/Software/kratos/external_libraries/tinyexpr/tinyexpr/
+-- Configuring done (3.4s)
+-- Generating done (0.3s)
+[33mCMake Warning:
+  Manually-specified variables were not used by the project:
+
+    TRILINOS_EXCLUDE_AMESOS2_SOLVER
+    TRILINOS_EXCLUDE_AMESOS_SOLVER
+    TRILINOS_EXCLUDE_AZTEC_SOLVER
+    TRILINOS_EXCLUDE_ML_SOLVER
+    TRILINOS_INCLUDE_DIR
+    TRILINOS_LIBRARY_DIR
+    TRILINOS_LIBRARY_PREFIX
+
+[0m
+-- Build files have been written to: /home/camarotti/Software/kratos/build/Release
+[  1%] Built target tinyexpr
+[  1%] Built target KratosVersion
+[  1%] Built target clipper
+[  2%] Built target gidpost
+[  3%] Built target feast4
+[  3%] Built target pong
+[  3%] Built target ping
+[  6%] Built target co_sim_io
+[ 35%] Built target KratosCore
+[ 35%] Built target KratosLinearSolversCore
+[ 36%] Built target KratosCoSimulationCore
+[ 37%] Built target KratosMeshMovingCore
+[ 38%] Built target KratosMappingCore
+[ 43%] Built target KratosIgaCore
+[ 44%] Built target KratosStatisticsCore
+[ 47%] Built target KratosConvectionDiffusionCore
+[ 50%] Built target KratosOptimizationCore
+[ 56%] Built target Kratos
+[ 56%] Built target KratosLinearSolversApplication
+[ 59%] Built target KratosHDF5Core
+[ 59%] Built target KratosIgaApplication
+[ 60%] Built target KratosCoSimulationApplication
+[ 61%] Built target KratosMappingApplication
+[ 62%] Built target KratosMeshMovingApplication
+[ 62%] Built target KratosConvectionDiffusionApplication
+[ 65%] Built target KratosStatisticsApplication
+[ 74%] Built target KratosFluidDynamicsCore
+[ 75%] Built target KratosOptimizationApplication
+[ 75%] Built target KratosHDF5Application
+[ 75%] Built target KratosFluidDynamicsApplication
+[ 88%] Built target KratosStructuralMechanicsCore
+[ 91%] Built target KratosCompressiblePotentialFlowCore
+[ 91%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsApplication.dir/custom_python/add_custom_strategies_to_python.cpp.o[0m
+[ 92%] Built target KratosCompressiblePotentialFlowApplication
+[100%] Built target KratosConstitutiveLawsCore
+[100%] Built target KratosConstitutiveLawsApplication
+[100%] [32m[1mLinking CXX shared module KratosStructuralMechanicsApplication.cpython-312-x86_64-linux-gnu.so[0m
+[100%] Built target KratosStructuralMechanicsApplication
+[36mInstall the project...[0m
+-- Install configuration: "Release"
+-- Set non-toolchain portion of runtime path of "/home/camarotti/python_venv/kratos_release/lib/python3.12/site-packages/libs/KratosStructuralMechanicsApplication.cpython-312-x86_64-linux-gnu.so" to "$ORIGIN/../libs"
+-- Trying to install python stub files to enable python hinting support for cpp libraries in IDEs...
+Please install mypy using  "pip install mypy" to generate pyi stub files for libraries generated by pybind11.
