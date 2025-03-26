@@ -70,7 +70,7 @@ public:
 
     using MatrixMapType = std::unordered_map<
         std::pair<IndexType, IndexType>,
-        double,
+        TDataType,
         PairHasher<IndexType, IndexType>,
         PairComparor<IndexType, IndexType>
         >;
@@ -115,11 +115,11 @@ public:
         SetValue(0.0);
     }
 
-    CsrMatrix(const MatrixMapType& MatrixMap)
+    CsrMatrix(const MatrixMapType& rMatrixMap)
     {
         // Set sparse graph from matrix map
         SparseGraph<TIndexType> Agraph;
-        for (const auto& item : MatrixMap) {
+        for (const auto& item : rMatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             Agraph.AddEntry(I,J);
@@ -138,7 +138,7 @@ public:
 
         // Assemble data from matrix map
         this->BeginAssemble();
-        for (const auto item : MatrixMap) {
+        for (const auto item : rMatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             TDataType value = item.second;
