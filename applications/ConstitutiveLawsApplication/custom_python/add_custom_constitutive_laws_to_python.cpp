@@ -360,10 +360,6 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw >
     (m,"SmallStrainIsotropicPlasticityPlaneStrainDruckerPragerMohrCoulomb").def(py::init<>());
 
-    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
-    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
-    ConstitutiveLaw >
-    (m,"SmallStrainIsotropicViscoPlasticity3DVonMisesVonMises").def(py::init<>());
 
     // Isotropic Plasticity 3D
     py::class_< GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
@@ -480,6 +476,243 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
     (m,"SmallStrainIsotropicPlasticity3DDruckerPragerMohrCoulomb").def(py::init<>());
+
+
+    // Viscoplasticity
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainVonMisesVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainVonMisesModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainVonMisesDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainVonMisesTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainModifiedMohrCoulombVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainModifiedMohrCoulombModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainModifiedMohrCoulombDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainModifiedMohrCoulombTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainTrescaVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainTrescaModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainTrescaDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainTrescaTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainDruckerPragerVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainDruckerPragerModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainDruckerPragerDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainDruckerPragerTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainVonMisesMohrCoulomb").def(py::init<>());
+
+	py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainMohrCoulombVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainMohrCoulombMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainMohrCoulombDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainMohrCoulombTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainTrescaMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticityPlaneStrainDruckerPragerMohrCoulomb").def(py::init<>());
+
+
+    // Isotropic ViscoPlasticity 3D
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DVonMisesVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DVonMisesModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DVonMisesDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DVonMisesTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DModifiedMohrCoulombVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DModifiedMohrCoulombDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DModifiedMohrCoulombTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DTrescaVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DTrescaModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DTrescaDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DTrescaTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DDruckerPragerVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DDruckerPragerModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DDruckerPragerDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DDruckerPragerTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DVonMisesMohrCoulomb").def(py::init<>());
+
+	py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DMohrCoulombVonMises").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DMohrCoulombMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DMohrCoulombDruckerPrager").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DMohrCoulombTresca").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DTrescaMohrCoulomb").def(py::init<>());
+
+    py::class_< GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicViscoPlasticity3DDruckerPragerMohrCoulomb").def(py::init<>());
+
+
 
     // Plastic Damage Model
     py::class_< GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
