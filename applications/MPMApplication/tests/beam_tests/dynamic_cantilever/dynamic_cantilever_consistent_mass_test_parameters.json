@@ -87,19 +87,6 @@
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0]
             }
-        }],
-        "print_output_process" : [
-        {
-            "python_module"   : "json_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "help"                  : "",
-            "process_name"          : "JsonOutputProcess",
-            "Parameters"            : {
-                "output_variables"  : ["REACTION"],
-                "output_file_name"  : "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test_reaction_results.json",
-                "model_part_name"   : "Background_Grid.DISPLACEMENT_restraint",
-                "time_frequency"    : 0.1
-            }
         }]
     },
 	"print_output_process" : [{
