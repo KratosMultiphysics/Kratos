@@ -66,7 +66,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// An impelementation of the Spalart-Allmaras turbulence model for incompressible flows.
+/// An implementation of the Spalart-Allmaras turbulence model for incompressible flows.
 /** Detail class definition.
  */
 template<class TSparseSpace,
@@ -158,7 +158,7 @@ public:
             mrSpalartModelPart.Elements().push_back(p_element);
         }
 
-        // pointer types for the solution strategy construcion
+        // pointer types for the solution strategy construction
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;

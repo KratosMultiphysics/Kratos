@@ -180,7 +180,7 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
     std::string subname = name.substr(found + 1);
     ModelPart&  part    = rModelPart.GetSubModelPart(subname);
     mProcesses.push_back(make_shared<ApplyConstantScalarValueProcess>(
-        part, VOLUME_ACCELERATION_X, 0.0,ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
+        part, VOLUME_ACCELERATION_X, 0.0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
 
     mProcesses.push_back(make_shared<ApplyConstantScalarValueProcess>(
         part, VOLUME_ACCELERATION_Y, -9.81, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
