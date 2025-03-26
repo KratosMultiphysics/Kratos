@@ -231,7 +231,7 @@ public:
 
     TDataType Norm() const
     {
-        TDataType sum_squared = IndexPartition<TIndexType>(this->value_data().size()).template for_each< SumReduction<TDataType> >( [this](TIndexType i){
+        TDataType sum_squared = IndexPartition<TIndexType>(size()).template for_each<SumReduction<TDataType>>([this](TIndexType i){
             return std::pow((*this)[i], 2);
         });
         return std::sqrt(sum_squared);
