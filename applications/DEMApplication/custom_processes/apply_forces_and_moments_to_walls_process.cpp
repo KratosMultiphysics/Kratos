@@ -15,7 +15,6 @@ namespace Kratos
         Parameters default_parameters( R"(
             {
                 "help"                 : "This process applies loads over the rigid walls in a certain submodelpart, for a certain time interval",
-                "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "force_settings" : {
                     "value"            : [10.0, "3*t", "x+y"],

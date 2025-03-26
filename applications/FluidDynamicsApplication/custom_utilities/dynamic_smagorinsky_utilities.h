@@ -130,7 +130,7 @@ public:
         {
             for( std::vector<int>::iterator itIndex = itList->begin(); itIndex != itList->end(); ++itIndex)
             {
-                // Note that instering in map already sorts and checks for uniqueness
+                // Note that inserting in map already sorts and checks for uniqueness
                 NewVal.first = *itIndex;
                 NewVal.second = Counter;
                 Result = mPatchIndices.insert(NewVal);
@@ -364,7 +364,7 @@ private:
 
     /// ModelPart of the fluid problem
     ModelPart& mrModelPart;
-    /// Spatial dimenstion
+    /// Spatial dimension
     unsigned int mDomainSize;
     /// Container for the coarse mesh (the fine mesh is stored by the model part)
     ModelPart::ElementsContainerType mCoarseMesh;

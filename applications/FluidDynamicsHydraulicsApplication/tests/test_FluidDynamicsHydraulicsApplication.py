@@ -10,6 +10,8 @@ from generalTests import KratosFluidDynamicsHydraulicsGeneralTests
 from test_hydraulic_fluid_auxiliary_utilities import HydraulicFluidAuxiliaryUtilitiesTest
 from apply_hydraulic_inlet_process_test import ApplyHydraulicInletProcessTest
 from two_fluid_hydraulic_test import TwoFluidHydraulicSolverTest
+from two_fluid_hydraulic_fractional_test import TwoFluidHydraulicFractionalSolverTest
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -34,6 +36,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyHydraulicInletProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([HydraulicFluidAuxiliaryUtilitiesTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidHydraulicSolverTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidHydraulicFractionalSolverTest]))
+
 
 
     # Create a test suit with the selected tests

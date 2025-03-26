@@ -142,4 +142,60 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20ShapeFunctionsLocalGradients, KratosCoreG
     TestAllShapeFunctionsLocalGradients(*geom);
 }
 
-}  // namespace Kratos::Testing.
+/** Checks if the coordinates of the generate faces are correct
+*/
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20GenerateFaces, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateCanonicalHexahedra3D20();
+
+    auto faces = geom->GenerateFaces();
+
+    // create array of expected coordinates per face
+    std::vector<std::vector<array_1d<double, 3>>> all_expected_face_coordinates;
+    all_expected_face_coordinates.push_back(
+        {array_1d<double, 3>{1.0, 1.0, 0.0}, array_1d<double, 3>{0.0, 1.0, 0.0},
+         array_1d<double, 3>{0.0, 1.0, 1.0}, array_1d<double, 3>{1.0, 1.0, 1.0},
+         array_1d<double, 3>{0.5, 1.0, 0.0}, array_1d<double, 3>{0.0, 1.0, 0.5},
+         array_1d<double, 3>{0.5, 1.0, 1.0}, array_1d<double, 3>{1.0, 1.0, 0.5}});
+    all_expected_face_coordinates.push_back(
+        {array_1d<double, 3>{1.0, 1.0, 1.0}, array_1d<double, 3>{0.0, 1.0, 1.0},
+         array_1d<double, 3>{0.0, 0.0, 1.0}, array_1d<double, 3>{1.0, 0.0, 1.0},
+         array_1d<double, 3>{0.5, 1.0, 1.0}, array_1d<double, 3>{0.0, 0.5, 1.0},
+         array_1d<double, 3>{0.5, 0.0, 1.0}, array_1d<double, 3>{1.0, 0.5, 1.0}});
+
+    all_expected_face_coordinates.push_back(
+        {array_1d<double, 3>{0.0, 1.0, 0.0}, array_1d<double, 3>{0.0, 0.0, 0.0},
+         array_1d<double, 3>{0.0, 0.0, 1.0}, array_1d<double, 3>{0.0, 1.0, 1.0},
+         array_1d<double, 3>{0.0, 0.5, 0.0}, array_1d<double, 3>{0.0, 0.0, 0.5},
+         array_1d<double, 3>{0.0, 0.5, 1.0}, array_1d<double, 3>{0.0, 1.0, 0.5}});
+
+    all_expected_face_coordinates.push_back(
+        {array_1d<double, 3>{1.0, 0.0, 0.0}, array_1d<double, 3>{0.0, 0.0, 0.0},
+         array_1d<double, 3>{0.0, 1.0, 0.0}, array_1d<double, 3>{1.0, 1.0, 0.0},
+         array_1d<double, 3>{0.5, 0.0, 0.0}, array_1d<double, 3>{0.0, 0.5, 0.0},
+         array_1d<double, 3>{0.5, 1.0, 0.0}, array_1d<double, 3>{1.0, 0.5, 0.0}});
+
+    all_expected_face_coordinates.push_back(
+        {array_1d<double, 3>{1.0, 0.0, 0.0}, array_1d<double, 3>{1.0, 1.0, 0.0},
+         array_1d<double, 3>{1.0, 1.0, 1.0}, array_1d<double, 3>{1.0, 0.0, 1.0},
+         array_1d<double, 3>{1.0, 0.5, 0.0}, array_1d<double, 3>{1.0, 1.0, 0.5},
+         array_1d<double, 3>{1.0, 0.5, 1.0}, array_1d<double, 3>{1.0, 0.0, 0.5}});
+
+    all_expected_face_coordinates.push_back(
+        {array_1d<double, 3>{1.0, 0.0, 1.0}, array_1d<double, 3>{0.0, 0.0, 1.0},
+         array_1d<double, 3>{0.0, 0.0, 0.0}, array_1d<double, 3>{1.0, 0.0, 0.0},
+         array_1d<double, 3>{0.5, 0.0, 1.0}, array_1d<double, 3>{0.0, 0.0, 0.5},
+         array_1d<double, 3>{0.5, 0.0, 0.0}, array_1d<double, 3>{1.0, 0.0, 0.5}});
+
+    // check every coordinate of every generate face
+    for (unsigned int i = 0; i < faces.size(); i++) {
+        // loop over points of face
+        std::vector<array_1d<double, 3>> face_coordinates;
+        for (unsigned int j = 0; j < faces[i].Points().size(); j++) {
+            KRATOS_EXPECT_VECTOR_NEAR(faces[i].Points()[j].Coordinates(),
+                                      all_expected_face_coordinates[i][j], TOLERANCE);
+        }
+    }
+}
+
+} // namespace Kratos::Testing.

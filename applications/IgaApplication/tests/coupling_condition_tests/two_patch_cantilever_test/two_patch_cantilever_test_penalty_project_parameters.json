@@ -67,7 +67,6 @@
             "kratos_module": "KratosMultiphysics",
             "python_module": "assign_vector_variable_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_3",
                 "variable_name": "DISPLACEMENT",
                 "value": [0, 0, 0],
@@ -77,7 +76,6 @@
             "kratos_module": "KratosMultiphysics",
             "python_module": "assign_vector_variable_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_3_Rotational",
                 "variable_name": "DISPLACEMENT",
                 "value": [0, 0, 0],
@@ -87,7 +85,6 @@
             "kratos_module": "IgaApplication",
             "python_module": "assign_vector_variable_and_constraints_to_conditions_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Coupling_5",
                 "variable_name": "DISPLACEMENT",
                 "value": [0, 0, 0],
@@ -97,7 +94,6 @@
             "kratos_module": "IgaApplication",
             "python_module": "assign_vector_variable_and_constraints_to_conditions_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Coupling_5",
                 "variable_name": "ROTATION",
                 "value": [0, 0, 0],
@@ -108,7 +104,6 @@
             "kratos_module": "KratosMultiphysics",
             "python_module": "assign_vector_variable_to_conditions_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Load_4",
                 "variable_name": "DEAD_LOAD",
                 "value": [0, 0, -2],

@@ -382,7 +382,7 @@ protected:
 
     /**
      * @brief Calculate the density projection
-     * Auxiliary method to calculate the denstiy projections for the OSS.
+     * Auxiliary method to calculate the density projections for the OSS.
      * Note that this method threadsafe adds the elemental RHS values of the L2 projection to the nodes.
      * The division by the lumped mass matrix values requires to be done at the strategy level.
      * @param rCurrentProcessInfo Reference to the current process info

@@ -412,7 +412,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 data_communicator,
                 computing_model_part)
 
-        # If required, intialize the FM-ALE utility
+        # If required, initialize the FM-ALE utility
         if self._FmAleIsActive():
             self.fm_ale_step = 1
             # Fill the virtual model part geometry. Note that the mesh moving util is created in this first call

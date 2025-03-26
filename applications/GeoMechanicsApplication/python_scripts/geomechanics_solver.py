@@ -518,26 +518,6 @@ class GeoMechanicalSolver(PythonSolver):
                                                                      self.convergence_criterion,
                                                                      self.strategy_params)
 
-        elif strategy_type.lower() == "arc_length":
-            # Arc-Length strategy
-            self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_LAMBDA,        1.0)
-            self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_RADIUS_FACTOR, 1.0)
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
-            self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
-            self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-            solving_strategy = GeoMechanicsApplication.GeoMechanicsRammArcLengthStrategy(self.computing_model_part,
-                                                                                         self.scheme,
-                                                                                         self.convergence_criterion,
-                                                                                         builder_and_solver,
-                                                                                         self.strategy_params,
-                                                                                         max_iterations,
-                                                                                         compute_reactions,
-                                                                                         reform_step_dofs,
-                                                                                         move_mesh_flag)
-
         elif strategy_type.lower() == "linear":
             solving_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part,
                                                                               self.scheme,

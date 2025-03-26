@@ -40,7 +40,7 @@ AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncremento
     return AdaptiveTimeIncrementor{rSettings.StartTime,          rSettings.EndTime,
                                    rSettings.StartIncrement,     rSettings.MaxNumOfCycles,
                                    rSettings.ReductionFactor,    rSettings.IncreaseFactor,
-                                   rSettings.UserMinDeltaTime,  rSettings.MaxDeltaTimeFactor,
+                                   rSettings.UserMinDeltaTime,   rSettings.MaxDeltaTimeFactor,
                                    rSettings.MinNumOfIterations, rSettings.MaxNumOfIterations};
 }
 

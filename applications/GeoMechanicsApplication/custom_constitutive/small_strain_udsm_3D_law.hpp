@@ -43,39 +43,39 @@ namespace Kratos
    void GetStateVarCount(int *IMOD, int *NSTVAR);
 */
 
-typedef void (*pF_GetParamCount)(int*, int*);
-typedef void (*pF_GetStateVarCount)(int*, int*);
-typedef void (*pF_UserMod)(int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           const double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           double**,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*);
+using pF_GetParamCount    = void (*)(int*, int*);
+using pF_GetStateVarCount = void (*)(int*, int*);
+using pF_UserMod          = void (*)(int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            double*,
+                            double*,
+                            double*,
+                            double*,
+                            double*,
+                            const double*,
+                            double*,
+                            double*,
+                            double*,
+                            double*,
+                            double**,
+                            double*,
+                            double*,
+                            double*,
+                            double*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*);
 
 ///@addtogroup ConstitutiveModelsApplication
 ///@{
@@ -106,11 +106,8 @@ typedef void (*pF_UserMod)(int*,
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM3DLaw : public ConstitutiveLaw
 {
 public:
-    // The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw BaseType;
-
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_3D;

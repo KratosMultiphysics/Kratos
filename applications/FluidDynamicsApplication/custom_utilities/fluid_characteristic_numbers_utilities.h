@@ -74,7 +74,7 @@ public:
     static void CalculateLocalCFL(ModelPart& rModelPart);
 
     /**
-     * @brief Calulate element CFL number
+     * @brief Calculate element CFL number
      * For the given element, this method calculates the CFL number
      * @param rElement Element to calculate the CFL number
      * @param rGeometryInfo Auxiliary geometry data container
@@ -88,7 +88,7 @@ public:
 
 
     /**
-     * @brief Calulate element CFL number for compressible flows (considering sound velocity)
+     * @brief Calculate element CFL number for compressible flows (considering sound velocity)
      * For the given element, this method calculates the CFL number
      * @param rElement Element to calculate the CFL number
      * @param rGeometryInfo Auxiliary geometry data container
@@ -207,8 +207,8 @@ public:
     /**
      * @brief Get the minimum element size calculation function
      * This method checks the geometry of the provided element and returns the corresponding
-     * minimum element size calculation fucntion.
-     * @param rGeometry Geoemtry in which the element size is to be computed
+     * minimum element size calculation function.
+     * @param rGeometry Geometry in which the element size is to be computed
      * @return ElementSizeFunctionType Function to calculate the minimum element size
      */
     static ElementSizeFunctionType GetMinimumElementSizeFunction(const Geometry<Node>& rGeometry);
@@ -216,8 +216,8 @@ public:
     /**
      * @brief Get the average element size calculation function
      * This method checks the geometry of the provided element and returns the corresponding
-     * average element size calculation fucntion.
-     * @param rGeometry Geoemtry in which the element size is to be computed
+     * average element size calculation function.
+     * @param rGeometry Geometry in which the element size is to be computed
      * @return ElementSizeFunctionType Function to calculate the average element size
      */
     static ElementSizeFunctionType GetAverageElementSizeFunction(const Geometry<Node>& rGeometry);

@@ -552,7 +552,7 @@ double FluidAuxiliaryUtilities::FindMaximumEdgeLength(
         nodal_neigh_process.Execute();
     }
 
-    // Find maximum edge length by iterating the nodal neigbours
+    // Find maximum edge length by iterating the nodal neighbours
     const double l_max = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [](auto& rNode){
         const auto& r_coords = rNode.Coordinates();
         double l_max_local = 0.0;

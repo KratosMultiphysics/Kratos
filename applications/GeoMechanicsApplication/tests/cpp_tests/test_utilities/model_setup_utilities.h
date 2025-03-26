@@ -34,6 +34,12 @@ ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel);
 ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel,
                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
 
+ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel,
+                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
+
+ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel,
+                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
+
 ModelPart&          CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel);
 ModelPart&          CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel);
 Triangle2D3<Node>   Create2D3NTriangleGeometry();

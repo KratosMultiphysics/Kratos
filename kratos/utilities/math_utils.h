@@ -1915,7 +1915,7 @@ public:
     }
 
 
-    static double DegreesToRadians(double AngleInDegrees)
+    constexpr static double DegreesToRadians(double AngleInDegrees)
     {
         return (AngleInDegrees * Globals::Pi) / 180.0;
     }

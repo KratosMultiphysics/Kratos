@@ -22,39 +22,33 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class KRATOS_API(IGA_APPLICATION) SBMLaplacianCondition
+class KRATOS_API(IGA_APPLICATION) SbmLaplacianConditionDirichlet
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of SBMLaplacianCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SBMLaplacianCondition);
+    /// Counted pointer definition of SbmLaplacianConditionDirichlet
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmLaplacianConditionDirichlet);
 
     /// Size types
     using SizeType = std::size_t;
     using IndexType = std::size_t;
-
-    // enum
-    enum class BoundaryConditionType {
-        Dirichlet,
-        Neumann,
-    };
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor with Id and geometry
-    SBMLaplacianCondition(
+    SbmLaplacianConditionDirichlet(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    SBMLaplacianCondition(
+    SbmLaplacianConditionDirichlet(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -62,11 +56,11 @@ public:
     {};
 
     /// Default constructor
-    SBMLaplacianCondition() : Condition()
+    SbmLaplacianConditionDirichlet() : Condition()
     {};
 
     /// Destructor
-    virtual ~SBMLaplacianCondition() override
+    virtual ~SbmLaplacianConditionDirichlet() override
     {};
 
     ///@}
@@ -80,7 +74,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SBMLaplacianCondition>(
+        return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(
             NewId, pGeom, pProperties);
     };
 
@@ -91,13 +85,16 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SBMLaplacianCondition>(
+        return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
     ///@}
     ///@name Operations
     ///@{
+
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief This is called during the assembling process in order
@@ -138,8 +135,7 @@ public:
     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
     * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -148,8 +144,7 @@ public:
     */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Check
@@ -157,45 +152,6 @@ public:
 
     /// Performs check if Penalty factor is provided.
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    BoundaryConditionType GetBoundaryConditionType(const std::string& rType);
-
-    /**
-     * @brief Compute the factorial of a positive integer n
-     * 
-     * @param n 
-     * @return unsigned long long 
-     */
-    unsigned long long factorial(IndexType n); 
-
-    /**
-     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
-     * @param derivative 
-     * @param dx 
-     * @param k 
-     * @param dy 
-     * @param n_k 
-     * @return double 
-     */
-    double computeTaylorTerm(
-        double derivative, 
-        double dx, IndexType k, 
-        double dy, IndexType n_k);
-
-    /**
-     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
-     * @param derivative 
-     * @param dx 
-     * @param k 
-     * @param dy 
-     * @param n_k 
-     * @return double 
-     */
-    double computeTaylorTerm3D(
-        double derivative, 
-        double dx, IndexType k_x, 
-        double dy, IndexType k_y, 
-        double dz, IndexType k_z);
 
     ///@}
     ///@name Input and output
@@ -205,14 +161,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"SBMLaplacianCondition\" #" << Id();
+        buffer << "\"SbmLaplacianConditionDirichlet\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"SBMLaplacianCondition\" #" << Id();
+        rOStream << "\"SbmLaplacianConditionDirichlet\" #" << Id();
     }
 
     /// Print object's data.
@@ -238,43 +194,68 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
-    
-    /**
-     * @brief Calculate All for Dirichlet boundary conditions
-     * 
-     * @param rLeftHandSideMatrix 
-     * @param rRightHandSideVector 
-     * @param rCurrentProcessInfo 
-     */
-    void CalculateAllDirichlet(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
-    );
 
     /**
-     * @brief Calculate All for Neumann boundary conditions
+     * @brief 
      * 
-     * @param rLeftHandSideMatrix 
-     * @param rRightHandSideVector 
-     * @param rCurrentProcessInfo 
      */
-    void CalculateAllNeumann(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
-    );
+    void InitializeMemberVariables();
+
+    /**
+     * @brief 
+     * 
+     */
+    void InitializeSbmMemberVariables();
+
+    /**
+     * @brief 
+     * 
+     * @param H_sum_vec 
+     */
+    void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
+    
+    /**
+     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
+     * @param derivative 
+     * @param dx 
+     * @param k 
+     * @param dy 
+     * @param n_k 
+     * @return double 
+     */
+    double ComputeTaylorTerm(
+        double derivative, 
+        double dx, IndexType k, 
+        double dy, IndexType n_k);
+
+    /**
+     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
+     * @param derivative 
+     * @param dx 
+     * @param k 
+     * @param dy 
+     * @param n_k 
+     * @return double 
+     */
+    double ComputeTaylorTerm3D(
+        double derivative, 
+        double dx, IndexType k_x, 
+        double dy, IndexType k_y, 
+        double dz, IndexType k_z);
 
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
-    Matrix mHsum = ZeroMatrix(1, this->GetGeometry().size());
+    array_1d<double, 3> mNormalPhysicalSpace;
     Vector mDistanceVector;
-    std::vector<Matrix> mShapeFunctionDerivatives;
+    unsigned int mDim;
+    double mPenalty;
+    double mNitschePenalty;
     IndexType mBasisFunctionsOrder;
+    NodeType* mpProjectionNode;
 
     ///@}
 
-}; // Class SBMLaplacianCondition
+}; // Class SbmLaplacianConditionDirichlet
 
 }  // namespace Kratos.
 

@@ -142,7 +142,7 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
 
 void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea ){
 
-    // initalisation (necessary because no reduction for type reference)
+    // initialisation (necessary because no reduction for type reference)
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double int_area = 0.0;
@@ -569,7 +569,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
                         GeometryData::IntegrationMethod::GI_GAUSS_2);          // second order Gauss integration
 
-                    // interating velocity over the negative area of the condition
+                    // iterating velocity over the negative area of the condition
                     for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
                         const array_1d<double,3>& N = row(r_shape_functions, i_gauss);
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
@@ -577,7 +577,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                             noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                         }
                         // abs() is necessary because the auxiliary Triangle2D3 geometry could possibly be inverted
-                        // the normal still comes from the oiginal triangle
+                        // the normal still comes from the original triangle
                         inflow_over_boundary -= std::abs( w_gauss_neg_side[i_gauss] ) * inner_prod( normal, interpolated_velocity );
                     }
                 }

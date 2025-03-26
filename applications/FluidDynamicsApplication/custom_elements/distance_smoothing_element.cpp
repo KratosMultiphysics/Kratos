@@ -259,7 +259,7 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
 
     array_1d<double,num_nodes> tempBCRHS = ZeroVector(num_nodes);
 
-    if(rLeftHandSideMatrix.size1() != num_nodes) // be carefull that num_dof = num_nodes
+    if(rLeftHandSideMatrix.size1() != num_nodes) // be careful that num_dof = num_nodes
         rLeftHandSideMatrix.resize(num_nodes,num_nodes,false); //resizing the system in case it does not have the right size
 
     if(rRightHandSideVector.size() != num_nodes)
@@ -405,7 +405,7 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
 
     array_1d<double,num_nodes> tempBCRHS = ZeroVector(num_nodes);
 
-    if(rLeftHandSideMatrix.size1() != num_nodes) // be carefull that num_dof = num_nodes
+    if(rLeftHandSideMatrix.size1() != num_nodes) // be careful that num_dof = num_nodes
         rLeftHandSideMatrix.resize(num_nodes,num_nodes,false); //resizing the system in case it does not have the right size
 
     if(rRightHandSideVector.size() != num_nodes)

@@ -334,7 +334,6 @@ As said before, the re-meshing is based in a process structure, in this case the
 ## Settings string in json format
 default_parameters = KratosMultiphysics.Parameters("""
 {
-    "mesh_id"                          : 0,
             "filename"                         : "out",
             "model_part_name"                  : "MainModelPart",
             "strategy"                         : "LevelSet",

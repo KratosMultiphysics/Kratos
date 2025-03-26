@@ -88,7 +88,7 @@ void WriteVtk(const Info& I_Settings, const ModelPart& I_ModelPart)
     }
 
     // write cells connectivity
-    const auto const_id_map = id_map; // const reference to not accidentially modify the map
+    const auto const_id_map = id_map; // const reference to not accidentally modify the map
     output_file << "CELLS " << I_ModelPart.NumberOfElements() << " " << cell_list_size << "\n";
     for (const auto& r_elem : I_ModelPart.Elements()) {
         const std::size_t num_nodes_cell = r_elem.NumberOfNodes();

@@ -136,8 +136,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
 
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
-        this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
-        this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+        this->SetValue(FEMDEM_STRESS_VECTOR, this_constitutive_variables.StressVector);
+        this->SetValue(FEMDEM_STRAIN_VECTOR, this_constitutive_variables.StrainVector);
     }
 
 
@@ -231,8 +231,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
                 noalias(average_stress_edge) = this_constitutive_variables.StressVector;
                 noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
-                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, FEMDEM_STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, FEMDEM_STRAIN_VECTOR, average_strain_edge, edge);
 
                 damages_edges[edge] = this->mDamages[edge];
                 double threshold    = this->mThresholds[edge];
@@ -344,8 +344,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
                 noalias(average_stress_edge) = this_constitutive_variables.StressVector;
                 noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
-                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, FEMDEM_STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, FEMDEM_STRAIN_VECTOR, average_strain_edge, edge);
 
                 this->IntegrateStressDamageMechanics(this->mThresholds[edge], this->mDamages[edge],
                                                      average_strain_edge, average_stress_edge, edge,

@@ -446,7 +446,7 @@ protected:
     }
 
     /**
-     * @brief Appy the slip condition
+     * @brief Apply the slip condition
      * This method substracts the normal projection of the momentum for all the nodes flagged as SLIP
      * The correction is computed as m_slip = m - (m·n) x n. It is intended to be called after each substep
      */

@@ -20,6 +20,7 @@
 #include <sstream>
 #include <cstddef>
 #include <utility>
+#include <type_traits>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
@@ -28,6 +29,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "containers/key_generator.h"
+#include "utilities/type_traits.h"
 
 namespace Kratos
 {
@@ -647,10 +649,45 @@ public:
     template <class InputIterator>
     void insert(InputIterator first, InputIterator last)
     {
-        // first sorts the input iterators and make the input unique.
-        std::sort(first, last, CompareKey());
-        auto new_last = std::unique(first, last, EqualKeyTo());
-        SortedInsert(first, new_last);
+        // We copy always the input range to a temp not to have the input range mutated.
+        std::vector<TPointerType> temp;
+        temp.reserve(std::distance(first, last));
+        for (auto it = first; it != last; ++it) {
+            temp.push_back(GetPointer(it));
+        }
+        std::sort(temp.begin(), temp.end(), CompareKey());
+        auto new_last = std::unique(temp.begin(), temp.end(), EqualKeyTo());
+        SortedInsert(temp.begin(), new_last);
+
+        // KRATOS_ERROR << "HELLO THERE";
+    }
+
+
+    /**
+     * @brief Inserts elements from a r_value container.
+     * @details This method is used to insert all values from an r valued container.
+     *          This mutates the r valued input container to be sorted and unique if it is not the type of PointerVectorSet.
+     *          If it is the type of the PointerVectorSet, then it doesn't mutate the input container.
+     *
+     * @warning The move assumes the ownership of the container, hence the the rContainer may be mutated. if the TContainer is of type std::shared_ptr or intrusive_ptr
+     *          then, there will always be a null pointer at the end past position of the unique sorted list since the std::unique uses the move assignment operator
+     *          within its algorithm. Therefore, the new_last created here will have the correct pointer to the object, and the rContainer will have a nullptr in the
+     *          corresponding place. Therefore, if this method is called once, and if it used with a container type which is not PointerVectorSet, please do not use
+     *          the input rContainer anymore. It will segfault unless the PointerVectorSet is created with raw pointers. [This is because since c++11 std::unique uses the move assignment operator]
+     * @tparam TContainer
+     * @param rContainer
+     */
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void insert(TContainer&& rContainer)
+    {
+        if constexpr(!std::is_same_v<BaseType<TContainer>, PointerVectorSet>) {
+            std::sort(rContainer.begin(), rContainer.end(), CompareKey());
+            auto new_last = std::unique(rContainer.begin(), rContainer.end(), EqualKeyTo());
+            SortedInsert(rContainer.begin(), new_last);
+        } else {
+            SortedInsert(rContainer.begin(), rContainer.end());
+        }
+
     }
 
     /**
@@ -663,6 +700,20 @@ public:
      * @param last Other PointerVectorSet ending iterator
      */
     void insert(PointerVectorSet::const_iterator first, PointerVectorSet::const_iterator last)
+    {
+        SortedInsert(first, last);
+    }
+
+    /**
+     * @brief Insert elements from another PointerVectorSet range.
+     * @details This function inserts element pointers from another PointerVectorSet range specified by first and last into the current set.
+     * Since, PointerVectorSet is assumed to be sorted and unique, the incoming PointerVectorSet is not
+     * sorted and made unique again. This will not insert any elements in the incoming set, if there exists an element with a key
+     * which is equal to an element's key in the input range.
+     * @param first Other PointerVectorSet starting iterator
+     * @param last Other PointerVectorSet ending iterator
+     */
+    void insert(PointerVectorSet::iterator first, PointerVectorSet::iterator last)
     {
         SortedInsert(first, last);
     }
@@ -807,6 +858,11 @@ public:
     int capacity()
     {
         return mData.capacity();
+    }
+
+    void shrink_to_fit()
+    {
+        mData.shrink_to_fit();
     }
 
     /**
@@ -1199,7 +1255,10 @@ private:
         // which is harder to guess, and cryptic. Hence, using the decltype.
         using iterator_value_type = std::decay_t<decltype(*Iterator)>;
 
-        if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<TPointerType>>) {
+        if constexpr(std::is_same_v<TIteratorType, iterator> || std::is_same_v<TIteratorType, reverse_iterator>) {
+            // if the TIteratorType is of boost::indirect_iterator type, then we can get the pointer by dereferencing.
+            return *(Iterator.base());
+        } else if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<TPointerType>>) {
             // this supports any type of pointers
             return *Iterator;
         } else if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<value_type>> && std::is_same_v<TPointerType, Kratos::intrusive_ptr<std::decay_t<decltype(*Iterator)>>>) {

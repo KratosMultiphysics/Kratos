@@ -46,9 +46,9 @@ namespace Kratos
 // calling convention (__cdecl, __stdcall, ...)
 // __stdcall is the convention used by the WinAPI
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-typedef void(__stdcall* f_GetParamCount)(int*, int*);
-typedef void(__stdcall* f_GetStateVarCount)(int*, int*);
-typedef void(__stdcall* f_UserMod)(int*,
+using f_GetParamCount    = void(__stdcall*)(int*, int*);
+using f_GetStateVarCount = void(__stdcall*)(int*, int*);
+using f_UserMod          = void(__stdcall*)(int*,
                                    int*,
                                    int*,
                                    int*,
@@ -82,39 +82,39 @@ typedef void(__stdcall* f_UserMod)(int*,
 #endif
 
 #ifdef KRATOS_COMPILED_IN_LINUX
-typedef void (*f_GetParamCount)(int*, int*);
-typedef void (*f_GetStateVarCount)(int*, int*);
-typedef void (*f_UserMod)(int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          double*,
-                          double*,
-                          double*,
-                          double*,
-                          double*,
-                          const double*,
-                          double*,
-                          double*,
-                          double*,
-                          double*,
-                          double**,
-                          double*,
-                          double*,
-                          double*,
-                          double*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*);
+using f_GetParamCount    = void (*)(int*, int*);
+using f_GetStateVarCount = void (*)(int*, int*);
+using f_UserMod          = void (*)(int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           double*,
+                           double*,
+                           double*,
+                           double*,
+                           double*,
+                           const double*,
+                           double*,
+                           double*,
+                           double*,
+                           double*,
+                           double**,
+                           double*,
+                           double*,
+                           double*,
+                           double*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*);
 #endif
 
 using SizeType = std::size_t;
