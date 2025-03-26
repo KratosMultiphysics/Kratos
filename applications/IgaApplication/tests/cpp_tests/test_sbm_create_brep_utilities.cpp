@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCreateBrepsSbmUtilitiesOuter, KratosIgaFastSuite)
     
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(EchoLevel);
-    CreateBrepsSbmUtilities.CreateSurrogateBoundary(surface, iga_model_part, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw);
+    CreateBrepsSbmUtilities.CreateSurrogateBoundary(surface, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, iga_model_part);
     
     const double tolerance = 1e-12;
 
@@ -195,7 +195,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCreateBrepsSbmUtilitiesInner, KratosIgaFastSuite)
     
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(EchoLevel);
-    CreateBrepsSbmUtilities.CreateSurrogateBoundary(surface, iga_model_part, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw);
+    CreateBrepsSbmUtilities.CreateSurrogateBoundary(surface, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, iga_model_part);
     
     const double tolerance = 1e-12;
 

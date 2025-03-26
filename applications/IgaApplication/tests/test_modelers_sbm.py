@@ -89,11 +89,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "upper_point_uvw": [2.0,2.0,0.0],
                 "polynomial_order" : [1, 1],
                 "number_of_knot_spans" : [5,5],
-                "sbm_parameters": {
-                    "lambda_outer": 0.5,
-                    "number_of_inner_loops": 0
-                },
-                "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",
+                "lambda_outer": 0.5,
+                "number_of_inner_loops": 0,
+                "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",           
                 "skin_model_part_name": "skinModelPart"
             }
         }]
@@ -170,10 +168,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [6,9],
-                "sbm_parameters": {
-                    "lambda_inner": 0.5,
-                    "number_of_inner_loops": 1
-                },
+                "lambda_inner": 0.5,
+                "number_of_inner_loops": 1,
                 "skin_model_part_inner_initial_name": "skinModelPart_inner_initial",
                 "skin_model_part_name": "skinModelPart"
             }
@@ -242,10 +238,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [10,15],
-                "sbm_parameters": {
-                    "lambda_inner": 0.5,
-                    "number_of_inner_loops": 2
-                },
+                "lambda_inner": 0.5,
+                "number_of_inner_loops": 2,
                 "skin_model_part_inner_initial_name": "skinModelPart_inner_initial",
                 "skin_model_part_name": "skinModelPart"
             }
@@ -349,11 +343,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [20,10],
-                "sbm_parameters": {
-                    "lambda_inner": 1.0,
-                    "lambda_outer": 0.5,
-                    "number_of_inner_loops": 1
-                },
+                "lambda_inner": 1.0,
+                "lambda_outer": 0.5,
+                "number_of_inner_loops": 1,
                 "skin_model_part_inner_initial_name": "skinModelPart_inner_initial",
                 "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",
                 "skin_model_part_name": "skinModelPart"

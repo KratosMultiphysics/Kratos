@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/io.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
@@ -28,6 +27,7 @@
 #include "geometries/brep_curve.h"
 #include "geometries/brep_curve_on_surface.h"
 
+#include "includes/io.h"
 
 namespace Kratos
 {
@@ -56,7 +56,7 @@ class CreateBrepsSbmUtilities : public IO
     using ContainerNodeType = PointerVector<TNodeType>;
     using ContainerEmbeddedNodeType = PointerVector<TEmbeddedNodeType>;
     
-    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
+    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<TNodeType>>;
     using NurbsSurfaceGeometryPointerType = typename NurbsSurfaceGeometryType::Pointer;
 
     using BrepSurfaceType = BrepSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
@@ -88,41 +88,39 @@ class CreateBrepsSbmUtilities : public IO
      * @brief Create a Surrogate Boundary object
      * 
      * @param pSurface 
-     * @param rModelPart 
      * @param rSurrogateModelPartInner 
      * @param rSurrogateModelPartOuter 
-     * @param CoordsA 
-     * @param CoordsB 
-     * Adds the surface geometry to the herin provided model_part and create the boundary breps for the SBM case.
+     * @param rCoordsA 
+     * @param rCoordsB 
+     * @param rModelPart 
      */
     void CreateSurrogateBoundary(NurbsSurfaceGeometryPointerType& pSurface, 
-                                 ModelPart& rModelPart, 
-                                 ModelPart& rSurrogateModelPartInner, 
-                                 ModelPart& rSurrogateModelPartOuter, 
-                                 const Point& CoordsA, 
-                                 const Point& CoordsB)
+                                 const ModelPart& rSurrogateModelPartInner, 
+                                 const ModelPart& rSurrogateModelPartOuter, 
+                                 const Point& rCoordsA, 
+                                 const Point& rCoordsB,
+                                 ModelPart& rModelPart)
     {
-        CreateBrepSurface(pSurface, rModelPart, rSurrogateModelPartInner, rSurrogateModelPartOuter, mEchoLevel);
-        CreateBrepCurveOnSurfaces(pSurface, rModelPart, rSurrogateModelPartInner, rSurrogateModelPartOuter, CoordsA, CoordsB, mEchoLevel);
+        CreateBrepSurface(pSurface, rSurrogateModelPartInner, rSurrogateModelPartOuter, rModelPart, mEchoLevel);
+        CreateBrepCurveOnSurfaces(pSurface, rSurrogateModelPartInner, rSurrogateModelPartOuter, rCoordsA, rCoordsB, rModelPart, mEchoLevel);
     }
     
     /**
      * @brief Create a Surrogate Boundary object
      * 
      * @param pSurface 
+     * @param rCoordsA 
+     * @param rCoordsB 
      * @param rModelPart 
-     * @param CoordsA 
-     * @param CoordsB 
-     * Adds the surface geometry to the herin provided model_part and create the boundary breps when SBM is not needed.
      */
     void CreateSurrogateBoundary(NurbsSurfaceGeometryPointerType& pSurface, 
-                                 ModelPart& rModelPart, 
-                                 const Point& CoordsA, 
-                                 const Point& CoordsB)
+                                const Point& rCoordsA, 
+                                const Point& rCoordsB,
+                                ModelPart& rModelPart)
     {
         CreateBrepSurface(pSurface, rModelPart, mEchoLevel);
         IndexType id_brep_curve_on_surface = 2; // because id 1 is the brep surface
-        CreateBrepCurvesOnRectangle(rModelPart, pSurface, CoordsA, CoordsB, id_brep_curve_on_surface);
+        CreateBrepCurvesOnRectangle(pSurface, rCoordsA, rCoordsB, id_brep_curve_on_surface, rModelPart);
     }
 
 
@@ -138,7 +136,7 @@ private:
     static void CreateBrepSurface(
         NurbsSurfaceGeometryPointerType pSurface,
         ModelPart& rModelPart,
-        SizeType EchoLevel = 0)
+        const SizeType EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
             << "Creating BrepSurface \""<< std::endl;
@@ -159,20 +157,20 @@ private:
     }
 
     /**
-     * @brief Create a Brep Surface object for the SBM case
+     * @brief Create a Brep Surface object
      * 
      * @param pSurface 
-     * @param rModelPart 
      * @param rSurrogateModelPartInner 
      * @param rSurrogateModelPartOuter 
+     * @param rModelPart 
      * @param EchoLevel 
      */
     static void CreateBrepSurface(
         NurbsSurfaceGeometryPointerType pSurface,
+        const ModelPart& rSurrogateModelPartInner, 
+        const ModelPart& rSurrogateModelPartOuter,
         ModelPart& rModelPart,
-        ModelPart& rSurrogateModelPartInner, 
-        ModelPart& rSurrogateModelPartOuter,
-        SizeType EchoLevel = 0)
+        const SizeType EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
             << "Creating BrepSurface \""<< std::endl;
@@ -214,20 +212,20 @@ private:
      * @brief Create a Brep Curve On Surfaces object
      * 
      * @param pSurface 
-     * @param rModelPart 
      * @param rSurrogateModelPartInner 
      * @param rSurrogateModelPartOuter 
-     * @param CoordsA 
-     * @param CoordsB 
+     * @param rCoordsA 
+     * @param rCoordsB 
+     * @param rModelPart 
      * @param EchoLevel 
      */
     static void CreateBrepCurveOnSurfaces(
         const NurbsSurfaceGeometryPointerType pSurface,
-        ModelPart& rModelPart,
         const ModelPart& rSurrogateModelPartInner, 
         const ModelPart& rSurrogateModelPartOuter,
-        const Point& CoordsA, 
-        const Point& CoordsB,
+        const Point& rCoordsA, 
+        const Point& rCoordsB,
+        ModelPart& rModelPart,
         const SizeType EchoLevel = 0) {
         // OUTER 
         IndexType id_brep_curve_on_surface = 2; // because id 1 is the brep surface
@@ -235,7 +233,7 @@ private:
         if (rSurrogateModelPartOuter.NumberOfConditions() > 0)
         {
             for (auto &i_cond : rSurrogateModelPartOuter.Conditions()) {
-                Geometry<NodeType>::PointsArrayType points;
+                Geometry<Node>::PointsArrayType points;
                 Point first_point  = i_cond.GetGeometry()[0];
                 Point second_point = i_cond.GetGeometry()[1];
                 Vector knot_vector = ZeroVector(2);
@@ -263,9 +261,9 @@ private:
                 }
                 
                 Point::Pointer first_brep_point = Kratos::make_shared<Point>(first_point[0], first_point[1], 0.0);
-                Point::Pointer second_brep_point = Kratos::make_shared<Point>(second_point[0], second_point[1], 0.0);
+                Point::Pointer p_second_brep_point = Kratos::make_shared<Point>(second_point[0], second_point[1], 0.0);
                 
-                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = CreateBrepCurve(first_brep_point, second_brep_point, active_range_knot_vector);
+                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = CreateBrepCurve(first_brep_point, p_second_brep_point, active_range_knot_vector);
 
                 NurbsInterval brep_active_range(active_range_knot_vector[0], active_range_knot_vector[1]);
 
@@ -280,7 +278,7 @@ private:
             }
             
         } else {
-            CreateBrepCurvesOnRectangle(rModelPart, pSurface, CoordsA, CoordsB, id_brep_curve_on_surface);
+            CreateBrepCurvesOnRectangle(pSurface, rCoordsA, rCoordsB, id_brep_curve_on_surface, rModelPart);
         }
 
 
@@ -292,7 +290,7 @@ private:
             for (IndexType cond_id = first_surrogate_cond_id; cond_id <= last_surrogate_cond_id; ++cond_id) {
                 
                 auto p_cond = rSurrogateModelPartInner.pGetCondition(cond_id);
-                Geometry<NodeType>::PointsArrayType points;
+                Geometry<Node>::PointsArrayType points;
                 Point first_point  = p_cond->GetGeometry()[0];
                 Point second_point = p_cond->GetGeometry()[1];
                 Vector knot_vector = ZeroVector(2);
@@ -319,9 +317,9 @@ private:
                     second_point = temp;
                 }
                 
-                Point::Pointer firstBrepPoint = Kratos::make_shared<Point>(first_point[0], first_point[1], 0.0);
-                Point::Pointer second_brep_point = Kratos::make_shared<Point>(second_point[0], second_point[1], 0.0);
-                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = CreateBrepCurve(firstBrepPoint, second_brep_point, active_range_knot_vector);
+                Point::Pointer p_first_brep_point = Kratos::make_shared<Point>(first_point[0], first_point[1], 0.0);
+                Point::Pointer p_second_brep_point = Kratos::make_shared<Point>(second_point[0], second_point[1], 0.0);
+                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = CreateBrepCurve(p_first_brep_point, p_second_brep_point, active_range_knot_vector);
                 NurbsInterval brep_active_range(active_range_knot_vector[0], active_range_knot_vector[1]);
 
                 bool curve_direction = true;
@@ -338,26 +336,26 @@ private:
     /**
      * @brief Create a Single Brep object
      * 
-     * @param firstBrepPoint 
-     * @param secondBrepPoint 
-     * @param activeRangeKnotVector 
+     * @param pFirstBrepPoint 
+     * @param pSecondBrepPoint 
+     * @param rActiveRangeKnotVector 
      * @return NurbsCurveGeometry<2, PointerVector<Point>>::Pointer 
      */
     static typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer CreateBrepCurve(
-        const Point::Pointer firstBrepPoint,
-        const Point::Pointer secondBrepPoint, 
-        const Vector activeRangeKnotVector)
+        const Point::Pointer pFirstBrepPoint,
+        const Point::Pointer pSecondBrepPoint, 
+        const Vector& rActiveRangeKnotVector)
         {
             // Create the data for the trimming curves
             PointerVector<Point> control_points;
-            control_points.push_back(firstBrepPoint);
-            control_points.push_back(secondBrepPoint);
+            control_points.push_back(pFirstBrepPoint);
+            control_points.push_back(pSecondBrepPoint);
             const int polynomial_degree = 1;
             Vector knot_vector = ZeroVector(4) ;
-            knot_vector[0] = activeRangeKnotVector[0] ;
-            knot_vector[1] = activeRangeKnotVector[0] ;
-            knot_vector[2] = activeRangeKnotVector[1] ;
-            knot_vector[3] = activeRangeKnotVector[1] ;
+            knot_vector[0] = rActiveRangeKnotVector[0] ;
+            knot_vector[1] = rActiveRangeKnotVector[0] ;
+            knot_vector[2] = rActiveRangeKnotVector[1] ;
+            knot_vector[3] = rActiveRangeKnotVector[1] ;
             // Create the trimming curves
             typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve(
                 new NurbsCurveGeometry<2, PointerVector<Point>>(
@@ -370,64 +368,64 @@ private:
     /**
      * @brief Create a Brep Curves On Rectangle object
      * 
-     * @param rModelPart 
      * @param pSurfaceGeometry 
-     * @param CoordsA 
-     * @param CoordsB 
-     * @param lastGeometryId 
+     * @param rCoordsA 
+     * @param rCoordsB 
+     * @param rLastGeometryId 
+     * @param rModelPart 
      */
-    static void CreateBrepCurvesOnRectangle(ModelPart& rModelPart, 
-                                            const NurbsSurfaceGeometryPointerType pSurfaceGeometry, 
-                                            const Point& CoordsA, 
-                                            const Point& CoordsB, 
-                                            IndexType &lastGeometryId) {
+    static void CreateBrepCurvesOnRectangle(const NurbsSurfaceGeometryPointerType pSurfaceGeometry, 
+                                            const Point& rCoordsA, 
+                                            const Point& rCoordsB, 
+                                            IndexType& rLastGeometryId,
+                                            ModelPart& rModelPart) {
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
-        knot_vector[1] = std::abs(CoordsB[0] - CoordsA[0]);
+        knot_vector[1] = std::abs(rCoordsB[0] - rCoordsA[0]);
         const int p = 1;
 
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment1;
-        segment1.push_back(Point::Pointer(new Point(CoordsA[0], CoordsA[1])));
-        segment1.push_back(Point::Pointer(new Point(CoordsB[0], CoordsA[1])));
+        segment1.push_back(Point::Pointer(new Point(rCoordsA[0], rCoordsA[1])));
+        segment1.push_back(Point::Pointer(new Point(rCoordsB[0], rCoordsA[1])));
 
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment2;
-        segment2.push_back(Point::Pointer(new Point(CoordsB[0], CoordsA[1])));
-        segment2.push_back(Point::Pointer(new Point(CoordsB[0], CoordsB[1])));
+        segment2.push_back(Point::Pointer(new Point(rCoordsB[0], rCoordsA[1])));
+        segment2.push_back(Point::Pointer(new Point(rCoordsB[0], rCoordsB[1])));
         
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment3;
-        segment3.push_back(Point::Pointer(new Point(CoordsB[0], CoordsB[1])));
-        segment3.push_back(Point::Pointer(new Point(CoordsA[0], CoordsB[1])));
+        segment3.push_back(Point::Pointer(new Point(rCoordsB[0], rCoordsB[1])));
+        segment3.push_back(Point::Pointer(new Point(rCoordsA[0], rCoordsB[1])));
         
         NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType segment4;
-        segment4.push_back(Point::Pointer(new Point(CoordsA[0], CoordsB[1])));
-        segment4.push_back(Point::Pointer(new Point(CoordsA[0], CoordsA[1])));
+        segment4.push_back(Point::Pointer(new Point(rCoordsA[0], rCoordsB[1])));
+        segment4.push_back(Point::Pointer(new Point(rCoordsA[0], rCoordsA[1])));
 
         auto p_curve_1 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment1, p, knot_vector);
         auto p_curve_2 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment2, p, knot_vector);
         auto p_curve_3 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment3, p, knot_vector);
         auto p_curve_4 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment4, p, knot_vector);
         
-        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_1);
+        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_1);
         auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_1);
-        p_brep_curve_on_surface->SetId(lastGeometryId);
+        p_brep_curve_on_surface->SetId(rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_2);
+        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_2);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_2);
-        p_brep_curve_on_surface->SetId(++lastGeometryId);
+        p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_3);
+        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_3);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_3);
-        p_brep_curve_on_surface->SetId(++lastGeometryId);
+        p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_4);
+        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_4);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_4);
-        p_brep_curve_on_surface->SetId(++lastGeometryId);
+        p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 
-        lastGeometryId++;
+        rLastGeometryId++;
     }
     
     ///@}
