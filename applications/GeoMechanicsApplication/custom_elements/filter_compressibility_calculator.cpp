@@ -22,9 +22,9 @@ FilterCompressibilityCalculator::FilterCompressibilityCalculator(InputProvider A
 {
 }
 
-Matrix FilterCompressibilityCalculator::LHSContribution()
+std::optional<Matrix> FilterCompressibilityCalculator::LHSContribution()
 {
-    return LHSContribution(CalculateCompressibilityMatrix());
+    return std::make_optional(LHSContribution(CalculateCompressibilityMatrix()));
 }
 
 Vector FilterCompressibilityCalculator::RHSContribution()
@@ -42,10 +42,10 @@ Matrix FilterCompressibilityCalculator::LHSContribution(const Matrix& rCompressi
     return mInputProvider.GetMatrixScalarFactor() * rCompressibilityMatrix;
 }
 
-std::pair<Matrix, Vector> FilterCompressibilityCalculator::LocalSystemContribution()
+std::pair<std::optional<Matrix>, Vector> FilterCompressibilityCalculator::LocalSystemContribution()
 {
     const auto compressibility_matrix = CalculateCompressibilityMatrix();
-    return {LHSContribution(compressibility_matrix), RHSContribution(compressibility_matrix)};
+    return {std::make_optional(LHSContribution(compressibility_matrix)), RHSContribution(compressibility_matrix)};
 }
 
 Matrix FilterCompressibilityCalculator::CalculateCompressibilityMatrix() const
@@ -53,13 +53,13 @@ Matrix FilterCompressibilityCalculator::CalculateCompressibilityMatrix() const
     const auto& r_N_container            = mInputProvider.GetNContainer();
     const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
     const auto& projected_gravity_on_integration_points =
-        mInputProvider.GetProjectedGravityForIntegrationPoints();
+        mInputProvider.GetProjectedGravityAtIntegrationPoints();
     auto result = Matrix{ZeroMatrix{r_N_container.size2(), r_N_container.size2()}};
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
         const auto N = Vector{row(r_N_container, integration_point_index)};
         result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            N, CalculateElasticCapacity(projected_gravity_on_integration_points[integration_point_index]),
+            N, CalculateElasticCapacity(projected_gravity_on_integration_points[integration_point_index][0]),
             integration_coefficients[integration_point_index]);
     }
     return result;

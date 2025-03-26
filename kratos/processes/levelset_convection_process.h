@@ -12,8 +12,7 @@
 //                   Mohammad Reza Hashemi
 //
 
-#if !defined(KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED )
-#define  KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -226,6 +225,7 @@ public:
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetGradientVariable(*mpLevelSetGradientVar);
         r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetConvectionVariable(*mpConvectVar);
+        r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetMeshVelocityVariable(*mpMeshConvectVar);
 
         // Save current level set value and current and previous step velocity values
         // If the nodal stabilization tau is to be used, it is also computed in here
@@ -234,6 +234,8 @@ public:
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
             mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
+            mMeshVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpMeshConvectVar);
+            mMeshVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpMeshConvectVar,1);
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
 
             if (mElementTauNodal) {
@@ -268,9 +270,13 @@ public:
 
                 const array_1d<double,3>& r_v = mVelocity[i_node];
                 const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
+                const array_1d<double,3>& r_v_mesh = mMeshVelocity[i_node];
+                const array_1d<double,3>& r_v_mesh_old = mMeshVelocityOld[i_node];
 
                 noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = Nold * r_v_old + Nnew * r_v;
                 noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = Nold_before * r_v_old + Nnew_before * r_v;
+                noalias(it_node->FastGetSolutionStepValue(*mpMeshConvectVar)) = Nold * r_v_mesh_old + Nnew * r_v_mesh;
+                noalias(it_node->FastGetSolutionStepValue(*mpMeshConvectVar, 1)) = Nold_before * r_v_mesh_old + Nnew_before * r_v_mesh;
                 it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
             }
             );
@@ -300,6 +306,8 @@ public:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(*mpConvectVar) = mVelocity[i_node];
             it_node->FastGetSolutionStepValue(*mpConvectVar,1) = mVelocityOld[i_node];
+            it_node->FastGetSolutionStepValue(*mpMeshConvectVar) = mMeshVelocity[i_node];
+            it_node->FastGetSolutionStepValue(*mpMeshConvectVar,1) = mMeshVelocityOld[i_node];
             it_node->FastGetSolutionStepValue(*mpLevelSetVar,1) = mOldDistance[i_node];
         }
         );
@@ -319,6 +327,8 @@ public:
 
         mVelocity.clear();
         mVelocityOld.clear();
+        mMeshVelocity.clear();
+        mMeshVelocityOld.clear();
         mOldDistance.clear();
 
         mSigmaPlus.clear();
@@ -336,6 +346,7 @@ public:
             "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_mesh_convection_variable_name" : "MESH_VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
@@ -397,6 +408,8 @@ protected:
 
     const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
 
+    const Variable<array_1d<double,3>>* mpMeshConvectVar = nullptr;
+
     const Variable<array_1d<double,3>>* mpLevelSetGradientVar = nullptr;
 
     double mMaxAllowedCFL = 1.0;
@@ -432,6 +445,10 @@ protected:
     std::vector<array_1d<double,3>> mVelocity;
 
     std::vector<array_1d<double,3>> mVelocityOld;
+
+    std::vector<array_1d<double,3>> mMeshVelocity;
+
+    std::vector<array_1d<double,3>> mMeshVelocityOld;
 
     bool mDistancePartIsInitialized = false;
 
@@ -499,6 +516,7 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
+            p_conv_diff_settings->SetMeshVelocityVariable(*mpMeshConvectVar);
             if (mpLevelSetGradientVar) {
                 p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
             }
@@ -562,6 +580,8 @@ protected:
         const auto n_nodes = mpDistanceModelPart->NumberOfNodes();
         mVelocity.resize(n_nodes);
         mVelocityOld.resize(n_nodes);
+        mMeshVelocity.resize(n_nodes);
+        mMeshVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
 
         if (mEvaluateLimiter){
@@ -784,6 +804,8 @@ protected:
         block_for_each(mpDistanceModelPart->Nodes(), [this](Node& rNode){
             noalias(rNode.FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar);
             noalias(rNode.FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar, 1);
+            noalias(rNode.FastGetSolutionStepValue(*mpMeshConvectVar)) = -1.0 * rNode.FastGetSolutionStepValue(*mpMeshConvectVar);
+            noalias(rNode.FastGetSolutionStepValue(*mpMeshConvectVar, 1)) = -1.0 * rNode.FastGetSolutionStepValue(*mpMeshConvectVar, 1);
             rNode.FastGetSolutionStepValue(*mpLevelSetVar, 1) = rNode.FastGetSolutionStepValue(*mpLevelSetVar);
         });
 
@@ -805,6 +827,8 @@ protected:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar);
             noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar, 1);
+            noalias(it_node->FastGetSolutionStepValue(*mpMeshConvectVar)) = -1.0 * it_node->FastGetSolutionStepValue(*mpMeshConvectVar);
+            noalias(it_node->FastGetSolutionStepValue(*mpMeshConvectVar, 1)) = -1.0 * it_node->FastGetSolutionStepValue(*mpMeshConvectVar, 1);
             const double phi_n_star = it_node->GetValue(*mpLevelSetVar) + mLimiter[i_node]*mError[i_node];
             it_node->FastGetSolutionStepValue(*mpLevelSetVar) = phi_n_star;
             it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = phi_n_star;
@@ -891,6 +915,7 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
+        mpMeshConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_mesh_convection_variable_name"].GetString());
         if (ThisParameters["convection_model_part_name"].GetString() == "") {
             mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
         } else {
@@ -1018,6 +1043,7 @@ private:
         // Check that the level set and convection variables are in the nodal database
         VariableUtils().CheckVariableExists<Variable<double>>(*mpLevelSetVar, mrBaseModelPart.Nodes());
         VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mrBaseModelPart.Nodes());
+        VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpMeshConvectVar, mrBaseModelPart.Nodes());
 
         // Check the base model part element family (only simplex elements are supported)
         if constexpr (TDim == 2){
@@ -1096,5 +1122,3 @@ inline std::ostream& operator << (
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined

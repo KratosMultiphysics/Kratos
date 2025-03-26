@@ -103,7 +103,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize){
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
@@ -643,7 +643,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
         const BoundedMatrix<double, StrainSize, Dim> aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
         const BoundedMatrix<double, LocalSize, Dim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
-        // Contribution coming fron the shear stress operator
+        // Contribution coming from the shear stress operator
         noalias(aux_LHS) -= adjoint_consistency*weight*prod(aux_matrix_BCAPnorm, N_mat);
 
         // Contribution coming from the pressure terms
@@ -693,7 +693,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
         const BoundedMatrix<double, StrainSize, Dim> aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
         const BoundedMatrix<double, LocalSize, Dim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
-        // Contribution coming fron the shear stress operator
+        // Contribution coming from the shear stress operator
         noalias(aux_LHS) -= adjoint_consistency*weight*prod(aux_matrix_BCAPnorm, N_mat);
 
         // Contribution coming from the pressure terms

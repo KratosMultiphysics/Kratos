@@ -254,12 +254,12 @@ class MainCoupledFemDem_Solution:
 
         if self.domain_size == 3:
             utils.SetNonHistoricalVariable(KratosFemDem.VOLUME_COUNTED, False, elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.FEMDEM_STRESS_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.FEMDEM_STRAIN_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0,0.0,0.0,0.0], elements)
         else: # 2D
-            utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.FEMDEM_STRESS_VECTOR, [0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.FEMDEM_STRAIN_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0, 0.0, 0.0], elements)
 
         if self.PressureLoad:
@@ -590,7 +590,7 @@ class MainCoupledFemDem_Solution:
                     self.plot_files_elements_list[iElem] = open("PlotElement_" + str(Idelem) + ".txt","a")
 
                     stress_tensor = Elem.CalculateOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
-                    strain_vector = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)
+                    strain_vector = Elem.GetValue(KratosFemDem.FEMDEM_STRAIN_VECTOR)
 
                     damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
 
