@@ -122,7 +122,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.Excavation-auto-1",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             false
         }
     }],

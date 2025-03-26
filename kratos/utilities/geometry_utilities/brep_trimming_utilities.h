@@ -7,8 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 
-#if !defined(KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED)
-#define KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED
+#pragma once
 
 // Std includes
 #include <list>
@@ -33,6 +32,7 @@ namespace Kratos
 
     //using namespace ClipperLib;
 
+    template<bool TShiftedBoundary>
     class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities
     {
     public:
@@ -52,7 +52,7 @@ namespace Kratos
 
         typedef signed long long cInt;
 
-        using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, false, PointerVector<Point>>::Pointer;
+        using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, TShiftedBoundary, PointerVector<Point>>::Pointer;
 
         //template<class TBrepLoopType, class TPointType>
         static void CreateBrepSurfaceTrimmingIntegrationPoints(
@@ -66,7 +66,7 @@ namespace Kratos
         struct DPState {
             bool visible;
             double weight;
-            long bestvertex;
+            long best_vertex;
         };
 
         struct Diagonal {
@@ -75,14 +75,14 @@ namespace Kratos
         };
 
         //Triangulation 
-        static void Triangulate_OPT(const Clipper2Lib::Path64& polygon, std::vector<Matrix>& triangles, const double factor)
+        static void Triangulate_OPT(const Clipper2Lib::Path64& polygon, std::vector<Matrix>& triangles, const double factor, const double span_area)
         {
             array_1d<double, 2> p1, p2, p3, p4;
-            int bestvertex;
+            int best_vertex;
             double weight = 0;
             double d1 = 0.0, d2 = 0.0;
-            double minweight = std::numeric_limits<double>::max();
-            Diagonal diagonal, newdiagonal;
+            double min_weight = std::numeric_limits<double>::max();
+            Diagonal diagonal, new_diagonal;
 
             std::queue<Diagonal> diagonals;
 
@@ -123,7 +123,7 @@ namespace Kratos
                 for (IndexType j = i + 1; j < n; j++) {
                     dpstates(j, i).visible = true;
                     dpstates(j, i).weight = 0;
-                    dpstates(j, i).bestvertex = -1;
+                    dpstates(j, i).best_vertex = -1;
                     if (j != (i + 1)) {
                         p2 = BrepTrimmingUtilities::IntPointToDoublePoint(points[j], factor);
 
@@ -161,13 +161,13 @@ namespace Kratos
 
             dpstates(n - 1, 0).visible = true;
             dpstates(n - 1, 0).weight = 0;
-            dpstates(n - 1, 0).bestvertex = -1;
+            dpstates(n - 1, 0).best_vertex = -1;
 
             for (IndexType gap = 2; gap < n; gap++) {
                 for (IndexType i = 0; i < (n - gap); i++) {
                     IndexType j = i + gap;
                     if (!dpstates(j, i).visible) continue;
-                    bestvertex = -1;
+                    best_vertex = -1;
                     for (IndexType k = (i + 1); k < j; k++) {
                         if (!dpstates(k, i).visible) continue;
                         if (!dpstates(j, k).visible) continue;
@@ -179,55 +179,56 @@ namespace Kratos
 
                         weight = dpstates(k, i).weight + dpstates(j, k).weight + d1 + d2;
 
-                        if ((bestvertex == -1) || (weight < minweight)) {
-                            bestvertex = k;
-                            minweight = weight;
+                        if ((best_vertex == -1) || (weight < min_weight)) {
+                            best_vertex = k;
+                            min_weight = weight;
                         }
                     }
-                    if (bestvertex == -1) {
+                    if (best_vertex == -1) {
                         return;
                     }
 
-                    dpstates(j, i).bestvertex = bestvertex;
-                    dpstates(j, i).weight = minweight;
+                    dpstates(j, i).best_vertex = best_vertex;
+                    dpstates(j, i).weight = min_weight;
                 }
             }
 
-            newdiagonal.index1 = 0;
-            newdiagonal.index2 = n - 1;
-            diagonals.push(newdiagonal);
+            new_diagonal.index1 = 0;
+            new_diagonal.index2 = n - 1;
+            diagonals.push(new_diagonal);
 
             while (!diagonals.empty()) {
                 diagonal = diagonals.front();
                 diagonals.pop();
 
-                bestvertex = dpstates(diagonal.index2, diagonal.index1).bestvertex;
-                if (bestvertex == -1) {
+                best_vertex = dpstates(diagonal.index2, diagonal.index1).best_vertex;
+                if (best_vertex == -1) {
                     break;
                 }
                 Matrix triangle(3, 2);
                 triangle(0, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index1], factor)[0];
                 triangle(0, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index1], factor)[1];
-                triangle(1, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[bestvertex], factor)[0];
-                triangle(1, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[bestvertex], factor)[1];
+                triangle(1, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[best_vertex], factor)[0];
+                triangle(1, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[best_vertex], factor)[1];
                 triangle(2, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[0];
                 triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[1];
 
-                if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle) > 1e-5)
+                double span_area_norm = span_area * factor * factor;
+                if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle)/span_area_norm > 1e-5)
                     triangles.push_back(triangle);
                 else
                 {
-                    std::cout << "triangle with zero area" << BrepTrimmingUtilities::GetAreaOfTriangle(triangle) << std::endl;
+                    std::cout << "triangle with realtively small area: " << BrepTrimmingUtilities::GetAreaOfTriangle(triangle) << std::endl;
                 }
-                if (bestvertex > (diagonal.index1 + 1)) {
-                    newdiagonal.index1 = diagonal.index1;
-                    newdiagonal.index2 = bestvertex;
-                    diagonals.push(newdiagonal);
+                if (best_vertex > (diagonal.index1 + 1)) {
+                    new_diagonal.index1 = diagonal.index1;
+                    new_diagonal.index2 = best_vertex;
+                    diagonals.push(new_diagonal);
                 }
-                if (diagonal.index2 > (bestvertex + 1)) {
-                    newdiagonal.index1 = bestvertex;
-                    newdiagonal.index2 = diagonal.index2;
-                    diagonals.push(newdiagonal);
+                if (diagonal.index2 > (best_vertex + 1)) {
+                    new_diagonal.index1 = best_vertex;
+                    new_diagonal.index2 = diagonal.index2;
+                    diagonals.push(new_diagonal);
                 }
             }
         }
@@ -317,8 +318,11 @@ namespace Kratos
         {
             Clipper2Lib::Point64 int_point;
 
-            int_point.x = static_cast<cInt>(x / factor);
-            int_point.y = static_cast<cInt>(y / factor);
+            double temp_x = std::round(x / factor);
+            double temp_y = std::round(y / factor);
+
+            int_point.x = static_cast<cInt>(temp_x);
+            int_point.y = static_cast<cInt>(temp_y);
 
             return int_point;
         }
@@ -339,5 +343,3 @@ namespace Kratos
     };
     ///@} // Kratos Classes
 } // namespace Kratos.
-
-#endif // KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED defined

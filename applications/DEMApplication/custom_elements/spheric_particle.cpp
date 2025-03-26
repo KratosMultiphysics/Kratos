@@ -2251,6 +2251,18 @@ void   SphericParticle::SetRadius(bool is_radius_expansion, double radius_expans
         if (radius_multiplier_old >= 1.0) {
             mRadius = (GetGeometry()[0].FastGetSolutionStepValue(RADIUS) / radius_multiplier_old) * radius_multiplier;
             GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = mRadius;
+            
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+
+                NodeType& node = GetGeometry()[0];
+                
+                node.GetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
+                
+                array_1d<double, 3> angular_momentum;
+                CalculateLocalAngularMomentum(angular_momentum);
+                noalias(node.GetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+            }
+
         } else {
             mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
         }

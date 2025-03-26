@@ -108,14 +108,11 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 
 // geo structural element
-#include "custom_elements/geo_cable_element.hpp"
 #include "custom_elements/geo_cr_beam_element_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
 #include "custom_elements/geo_curved_beam_element.hpp"
-#include "custom_elements/geo_linear_truss_element.hpp"
-#include "custom_elements/geo_truss_element.hpp"
 #include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
@@ -308,27 +305,33 @@ private:
     const TransientPwLineElement<2, 2> mTransientPwLineElement2D2N{
         0,
         Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow}};
     const TransientPwLineElement<2, 3> mTransientPwLineElement2D3N{
         0,
         Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow}};
     const TransientPwLineElement<2, 4> mTransientPwLineElement2D4N{
         0,
         Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow}};
     const TransientPwLineElement<2, 5> mTransientPwLineElement2D5N{
         0,
         Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow}};
     const TransientPwLineElement<3, 2> mTransientPwLineElement3D2N{
         0,
         Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow}};
     const TransientPwLineElement<3, 3> mTransientPwLineElement3D3N{
         0,
         Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow}};
 
     const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
@@ -712,18 +715,6 @@ private:
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoTrussElement<2, 2> mGeoTrussElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoTrussElement<3, 2> mGeoTrussElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoLinearTrussElement<2, 2> mGeoLinearTrussElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoLinearTrussElement<3, 2> mGeoLinearTrussElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCableElement<2, 2> mGeoCableElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCableElement<3, 2> mGeoCableElement3D2N{
         0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoCurvedBeamElement<2, 3> mGeoCurvedBeamElement2D3N{
         0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};

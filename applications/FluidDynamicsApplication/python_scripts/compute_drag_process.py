@@ -74,7 +74,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 if file_handler_params.Has("file_name"):
                     warn_msg  = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
                     warn_msg += '"' + file_handler_params["file_name"].GetString() + '"}\n'
-                    warn_msg += 'Using this specififed file name instead of the default "' + output_file_name + '"'
+                    warn_msg += 'Using this specified file name instead of the default "' + output_file_name + '"'
                     KratosMultiphysics.Logger.PrintWarning("ComputeDragProcess", warn_msg)
                 else:
                     file_handler_params.AddEmptyValue("file_name")

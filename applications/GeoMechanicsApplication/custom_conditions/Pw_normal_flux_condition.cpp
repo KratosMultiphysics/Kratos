@@ -16,7 +16,9 @@
 // Application includes
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
-#include <custom_utilities/variables_utilities.hpp>
+#include "custom_utilities/variables_utilities.hpp"
+
+#include <numeric>
 
 namespace Kratos
 {
@@ -51,7 +53,9 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRi
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Interpolation of nodal normal flux to integration point normal flux.
-        auto normal_flux = MathUtils<>::Dot(row(r_n_container, integration_point), normal_flux_vector);
+        const auto shape_function_values = row(r_n_container, integration_point);
+        const auto normal_flux           = std::inner_product(
+            shape_function_values.begin(), shape_function_values.end(), normal_flux_vector.cbegin(), 0.0);
 
         // Compute weighting coefficient for integration
         auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
