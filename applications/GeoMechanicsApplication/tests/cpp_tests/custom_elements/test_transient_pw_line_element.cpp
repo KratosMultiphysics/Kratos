@@ -24,10 +24,8 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_GetIntegrationMethodForAllRegisteredElements,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
-    PointerVector<Node> nodes;
+    const std::vector<CalculationContribution> contributions;
+    PointerVector<Node>                        nodes;
     nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
 

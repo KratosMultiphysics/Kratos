@@ -100,11 +100,9 @@ public:
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
         case GeometryData::Kratos_Cubic_Order:
-            if (this->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D10) {
-                return GeometryData::IntegrationMethod::GI_GAUSS_4;
-            } else {
-                return GeometryData::IntegrationMethod::GI_GAUSS_3;
-            }
+            return this->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D10
+                       ? GeometryData::IntegrationMethod::GI_GAUSS_4
+                       : GeometryData::IntegrationMethod::GI_GAUSS_3;
         case GeometryData::Kratos_Quartic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
