@@ -231,7 +231,7 @@ private:
     void load(Serializer &rSerializer) override;
 };
 
-///@name Input/Output funcitons
+///@name Input/Output functions
 ///@{
 
 /// input stream function

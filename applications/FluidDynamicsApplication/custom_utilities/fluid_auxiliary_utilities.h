@@ -168,7 +168,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions
-     * This method calculates the flow rate throught the given model part conditions
+     * This method calculates the flow rate through the given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @return double Flow rate
@@ -177,7 +177,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions (positive subdomain)
-     * This method calculates the flow rate throught the positive part of given model part conditions
+     * This method calculates the flow rate through the positive part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @return double Flow rate
@@ -186,7 +186,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions (negative subdomain)
-     * This method calculates the flow rate throught the negative part of given model part conditions
+     * This method calculates the flow rate through the negative part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @return double Flow rate
@@ -195,7 +195,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions (positive subdomain)
-     * This method calculates the flow rate throught the positive part of given model part conditions
+     * This method calculates the flow rate through the positive part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
@@ -207,7 +207,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions (negative subdomain)
-     * This method calculates the flow rate throught the negative part of given model part conditions
+     * This method calculates the flow rate through the negative part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
@@ -277,7 +277,7 @@ private:
      * @brief Auxiliary function to bypass the positive and negative standard methods
      * This auxiliary function shouldn't be called from outside and serves to
      * avoid the reimplementation for positive and negative subdomains
-     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and vice-versa
      * @param rModelPart The model part to calculate the flow rate
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @return double Flow rate
@@ -304,8 +304,8 @@ private:
     /**
      * @brief Auxiliary function to bypass the positive and negative subdomain check
      * This auxiliary function shouldn't be called from outside and serves to
-     * standarize the implementation of the methods that check for an either positive or negative subdomain
-     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * standardize the implementation of the methods that check for an either positive or negative subdomain
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and vice-versa
      * @param rElementDistancesVector Vector containing the distance values at each node
      * @return true If agrees the template argument
      * @return false If not agrees the template argument
@@ -317,7 +317,7 @@ private:
      * @brief Auxiliary function to bypass the calculation of modified shape functions
      * This auxiliary function shouldn't be called from outside and serves to
      * avoid checking for positive and negative methods of the modified shape functions
-     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and vice-versa
      * @param rpModShapeFunc Pointer to the modified shape functions utility of the condition parent
      * @param FaceId Parent geometry face id corresponding the condition of interest
      * @param rShapeFunctions Matrix container to store the computed shape functions

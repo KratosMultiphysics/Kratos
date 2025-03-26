@@ -258,7 +258,7 @@ public:
 
     /**
      * @brief Get the Default Settings object
-     * Static method to get the default settings inside the contructor
+     * Static method to get the default settings inside the constructor
      * @return Parameters The parameters object containing the default settings
      */
     static Parameters StaticGetDefaultParameters();
@@ -384,7 +384,7 @@ private:
      * It is specialized for the historical and non-historical databases
      * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
      * @param rNode Node from which the values are retrieved
-     * @param rVariable Vector variable to be retieved
+     * @param rVariable Vector variable to be retrieved
      * @return array_1d<double,3>& Reference to the retrieved value
      */
     template<bool IsHistorical>
@@ -487,7 +487,7 @@ private:
     bool ElementIsIncised(const Vector &rEdgeDistancesExtrapolated);
 
     /**
-     * Checks wether the element is in the positive side or not
+     * Checks whether the element is in the positive side or not
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return True if it is split and false if not
@@ -512,7 +512,7 @@ private:
     const inline Vector SetEdgeDistancesExtrapolatedVector(const Element& rElem);
 
     /**
-     * Sets the the modified shape functions utility according to the
+     * Sets the modified shape functions utility according to the
      * distance values for a cut element.
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
@@ -523,7 +523,7 @@ private:
         const Vector &rNodalDistances);
 
     /**
-     * Sets the the modified shape functions utility for an Ausas incised element.
+     * Sets the modified shape functions utility for an Ausas incised element.
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistancesWithExtra Vector containing the distance values including extrapolated intersections
      * @param rEdgeDistancesExtrapolated Vector containing the edge distances rations of extrapolated intersections
@@ -554,7 +554,7 @@ private:
 
     /**
      * @brief Removes the visualization properties
-     * When it is required, this function searchs for the visualization properties to remove them.
+     * When it is required, this function searches for the visualization properties to remove them.
      */
     void RemoveVisualizationProperties();
 
