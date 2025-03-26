@@ -1,3 +1,0 @@
-# Hashes of file build rules.
-678171c60ab8d56fba28709231f0d6d2 CMakeFiles/KratosKernel
-678171c60ab8d56fba28709231f0d6d2 CMakeFiles/KratosPythonInterface
