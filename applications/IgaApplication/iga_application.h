@@ -44,6 +44,7 @@
 #include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
+#include "custom_modelers/coupling_geometry_modeler.h"
 
 namespace Kratos {
 
@@ -143,6 +144,7 @@ private:
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
+    const CouplingGeometryModeler mCouplingGeometryModeler;
 
     ///@}
     ///@name Private methods
