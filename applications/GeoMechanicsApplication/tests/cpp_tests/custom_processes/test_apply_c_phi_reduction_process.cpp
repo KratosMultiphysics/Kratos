@@ -21,15 +21,15 @@ using namespace Kratos;
 
 namespace
 {
-ModelPart& SetGeometryAndMesh(Model& rModel)
+ModelPart& CreateModelPartWithElements(Model& rModel)
 {
     auto& result = rModel.CreateModelPart("dummy");
     result.CreateNewProperties(0);
 
-    auto p_node1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto p_node2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
-    auto p_node3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    auto p_node4 = make_intrusive<Node>(4, 0.0, 1.0, 0.0);
+    const auto p_node1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    const auto p_node2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    const auto p_node3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    const auto p_node4 = make_intrusive<Node>(4, 0.0, 1.0, 0.0);
 
     result.AddElement(make_intrusive<Element>(
         1, std::make_shared<Triangle2D3<Node>>(p_node1, p_node2, p_node3), result.pGetProperties(0)));
@@ -41,7 +41,7 @@ ModelPart& SetGeometryAndMesh(Model& rModel)
 
 ModelPart& PrepareCPhiTestModelPart(Model& rModel)
 {
-    auto& result = SetGeometryAndMesh(rModel);
+    auto& result = CreateModelPartWithElements(rModel);
 
     auto& r_model_part_properties = result.GetProperties(0);
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReduction
 KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_model_part = SetGeometryAndMesh(model);
+    auto& r_model_part = CreateModelPartWithElements(model);
 
     auto& r_model_part_properties = r_model_part.GetProperties(0);
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
