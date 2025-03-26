@@ -360,8 +360,7 @@ public:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
@@ -370,8 +369,7 @@ public:
       */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
@@ -382,8 +380,18 @@ public:
      void CalculateOnIntegrationPoints(
          const Variable<double>& rVariable,
          std::vector<double>& rOutput,
-         const ProcessInfo& rCurrentProcessInfo
-         ) override;
+         const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rProcessInfo) override;
 
     ///@}
     ///@name Access

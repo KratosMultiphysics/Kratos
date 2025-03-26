@@ -889,6 +889,26 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(r_integration_points.size());
+
+    if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2) {
+        const auto& r_local_axis = this->Has(rVariable) ? this->GetValue(rVariable) : ZeroVector(3);
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            noalias(rOutput[IP]) = r_local_axis;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoBeamElement3D2N::save(
     Serializer& rSerializer
     ) const
