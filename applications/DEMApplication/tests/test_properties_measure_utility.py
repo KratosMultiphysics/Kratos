@@ -30,7 +30,7 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             #averaged stress tensor for the whole packing
             stress_tensor = self.MeasureSphereForGettingGlobalStressTensor()
             mean_stress = (stress_tensor[0][0]+stress_tensor[1][1]+stress_tensor[2][2])/3
-            expected_value_mean_stress = 25.154514528874362
+            expected_value_mean_stress = 19.459923815701085
             self.assertAlmostEqual(mean_stress, expected_value_mean_stress, delta=tolerance)
 
             #define the measured region
@@ -96,7 +96,7 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
 
             #unbalanced force
             measured_unbalanced_force = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'unbalanced_force')
-            expected_value_unbalanced_force = 0.08382835943747109
+            expected_value_unbalanced_force = 0.08382892043987683
             self.assertAlmostEqual(measured_unbalanced_force, expected_value_unbalanced_force, delta=tolerance)
 
     def Finalize(self):

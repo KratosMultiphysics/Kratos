@@ -812,6 +812,7 @@ class ContactElementGlobalPhysicsCalculator
 
                 double dx, dy, dz;
                 
+                /*
                 dx = x_0 - x_1;
                 if (dx > 0.5 * Lx){
                     dx -= Lx;
@@ -834,6 +835,15 @@ class ContactElementGlobalPhysicsCalculator
                 }
                 else if (dz < -0.5 * Lz){
                     dz += Lz;
+                }*/
+
+                dx = x_0 - x_1;
+                dy = y_0 - y_1;
+                dz = z_0 - z_1;
+
+                //only consider the inner contacts
+                if (std::abs(dx) > 0.5 * Lx || std::abs(dy) > 0.5 * Ly || std::abs(dz) > 0.5 * Lz){
+                    continue;
                 }
 
                 const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
