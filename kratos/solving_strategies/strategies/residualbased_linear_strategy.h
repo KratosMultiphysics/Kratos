@@ -442,6 +442,10 @@ public:
             if (p_scheme->ConditionsAreInitialized() == false)
                 p_scheme->InitializeConditions(BaseType::GetModelPart());
 
+            //Initialize The MasterSlaveConstraints - OPERATIONS TO BE DONE ONCE
+            if (p_scheme->MasterSlaveConstraintsAreInitialized() == false)
+                p_scheme->InitializeMasterSlaveConstraints(BaseType::GetModelPart());
+
             mInitializeWasPerformed = true;
         }
 
