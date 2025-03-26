@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(ActivateModelPartOperation, KratosGeoMechanicsFastSuit
     // Create the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    auto p_properties = r_test_model_part.CreateNewProperties(0);
+    auto  p_properties      = r_test_model_part.CreateNewProperties(0);
 
     const auto p_node1 = r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     const auto p_node2 = r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
