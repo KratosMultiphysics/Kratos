@@ -24,7 +24,7 @@ namespace
 ModelPart& CreateModelPartWithElements(Model& rModel)
 {
     auto& result = rModel.CreateModelPart("dummy");
-    result.CreateNewProperties(0);
+    auto p_properties = result.CreateNewProperties(0);
 
     const auto p_node1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
     const auto p_node2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
@@ -32,9 +32,9 @@ ModelPart& CreateModelPartWithElements(Model& rModel)
     const auto p_node4 = make_intrusive<Node>(4, 0.0, 1.0, 0.0);
 
     result.AddElement(make_intrusive<Element>(
-        1, std::make_shared<Triangle2D3<Node>>(p_node1, p_node2, p_node3), result.pGetProperties(0)));
+        1, std::make_shared<Triangle2D3<Node>>(p_node1, p_node2, p_node3), p_properties));
     result.AddElement(make_intrusive<Element>(
-        3, std::make_shared<Triangle2D3<Node>>(p_node1, p_node3, p_node4), result.pGetProperties(0)));
+        3, std::make_shared<Triangle2D3<Node>>(p_node1, p_node3, p_node4), p_properties));
 
     return result;
 }
