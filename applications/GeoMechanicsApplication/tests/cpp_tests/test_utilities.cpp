@@ -10,6 +10,8 @@
 //  Main authors:    Richard Faasse
 //
 #include "test_utilities.h"
+#include "custom_utilities/registration_utilities.h"
+
 #include <fstream>
 
 namespace Kratos::Testing
@@ -34,4 +36,25 @@ bool TestUtilities::CompareFiles(const std::filesystem::path& rPath1, const std:
     return std::equal(std::istreambuf_iterator<char>(file_1.rdbuf()), std::istreambuf_iterator<char>(),
                       std::istreambuf_iterator<char>(file_2.rdbuf()));
 }
+
+ScopedSerializerRegistrationOfAllStressStatePolicies::ScopedSerializerRegistrationOfAllStressStatePolicies()
+{
+    RegistrationUtilities::RegisterStressStatePolicies();
+}
+
+ScopedSerializerRegistrationOfAllStressStatePolicies::~ScopedSerializerRegistrationOfAllStressStatePolicies()
+{
+    RegistrationUtilities::DeregisterStressStatePolicies();
+}
+
+ScopedSerializerRegistrationOfAllYieldSurfaces::ScopedSerializerRegistrationOfAllYieldSurfaces()
+{
+    RegistrationUtilities::RegisterYieldSurfaces();
+}
+
+ScopedSerializerRegistrationOfAllYieldSurfaces::~ScopedSerializerRegistrationOfAllYieldSurfaces()
+{
+    RegistrationUtilities::DeregisterYieldSurfaces();
+}
+
 } // namespace Kratos::Testing
