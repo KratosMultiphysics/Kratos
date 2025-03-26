@@ -693,15 +693,14 @@ public:
         }
     }
 
-    double NormDiagonal() const
+    TDataType NormDiagonal() const
     {
-        //TODO: Investigate why do we need the template keyword below
-        const double diagonal_norm = IndexPartition<IndexType>(size1()).template for_each<SumReduction<double>>([&](IndexType Index) {
+        const TDataType diagonal_norm = IndexPartition<IndexType>(size1()).template for_each<SumReduction<TDataType>>([&](IndexType Index) {
             const IndexType row_begin = index1_data()[Index];
             const IndexType row_end = index1_data()[Index+1];
-            for (IndexType j = row_begin; j < row_end; ++j) {
-                if (index2_data()[j] == Index) {
-                    return std::pow(value_data()[j], 2);
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::pow(value_data()[k], 2);
                 }
             }
             return 0.0;
@@ -710,53 +709,32 @@ public:
         return std::sqrt(diagonal_norm);
     }
 
-    double MaxDiagonal() const
+    TDataType MaxDiagonal() const
     {
-        //TODO: Investigate why do we need the template keyword below
-        return IndexPartition<IndexType>(size1()).template for_each<MaxReduction<double>>([&](IndexType Index) {
+        return IndexPartition<IndexType>(size1()).template for_each<MaxReduction<TDataType>>([&](IndexType Index) {
             const IndexType row_begin = index1_data()[Index];
             const IndexType row_end = index1_data()[Index+1];
-            for (IndexType j = row_begin; j < row_end; ++j) {
-                if (index2_data()[j] == Index) {
-                    return std::abs(value_data()[j]);
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::abs(value_data()[k]);
                 }
             }
-            return std::numeric_limits<double>::lowest();
+            return std::numeric_limits<TDataType>::lowest();
         });
     }
 
-    double MinDiagonal() const
+    TDataType MinDiagonal() const
     {
-        //TODO: Investigate why do we need the template keyword below
-        return IndexPartition<IndexType>(size1()).template for_each<MinReduction<double>>([&](IndexType Index) {
+        return IndexPartition<IndexType>(size1()).template for_each<MinReduction<TDataType>>([&](IndexType Index) {
             const IndexType row_begin = index1_data()[Index];
             const IndexType row_end = index1_data()[Index+1];
-            for (IndexType j = row_begin; j < row_end; ++j) {
-                if (index2_data()[j] == Index) {
-                    return std::abs(value_data()[j]);
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::abs(value_data()[k]);
                 }
             }
-            return std::numeric_limits<double>::max();
+            return std::numeric_limits<TDataType>::max();
         });
-    }
-
-    SizeType GraphDegree(const IndexType I) const
-    {
-        return index1_data()[I+1] - index1_data()[I];
-    }
-
-    void GraphNeighbours(
-        const IndexType I,
-        std::vector<IndexType>& rNeighbours) const
-    {
-        IndexType i = 0;
-        rNeighbours.clear();
-        const IndexType row_begin = index1_data()[I];
-        const IndexType row_end = index1_data()[I+1];
-        rNeighbours.reserve(row_end - row_begin);
-        for (IndexType j = row_begin; j < row_end; ++j) {
-            rNeighbours[i++] = index2_data()[j];
-        }
     }
 
     ///@}
