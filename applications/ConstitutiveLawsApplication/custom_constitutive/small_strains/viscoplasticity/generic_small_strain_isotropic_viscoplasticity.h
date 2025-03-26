@@ -48,8 +48,7 @@ namespace Kratos
  * multiplier calculation is used. This approach requires one mandatory parameter MU and an optional one,
  * the sensitivity.
  * The impleemntation is general for any yield surface and plastic potential used.
- * If the CL is used together with a large displacement element, the Hencky strain meausre is used, hence
- * automatically switching to the finite strain setting.
+ * If the CL is used together with a large displacement element, the Green-Lagrange strain is computed.
  * Source: Souza et al. Computational Methods for Plasticity, Wiley, pg 446.
  * @author Alejandro Cornejo
  */
