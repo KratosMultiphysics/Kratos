@@ -47,6 +47,7 @@ class KRATOS_API(IGA_APPLICATION) CombineSolidShellModelPartsProcess
     typedef IntegrationPoint<3> IntegrationPointType;
     typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
 
+    typedef typename Properties::Pointer PropertiesPointerType;
 
 public:
     ///@name Type Definitions
