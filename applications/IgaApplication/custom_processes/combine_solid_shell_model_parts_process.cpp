@@ -36,15 +36,15 @@ namespace Kratos
 				
 		// For the solid part, there is 1 quadrature point per condition 
 		const SizeType num_integration_points = SolidModelPart_NeumannBC.Conditions().size();
-		PointerVector<Geometry<Node>> master_quadrature_points_geometry;
+		PointerVector<Geometry<Node>> master_quadrature_points_geometry; //TO DO: geometry type may not be correct
 
-		PointerVector<Geometry<Node>> slave_quadrature_points_geometry(num_integration_points);
+		PointerVector<Geometry<Node>> slave_quadrature_points_geometry(num_integration_points); //TO DO: idem
 		CoordinatesArrayType integration_points_global_coords_vector(3);
 		IntegrationPointsArrayType integration_points_slave_local_coords_vector(num_integration_points);
 		CoordinatesArrayType local_slave_coords = ZeroVector(3); 
 		size_t i = 0;
 			
-		for (auto& it_condition = SolidModelPart_NeumannBC.ConditionsBegin(); it_condition != SolidModelPart_NeumannBC.ConditionsEnd(); ++it_condition) {
+		for (auto it_condition = SolidModelPart_NeumannBC.ConditionsBegin(); it_condition != SolidModelPart_NeumannBC.ConditionsEnd(); ++it_condition) {
 			master_quadrature_points_geometry.push_back( (it_condition->pGetGeometry() )) ;
 
 			integration_points_global_coords_vector[0] = master_quadrature_points_geometry(i)->IntegrationPoints()[0].X();
@@ -88,6 +88,20 @@ namespace Kratos
 
 		_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("NurbsMesh").RemoveSubModelPart("Neumann_BC");
 		_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").RemoveSubModelPart("Load_3");
+
+		// assign each coupling geometry to the coupling condition
+		ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").CreateSubModelPart("CouplingInterface");
+		std::string name = "CouplingPenaltyCondition";
+		const Condition& rReferenceCondition = KratosComponents<Condition>::Get(name);
+
+		for (SizeType i = 0; i < Coupled_Quadrature_Point_Geometries.size(); ++i) {
+			for (SizeType ii = 0; i < Coupled_Quadrature_Point_Geometries(i)->size(); ++ii) {
+                interface_model_part.AddNode(Coupled_Quadrature_Point_Geometries(i)->pGetPoint(ii));
+            }
+			//TO DO: check properties and condition id
+			Condition::Pointer p_condition = rReferenceCondition.Create(i+10000, Coupled_Quadrature_Point_Geometries(i), PropertiesPointerType());
+			interface_model_part.Conditions().push_back(p_condition);
+		}		
 		
 		// Write points to VTK
 		std::string filename = "data/Intergration_Points_on_Solid1_Coupling_Surface.vtk";
@@ -257,7 +271,7 @@ namespace Kratos
 			auto& integrationpoint = Geometry.IntegrationPoints();
 			CoordinatesArrayType XYZ_coos;
 			//Geometry.GlobalCoordinates(XYZ_coos,integrationpoint[0]);
-			auto& point = Geometry.Center();
+			auto point = Geometry.Center();
 
 			std::vector<array_1d<double, 3>> derivatives(3);
 			//auto ParentGeometry = Geometry.GetGeometryParent(0);
