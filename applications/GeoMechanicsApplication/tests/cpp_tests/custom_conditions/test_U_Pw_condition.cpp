@@ -20,17 +20,10 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwCondition_ReturnsEmptyMatrix, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwCondition_ReturnsEmptyMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model current_model;
-    auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
-
-    // create geometry as UPwCondition needs a geometry to be initialized
-    auto                              node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    std::vector<ModelPart::IndexType> element_nodes{1};
-    auto p_geometry = r_model_part.CreateNewGeometry("Point2D", element_nodes);
-
-    auto cond = UPwCondition<2, 2>(1, p_geometry, nullptr);
+    auto p_dummy_geometry = std::make_shared<Geometry<Node>>();
+    auto cond = UPwCondition<2, 2>(1, p_dummy_geometry, nullptr);
 
     Matrix left_hand_side_matrix = ZeroMatrix(6, 6);
     cond.CalculateLeftHandSide(left_hand_side_matrix, ProcessInfo{});
