@@ -247,7 +247,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     constitutive_law_values.SetShapeFunctionsDerivatives(r_DN_DX);
     constitutive_law_values.SetStrainVector(strain_rate);
     constitutive_law_values.SetStressVector(shear_stress);    //this is an ouput parameter
-    constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter 
+    constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter
 
     // Calculate material response and effective viscosity
     //NOTE that here we assume that only one constitutive law is employed for all of the integration points.
@@ -401,19 +401,13 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
     // Get the velocity and density for the integration point
     const auto& r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
-    //KRATOS_WATCH(rN(0));
-    //KRATOS_WATCH(r_geometry[0].FastGetSolutionStepValue(VELOCITY));
     double int_pt_rho = rN(0) * r_geometry[0].FastGetSolutionStepValue(DENSITY);
     array_1d<double,3> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
     for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
         int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
         int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
-        //KRATOS_WATCH(rN(i_node));
-        //KRATOS_WATCH(r_geometry[i_node].FastGetSolutionStepValue(VELOCITY));
     }
-    //KRATOS_WATCH(int_pt_v);
     const double int_pt_v_norm = norm_2(int_pt_v);
-    //KRATOS_WATCH(int_pt_v_norm);
 
     const double stab_constant = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize + int_pt_rho*ParentSize*ParentSize/DeltaTime;
 
