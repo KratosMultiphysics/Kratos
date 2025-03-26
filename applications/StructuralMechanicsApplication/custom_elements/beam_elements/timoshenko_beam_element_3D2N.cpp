@@ -169,9 +169,9 @@ void LinearTimoshenkoBeamElement3D2N::GetNodalValuesVector(
     const VectorType& r_local_displ_1 = prod(T, r_displ_1);
 
     // Due to dextrogyr axes system
-    // T(0, 1) *= -1.0;
-    // T(1, 1) *= -1.0;
-    // T(2, 1) *= -1.0;
+    T(0, 1) *= -1.0;
+    T(1, 1) *= -1.0;
+    T(2, 1) *= -1.0;
 
     const VectorType& r_local_rot_0 = prod(T, r_rotation_0);
     const VectorType& r_local_rot_1 = prod(T, r_rotation_1);
@@ -303,9 +303,9 @@ void LinearTimoshenkoBeamElement3D2N::AssembleGlobalRotationMatrix(
     for (IndexType block = 0; block < 4; ++block) {
         for (IndexType i = 0; i < rT.size1(); ++i) {
             for (IndexType j = 0; j < rT.size2(); ++j) {
-                if (block == 1 || block == 3) { // rotations orientation consistent with sign
-                    if (j == 1) {
-                        rGlobalT(3 * block + i, 3 * block + j) = rT(i, j); // was minus
+                if (block == 1 || block == 3) { // blocks affecting the rotations
+                    if (j == 1) { // the y rotation
+                        rGlobalT(3 * block + i, 3 * block + j) = -rT(i, j);
                     } else {
                         rGlobalT(3 * block + i, 3 * block + j) = rT(i, j);
                     }

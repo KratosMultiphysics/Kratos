@@ -246,6 +246,12 @@ public:
 
     /**
      * @brief Assembles the 3 dimension rotation matrix to a global element size one
+     * Tglob = | T  0   0   0  |
+     *         | 0  T*  0   0  |
+     *         | 0  0   T   0  |
+     *         | 0  0   0   T* |
+     * where the T* is the same as T BUT changing the sign of the column 1,
+     * This inverts the sign convention for the y rotation.
      * @param rT The local 3 dimension rotation matrix
      * @param rGlobalT The global 12 dimension rotation matrix
      */
