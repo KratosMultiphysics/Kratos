@@ -556,6 +556,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _GetModelPartNodesSubset(self, model_part, node_ids):
         return [model_part.GetNode(node_id) for node_id in node_ids]
+    
+    def _GetModelPartNodesIds(self, model_part):
+        return np.fromiter((node.Id for node in model_part.Nodes), dtype=int)
 
     def _ExtractVariableInOptimizationDomain(self, variable):
         return variable[self.optimization_domain_nodes_mask]
@@ -654,14 +657,25 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ComputeResistance(self, design_parameter):
         return self._ComputePhysicsParameter(self.resistance_parameters, design_parameter)
     
-    def _ComputePhysicsParameter(self, physics_parameter, design_parameter):
-        interpolation_method = (physics_parameter["interpolation_method"].GetString()).lower()
+    def _ComputePhysicsParameter(self, physics_parameters, design_parameter):
+        parameter = np.zeros(self.n_nodes)
+        parameter_derivative_wrt_design_base = np.zeros(self.n_nodes)
+        domain = physics_parameters["domain"].GetString()
+        mp = self._GetSubModelPart(self._GetMainModelPart(), domain)
+        if (mp is not None):
+                nodes_ids = self._GetModelPartNodesIds(mp) - 1
+        else:
+            nodes_ids = np.arange(self.n_nodes)
+        interpolation_method = (physics_parameters["interpolation_method"].GetString()).lower()
         if (interpolation_method == "hyperbolic"):
-            return self._ComputeHyperbolicPhysicsParameter(physics_parameter, design_parameter)
+            computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputeHyperbolicPhysicsParameter(physics_parameters, design_parameter)
         elif (interpolation_method == "polynomial"):
-            return self._ComputePolynomialPhysicsParameter(physics_parameter, design_parameter)
+            computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputePolynomialPhysicsParameter(physics_parameters, design_parameter)
         else:
             KratosMultiphysics.Logger.PrintError("WRONG PHYSICS PARAMETER INTERPOLATION METHOD", "Running '_ComputePhysicsParameter' with the wrong interpolation method.")
+        parameter[nodes_ids] = computed_parameter[nodes_ids]
+        parameter_derivative_wrt_design_base[nodes_ids] = computed_parameter_derivative_wrt_design_base[nodes_ids]
+        return parameter, parameter_derivative_wrt_design_base
         
     def _ComputeHyperbolicPhysicsParameter(self, physics_parameters, design_parameter):
         value_void = physics_parameters["value_void"].GetDouble()
@@ -1431,7 +1445,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                     "initial_slope": 1.0,
                     "final_slope"  : 1.0,
                     "iterations"   : [2,50]
-                }
+                },
+                "domain": "all"
             }
         }""")
         default_physics_parameters_settings.AddMissingParameters(self.GetBasePhysicsParametersSettings())

@@ -538,7 +538,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                     "initial_slope": 1.0,
                     "final_slope"  : 10.0,
                     "iterations"   : [2,50]
-                }
+                },
+                "domain": "all"
             },
             "decay": {
                 "interpolation_method": "polynomial",
@@ -548,7 +549,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                     "initial_slope": 1.0,
                     "final_slope"  : 10.0,
                     "iterations"   : [2,50]
-                }
+                },
+                "domain": "all"
             },
             "convection_coefficient": {
                 "interpolation_method": "polynomial",
@@ -558,7 +560,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                     "initial_slope": 1.0,
                     "final_slope"  : 10.0,
                     "iterations"   : [2,50]
-                }
+                },
+                "domain": "all"
             }
         }""")
         default_physics_parameters_settings.AddMissingParameters(super().GetDefaultPhysicsParametersSettings())
