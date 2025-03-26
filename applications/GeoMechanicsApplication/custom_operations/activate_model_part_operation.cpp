@@ -27,7 +27,7 @@
 namespace Kratos
 {
 
-ActivateModelPartOperation::ActivateModelPartOperation(Model& rModel, const Parameters rSettings)
+ActivateModelPartOperation::ActivateModelPartOperation(Model& rModel, const Parameters& rSettings)
     : Operation(), mpModelPart(&rModel.GetModelPart(rSettings["model_part_name"].GetString()))
 {
 }
