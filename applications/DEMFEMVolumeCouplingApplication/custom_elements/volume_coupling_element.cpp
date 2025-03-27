@@ -90,7 +90,6 @@ double VolumeCouplingElement::GetIntegrationWeight(const GeometryType::Integrati
 
     double interpolated_coupling_weight_at_int_point=0; 
 
-   
     for (int i=0; i < this->GetGeometry().size(); i++)
     {
          

@@ -7,6 +7,14 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsAppli
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MappingApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/CoSimulationApplication)
 
+# # This should replace the older kratos_add_dependency(...) calls
+# kratos_add_dependency_to_application(
+#     DEMFEM_VOLUME_COUPLING_APPLICATION       # <-- Your application "internal" name
+#     DEM_APPLICATION
+#     STRUCTURAL_MECHANICS_APPLICATION
+#     MAPPING_APPLICATION
+#     COSIMULATION_APPLICATION
+# )
 
 
 ################### PYBIND11

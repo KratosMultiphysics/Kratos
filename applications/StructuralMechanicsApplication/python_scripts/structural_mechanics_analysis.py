@@ -39,6 +39,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
     def Initialize(self):
         """ Initializing the Analysis """
+        #set ACTIVATION_LEVEL to 0 at the start
+        self._GetSolver().GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.ACTIVATION_LEVEL,0)
         super().Initialize()
 
         # In case of contact problem
@@ -65,9 +67,12 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 # Informing the output will be created
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
-
-        # Creating output
+        # # Manipulate ACTIVATION_LEVEL as required
+        # self._GetSolver().GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.ACTIVATION_LEVEL,1)
+        # # Creating output
         super().OutputSolutionStep()
+        # # Reset ACTIVATION_LEVEL
+        # self._GetSolver().GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.ACTIVATION_LEVEL,0)
 
     #### Internal functions ####
     def _CreateSolver(self):

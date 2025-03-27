@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/small_displacement.h"
+#include "custom_elements/solid_elements/small_displacement.h"
 
 
 namespace Kratos
