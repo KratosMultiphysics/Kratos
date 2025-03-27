@@ -915,6 +915,10 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(SWITCH_TEMPERATURE)
     KRATOS_REGISTER_VARIABLE(NODAL_SWITCH)
 
+    //for SBM structure
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POSITIVE_FACE_FLUID_VELOCITY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NEGATIVE_FACE_FLUID_VELOCITY)
+
     //--------------- OTHER Applications -------------------//
 
     //--------------- XFEM Set Application -------------------//
