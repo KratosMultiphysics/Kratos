@@ -63,7 +63,7 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
                                                                                                                                     \
                 /* Find the entry in the left matrix corresponding to the entry in the right one. */                                \
                 it_left_column = std::lower_bound(it_left_column, it_left_column_end, i_column);                                    \
-                KRATOS_ERROR_IF(it_left_column == it_left_column_end or *it_left_column != i_column)                                \
+                KRATOS_ERROR_IF(it_left_column == it_left_column_end || *it_left_column != i_column)                                \
                     << "left hand matrix has no entry in row " << i_row << " at column " << i_column;                               \
                                                                                                                                     \
                 const auto i_left_entry = std::distance(rLeft.index2_data().begin(), it_left_column);                               \
