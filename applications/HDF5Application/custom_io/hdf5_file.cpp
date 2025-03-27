@@ -105,6 +105,13 @@ File::File(
 {
     KRATOS_TRY;
 
+    // Unset error handling callbacks set by dependencies.
+    // Some dependencies (such as h5py) may set callbacks via the legacy HDF5 API,
+    // which breaks Kratos HDF5 calls. We don't do any kind of error handling
+    // apart from reporting, so there's no behavior change on our end, but if
+    // dependencies issue HDF5 calls after Kratos, they might run into trouble.
+    KRATOS_HDF5_CALL(H5Eset_auto, H5E_DEFAULT, NULL, NULL)
+
     Parameters default_params(R"(
             {
                 "file_name" : "PLEASE_SPECIFY_HDF5_FILENAME",
