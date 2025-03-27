@@ -484,10 +484,6 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
 {
     if constexpr (Checks == MatrixChecks::None) return;
 
-    KRATOS_ERROR_IF_NOT(0 <= rMatrix.size1())
-        << "input matrix has invalid row size";
-    KRATOS_ERROR_IF_NOT(0 <= rMatrix.size2())
-        << "input matrix has invalid column size";
     KRATOS_ERROR_IF_NOT(rMatrix.size1() + 1 == rMatrix.index1_data().size())
         << "input matrix has inconsistent row extents";
     KRATOS_ERROR_IF_NOT(rMatrix.index1_data()[rMatrix.size1()] == rMatrix.nnz())
