@@ -72,31 +72,47 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( MESH_ONLY );
     KRATOS_DEFINE_LOCAL_FLAG( SCIENTIFIC_PRECISION );
 
-    typedef Node NodeType;
+    /// Node type definition
+    using NodeType = Node;
 
-    typedef Geometry<NodeType> GeometryType;
+    /// Geometry type definition
+    using GeometryType = Geometry<NodeType>;
 
-    typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
+    /// Mesh type definition
+    using MeshType = Mesh<NodeType, Properties, Element, Condition>;
 
-    typedef MeshType::NodesContainerType NodesContainerType;
+    /// Nodes container type within MeshType
+    using NodesContainerType = typename MeshType::NodesContainerType;
 
-    typedef MeshType::PropertiesContainerType PropertiesContainerType;
+    /// Properties container type within MeshType
+    using PropertiesContainerType = typename MeshType::PropertiesContainerType;
 
-    typedef ModelPart::GeometryContainerType GeometryContainerType;
+    /// Geometry container type within ModelPart
+    using GeometryContainerType = typename ModelPart::GeometryContainerType;
 
-    typedef MeshType::ElementsContainerType ElementsContainerType;
+    /// Elements container type within MeshType
+    using ElementsContainerType = typename MeshType::ElementsContainerType;
 
-    typedef MeshType::ConditionsContainerType ConditionsContainerType;
+    /// Conditions container type within MeshType
+    using ConditionsContainerType = typename MeshType::ConditionsContainerType;
 
-    typedef std::vector<std::vector<std::size_t> > ConnectivitiesContainerType;
+    /// MasterSlaveConstraint container type within MeshType
+    using MasterSlaveConstraintContainerType = typename MeshType::MasterSlaveConstraintContainerType;
 
-    typedef std::vector<std::vector<std::size_t> > PartitionIndicesContainerType;
+    /// Connectivities container type
+    using ConnectivitiesContainerType = std::vector<std::vector<std::size_t>>;
 
-    typedef std::vector<std::size_t> PartitionIndicesType;
+    /// Partition indices container type
+    using PartitionIndicesContainerType = std::vector<std::vector<std::size_t>>;
 
-    typedef std::size_t SizeType;
+    /// Partition indices type
+    using PartitionIndicesType = std::vector<std::size_t>;
 
-    typedef DenseMatrix<int> GraphType;
+    /// Size type definition
+    using SizeType = std::size_t;
+
+    /// Graph type definition
+    using GraphType = DenseMatrix<int>;
 
     // auxiliary struct containg information about the partitioning of the entities in a ModelPart
     struct PartitioningInfo
@@ -347,6 +363,44 @@ public:
     virtual void WriteConditions(ConditionsContainerType const& rThisConditions)
     {
         KRATOS_ERROR << "Calling base class method (WriteConditions). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief Reads the master-slave constraints from an input source.
+     * @details This method is intended to be overridden by derived classes to implement
+     * the specific logic for reading master-slave constraints into the provided
+     * container. The base class implementation throws an error, indicating that
+     * the method must be implemented in the derived class.
+     * @param rThisNodes The nodes to be used for associating the master-slave constraints.
+     * @param rMasterSlaveConstraintContainer The container where the master-slave
+     *        constraints will be stored. This container is expected to be populated
+     *        by the derived class implementation.
+     * @throws Exception If the base class method is called directly, an error is
+     *         thrown to indicate that the method must be implemented in a derived class.
+     */
+    virtual void ReadMasterSlaveConstraints(
+        NodesContainerType& rThisNodes,
+        MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
+        )
+    {
+        KRATOS_ERROR << "Calling base class method (ReadNewMasterSlaveConstraint). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief Writes the master-slave constraints to the output.
+     * @details This method is intended to be overridden by derived classes to provide
+     * specific functionality for writing master-slave constraints. The base
+     * class implementation throws an error, indicating that the method must
+     * be implemented in the derived class.
+     * @param rMasterSlaveConstraintContainer The container holding the master-slave
+     *        constraints to be written.
+     * @throws Exception Always throws an error if called on the base class.
+     *         Derived classes must override this method to provide the actual
+     *         implementation.
+     */
+    virtual void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rMasterSlaveConstraintContainer)
+    {
+        KRATOS_ERROR << "Calling base class method (WriteNewMasterSlaveConstraint). Please check the definition of derived class" << std::endl;
     }
 
     /**
