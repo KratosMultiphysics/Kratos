@@ -111,12 +111,13 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
             break;
         } // Kratos_Point2D || Kratos_Point3D
 
-        /// - @ref GeometryData::KratosGeometryType::Kratos_Line2D2 "Kratos_Line2D2" and @ref GeometryData::KratosGeometryType::Kratos_Line3D2 "Kratos_Line3D2"
-        ///   linear segment maps to itself.
-        ///   \f[\begin{bmatrix}
-        ///     1 &   \\
-        ///       & 1
-        ///   \end{bmatrix}\f]
+        /** - @ref GeometryData::KratosGeometryType::Kratos_Line2D2 "Kratos_Line2D2" and @ref GeometryData::KratosGeometryType::Kratos_Line3D2 "Kratos_Line3D2"
+         *    linear segment maps to itself.
+         *    \f[\begin{bmatrix}
+         *      1 &   \\
+         *        & 1
+         *    \end{bmatrix}\f]
+         */
         case G::Kratos_Line3D2:
         case G::Kratos_Line2D2: {
             *itOutput++ = Triplet(0, 0, 1);
@@ -124,13 +125,14 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
             break;
         } // Kratos_Line2D2 || Kratos_Line3D2
 
-        /// - @ref GeometryData::KratosGeometryType::Kratos_Line2D3 "Kratos_Line2D3" and @ref GeometryData::KratosGeometryType::Kratos_Line3D3 "Kratos_Line3D3"
-        ///   quadratic line segments reduces to linear line segments
-        ///   \ref GeometryData::KratosGeometryType::Kratos_Line2D2 "Kratos_Line2D2" and @ref GeometryData::KratosGeometryType::Kratos_Line3D2 "Kratos_Line3D2".
-        ///   \f[\begin{bmatrix}
-        ///     1 &   & \frac{1}{2} \\
-        ///       & 1 & \frac{1}{2}
-        ///   \end{bmatrix}\f]
+        /** - @ref GeometryData::KratosGeometryType::Kratos_Line2D3 "Kratos_Line2D3" and @ref GeometryData::KratosGeometryType::Kratos_Line3D3 "Kratos_Line3D3"
+         *    quadratic line segments reduces to linear line segments
+         *    \ref GeometryData::KratosGeometryType::Kratos_Line2D2 "Kratos_Line2D2" and @ref GeometryData::KratosGeometryType::Kratos_Line3D2 "Kratos_Line3D2".
+         *    \f[\begin{bmatrix}
+         *      1 &   & \frac{1}{2} \\
+         *        & 1 & \frac{1}{2}
+         *    \end{bmatrix}\f]
+         */
         case G::Kratos_Line3D3:
         case G::Kratos_Line2D3: {
             if constexpr (OrderReduction == 0) {
@@ -146,13 +148,14 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
             break;
         } // Kratos_Line2D3 || Kratos_Line3D3
 
-        /// - @ref GeometryData::KratosGeometryType::Kratos_Triangle2D3 "Kratos_Triangle2D3" and @ref GeometryData::KratosGeometryType::Kratos_Triangle3D3 "Kratos_Triangle3D3"
-        ///   linear triangles map to themselves.
-        ///   \f[\begin{bmatrix}
-        ///     1 &   &   \\
-        ///       & 1 &   \\
-        ///       &   & 1
-        ///   \end{bmatrix}\f]
+        /** - @ref GeometryData::KratosGeometryType::Kratos_Triangle2D3 "Kratos_Triangle2D3" and @ref GeometryData::KratosGeometryType::Kratos_Triangle3D3 "Kratos_Triangle3D3"
+         *    linear triangles map to themselves.
+         *    \f[\begin{bmatrix}
+         *      1 &   &   \\
+         *        & 1 &   \\
+         *        &   & 1
+         *    \end{bmatrix}\f]
+         */
         case G::Kratos_Triangle2D3:
         case G::Kratos_Triangle3D3: {
             *itOutput++ = Triplet(0, 0, 1);
@@ -161,14 +164,15 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
             break;
         } // Kratos_Triangle2D3 || Kratos_Triangle3D3
 
-        /// - @ref GeometryData::KratosGeometryType::Kratos_Triangle2D6 "Kratos_Triangle2D6" and @ref GeometryData::KratosGeometryType::Kratos_Triangle3D6 "Kratos_Triangle3D6"
-        ///   quadratic triangles map to linear triangles
-        ///   @ref GeometryData::KratosGeometryType::Kratos_Triangle2D3 "Kratos_Triangle2D3" and @ref GeometryData::KratosGeometryType::Kratos_Triangle3D3 "Kratos_Triangle3D3".
-        ///   \f[\begin{bmatrix}
-        ///     1 &   &   & \frac{1}{2} &   & \frac{1}{2} \\
-        ///       & 1 &   & \frac{1}{2} & \frac{1}{2} &   \\
-        ///       &   & 1 &   & \frac{1}{2} & \frac{1}{2}
-        ///   \end{bmatrix}\f]
+        /** - @ref GeometryData::KratosGeometryType::Kratos_Triangle2D6 "Kratos_Triangle2D6" and @ref GeometryData::KratosGeometryType::Kratos_Triangle3D6 "Kratos_Triangle3D6"
+         *    quadratic triangles map to linear triangles
+         *    @ref GeometryData::KratosGeometryType::Kratos_Triangle2D3 "Kratos_Triangle2D3" and @ref GeometryData::KratosGeometryType::Kratos_Triangle3D3 "Kratos_Triangle3D3".
+         *    \f[\begin{bmatrix}
+         *      1 &   &   & \frac{1}{2} &   & \frac{1}{2} \\
+         *        & 1 &   & \frac{1}{2} & \frac{1}{2} &   \\
+         *        &   & 1 &   & \frac{1}{2} & \frac{1}{2}
+         *    \end{bmatrix}\f]
+         */
         case G::Kratos_Triangle2D6:
         case G::Kratos_Triangle3D6: {
             if constexpr (OrderReduction == 0) {
@@ -192,14 +196,15 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
             break;
         } // Kratos_Triangle2D6 || Kratos_Triangle3D6
 
-        /// - @ref GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 "Kratos_Tetrahedra3D4"
-        ///   linear tetrahedron maps to itself.
-        ///   \f[\begin{bmatrix}
-        ///     1 &   &   &   \\
-        ///       & 1 &   &   \\
-        ///       &   & 1 &   \\
-        ///       &   &   & 1
-        ///   \end{bmatrix}\f]
+        /** - @ref GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 "Kratos_Tetrahedra3D4"
+         *    linear tetrahedron maps to itself.
+         *    \f[\begin{bmatrix}
+         *      1 &   &   &   \\
+         *        & 1 &   &   \\
+         *        &   & 1 &   \\
+         *        &   &   & 1
+         *    \end{bmatrix}\f]
+         */
         case G::Kratos_Tetrahedra3D4: {
             *itOutput++ = Triplet(0, 0, 1);
             *itOutput++ = Triplet(1, 1, 1);
@@ -208,14 +213,15 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
             break;
         } // Kratos_Tetrahedra3D4
 
-        /// - @ref GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 "Kratos_Tetrahedra3D10"
-        ///   quadratic tetrahedron maps to linear tetrahedron @ref GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 "Kratos_Tetrahedra3D4".
-        ///   \f[\begin{bmatrix}
-        ///     1 &   &   &   & \frac{1}{2} &   & \frac{1}{2} & \frac{1}{2} &   &   \\
-        ///       & 1 &   &   & \frac{1}{2} & \frac{1}{2} &   &   & \frac{1}{2} &   \\
-        ///       &   & 1 &   &   & \frac{1}{2} & \frac{1}{2} &   &   & \frac{1}{2} \\
-        ///       &   &   & 1 &   &   &   & \frac{1}{2} & \frac{1}{2} & \frac{1}{2}
-        ///   \end{bmatrix}\f]
+        /** - @ref GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 "Kratos_Tetrahedra3D10"
+         *   quadratic tetrahedron maps to linear tetrahedron @ref GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 "Kratos_Tetrahedra3D4".
+         *   \f[\begin{bmatrix}
+         *     1 &   &   &   & \frac{1}{2} &   & \frac{1}{2} & \frac{1}{2} &   &   \\
+         *       & 1 &   &   & \frac{1}{2} & \frac{1}{2} &   &   & \frac{1}{2} &   \\
+         *       &   & 1 &   &   & \frac{1}{2} & \frac{1}{2} &   &   & \frac{1}{2} \\
+         *       &   &   & 1 &   &   &   & \frac{1}{2} & \frac{1}{2} & \frac{1}{2}
+         *   \end{bmatrix}\f]
+         */
         case G::Kratos_Tetrahedra3D10: {
             if constexpr (OrderReduction == 0) {
                 *itOutput++ = Triplet(0, 0, 1.0);
