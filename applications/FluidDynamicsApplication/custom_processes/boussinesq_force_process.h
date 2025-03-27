@@ -63,7 +63,7 @@ namespace Kratos
       - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
       - thermal_expansion_coefficient from the Parameters: a double defining the thermal expansion coefficient for the fluid (optional).
 
-      With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
+      With this, the process calculates the Boussinesq force and assigns it to the BODY_FORCE solution step variable of each node.
       The force is set to (1 + thermal_expansion_coefficient*(temperature - ambient_temperature) ) * g
 
       If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).

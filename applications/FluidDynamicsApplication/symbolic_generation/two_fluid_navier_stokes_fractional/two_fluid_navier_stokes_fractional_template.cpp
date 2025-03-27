@@ -67,7 +67,7 @@ void TwoFluidNavierStokesFractional<TElementData>::CalculateLocalSystem(
     VectorType &rRightHandSideVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
@@ -657,7 +657,7 @@ void TwoFluidNavierStokesFractional<TElementData>::ComputeSplitting(
 {
     // Set the positive and negative enrichment interpolation matrices
     // Note that the enrichment is constructed using the standard shape functions such that:
-    // In the negative distance region, the enrichment functions correspondig to the negative
+    // In the negative distance region, the enrichment functions corresponding to the negative
     // distance nodes are null and the positive distance nodes are equal to the standard shape
     // functions. On the contrary, for the positive distance region, the enrichment functions
     // corresponding to the positive distance nodes are null meanwhile the negative distance
@@ -788,10 +788,8 @@ double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>>:
     const double art_dyn_visc_coeff = 0.8;
     double grad_v_norm = 0.0;
     
+    //substitute_artificial_mu_grad_v_norm_2D_3N
     // Check that velocity gradient norm is non-zero
-
-    //Substitute_artificial_mu_grad_v_norm_2D_3N
-
     if (grad_v_norm > 1.0e-12) {
         // Calculate symbolic artificial viscosity
         //substitute_artificial_mu_2D_3N
@@ -823,10 +821,8 @@ double TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>>:
     const double art_dyn_visc_coeff = 0.8;
     double grad_v_norm = 0.0;
 
+    //substitute_artificial_mu_grad_v_norm_3D_4N
     // Check that velocity gradient norm is non-zero
-
-    //Substitute_artificial_mu_grad_v_norm_3D_4N
-
     if (grad_v_norm > 1.0e-12) {
         // Calculate symbolic artificial viscosity
         //substitute_artificial_mu_3D_4N
