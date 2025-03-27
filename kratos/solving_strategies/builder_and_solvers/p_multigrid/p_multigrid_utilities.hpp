@@ -502,7 +502,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
             //rDofSet.emplace_back(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
             std::pair<NodalData,Dof<double>> entry(1ul, Dof<double>());
             entry.first = NodalData(rp_dof->Id(), rpVariableList);
-            rDofSet.push_back(std::move(entry));
+            rDofSet.emplace_back(std::move(entry));
         }
         rDofSet.back().first.SetSolutionStepData(*rp_dof->GetSolutionStepsData());
 
