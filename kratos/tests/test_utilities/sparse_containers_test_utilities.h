@@ -8,6 +8,10 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Ruben Zorrilla
+//
+
+#pragma once
 
 // System includes
 #include <utility>
