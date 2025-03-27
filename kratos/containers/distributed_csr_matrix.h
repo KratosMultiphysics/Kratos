@@ -766,72 +766,25 @@ public:
         return p_csr_output;
     }
 
-    double NormDiagonal()
+    TDataType NormDiagonal() const
     {
-        // const double diagonal_norm = IndexPartition<IndexType>(size1()).template for_each<SumReduction<double>>([&](IndexType Index) {
-        //     const IndexType row_begin = index1_data()[Index];
-        //     const IndexType row_end = index1_data()[Index+1];
-        //     for (IndexType j = row_begin; j < row_end; ++j) {
-        //         if (index2_data()[j] == Index) {
-        //             return std::pow(value_data()[j], 2);
-        //         }
-        //     }
-        //     return 0.0;
-        // });
-
-        // return std::sqrt(diagonal_norm);
-        KRATOS_ERROR << "To be implemented." << std::endl;
+        TDataType diagonal_norm_squared = std::pow(GetDiagonalBlock().NormDiagonal(), 2);
+        diagonal_norm_squared = GetComm().SumAll(diagonal_norm_squared);
+        return (std::sqrt(diagonal_norm_squared));
     }
 
-    double MaxDiagonal()
+    TDataType MaxDiagonal() const
     {
-        // return IndexPartition<IndexType>(size1()).template for_each<MaxReduction<double>>([&](IndexType Index) {
-            //     const IndexType row_begin = index1_data()[Index];
-            //     const IndexType row_end = index1_data()[Index+1];
-            //     for (IndexType j = row_begin; j < row_end; ++j) {
-                //         if (index2_data()[j] == Index) {
-                    //             return std::abs(value_data()[j]);
-                    //         }
-        //     }
-        //     return std::numeric_limits<double>::lowest();
-        // });
-        KRATOS_ERROR << "To be implemented." << std::endl;
+        TDataType diagonal_max = GetDiagonalBlock().MaxDiagonal();
+        diagonal_max = GetComm().MaxAll(diagonal_max);
+        return diagonal_max;
     }
 
-    double MinDiagonal()
+    TDataType MinDiagonal() const
     {
-        // return IndexPartition<IndexType>(size1()). template for_each<MinReduction<double>>([&](IndexType Index) {
-        //     const IndexType row_begin = index1_data()[Index];
-        //     const IndexType row_end = index1_data()[Index+1];
-        //     for (IndexType j = row_begin; j < row_end; ++j) {
-        //         if (index2_data()[j] == Index) {
-        //             return std::abs(value_data()[j]);
-        //         }
-        //     }
-        //     return std::numeric_limits<double>::max();
-        // });
-        KRATOS_ERROR << "To be implemented." << std::endl;
-    }
-
-    SizeType GraphDegree(const IndexType i) const
-    {
-        // return index1_data()[i+1] - index1_data()[i];
-        KRATOS_ERROR << "To be implemented." << std::endl;
-    }
-
-    void GraphNeighbours(
-        const IndexType I,
-        std::vector<IndexType>& rNeighbours) const
-    {
-        // IndexType i = 0;
-        // rNeighbours.clear();
-        // const IndexType row_begin = index1_data()[I];
-        // const IndexType row_end = index1_data()[I+1];
-        // rNeighbours.reserve(row_end - row_begin);
-        // for (IndexType j = row_begin; j < row_end; ++j) {
-        //     rNeighbours[i++] = index2_data()[j];
-        // }
-        KRATOS_ERROR << "To be implemented." << std::endl;
+        TDataType diagonal_min = GetDiagonalBlock().MinDiagonal();
+        diagonal_min = GetComm().MinAll(diagonal_min);
+        return diagonal_min;
     }
 
     //TODO
