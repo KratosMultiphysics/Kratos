@@ -4,7 +4,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Settings explanation
 # DIMENSION TO COMPUTE:
-# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
+# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programmed with a dimension template in Kratos,
 # it is advised to set the dim_to_compute flag as "Both". In this case the generated .cpp file will contain both 2D and 3D implementations.
 # LINEARISATION SETTINGS:
 # FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
@@ -27,7 +27,7 @@ if time_integration == "bdf2":
     output_filename = "two_fluid_navier_stokes_fractional.cpp"
     template_filename = "two_fluid_navier_stokes_fractional_template.cpp"
 else:
-    # TODO: There is a version with the generalised alpha time integration scheme but validation is requiered.
+    # TODO: There is a version with the generalised alpha time integration scheme but validation is required.
     err_msg = "Wrong time_integration. Given \'" + time_integration + "\'. Available options are \'bdf2\'."
     raise Exception(err_msg)
 
@@ -86,7 +86,7 @@ for dim in dim_vector:
     ## Stress vector definition
     stress = DefineVector('stress',strain_size)
 
-    ## Other simbols definition
+    ## Other symbol definitions
     dt  = sympy.Symbol('dt', positive = True)
     rho = sympy.Symbol('rho', positive = True)
     nu  = sympy.Symbol('nu', positive = True)
