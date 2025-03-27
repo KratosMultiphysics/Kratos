@@ -118,7 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseGraph, KratosCoreFastSuite)
     const SparseContainersTestUtilities::IndexType standard_dev = 100;
     auto connectivities = SparseContainersTestUtilities::RandomElementConnectivities(block_size,nodes_in_elem, 0,nel,ndof,standard_dev);
 
-    const auto timer = BuiltinTimer();
+    // const auto timer = BuiltinTimer();
 
     auto pAgraph = SparseContainersTestUtilities::AssembleGraph<SparseGraph<>>(connectivities, ndof*block_size);
 
@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
     const SparseContainersTestUtilities::IndexType standard_dev = 100;
     auto connectivities = SparseContainersTestUtilities::RandomElementConnectivities(block_size,nodes_in_elem,0, nel,ndof,standard_dev);
 
-    const auto timer = BuiltinTimer();
+    // const auto timer = BuiltinTimer();
 
     SparseContiguousRowGraph<> Agraph(ndof*block_size);
     #pragma omp parallel for

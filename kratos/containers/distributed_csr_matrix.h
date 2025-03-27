@@ -768,52 +768,22 @@ public:
 
     TDataType NormDiagonal() const
     {
-        TDataType diagonal_norm = IndexPartition<IndexType>(local_size1()).template for_each<SumReduction<TDataType>>([&](IndexType Index) {
-            TIndexType row_begin = GetDiagonalBlock().index1_data()[Index];
-            TIndexType row_end   = GetDiagonalBlock().index1_data()[Index+1];
-            for (IndexType k = row_begin; k < row_end; ++k) {
-                if (GetDiagonalBlock().index2_data()[k] == Index) {
-                    return std::pow(GetDiagonalBlock().value_data()[k], 2);
-                }
-            }
-            return TDataType();
-        });
-        diagonal_norm = GetComm().SumAll(diagonal_norm);
-
-        return (std::sqrt(diagonal_norm));
+        TDataType diagonal_norm_squared = std::pow(GetDiagonalBlock().NormDiagonal(), 2);
+        diagonal_norm_squared = GetComm().SumAll(diagonal_norm_squared);
+        return (std::sqrt(diagonal_norm_squared));
     }
 
     TDataType MaxDiagonal() const
     {
-        TDataType diagonal_max = IndexPartition<IndexType>(local_size1()).template for_each<MaxReduction<TDataType>>([&](IndexType Index) {
-            TIndexType row_begin = GetDiagonalBlock().index1_data()[Index];
-            TIndexType row_end   = GetDiagonalBlock().index1_data()[Index+1];
-            for (IndexType k = row_begin; k < row_end; ++k) {
-                if (GetDiagonalBlock().index2_data()[k] == Index) {
-                    return std::abs(GetDiagonalBlock().value_data()[k]);
-                }
-            }
-            return std::numeric_limits<TDataType>::lowest();
-        });
+        TDataType diagonal_max = GetDiagonalBlock().MaxDiagonal();
         diagonal_max = GetComm().MaxAll(diagonal_max);
-
         return diagonal_max;
     }
 
     TDataType MinDiagonal() const
     {
-        TDataType diagonal_min = IndexPartition<IndexType>(local_size1()).template for_each<MinReduction<TDataType>>([&](IndexType Index) {
-            TIndexType row_begin = GetDiagonalBlock().index1_data()[Index];
-            TIndexType row_end   = GetDiagonalBlock().index1_data()[Index+1];
-            for (IndexType k = row_begin; k < row_end; ++k) {
-                if (GetDiagonalBlock().index2_data()[k] == Index) {
-                    return std::abs(GetDiagonalBlock().value_data()[k]);
-                }
-            }
-            return std::numeric_limits<TDataType>::lowest();
-        });
+        TDataType diagonal_min = GetDiagonalBlock().MinDiagonal();
         diagonal_min = GetComm().MinAll(diagonal_min);
-
         return diagonal_min;
     }
 
