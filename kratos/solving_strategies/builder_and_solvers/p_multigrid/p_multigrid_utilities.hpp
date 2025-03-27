@@ -395,7 +395,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                             // Check whether the insertion was successful, and if not,
                             // make sure that the existing restriction component is
                             // identical to what we tried to insert.
-                            KRATOS_DEBUG_ERROR_IF_NOT(inserted or value == it_emplace->second);
+                            KRATOS_DEBUG_ERROR_IF_NOT(inserted || value == it_emplace->second);
                         } // for i_component in range(component_count)
                     } // if !r_row_dofs.empty()
                 } // for triplet in r_tls

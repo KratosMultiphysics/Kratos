@@ -245,7 +245,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse
 
 
 template <class TSparse, class TDense>
-typename MasterSlaveConstraintAssembler<TSparse,TDense>::Base::Status
+typename ConstraintAssembler<TSparse,TDense>::Status
 MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                      typename TSparse::VectorType& rSolution,
                                                                      typename TSparse::VectorType& rRhs,

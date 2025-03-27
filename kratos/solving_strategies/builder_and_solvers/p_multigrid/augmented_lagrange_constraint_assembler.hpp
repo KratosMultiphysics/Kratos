@@ -63,10 +63,11 @@ public:
                                 const std::size_t iIteration) override;
 
     /// @copydoc Base::FinalizeSolutionStep
-    typename Base::Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
-                                               typename TSparse::VectorType& rSolution,
-                                               typename TSparse::VectorType& rRhs,
-                                               const std::size_t iIteration) override;
+    typename ConstraintAssembler<TSparse,TDense>::Status
+    FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
+                         typename TSparse::VectorType& rSolution,
+                         typename TSparse::VectorType& rRhs,
+                         const std::size_t iIteration) override;
 
     /// @copydoc Base::Finalize
     void Finalize(typename TSparse::MatrixType& rLhs,

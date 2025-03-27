@@ -587,7 +587,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeSolutionSte
 
 
 template <class TSparse, class TDense>
-typename AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Base::Status
+typename ConstraintAssembler<TSparse,TDense>::Status
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                            typename TSparse::VectorType& rSolution,
                                                                            typename TSparse::VectorType& rRhs,

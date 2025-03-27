@@ -516,7 +516,7 @@ PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver(c
 
 
 template <class TSparse, class TDense, class TSolver>
-typename PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Interface::Pointer
+typename BuilderAndSolver<TSparse,TDense,TSolver>::Pointer
 PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Create(typename TSolver::Pointer pSolver,
                                                            Parameters Settings) const
 {

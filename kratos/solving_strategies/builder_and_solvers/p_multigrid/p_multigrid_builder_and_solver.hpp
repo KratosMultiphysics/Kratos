@@ -120,8 +120,9 @@ public:
 
     /// @brief Construct from a linear solver and parameters.
     /// @see PMultigridBuilderAndSolver::GetDefaultParameters
-    typename Interface::Pointer Create(typename TLinearSolver::Pointer pNewLinearSystemSolver,
-                                       Parameters ThisParameters) const override;
+    typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer
+    Create(typename TLinearSolver::Pointer pNewLinearSystemSolver,
+           Parameters ThisParameters) const override;
 
     /// @name Allocation and Initialization
     /// @{
