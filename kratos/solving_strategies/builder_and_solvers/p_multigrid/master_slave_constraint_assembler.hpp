@@ -24,10 +24,9 @@ namespace Kratos {
 template <class TSparse, class TDense>
 class MasterSlaveConstraintAssembler : public ConstraintAssembler<TSparse,TDense>
 {
-private:
+public:
     using Base = ConstraintAssembler<TSparse,TDense>;
 
-public:
     MasterSlaveConstraintAssembler() noexcept;
 
     MasterSlaveConstraintAssembler(Parameters Settings);

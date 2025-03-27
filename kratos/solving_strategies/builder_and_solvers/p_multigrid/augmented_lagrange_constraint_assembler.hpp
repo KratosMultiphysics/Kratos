@@ -23,10 +23,9 @@ namespace Kratos {
 template <class TSparse, class TDense>
 class AugmentedLagrangeConstraintAssembler : public ConstraintAssembler<TSparse,TDense>
 {
-private:
+public:
     using Base = ConstraintAssembler<TSparse,TDense>;
 
-public:
     AugmentedLagrangeConstraintAssembler() noexcept;
 
     AugmentedLagrangeConstraintAssembler(Parameters Settings);
