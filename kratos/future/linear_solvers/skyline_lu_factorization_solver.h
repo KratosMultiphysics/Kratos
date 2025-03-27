@@ -102,7 +102,7 @@ public:
             int *nextSameDegree= new int[size];
             for (i=0; i<size; i++)
             {
-                degree[i] = A.GraphDegree(i);
+                degree[i] = A.index1_data()[i + 1] - A.index1_data()[i];
                 if (degree[i]>maxDegree) maxDegree=degree[i];
                 levelSet[i]    = 0;
                 nextSameDegree[i]= -1;
@@ -160,8 +160,11 @@ public:
                     node= firstWithDegree[soughtDegree];
                     while (node!=-1)
                     {
-                        // visit neighbors
-                        A.GraphNeighbours(node, neighbors);
+                        // create a view of the neighbors
+                        const IndexType row_begin = A.index1_data()[node];
+                        const IndexType row_end = A.index1_data()[node + 1];
+                        Kratos::span<IndexType> neighbors(A.index2_data().begin() + row_begin, A.index2_data().begin() + row_end);
+
                         for (indexj=0; indexj<degree[node]; indexj++)
                         {
                             j    = neighbors[indexj];
