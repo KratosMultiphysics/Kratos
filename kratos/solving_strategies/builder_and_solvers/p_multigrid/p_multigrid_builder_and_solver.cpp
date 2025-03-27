@@ -209,6 +209,17 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     }
 
 
+    template <class TValue>
+    static std::string FormattedResidual(TValue Residual)
+    {
+        std::stringstream stream;
+        stream << std::scientific
+            << std::setprecision(8)
+            << Residual;
+        return stream.str();
+    }
+
+
     /// @brief Initialize the linear solver and solve the provided system.
     bool Solve(typename Interface::TSystemMatrixType& rLhs,
                typename Interface::TSystemVectorType& rSolution,
@@ -246,14 +257,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             if (!constraint_status.converged)
                 std::cerr << "Grid 0: constraints failed to converge\n";
 
-            const std::string residual_norm_string = (std::stringstream() << std::setprecision(8) << std::scientific<< residual_norm).str();
             if (mTolerance < residual_norm) {
                 std::cerr << "Grid 0: failed to converge "
-                          << "(residual " << residual_norm_string << ")\n";
+                          << "(residual " << this->FormattedResidual(residual_norm) << ")\n";
             } /*if mTolerance < residual_norm*/ else {
                 if (2 <= mVerbosity)
                     std::cout << "Grid 0: residual "
-                              << residual_norm_string << "\n";
+                              << this->FormattedResidual(residual_norm) << "\n";
             }
         } // if 1 <= mVerbosity
 

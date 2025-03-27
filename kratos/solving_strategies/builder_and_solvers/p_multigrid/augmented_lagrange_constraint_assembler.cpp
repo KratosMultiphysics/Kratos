@@ -181,6 +181,17 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
 }
 
 
+template <class TValue>
+std::string FormattedResidual(TValue Residual)
+{
+    std::stringstream stream;
+    stream << std::scientific
+           << std::setprecision(8)
+           << Residual;
+    return stream.str();
+}
+
+
 } // namespace detail
 
 
@@ -592,7 +603,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
     const auto constraint_norm = TSparse::TwoNorm(constraint_residual);
     if (3 <= this->mpImpl->mVerbosity)
         std::cout << this->GetName() << ": iteration " << iIteration
-                  << " constraint residual " << (std::stringstream() << std::scientific << std::setprecision(8) << constraint_norm).str()
+                  << " constraint residual " << detail::FormattedResidual(constraint_norm)
                   << "\n";
 
     const bool converged  = constraint_norm <= this->GetTolerance();
@@ -601,7 +612,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
     if (converged) {
         if (2 <= mpImpl->mVerbosity)
             std::cout << this->GetName() << ": constraints converged (residual "
-                      << (std::stringstream() << std::scientific << std::setprecision(8) << constraint_norm).str()
+                      << detail::FormattedResidual(constraint_norm)
                       << ")\n";
         return typename Base::Status {/*finished=*/true, /*converged=*/true};
     } /*if converged*/ else {
@@ -610,7 +621,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
         } /*if iIteration < max_iterations*/ else {
             if (1 <= mpImpl->mVerbosity && !converged)
                 std::cerr << this->GetName() << ": constraints failed to converge (residual "
-                          << (std::stringstream() << std::scientific << std::setprecision(8) << constraint_norm).str()
+                          << detail::FormattedResidual(constraint_norm)
                           << ")\n";
             return typename Base::Status {/*finished=*/true, /*converged=*/false};
         }
