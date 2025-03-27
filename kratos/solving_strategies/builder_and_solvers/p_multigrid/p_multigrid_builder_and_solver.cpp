@@ -135,7 +135,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
 
             // Emit status and check for convergence.
-            if (0 < mTolerance or 3 <= mVerbosity) {
+            if (0 < mTolerance || 3 <= mVerbosity) {
                 const auto relative_residual_norm = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
                 if (3 <= mVerbosity) {
                     std::stringstream residual_stream;
@@ -174,7 +174,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
         // Compute the initial residual norm if it will be used.
         typename TSparse::DataType initial_residual_norm = 1;
-        if (0 < mTolerance or 3 <= mVerbosity) {
+        if (0 < mTolerance || 3 <= mVerbosity) {
             initial_residual_norm = TSparse::TwoNorm(rRhs);
             initial_residual_norm = initial_residual_norm ? initial_residual_norm : 1;
         }
@@ -541,7 +541,7 @@ std::optional<std::size_t> FindNodeIndex(std::size_t NodeId,
                                      [](const Kratos::Node& r_node, std::size_t target_id){
                                         return r_node.Id() < target_id;
                                      });
-    if (it == itNodeEnd or it->Id() != NodeId) {
+    if (it == itNodeEnd || it->Id() != NodeId) {
         return {};
     } else {
         return std::distance(itNodeBegin, it);
