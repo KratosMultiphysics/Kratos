@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessTest, KratosIgaFastSuite)
                     "variables": [
                     {
                         "variable_name": "HEAT_FLUX",
-                        "value": ["0.0", "0.0", "0.0"]
+                        "value": "x+y+2*t"
                     }]
                 },
                 {
@@ -56,20 +56,23 @@ KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessTest, KratosIgaFastSuite)
                     "variables": [
                     {
                         "variable_name": "TEMPERATURE",
-                        "value": 0.0
+                        "value": "x-y*t"
                     }]
                 }
             ]
         }
     )");
 
+    iga_model_part.GetProcessInfo().SetCurrentTime(2.0);
+    
     AssignIgaExternalConditionsProcess assign_iga_condition_process(model, assign_iga_parameters);    
     assign_iga_condition_process.Execute() ;
-    
+
+    const double tolerance = 1e-7;
     
     // // Ensure the number of nodes matches expectation
-    // KRATOS_EXPECT_NEAR(surrogate_sub_model_part_outer.NumberOfConditions(), expected_coordinates.size(), tolerance);
+    KRATOS_EXPECT_NEAR(convection_diffusion_domain_sub_model_part.GetElement(1).GetValue(HEAT_FLUX), 7.0, tolerance);
+    KRATOS_EXPECT_NEAR(sbm_outer_sub_model_part.GetCondition(1).GetValue(TEMPERATURE), -3.0, tolerance);
 
 }
-
 }

@@ -121,7 +121,6 @@ void AssignIgaExternalConditionsProcess::Execute(){
                                 const double y = i_element->GetGeometry().Center().Y();
                                 const double z = i_element->GetGeometry().Center().Z();
 
-
                                 const double value = eval_function->CallFunction(x, y, z, t);
                                 if (component_variable_name == "HEAT_FLUX") {
                                     i_element->SetValue(HEAT_FLUX, value);
@@ -138,7 +137,8 @@ void AssignIgaExternalConditionsProcess::Execute(){
                                 } else if (component_variable_name == "BODY_FORCE_Z") {
                                     i_element->SetValue(BODY_FORCE_Z, value);
                                 } else {
-                                    KRATOS_ERROR << "No name found" ;
+                                    KRATOS_ERROR << "Variable with name " << variable_name << " not found or defined "
+                                    << "in the AssignIgaExternalConditionsProcess" << std::endl;
                                 }
                             }
                         }
