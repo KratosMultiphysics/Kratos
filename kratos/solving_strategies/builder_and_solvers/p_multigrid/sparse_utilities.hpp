@@ -48,6 +48,7 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
 
     #define KRATOS_MATRIX_SUM(sum_operator)                                                                                         \
         IndexPartition<std::size_t>(rLeft.size1()).for_each([&rLeft, &rRight, Coefficient](const std::size_t i_row) {               \
+            (void)Coefficient; /*<== suppress unused capture warnings.*/                                                            \
             const auto i_right_entry_begin = rRight.index1_data()[i_row];                                                           \
             const auto i_right_entry_end   = rRight.index1_data()[i_row + 1];                                                       \
                                                                                                                                     \
