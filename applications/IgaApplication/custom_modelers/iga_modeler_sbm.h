@@ -50,7 +50,6 @@ public:
     typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
-
     typedef typename Properties::Pointer PropertiesPointerType;
 
     typedef typename ModelPart::ElementsContainerType ElementsContainerType;
@@ -185,7 +184,6 @@ private:
         typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
-        std::string& rBoundaryConditionType,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties) const;
 
@@ -197,11 +195,10 @@ private:
         ModelPart& rSkinModelPart,
         std::vector<int>& listIdClosestCondition,
         std::string& rConditionName,
-        std::string& rBoundaryConditionType,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
-        bool isInner,
-        Vector mesh_size) const;
+        bool IsInner,
+        Vector KnotSpanSizes) const;
 
     ///@}
     ///@name Utility

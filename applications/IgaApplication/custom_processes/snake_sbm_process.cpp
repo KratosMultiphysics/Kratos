@@ -115,7 +115,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     mesh_sizes_uv[0] = knot_step_uv[0]; 
     mesh_sizes_uv[1] = knot_step_uv[1];
     auto& surrogate_model_part = rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name);
-    surrogate_model_part.GetProcessInfo().SetValue(KNOT_SPAN_SIZES, mesh_sizes_uv);
+    surrogate_model_part.GetParentModelPart().SetValue(KNOT_SPAN_SIZES, mesh_sizes_uv);
 
     array_1d<double, 2> starting_pos_uv;
     starting_pos_uv[0] = knot_vector_u[0];
@@ -130,7 +130,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     parameter_external_coordinates[0][1] = knot_vector_u[knot_vector_u.size()-1];
     parameter_external_coordinates[1][1] = knot_vector_v[knot_vector_v.size()-1];
     
-    surrogate_model_part.GetProcessInfo().SetValue(PARAMETER_SPACE_CORNERS, parameter_external_coordinates);
+    surrogate_model_part.GetParentModelPart().SetValue(PARAMETER_SPACE_CORNERS, parameter_external_coordinates);
 
     // Create the matrix of active/inactive knot spans, one for inner and one for outer loop
 
@@ -529,9 +529,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
     ModelPart& rSurrogateModelPartInner
     ) 
 {
-    
-    KRATOS_INFO("::[SnakeSbmProcess]::") << "Inner :: Check layers in 2D" << std::endl;
-
     // Snake 2D works with a raycasting technique from each of the two directions
 
     const double knot_step_u = knot_vector_u[1]-knot_vector_u[0];
@@ -690,9 +687,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
     std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartOuter)
 {
-
-    KRATOS_INFO("::[SnakeSbmProcess]::") << "Outer :: Check layers in 2D" << std::endl;
-
     // CHECK ALL THE EXTERNAL KNOT SPANS
 
     // LEFT BOUNDARY
@@ -734,8 +728,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
                 }
         }
     }
-
-    KRATOS_INFO("::[SnakeSbmProcess]::") << "Outer :: Starting Creation of Surrogate_Model_Part_Outer" << std::endl;
     
     // Snake 2D works with a raycasting technique from each of the two directions
     IndexType id_surrogate_first_node = rSurrogateModelPartOuter.GetRootModelPart().NumberOfNodes() + 1;

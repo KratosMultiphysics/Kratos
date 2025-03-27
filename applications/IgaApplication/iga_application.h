@@ -42,8 +42,10 @@
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
+#include "custom_modelers/iga_modeler_sbm.h"
 #include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
+#include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
 
 namespace Kratos {
@@ -142,8 +144,10 @@ private:
 
     // Modelers
     const IgaModeler mIgaModeler;
+    const IgaModelerSbm mIgaModelerSbm;
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
+    const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
 
     ///@}
