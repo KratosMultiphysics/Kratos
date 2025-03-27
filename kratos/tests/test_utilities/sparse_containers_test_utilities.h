@@ -30,7 +30,7 @@
 namespace Kratos
 {
 
-class SparseContainersTestUtilities
+class KRATOS_API(KRATOS_TEST_UTILS) SparseContainersTestUtilities
 {
 public:
 
