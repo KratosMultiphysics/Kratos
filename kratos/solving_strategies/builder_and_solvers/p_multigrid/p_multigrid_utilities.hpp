@@ -500,7 +500,8 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
             // has some bug with non-copyable classes in std::pair, so the following
             // line has to be rewritten in a manner that this fossil understands:
             //rDofSet.emplace_back(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
-            std::pair<NodalData,Dof<double>> entry(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
+            std::pair<NodalData,Dof<double>> entry(1ul, Dof<double>());
+            entry.first = NodalData(rp_dof->Id(), rpVariableList);
             rDofSet.push_back(std::move(entry));
         }
         rDofSet.back().first.SetSolutionStepData(*rp_dof->GetSolutionStepsData());
