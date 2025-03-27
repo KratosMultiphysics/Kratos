@@ -24,7 +24,7 @@
 namespace Kratos::Testing
 {
 
-class DistributedSparseContainersTestUtilities
+class KRATOS_API(KRATOS_MPI_CORE) DistributedSparseContainersTestUtilities
 {
 public:
 

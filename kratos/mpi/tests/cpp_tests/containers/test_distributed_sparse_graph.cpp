@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedSparseGraphConstructionBenchmark, KratosMPI
                           standard_dev);
 
     r_comm.Barrier(); //to ensure fair timings
-    auto timer =  BuiltinTimer();
+    // auto timer =  BuiltinTimer();
     DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], r_comm);
 
     IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i) {
