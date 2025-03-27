@@ -19,6 +19,7 @@
     "constraints_process_list" : [{
 
     },{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
         "value"           : [0.0,null,0.0]
     }
     ],
