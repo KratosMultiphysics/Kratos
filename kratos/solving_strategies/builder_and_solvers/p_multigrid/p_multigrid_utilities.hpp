@@ -337,7 +337,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         KRATOS_TRY
         block_for_each(rModelPart.Elements(),
                        std::vector<Triplet>(),
-                       [&rows, &locks, &hanging_nodes, &rModelPart, &find_node_index, &rParentIndirectDofSet](const Element& r_element, std::vector<Triplet>& r_tls) {
+                       [&rows, &locks, &hanging_nodes, &find_node_index, &rParentIndirectDofSet](const Element& r_element, std::vector<Triplet>& r_tls) {
             if (r_element.IsActive()) {
                 const auto& r_geometry = r_element.GetGeometry();
 
@@ -355,7 +355,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                         auto it_first_dof = std::lower_bound(rParentIndirectDofSet.begin(),
                                                              rParentIndirectDofSet.end(),
                                                              **r_row_dofs.begin(),
-                                                             [&r_row_dofs](const Dof<double>& r_parent_dof, const Dof<double>& r_dof){
+                                                             [](const Dof<double>& r_parent_dof, const Dof<double>& r_dof){
                                                                 return r_parent_dof.Id() < r_dof.Id();
                                                              });
                         if (it_first_dof == rParentIndirectDofSet.end()) continue;
