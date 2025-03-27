@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "utilities/openmp_utils.h"
 #include "tests/test_utilities/sparse_containers_test_utilities.h"
 
 namespace Kratos::Testing
