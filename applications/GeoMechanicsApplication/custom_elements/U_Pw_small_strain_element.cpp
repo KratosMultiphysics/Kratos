@@ -17,9 +17,11 @@
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 #include "includes/cfd_variables.h"
+
 #include <numeric>
 
 namespace Kratos
@@ -507,12 +509,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             return constitutive_matrix(variable_index, variable_index);
         });
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
-        const auto c   = ConstitutiveLawUtilities::GetCohesion(r_properties);
-        const auto phi = ConstitutiveLawUtilities::GetFrictionAngle(r_properties);
-        auto       calculate_shear_capacity = [c, phi](const auto& rStressVector) {
-            return StressStrainUtilities::CalculateMohrCoulombShearCapacity(rStressVector, c, phi);
-        };
-        std::transform(mStressVector.cbegin(), mStressVector.cend(), rOutput.begin(), calculate_shear_capacity);
+        OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
     } else if (r_properties.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
         std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));

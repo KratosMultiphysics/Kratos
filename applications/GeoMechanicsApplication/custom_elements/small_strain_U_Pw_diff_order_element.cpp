@@ -29,9 +29,11 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "stress_state_policy.h"
+
 #include <numeric>
 
 namespace Kratos
@@ -500,12 +502,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                                    nodal_hydraulic_head.begin(), 0.0);
         }
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
-        const auto c   = ConstitutiveLawUtilities::GetCohesion(GetProperties());
-        const auto phi = ConstitutiveLawUtilities::GetFrictionAngle(GetProperties());
-        auto       calculate_shear_capacity = [c, phi](const auto& rStressVector) {
-            return StressStrainUtilities::CalculateMohrCoulombShearCapacity(rStressVector, c, phi);
-        };
-        std::transform(mStressVector.cbegin(), mStressVector.cend(), rOutput.begin(), calculate_shear_capacity);
+        OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), GetProperties());
     } else {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
