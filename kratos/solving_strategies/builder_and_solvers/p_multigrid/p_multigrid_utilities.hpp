@@ -495,7 +495,14 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
     Dof<double>::IndexType i_dof = 0;
     for ([[maybe_unused]] auto& [r_row, rp_dof] : rows) {
-        rDofSet.emplace_back(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
+        {
+            // The CI's rocky linux is using an ancient version of GCC (8.5) that
+            // has some bug with non-copyable classes in std::pair, so the following
+            // line has to be rewritten in a manner that this fossil understands:
+            //rDofSet.emplace_back(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
+            std::pair<NodalData,Dof<double>> entry(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
+            rDofSet.push_back(std::move(entry));
+        }
         rDofSet.back().first.SetSolutionStepData(*rp_dof->GetSolutionStepsData());
 
         const auto& r_variable_data = rp_dof->GetVariable();
