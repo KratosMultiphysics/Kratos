@@ -661,7 +661,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 // We get the transformation matrix and the constant vector
                 it_const_current->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
 
-                (*mpStream) << "\t" << it_master_slave_constraint_begin->Id() << "\t";
+                (*mpStream) << "\t" << it_const_current->Id() << "\t";
                 for (IndexType i = 0; i < number_of_master_dofs; ++i) {
                     (*mpStream) << master_dofs[i]->Id() << "\t";
                 }
@@ -687,7 +687,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 // Compute the dofs
                 slave_dofs.clear();
                 master_dofs.clear();
-                it_master_slave_constraint_begin->GetDofList(slave_dofs, master_dofs, current_process_info);
+                it_const_current->GetDofList(slave_dofs, master_dofs, current_process_info);
 
                 // We get the number of master and slave dofs
                 number_of_master_dofs = master_dofs.size();
@@ -713,7 +713,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 }
 
                 // We get the transformation matrix and the constant vector
-                it_master_slave_constraint_begin->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
+                it_const_current->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
 
                 (*mpStream) << "Begin MasterSlaveConstraints\t" << master_slave_constraint_name << "\t" << number_of_master_dofs << "\t" << number_of_slave_dofs;
                 for (IndexType i = 0; i < variables_names.size(); ++i) {
