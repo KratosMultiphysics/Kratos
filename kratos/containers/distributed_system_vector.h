@@ -209,9 +209,7 @@ public:
 
     TDataType Norm() const
     {
-        TDataType norm_squared = IndexPartition<TIndexType>(LocalSize()).template for_each< SumReduction<TDataType> >( [this](TIndexType i){
-            return std::pow((mLocalData)[i], 2);
-        });
+        TDataType norm_squared = mLocalData.Norm();
         norm_squared = GetComm().SumAll(norm_squared);
         return std::sqrt(norm_squared);
     }
