@@ -23,7 +23,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SparseGraphConstruction, KratosCoreFastSuite)
 {
     const auto connectivities = SparseContainersTestUtilities::ElementConnectivities();
     auto reference_A_map = SparseContainersTestUtilities::GetReferenceMatrixAsMap();

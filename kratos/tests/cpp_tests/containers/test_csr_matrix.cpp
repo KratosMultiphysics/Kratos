@@ -26,7 +26,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CSRMatrixConstruction, KratosCoreFastSuite)
 {
     const auto connectivities = SparseContainersTestUtilities::ElementConnectivities();
     auto reference_A_map = SparseContainersTestUtilities::GetReferenceMatrixAsMap();
@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
     SparseContainersTestUtilities::CheckCSRMatrix(A, reference_A_map);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CSRMatrixSpMV, KratosCoreFastSuite)
 {
     const auto connectivities = SparseContainersTestUtilities::ElementConnectivities();
     auto reference_A_map = SparseContainersTestUtilities::GetReferenceMatrixAsMap();
@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CSRMatrixToAMGCLMatrix, KratosCoreFastSuite)
 {
     const auto connectivities = SparseContainersTestUtilities::ElementConnectivities();
     auto reference_A_map = SparseContainersTestUtilities::GetReferenceMatrixAsMap();
@@ -117,24 +117,27 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
     amgcl::backend::spmv(1.0,*pAmgcl, x, 1.0, y);
 
     double sum=0;
-    for(auto& item : y)
-       sum += item;
+    for(auto& item : y) {
+        sum += item;
+    }
 
     KRATOS_EXPECT_EQ(sum,496);
 
     auto pAconverted = AmgclCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl); //NOTE that A,Aconverted and pAmgcl all have the same data!
     auto reference_map = A.ToMap();
     auto converted_A_map = pAconverted->ToMap();
-    for(const auto& item : reference_map)
+    for (const auto& item : reference_map) {
         KRATOS_EXPECT_EQ(item.second, converted_A_map[item.first]);
-    for(const auto& item : converted_A_map)
+    }
+    for (const auto& item : converted_A_map) {
         KRATOS_EXPECT_EQ(item.second, reference_map[item.first]);
+    }
 
     //matrix matrix multiplication
     CsrMatrix<double>::Pointer pC = AmgclCSRSpMMUtilities::SparseMultiply(A,*pAconverted); //C=A*Aconverted
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SmallRectangularMatricMatrixMultiply, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CSRMatrixSmallRectangularMatrixMultiply, KratosCoreFastSuite)
 {
     // matrix A
     //[[1,0,0,7,2],
@@ -190,16 +193,15 @@ KRATOS_TEST_CASE_IN_SUITE(SmallRectangularMatricMatrixMultiply, KratosCoreFastSu
     CsrMatrix<double>::Pointer pC = AmgclCSRSpMMUtilities::SparseMultiply(A,B); //C=A*B
     auto& C = *pC;
 
-    for(const auto& item : Cref)
-    {
-        IndexType I = item.first.first;
-        IndexType J = item.first.second;
+    for(const auto& item : Cref) {
+        IndexType i = item.first.first;
+        IndexType j = item.first.second;
         double ref_value = item.second;
-        KRATOS_EXPECT_EQ(ref_value,C(I,J));
+        KRATOS_EXPECT_EQ(ref_value,C(i, j));
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CSRMatrixRectangularMatrix, KratosCoreFastSuite)
 {
     SparseContainersTestUtilities::IndexType col_divider = 3;
 
@@ -268,7 +270,7 @@ KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CsrMatrixDiagonalValues, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CSRMatrixDiagonalValues, KratosCoreFastSuite)
 {
     const auto connectivities = SparseContainersTestUtilities::ElementConnectivities();
 

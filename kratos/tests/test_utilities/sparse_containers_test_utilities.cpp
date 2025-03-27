@@ -25,7 +25,7 @@
 #include "testing/testing.h"
 #include "sparse_containers_test_utilities.h"
 
-namespace Kratos::Testing
+namespace Kratos
 {
 
 SparseContainersTestUtilities::ElementConnectivityType SparseContainersTestUtilities::RandomElementConnectivities(
@@ -212,4 +212,4 @@ bool SparseContainersTestUtilities::CheckCSRMatrix(
     return true;
 }
 
-} // namespace Kratos::Testing
+} // namespace Kratos

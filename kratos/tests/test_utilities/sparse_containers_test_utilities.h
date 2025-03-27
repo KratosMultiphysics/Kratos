@@ -23,7 +23,7 @@
 #include "containers/system_vector.h"
 #include "includes/key_hash.h"
 
-namespace Kratos::Testing
+namespace Kratos
 {
 
 class SparseContainersTestUtilities
@@ -32,9 +32,9 @@ public:
 
     using IndexType = std::size_t;
 
-    using ElementConnectivityType = std::vector<std::vector<std::size_t>>;
+    using ElementConnectivityType = std::vector<std::vector<IndexType>>;
 
-    using MatrixMapType = std::unordered_map<std::pair<std::size_t, std::size_t>, double, PairHasher<std::size_t, std::size_t>, PairComparor<std::size_t, std::size_t>>;
+    using MatrixMapType = std::unordered_map<std::pair<IndexType, IndexType>, double, PairHasher<IndexType, IndexType>, PairComparor<IndexType, IndexType>>;
 
     static ElementConnectivityType RandomElementConnectivities(
         const IndexType BlockSize,
@@ -115,4 +115,4 @@ public:
 
 };
 
-} // namespace Kratos::Testing
+} // namespace Kratos
