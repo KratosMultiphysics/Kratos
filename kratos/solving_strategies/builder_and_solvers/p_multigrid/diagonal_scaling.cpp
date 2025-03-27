@@ -60,7 +60,7 @@ std::optional<typename TSparse::DataType> FindDiagonal(const typename TSparse::M
     // Look for the diagonal entry in the current row.
     const auto it_column = std::lower_bound(it_column_begin, it_column_end, iRow);
 
-    return (it_column == it_column_end or *it_column != iRow)
+    return (it_column == it_column_end || *it_column != iRow)
          ? std::optional<typename TSparse::DataType>()
          : rMatrix.value_data()[rMatrix.index1_data()[iRow] + std::distance(it_column_begin, it_column)];
 }
