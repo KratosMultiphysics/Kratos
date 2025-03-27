@@ -81,6 +81,7 @@ public:
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -215,6 +216,10 @@ protected:
                                                       const ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
+    virtual void CalculateAndAddRHSWithProcessInfo(VectorType&        rRightHandSideVector,
+                                                   ElementVariables&  rVariables,
+                                                   unsigned int       GPoint,
+                                                   const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
                                        const ElementVariables& rVariables,
@@ -280,6 +285,13 @@ protected:
                                                  const Matrix& rGradNpt,
                                                  double        IntegrationCoefficient) const;
 
+    virtual void CalculateAndAddInternalForces(VectorType&       rRightHandSideVector,
+                                               ElementVariables& rVariables,
+                                               unsigned int      GPoint);
+    virtual void CalculateAndAddExternalForces(VectorType&       rRightHandSideVector,
+                                               ElementVariables& rVariables,
+                                               unsigned int      GPoint);
+
     VectorType GetPressureSolutionVector();
 
 private:
@@ -302,6 +314,10 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
+    Vector mInternalForcesAtStart;
+    Vector mExternalForcesAtStart;
+    int    mCounter = 1;
 };
 
 // Class UPwSmallStrainElement
