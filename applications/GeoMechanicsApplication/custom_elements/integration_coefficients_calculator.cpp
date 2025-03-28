@@ -24,7 +24,7 @@ std::vector<double> IntegrationCoefficientsCalculator::CalculateIntegrationCoeff
     result.reserve(rIntegrationPoints.size());
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
                    std::back_inserter(result),
-                   [this, rGeometry](const auto& rIntegrationPoint, const auto& rDetJ) {
+                   [this, &rGeometry](const auto& rIntegrationPoint, const auto& rDetJ) {
         return CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ, rGeometry);
     });
     return result;

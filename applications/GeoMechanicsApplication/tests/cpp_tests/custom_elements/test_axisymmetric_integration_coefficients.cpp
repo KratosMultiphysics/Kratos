@@ -1,0 +1,48 @@
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
+//
+//  License:         geo_mechanics_application/license.txt
+//
+//  Main authors:    Richard Faasse
+//                   Marjan Fathian
+//                   Gennady Markelov
+//
+
+#include "custom_elements/axisymmetric_integration_coefficients.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
+
+#include <boost/numeric/ublas/assignment.hpp>
+
+using namespace Kratos;
+using namespace std::string_literals;
+
+namespace Kratos::Testing
+{
+
+KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    const std::unique_ptr<IntegrationCoefficientsCalculator> p_axisymmetric_integration_coefficients =
+        std::make_unique<AxisymmetricIntegrationCoefficients>();
+    // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
+    const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
+    const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
+    Vector                                           detJs(1);
+    detJs <<= 2.0;
+
+    // Act
+    const auto calculated_coefficients = p_axisymmetric_integration_coefficients->CalculateIntegrationCoefficients(
+        integration_points, detJs, ModelSetupUtilities::Create2D3NTriangleGeometry());
+
+    // Assert
+    // The expected number is calculated as follows:
+    // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
+    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 5.02655, 1e-5);
+}
+
+} // namespace Kratos::Testing
