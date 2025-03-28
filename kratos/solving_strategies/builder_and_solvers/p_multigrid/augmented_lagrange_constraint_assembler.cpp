@@ -579,8 +579,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeSolutionSte
     BalancedProduct<TSparse,TSparse,TSparse>(this->GetRelationMatrix(), rSolution, constraint_residual);
 
     // Update the RHS.
-    TSparse::InplaceMult(constraint_residual, -this->GetPenaltyFactor());
-    BalancedProduct<TSparse,TSparse,TSparse>(this->GetTransposeRelationMatrix(), constraint_residual, rRhs);
+    BalancedProduct<TSparse,TSparse,TSparse>(this->GetTransposeRelationMatrix(),
+                                             constraint_residual,
+                                             rRhs,
+                                             static_cast<typename TSparse::DataType>(-this->GetPenaltyFactor()));
 
     KRATOS_CATCH("")
 }

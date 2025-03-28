@@ -95,7 +95,6 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                               const typename Interface::TSystemVectorType& rRhs,
                               typename Interface::TSystemVectorType& rSolutionUpdate,
                               typename Interface::TSystemVectorType& rResidual,
-                              typename Interface::TSystemVectorType& rResidualUpdate,
                               const typename TSparse::DataType InitialResidualNorm)
     {
         KRATOS_TRY
@@ -115,24 +114,20 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                 TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
 
                 // Update the fine residual.
-                TSparse::SetToZero(rResidualUpdate);
-                BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidualUpdate);
-                TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
+                BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
             } // if mMaybeHierarchy
 
             // Perform smoothing on the fine grid.
             TSparse::SetToZero(rSolutionUpdate); //< do I need this?
-            //mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolutionUpdate, rResidual);
+            mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolutionUpdate, rResidual);
             mpInterface->GetLinearSystemSolver()->Solve(rLhs, rSolutionUpdate, rResidual);
-            //mpInterface->GetLinearSystemSolver()->FinalizeSolutionStep(rLhs, rSolutionUpdate, rResidual);
+            mpInterface->GetLinearSystemSolver()->FinalizeSolutionStep(rLhs, rSolutionUpdate, rResidual);
 
             // Update the fine solution.
             TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
 
             // Update the fine residual.
-            TSparse::SetToZero(rResidualUpdate);
-            BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidualUpdate);
-            TSparse::UnaliasedAdd(rResidual, -1.0, rResidualUpdate);
+            BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
 
             // Emit status and check for convergence.
             if (0 < mTolerance || 3 <= mVerbosity) {
@@ -185,10 +180,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
             // Initialize the constraint assembler and update residuals.
             mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
-            TSparse::SetToZero(residual_update);
-            BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolution, residual_update);
             TSparse::Copy(rRhs, residual);
-            TSparse::UnaliasedAdd(residual, -1.0, residual_update);
+            BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolution, residual, static_cast<typename TSparse::DataType>(-1));
 
             // Get an update on the solution with respect to the current residual.
             this->ExecuteMultigridLoop(rLhs,
@@ -196,7 +189,6 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                        rRhs,
                                        solution_update,
                                        residual,
-                                       residual_update,
                                        initial_residual_norm);
 
             // Check for constraint convergence.
@@ -613,20 +605,20 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
         // Merge all the sets in one thread
         #pragma omp critical
         {
-            dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+            this->GetDofSet().insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
         }
     } // pragma omp parallel
 
     // Make sure that conditions act exclusively on collected DoFs.
+    #ifndef NDEBUG
     block_for_each(rModelPart.Conditions().begin(),
                    rModelPart.Conditions().end(),
                    DofsVectorType(),
-                   [&r_process_info, &dof_global_set](const Condition& r_condition, auto& r_tls_dofs){
+                   [&r_process_info, this](const Condition& r_condition, auto& r_tls_dofs){
                         if (r_condition.IsActive()) {
                             r_condition.GetDofList(r_tls_dofs, r_process_info);
                             for (Dof<typename TDense::DataType>* p_dof : r_tls_dofs) {
-                                const auto it = dof_global_set.find(p_dof);
-                                KRATOS_ERROR_IF(it == dof_global_set.end())
+                                KRATOS_ERROR_IF_NOT(this->GetDofSet().count(*p_dof))
                                     << "condition " << r_condition.Id() << " "
                                     << "acts on " << p_dof->GetVariable().Name() << " "
                                     << "of node " << p_dof->Id() << ", "
@@ -634,14 +626,15 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
                             } // for p_dof in r_tls_dofs
                         } // if r_condition.IsActive()
                    });
+    #endif
 
     // Fill and sort the provided DOF array from the auxiliary global DOFs set
-    this->GetDofSet().reserve(dof_global_set.size());
+    //this->GetDofSet().reserve(dof_global_set.size());
     //this->GetDofSet().insert(dof_global_set.begin(), dof_global_set.end());
-    for (Dof<typename TDense::DataType>* p_dof : dof_global_set) {  //
-        this->GetDofSet().push_back(p_dof);                         //
-    }                                                               //
-    this->GetDofSet().Sort();                                       //< @todo get rid of this crap when PointerVectorSet gets fixed
+    //for (Dof<typename TDense::DataType>* p_dof : dof_global_set) {  //
+    //    this->GetDofSet().push_back(p_dof);                         //
+    //}                                                               //
+    //this->GetDofSet().Sort();                                       //< @todo get rid of this crap when PointerVectorSet gets fixed
 
     #ifdef KRATOS_DEBUG
     // If reactions are to be calculated, we check if all the dofs have reactions defined

@@ -553,7 +553,8 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
 template <class TLHSSparse, class TRHSSparse, class TOutputSparse>
 void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                      const typename TRHSSparse::VectorType& rRhs,
-                     typename TOutputSparse::VectorType& rOutput) noexcept
+                     typename TOutputSparse::VectorType& rOutput,
+                     const typename TOutputSparse::DataType Coefficient = static_cast<typename TOutputSparse::DataType>(1)) noexcept
 {
     // Create partition for entries in the matrix.
     const auto thread_count = ParallelUtilities::GetNumThreads();
@@ -567,43 +568,60 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
     partition.back() = rLhs.nnz();
 
     // Compute matrix-vector product.
-    IndexPartition<std::size_t>(thread_count).for_each([&rLhs, &rRhs, &rOutput, &partition](const std::size_t i_chunk){
-        // Define the entry range to compute on.
-        const auto i_chunk_begin = partition[i_chunk];
-        const auto i_chunk_end = partition[i_chunk + 1];
+    #define KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT(OPERATOR)                                                                                 \
+        IndexPartition<std::size_t>(thread_count).for_each([&rLhs, &rRhs, &rOutput, &partition, Coefficient](const std::size_t i_chunk){    \
+            (void)Coefficient; /*<== suppress unused capture warnings*/                                                                     \
+            /* Define the entry range to compute on. */                                                                                     \
+            const auto i_chunk_begin = partition[i_chunk];                                                                                  \
+            const auto i_chunk_end = partition[i_chunk + 1];                                                                                \
+                                                                                                                                            \
+            /* Find the initial row's index. */                                                                                             \
+            const auto it_initial_row = std::lower_bound(rLhs.index1_data().begin(),                                                        \
+                                                         rLhs.index1_data().end(),                                                          \
+                                                         static_cast<typename TLHSSparse::IndexType>(i_chunk_begin));                       \
+            std::size_t i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                                                  \
+            if (i_row != i_chunk_begin) --i_row;                                                                                            \
+                                                                                                                                            \
+            do {                                                                                                                            \
+                const auto i_row_begin = rLhs.index1_data()[i_row];                                                                         \
+                const auto i_row_end = rLhs.index1_data()[i_row + 1];                                                                       \
+                                                                                                                                            \
+                const auto i_begin = std::max(i_row_begin, i_chunk_begin);                                                                  \
+                const auto i_end = std::min(i_row_end, i_chunk_end);                                                                        \
+                                                                                                                                            \
+                const auto it_column_end = rLhs.index2_data().begin() + i_end;                                                              \
+                auto it_entry = rLhs.value_data().begin() + i_begin;                                                                        \
+                auto contribution = static_cast<typename TOutputSparse::DataType>(0);                                                       \
+                                                                                                                                            \
+                for (auto it_column=rLhs.index2_data().begin() + i_begin; it_column!=it_column_end; ++it_column, ++it_entry) {              \
+                    const auto i_column = *it_column;                                                                                       \
+                    const auto entry = *it_entry;                                                                                           \
+                    contribution += entry * rRhs[i_column];                                                                                 \
+                } /* for i_entry in range(i_begin, i_end) */                                                                                \
+                                                                                                                                            \
+                if constexpr (std::is_same_v<OPERATOR,std::plus<typename TOutputSparse::DataType>>) {                                       \
+                    AtomicAdd(rOutput[i_row], contribution);                                                                                \
+                } else if constexpr (std::is_same_v<OPERATOR,std::minus<typename TOutputSparse::DataType>>) {                               \
+                    AtomicSub(rOutput[i_row], contribution);                                                                                \
+                } else if constexpr (std::is_same_v<OPERATOR,std::multiplies<typename TOutputSparse::DataType>>) {                          \
+                    AtomicAdd(rOutput[i_row], Coefficient * contribution);                                                                  \
+                } else {                                                                                                                    \
+                    static_assert(std::is_same_v<OPERATOR,void>, "unsupported operator");                                                   \
+                }                                                                                                                           \
+                                                                                                                                            \
+                ++i_row;                                                                                                                    \
+                if (i_end == i_chunk_end)                                                                                                   \
+                    break;                                                                                                                  \
+            } while (true);                                                                                                                 \
+        }) /* for i_chunk in range(thread_count) */
 
-        // Find the initial row's index.
-        const auto it_initial_row = std::lower_bound(rLhs.index1_data().begin(),
-                                                     rLhs.index1_data().end(),
-                                                     static_cast<typename TLHSSparse::IndexType>(i_chunk_begin));
-        std::size_t i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);
-        if (i_row != i_chunk_begin) --i_row;
-
-        do {
-            const auto i_row_begin = rLhs.index1_data()[i_row];
-            const auto i_row_end = rLhs.index1_data()[i_row + 1];
-
-            const auto i_begin = std::max(i_row_begin, i_chunk_begin);
-            const auto i_end = std::min(i_row_end, i_chunk_end);
-            //const bool is_shared_row = *it_row < i_begin || i_end < i_chunk_end;
-
-            const auto it_column_end = rLhs.index2_data().begin() + i_end;
-            auto it_entry = rLhs.value_data().begin() + i_begin;
-            auto contribution = static_cast<typename TOutputSparse::DataType>(0);
-
-            for (auto it_column=rLhs.index2_data().begin() + i_begin; it_column!=it_column_end; ++it_column, ++it_entry) {
-                const auto i_column = *it_column;
-                const auto entry = *it_entry;
-                contribution += entry * rRhs[i_column];
-            } // for i_entry in range(i_begin, i_end)
-
-            AtomicAdd(rOutput[i_row], contribution);
-
-            ++i_row;
-            if (i_end == i_chunk_end)
-                break;
-        } while (true);
-    }); // for i_chunk in range(thread_count)
+    if (Coefficient == static_cast<typename TOutputSparse::DataType>(1)) {
+        KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT(std::plus<typename TOutputSparse::DataType>);
+    } else if (Coefficient == static_cast<typename TOutputSparse::DataType>(-1)) {
+        KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT(std::minus<typename TOutputSparse::DataType>);
+    } else {
+        KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT(std::multiplies<typename TOutputSparse::DataType>);
+    }
 }
 
 
