@@ -551,8 +551,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
     this->GetDofSet().clear();
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
-    std::unordered_set<Node::DofType::Pointer, DofPointerHasher> dof_global_set;
-    dof_global_set.reserve(rModelPart.NumberOfElements() * 20);
     std::vector<std::atomic<std::uint8_t>> hanging_nodes(rModelPart.Nodes().size());
     std::fill(hanging_nodes.begin(),
               hanging_nodes.end(),
@@ -610,7 +608,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
     } // pragma omp parallel
 
     // Make sure that conditions act exclusively on collected DoFs.
-    #ifndef NDEBUG
+    #ifdef KRATOS_DEBUG
     block_for_each(rModelPart.Conditions().begin(),
                    rModelPart.Conditions().end(),
                    DofsVectorType(),
@@ -627,14 +625,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
                         } // if r_condition.IsActive()
                    });
     #endif
-
-    // Fill and sort the provided DOF array from the auxiliary global DOFs set
-    //this->GetDofSet().reserve(dof_global_set.size());
-    //this->GetDofSet().insert(dof_global_set.begin(), dof_global_set.end());
-    //for (Dof<typename TDense::DataType>* p_dof : dof_global_set) {  //
-    //    this->GetDofSet().push_back(p_dof);                         //
-    //}                                                               //
-    //this->GetDofSet().Sort();                                       //< @todo get rid of this crap when PointerVectorSet gets fixed
 
     #ifdef KRATOS_DEBUG
     // If reactions are to be calculated, we check if all the dofs have reactions defined
