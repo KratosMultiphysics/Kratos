@@ -85,6 +85,8 @@ public:
 protected:
 ///@{
 
+    Model* mpModel;
+
     /**
      * @brief Creates a regular grid composed out of bivariant B-splines.
      * @param PointA Lower point of bounding box.
@@ -107,8 +109,6 @@ protected:
 private:
     ///@name Private Member Variables
     ///@{
-
-    Model* mpModel;
 
     ///@}
     ///@name Private Operations

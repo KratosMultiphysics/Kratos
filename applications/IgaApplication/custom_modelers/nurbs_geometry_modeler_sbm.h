@@ -30,21 +30,12 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( NurbsGeometryModelerSbm );
 
-    using IndexType = std::size_t;
-    using SizeType = std::size_t;
-    using NodeType = Node;
+    using IndexType = NurbsGeometryModeler::IndexType;
+    using SizeType = NurbsGeometryModeler::SizeType;
+    using NodeType = NurbsGeometryModeler::NodeType;
 
-    using GeometryType = Geometry<NodeType>;
-    using GeometryPointerType = GeometryType::Pointer;
-
-    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
-    using NurbsSurfaceGeometryPointerType = NurbsSurfaceGeometryType::Pointer;
-
-    using NurbsVolumeGeometryType = NurbsVolumeGeometry<PointerVector<NodeType>>;
-    using NurbsVolumeGeometryPointerType = NurbsVolumeGeometryType::Pointer;
-
-    using ContainerNodeType = PointerVector<Node>;
-    using ContainerEmbeddedNodeType = PointerVector<Point>;
+    using GeometryType = NurbsGeometryModeler::GeometryType;
+    using GeometryPointerType = NurbsGeometryModeler::GeometryPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -59,8 +50,8 @@ public:
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
         : NurbsGeometryModeler(rModel, ModelerParameters)
-        , mpModel(&rModel)
     {
+        mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
     }
 
     /// Destructor.
@@ -77,8 +68,6 @@ public:
     ///@}
     ///@name Stages
     ///@{
-
-    void SetupGeometryModel() override;
 
     ///@}
 
@@ -109,11 +98,11 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    Model* mpModel;
-
     ///@}
     ///@name Private Operations
     ///@{
+
+    const Parameters GetDefaultParameters() const override;
 
 };
 
