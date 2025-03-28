@@ -95,7 +95,7 @@ namespace Kratos {
 template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver>
-class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver
+class PMultigridBuilderAndSolver
     : public BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 private:
