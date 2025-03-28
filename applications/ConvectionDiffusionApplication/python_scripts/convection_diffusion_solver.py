@@ -317,7 +317,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+            # KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
             tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
             throw_errors = False

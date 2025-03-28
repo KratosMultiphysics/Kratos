@@ -255,4 +255,9 @@ Element::IntegrationMethod LaplacianIGAElement::GetIntegrationMethod() const
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
+void LaplacianIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    SetValue(INTEGRATION_WEIGHT, integration_points[0].Weight());
+}
 } // Namespace Kratos
