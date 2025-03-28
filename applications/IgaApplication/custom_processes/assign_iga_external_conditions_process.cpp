@@ -26,7 +26,6 @@ AssignIgaExternalConditionsProcess::AssignIgaExternalConditionsProcess(
 
     KRATOS_ERROR_IF_NOT(mParameters.Has("analysis_model_part_name"))
         << "Missing \"analysis_model_part_name\" section" << std::endl;
-    ModelPart& analysis_model_part = mpModel->GetModelPart(mParameters["analysis_model_part_name"].GetString());
 
     mIgaPhysicsParameters = mParameters["element_condition_list"];
 }
@@ -38,7 +37,7 @@ void AssignIgaExternalConditionsProcess::Execute(){
     const std::vector<std::string> sub_model_part_names = analysis_model_part.GetSubModelPartNames();
 
     // Number of element_condition_list (Elements or Conditions), in the end are all the Gauss Points
-    const int number_of_entitites = mIgaPhysicsParameters.size();  
+    const SizeType number_of_entitites = mIgaPhysicsParameters.size();  
 
     const ProcessInfo& r_process_info = analysis_model_part.GetProcessInfo();
     double t = r_process_info[TIME];
