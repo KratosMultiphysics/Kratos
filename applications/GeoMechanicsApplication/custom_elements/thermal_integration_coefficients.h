@@ -22,8 +22,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ThermalIntegrationCoefficients : pub
 public:
     [[nodiscard]] Vector CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
                                                           const Vector& rDetJs,
-                                                          std::size_t   LocalDimension,
-                                                          double        CrossArea) const override;
+                                                          double        CrossArea,
+                                                          std::size_t LocalDimension) const override;
 
 private:
     friend class Serializer;

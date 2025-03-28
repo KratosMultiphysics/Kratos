@@ -17,8 +17,8 @@ namespace Kratos
 
 Vector ThermalIntegrationCoefficients::CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
                                                                         const Vector& rDetJs,
-                                                                        std::size_t LocalDimension,
-                                                                        double      CrossArea) const
+                                                                        double        CrossArea,
+                                                                        std::size_t LocalDimension) const
 {
     auto result = Vector{rIntegrationPoints.size()};
     for (unsigned int integration_point_index = 0;

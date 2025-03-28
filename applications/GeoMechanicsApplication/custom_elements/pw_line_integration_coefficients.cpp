@@ -17,8 +17,8 @@ namespace Kratos
 
 Vector PwLineIntegrationCoefficients::CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
                                                                        const Vector& rDetJs,
-                                                                       std::size_t,
-                                                                       double CrossArea) const
+                                                                       double        CrossArea,
+                                                                       std::size_t) const
 {
     auto result = Vector{rIntegrationPoints.size()};
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
