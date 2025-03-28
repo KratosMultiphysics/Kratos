@@ -9,6 +9,7 @@ on:
     paths:
       - 'scripts/docker_files/docker_file_ci_ubuntu_22_04/*'
       - 'scripts/docker_files/docker_file_ci_centos_7/*'
+      - 'scripts/docker_files/docker_file_ci_rockylinux8/*'
       - '.github/workflows/build_docker_images_for_ci.yml'
   pull_request:
     branches:
@@ -16,6 +17,7 @@ on:
     paths:
       - 'scripts/docker_files/docker_file_ci_ubuntu_22_04/*'
       - 'scripts/docker_files/docker_file_ci_centos_7/*'
+      - 'scripts/docker_files/docker_file_ci_rockylinux8/*'
       - '.github/workflows/build_docker_images_for_ci.yml'
 
   workflow_dispatch:
