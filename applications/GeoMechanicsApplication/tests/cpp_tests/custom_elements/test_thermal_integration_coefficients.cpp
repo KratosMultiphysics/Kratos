@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, Kr
     const auto  cross_area      = 0.5;
     // Act
     auto calculated_coefficients = p_pw_line_integration_coefficients->CalculateIntegrationCoefficients(
-        integration_points, detJs, local_dimension, cross_area);
+        integration_points, detJs, cross_area, local_dimension);
 
     // Assert
     // The expected number is calculated as follows:
@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, Kr
 
     local_dimension         = 2;
     calculated_coefficients = p_pw_line_integration_coefficients->CalculateIntegrationCoefficients(
-        integration_points, detJs, local_dimension, cross_area);
+        integration_points, detJs, cross_area, local_dimension);
 
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) = 1.0

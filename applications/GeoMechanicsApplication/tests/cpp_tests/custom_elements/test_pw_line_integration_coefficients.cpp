@@ -32,15 +32,14 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, Kra
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
     Vector                                           detJs(1);
     detJs <<= 2.0;
-    const std::size_t local_dimension = 1;
-    const auto        cross_area      = 0.5;
+    const auto cross_area = 0.5;
     // Act
     const auto calculated_coefficients = p_pw_line_integration_coefficients->CalculateIntegrationCoefficients(
-        integration_points, detJs, local_dimension, cross_area);
+        integration_points, detJs, cross_area);
 
     // Assert
     // The expected number is calculated as follows:
-    // 2.0 (detJ) * 0.5 (weight) * 0.5 (cross area) = 1.0
+    // 2.0 (detJ) * 0.5 (weight) * 0.5 (cross area) = 0.5
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, 1e-5);
 }
 

@@ -28,7 +28,7 @@ public:
     [[nodiscard]] virtual Vector CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
                                                                   const Vector& rDetJs,
                                                                   double        CrossArea,
-                                                                  std::size_t LocalDimension) const
+                                                                  std::size_t LocalDimension = 0) const
     {
         KRATOS_ERROR
             << "IntegrationCoefficientsCalculator::CalculateIntegrationCoefficients is called."
