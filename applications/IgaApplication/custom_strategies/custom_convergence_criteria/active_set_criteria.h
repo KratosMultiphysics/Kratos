@@ -278,23 +278,16 @@ public:
         
             if (contact_sub_model_part.NumberOfConditions() == 0) return true;
 
-            int count_cond = 0;
-            int n_CP = (contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
-            int p = (int) sqrt(n_CP);
-
-            int n_GP_per_segment = 2*p+1;
+            
             double toll_tangent_distance = 1e-1;
             double toll = 0;//1e-9;
-            double toll_stress = 1e-4;
+
+            int n_CP = (contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
+            int p = (int) sqrt(n_CP);
+            
             int n_cond = contact_sub_model_part.Conditions().size(); 
 
-            Vector length = ZeroVector(n_cond);
-            Vector check_per_segment = ZeroVector(n_cond);
-
-            Vector check_per_segment_stress = ZeroVector(n_cond);
-            Vector check_per_segment_gap = ZeroVector(n_cond);
             int n_changes = 0;
-
             int n_active = 0;
 
             for (auto i_cond(contact_sub_model_part.Conditions().begin()); i_cond != contact_sub_model_part.Conditions().end(); ++i_cond)
@@ -306,122 +299,96 @@ public:
                 Vector normal_stress_master = i_cond->GetValue(STRESS_MASTER);
                 Vector normal_master = i_cond->GetValue(NORMAL_MASTER);
 
-                // //FIXME:
-                // normal_master = (normal_master - normal_slave)/2;
-
                 Vector gap = i_cond->GetValue(GAP);
-                double normal_gap_master = inner_prod(gap, normal_master);
-                double normal_gap_slave = -inner_prod(gap, normal_slave);
+                double normal_gap_master = -inner_prod(gap, normal_master);
+                double normal_gap_slave = inner_prod(gap, normal_slave);
 
-                double check_value_gap = -(0.5*normal_gap_master + 0.5* normal_gap_slave);
+                Vector penalty_master_slave = i_cond->GetValue(PENALTY);
 
-                double tangent_gap_master = norm_2(gap - 0.5*normal_master*normal_gap_master + 0.5 * normal_slave*normal_gap_slave);
+                double sigma_nn_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
+                                         (normal_stress_master[2]* normal_master[0] + normal_stress_master[1]* normal_master[1])*normal_master[1];
 
-                double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
+                
+                double sigma_nn_slave = (normal_stress_slave[0]* normal_slave[0] + normal_stress_slave[2]* normal_slave[1])*normal_slave[0] +
+                                        (normal_stress_slave[2]* normal_slave[0] + normal_stress_slave[1]* normal_slave[1])*normal_slave[1];
+
 
                 double young_modulus_master = i_cond->GetValue(YOUNG_MODULUS_MASTER); 
                 double young_modulus_slave = i_cond->GetValue(YOUNG_MODULUS_SLAVE); 
-                const double gamma = young_modulus_slave/(young_modulus_master + young_modulus_slave);
 
-                double true_normal_stress_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
-                                                (normal_stress_master[2]* normal_master[0] + normal_stress_master[1]* normal_master[1])*normal_master[1];
-
-                double true_normal_stress_slave = (normal_stress_slave[0]* normal_slave[0] + normal_stress_slave[2]* normal_slave[1])*normal_slave[0] +
-                                                (normal_stress_slave[2]* normal_slave[0] + normal_stress_slave[1]* normal_slave[1])*normal_slave[1];
+                double check_value_master = normal_gap_master;// - sigma_nn_master/young_modulus_master/10;
+                double check_value_slave = normal_gap_slave;// - sigma_nn_slave/young_modulus_slave/10;
 
 
-                // int segment_index = (int) count_cond/n_GP_per_segment;
-                // double check_value = -(true_normal_stress_master+young_modulus*normal_gap_master);
+
+                double tangent_gap_master = norm_2(gap + normal_master*normal_gap_master);
+                double tangent_gap_slave = norm_2(gap - normal_slave*normal_gap_slave);
 
                 
-                double check_value_stress = -(gamma*true_normal_stress_master + (1-gamma) *true_normal_stress_slave)/std::min(young_modulus_master, young_modulus_slave);
-                // // double check_value = -(yound_modulus*normal_gap);
-
-                // length[segment_index] += weight;
-                // check_per_segment[segment_index] += weight*check_value;
-
-                // check_per_segment_stress[segment_index] += check_value_stress;
-                // check_per_segment_gap[segment_index] += check_value_gap;
-
                 // // FIXME:
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.01)
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.4305620486218446)
                 // {
-                //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+                //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
                 //     {
-                //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
+                //         i_cond->SetValue(ACTIVATION_LEVEL, 3);
                 //         n_changes++;
                 //     }
                 //     n_active ++;
                 // }
-                // else 
+                // else if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > 0.4305620486218446)
+                // {
+                //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
+                //     {
+                //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                //         n_changes++;
+                //     }
+                // }
 
-                if (check_value_stress< -toll_stress)
-                {   
-                    if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-                    {
-                    i_cond->SetValue(ACTIVATION_LEVEL, 0);
-                    n_changes++;
-                    }
-
-                } else if ((check_value_gap > toll) && std::abs(tangent_gap_master) < toll_tangent_distance) //|| check_value_gap + check_value_stress > toll
+                if (check_value_master > 0 && tangent_gap_master < toll_tangent_distance)
                 {
-                    if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
+                    if (check_value_slave > 0 && tangent_gap_slave < toll_tangent_distance) //BOTH ACTIVE
                     {
-                        i_cond->SetValue(ACTIVATION_LEVEL, 1);
-                        n_changes++;
+                        if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
+                        {
+                            i_cond->SetValue(ACTIVATION_LEVEL, 3);
+                            n_changes++;
+                        }
                     }
-                    n_active ++;
+                    else if (sigma_nn_slave/young_modulus_slave > 0)  // ONLY MASTER ACTIVE
+                    {
+                        if (i_cond->GetValue(ACTIVATION_LEVEL) != 1)
+                        {
+                            i_cond->SetValue(ACTIVATION_LEVEL, 1);
+                            n_changes++;
+                        }
+                    }
+                    n_active++;
+                } 
+                else if (sigma_nn_master/young_modulus_master > 0)
+                {
+                    if (check_value_slave > 0 && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
+                    {
+                        if (i_cond->GetValue(ACTIVATION_LEVEL) != 2)
+                        {
+                            i_cond->SetValue(ACTIVATION_LEVEL, 2);
+                            n_changes++;
+                        }
+                        n_active++;
+                    }
+                    else if (sigma_nn_slave/young_modulus_slave > 0) // NONE ACTIVE
+                    {
+                        if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
+                        {
+                            i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                            n_changes++;
+                        }
+                    }
                 }
-                else if ( i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-                    n_active ++;
-
-                count_cond++;
 
             }
             if (n_active == 0) 
                 KRATOS_WATCH("[Warning]:: zero active contact conditions")
                                                                                 
-            // count_cond = 0;
-            // for (auto i_cond(contact_sub_model_part->Conditions().begin()); i_cond != contact_sub_model_part->Conditions().end(); ++i_cond)
-            // {
-            //     int segment_index = (int) count_cond/n_GP_per_segment;
-
-            //     // // OLD VERSION 
-            //     // if (check_per_segment[segment_index]/length[segment_index] > toll)
-            //     // {
-            //     //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 0)
-            //     //     {
-            //     //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
-            //     //         n_changes++;
-            //     //     }
-            //     // } else {
-            //     //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1)
-            //     //     {
-            //     //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
-            //     //         n_changes++;
-            //     //     }
-            //     // }
-
-            //     // NEW VERSION 
-            //     if (i_cond->GetValue(ACTIVATION_LEVEL) == 1 &&
-            //         check_per_segment_stress[segment_index]/length[segment_index] < -toll)
-            //     {
-            //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
-            //         n_changes++;
-            //     }
-            //     else if (i_cond->GetValue(ACTIVATION_LEVEL) == 0 &&
-            //         check_per_segment_gap[segment_index]/length[segment_index] > toll)
-            //     {
-            //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
-            //         n_changes++;
-            //     }
-
-            //     // if (i_cond->GetValue(ACTIVATION_LEVEL) == 1) n_active++;
-
-
-            //     count_cond++;
-
-            // }
             double min_percentage_change = 0.05; //8/n_cond;
             double rel_change = (double) n_changes/n_active; //n_changes/n_cond;
             if (n_active == 0) rel_change = 0;

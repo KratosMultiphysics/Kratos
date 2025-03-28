@@ -434,14 +434,12 @@ namespace Kratos
                         //     }
                         // }
 
-                        auto closest_condition = skin_model_part.GetCondition(Results[nearestNodeId]->Id());
-                        best_node = closest_condition.GetGeometry()[0];
+                        // auto closest_condition = skin_model_part.GetCondition(Results[nearestNodeId]->Id());
+                        // best_node = closest_condition.GetGeometry()[0];
 
-                        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-                        outputFile << best_node[0] << " " << best_node[1] << " "  << gaussPoint.X() << " " << gaussPoint.Y() <<"\n";
-                        outputFile.close();
-                        // if (is_inner)
-                        //     exit(0);
+                        // std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+                        // outputFile << best_node[0] << " " << best_node[1] << " "  << gaussPoint.X() << " " << gaussPoint.Y() <<"\n";
+                        // outputFile.close();
 
                         if (obtainedResults == 0) {
                              KRATOS_WATCH("0 POINTS FOUND: EXIT")
@@ -777,6 +775,11 @@ namespace Kratos
                     (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
                 }
                 //---------------------------------------------
+
+                std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+                        outputFile <<  projection_node->X() << " " << projection_node->Y() << " "  << (*it)->Center().X() << " " << (*it)->Center().Y() <<"\n";
+                        outputFile.close();
+
 
                 new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
                 if (isInner) {

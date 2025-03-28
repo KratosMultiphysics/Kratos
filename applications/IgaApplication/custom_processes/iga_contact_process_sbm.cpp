@@ -344,13 +344,13 @@ namespace Kratos
                 auto new_slave_skin_node = new Node(idNewNode, best_curve_projection);
 
 
-                // std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::app);
-                //         outputFile <<  best_skin_node.X() << " " << best_skin_node.Y() << " "  << new_slave_skin_node->X() << " " << new_slave_skin_node->Y() <<"\n";
-                //         outputFile.close();
-
                 std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::app);
-                        outputFile <<  best_skin_node.X() << " " << best_skin_node.Y() << " "  << gp_in_brep->Center().X() << " " << gp_in_brep->Center().Y() <<"\n";
+                        outputFile <<  best_skin_node.X() << " " << best_skin_node.Y() << " "  << new_slave_skin_node->X() << " " << new_slave_skin_node->Y() <<"\n";
                         outputFile.close();
+
+                // std::ofstream outputFile("txt_files/Contact_Projection_Coordinates.txt", std::ios::app);
+                //         outputFile <<  best_skin_node.X() << " " << best_skin_node.Y() << " "  << gp_in_brep->Center().X() << " " << gp_in_brep->Center().Y() <<"\n";
+                //         outputFile.close();
 
                 //-------------------------------------------------------------
                 //  START SEARCH
@@ -398,6 +398,9 @@ namespace Kratos
                 // find the closest integration point in the brep
                 GeometriesArrayType gp_list_slave;
                 best_slave_brep_geometry->GetQuadraturePointGeometries(gp_list_slave);
+
+                // TODO: 
+                best_slave_brep_geometry->SetValue(IDENTIFIER, "active");
                 double best_distance_skin_surrogate_slave = 1e16;
                 IndexType best_surrogate_node_array_position;
                 IndexType count_gp_slave = 0;
@@ -453,6 +456,9 @@ namespace Kratos
 
             GeometriesArrayType gp_list_slave;
             slave_brep_geometry->GetQuadraturePointGeometries(gp_list_slave);
+            
+            // FIXME:
+            if (slave_brep_geometry->GetValue(IDENTIFIER) == "active") continue;
 
             // CREATE SBM LOAD CONDITIONS 
             const Condition& rReferenceCondition = KratosComponents<Condition>::Get(default_condition_name);
@@ -569,7 +575,7 @@ namespace Kratos
         
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
 
-        EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
+        // EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
     }
 

@@ -221,8 +221,8 @@ namespace Kratos
                     H_taylor_term_Y += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
                 }
             }
-            Hgrad(i,0) = H_taylor_term_X  + DN_DX(i,0);
-            Hgrad(i,1) = H_taylor_term_Y  + DN_DX(i,1);
+            Hgrad(i,0) =  DN_DX(i,0) + H_taylor_term_X;
+            Hgrad(i,1) =  DN_DX(i,1) + H_taylor_term_Y;
         }    
 
         const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
