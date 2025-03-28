@@ -16,7 +16,7 @@
             "input_filename":   "test_quad_4n"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "MaterialParametersStage1.json"
         },
         "time_stepping":              {
             "time_step":            1.0
@@ -25,7 +25,7 @@
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  true,
-        "move_mesh_flag":                     true,
+        "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    true,
         "block_builder":                      true,
@@ -38,7 +38,7 @@
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
         "strategy_type":                      "newton_raphson",
-        "convergence_criterion":              "displacement_criterion",
+        "convergence_criterion":              "residual_criterion",
         "displacement_relative_tolerance":    1.0E-9,
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
@@ -74,7 +74,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_quad_4n",
+                "output_name": "test_quad_4n_step_mechanism_stage1",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {

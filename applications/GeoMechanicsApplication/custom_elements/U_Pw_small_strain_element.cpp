@@ -340,6 +340,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     }
 
     if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues(StressContainer);
+    ++mCounter;
 
     KRATOS_CATCH("")
 }
@@ -1283,7 +1284,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHSWithProcessInfo(V
                                                                                unsigned int GPoint,
                                                                                const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rCurrentProcessInfo[TIME] <= 0.0) {
+    if (true) {
+    // if (rCurrentProcessInfo[TIME] <= 0.0) {
         this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
         this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
@@ -1302,7 +1304,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHSWithProcessInfo(V
 
     else {
         rRightHandSideVector =
-            mInternalForcesAtStart + (mInternalForcesAtStart - mInternalForcesAtStart) * mCounter / 2;
+            mInternalForcesAtStart + (mExternalForcesAtStart - mInternalForcesAtStart) * mCounter / 2; // f_ext
+        KRATOS_INFO("f_ext") << rRightHandSideVector << std::endl;
+        KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;
+        KRATOS_INFO("mExternalForcesAtStart") << mExternalForcesAtStart << std::endl;
+        CalculateAndAddInternalForces(rRightHandSideVector, rVariables, GPoint);
+        KRATOS_INFO("Total RHS") << rRightHandSideVector << std::endl;
+
     }
 }
 
