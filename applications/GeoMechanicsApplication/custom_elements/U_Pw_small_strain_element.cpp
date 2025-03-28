@@ -125,8 +125,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurr
         this->CalculateAndAddExternalForces(mExternalForcesAtStart, Variables, integration_point);
         this->CalculateAndAddInternalForces(mInternalForcesAtStart, Variables, integration_point);
     }
-
-    mCounter = 1;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -343,7 +341,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     }
 
     if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues(StressContainer);
-    ++mCounter;
 
     KRATOS_CATCH("")
 }
@@ -933,7 +930,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
                                                           bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
-    KRATOS_INFO("CalculateAll") << "START\n";
+    // KRATOS_INFO("CalculateAll") << "START\n";
     const PropertiesType&                           r_properties = this->GetProperties();
     const GeometryType&                             r_geometry   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
@@ -1018,16 +1015,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     }
 
     if (rCurrentProcessInfo[TIME] > 0.0 && CalculateResidualVectorFlag) {
-        const auto f_ext = - mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) * mCounter / 10;
-        KRATOS_INFO("f_ext") << f_ext << std::endl;
-        KRATOS_INFO("total_external_forces") << total_external_forces << std::endl;
-        KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;
-        KRATOS_INFO("mExternalForcesAtStart") << mExternalForcesAtStart << std::endl;
-        KRATOS_INFO("RHS total after before external force: ") << rRightHandSideVector << std::endl;
+        const auto f_ext = - mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) * rCurrentProcessInfo[TIME];
+        // KRATOS_INFO("f_ext") << f_ext << std::endl;
+        // KRATOS_INFO("total_external_forces") << total_external_forces << std::endl;
+        // KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;
+        // KRATOS_INFO("mExternalForcesAtStart") << mExternalForcesAtStart << std::endl;
+        // KRATOS_INFO("RHS total after before external force: ") << rRightHandSideVector << std::endl;
         rRightHandSideVector += f_ext;
-        KRATOS_INFO("RHS total after adding external force: ") << rRightHandSideVector << std::endl;
+        // KRATOS_INFO("RHS total after adding external force: ") << rRightHandSideVector << std::endl;
     }
-    KRATOS_INFO("CalculateAll") << "END\n";
+    // KRATOS_INFO("CalculateAll") << "END\n";
     KRATOS_CATCH("")
 }
 
@@ -1274,22 +1271,19 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRig
 {
     KRATOS_TRY
 
-    // this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
-    //
-    // this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
-    //
-    // this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
-    //
-    // if (!rVariables.IgnoreUndrained) {
-    //     this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
-    //
-    //     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
-    //
-    //     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
-    // }
+    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
-    rRightHandSideVector =
-        mInternalForcesAtStart + (mInternalForcesAtStart - mInternalForcesAtStart) * mCounter / 2;
+    this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
+
+    this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
+
+    if (!rVariables.IgnoreUndrained) {
+        this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
+
+        this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
+
+        this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
+    }
 
     KRATOS_CATCH("")
 }
@@ -1302,7 +1296,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHSWithProcessInfo(V
 {
     CalculateAndAddInternalForces(rRightHandSideVector, rVariables, GPoint);
     if (rCurrentProcessInfo[TIME] <= 0.0) {
-        // Then the load stepping is applied for the external loads
+        // For t > 0 the unbalance reduction stepping is applied for the external loads
         CalculateAndAddExternalForces(rRightHandSideVector, rVariables, GPoint);
     }
 }
