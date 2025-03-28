@@ -112,6 +112,9 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
         "Material 0 does not have UMAT_PARAMETERS and/or INDEX_OF_UMAT_PHI_PARAMETER");
 }
 
+// The following test only raises errors when using debug builds
+#ifdef KRATOS_DEBUG
+
 KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto properties      = Properties{};
@@ -129,5 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenIndexInUMatParametersIsOutOfBounds, 
         ConstitutiveLawUtilities::GetCohesion(properties),
         "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2]");
 }
+
+#endif
 
 } // namespace Kratos::Testing
