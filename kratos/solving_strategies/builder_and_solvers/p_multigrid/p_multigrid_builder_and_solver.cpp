@@ -1049,15 +1049,15 @@ TSolver& PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetLinearSolver() n
 // --------------------------------------------------------- //
 
 
-template class PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
-                                          TUblasDenseSpace<double>,
-                                          LinearSolver<TUblasSparseSpace<double>,
-                                                       TUblasDenseSpace<double>>>;
+template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
+                                                                  TUblasDenseSpace<double>,
+                                                                  LinearSolver<TUblasSparseSpace<double>,
+                                                                               TUblasDenseSpace<double>>>;
 
-template class PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
-                                          TUblasDenseSpace<double>,
-                                          LinearSolver<TUblasSparseSpace<float>,
-                                                       TUblasDenseSpace<double>>>;
+template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
+                                                                  TUblasDenseSpace<double>,
+                                                                  LinearSolver<TUblasSparseSpace<float>,
+                                                                               TUblasDenseSpace<double>>>;
 
 
 } // namespace Kratos
