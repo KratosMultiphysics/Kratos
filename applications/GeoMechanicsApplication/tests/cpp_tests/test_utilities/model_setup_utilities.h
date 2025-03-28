@@ -44,7 +44,6 @@ ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel,
 ModelPart&          CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel);
 ModelPart&          CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel);
 Triangle2D3<Node>   Create2D3NTriangleGeometry();
-Triangle2D6<Node>   Create2D6NTriangleGeometry();
 Tetrahedra3D4<Node> Create3D4NTetrahedraGeometry();
 
 } // namespace Kratos::Testing::ModelSetupUtilities

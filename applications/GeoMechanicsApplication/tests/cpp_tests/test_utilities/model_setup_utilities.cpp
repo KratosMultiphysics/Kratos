@@ -210,17 +210,6 @@ Triangle2D3<Node> Create2D3NTriangleGeometry()
     return {node_1, node_2, node_3};
 }
 
-Triangle2D6<Node> Create2D6NTriangleGeometry()
-{
-    const auto node_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    const auto node_2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
-    const auto node_3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    const auto node_4 = make_intrusive<Node>(4, 0.5, 0.0, 0.0);
-    const auto node_5 = make_intrusive<Node>(5, 1.0, 0.5, 0.0);
-    const auto node_6 = make_intrusive<Node>(6, 0.5, 0.5, 0.0);
-    return {node_1, node_2, node_3, node_4, node_5, node_6};
-}
-
 Tetrahedra3D4<Node> Create3D4NTetrahedraGeometry()
 {
     const auto node_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
