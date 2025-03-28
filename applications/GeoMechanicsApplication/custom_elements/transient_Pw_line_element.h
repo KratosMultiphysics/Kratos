@@ -25,6 +25,7 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "permeability_calculator.h"
+#include "pw_line_integration_coefficients.h"
 #include <numeric>
 #include <optional>
 
@@ -157,8 +158,10 @@ public:
     }
 
 private:
-    std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
-    std::vector<CalculationContribution> mContributions;
+    std::vector<RetentionLaw::Pointer>                 mRetentionLawVector;
+    std::vector<CalculationContribution>               mContributions;
+    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator =
+        std::make_unique<PwLineIntegrationCoefficients>();
 
     void CheckElementLength() const
     {
@@ -243,19 +246,6 @@ private:
         if (!mRetentionLawVector.empty()) {
             mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
         }
-    }
-
-    Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
-    {
-        const auto& r_properties         = GetProperties();
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-
-        auto result = Vector{r_integration_points.size()};
-        std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
-                       result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
-            return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
-        });
-        return result;
     }
 
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
@@ -370,7 +360,9 @@ private:
         return [this]() -> Vector {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            return CalculateIntegrationCoefficients(det_J_container);
+            return mpIntegrationCoefficientsCalculator->CalculateIntegrationCoefficients(
+                GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container,
+                GetProperties()[CROSS_AREA]);
         };
     }
 
