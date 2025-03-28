@@ -16,9 +16,9 @@ namespace Kratos
 {
 
 std::vector<double> IntegrationCoefficientsCalculator::CalculateIntegrationCoefficients(
-    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-    const Vector&                                   rDetJs,
-    const Geometry<Node>&                           rGeometry) const
+    const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
+    const Vector&                                     rDetJs,
+    const Geometry<Node>&                             rGeometry) const
 {
     auto result = std::vector<double>{};
     result.reserve(rIntegrationPoints.size());

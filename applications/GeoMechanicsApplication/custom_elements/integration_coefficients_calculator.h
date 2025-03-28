@@ -25,10 +25,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientsCalculator
 public:
     virtual ~IntegrationCoefficientsCalculator() = default;
 
-    typedef Node               NodeType;
-    typedef Geometry<NodeType> GeometryType;
-
-    [[nodiscard]] virtual Vector CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+    [[nodiscard]] virtual Vector CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
                                                                   const Vector& rDetJs,
                                                                   std::size_t   LocalDimension,
                                                                   double        CrossArea) const
@@ -39,9 +36,9 @@ public:
     }
 
     [[nodiscard]] virtual std::vector<double> CalculateIntegrationCoefficients(
-        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-        const Vector&                                   rDetJs,
-        const Geometry<Node>&                           rGeometry) const;
+        const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
+        const Vector&                                     rDetJs,
+        const Geometry<Node>&                             rGeometry) const;
 
 private:
     [[nodiscard]] virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,

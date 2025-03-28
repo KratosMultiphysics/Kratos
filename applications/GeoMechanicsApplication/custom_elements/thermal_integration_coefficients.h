@@ -20,7 +20,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ThermalIntegrationCoefficients : public IntegrationCoefficientsCalculator
 {
 public:
-    [[nodiscard]] Vector CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+    [[nodiscard]] Vector CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
                                                           const Vector& rDetJs,
                                                           std::size_t   LocalDimension,
                                                           double        CrossArea) const override;
