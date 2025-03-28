@@ -96,8 +96,7 @@ auto SetupPipingStrategy(Model& rModel)
 {
     using SparseSpaceType          = UblasSpace<double, CompressedMatrix, Vector>;
     using LocalSpaceType           = UblasSpace<double, Matrix, Vector>;
-    using LinearSolverBaseType     = LinearSolver<SparseSpaceType, LocalSpaceType>;
-    using LinearSolverType         = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>;
+    using LinearSolverType         = LinearSolver<SparseSpaceType, LocalSpaceType>;
     using ConvergenceCriteriaType  = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
     using MixedGenericCriteriaType = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
     using ConvergenceVariableListType = MixedGenericCriteriaType::ConvergenceVariableListType;
@@ -155,12 +154,12 @@ auto SetupPipingStrategy(Model& rModel)
     }  )");
 
     const auto p_builder_and_solver =
-        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverBaseType>>(nullptr);
+        Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(nullptr);
     const ConvergenceVariableListType      convergence_settings{};
     const ConvergenceCriteriaType::Pointer p_criteria =
         std::make_shared<MixedGenericCriteriaType>(convergence_settings);
 
-    return std::make_unique<MockGeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverBaseType>>(
+    return std::make_unique<MockGeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
         r_model_part, nullptr, p_criteria, p_builder_and_solver, p_parameters);
 }
 } // namespace Kratos
