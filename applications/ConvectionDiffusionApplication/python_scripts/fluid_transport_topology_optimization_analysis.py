@@ -468,9 +468,10 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
     def _GetTransportModelPart(self):
         return self._GetTransportSolver.GetMainModelPart()
 
-    def _CheckMaterialProperties(self):
-        print("--|CHECK| Check Physics Properties")
-        self._GetSolver()._CheckMaterialProperties()
+    def _CheckMaterialProperties(self, check = False):
+        if (check):
+            print("--|CHECK| Check Physics Properties")
+            self._GetSolver()._CheckMaterialProperties()
 
     def _InitializePhysicsParameters(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")

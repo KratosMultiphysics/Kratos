@@ -399,9 +399,10 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         for node in focus_mp.Nodes:
             node.SetSolutionStepValue(KratosCD.OPTIMIZATION_TEMPERATURE, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-target_t)
         
-    def _CheckMaterialProperties(self):
-        print("--|CHECK| Check Physics Properties")
-        self._GetSolver()._CheckMaterialProperties()
+    def _CheckMaterialProperties(self, check = False):
+        if (check):
+            print("--|CHECK| Check Physics Properties")
+            self._GetSolver()._CheckMaterialProperties()
 
     def _InitializePhysicsParameters(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")

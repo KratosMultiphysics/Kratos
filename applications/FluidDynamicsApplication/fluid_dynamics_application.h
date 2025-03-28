@@ -68,6 +68,7 @@
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_conditions/navier_stokes_p2_p1_continuous_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
+#include "custom_conditions/fluid_topology_optimization_wall_condition.h"
 
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
@@ -491,6 +492,9 @@ private:
     // Topology Optimization Fluid Element
     const FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,true>> mFluidTopologyOptimizationElement2D3N;
     const FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,true>> mFluidTopologyOptimizationElement3D4N;
+    // Topology Optimization Fluid Condition
+    const FluidTopologyOptimizationWallCondition<2,2> mFluidTopologyOptimizationWallCondition2D;
+    const FluidTopologyOptimizationWallCondition<3,3> mFluidTopologyOptimizationWallCondition3D;
 
     ///@}
     ///@name Private Operators

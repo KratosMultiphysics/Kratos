@@ -1420,9 +1420,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (abs(self.functional_weights[2]) > 1e-10):
             self._EvaluateVorticityFunctional(print_functional)
 
-    def _CheckMaterialProperties(self):
-        print("--|CHECK| Check Fluid Properties")
-        self._GetSolver()._CheckMaterialProperties()
+    def _CheckMaterialProperties(self, check = False):
+        if (check):
+            print("--|CHECK| Check Fluid Properties")
+            self._GetSolver()._CheckMaterialProperties()
 
     def _UpdateRelevantPhysicsVariables(self):
         pass

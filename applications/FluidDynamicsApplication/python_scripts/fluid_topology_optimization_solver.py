@@ -23,7 +23,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
     def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
-        {
+        {   
             "linear_solver_settings": {
                 "solver_type": "amgcl",
                 "smoother_type":"ilu0",
@@ -54,7 +54,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         if (self.element_name != "FluidTopologyOptimizationElement"):
             print("[WARNING]", self.__class__.__name__, "element_name: \'", self.element_name, "\' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")
             self.element_name = "FluidTopologyOptimizationElement"
-        self.condition_name = "NavierStokesWallCondition"
+        self.condition_name = "FluidTopologyOptimizationWallCondition"
         self.element_integrates_in_time = True
         
     def _SetFormulation(self):
@@ -72,6 +72,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.BODY_FORCE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_ADJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)

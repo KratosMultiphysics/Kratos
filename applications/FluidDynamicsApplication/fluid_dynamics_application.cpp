@@ -179,7 +179,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
 
     // Topology Optimization Fluid Element
     mFluidTopologyOptimizationElement2D3N( 0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-    mFluidTopologyOptimizationElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4))))
+    mFluidTopologyOptimizationElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+    // Fluid Topology Optimization wall conditions
+    mFluidTopologyOptimizationWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+    mFluidTopologyOptimizationWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3))))
 
 {}
 
@@ -458,6 +461,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D", mFSPeriodicCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge2D", mFSPeriodicConditionEdge2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge3D", mFSPeriodicConditionEdge3D);
+    KRATOS_REGISTER_CONDITION("FluidTopologyOptimizationWallCondition2D2N", mFluidTopologyOptimizationWallCondition2D);
+    KRATOS_REGISTER_CONDITION("FluidTopologyOptimizationWallCondition3D3N", mFluidTopologyOptimizationWallCondition3D);
 
     // Register adjoint conditions
     KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition2D2N", mAdjointMonolithicWallCondition2D2N);
