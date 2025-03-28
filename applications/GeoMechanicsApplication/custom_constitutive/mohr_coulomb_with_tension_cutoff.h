@@ -78,11 +78,12 @@ private:
                                                     double        YoungsModulus,
                                                     double        PoissonsRatio) const;
     [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
-    [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Vector& rPrincipalTrialStresses, double TensileStrength) const;
+    [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rPrincipalTrialStresses,
+                                                         double        TensileStrength) const;
     [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rPrincipalTrialStresses,
-                                             double        TensileStrength,
-                                             double        Apex,
-                                             const Vector& rCornerPoint) const;
+                                                           double        TensileStrength,
+                                                           double        Apex,
+                                                           const Vector& rCornerPoint) const;
     [[nodiscard]] static bool IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
                                                          double        DilatancyAngle,
                                                          const Vector& rCornerPoint);
