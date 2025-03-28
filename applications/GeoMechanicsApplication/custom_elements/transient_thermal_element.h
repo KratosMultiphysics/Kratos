@@ -21,6 +21,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "thermal_integration_coefficients.h"
 
 namespace Kratos
 {
@@ -85,7 +86,9 @@ public:
                                                                    GetIntegrationMethod());
         }
 
-        const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
+        const auto integration_coefficients = mpIntegrationCoefficientsCalculator->CalculateIntegrationCoefficients(
+            GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container,
+            GetProperties()[CROSS_AREA], GetGeometry().LocalSpaceDimension());
         const auto conductivity_matrix = CalculateConductivityMatrix(dN_dX_container, integration_coefficients);
         const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
@@ -149,6 +152,9 @@ public:
     }
 
 private:
+    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator =
+        std::make_unique<ThermalIntegrationCoefficients>();
+
     void CheckDomainSize() const
     {
         constexpr auto min_domain_size = 1.0e-15;
@@ -241,24 +247,6 @@ private:
         const auto conductivity_vector =
             array_1d<double, TNumNodes>{-prod(rConductivityMatrix, GetNodalValuesOf(TEMPERATURE))};
         rRightHandSideVector += conductivity_vector;
-    }
-
-    Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
-    {
-        const auto& r_properties         = GetProperties();
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-
-        auto result = Vector{r_integration_points.size()};
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < r_integration_points.size(); ++integration_point_index) {
-            result[integration_point_index] = r_integration_points[integration_point_index].Weight() *
-                                              rDetJContainer[integration_point_index];
-            if (GetGeometry().LocalSpaceDimension() == 1) {
-                result[integration_point_index] *= r_properties[CROSS_AREA];
-            }
-        }
-
-        return result;
     }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(
