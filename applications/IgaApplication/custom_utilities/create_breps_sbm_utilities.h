@@ -26,7 +26,7 @@
 #include "geometries/brep_surface.h"
 #include "geometries/brep_curve.h"
 #include "geometries/brep_curve_on_surface.h"
-
+#include "includes/io.h"
 
 namespace Kratos
 {
