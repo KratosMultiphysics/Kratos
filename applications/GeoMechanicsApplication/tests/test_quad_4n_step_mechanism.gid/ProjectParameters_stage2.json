@@ -19,7 +19,7 @@
             "materials_filename":       "MaterialParametersStage2.json"
         },
         "time_stepping":              {
-            "time_step":            0.5
+            "time_step":            0.1
         },
         "buffer_size":                        2,
         "echo_level":                         1,

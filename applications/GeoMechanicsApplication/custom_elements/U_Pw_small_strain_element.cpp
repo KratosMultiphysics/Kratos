@@ -1018,7 +1018,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     }
 
     if (rCurrentProcessInfo[TIME] > 0.0 && CalculateResidualVectorFlag) {
-        const auto f_ext = mInternalForcesAtStart + (mExternalForcesAtStart - mInternalForcesAtStart) /* * mCounter / 2*/;
+        const auto f_ext = - mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) * mCounter / 10;
         KRATOS_INFO("f_ext") << f_ext << std::endl;
         KRATOS_INFO("total_external_forces") << total_external_forces << std::endl;
         KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;
