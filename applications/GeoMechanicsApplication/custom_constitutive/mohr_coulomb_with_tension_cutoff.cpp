@@ -65,7 +65,7 @@ Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double Tensil
     return result;
 }
 
-Vector ReturnStressAtTensionApexZone(const Vector& rPrincipalTrialStressVector, double TensileStrength)
+Vector ReturnStressAtTensionApexReturnZone(const Vector& rPrincipalTrialStressVector, double TensileStrength)
 {
     Vector result = rPrincipalTrialStressVector;
     result[0]     = TensileStrength;
@@ -73,12 +73,13 @@ Vector ReturnStressAtTensionApexZone(const Vector& rPrincipalTrialStressVector, 
     return result;
 }
 
-Vector ReturnStressAtAxialZone(const Vector& rPrincipalTrialStressVector, double TensileStrength)
+Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rPrincipalTrialStressVector,
+                               const Vector& rDerivativeOfFlowFunction,
+                               double TensileStrength)
 {
-    auto result = rPrincipalTrialStressVector;
-    result[0]   = TensileStrength;
-    result[2]   = TensileStrength - rPrincipalTrialStressVector[0] + rPrincipalTrialStressVector[2];
-    return result;
+    const auto lambda =
+        (TensileStrength - rPrincipalTrialStressVector[0]) / rDerivativeOfFlowFunction[0];
+    return rPrincipalTrialStressVector + lambda * rDerivativeOfFlowFunction;
 }
 
 Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector, const Vector& rCornerPoint)
@@ -248,13 +249,15 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             CalculateCornerPoint(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]),
                                  r_prop[GEO_COHESION], r_prop[GEO_TENSILE_STRENGTH]);
 
-        if (IsStressAtTensionApexZone(principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH])) {
+        if (IsStressAtTensionApexReturnZone(principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH])) {
             principal_trial_stress_vector =
-                ReturnStressAtTensionApexZone(principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH]);
+                ReturnStressAtTensionApexReturnZone(principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH]);
         }
-        else if (IsStressAtAxialZone(principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH], apex, corner_point)) {
+        else if (IsStressAtTensionCutoffReturnZone(principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH], apex, corner_point)) {
             principal_trial_stress_vector =
-                ReturnStressAtAxialZone(principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH]);
+                ReturnStressAtTensionCutoffReturnZone(principal_trial_stress_vector,
+                mTensionCutOff.DerivativeOfFlowFunction(principal_trial_stress_vector),
+                r_prop[GEO_TENSILE_STRENGTH]);
         } else if (IsStressAtCornerReturnZone(principal_trial_stress_vector,
                                               MathUtils<>::DegreesToRadians(r_prop[GEO_DILATANCY_ANGLE]),
                                               corner_point)) {
@@ -283,14 +286,14 @@ bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector
            mTensionCutOff.YieldFunctionValue(rPrincipalStresses) <= 1.0e-12;
 }
 
-bool MohrCoulombWithTensionCutOff::IsStressAtTensionApexZone(const Vector& rPrincipalTrialStresses,
+bool MohrCoulombWithTensionCutOff::IsStressAtTensionApexReturnZone(const Vector& rPrincipalTrialStresses,
                                                              double        TensileStrength) const
 {
     const auto trial_tau = TransformPrincipalStressesToSigmaAndTau(rPrincipalTrialStresses);
     return trial_tau[1] - trial_tau[0] + TensileStrength < 0.0;
 }
 
-bool MohrCoulombWithTensionCutOff::IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
+bool MohrCoulombWithTensionCutOff::IsStressAtTensionCutoffReturnZone(const Vector& rPrincipalTrialStresses,
                                                        double        TensileStrength,
                                                        double        Apex,
                                                        const Vector& rCornerPoint) const
