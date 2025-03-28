@@ -103,8 +103,8 @@ void AssignIgaExternalConditionsProcess::Execute(){
                         values_string.push_back(parameters[i_var]["value"].GetString()); 
                         variable_name_array.push_back(variable_name) ;
                     } else {
-                        const int numberOfComponents = parameters[i_var]["value"].size();
-                        for (IndexType i_component = 0; i_component < numberOfComponents; i_component++ ) {
+                        SizeType number_of_components = parameters[i_var]["value"].size();
+                        for (IndexType i_component = 0; i_component < number_of_components; i_component++ ) {
                             values_string.push_back(parameters[i_var]["value"][i_component].GetString());
                             std::string component_variable_name = variable_name+components_array[i_component];
                             variable_name_array.push_back(component_variable_name) ;
