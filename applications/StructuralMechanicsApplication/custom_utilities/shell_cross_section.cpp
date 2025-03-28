@@ -1017,7 +1017,11 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
     rVariables.DeterminantF0 = 1.0;
 
     // calculate the material response
+    Options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    Options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     rPoint.GetConstitutiveLaw()->CalculateMaterialResponse(rMaterialValues, rStressMeasure);
+    Options.Set(ConstitutiveLaw::COMPUTE_STRESS, compute_stress);
+    Options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, compute_constitutive_tensor);
 
     // compute stress resultants and stress couples
 
