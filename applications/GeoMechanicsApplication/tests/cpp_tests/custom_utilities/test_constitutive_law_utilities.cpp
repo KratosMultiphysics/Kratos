@@ -112,4 +112,22 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
         "Material 0 does not have UMAT_PARAMETERS and/or INDEX_OF_UMAT_PHI_PARAMETER");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties      = Properties{};
+    auto umat_parameters = Vector{2};
+    umat_parameters <<= 2.0, 30.0;
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0); // 1-based index
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::GetCohesion(properties),
+        "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 0 is not in range [1, 2]");
+
+    properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3); // 1-based index
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::GetCohesion(properties),
+        "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2]");
+}
+
 } // namespace Kratos::Testing

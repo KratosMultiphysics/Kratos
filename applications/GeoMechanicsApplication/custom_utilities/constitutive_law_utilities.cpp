@@ -30,6 +30,7 @@ double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int
                           static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
         << "Got out-of-bounds " << rIndexVariable.Name() << " (material ID: " << rProperties.Id()
         << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
+
     return rProperties[UMAT_PARAMETERS][index - 1];
 }
 
@@ -66,16 +67,15 @@ void ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parame
 
 double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
 {
-    if (rProperties.Has(GEO_COHESION)) return rProperties[GEO_COHESION];
-
-    return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_C_PARAMETER);
+    return rProperties.Has(GEO_COHESION) ? rProperties[GEO_COHESION]
+                                         : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_C_PARAMETER);
 }
 
 double ConstitutiveLawUtilities::GetFrictionAngle(const Properties& rProperties)
 {
-    if (rProperties.Has(GEO_FRICTION_ANGLE)) return rProperties[GEO_FRICTION_ANGLE];
-
-    return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
+    return rProperties.Has(GEO_FRICTION_ANGLE)
+               ? rProperties[GEO_FRICTION_ANGLE]
+               : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
 }
 
 } // namespace Kratos
