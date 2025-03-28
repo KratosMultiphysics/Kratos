@@ -8,32 +8,20 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Carlos A. Roig
+//  Main authors:    Ruben Zorrilla
 //
 //
+
+#pragma once
 
 // System includes
 
 // External includes
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define_python.h"
-
-// Future Extensions
-#include "future/python/add_linear_solvers_to_python.h"
-#include "future/python/add_processes_to_python.h"
 
 namespace Kratos::Future::Python
 {
-
-namespace py = pybind11;
-
-void AddFutureToPython(py::module& m)
-{
-    AddLinearSolversToPython(m);
-
-    AddProcessesToPython(m);
-}
-
+    void AddLinearSolversToPython(pybind11::module &m);
 }  // namespace Kratos::Future::Python.
-
