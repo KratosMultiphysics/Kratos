@@ -101,37 +101,15 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        if (GetGeometry().LocalSpaceDimension() == 1) {
-            switch (TNumNodes) {
-            case 2:
-            case 3:
-                return GeometryData::IntegrationMethod::GI_GAUSS_2;
-            case 4:
-                return GeometryData::IntegrationMethod::GI_GAUSS_3;
-            case 5:
-                return GeometryData::IntegrationMethod::GI_GAUSS_5;
-            default:
-                KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                             << std::endl;
-            }
-        }
-
-        switch (TNumNodes) {
-        case 3:
-        case 4:
-        case 6:
-        case 8:
-        case 9:
-        case 20:
-        case 27:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
-        case 10:
-            return GeometryData::IntegrationMethod::GI_GAUSS_4;
-        case 15:
+        switch (this->GetGeometry().GetGeometryOrderType()) {
+        case GeometryData::Kratos_Cubic_Order:
+            return this->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D10
+                       ? GeometryData::IntegrationMethod::GI_GAUSS_4
+                       : GeometryData::IntegrationMethod::GI_GAUSS_3;
+        case GeometryData::Kratos_Quartic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                         << std::endl;
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
     }
 
