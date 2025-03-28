@@ -43,6 +43,7 @@ public:
         const Vector&                                   rDetJs,
         const Geometry<Node>&                           rGeometry) const;
 
+private:
     [[nodiscard]] virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                                  double DetJ,
                                                                  const Geometry<Node>& rGeometry) const
@@ -51,7 +52,6 @@ public:
             << "IntegrationCoefficientsCalculator::CalculateIntegrationCoefficient is called." << std::endl;
     }
 
-private:
     friend class Serializer;
     virtual void save(Serializer& rSerializer) const = 0;
     virtual void load(Serializer& rSerializer)       = 0;
