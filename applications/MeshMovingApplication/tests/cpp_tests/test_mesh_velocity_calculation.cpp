@@ -14,7 +14,6 @@
 #include <unordered_map>
 
 // Project includes
-#include "testing/testing.h"
 #include "includes/expect.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
@@ -26,9 +25,10 @@
 
 // Application includes
 #include "custom_utilities/mesh_velocity_calculation.h"
+#include "tests/cpp_tests/mesh_moving_fast_suite.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing 
+{
 
 namespace { // empty namespace to not pollute the testing-namespace with aux-functions
 
@@ -136,7 +136,7 @@ void TestBDFTimeIntegration(const TBDF& rBDF,
     }
 }
 
-}
+} // empty namespace
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateMeshVelocitiesBDF1, MeshMovingApplicationFastSuite)
 {
@@ -226,5 +226,4 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMeshVelocitiesGeneralizedAlpha, MeshMovingApp
     }
 }
 
-}
-}  // namespace Kratos.
+}  // namespace Kratos::Testing.

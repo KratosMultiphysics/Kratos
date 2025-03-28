@@ -10,25 +10,17 @@
 //  Main authors:    Richard Faasse
 //
 
-// External includes
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 // Project includes
-#include "testing/testing.h"
-#include "mapping_application.h"
+#include "tests/cpp_tests/mapping_fast_suite.h"
 
-int main(int argc, char* argv[]) 
+namespace Kratos::Testing 
 {
-    ::testing::InitGoogleTest(&argc, argv);
 
-    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("MappingApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosMappingApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-    });
-
-    return RUN_ALL_TESTS();
+KratosMappingApplicationSerialTestSuite::KratosMappingApplicationSerialTestSuite()
+    : KratosCoreFastSuite() 
+{
+    mpMappingApp = std::make_shared<KratosMappingApplication>();
+    this->ImportApplicationIntoKernel(mpMappingApp);
 }
+
+} // namespace Kratos::Testing
