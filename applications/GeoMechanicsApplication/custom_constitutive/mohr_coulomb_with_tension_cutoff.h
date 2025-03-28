@@ -78,6 +78,7 @@ private:
                                                     double        YoungsModulus,
                                                     double        PoissonsRatio) const;
     [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
+    [[nodiscard]] bool IsStressAtTensionApexZone(const Vector& rPrincipalTrialStresses, double TensileStrength) const;
     [[nodiscard]] bool   IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
                                              double        TensileStrength,
                                              double        Apex,
