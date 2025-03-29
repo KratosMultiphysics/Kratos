@@ -241,17 +241,6 @@ void LinkConstraint::InitializeNonLinearIteration([[maybe_unused]] const Process
 
 void LinkConstraint::FinalizeNonLinearIteration([[maybe_unused]] const ProcessInfo&)
 {
-    const std::array<const Variable<Impl::ValueType>*,3> displacement_components {
-        &DISPLACEMENT_X,
-        &DISPLACEMENT_Y,
-        &DISPLACEMENT_Z
-    };
-    Impl::ValueType distance = 0;
-    for (unsigned i_component=0u; i_component<mpImpl->mDimensions; ++i_component) {
-        distance += std::pow(mpImpl->mNodePair[0]->Coordinates()[i_component] + mpImpl->mNodePair[0]->GetSolutionStepValue(*displacement_components[i_component])
-                             - mpImpl->mNodePair[1]->Coordinates()[i_component] - mpImpl->mNodePair[1]->GetSolutionStepValue(*displacement_components[i_component]), 2);
-    }
-    std::cout << "LinkConstraint: distance is " << distance << "\n";
 }
 
 
