@@ -260,6 +260,26 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
 }
 
 
+namespace detail {
+
+
+inline auto FindNodeIndex(ModelPart& rModelPart,
+                          Node& rNode) noexcept
+{
+    return std::distance(
+        rModelPart.Nodes().begin(),
+        std::lower_bound(rModelPart.Nodes().begin(),
+                         rModelPart.Nodes().end(),
+                         rNode,
+                         [](const Node& r_left, const Node& r_right){
+                            return r_left.Id() < r_right.Id();
+                         })
+    );
+}
+
+} // namespace detail
+
+
 /// @brief Compute the p-multigrid restriction operator for the provided mesh.
 /// @tparam TValue Number type of stored values in the sparse matrix.
 /// @tparam OrderReduction
@@ -402,7 +422,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
                 // Mark nodes as not hanging.
                 for (Node& r_node : r_element.GetGeometry()) {
-                    const std::size_t i_node = find_node_index(r_node);
+                    const std::size_t i_node = detail::FindNodeIndex(rModelPart, r_node);
                     KRATOS_DEBUG_ERROR_IF_NOT(i_node < hanging_nodes.size());
                     hanging_nodes[i_node] = 0u;
                 } // for r_node in r_element.GetGeometry()
