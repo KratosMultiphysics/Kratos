@@ -332,18 +332,6 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         std::vector<LockObject> locks(FineSystemSize);
         using Triplet = std::tuple<LocalIndex,LocalIndex,TValue>;
 
-        const auto find_node_index = [&rModelPart](const Node& r_node) -> std::size_t {
-            return std::distance(
-                rModelPart.Nodes().begin(),
-                std::lower_bound(rModelPart.Nodes().begin(),
-                                 rModelPart.Nodes().end(),
-                                 r_node,
-                                 [](const Node& r_left, const Node& r_right){
-                                    return r_left.Id() < r_right.Id();
-                                 })
-            );
-        }; // def find_node_index
-
         // A vector of bools indicating whether the node at the same position
         // is a hanging node (i.e.: not part of any element/condition) or not.
         // In case you're wondering, I'm not using an std::vector<std::atomic<bool>>
@@ -353,19 +341,25 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         std::vector<std::atomic<std::uint8_t>> hanging_nodes(rModelPart.Nodes().size());
         block_for_each(hanging_nodes, [](auto& r_flag) {r_flag = 1;});
 
+        struct TLS
+        {
+            std::vector<Triplet> local_restriction_operator;
+            std::vector<bool> included_dofs;
+        }; // struct TLS
+
         // Collect terms from elements.
         KRATOS_TRY
         block_for_each(rModelPart.Elements(),
-                       std::vector<Triplet>(),
-                       [&rows, &locks, &hanging_nodes, &find_node_index, &rParentIndirectDofSet](const Element& r_element, std::vector<Triplet>& r_tls) {
+                       TLS(),
+                       [&rows, &locks, &hanging_nodes, &rParentIndirectDofSet, &rModelPart](const Element& r_element, TLS& r_tls) {
             if (r_element.IsActive()) {
                 const auto& r_geometry = r_element.GetGeometry();
 
                 // Fetch the local restriction operator of the element.
-                r_tls.clear();
-                MakePRestrictionOperator<OrderReduction,TValue,LocalIndex>(r_geometry, std::back_inserter(r_tls));
+                r_tls.local_restriction_operator.clear();
+                MakePRestrictionOperator<OrderReduction,TValue,LocalIndex>(r_geometry, std::back_inserter(r_tls.local_restriction_operator));
 
-                for (const auto& [i_row, i_column, value] : r_tls) {
+                for (const auto& [i_row, i_column, value] : r_tls.local_restriction_operator) {
                     auto& r_row_dofs = r_geometry[i_row].GetDofs();
                     const auto& r_column_dofs = r_geometry[i_column].GetDofs();
                     KRATOS_DEBUG_ERROR_IF_NOT(r_row_dofs.size() == r_column_dofs.size());
@@ -381,7 +375,9 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                         if (it_first_dof == rParentIndirectDofSet.end()) continue;
 
                         // Find which DoFs are included from the node.
-                        std::vector<bool> included_dofs(r_row_dofs.size(), false);
+                        r_tls.included_dofs.resize(r_row_dofs.size());
+                        std::fill(r_tls.included_dofs.begin(), r_tls.included_dofs.end(), false);
+
                         {
                             const auto i_row_node = r_row_dofs.front()->Id();
                             auto it_parent_dof = it_first_dof;
@@ -389,7 +385,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                                 const Dof<double>& r_row_dof = *r_row_dofs[i_component];
                                 if (it_parent_dof->Id() == i_row_node) {
                                     if (it_parent_dof->GetVariable().Key() == r_row_dof.GetVariable().Key()) {
-                                        included_dofs[i_component] = true;
+                                        r_tls.included_dofs[i_component] = true;
                                         ++it_parent_dof;
                                     }
                                 } else break;
