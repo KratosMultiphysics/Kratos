@@ -286,14 +286,14 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     // --------------------------------------------------------- //
 
 
-    template <class TProxy>
+    template <class TProxy, class TIndexSet>
     static void CollectDoFs(const TProxy& rEntities,
                             const ProcessInfo& rProcessInfo,
                             typename Interface::TSchemeType& rScheme,
                             LockObject* pLockBegin,
                             [[maybe_unused]] LockObject* pLockEnd,
-                            std::unordered_set<std::size_t>* pRowSetBegin,
-                            [[maybe_unused]] std::unordered_set<std::size_t>* pRowSetEnd)
+                            TIndexSet* pRowSetBegin,
+                            [[maybe_unused]] TIndexSet* pRowSetEnd)
     {
         KRATOS_TRY
         KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
@@ -321,7 +321,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
-        std::vector<std::unordered_set<std::size_t>> indices(mpInterface->GetEquationSystemSize());
+        using IndexSet = std::unordered_set<std::size_t>;
+        std::vector<IndexSet> indices(mpInterface->GetEquationSystemSize());
 
         {
             std::vector<LockObject> mutexes(mpInterface->GetEquationSystemSize());
