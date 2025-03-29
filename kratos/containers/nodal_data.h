@@ -33,7 +33,7 @@ namespace Kratos
 /** This class is the container for nodal data storing:
  *  Id : The Id of the node
 */
-class KRATOS_API(KRATOS_CORE) NodalData
+class KRATOS_API(KRATOS_CORE) NodalData final
 {
 public:
     ///@name Type Definitions
@@ -60,39 +60,36 @@ public:
 
     NodalData(IndexType TheId, VariablesList::Pointer pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
 
-    /// Destructor.
-    ~NodalData(){}
+    NodalData(NodalData&&) noexcept = default;
 
     ///@}
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    NodalData& operator=(NodalData const& rOther);
+    NodalData& operator=(NodalData const& rOther) = default;
+
+    NodalData& operator=(NodalData&&) noexcept = default;
 
     ///@}
-    ///@name Operations
-    ///@{
-
 
     ///@}
     ///@name Access
     ///@{
 
     /// Returns the Id of the Node. Same as GetId to ensure backward compatibility
-    IndexType Id() const
+    IndexType Id() const noexcept
     {
         return mId;
     }
 
-    /// Returns the Id of the Node. 
-    IndexType GetId() const
+    /// Returns the Id of the Node.
+    IndexType GetId() const noexcept
     {
         return mId;
     }
 
     /// Sets the Id of the Node.
-    void SetId(IndexType NewId)
+    void SetId(IndexType NewId) noexcept
     {
         mId = NewId;
     }
@@ -103,12 +100,12 @@ public:
         mSolutionStepsNodalData = TheData;
     }
 
-    VariablesListDataValueContainer& GetSolutionStepData()
+    VariablesListDataValueContainer& GetSolutionStepData() noexcept
     {
         return mSolutionStepsNodalData;
     }
 
-    const VariablesListDataValueContainer& GetSolutionStepData() const
+    const VariablesListDataValueContainer& GetSolutionStepData() const noexcept
     {
         return mSolutionStepsNodalData;
     }
@@ -190,7 +187,6 @@ private:
 
     /// Copy constructor.
     NodalData(NodalData const& rOther);
-
 
     ///@}
 

@@ -24,7 +24,7 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
     -------
     During this stage, the normal component of the momentum or velocity of the
     selected wall will have exponential decay. After its speed is A times
-    smaller than originally, it extits ramp-up stage.
+    smaller than originally, it exits ramp-up stage.
 
     This parameter A is hardcoded as `decay_constant`.
 
@@ -41,7 +41,7 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
 
     STEADY STATE
     ------------
-    The node is given the SLIP flag, which signals the stategy that it is in
+    The node is given the SLIP flag, which signals the strategy that it is in
     charge of applying the boundary condition.
 
     Key parameters

@@ -16,12 +16,12 @@
 
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include <custom_utilities/math_utilities.h>
 
 namespace Kratos
 {
@@ -104,7 +104,9 @@ public:
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
         // conditional on model dimension
-        CheckForNonZeroZCoordinateIn2D();
+        if constexpr (TDim == 2) {
+            CheckForNonZeroZCoordinate();
+        }
 
         KRATOS_CATCH("")
 
@@ -116,12 +118,16 @@ public:
         Element::Initialize(rCurrentProcessInfo);
         // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
-        this->SetValue(PIPE_EROSION, false);
-        constexpr double small_pipe_height = 1e-10;
-        this->SetValue(PIPE_HEIGHT, small_pipe_height);
-        this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
-        this->SetValue(DIFF_PIPE_HEIGHT, 0.);
-        this->SetValue(PIPE_ACTIVE, false);
+
+        if (!mIsInitialized) {
+            this->SetValue(PIPE_EROSION, false);
+            constexpr double small_pipe_height = 1e-10;
+            this->SetValue(PIPE_HEIGHT, small_pipe_height);
+            this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
+            this->SetValue(DIFF_PIPE_HEIGHT, 0.);
+            this->SetValue(PIPE_ACTIVE, false);
+            mIsInitialized = true;
+        }
     }
 
     double CalculateEquilibriumPipeHeight(const PropertiesType& rProp, const GeometryType& rGeom, double)
@@ -216,6 +222,8 @@ public:
 
     using Element::CalculateOnIntegrationPoints;
 
+    std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
+
 private:
     void CheckDomainSize() const
     {
@@ -249,6 +257,9 @@ private:
         CheckProperty(DENSITY_WATER);
         CheckProperty(DYNAMIC_VISCOSITY);
         CheckProperty(PIPE_HEIGHT);
+        if constexpr (TDim == 3) {
+            CheckProperty(PIPE_WIDTH_FACTOR);
+        }
     }
 
     void CheckProperty(const Kratos::Variable<double>& rVariable) const
@@ -260,15 +271,13 @@ private:
             << ") is not in the range [0,-> at element " << Id() << std::endl;
     }
 
-    void CheckForNonZeroZCoordinateIn2D() const
+    void CheckForNonZeroZCoordinate() const
     {
-        if constexpr (TDim == 2) {
-            const auto& r_geometry = GetGeometry();
-            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
-                                                  [](const auto& node) { return node.Z() != 0.0; });
-            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
-        }
+        const auto& r_geometry = GetGeometry();
+        auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
+                                              [](const auto& node) { return node.Z() != 0.0; });
+        KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
+            << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
     }
 
     static double CalculateLength(const GeometryType& Geom)
@@ -317,9 +326,12 @@ private:
         return result;
     }
 
-    static Matrix FillPermeabilityMatrix(double pipe_height)
+    Matrix FillPermeabilityMatrix(double pipe_height) const
     {
-        return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
+        if constexpr (TDim == 2) {
+            return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
+        }
+        return ScalarMatrix{1, 1, this->GetProperties()[PIPE_WIDTH_FACTOR] * std::pow(pipe_height, 4) / 12.0};
     }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
@@ -384,9 +396,10 @@ private:
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
 
-            array_1d<double, 1> projected_gravity = ZeroVector(1);
-            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N         = Vector{row(rNContainer, integration_point_index)};
+            const auto projected_gravity =
+                array_1d<double, 1>(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
+                                                          body_acceleration.begin(), 0.0));
+            const auto N = Vector{row(rNContainer, integration_point_index)};
             fluid_body_vector +=
                 r_properties[DENSITY_WATER] *
                 prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
@@ -405,11 +418,15 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        rSerializer.save("mIsInitialized", mIsInitialized);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        rSerializer.load("mIsInitialized", mIsInitialized);
     }
+
+    bool mIsInitialized = false;
 };
 } // namespace Kratos

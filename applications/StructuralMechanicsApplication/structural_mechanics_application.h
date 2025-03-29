@@ -34,7 +34,7 @@
 #include "custom_elements/truss_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
-#include "custom_elements/truss_elements/linear_truss_element_2D.h"
+#include "custom_elements/truss_elements/linear_truss_element.h"
 
 /* Adding beam element */
 #include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
@@ -87,6 +87,7 @@
 #include "custom_elements/solid_elements/small_displacement_mixed_volumetric_strain_oss_non_linear_element.h"
 #include "custom_elements/solid_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/solid_elements/total_lagrangian_q1p0_mixed_element.h"
+#include "custom_elements/solid_elements/small_displacement_mixed_strain_displacement_element.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D3N.h"
 #include "custom_elements/beam_elements/timoshenko_curved_beam_element_2D3N.h"
@@ -122,6 +123,7 @@
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
 // Constitutive laws for the Timoshenko beams
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
+#include "custom_constitutive/timoshenko_plane_strain_beam_elastic_constitutive_law.h"
 
 
 namespace Kratos
@@ -272,8 +274,10 @@ private:
     const TrussElement3D2N mTrussElement3D2N;
     const TrussElementLinear3D2N mTrussLinearElement3D2N;
     const CableElement3D2N mCableElement3D2N;
-    const LinearTrussElement2D<2> mLinearTrussElement2D2N;
-    const LinearTrussElement2D<3> mLinearTrussElement2D3N;
+    const LinearTrussElement<2, 2> mLinearTrussElement2D2N;
+    const LinearTrussElement<2, 3> mLinearTrussElement2D3N;
+    const LinearTrussElement<3, 2> mLinearTrussElement3D2N;
+    const LinearTrussElement<3, 3> mLinearTrussElement3D3N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;
@@ -351,6 +355,11 @@ private:
     const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement2D4N;
     const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N;
     const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N;
+
+    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement2D3N;
+    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement2D4N;
+    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement3D4N;
+    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement3D8N;
 
     const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
     const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
@@ -520,6 +529,7 @@ private:
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
     const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
+    const TimoshenkoBeamPlaneStrainElasticConstitutiveLaw mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

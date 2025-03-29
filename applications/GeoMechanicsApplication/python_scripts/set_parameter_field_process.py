@@ -1,5 +1,7 @@
 import json
 import importlib
+import warnings
+from typing import Optional
 
 import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -41,22 +43,19 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
         self.params.AddValue("func_type", settings["func_type"])
         self.params.AddValue("function", settings["function"])
         self.params.AddValue("dataset", settings["dataset"])
-        is_variable_vector_type = isinstance(self.GetVariableBasedOnString(), KratosMultiphysics.VectorVariable)
-        if "input" in settings["func_type"].GetString() and is_variable_vector_type:
+        if ("input" in settings["func_type"].GetString() and
+                isinstance(self.GetVariableBasedOnString(), KratosMultiphysics.VectorVariable)):
             self.params.AddValue("vector_variable_indices", settings["vector_variable_indices"])
         if "json_file" in settings["func_type"].GetString():
             self.params.AddValue("dataset_file_name", settings["dataset_file_name"])
         self.process = KratosGeo.SetParameterFieldProcess(self.model_part, self.params)
 
-    def GetVariableBasedOnString(self):
+    def GetVariableBasedOnString(self) -> Optional[KratosMultiphysics.VariableData]:
         """
         This function returns the variable based on the variable name string.
 
-
-        Returns
-        -------
-        variable : KratosMultiphysics.Variable
-
+        Returns:
+            - Optional[KratosMultiphysics.VariableData]: the kratos variable object
         """
 
         # Get variable object
@@ -67,8 +66,10 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
                 variable = getattr(kratos_module, self.params["variable_name"].GetString())
                 return variable
 
-        raise AttributeError(f'The variable: {self.params["variable_name"].GetString()} is not present within '
-                             f'the imported modules')
+        # add warning if variable is not found
+        warnings.warn(f'The variable: {self.params["variable_name"].GetString()} is not present within '
+                      f'the imported modules')
+        return None
 
 
     def ExecuteInitialize(self):
@@ -94,6 +95,9 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
             all_coordinates = []
 
             variable = self.GetVariableBasedOnString()
+            if variable is None:
+                raise AttributeError(f'The variable: {self.params["variable_name"].GetString()} is not present within '
+                                     f'the imported modules')
 
             for element in self.model_part.Elements:
 

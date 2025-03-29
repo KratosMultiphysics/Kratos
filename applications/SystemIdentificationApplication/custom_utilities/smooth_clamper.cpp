@@ -87,7 +87,6 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
     // y = 3x^2 - 2x^3
     // dy/dx = 3.2.x - 2.3.x^2
 
-    const auto min = mMin;
     const auto delta = mMax - mMin;
     const auto& r_input_exp = rInput.GetExpression();
     const auto number_of_entities = r_input_exp.NumberOfEntities();
@@ -98,7 +97,7 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, delta](const auto Index) {
+    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, delta](const auto Index) {
         const double x = r_input_exp.Evaluate(Index, Index, 0);
         double& value = *(p_result_exp->begin() + Index);
         if (x < 0.0) {
@@ -156,8 +155,8 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackwa
 
 
 // template instantiations
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SmoothClamper<ModelPart::NodesContainerType>;
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SmoothClamper<ModelPart::ConditionsContainerType>;
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SmoothClamper<ModelPart::ElementsContainerType>;
+template class SmoothClamper<ModelPart::NodesContainerType>;
+template class SmoothClamper<ModelPart::ConditionsContainerType>;
+template class SmoothClamper<ModelPart::ElementsContainerType>;
 
 } /* namespace Kratos.*/
