@@ -396,15 +396,11 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                             } // for i_component in range(r_row_dofs.size())
                         }
 
-                        // No need acquire the mutexes of all row DoFs, since all
-                        // nodes are assumed to have an identical set of DoFs.
-                        // ==> set the lock related to the first DoF in the set.
-                        [[maybe_unused]] std::scoped_lock<LockObject> row_lock(locks[r_row_dofs.front()->EquationId()]);
-
                         const unsigned component_count = r_row_dofs.size();
                         for (unsigned i_component=0u; i_component<component_count; ++i_component) {
-                            if (!included_dofs[i_component]) continue;
+                            if (!r_tls.included_dofs[i_component]) continue;
                             Dof<double>* p_fine_row_dof = r_row_dofs[i_component].get();
+                            [[maybe_unused]] std::scoped_lock<LockObject> row_lock(locks[p_fine_row_dof->EquationId()]);
 
                             const std::size_t i_row_dof = p_fine_row_dof->EquationId();
                             rows[i_row_dof].second = p_fine_row_dof;
