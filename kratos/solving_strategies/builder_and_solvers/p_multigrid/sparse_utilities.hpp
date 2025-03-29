@@ -47,7 +47,7 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
     KRATOS_ERROR_IF_NOT(rRight.nnz() <= rLeft.nnz());
 
     #define KRATOS_MATRIX_SUM(sum_operator)                                                                                         \
-        IndexPartition<std::size_t>(rLeft.size1()).for_each([&rLeft, &rRight, Coefficient](const std::size_t i_row) {               \
+        IndexPartition<IndexType>(rLeft.size1()).for_each([&rLeft, &rRight, Coefficient](const IndexType i_row) {                   \
             (void)Coefficient; /*<== suppress unused capture warnings.*/                                                            \
             const auto i_right_entry_begin = rRight.index1_data()[i_row];                                                           \
             const auto i_right_entry_end   = rRight.index1_data()[i_row + 1];                                                       \
@@ -169,20 +169,20 @@ template <bool SortedRows,
           class TValue,
           class TRowMapContainer>
 void MakeSparseTopology(TRowMapContainer& rRows,
-                        const std::size_t ColumnCount,
+                        const IndexType ColumnCount,
                         typename TUblasSparseSpace<TValue>::MatrixType& rMatrix,
                         bool EnsureDiagonal)
 {
     KRATOS_TRY
 
     if (EnsureDiagonal) {
-        IndexPartition<std::size_t>(rRows.size()).for_each([&rRows](std::size_t i_row){
+        IndexPartition<IndexType>(rRows.size()).for_each([&rRows](IndexType i_row){
             rRows[i_row].emplace(i_row);
         });
     }
 
-    const std::size_t row_count = rRows.size();
-    std::size_t entry_count = 0ul;
+    const IndexType row_count = rRows.size();
+    IndexType entry_count = 0ul;
 
     {
         auto row_extents = rMatrix.index1_data();
@@ -206,9 +206,9 @@ void MakeSparseTopology(TRowMapContainer& rRows,
     auto& r_column_indices = rMatrix.index2_data();
 
     // Copy column indices.
-    IndexPartition<std::size_t>(row_count).for_each([&r_row_extents, &r_column_indices, &rRows](const std::size_t i_row){
-        const unsigned i_entry_begin = r_row_extents[i_row];
-        const unsigned i_entry_end = r_row_extents[i_row + 1];
+    IndexPartition<IndexType>(row_count).for_each([&r_row_extents, &r_column_indices, &rRows](const IndexType i_row){
+        const IndexType i_entry_begin = r_row_extents[i_row];
+        const IndexType i_entry_end = r_row_extents[i_row + 1];
         KRATOS_DEBUG_ERROR_IF(r_column_indices.size() < i_entry_end);
         std::copy(rRows[i_row].begin(),
                   rRows[i_row].end(),
@@ -233,8 +233,8 @@ void MakeSparseTopology(TRowMapContainer& rRows,
 template <class TSparse, class TDense>
 void MapRowContribution(typename TSparse::MatrixType& rLhs,
                         const typename TDense::MatrixType& rLocalLhs,
-                        const unsigned iRow,
-                        const unsigned iLocalRow,
+                        const IndexType iRow,
+                        const IndexType iLocalRow,
                         const Element::EquationIdVectorType& rEquationIds) noexcept
 {
     auto& r_entries = rLhs.value_data();
@@ -244,11 +244,11 @@ void MapRowContribution(typename TSparse::MatrixType& rLhs,
     const auto i_row_begin = r_row_extents[iRow];
     const auto i_row_end = r_row_extents[iRow + 1];
 
-    for (unsigned int i_local_column=0; i_local_column<rEquationIds.size(); i_local_column++) {
-        const unsigned int iColumn = rEquationIds[i_local_column];
+    for (IndexType i_local_column=0; i_local_column<rEquationIds.size(); i_local_column++) {
+        const IndexType i_column = rEquationIds[i_local_column];
         const auto it = std::lower_bound(r_column_indices.begin() + i_row_begin,
-                                            r_column_indices.begin() + i_row_end,
-                                            iColumn);
+                                         r_column_indices.begin() + i_row_end,
+                                         i_column);
         r_entries[std::distance(r_column_indices.begin(), it)] += rLocalLhs(iLocalRow, i_local_column);
     }
 }
@@ -260,10 +260,10 @@ void MapContribution(typename TSparse::VectorType& rRhs,
                      const typename TDense::VectorType& rContribution,
                      const Element::EquationIdVectorType& rEquationIds) noexcept
 {
-    const unsigned local_size = rContribution.size();
+    const IndexType local_size = rContribution.size();
 
-    for (unsigned i_local = 0; i_local < local_size; i_local++) {
-        const unsigned i_global = rEquationIds[i_local];
+    for (IndexType i_local = 0; i_local < local_size; i_local++) {
+        const IndexType i_global = rEquationIds[i_local];
         AtomicAdd(rRhs[i_global], static_cast<typename TSparse::DataType>(rContribution[i_local]));
     }
 }
@@ -276,7 +276,7 @@ void MapContribution(typename TSparse::MatrixType& rLhs,
                      const Element::EquationIdVectorType& rEquationIds,
                      LockObject* pLockBegin) noexcept
 {
-    const std::size_t local_size = rContribution.size1();
+    const IndexType local_size = rContribution.size1();
     for (IndexType i_local = 0; i_local < local_size; i_local++) {
         const IndexType i_global = rEquationIds[i_local];
         std::scoped_lock<LockObject> lock(pLockBegin[i_global]);
@@ -298,9 +298,9 @@ void MapContribution(typename TSparse::MatrixType& rLhs,
                      const Element::EquationIdVectorType& rEquationIds,
                      LockObject* pLockBegin) noexcept
 {
-    const unsigned local_size = rLhsContribution.size1();
-    for (unsigned i_local = 0; i_local < local_size; i_local++) {
-        const unsigned i_global = rEquationIds[i_local];
+    const IndexType local_size = rLhsContribution.size1();
+    for (IndexType i_local = 0; i_local < local_size; i_local++) {
+        const IndexType i_global = rEquationIds[i_local];
         std::scoped_lock<LockObject> lock(pLockBegin[i_global]);
         rRhs[i_global] += rRhsContribution[i_local];
         MapRowContribution<TSparse,TDense>(rLhs,
@@ -396,7 +396,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
     block_for_each(itRowDofBegin,
                    itRowDofEnd,
                    [&rLhs, &rRhs, itColumnDofBegin, DiagonalScaleFactor](const Dof<double>& r_dof){
-        const std::size_t i_dof = r_dof.EquationId();
+        const IndexType i_dof = r_dof.EquationId();
         const typename TSparse::IndexType i_entry_begin = rLhs.index1_data()[i_dof];
         const typename TSparse::IndexType i_entry_end = rLhs.index1_data()[i_dof + 1];
         bool found_diagonal = false;
@@ -494,7 +494,7 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
             << "the input matrix' columns are not sorted";
     }
 
-    for (std::size_t i_row=0ul; i_row<rMatrix.size1(); ++i_row) {
+    for (IndexType i_row=0ul; i_row<rMatrix.size1(); ++i_row) {
         const auto i_entry_begin = rMatrix.index1_data()[i_row];
         const auto i_entry_end = rMatrix.index1_data()[i_row + 1];
 
@@ -508,7 +508,7 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
                                 | MatrixChecks::DiagonalIsNonNegative
                                 | MatrixChecks::DiagonalIsPositive
                                 | MatrixChecks::IsDiagonallyDominant)) {
-            std::optional<std::size_t> maybe_diagonal;
+            std::optional<IndexType> maybe_diagonal;
 
             for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 const auto i_column = rMatrix.index2_data()[i_entry];
@@ -557,19 +557,20 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                      const typename TOutputSparse::DataType Coefficient = static_cast<typename TOutputSparse::DataType>(1)) noexcept
 {
     // Create partition for entries in the matrix.
-    const auto thread_count = ParallelUtilities::GetNumThreads();
-    std::vector<std::size_t> partition(thread_count + 1);
+    //const auto chunk_count = ParallelUtilities::GetNumThreads();
+    const IndexType chunk_count = std::min(static_cast<unsigned long>(rLhs.size1()), 0x400ul);
+    std::vector<IndexType> partition(chunk_count + 1);
 
     partition.front() = 0ul;
     const auto chunk_size = rLhs.nnz() / partition.size();
-    for (std::size_t i_end=1ul; i_end<partition.size(); ++i_end) {
+    for (IndexType i_end=1ul; i_end<partition.size(); ++i_end) {
         partition[i_end] = partition[i_end - 1] + chunk_size;
     } // for i_end in range(1, partition.size())
     partition.back() = rLhs.nnz();
 
     // Compute matrix-vector product.
     #define KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT(OPERATOR)                                                                                 \
-        IndexPartition<std::size_t>(thread_count).for_each([&rLhs, &rRhs, &rOutput, &partition, Coefficient](const std::size_t i_chunk){    \
+        IndexPartition<IndexType>(chunk_count).for_each([&rLhs, &rRhs, &rOutput, &partition, Coefficient](const IndexType i_chunk){         \
             (void)Coefficient; /*<== suppress unused capture warnings*/                                                                     \
             /* Define the entry range to compute on. */                                                                                     \
             const auto i_chunk_begin = partition[i_chunk];                                                                                  \
@@ -579,7 +580,7 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
             const auto it_initial_row = std::lower_bound(rLhs.index1_data().begin(),                                                        \
                                                          rLhs.index1_data().end(),                                                          \
                                                          static_cast<typename TLHSSparse::IndexType>(i_chunk_begin));                       \
-            std::size_t i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                                                  \
+            IndexType i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                                                    \
             if (i_row != i_chunk_begin) --i_row;                                                                                            \
                                                                                                                                             \
             do {                                                                                                                            \
@@ -594,9 +595,11 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                 auto contribution = static_cast<typename TOutputSparse::DataType>(0);                                                       \
                                                                                                                                             \
                 for (auto it_column=rLhs.index2_data().begin() + i_begin; it_column!=it_column_end; ++it_column, ++it_entry) {              \
-                    const auto i_column = *it_column;                                                                                       \
                     const auto entry = *it_entry;                                                                                           \
-                    contribution += entry * rRhs[i_column];                                                                                 \
+                    if (entry) {                                                                                                            \
+                        const auto i_column = *it_column;                                                                                   \
+                        contribution += entry * rRhs[i_column];                                                                             \
+                    }                                                                                                                       \
                 } /* for i_entry in range(i_begin, i_end) */                                                                                \
                                                                                                                                             \
                 if constexpr (std::is_same_v<OPERATOR,std::plus<typename TOutputSparse::DataType>>) {                                       \
