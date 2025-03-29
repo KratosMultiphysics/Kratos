@@ -21,7 +21,7 @@
 namespace Kratos {
 
 
-class LinkConstraint final : public MultifreedomConstraint
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinkConstraint final : public MultifreedomConstraint
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LinkConstraint);
