@@ -184,9 +184,17 @@ public:
     {
     }
 
+    Dof(Dof&&) noexcept = default;
+
+    Dof(const Dof&) noexcept = default;
+
     ///@}
     ///@name Operators
     ///@{
+
+    Dof& operator=(Dof&&) noexcept = default;
+
+    Dof& operator=(const Dof&) noexcept = default;
 
     template<class TVariableType>
     typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
