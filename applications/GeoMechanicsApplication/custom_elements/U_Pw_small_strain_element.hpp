@@ -50,14 +50,20 @@ public:
     explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                          NewId,
+                          const NodesArrayType&              ThisNodes,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                          NewId,
+                          GeometryType::Pointer              pGeometry,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 
@@ -65,8 +71,9 @@ public:
     UPwSmallStrainElement(IndexType                          NewId,
                           GeometryType::Pointer              pGeometry,
                           PropertiesType::Pointer            pProperties,
-                          std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 

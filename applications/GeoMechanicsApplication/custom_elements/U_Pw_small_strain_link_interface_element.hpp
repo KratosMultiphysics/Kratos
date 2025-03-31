@@ -56,8 +56,10 @@ public:
     // Constructor 1
     UPwSmallStrainLinkInterfaceElement(IndexType                          NewId,
                                        GeometryType::Pointer              pGeometry,
-                                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                                       std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                       std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 
@@ -65,8 +67,10 @@ public:
     UPwSmallStrainLinkInterfaceElement(IndexType                          NewId,
                                        GeometryType::Pointer              pGeometry,
                                        PropertiesType::Pointer            pProperties,
-                                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                       std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                       std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 

@@ -84,8 +84,10 @@ public:
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, std::move(pStressStatePolicy))
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : SmallStrainUPwDiffOrderElement(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 
@@ -93,8 +95,10 @@ public:
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
                                          PropertiesType::Pointer            pProperties,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : SmallStrainUPwDiffOrderElement(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 

@@ -450,4 +450,9 @@ Element::DofsVectorType UPwBaseElement::GetDofs() const
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }
 
+IntegrationCoefficientsCalculator& UPwBaseElement::GetIntegrationCoefficientsCalculator() const
+{
+    return *mpIntegrationCoefficientsCalculator;
+}
+
 } // Namespace Kratos

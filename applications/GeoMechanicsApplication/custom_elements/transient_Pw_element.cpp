@@ -24,8 +24,9 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              NodesArrayType const& ThisNodes,
                                                              PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new TransientPwElement(NewId, this->GetGeometry().Create(ThisNodes),
-                                                   pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new TransientPwElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->GetIntegrationCoefficientsCalculator().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -34,7 +35,8 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(
-        new TransientPwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+        new TransientPwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+                               this->GetIntegrationCoefficientsCalculator().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
