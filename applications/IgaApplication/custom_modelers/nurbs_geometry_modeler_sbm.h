@@ -65,6 +65,9 @@ public:
         return Kratos::make_shared<NurbsGeometryModelerSbm>(rModel, ModelParameters);
     }
 
+    // Get the default parameters
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Stages
     ///@{
@@ -101,8 +104,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    const Parameters GetDefaultParameters() const override;
 
 };
 
