@@ -16,6 +16,11 @@
 namespace Kratos
 {
 
+std::unique_ptr<IntegrationCoefficientsCalculator> AxisymmetricIntegrationCoefficients::Clone() const
+{
+    return std::unique_ptr<AxisymmetricIntegrationCoefficients>();
+}
+
 double AxisymmetricIntegrationCoefficients::CalculateIntegrationCoefficient(
     const Geometry<Node>::IntegrationPointType& rIntegrationPoint, double DetJ, const Geometry<Node>& rGeometry) const
 {

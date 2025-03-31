@@ -40,6 +40,8 @@ public:
         const Vector&                                     rDetJs,
         const Geometry<Node>&                             rGeometry) const;
 
+    [[nodiscard]] virtual std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const = 0;
+
 private:
     [[nodiscard]] virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                                  double DetJ,

@@ -24,6 +24,7 @@ public:
                                                           const Vector& rDetJs,
                                                           double        CrossArea,
                                                           std::size_t LocalDimension) const override;
+    std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const override;
 
 private:
     friend class Serializer;

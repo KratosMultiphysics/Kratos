@@ -25,6 +25,8 @@ public:
                                                           double        CrossArea,
                                                           std::size_t LocalDimension = 0) const override;
 
+    std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const override;
+
 private:
     friend class Serializer;
     void save(Serializer&) const override;

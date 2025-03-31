@@ -15,6 +15,11 @@
 namespace Kratos
 {
 
+std::unique_ptr<IntegrationCoefficientsCalculator> ThreeDimensionalIntegrationCoefficients::Clone() const
+{
+    return std::unique_ptr<ThreeDimensionalIntegrationCoefficients>();
+}
+
 double ThreeDimensionalIntegrationCoefficients::CalculateIntegrationCoefficient(
     const Geometry<Node>::IntegrationPointType& rIntegrationPoint, double DetJ, const Geometry<Node>&) const
 {

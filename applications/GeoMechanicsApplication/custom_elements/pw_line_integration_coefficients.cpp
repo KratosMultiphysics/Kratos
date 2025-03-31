@@ -28,6 +28,11 @@ Vector PwLineIntegrationCoefficients::CalculateIntegrationCoefficients(const Geo
     return result;
 }
 
+std::unique_ptr<IntegrationCoefficientsCalculator> PwLineIntegrationCoefficients::Clone() const
+{
+    return std::make_unique<PwLineIntegrationCoefficients>();
+}
+
 void PwLineIntegrationCoefficients::save(Serializer&) const
 {
     // No data members to be saved (yet)
