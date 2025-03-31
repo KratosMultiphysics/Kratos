@@ -36,10 +36,10 @@ public:
                                       const ProcessInfo&      rCurrentProcessInfo) override
     {
         unsigned int       number_of_integration_points = 0;
-        const unsigned int n_nodes = this->GetGeometry().size();
-        const unsigned int n_dim   = this->GetGeometry().WorkingSpaceDimension();
+        const unsigned int n_nodes                      = this->GetGeometry().size();
+        const unsigned int n_dim = this->GetGeometry().WorkingSpaceDimension();
 
-		// Get number of integration points based on the element type
+        // Get number of integration points based on the element type
         if (n_dim == 2) {
             if (n_nodes == 3 || n_nodes == 6) {
                 number_of_integration_points = 3;
@@ -51,11 +51,11 @@ public:
                 number_of_integration_points = 4;
             } else if (n_nodes == 8 || n_nodes == 20) {
                 number_of_integration_points = 8;
-            } 
+            }
         }
         rOutput.resize(number_of_integration_points);
 
-		// Set some dummy values for the variables
+        // Set some dummy values for the variables
         if (rVariable == SHEAR_STIFFNESS) {
             double shear_stiffness = 5.0;
             rOutput = std::vector<double>(number_of_integration_points, shear_stiffness);
@@ -84,12 +84,11 @@ static void SymmetrizeMatrix(Matrix& rMatrix)
     }
 }
 
-
 /// <summary>
 /// Creates a 2D 4N quadrilateral geometry with 2 nodes from the condition and 2 new nodes.
 /// </summary>
 static Element::GeometryType::Pointer CreateMockGeometry2D4N(Kratos::PointerVector<Node>& rConditionNodes,
-                                                      ModelPart&                   rModelPart)
+                                                             ModelPart& rModelPart)
 {
     auto node_1 = rConditionNodes(0);
     auto node_2 = rConditionNodes(1);
@@ -106,7 +105,7 @@ static Element::GeometryType::Pointer CreateMockGeometry2D4N(Kratos::PointerVect
 /// Creates a 2D 6N triangle geometry with 3 nodes from the condition and 3 new nodes.
 /// </summary>
 static Element::GeometryType::Pointer CreateMockGeometry2D6N(Kratos::PointerVector<Node>& rConditionNodes,
-                                                      ModelPart&                   rModelPart)
+                                                             ModelPart& rModelPart)
 {
     auto node_1 = rConditionNodes(0);
     auto node_2 = rConditionNodes(1);
@@ -125,7 +124,7 @@ static Element::GeometryType::Pointer CreateMockGeometry2D6N(Kratos::PointerVect
 /// Creates a 3D 10N tetrahedra geometry with 6 nodes from the condition and 4 new nodes.
 /// </summary>
 static Element::GeometryType::Pointer CreateMockGeometry3D10N(Kratos::PointerVector<Node>& rConditionNodes,
-                                                       ModelPart&                   rModelPart)
+                                                              ModelPart& rModelPart)
 {
     auto node_1 = rConditionNodes(0);
     auto node_2 = rConditionNodes(1);
@@ -149,7 +148,7 @@ static Element::GeometryType::Pointer CreateMockGeometry3D10N(Kratos::PointerVec
 /// Creates a 3D 20N hexahedra geometry with 8 nodes from the condition and 12 new nodes.
 /// </summary>
 static Element::GeometryType::Pointer CreateMockGeometry3D20N(Kratos::PointerVector<Node>& rConditionNodes,
-                                                       ModelPart&                   rModelPart)
+                                                              ModelPart& rModelPart)
 {
     auto node_1 = rConditionNodes(0);
     auto node_2 = rConditionNodes(1);
@@ -184,8 +183,8 @@ static Element::GeometryType::Pointer CreateMockGeometry3D20N(Kratos::PointerVec
 /// Sets properties of the condition and the neighbour element. And initializes the condition.
 /// </summary>
 static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondition,
-                                Element::GeometryType::Pointer    pNeighbourGeometry,
-                                ModelPart&                        rModelPart)
+                                       Element::GeometryType::Pointer    pNeighbourGeometry,
+                                       ModelPart&                        rModelPart)
 {
     // set properties of the condition
     Vector absorbing_factors = ZeroVector(2);
@@ -222,7 +221,6 @@ static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondit
 /// </summary>
 static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D2NCondition(ModelPart& rModelPart)
 {
-
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -257,8 +255,6 @@ static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D2NCon
 /// </summary>
 static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D3NCondition(ModelPart& rModelPart)
 {
-
-
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -278,7 +274,6 @@ static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D3NCon
     Element::GeometryType::Pointer p_neighbour_geometry =
         CreateMockGeometry2D6N(p_cond->pGetGeometry()->Points(), rModelPart);
 
-
     for (auto& node : rModelPart.Nodes()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
@@ -295,7 +290,6 @@ static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D3NCon
 /// </summary>
 static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D6NCondition(ModelPart& rModelPart)
 {
-
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -593,7 +587,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
 
     ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition3D6NCondition(r_model_part);
     const auto& r_process_info = r_model_part.GetProcessInfo();
-
 
     p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
     p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y) = 2.0;
