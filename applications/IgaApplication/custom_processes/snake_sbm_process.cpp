@@ -115,7 +115,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     mesh_sizes_uv[0] = knot_step_uv[0]; 
     mesh_sizes_uv[1] = knot_step_uv[1];
     auto& surrogate_model_part = rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name);
-    surrogate_model_part.GetProcessInfo().SetValue(KNOT_SPAN_SIZES, mesh_sizes_uv);
+    surrogate_model_part.GetParentModelPart().SetValue(KNOT_SPAN_SIZES, mesh_sizes_uv);
 
     array_1d<double, 2> starting_pos_uv;
     starting_pos_uv[0] = knot_vector_u[0];
@@ -130,7 +130,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     parameter_external_coordinates[0][1] = knot_vector_u[knot_vector_u.size()-1];
     parameter_external_coordinates[1][1] = knot_vector_v[knot_vector_v.size()-1];
     
-    surrogate_model_part.GetProcessInfo().SetValue(PARAMETER_SPACE_CORNERS, parameter_external_coordinates);
+    surrogate_model_part.GetParentModelPart().SetValue(PARAMETER_SPACE_CORNERS, parameter_external_coordinates);
 
     // Create the matrix of active/inactive knot spans, one for inner and one for outer loop
 
@@ -687,7 +687,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
     std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartOuter)
 {
-
     // CHECK ALL THE EXTERNAL KNOT SPANS
 
     // LEFT BOUNDARY
