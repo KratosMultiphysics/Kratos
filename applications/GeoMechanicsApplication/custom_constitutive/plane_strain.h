@@ -26,6 +26,11 @@ public:
     [[nodiscard]] std::size_t                               GetDimension() const override;
     [[nodiscard]] std::size_t GetNumberOfNormalComponents() const override;
     [[nodiscard]] Flags       GetSpatialType() const override;
+
+private:
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos
