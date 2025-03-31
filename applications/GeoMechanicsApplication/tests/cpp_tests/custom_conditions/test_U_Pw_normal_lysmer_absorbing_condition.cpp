@@ -895,6 +895,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingConditio
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3D8N, KratosGeoMechanicsFastSuite)
 {
+    GTEST_SKIP() << "This test is skipped as it depends on #13269" << std::endl;
+
     // initialize modelpart
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
@@ -1188,6 +1190,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingCondition3D8N, KratosGeoMechanicsFastSuite)
 {
+    GTEST_SKIP() << "This test is skipped as it depends on #13269" << std::endl;
+
     // initialize modelpart
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
