@@ -835,9 +835,9 @@ public:
      * @param Key The key to count.
      * @return The number of elements with the specified key (0 or 1).
      */
-    size_type count(const key_type& Key)
+    size_type count(const key_type& Key) const
     {
-        return find(Key) == mData.end() ? 0 : 1;
+        return find(Key) == const_iterator(mData.end()) ? 0 : 1;
     }
 
     /**
