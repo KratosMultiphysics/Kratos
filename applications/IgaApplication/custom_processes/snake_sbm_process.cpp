@@ -687,6 +687,9 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
     std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartOuter)
 {
+
+    KRATOS_INFO("::[SnakeSbmProcess]::") << "Outer :: Check layers in 2D" << std::endl;
+
     // CHECK ALL THE EXTERNAL KNOT SPANS
 
     // LEFT BOUNDARY
