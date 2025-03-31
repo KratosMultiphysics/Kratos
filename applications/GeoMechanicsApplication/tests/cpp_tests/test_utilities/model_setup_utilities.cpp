@@ -14,8 +14,10 @@
 #include "includes/model_part.h"
 
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/plane_integration_coefficients.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/three_dimensional_integration_coefficients.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "element_setup_utilities.h"
 #include "geometries/tetrahedra_3d_10.h"
@@ -94,7 +96,8 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
 
     auto element = make_intrusive<UPwSmallStrainElement<3, 4>>(
         1, Kratos::make_shared<Tetrahedra3D4<Node>>(nodes), result.CreateNewProperties(0),
-        std::make_unique<ThreeDimensionalStressState>(), nullptr);
+        std::make_unique<ThreeDimensionalStressState>(),
+        std::make_unique<ThreeDimensionalIntegrationCoefficients>());
 
     result.AddElement(element);
 
@@ -144,7 +147,7 @@ ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel)
 
     auto element = make_intrusive<SmallStrainUPwDiffOrderElement>(
         1, Kratos::make_shared<Triangle2D6<Node>>(nodes), result.CreateNewProperties(0),
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+        std::make_unique<PlaneStrainStressState>(), std::make_unique<PlaneIntegrationCoefficients>());
 
     result.AddElement(element);
     return result;

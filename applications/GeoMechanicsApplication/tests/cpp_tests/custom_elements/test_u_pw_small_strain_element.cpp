@@ -102,7 +102,8 @@ intrusive_ptr<UPwSmallStrainElement<TDim, TNumNodes>> CreateUPwSmallStrainElemen
     const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
 {
     auto p_result = make_intrusive<UPwSmallStrainElement<TDim, TNumNodes>>(
-        1, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>(), nullptr);
+        1, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>(),
+        std::make_unique<PlaneIntegrationCoefficients>());
     for (auto& r_node : p_result->GetGeometry()) {
         r_node.AddDof(DISPLACEMENT_X);
         r_node.AddDof(DISPLACEMENT_Y);

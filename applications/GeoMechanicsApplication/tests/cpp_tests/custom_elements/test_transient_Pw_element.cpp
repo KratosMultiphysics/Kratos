@@ -13,6 +13,7 @@
 
 #include "custom_elements/plane_integration_coefficients.h"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_elements/three_dimensional_integration_coefficients.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_element.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -84,13 +85,14 @@ intrusive_ptr<TransientPwElement<TDim, TNumNodes>> CreateTransientPwElementWithP
     if constexpr (TDim == 2) {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
-            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
-            rProperties, std::make_unique<PlaneStrainStressState>(), nullptr);
+            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)), rProperties,
+            std::make_unique<PlaneStrainStressState>(), std::make_unique<PlaneIntegrationCoefficients>());
     } else {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
             std::make_shared<Tetrahedra3D4<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
-            rProperties, std::make_unique<ThreeDimensionalStressState>(), nullptr);
+            rProperties, std::make_unique<ThreeDimensionalStressState>(),
+            std::make_unique<ThreeDimensionalIntegrationCoefficients>());
     }
     for (auto& r_node : p_element->GetGeometry()) {
         r_node.AddDof(WATER_PRESSURE);
