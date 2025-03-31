@@ -19,8 +19,9 @@ namespace Kratos
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceIntegrationCoefficients : public IntegrationCoefficientsCalculator
 {
-    public:
+public:
     std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const override;
+
 private:
     [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                          double DetJ,

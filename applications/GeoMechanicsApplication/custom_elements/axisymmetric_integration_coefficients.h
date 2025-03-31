@@ -19,7 +19,7 @@ namespace Kratos
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricIntegrationCoefficients : public IntegrationCoefficientsCalculator
 {
-    public:
+public:
     std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const override;
 
 private:
