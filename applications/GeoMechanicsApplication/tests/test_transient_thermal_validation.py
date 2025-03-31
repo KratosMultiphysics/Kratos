@@ -89,7 +89,7 @@ class KratosGeoMechanicsTransientThermalValidationTests(KratosUnittest.TestCase)
     def test_transient_thermal_heat_flux_3D10N(self):
         temperature = self.simulate_thermal_case(
             'test_transient_thermal_heat_flux/test_transient_thermal_heat_flux_3D10N')
-        self.assertAlmostEqual(1.2294110493528096, temperature[124])
+        self.assertAlmostEqual(1.2348380064219207, temperature[124])
 
     def test_thermal_fixed_temperature_2D6N(self):
         temperature = self.simulate_thermal_case('test_thermal_fixed_temperature/test_thermal_fixed_temperature_2D6N')
@@ -152,7 +152,7 @@ class KratosGeoMechanicsTransientThermalValidationTests(KratosUnittest.TestCase)
     def test_transient_thermal_fixed_temperature_3D10N(self):
         temperature = self.simulate_thermal_case(
             'test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_3D10N')
-        self.assertAlmostEqual(5.970566939746188, temperature[124])
+        self.assertAlmostEqual(5.96696543931082, temperature[124])
 
     def test_thermal_line_element_2D3N(self):
         temperature = self.simulate_thermal_case('test_thermal_line_element/test_thermal_line_element_2D3N')

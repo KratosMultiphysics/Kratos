@@ -17,6 +17,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_3.h"
+#include "node_utilities.h"
 
 namespace Kratos
 {
@@ -70,56 +71,29 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
 
 void LinearNodalExtrapolator::AddRowsForMidsideNodes(const GeometryType& rGeometry, Matrix& rExtrapolationMatrix)
 {
-    const size_t n_filled = rExtrapolationMatrix.size1();
-    rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2());
+    const auto global_to_local_mapping = NodeUtilities::CreateGlobalToLocalNodeIndexMap(rGeometry.Points());
 
-    if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle ||
-        rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral) {
-        for (size_t i_row = 0; i_row < rGeometry.PointsNumber() - n_filled; ++i_row) {
-            row(rExtrapolationMatrix, n_filled + i_row) =
-                0.5 * (row(rExtrapolationMatrix, i_row) + row(rExtrapolationMatrix, (i_row + 1) % n_filled));
-        }
-    } else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra &&
-               rGeometry.size() == 10) {
-        row(rExtrapolationMatrix, 4) = 0.5 * (row(rExtrapolationMatrix, 0) + row(rExtrapolationMatrix, 1));
-        row(rExtrapolationMatrix, 5) = 0.5 * (row(rExtrapolationMatrix, 1) + row(rExtrapolationMatrix, 2));
-        row(rExtrapolationMatrix, 6) = 0.5 * (row(rExtrapolationMatrix, 2) + row(rExtrapolationMatrix, 0));
-        row(rExtrapolationMatrix, 7) = 0.5 * (row(rExtrapolationMatrix, 0) + row(rExtrapolationMatrix, 3));
-        row(rExtrapolationMatrix, 8) = 0.5 * (row(rExtrapolationMatrix, 1) + row(rExtrapolationMatrix, 3));
-        row(rExtrapolationMatrix, 9) = 0.5 * (row(rExtrapolationMatrix, 2) + row(rExtrapolationMatrix, 3));
-    } else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Hexahedra &&
-               rGeometry.size() == 20) {
-        row(rExtrapolationMatrix, 8) = 0.5 * (row(rExtrapolationMatrix, 0) + row(rExtrapolationMatrix, 1));
-        row(rExtrapolationMatrix, 9) = 0.5 * (row(rExtrapolationMatrix, 1) + row(rExtrapolationMatrix, 2));
-        row(rExtrapolationMatrix, 10) = 0.5 * (row(rExtrapolationMatrix, 2) + row(rExtrapolationMatrix, 3));
-        row(rExtrapolationMatrix, 11) = 0.5 * (row(rExtrapolationMatrix, 3) + row(rExtrapolationMatrix, 0));
-        row(rExtrapolationMatrix, 12) = 0.5 * (row(rExtrapolationMatrix, 0) + row(rExtrapolationMatrix, 4));
-        row(rExtrapolationMatrix, 13) = 0.5 * (row(rExtrapolationMatrix, 1) + row(rExtrapolationMatrix, 5));
-        row(rExtrapolationMatrix, 14) = 0.5 * (row(rExtrapolationMatrix, 2) + row(rExtrapolationMatrix, 6));
-        row(rExtrapolationMatrix, 15) = 0.5 * (row(rExtrapolationMatrix, 3) + row(rExtrapolationMatrix, 7));
-        row(rExtrapolationMatrix, 16) = 0.5 * (row(rExtrapolationMatrix, 4) + row(rExtrapolationMatrix, 5));
-        row(rExtrapolationMatrix, 17) = 0.5 * (row(rExtrapolationMatrix, 5) + row(rExtrapolationMatrix, 6));
-        row(rExtrapolationMatrix, 18) = 0.5 * (row(rExtrapolationMatrix, 6) + row(rExtrapolationMatrix, 7));
-        row(rExtrapolationMatrix, 19) = 0.5 * (row(rExtrapolationMatrix, 7) + row(rExtrapolationMatrix, 4));
-    } else {
-        KRATOS_ERROR << "Unexpected geometry type for AddRowsForMidsideNodes" << std::endl;
+    rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2());
+    for (const auto& edge : rGeometry.GenerateEdges()) {
+        row(rExtrapolationMatrix, global_to_local_mapping.at(edge[2].GetId())) =
+            0.5 * (row(rExtrapolationMatrix, global_to_local_mapping.at(edge[0].GetId())) +
+                   row(rExtrapolationMatrix, global_to_local_mapping.at(edge[1].GetId())));
     }
 }
 
 std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::CreateLowerOrderGeometry(const GeometryType& rGeometry)
 {
-    // Sofar this works for 3, 4, 6 and 8 node planar elements and 4, 8, 10 and 20 node volume elements
-    // for 2 and 3 node line elements the extension is straightforward.
+    // Sofar this works for 3, 4, 6 and 8 node planar elements and 4, 8, 10 and 20 node volume
+    // elements for 2 and 3 node line elements the extension is straightforward.
     switch (rGeometry.size()) {
     case 6:
         return std::make_unique<Triangle2D3<Node>>(rGeometry(0), rGeometry(1), rGeometry(2));
     case 8:
         // HexaHedra3D8 also has 8 nodes, this should not create a Quadrilateral2D4
-        if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral) {
-            return std::make_unique<Quadrilateral2D4<Node>>(rGeometry(0), rGeometry(1), rGeometry(2),
-                rGeometry(3));
-        }
-        else {
+        if (rGeometry.GetGeometryOrderType() == GeometryData::Kratos_Quadratic_Order) {
+            return std::make_unique<Quadrilateral2D4<Node>>(rGeometry(0), rGeometry(1),
+                                                            rGeometry(2), rGeometry(3));
+        } else {
             return nullptr;
         }
     case 10:

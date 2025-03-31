@@ -54,7 +54,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
 
 
     def Initialize(self):
-        ## Base class solver intiialization
+        ## Base class solver initialization
         super(TrilinosNavierStokesSolverFractionalStep, self).Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")

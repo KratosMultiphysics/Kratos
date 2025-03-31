@@ -90,7 +90,10 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
         }
         ElementType::Pointer p_elem =
             r_elem.Create(mIds[i], nodes, rProperties(mPropertiesIds[i]));
-        rElements.push_back(p_elem);
+        // here we can safely use the insert with the rElements.end() as the hint
+        // because, when reading, we can assume that it was written in the
+        // sorted order within HDF5.
+        rElements.insert(rElements.end(), p_elem);
     }
     KRATOS_CATCH("");
 }
@@ -119,7 +122,10 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
         }
         Condition::Pointer p_cond =
             r_cond.Create(mIds[i], nodes, rProperties(mPropertiesIds[i]));
-        rConditions.push_back(p_cond);
+        // here we can safely use the insert with the rConditions.end() as the hint
+        // because, when reading, we can assume that it was written in the
+        // sorted order within HDF5.
+        rConditions.insert(rConditions.end(), p_cond);
     }
     KRATOS_CATCH("");
 }

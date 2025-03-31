@@ -19,7 +19,7 @@
       "materials_filename"             : "../Common/MaterialParameters_stage2.json"
     },
     "time_stepping": {
-      "time_step"                      : 0.1,
+      "time_step"                      : 1.0,
       "max_delta_time_factor"          : 1.0
     },
     "buffer_size"                      : 2,
@@ -155,7 +155,6 @@
           "table"                      : [0, 0, 0]
         }
       }
-    ],
-    "auxiliar_process_list": []
+    ]
   }
 }

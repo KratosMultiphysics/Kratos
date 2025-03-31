@@ -33,7 +33,6 @@ class AssignFlagProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"            : "This process sets a given value for a certain flag in all the given entities of a submodelpart",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "flag_name"       : "SPECIFY_FLAG_NAME",
             "interval"        : [0.0, 1e30],
