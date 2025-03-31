@@ -35,32 +35,27 @@ public:
                                       std::vector<double>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override
     {
-        unsigned int       number_of_integration_points;
+        unsigned int       number_of_integration_points = 0;
         const unsigned int n_nodes = this->GetGeometry().size();
         const unsigned int n_dim   = this->GetGeometry().WorkingSpaceDimension();
 
+		// Get number of integration points based on the element type
         if (n_dim == 2) {
             if (n_nodes == 3 || n_nodes == 6) {
                 number_of_integration_points = 3;
             } else if (n_nodes == 4 || n_nodes == 8) {
                 number_of_integration_points = 4;
             }
-
-            else {
-                number_of_integration_points = 0;
-            }
-
         } else if (n_dim == 3) {
             if (n_nodes == 4 || n_nodes == 10) {
                 number_of_integration_points = 4;
             } else if (n_nodes == 8 || n_nodes == 20) {
                 number_of_integration_points = 8;
-            } else {
-                number_of_integration_points = 0;
-            }
+            } 
         }
         rOutput.resize(number_of_integration_points);
 
+		// Set some dummy values for the variables
         if (rVariable == SHEAR_STIFFNESS) {
             double shear_stiffness = 5.0;
             rOutput = std::vector<double>(number_of_integration_points, shear_stiffness);
@@ -76,8 +71,8 @@ public:
     };
 };
 
-/* Copies upper triangle to bottom */
-void SymmetrizeMatrix(Matrix& rMatrix)
+/* Copies upper triangle to bottom. This is used to make a symmetric matrix */
+static void SymmetrizeMatrix(Matrix& rMatrix)
 {
     const unsigned int matrix_size = rMatrix.size1();
 
@@ -89,7 +84,11 @@ void SymmetrizeMatrix(Matrix& rMatrix)
     }
 }
 
-Element::GeometryType::Pointer CreateMockGeometry2D4N(Kratos::PointerVector<Node>& rConditionNodes,
+
+/// <summary>
+/// Creates a 2D 4N quadrilateral geometry with 2 nodes from the condition and 2 new nodes.
+/// </summary>
+static Element::GeometryType::Pointer CreateMockGeometry2D4N(Kratos::PointerVector<Node>& rConditionNodes,
                                                       ModelPart&                   rModelPart)
 {
     auto node_1 = rConditionNodes(0);
@@ -103,7 +102,10 @@ Element::GeometryType::Pointer CreateMockGeometry2D4N(Kratos::PointerVector<Node
     return p_geometry;
 }
 
-Element::GeometryType::Pointer CreateMockGeometry2D6N(Kratos::PointerVector<Node>& rConditionNodes,
+/// <summary>
+/// Creates a 2D 6N triangle geometry with 3 nodes from the condition and 3 new nodes.
+/// </summary>
+static Element::GeometryType::Pointer CreateMockGeometry2D6N(Kratos::PointerVector<Node>& rConditionNodes,
                                                       ModelPart&                   rModelPart)
 {
     auto node_1 = rConditionNodes(0);
@@ -119,7 +121,10 @@ Element::GeometryType::Pointer CreateMockGeometry2D6N(Kratos::PointerVector<Node
     return p_geometry;
 }
 
-Element::GeometryType::Pointer CreateMockGeometry3D10N(Kratos::PointerVector<Node>& rConditionNodes,
+/// <summary>
+/// Creates a 3D 10N tetrahedra geometry with 6 nodes from the condition and 4 new nodes.
+/// </summary>
+static Element::GeometryType::Pointer CreateMockGeometry3D10N(Kratos::PointerVector<Node>& rConditionNodes,
                                                        ModelPart&                   rModelPart)
 {
     auto node_1 = rConditionNodes(0);
@@ -140,7 +145,10 @@ Element::GeometryType::Pointer CreateMockGeometry3D10N(Kratos::PointerVector<Nod
     return p_geometry;
 }
 
-Element::GeometryType::Pointer CreateMockGeometry3D20N(Kratos::PointerVector<Node>& rConditionNodes,
+/// <summary>
+/// Creates a 3D 20N hexahedra geometry with 8 nodes from the condition and 12 new nodes.
+/// </summary>
+static Element::GeometryType::Pointer CreateMockGeometry3D20N(Kratos::PointerVector<Node>& rConditionNodes,
                                                        ModelPart&                   rModelPart)
 {
     auto node_1 = rConditionNodes(0);
@@ -172,7 +180,10 @@ Element::GeometryType::Pointer CreateMockGeometry3D20N(Kratos::PointerVector<Nod
     return p_geometry;
 }
 
-void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondition,
+/// <summary>
+/// Sets properties of the condition and the neighbour element. And initializes the condition.
+/// </summary>
+static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondition,
                                 Element::GeometryType::Pointer    pNeighbourGeometry,
                                 ModelPart&                        rModelPart)
 {
@@ -206,7 +217,10 @@ void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondition,
     pCondition->Initialize(r_process_info);
 }
 
-ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D2NCondition(ModelPart& rModelPart)
+/// <summary>
+/// Sets up a 2D 2N UPwLysmerAbsorbingCondition with a 2D 4N neighbour element
+/// </summary>
+static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D2NCondition(ModelPart& rModelPart)
 {
 
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
@@ -238,7 +252,10 @@ ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D2NCondition(
     return p_cond;
 }
 
-ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D3NCondition(ModelPart& rModelPart)
+/// <summary>
+/// Sets up a 2D 3N UPwLysmerAbsorbingCondition with a 2D 6N neighbour element
+/// </summary>
+static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D3NCondition(ModelPart& rModelPart)
 {
 
 
@@ -273,7 +290,10 @@ ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D3NCondition(
     return p_cond;
 }
 
-ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D6NCondition(ModelPart& rModelPart)
+/// <summary>
+/// Sets up a 3D 6N UPwLysmerAbsorbingCondition with a 3D 10N neighbour element
+/// </summary>
+static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D6NCondition(ModelPart& rModelPart)
 {
 
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -308,7 +328,10 @@ ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D6NCondition(
     return p_cond;
 }
 
-ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D8NCondition(ModelPart& rModelPart)
+/// <summary>
+/// Sets up a 3D 8N UPwLysmerAbsorbingCondition with a 3D 20N neighbour element
+/// </summary>
+static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D8NCondition(ModelPart& rModelPart)
 {
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -346,7 +369,7 @@ ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D8NCondition(
 }
 
 /// <summary>
-/// Tests the calculation of the left hand side matrix of the UPwNormalLysmerAbsorbingCondition
+/// Tests the calculation of the LHS matrix of a 2D 2N UPwNormalLysmerAbsorbingCondition
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwNormalLysmerAbsorbingCondition, KratosGeoMechanicsFastSuite)
 {
@@ -380,7 +403,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwNormalLysmerAbsorbingCondition
 }
 
 /// <summary>
-/// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
+/// Tests the calculation of the LHS matrix and RHS vector of a 2D 2N UPwNormalLysmerAbsorbingCondition
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition2D2N, KratosGeoMechanicsFastSuite)
 {
@@ -428,7 +451,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition2
 }
 
 /// <summary>
-/// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
+/// Tests the calculation of the LHS matrix and RHS vector of a 2D 3N UPwNormalLysmerAbsorbingCondition
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition2D3N, KratosGeoMechanicsFastSuite)
 {
@@ -505,7 +528,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition2
 }
 
 /// <summary>
-/// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
+/// Tests the calculation of the damping matrix of a 2D 3N UPwNormalLysmerAbsorbingCondition
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingCondition2D3N, KratosGeoMechanicsFastSuite)
 {
@@ -515,16 +538,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingConditio
 
     ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition2D3NCondition(r_model_part);
     const auto& r_process_info = r_model_part.GetProcessInfo();
-
-
-    p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
-    p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y) = 2.0;
-
-    p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) = 3.0;
-    p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) = 4.0;
-
-    p_cond->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT_X) = 2.0;
-    p_cond->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT_Y) = 3.0;
 
     // Perform test, calculate left hand side
     constexpr size_t condition_size         = 9;
@@ -570,7 +583,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingConditio
 }
 
 /// <summary>
-/// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
+/// Tests the calculation of the LHS matrix and RHS vector of a 3D 6N UPwNormalLysmerAbsorbingCondition
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3D6N, KratosGeoMechanicsFastSuite)
 {
@@ -771,7 +784,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
 }
 
 /// <summary>
-/// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
+/// Tests the calculation of the damping matrix of a 3D 6N UPwNormalLysmerAbsorbingCondition
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingCondition3D6N, KratosGeoMechanicsFastSuite)
 {
@@ -781,31 +794,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingConditio
 
     ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition3D6NCondition(r_model_part);
     const auto& r_process_info = r_model_part.GetProcessInfo();
-
-
-    p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
-    p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y) = 2.0;
-    p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z) = 3.0;
-
-    p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) = 2.0;
-    p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) = 3.0;
-    p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) = 4.0;
-
-    p_cond->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT_X) = 3.0;
-    p_cond->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT_Y) = 4.0;
-    p_cond->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT_Z) = 5.0;
-
-    p_cond->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.5;
-    p_cond->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT_Y) = 2.5;
-    p_cond->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT_Z) = 3.5;
-
-    p_cond->GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT_X) = 2.5;
-    p_cond->GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT_Y) = 3.5;
-    p_cond->GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT_Z) = 4.5;
-
-    p_cond->GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT_X) = 2.0;
-    p_cond->GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT_Y) = 3.0;
-    p_cond->GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT_Z) = 4.0;
 
     // Perform test, calculate left hand side
     constexpr size_t condition_size         = 24;
@@ -910,7 +898,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingConditio
 }
 
 /// <summary>
-/// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
+/// Tests the calculation of the LHS matrix and RHS vector of a 3D 8N UPwNormalLysmerAbsorbingCondition
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3D8N, KratosGeoMechanicsFastSuite)
 {
@@ -961,7 +949,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
     p_cond->CalculateLocalSystem(rLeftHandSideMatrix, right_hand_side_vector, r_process_info);
 
     // set expected_results
-
     const double shear_stiffness_over_virt_thickness    = 5.0 / 100;
     const double confined_stiffness_over_virt_thickness = 4.0 / 100;
 
@@ -1204,7 +1191,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
 }
 
 /// <summary>
-/// Tests the calculation of both the left hand side matrix and the right hand side vector of the UPwNormalLysmerAbsorbingCondition
+/// Tests the calculation of the damping matrix of a 3D 8N UPwNormalLysmerAbsorbingCondition
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingCondition3D8N, KratosGeoMechanicsFastSuite)
 {
@@ -1214,38 +1201,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingConditio
 
     ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition3D8NCondition(r_model_part);
     const auto& r_process_info = r_model_part.GetProcessInfo();
-
-    p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
-    p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y) = 2.0;
-    p_cond->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z) = 3.0;
-
-    p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) = 2.0;
-    p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) = 3.0;
-    p_cond->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) = 4.0;
-
-    p_cond->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT_X) = 3.0;
-    p_cond->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT_Y) = 4.0;
-    p_cond->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT_Z) = 5.0;
-
-    p_cond->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT_X) = 4.0;
-    p_cond->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT_Y) = 5.0;
-    p_cond->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT_Z) = 6.0;
-
-    p_cond->GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.5;
-    p_cond->GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT_Y) = 2.5;
-    p_cond->GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT_Z) = 3.5;
-
-    p_cond->GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT_X) = 2.5;
-    p_cond->GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT_Y) = 3.5;
-    p_cond->GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT_Z) = 4.5;
-
-    p_cond->GetGeometry()[6].FastGetSolutionStepValue(DISPLACEMENT_X) = 3.5;
-    p_cond->GetGeometry()[6].FastGetSolutionStepValue(DISPLACEMENT_Y) = 4.5;
-    p_cond->GetGeometry()[6].FastGetSolutionStepValue(DISPLACEMENT_Z) = 5.5;
-
-    p_cond->GetGeometry()[7].FastGetSolutionStepValue(DISPLACEMENT_X) = 2.5;
-    p_cond->GetGeometry()[7].FastGetSolutionStepValue(DISPLACEMENT_Y) = 3.5;
-    p_cond->GetGeometry()[7].FastGetSolutionStepValue(DISPLACEMENT_Z) = 4.5;
 
     // Perform test, calculate left hand side
     constexpr size_t condition_size      = 32;
