@@ -47,14 +47,4 @@ ScopedSerializerRegistrationOfAllStressStatePolicies::~ScopedSerializerRegistrat
     RegistrationUtilities::DeregisterStressStatePolicies();
 }
 
-ScopedSerializerRegistrationOfAllYieldSurfaces::ScopedSerializerRegistrationOfAllYieldSurfaces()
-{
-    RegistrationUtilities::RegisterYieldSurfaces();
-}
-
-ScopedSerializerRegistrationOfAllYieldSurfaces::~ScopedSerializerRegistrationOfAllYieldSurfaces()
-{
-    RegistrationUtilities::DeregisterYieldSurfaces();
-}
-
 } // namespace Kratos::Testing

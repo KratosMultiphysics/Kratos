@@ -10,8 +10,6 @@
 //  Main authors:    Anne van de Graaf
 //
 #include "registration_utilities.h"
-#include "custom_constitutive/coulomb_yield_surface.h"
-#include "custom_constitutive/tension_cutoff.h"
 #include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_elements/plane_strain_stress_state.h"
@@ -41,16 +39,6 @@ void RegistrationUtilities::DeregisterStressStatePolicies()
     Serializer::Deregister("ThreeDimensionalStressState"s);
 }
 
-void RegistrationUtilities::RegisterYieldSurfaces()
-{
-    Serializer::Register("CoulombYieldSurface"s, CoulombYieldSurface{});
-    Serializer::Register("TensionCutoff"s, TensionCutoff{});
-}
-
-void RegistrationUtilities::DeregisterYieldSurfaces()
-{
-    Serializer::Deregister("CoulombYieldSurface"s);
-    Serializer::Deregister("TensionCutoff"s);
-}
+ScopedSerializerRegistration::~ScopedSerializerRegistration() { Serializer::Deregister(mName); }
 
 } // namespace Kratos
