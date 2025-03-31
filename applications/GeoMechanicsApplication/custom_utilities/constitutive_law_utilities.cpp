@@ -21,9 +21,11 @@ using namespace Kratos;
 
 double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int>& rIndexVariable)
 {
-    KRATOS_ERROR_IF_NOT(rProperties.Has(UMAT_PARAMETERS) && rProperties.Has(rIndexVariable))
-        << "Material " << rProperties.Id() << " does not have UMAT_PARAMETERS and/or "
-        << rIndexVariable.Name() << "\n";
+    KRATOS_ERROR_IF_NOT(rProperties.Has(UMAT_PARAMETERS))
+        << "Material " << rProperties.Id() << " does not have UMAT_PARAMETERS\n";
+
+    KRATOS_ERROR_IF_NOT(rProperties.Has(rIndexVariable))
+        << "Material " << rProperties.Id() << " does not have " << rIndexVariable.Name() << "\n";
 
     const auto index = rProperties[rIndexVariable]; // 1-based index
     KRATOS_DEBUG_ERROR_IF(index < 1 ||

@@ -71,15 +71,13 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMecha
     KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetCohesion(properties), 2.0);
 
     properties.Erase(INDEX_OF_UMAT_C_PARAMETER);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::GetCohesion(properties),
-        "Material 0 does not have UMAT_PARAMETERS and/or INDEX_OF_UMAT_C_PARAMETER");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetCohesion(properties),
+                                      "Material 0 does not have INDEX_OF_UMAT_C_PARAMETER");
 
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
     properties.Erase(UMAT_PARAMETERS);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::GetCohesion(properties),
-        "Material 0 does not have UMAT_PARAMETERS and/or INDEX_OF_UMAT_C_PARAMETER");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetCohesion(properties),
+                                      "Material 0 does not have UMAT_PARAMETERS");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -101,15 +99,13 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
     KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngle(properties), 30.0);
 
     properties.Erase(INDEX_OF_UMAT_PHI_PARAMETER);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::GetFrictionAngle(properties),
-        "Material 0 does not have UMAT_PARAMETERS and/or INDEX_OF_UMAT_PHI_PARAMETER");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngle(properties),
+                                      "Material 0 does not have INDEX_OF_UMAT_PHI_PARAMETER");
 
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
     properties.Erase(UMAT_PARAMETERS);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::GetFrictionAngle(properties),
-        "Material 0 does not have UMAT_PARAMETERS and/or INDEX_OF_UMAT_PHI_PARAMETER");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngle(properties),
+                                      "Material 0 does not have UMAT_PARAMETERS");
 }
 
 // The following test only raises errors when using debug builds
