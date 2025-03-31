@@ -65,6 +65,7 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
         CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, A_uvw, B_uvw, rModelPart);
 
+        //TODO: This must be turned to an error once we finish the ongoing SBM BCs development
         KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
                         "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
         return;
