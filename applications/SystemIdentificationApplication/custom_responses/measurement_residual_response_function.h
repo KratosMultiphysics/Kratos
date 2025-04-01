@@ -24,7 +24,7 @@
 #include "response_functions/adjoint_response_function.h"
 
 // Application includes
-#include "sensor.h"
+#include "custom_sensors/sensor.h"
 
 namespace Kratos
 {
