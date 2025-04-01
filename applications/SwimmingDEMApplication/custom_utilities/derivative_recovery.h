@@ -26,6 +26,7 @@
 #include "custom_functions.h"
 
 //Database includes
+#include "spaces/ublas_space.h"
 #include "spatial_containers/spatial_containers.h"
 #include "custom_utilities/search/point_point_search.h"
 
@@ -83,6 +84,13 @@ typedef std::size_t                                           ListIndexType;
 typedef SpatialSearch::DistanceType                           DistanceType;
 typedef SpatialSearch::VectorDistanceType                     VectorDistanceType;
 
+// For the full projection L2 recover
+typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+// typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+// typedef typename TSparseSpace::VectorType TSystemVectorType;
+// typedef typename TSparseSpace::MatrixType MatrixType;
+// typedef typename TSparseSpace::VectorType VectorType;
+
 /// Pointer definition of DerivativeRecovery
 typedef DerivativeRecovery<TDim> DerivativeRecovery_TDim;
 KRATOS_CLASS_POINTER_DEFINITION(DerivativeRecovery_TDim);
@@ -106,6 +114,7 @@ DerivativeRecovery(ModelPart& r_model_part, Parameters& r_parameters):
 {
     mStoreFullGradient = r_parameters.GetValue("store_full_gradient_option").GetBool();
     mComputeExactL2 = r_parameters.GetValue("compute_exact_L2").GetBool();
+    mMassMatrixAlreadyComputed = false;
 }
 
 /// Destructor.
@@ -137,6 +146,12 @@ void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<
 void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
 
 void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container);
+
+void CalculateLocalMassMatrix(ModelPart::ElementsContainerType::iterator&, Matrix&);
+
+void AssembleMassMatrix(SparseSpaceType::MatrixType& global_matrix, const Matrix& local_lhs, const std::vector<std::map<unsigned, unsigned>>&);
+
+void CalculateVectorMaterialDerivativeExactL2Parallel(ModelPart&, Variable<array_1d<double, 3> >&, Variable<array_1d<double, 3> >&, Variable<array_1d<double, 3> >&);
 
 void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container);
 
@@ -245,6 +260,7 @@ bool mCalculatingGradientAndLaplacian;
 bool mFirstTimeAppending;
 bool mStoreFullGradient;
 bool mComputeExactL2;
+bool mMassMatrixAlreadyComputed;
 double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;
