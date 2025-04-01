@@ -35,7 +35,7 @@
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
-        "strategy_type":                      "linear",
+        "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "residual_criterion",
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
