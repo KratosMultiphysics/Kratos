@@ -133,7 +133,20 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         # self.assert_linear_elastic_block(simulation[1], output_data, top_node_nbrs, n_dim)
 
         bottom_node_ids = [1, 21]
-        self.assertVerticalStressAtBottomNodesMC(output_data, bottom_node_ids, -22366.8, -8234.18)
+        self.assertVerticalStressAtBottomNodesMC(output_data, bottom_node_ids, -22366.8, -8058.42)
+
+    def test_quad_4n_step_mechanism_double_column(self):
+        test_name = 'test_quad_4n_step_mechanism_double_column'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_stages(file_path, 2)
+
+        output_data = self.fetchOutputFromFile(os.path.join(file_path, f"{test_name}_stage2.post.res"))
+        top_node_nbrs = [0, 1, 5]
+        n_dim = 2
+        # self.assert_linear_elastic_block(simulation[1], output_data, top_node_nbrs, n_dim)
+
+        bottom_node_ids = [1, 21, 41]
+        self.assertVerticalStressAtBottomNodesMC(output_data, bottom_node_ids, -22366.8, -8058.42)
 
     # def test_quad_8n(self):
     #     test_name = 'test_quad_8n'

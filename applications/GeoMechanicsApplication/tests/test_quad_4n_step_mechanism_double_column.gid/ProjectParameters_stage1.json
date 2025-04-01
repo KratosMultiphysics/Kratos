@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name":         "test_quad_4n",
-        "start_time":           0.0,
-        "end_time":             1.0,
+        "start_time":           -1.0,
+        "end_time":             0.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -16,10 +16,10 @@
             "input_filename":   "test_quad_4n"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParametersStage2.json"
+            "materials_filename":       "MaterialParametersStage1.json"
         },
         "time_stepping":              {
-            "time_step":            0.1
+            "time_step":            1.0
         },
         "buffer_size":                        2,
         "echo_level":                         1,
@@ -45,9 +45,9 @@
         "residual_absolute_tolerance":        1.0E-9,
         "min_iterations":                      6,
         "max_iterations":                      15,
-        "number_cycles":                      1,
-        "reduction_factor":                   1.0,
-        "increase_factor":                    1.0,
+        "number_cycles":                      100,
+        "reduction_factor":                   0.5,
+        "increase_factor":                    2.0,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
@@ -74,7 +74,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_quad_4n_step_mechanism_column_stage2",
+                "output_name": "test_quad_4n_step_mechanism_double_column_stage1",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
