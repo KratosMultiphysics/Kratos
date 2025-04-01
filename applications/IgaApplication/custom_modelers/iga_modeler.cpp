@@ -371,6 +371,8 @@ namespace Kratos
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
                 std::vector<int> listIdClosestCondition(geometries.size());
 
+                std::vector<int> list_id_second_closest_condition(geometries.size());
+
                 Point gaussPoint = geometries[0].Center(); 
 
                 if (geometries.size() > 1) gaussPoint = geometries[1].Center(); 
@@ -396,7 +398,6 @@ namespace Kratos
                         int nearestNodeId;
 
                         double best_n_dot_distance = 1e10;
-                        Node best_node;
                         for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
                             double new_distance = list_of_distances[i_distance];   
                             if (new_distance < minimum_distance) { 
@@ -404,60 +405,54 @@ namespace Kratos
                                 nearestNodeId = i_distance;
                                 }
                         }
-                        // for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
-                        //     double new_distance = list_of_distances[i_distance];   
-                        //     //FIXME:
-                        //     auto& closest_condition = skin_model_part.GetCondition(Results[i_distance]->Id());
-                        //     auto& closest_point = closest_condition.GetGeometry()[0];
+                        std::string closest_condition_name;
+                        const int closest_condition_id = Results[nearestNodeId]->Id();
+                        if (is_inner) 
+                            closest_condition_name = skin_sub_model_part_in.GetCondition(closest_condition_id).GetValue(CONDITION_NAME);
+                        else
+                            closest_condition_name = skin_sub_model_part_out.GetCondition(closest_condition_id).GetValue(CONDITION_NAME);
+                        
+                        //FIXME:
+                        minimum_distance=1e10;
+                        int second_nearest_node_id = -1;
+                        for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
+                            double new_distance = list_of_distances[i_distance];   
+                            const int condition_id = Results[i_distance]->Id();
+                            std::string condition_name;
+                            if (is_inner) 
+                                condition_name = skin_sub_model_part_in.GetCondition(condition_id).GetValue(CONDITION_NAME);
+                            else
+                                condition_name = skin_sub_model_part_out.GetCondition(condition_id).GetValue(CONDITION_NAME);
 
-                        //     Vector condition_tangent_vector = geometries[0].Center() - geometries[1].Center();
-                        //     condition_tangent_vector /= norm_2(condition_tangent_vector);
-                        //     Vector temp_normal = closest_point.GetValue(NORMAL);
-                        //     double n_dot_distance = std::abs(inner_prod(temp_normal, condition_tangent_vector));
-
-                        //     // Vector distance_vector = closest_point - gaussPoint;
-                        //     // distance_vector /= norm_2(distance_vector);
-                        //     // double n_dot_distance = std::abs(inner_prod(temp_normal, distance_vector));
                             
-                        //     // KRATOS_WATCH(gaussPoint)
-                        //     // KRATOS_WATCH(closest_point)
-                        //     // KRATOS_WATCH(temp_normal)
-                        //     // KRATOS_WATCH(condition_tangent_vector)
-                        //     // KRATOS_WATCH(n_dot_distance)
-                        //     // KRATOS_WATCH("---------------")
-
-                        //     if (n_dot_distance < best_n_dot_distance && new_distance < minimum_distance *1.5)
-                        //     {
-                        //         best_n_dot_distance = n_dot_distance;
-                        //         nearestNodeId = i_distance;
-                        //         best_node = closest_point;
-                        //     }
-                        // }
-
-                        // auto closest_condition = skin_model_part.GetCondition(Results[nearestNodeId]->Id());
-                        // best_node = closest_condition.GetGeometry()[0];
-
-                        // std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-                        // outputFile << best_node[0] << " " << best_node[1] << " "  << gaussPoint.X() << " " << gaussPoint.Y() <<"\n";
-                        // outputFile.close();
+                            if (new_distance < minimum_distance && condition_name != closest_condition_name) { 
+                                minimum_distance = new_distance;
+                                second_nearest_node_id = i_distance;
+                                }
+                        }
 
                         if (obtainedResults == 0) {
                              KRATOS_WATCH("0 POINTS FOUND: EXIT")
                              KRATOS_WATCH(pointToSearch)
                              exit(0);}
-
                         
-                        listIdClosestCondition[j] = Results[nearestNodeId]->Id();                          
+                        listIdClosestCondition[j] = Results[nearestNodeId]->Id();   
+                        if (second_nearest_node_id == -1)
+                            list_id_second_closest_condition[j] = -1;
+                        else
+                            list_id_second_closest_condition[j] = Results[second_nearest_node_id]->Id();                    
                     }
                     if (is_inner) {
                         this->CreateConditions(
-                        geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_sub_model_part_in, listIdClosestCondition, id, PropertiesPointerType(), is_inner, meshSizes_uv);
+                                geometries.ptr_begin(), geometries.ptr_end(),
+                                rModelPart, skin_sub_model_part_in, listIdClosestCondition, list_id_second_closest_condition, 
+                                id, PropertiesPointerType(), is_inner, meshSizes_uv);
                     }
                     else{
                         this->CreateConditions(
-                        geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_sub_model_part_out, listIdClosestCondition, id, PropertiesPointerType(), is_inner, meshSizes_uv);
+                                geometries.ptr_begin(), geometries.ptr_end(),
+                                rModelPart, skin_sub_model_part_out, listIdClosestCondition, list_id_second_closest_condition,
+                                id, PropertiesPointerType(), is_inner, meshSizes_uv);
                     }
                 } else if (isCoincidentToExternalParameterSpace){
                     
@@ -621,6 +616,7 @@ namespace Kratos
         ModelPart& rModelPart,
         ModelPart& rSkinModelPart,
         std::vector<int>& listIdClosestCondition,
+        std::vector<int>& list_id_second_closest_condition,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         bool isInner,
@@ -695,21 +691,11 @@ namespace Kratos
             int best_cond_id = -1;
             if (rConditionName != max_condition_name) 
             {
-                double best_distance = 1e16;
-                for (IndexType i = 0; i < max_count; i++)
-                {
-                    int condId = list_id_closest_condition_of_correct_bc[i];
-                    auto cond_center = (&rSkinModelPart.GetCondition(condId))->GetGeometry().Center();
-                    double curr_distance = norm_2(cond_center-gp_coord);
-
-                    if (curr_distance < best_distance) 
-                    {
-                        best_distance = curr_distance;
-                        best_cond_id = condId;
-                    }
-                }
-                
-                listIdClosestCondition[countListClosestCondition] = best_cond_id;
+                //FIXME:
+                KRATOS_ERROR_IF(list_id_second_closest_condition[countListClosestCondition] == -1) << "ERROR in second_closest_condition_name" << std::endl;
+                listIdClosestCondition[countListClosestCondition] = list_id_second_closest_condition[countListClosestCondition];
+                std::string second_closest_condition_name = rSkinModelPart.GetCondition(list_id_second_closest_condition[countListClosestCondition]).GetValue(CONDITION_NAME);
+                KRATOS_ERROR_IF(second_closest_condition_name != max_condition_name) << "ERROR in second_closest_condition_name" << std::endl;
             }
             countListClosestCondition++;
         }
