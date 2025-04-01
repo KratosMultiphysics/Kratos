@@ -394,7 +394,6 @@ namespace Kratos {
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
                 SphericContinuumParticle::CalculateOnContinuumContactElements(i,
                                                                               total_local_elastic_contact_force,
-                                                                              Elastic_Local_Rotational_Moment,
                                                                               contact_sigma,
                                                                               contact_tau,
                                                                               failure_criterion_state,

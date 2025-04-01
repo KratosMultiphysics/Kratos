@@ -95,8 +95,7 @@ namespace Kratos
         virtual bool OverlappedParticleRemoval();
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual void CalculateOnContinuumContactElements(size_t i_neighbour_count, 
-                                                        double LocalElasticContactForce[3], 
-                                                        double ElasticLocalRotationalMoment[3],                        
+                                                        double LocalElasticContactForce[3],                        
                                                         double contact_sigma, 
                                                         double contact_tau, 
                                                         double failure_criterion_state, 
