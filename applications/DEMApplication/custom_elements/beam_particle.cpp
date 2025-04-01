@@ -400,7 +400,8 @@ namespace Kratos {
                                                                               failure_criterion_state,
                                                                               acumulated_damage,
                                                                               time_steps,
-                                                                              calculation_area);
+                                                                              calculation_area,
+                                                                              GlobalContactForce);
             }
         } // for each neighbor
 
