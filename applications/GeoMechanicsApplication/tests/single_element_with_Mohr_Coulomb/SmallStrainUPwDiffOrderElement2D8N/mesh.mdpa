@@ -17,8 +17,6 @@ Begin Elements SmallStrainUPwDiffOrderElement2D8N
 End Elements
 
 Begin SubModelPart all
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -32,102 +30,52 @@ Begin SubModelPart all
   Begin SubModelPartElements
     1
   End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart bottom_left
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart bottom_right
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     2
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart top_right
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     3
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart top_left
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     4
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart bottom
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     5
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart right
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     6
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart top
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     7
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart left
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     8
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
