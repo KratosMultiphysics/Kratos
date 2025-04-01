@@ -54,6 +54,7 @@ class ResidualBasedNewtonRaphsonStrategyPython():
 
         self.NumberOfContinuationIterations = 1
         self.final_shock_capturing_constant = self.main_model_part.ProcessInfo[ConvectionDiffusionApplication.SHOCK_CAPTURING_INTENSITY]
+        self.convection_diffusion_variable = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS].GetUnknownVariable()
 
     def Initialize(self):
         if (self.InitializeWasPerformed == False):
@@ -99,7 +100,7 @@ class ResidualBasedNewtonRaphsonStrategyPython():
             else:
                 self.main_model_part.ProcessInfo[ConvectionDiffusionApplication.SHOCK_CAPTURING_INTENSITY] = self.final_shock_capturing_constant * (1 - np.exp(- 2 * k/self.NumberOfContinuationIterations))
             self.SolveSolutionStepForFixedContinuationParameter()
-            print(100*'*', 'self.final_shock_capturing_constant', self.main_model_part.ProcessInfo[ConvectionDiffusionApplication.SHOCK_CAPTURING_INTENSITY])
+            print(100 * '*' + ' ', 'self.final_shock_capturing_constant', self.main_model_part.ProcessInfo[ConvectionDiffusionApplication.SHOCK_CAPTURING_INTENSITY])
 
     def SolveSolutionStepForFixedContinuationParameter(self):
         max_iterations = self.max_iterations
@@ -114,7 +115,7 @@ class ResidualBasedNewtonRaphsonStrategyPython():
 
         for node in self.main_model_part.Nodes:
             if node.Id == 44:
-                print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+                print(node.GetSolutionStepValue(self.convection_diffusion_variable))
 
         if (self.rebuild_level > 0 or self.StiffnessMatrixIsBuilt == False):
             self.space_utils.SetToZeroVector(self.Dx)

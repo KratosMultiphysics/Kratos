@@ -1,8 +1,13 @@
 # Importing the Kratos Library
+from KratosMultiphysics import auxiliary_solver_utilities
+from KratosMultiphysics.python_solver import PythonSolver
+import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics
 
 # Auxiliary function to check the parallel type at runtime
-#TODO: Delete this once we come up with the final factory-based design
+# TODO: Delete this once we come up with the final factory-based design
+
+
 def _CheckIsDistributed():
     if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
         world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
@@ -10,8 +15,8 @@ def _CheckIsDistributed():
     else:
         return False
 
+
 # Import applications
-import KratosMultiphysics.ConvectionDiffusionApplication
 
 # If required, import parallel applications and modules
 if _CheckIsDistributed():
@@ -28,11 +33,11 @@ else:
     import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
 
 # Importing the base class
-from KratosMultiphysics.python_solver import PythonSolver
-from KratosMultiphysics import auxiliary_solver_utilities
+
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionSolver(model, custom_settings)
+
 
 class ConvectionDiffusionSolver(PythonSolver):
     """The base class for convection-diffusion solvers.
@@ -80,7 +85,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self.main_model_part = self.model[model_part_name]
             self.solver_imports_model_part = False
         else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name) # Model.CreateodelPart()
+            self.main_model_part = self.model.CreateModelPart(model_part_name)  # Model.CreateodelPart()
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
@@ -264,7 +269,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
         # Adding nodal area variable (some solvers use it. TODO: Ask)
-        #target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        # target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         # If LaplacianElement is used
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -286,13 +291,13 @@ class ConvectionDiffusionSolver(PythonSolver):
         conv_diff_vars = self.settings["convection_diffusion_variables"]
         dof_var_name = conv_diff_vars["unknown_variable"].GetString()
         reaction_var_name = conv_diff_vars["reaction_variable"].GetString()
-        dofs_with_reactions_list.append([dof_var_name,reaction_var_name])
+        dofs_with_reactions_list.append([dof_var_name, reaction_var_name])
         if self.settings["gradient_dofs"].GetBool():
             grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
             grad_react_var_name = conv_diff_vars["reaction_gradient_variable"].GetString()
-            comp_list = ["_X","_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X","_Y","_Z"]
+            comp_list = ["_X", "_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X", "_Y", "_Z"]
             for comp in comp_list:
-                dofs_with_reactions_list.append([grad_dof_var_name+comp,grad_react_var_name+comp])
+                dofs_with_reactions_list.append([grad_dof_var_name+comp, grad_react_var_name+comp])
 
         # Add the DOFs and reaction list to each node
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
@@ -309,7 +314,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         dofs_list.append(conv_diff_vars["unknown_variable"].GetString())
         if self.settings["gradient_dofs"].GetBool():
             grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
-            comp_list = ["_X","_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X","_Y","_Z"]
+            comp_list = ["_X", "_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X", "_Y", "_Z"]
             for comp in comp_list:
                 dofs_list.append(grad_dof_var_name + comp)
 
@@ -336,7 +341,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self._get_element_condition_replace_settings()).Execute()
 
             tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
             throw_errors = False
@@ -345,7 +350,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                 flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
             else:
                 flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
-            tmoc(self.main_model_part,throw_errors, flags).Execute()
+            tmoc(self.main_model_part, throw_errors, flags).Execute()
 
             self._set_and_fill_buffer()
 
@@ -416,7 +421,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
-        file = open(name_out_file + ".mdpa","w")
+        file = open(name_out_file + ".mdpa", "w")
         file.close()
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
@@ -542,7 +547,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         # the current value and initializes the time stepping in the process info.
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        step =-buffer_size
+        step = -buffer_size
         time = time - delta_time * buffer_size
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
         for _ in range(0, buffer_size):
@@ -552,19 +557,27 @@ class ConvectionDiffusionSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
     def _get_element_condition_replace_settings(self):
-        ## Get and check domain size
+        # Get and check domain size
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if domain_size not in [2,3]:
+        if domain_size not in [2, 3]:
             raise Exception("DOMAIN_SIZE is not set in ProcessInfo container.")
 
-        ## Validate the replace settings
+        # Validate the replace settings
         default_replace_settings = self.GetDefaultParameters()["element_replace_settings"]
         self.settings["element_replace_settings"].ValidateAndAssignDefaults(default_replace_settings)
 
-        ## Elements
-        ## Note that we check for the elements that require substitution to allow for custom elements
+        # Elements
+        # Note that we check for the elements that require substitution to allow for custom elements
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
-        element_list = ["EulerianConvDiff","LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit","AxisymmetricEulerianConvectionDiffusion"]
+        element_list = ["EulerianConvDiff",
+                        "LaplacianElement",
+                        "MixedLaplacianElement",
+                        "AdjointHeatDiffusionElement",
+                        "QSConvectionDiffusionExplicit",
+                        "DConvectionDiffusionExplicit",
+                        "AxisymmetricEulerianConvectionDiffusion",
+                        "EulerianConvDiffShockCapturing"
+                        ]
         if element_name in element_list:
             num_nodes_elements = 0
             if (len(self.main_model_part.Elements) > 0):
@@ -579,9 +592,9 @@ class ConvectionDiffusionSolver(PythonSolver):
             name_string = f"{element_name}{domain_size}D{num_nodes_elements}N"
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
-        ## Conditions
+        # Conditions
         condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
-        condition_list = ["FluxCondition","ThermalFace","AxisymmetricThermalFace","LineCondition","SurfaceCondition"]
+        condition_list = ["FluxCondition", "ThermalFace", "AxisymmetricThermalFace", "LineCondition", "SurfaceCondition"]
         if condition_name in condition_list:
             num_nodes_conditions = 0
             if (len(self.main_model_part.Conditions) > 0):
@@ -601,12 +614,12 @@ class ConvectionDiffusionSolver(PythonSolver):
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
-        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("solution_relative_tolerance",self.settings["solution_relative_tolerance"])
-        conv_params.AddValue("solution_absolute_tolerance",self.settings["solution_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+        conv_params.AddValue("convergence_criterion", self.settings["convergence_criterion"])
+        conv_params.AddValue("echo_level", self.settings["echo_level"])
+        conv_params.AddValue("solution_relative_tolerance", self.settings["solution_relative_tolerance"])
+        conv_params.AddValue("solution_absolute_tolerance", self.settings["solution_absolute_tolerance"])
+        conv_params.AddValue("residual_relative_tolerance", self.settings["residual_relative_tolerance"])
+        conv_params.AddValue("residual_absolute_tolerance", self.settings["residual_absolute_tolerance"])
 
         return conv_params
 
@@ -665,12 +678,12 @@ class ConvectionDiffusionSolver(PythonSolver):
         if analysis_type == "linear":
             convection_diffusion_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            if(self.settings["line_search"].GetBool() == False):
+            if (self.settings["line_search"].GetBool() == False):
                 convection_diffusion_solution_strategy = self._create_newton_raphson_strategy()
             else:
                 convection_diffusion_solution_strategy = self._create_line_search_strategy()
         else:
-            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+            err_msg = "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
         return convection_diffusion_solution_strategy
@@ -776,8 +789,8 @@ class ConvectionDiffusionSolver(PythonSolver):
             custom_conv_diff_variables.AddEmptyValue(variable_entry).SetString(variable_name)
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "\'{0}\' in \'convection_diffusion_variables\' not defined, taking default \'{1}\'.".format(variable_entry, variable_name))
 
-    #TODO: THIS MUST BE IMPLEMENTED IN A base_convergence_criteria_factory_mpi.py
-    #TODO: THEN WE CAN IMPORT IT AS convergence_criteria_factory TO AVOID DISTINGUISHING THE SERIAL AND THE PARALLEL FACTORIES
+    # TODO: THIS MUST BE IMPLEMENTED IN A base_convergence_criteria_factory_mpi.py
+    # TODO: THEN WE CAN IMPORT IT AS convergence_criteria_factory TO AVOID DISTINGUISHING THE SERIAL AND THE PARALLEL FACTORIES
     def __base_convergence_criteria_factory_mpi(self, convergence_criterion_parameters):
         # Note that all the convergence settings are introduced via a Kratos parameters object.
         D_RT = convergence_criterion_parameters["solution_relative_tolerance"].GetDouble()
@@ -788,33 +801,33 @@ class ConvectionDiffusionSolver(PythonSolver):
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         convergence_crit = convergence_criterion_parameters["convergence_criterion"].GetString()
 
-        if(echo_level >= 1):
+        if (echo_level >= 1):
             KratosMultiphysics.Logger.PrintInfo("::[ConvergenceCriterionFactory]:: ", "CONVERGENCE CRITERION : " +
-                convergence_criterion_parameters["convergence_criterion"].GetString())
+                                                convergence_criterion_parameters["convergence_criterion"].GetString())
 
-        if(convergence_crit == "solution_criterion"):
+        if (convergence_crit == "solution_criterion"):
             convergence_criterion = KratosTrilinos.TrilinosDisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
 
-        elif(convergence_crit == "residual_criterion"):
+        elif (convergence_crit == "residual_criterion"):
             convergence_criterion = KratosTrilinos.TrilinosResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(echo_level)
 
-        elif(convergence_crit == "and_criterion"):
+        elif (convergence_crit == "and_criterion"):
             Displacement = KratosTrilinos.TrilinosDisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosTrilinos.TrilinosResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosTrilinos.TrilinosAndCriteria(Residual, Displacement)
 
-        elif(convergence_crit == "or_criterion"):
+        elif (convergence_crit == "or_criterion"):
             Displacement = KratosTrilinos.TrilinosDisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosTrilinos.TrilinosResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosTrilinos.TrilinosOrCriteria(Residual, Displacement)
         else:
-            err_msg =  "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
+            err_msg = "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
             err_msg += "Available options are: \"solution_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
             raise Exception(err_msg)
 

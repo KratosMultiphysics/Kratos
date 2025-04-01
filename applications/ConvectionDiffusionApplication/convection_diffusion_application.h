@@ -29,6 +29,7 @@
 #include "custom_elements/conv_diff_3d.h"
 #include "custom_elements/eulerian_diff.h"
 #include "custom_elements/eulerian_conv_diff.h"
+#include "custom_elements/eulerian_conv_diff_shock_capturing.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/mixed_laplacian_element.h"
 #include "custom_elements/embedded_laplacian_element.h"
@@ -239,6 +240,11 @@ private:
     const EulerianConvectionDiffusionElement<3,8>  mEulerianConvDiff3D8N;
     const EulerianDiffusionElement<2,3>  mEulerianDiffusion2D3N;
     const EulerianDiffusionElement<3,4>  mEulerianDiffusion3D4N;
+
+    const EulerianConvectionDiffusionShockCapturingElement<2,3>  mEulerianConvDiffShockCapturing2D3N;
+    const EulerianConvectionDiffusionShockCapturingElement<2,4>  mEulerianConvDiffShockCapturing2D4N;
+    const EulerianConvectionDiffusionShockCapturingElement<3,4>  mEulerianConvDiffShockCapturing3D4N;
+    const EulerianConvectionDiffusionShockCapturingElement<3,8>  mEulerianConvDiffShockCapturing3D8N;
 
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;

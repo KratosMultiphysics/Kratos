@@ -12,6 +12,8 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_eulerian_convection_diffusion.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eulerian_conv_diff.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eulerian_conv_diff_shock_capturing.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_element.cpp
