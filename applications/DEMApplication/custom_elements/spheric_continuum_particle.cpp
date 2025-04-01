@@ -468,13 +468,24 @@ namespace Kratos {
             }
 
             
-            if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
+            int contact_mesh_option = r_process_info[CONTACT_MESH_OPTION];
+            if (contact_mesh_option == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 double total_local_elastic_contact_force[3] = {0.0};
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
                 //TODO: REMOVE ElasticLocalRotationalMoment
-                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, ElasticLocalRotationalMoment, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area);
+                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, ElasticLocalRotationalMoment, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce);
+            } else if (r_process_info[IS_TIME_TO_PRINT] && contact_mesh_option == 1) {
+                unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
+                if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                }
+            } else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && contact_mesh_option == 1) {
+                unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
+                if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                }
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
@@ -869,7 +880,15 @@ namespace Kratos {
         else return 0.0;
     }
 
-    void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double ElasticLocalRotationalMoment[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps, double calculation_area) {
+    void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], 
+                                                                        double ElasticLocalRotationalMoment[3], 
+                                                                        double contact_sigma, double contact_tau, 
+                                                                        double failure_criterion_state, 
+                                                                        double acumulated_damage, 
+                                                                        int time_steps, 
+                                                                        double calculation_area, 
+                                                                        double GlobalContactForce[3]) 
+    {
 
         KRATOS_TRY
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
@@ -887,6 +906,14 @@ namespace Kratos {
         bond->mContactFailure = mIniNeighbourFailureId[i];
         bond->mFailureCriterionState = failure_criterion_state;
         bond->mContactRadius = sqrt(calculation_area / Globals::Pi);
+
+        bond->mGlobalContactForce[0] = GlobalContactForce[0];
+        bond->mGlobalContactForce[1] = GlobalContactForce[1];
+        bond->mGlobalContactForce[2] = GlobalContactForce[2];
+
+        bond->GetValue(GLOBAL_CONTACT_FORCE)[0] = GlobalContactForce[0];
+        bond->GetValue(GLOBAL_CONTACT_FORCE)[1] = GlobalContactForce[1];
+        bond->GetValue(GLOBAL_CONTACT_FORCE)[2] = GlobalContactForce[2];
 
         if ((time_steps == 0) || (acumulated_damage > bond->mUnidimendionalDamage)) {
             bond->mUnidimendionalDamage = acumulated_damage;
