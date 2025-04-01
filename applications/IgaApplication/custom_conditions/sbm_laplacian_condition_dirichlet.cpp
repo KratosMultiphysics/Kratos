@@ -148,16 +148,16 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
     // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0; // 2D case
+    Matrix jacobian_matrix = ZeroMatrix(3,3);
+    jacobian_matrix(0,0) = J0[0](0,0);
+    jacobian_matrix(0,1) = J0[0](0,1);
+    jacobian_matrix(1,0) = J0[0](1,0);
+    jacobian_matrix(1,1) = J0[0](1,1);
+    jacobian_matrix(2,2) = 1.0; // 2D case
 
     array_1d<double, 3> tangent_parameter_space;
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
+    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
     determinant_factor[2] = 0.0; // 2D case
     const double det_J0 = norm_2(determinant_factor);
 
@@ -214,16 +214,16 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
     // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0; // 2D case
+    Matrix jacobian_matrix = ZeroMatrix(3,3);
+    jacobian_matrix(0,0) = J0[0](0,0);
+    jacobian_matrix(0,1) = J0[0](0,1);
+    jacobian_matrix(1,0) = J0[0](1,0);
+    jacobian_matrix(1,1) = J0[0](1,1);
+    jacobian_matrix(2,2) = 1.0; // 2D case
 
     array_1d<double, 3> tangent_parameter_space;
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
+    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
     determinant_factor[2] = 0.0; // 2D case
     const double det_J0 = norm_2(determinant_factor);
 
