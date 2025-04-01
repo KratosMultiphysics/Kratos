@@ -14,6 +14,7 @@
 
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
+#include "integration_coefficients_calculator.h"
 #include "integration_scheme.h"
 #include "stress_state_policy.h"
 
@@ -72,9 +73,10 @@ private:
     std::vector<Vector> CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const;
     std::vector<Vector> CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements);
 
-    std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
-    std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
+    std::unique_ptr<IntegrationScheme>                 mIntegrationScheme;
+    std::unique_ptr<StressStatePolicy>                 mStressStatePolicy;
+    std::vector<ConstitutiveLaw::Pointer>              mConstitutiveLaws;
+    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator;
 };
 
 } // namespace Kratos
