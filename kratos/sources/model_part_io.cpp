@@ -629,7 +629,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         for (IndexType i = 0; i < variables_names.size(); ++i) {
             (*mpStream) << "\t" << variables_names[i];
         }
-        (*mpStream) << std::endl;
+        (*mpStream) << "\n";
         (*mpStream) << "\t" << it_master_slave_constraint_begin->Id() << "\t";
         for (IndexType i = 0; i < number_of_master_dofs; ++i) {
             (*mpStream) << master_dofs[i]->Id() << "\t";
@@ -645,7 +645,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         for (IndexType i = 0; i < constant_vector.size(); ++i) {
             (*mpStream) << constant_vector[i] << "\t";
         }
-        (*mpStream) << std::endl;
+        (*mpStream) << "\n";
 
         // Now we iterate over all the master slave constraints
         for(std::size_t i = 1; i < rMasterSlaveConstraintContainer.size(); i++) {
@@ -676,10 +676,10 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 for (IndexType i = 0; i < constant_vector.size(); ++i) {
                     (*mpStream) << constant_vector[i] << "\t";
                 }
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";
             } else {
                 // End previous master slave constraint
-                (*mpStream) << "End MasterSlaveConstraints" << std::endl << std::endl;
+                (*mpStream) << "End MasterSlaveConstraints" << "\n\n";
 
                 // Get the new name
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_const_current, master_slave_constraint_name);
@@ -719,7 +719,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 for (IndexType i = 0; i < variables_names.size(); ++i) {
                     (*mpStream) << "\t" << variables_names[i];
                 }
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";
                 (*mpStream) << "\t" << rMasterSlaveConstraintContainer.begin()->Id() << "\t";
                 for (IndexType i = 0; i < number_of_master_dofs; ++i) {
                     (*mpStream) << master_dofs[i]->Id() << "\t";
@@ -735,11 +735,11 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 for (IndexType i = 0; i < constant_vector.size(); ++i) {
                     (*mpStream) << constant_vector[i] << "\t";
                 }
-                (*mpStream) << std::endl;
+                (*mpStream) << "\n";
             }
         }
 
-        (*mpStream) << "End MasterSlaveConstraints" << std::endl << std::endl;
+        (*mpStream) << "End MasterSlaveConstraints" << "\n\n";
     }
 }
 
