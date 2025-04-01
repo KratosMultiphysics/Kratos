@@ -593,7 +593,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
                     auto pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
 
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
-                    pcond->Set(BOUNDARY, false);
+                    pcond->Set(BOUNDARY, true);
 
                     // surrogate_model_part_inner.AddCondition(pcond);
                     id_surrogate_condition++;
@@ -614,7 +614,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
                 check_next_point = true;
 
                 // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
-                pcond->Set(BOUNDARY, true);
+                pcond->Set(BOUNDARY, false);
             }
         }
     }
@@ -854,7 +854,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
                         
                     auto pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
-                    pcond->Set(BOUNDARY, false);
+                    pcond->Set(BOUNDARY, true);
                     id_surrogate_condition++;
                     check_next_point = false;
                 } 
@@ -871,7 +871,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
                 check_next_point = true;
 
                 // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
-                pcond->Set(BOUNDARY, true);
+                pcond->Set(BOUNDARY, false);
             }
 
             if (rKnotSpansAvailable[IdMatrix][j][i] == 1 && j == rNumberKnotSpans[1]-1) 

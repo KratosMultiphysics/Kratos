@@ -24,6 +24,14 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
     def SetupGeometryModel(self):
         super().SetupGeometryModel()
 
+        # Import the model part data
+        # Note that at this point solvers must have already added the variables to the nodal variable data
+        input_type = "mdpa"
+        KratosMultiphysics.SingleImportModelPart.Import(
+            self.model_part,
+            self.settings,
+            input_type)
+
     def PrepareGeometryModel(self):
         super().PrepareGeometryModel()
 
@@ -32,11 +40,11 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
 
         # Import the model part data
         # Note that at this point solvers must have already added the variables to the nodal variable data
-        input_type = "mdpa"
-        KratosMultiphysics.SingleImportModelPart.Import(
-            self.model_part,
-            self.settings,
-            input_type)
+        # input_type = "mdpa"
+        # KratosMultiphysics.SingleImportModelPart.Import(
+        #     self.model_part,
+        #     self.settings,
+        #     input_type)
 
     @classmethod
     def __GetDefaultSettings(cls):

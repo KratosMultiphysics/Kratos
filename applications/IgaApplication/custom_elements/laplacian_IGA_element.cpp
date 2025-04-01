@@ -75,24 +75,9 @@ void LaplacianIGAElement::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    const auto& r_geometry = GetGeometry();
-    const unsigned int number_of_points = r_geometry.size();
-    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-    auto& r_settings = *p_settings;
-
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
-    Vector temp(number_of_points);
-    // RHS = ExtForces - K*temp;
-    for (IndexType i = 0; i < number_of_points; i++) {
-        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-    }
     
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
-
-    // RHS -= K*temp
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 
     KRATOS_CATCH("")
 }
@@ -152,6 +137,9 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
     auto& r_settings = *p_settings;
 
     const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable(); // HeatFlux
+    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable(); // Conductivity
+    const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
 
     // reading integration points and local gradients
     const auto& r_geometry = GetGeometry();
@@ -169,9 +157,13 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
 
     // Initialize DN_DX
     Matrix DN_DX(number_of_points,dim);
-    Vector temp(number_of_points);
 
     const double heat_flux = this->GetValue(r_volume_source_var);
+
+    Vector temperature_old_iteration(number_of_points);
+    for (IndexType i = 0; i < number_of_points; i++) {
+        temperature_old_iteration[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
+    }
 
     for(IndexType i_point = 0; i_point < r_integration_points.size(); ++i_point)
     {
@@ -180,6 +172,7 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
         auto N = row(N_gausspoint,i_point);
         const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
+        noalias(rRightHandSideVector) -= int_to_reference_weight * conductivity * prod(prod(DN_DX, trans(DN_DX)),temperature_old_iteration);
         noalias(rRightHandSideVector) += int_to_reference_weight * heat_flux * N;
     }
 

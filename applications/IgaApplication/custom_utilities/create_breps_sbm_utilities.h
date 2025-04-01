@@ -199,8 +199,11 @@ private:
                 outer_loops,
                 inner_loops);
 
-        p_brep_surface->SetSurrogateInnerLoopGeometries(surrogate_inner_loop_geometries);
-        p_brep_surface->SetSurrogateOuterLoopGeometries(surrogate_outer_loop_geometries);
+        auto p_surrogate_outer_loop_geometries = Kratos::make_shared<GeometrySurrogateArrayType>(surrogate_outer_loop_geometries);
+        auto p_surrogate_inner_loop_geometries = Kratos::make_shared<GeometrySurrogateArrayType>(surrogate_inner_loop_geometries);
+
+        p_brep_surface->SetSurrogateOuterLoopGeometries(p_surrogate_outer_loop_geometries);
+        p_brep_surface->SetSurrogateInnerLoopGeometries(p_surrogate_inner_loop_geometries);
 
         // Sets the brep as geometry parent of the nurbs surface.
         pSurface->SetGeometryParent(p_brep_surface.get());
