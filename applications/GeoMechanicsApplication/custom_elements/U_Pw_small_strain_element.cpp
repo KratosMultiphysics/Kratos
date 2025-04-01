@@ -47,84 +47,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     UPwBaseElement::Initialize(rCurrentProcessInfo);
-
-    const PropertiesType&                           r_properties = this->GetProperties();
-    const GeometryType&                             r_geometry   = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-
-    ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
-
-    // Stiffness matrix is needed to calculate Biot coefficient
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
-    mExternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
-    mInternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    RetentionLaw::Parameters RetentionParameters(r_properties);
-
-    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-    const auto integration_coefficients =
-        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
-    const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
-        r_geometry, this->GetIntegrationMethod());
-    const auto integration_coefficients_on_initial_configuration =
-        this->CalculateIntegrationCoefficients(IntegrationPoints, det_Js_initial_configuration);
-
-    const auto deformation_gradients = CalculateDeformationGradients();
-    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->GetStressStatePolicy().GetVoigtSize());
-    std::vector<Matrix> constitutive_matrices;
-    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
-                                         Variables.NContainer, Variables.DN_DXContainer,
-                                         strain_vectors, mStressVector, constitutive_matrices);
-    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
-        constitutive_matrices, this->GetProperties());
-    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-        Variables.NContainer, Variables.PressureVector);
-    const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
-    const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
-    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_properties);
-    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
-    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
-    std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
-                   relative_permeability_values.cbegin(), relative_permeability_values.begin(),
-                   std::multiplies<>{});
-
-    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
-
-    for (unsigned int integration_point = 0; integration_point < IntegrationPoints.size(); ++integration_point) {
-        this->CalculateKinematics(Variables, integration_point);
-        Variables.B                  = b_matrices[integration_point];
-        Variables.F                  = deformation_gradients[integration_point];
-        Variables.StrainVector       = strain_vectors[integration_point];
-        Variables.ConstitutiveMatrix = constitutive_matrices[integration_point];
-
-        // Compute Nu and BodyAcceleration
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, integration_point);
-        GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, integration_point);
-
-        Variables.RelativePermeability = relative_permeability_values[integration_point];
-        Variables.BishopCoefficient    = bishop_coefficients[integration_point];
-
-        Variables.BiotCoefficient        = biot_coefficients[integration_point];
-        Variables.BiotModulusInverse     = biot_moduli_inverse[integration_point];
-        Variables.DegreeOfSaturation     = degrees_of_saturation[integration_point];
-        Variables.IntegrationCoefficient = integration_coefficients[integration_point];
-        Variables.IntegrationCoefficientInitialConfiguration =
-            integration_coefficients_on_initial_configuration[integration_point];
-
-        this->CalculateAndAddExternalForces(mExternalForcesAtStart, Variables, integration_point);
-        this->CalculateAndAddInternalForces(mInternalForcesAtStart, Variables, integration_point);
-    }
+    mIsInitialized = false;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -196,6 +119,89 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
+    if (!mIsInitialized) {
+        const PropertiesType&                           r_properties = this->GetProperties();
+        const GeometryType&                             r_geometry   = this->GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
+
+        // Stiffness matrix is needed to calculate Biot coefficient
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        mExternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
+        mInternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
+
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+        RetentionLaw::Parameters RetentionParameters(r_properties);
+
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+        const auto integration_coefficients =
+            this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+        const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
+            r_geometry, this->GetIntegrationMethod());
+        const auto integration_coefficients_on_initial_configuration =
+            this->CalculateIntegrationCoefficients(IntegrationPoints, det_Js_initial_configuration);
+
+        const auto deformation_gradients = CalculateDeformationGradients();
+        auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
+        std::vector<Matrix> constitutive_matrices;
+        this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                             Variables.NContainer, Variables.DN_DXContainer,
+                                             strain_vectors, mStressVector, constitutive_matrices);
+        const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+            constitutive_matrices, this->GetProperties());
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NContainer, Variables.PressureVector);
+        const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
+        const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
+        const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+            biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_properties);
+        auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
+        const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+        std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
+                       relative_permeability_values.cbegin(), relative_permeability_values.begin(),
+                       std::multiplies<>{});
+
+        const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
+
+        for (unsigned int integration_point = 0; integration_point < IntegrationPoints.size(); ++integration_point) {
+            this->CalculateKinematics(Variables, integration_point);
+            Variables.B                  = b_matrices[integration_point];
+            Variables.F                  = deformation_gradients[integration_point];
+            Variables.StrainVector       = strain_vectors[integration_point];
+            Variables.ConstitutiveMatrix = constitutive_matrices[integration_point];
+
+            // Compute Nu and BodyAcceleration
+            GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(
+                Variables.Nu, Variables.NContainer, integration_point);
+            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
+                Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, integration_point);
+
+            Variables.RelativePermeability = relative_permeability_values[integration_point];
+            Variables.BishopCoefficient    = bishop_coefficients[integration_point];
+
+            Variables.BiotCoefficient        = biot_coefficients[integration_point];
+            Variables.BiotModulusInverse     = biot_moduli_inverse[integration_point];
+            Variables.DegreeOfSaturation     = degrees_of_saturation[integration_point];
+            Variables.IntegrationCoefficient = integration_coefficients[integration_point];
+            Variables.IntegrationCoefficientInitialConfiguration =
+                integration_coefficients_on_initial_configuration[integration_point];
+
+            this->CalculateAndAddExternalForces(mExternalForcesAtStart, Variables, integration_point);
+            this->CalculateAndAddInternalForces(mInternalForcesAtStart, Variables, integration_point);
+        }
+
+        mIsInitialized = true;
+    }
+
     this->ResetHydraulicDischarge();
 }
 
@@ -1015,7 +1021,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     }
 
     if (rCurrentProcessInfo[TIME] > 0.0 && CalculateResidualVectorFlag) {
-        const auto f_ext = - mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) * rCurrentProcessInfo[TIME];
+        const auto f_ext = -mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) *
+                                                         rCurrentProcessInfo[TIME];
         // KRATOS_INFO("f_ext") << f_ext << std::endl;
         // KRATOS_INFO("total_external_forces") << total_external_forces << std::endl;
         // KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;

@@ -317,6 +317,7 @@ private:
 
     Vector mInternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
     Vector mExternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
+    bool   mIsInitialized         = false;
 };
 
 // Class UPwSmallStrainElement
