@@ -351,9 +351,10 @@ public:
 
         // Reduction factors applied to the fatigue limit
         
-        double nf_trial = LocalNumberOfCycles;
+        // double nf_trial = LocalNumberOfCycles;
+        double nf_trial = 1.0e6;
         double reference_max_stress = MaxStress;
-        unsigned int max_num_iteration = 50;
+        unsigned int max_num_iteration = 10000;
 
         for  (IndexType i = 1; i <= max_num_iteration; ++i){
             
@@ -390,8 +391,9 @@ public:
             rSth *= (k_residual_stress * k_roughness);
 
             const double square_betaf = std::pow(BETAF, 2.0);
-            double nf_tolerance = 0.1;
+            double nf_tolerance = 1.0;
             bool is_converged = false;
+            double nf_aux;
 
             if (MaxStress > rSth) {
                 if(std::abs(ReversionFactor) < 1.0){
@@ -400,8 +402,8 @@ public:
                     
                     if (std::abs(rN_f - nf_trial) < nf_tolerance){
                         is_converged = true;
-                    }
-                    
+                    }      
+
                     const int softening_type = rMaterialParameters[SOFTENING_TYPE];
                     const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
                     
@@ -421,6 +423,7 @@ public:
                         break;
                     }
 
+                    nf_aux = nf_trial;
                     nf_trial = rN_f;
 
                 } else {
@@ -429,7 +432,14 @@ public:
             } else {
                 break;
             }
-            KRATOS_ERROR_IF(i >= max_num_iteration) << "Maximum number of iterations inside the HCF loop exceeded" << std::endl;
+
+            if ((i >= max_num_iteration) && ((nf_aux < 1.0e6 && rN_f > 1.0e6) || (rN_f < 1.0e6 && nf_aux > 1.0e6))){
+                rN_f = std::min(rN_f,nf_aux);
+                KRATOS_WARNING("LinearPhaseCycleJump") << "Unable to converge due to alternating Nf. Assuming the lower value" << std::endl;
+                break;
+            }
+
+            KRATOS_ERROR_IF((i >= max_num_iteration) ) << "Maximum number of iterations inside the HCF loop exceeded" << std::endl;
         }
     }
 
