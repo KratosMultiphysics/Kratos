@@ -63,6 +63,19 @@ class StandardizedObjective(ResponseRoutine):
             return self.__unbuffered_data["initial_value"] * self.__scaling
         else:
             raise RuntimeError(f"Response value for {self.GetResponseName()} is not calculated yet.")
+        
+    def GetScalingFactor(self) -> float:
+        """
+        Returns the scaling factor used in the optimization algorithm.
+
+        This method retrieves the private attribute `__scaling`, which represents
+        the scaling factor applied to the objective function or other relevant
+        quantities in the optimization process.
+
+        Returns:
+            float: The scaling factor.
+        """
+        return self.__scaling
 
     def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} value", None, "Finished"):

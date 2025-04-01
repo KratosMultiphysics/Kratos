@@ -79,10 +79,6 @@ class SciPyAlgorithms(Algorithm):
             scipy_constraint = NonlinearConstraint(constraint.CalculateStandardizedValue, constraint.GetLowerBound(), constraint.GetUpperBound(), constraint.CalculateStandardizedGradient)
             self.__scipy_constraints.append(scipy_constraint)
 
-        
-
-
-
     def GetMinimumBufferSize(self) -> int:
         return 2
 
@@ -100,7 +96,7 @@ class SciPyAlgorithms(Algorithm):
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         self.algorithm_data.SetDataBuffer(self.GetMinimumBufferSize())
 
-        # create nlopt optimizer
+        # create SciPy des variables vector
         self.x0 = self.__control_field.Evaluate().reshape(-1)
 
     @time_decorator()
