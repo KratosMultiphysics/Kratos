@@ -395,7 +395,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom       = GetGeometry();
+    const auto&         r_properties = this->GetProperties();
     const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     rOutput.resize(number_of_integration_points);
@@ -499,7 +500,58 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 std::inner_product(shape_function_values.begin(), shape_function_values.end(),
                                    nodal_hydraulic_head.begin(), 0.0);
         }
-    } else {
+    } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
+        size_t variable_index = 0;
+        if (rVariable == CONFINED_STIFFNESS) {
+            if (r_geom.WorkingSpaceDimension() == 2) {
+                variable_index = INDEX_2D_PLANE_STRAIN_XX;
+            } else if (r_geom.WorkingSpaceDimension() == 3) {
+                variable_index = INDEX_3D_XX;
+            } else {
+                KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim "
+                             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id()
+                             << std::endl;
+            }
+        } else if (rVariable == SHEAR_STIFFNESS) {
+            if (r_geom.WorkingSpaceDimension() == 2) {
+                variable_index = INDEX_2D_PLANE_STRAIN_XY;
+            } else if (r_geom.WorkingSpaceDimension() == 3) {
+                variable_index = INDEX_3D_XZ;
+            } else {
+                KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim "
+                             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id()
+                             << std::endl;
+            }
+        }
+
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+        const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
+        const auto deformation_gradients = CalculateDeformationGradients();
+        auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_properties, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+        std::vector<Matrix> constitutive_matrices;
+        this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                             Variables.NuContainer, Variables.DNu_DXContainer,
+                                             strain_vectors, mStressVector, constitutive_matrices);
+
+        std::transform(constitutive_matrices.begin(), constitutive_matrices.end(), rOutput.begin(),
+                       [variable_index](const Matrix& constitutive_matrix) {
+            return constitutive_matrix(variable_index, variable_index);
+        });
+    } else if (r_properties.Has(rVariable)) {
+        // Map initial material property to gauss points, as required for the output
+        std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
+    }
+
+    else {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
