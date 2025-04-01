@@ -34,7 +34,7 @@ public:
                                           double                       detF);
 
     static double GetCohesion(const Properties& rProperties);
-    static double GetFrictionAngle(const Properties& rProperties);
+    static double GetFrictionAngleInDegrees(const Properties& rProperties);
 
 }; /* Class ConstitutiveLawUtilities*/
 

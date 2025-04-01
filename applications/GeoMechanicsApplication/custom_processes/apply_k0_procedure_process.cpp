@@ -198,7 +198,8 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     if (rProp.Has(K0_NC)) {
         std::fill(k0_vector.begin(), k0_vector.end(), rProp[K0_NC]);
     } else if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(UMAT_PARAMETERS)) {
-        const auto phi = MathUtils<>::DegreesToRadians(ConstitutiveLawUtilities::GetFrictionAngle(rProp));
+        const auto phi =
+            MathUtils<>::DegreesToRadians(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rProp));
         std::fill(k0_vector.begin(), k0_vector.end(), 1.0 - std::sin(phi));
     } else {
         k0_vector[0] = rProp[K0_VALUE_XX];

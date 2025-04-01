@@ -85,7 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty,
     auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
-    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngle(properties), 30.0);
+    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -96,15 +96,15 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
 
-    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngle(properties), 30.0);
+    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
 
     properties.Erase(INDEX_OF_UMAT_PHI_PARAMETER);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngle(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties),
                                       "Material 0 does not have INDEX_OF_UMAT_PHI_PARAMETER");
 
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
     properties.Erase(UMAT_PARAMETERS);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngle(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties),
                                       "Material 0 does not have UMAT_PARAMETERS");
 }
 

@@ -73,7 +73,7 @@ double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
                                          : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_C_PARAMETER);
 }
 
-double ConstitutiveLawUtilities::GetFrictionAngle(const Properties& rProperties)
+double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rProperties)
 {
     return rProperties.Has(GEO_FRICTION_ANGLE)
                ? rProperties[GEO_FRICTION_ANGLE]

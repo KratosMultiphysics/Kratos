@@ -14,9 +14,7 @@
 namespace Kratos::Testing
 {
 
-bool StubConstitutiveLaw::RequiresInitializeMaterialResponse() { return false; }
-
-ConstitutiveLaw::Pointer StubConstitutiveLaw::Clone() const
+ConstitutiveLaw::Pointer MakeStubConstitutiveLaw()
 {
     return std::make_shared<StubConstitutiveLaw>();
 }

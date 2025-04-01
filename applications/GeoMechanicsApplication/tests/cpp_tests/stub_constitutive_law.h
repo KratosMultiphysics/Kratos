@@ -13,14 +13,24 @@
 
 #include "includes/constitutive_law.h"
 
+#include <gmock/gmock.h>
+
 namespace Kratos::Testing
 {
+
+ConstitutiveLaw::Pointer MakeStubConstitutiveLaw();
 
 class StubConstitutiveLaw : public ConstitutiveLaw
 {
 public:
-    bool                                   RequiresInitializeMaterialResponse() override;
-    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
+    StubConstitutiveLaw()
+    {
+        ON_CALL(*this, RequiresInitializeMaterialResponse).WillByDefault(testing::Return(false));
+        ON_CALL(*this, Clone).WillByDefault([]() { return MakeStubConstitutiveLaw(); });
+    }
+
+    MOCK_METHOD(bool, RequiresInitializeMaterialResponse, (), (override));
+    MOCK_METHOD(ConstitutiveLaw::Pointer, Clone, (), (const, override));
 };
 
 } // namespace Kratos::Testing

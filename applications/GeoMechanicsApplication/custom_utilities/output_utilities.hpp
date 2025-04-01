@@ -31,7 +31,7 @@ public:
                                              const Properties&            rProperties)
     {
         const auto c   = ConstitutiveLawUtilities::GetCohesion(rProperties);
-        const auto phi = ConstitutiveLawUtilities::GetFrictionAngle(rProperties);
+        const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rProperties);
         auto       calculate_shear_capacity = [c, phi](const auto& rStressVector) {
             return StressStrainUtilities::CalculateMohrCoulombShearCapacity(rStressVector, c, phi);
         };
