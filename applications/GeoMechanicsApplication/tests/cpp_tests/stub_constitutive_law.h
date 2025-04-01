@@ -18,15 +18,13 @@
 namespace Kratos::Testing
 {
 
-ConstitutiveLaw::Pointer MakeStubConstitutiveLaw();
-
 class StubConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     StubConstitutiveLaw()
     {
         ON_CALL(*this, RequiresInitializeMaterialResponse).WillByDefault(testing::Return(false));
-        ON_CALL(*this, Clone).WillByDefault([]() { return MakeStubConstitutiveLaw(); });
+        ON_CALL(*this, Clone).WillByDefault([]() { return std::make_shared<StubConstitutiveLaw>(); });
     }
 
     MOCK_METHOD(bool, RequiresInitializeMaterialResponse, (), (override));
