@@ -17,7 +17,7 @@ namespace Kratos
 
 std::unique_ptr<IntegrationCoefficientsCalculator> PlaneIntegrationCoefficients::Clone() const
 {
-    return std::unique_ptr<PlaneIntegrationCoefficients>();
+    return std::make_unique<PlaneIntegrationCoefficients>();
 }
 
 double PlaneIntegrationCoefficients::CalculateIntegrationCoefficient(

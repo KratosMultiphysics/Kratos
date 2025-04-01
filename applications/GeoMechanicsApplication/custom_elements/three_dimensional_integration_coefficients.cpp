@@ -17,7 +17,7 @@ namespace Kratos
 
 std::unique_ptr<IntegrationCoefficientsCalculator> ThreeDimensionalIntegrationCoefficients::Clone() const
 {
-    return std::unique_ptr<ThreeDimensionalIntegrationCoefficients>();
+    return std::make_unique<ThreeDimensionalIntegrationCoefficients>();
 }
 
 double ThreeDimensionalIntegrationCoefficients::CalculateIntegrationCoefficient(

@@ -35,7 +35,7 @@ Vector ThermalIntegrationCoefficients::CalculateIntegrationCoefficients(const Ge
 
 std::unique_ptr<IntegrationCoefficientsCalculator> ThermalIntegrationCoefficients::Clone() const
 {
-    return std::unique_ptr<ThermalIntegrationCoefficients>();
+    return std::make_unique<ThermalIntegrationCoefficients>();
 }
 
 void ThermalIntegrationCoefficients::save(Serializer&) const
