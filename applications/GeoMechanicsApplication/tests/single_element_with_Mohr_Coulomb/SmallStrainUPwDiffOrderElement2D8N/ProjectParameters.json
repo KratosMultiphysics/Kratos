@@ -21,17 +21,11 @@
         "time_stepping":              {
             "time_step":            1.0
         },
-        "buffer_size":                        2,
         "echo_level":                         1,
-        "clear_storage":                      false,
         "compute_reactions":                  true,
-        "move_mesh_flag":                     false,
-        "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
-        "block_builder":                      true,
+        "reset_displacements":                false,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -45,7 +39,6 @@
         "reduction_factor":                   1.0,
         "increase_factor":                    1.0,
         "calculate_reactions":                true,
-        "rotation_dofs":                      false,
         "linear_solver_settings":             {
             "solver_type":   "LinearSolversApplication.sparse_lu",
             "scaling":       true
