@@ -23,6 +23,15 @@ class KratosGeoMechanicsSingleElementWithMohrCoulomb(KratosUnittest.TestCase):
         ):
             self.assertVectorAlmostEqual(actual_vector[:2], expected_vector)
 
+    def assert_stress_field(self, time, output_data, expected_stress_tensor):
+        actual_stress_tensors = (
+            test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
+                "CAUCHY_STRESS_TENSOR", time, output_data
+            )[0]
+        )
+        for actual_tensor in actual_stress_tensors:
+            self.assertVectorAlmostEqual(actual_tensor, expected_stress_tensor)
+
     def assert_shear_capacity_values(self, time, output_data, expected_values):
         actual_values = (
             test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
@@ -54,6 +63,9 @@ class KratosGeoMechanicsSingleElementWithMohrCoulomb(KratosUnittest.TestCase):
         self.assert_displacement_field(
             end_time, output_data, expected_displacement_vectors
         )
+
+        expected_stress_tensor = [1.5, -1.5, 0.0, 0.0, 0.0, 0.0]
+        self.assert_stress_field(end_time, output_data, expected_stress_tensor)
 
         expected_shear_capacity_values = [0.75] * 4
         self.assert_shear_capacity_values(
