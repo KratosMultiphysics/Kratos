@@ -172,6 +172,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 ## generate variables with the testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
   file(GLOB_RECURSE KRATOS_SOLID_MECHANICS_APPLICATION_TESTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+  kratos_add_gtests(TARGET KratosSolidMechanicsCore SOURCES "${KRATOS_SOLID_MECHANICS_APPLICATION_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 
@@ -186,7 +187,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 )
 
-add_library(KratosSolidMechanicsCore SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_CORE} ${KRATOS_SOLID_MECHANICS_APPLICATION_TESTS})
+add_library(KratosSolidMechanicsCore SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_CORE})
 #target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore KratosConstitutiveModelsCore)
 target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
