@@ -897,9 +897,6 @@ namespace Kratos {
         bond->mLocalContactForce[0] = LocalElasticContactForce[0];
         bond->mLocalContactForce[1] = LocalElasticContactForce[1];
         bond->mLocalContactForce[2] = LocalElasticContactForce[2];
-        bond->mElasticLocalRotationalMoment[0] = ElasticLocalRotationalMoment[0];
-        bond->mElasticLocalRotationalMoment[1] = ElasticLocalRotationalMoment[1];
-        bond->mElasticLocalRotationalMoment[2] = ElasticLocalRotationalMoment[2];
         bond->mContactSigma = contact_sigma;
         bond->mContactTau = contact_tau;
         bond->mContactFailure = mIniNeighbourFailureId[i];
