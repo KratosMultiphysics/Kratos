@@ -217,6 +217,12 @@ public:
         return mConditionsAreInitialized;
     }
 
+    /// @brief Return true if @ref MasterSlaveConstraint "constraints" have already been initialized.
+    bool ConstraintsAreInitialized() noexcept
+    {
+        return mConstraintsAreInitialized;
+    }
+
     /**
      * @brief This method sets if the conditions have been initialized or not (true by default)
      * @param ConditionsAreInitializedFlag If the flag must be set to true or false
@@ -224,6 +230,12 @@ public:
     void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag = true)
     {
         mConditionsAreInitialized = ConditionsAreInitializedFlag;
+    }
+
+    /// @brief Set flag indicating whether @ref MasterSlaveConstraint "constraints" are initialized.
+    void SetConstraintsAreInitialized(bool Flag = true) noexcept
+    {
+        mConstraintsAreInitialized = Flag;
     }
 
     /**
@@ -257,6 +269,15 @@ public:
 
         SetConditionsAreInitialized();
 
+        KRATOS_CATCH("")
+    }
+
+    /// @brief Initialize all @ref MasterSlaveConstraint "constraints" of the input @ref ModelPart.
+    virtual void InitializeConstraints(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+        EntitiesUtilities::InitializeEntities<MasterSlaveConstraint>(rModelPart);
+        SetConstraintsAreInitialized();
         KRATOS_CATCH("")
     }
 
@@ -755,6 +776,7 @@ protected:
     bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
     bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
     bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mConstraintsAreInitialized;
 
     ///@}
     ///@name Protected Operators
