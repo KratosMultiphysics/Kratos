@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/key_hash.h"
 #include "modified_shape_functions/modified_shape_functions.h"
-#include <functional>
 
 namespace Kratos
 {
@@ -109,7 +108,7 @@ public:
 
     using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
 
-    using SkinPointsDataVectorType = DenseVector<std::pair< array_1d<double,3>, array_1d<double,3> >>; // vector of position and area normal of skin points
+    using SkinPointsDataVectorType = DenseVector<std::tuple< array_1d<double,3>, array_1d<double,3>, std::size_t >>; // vector of position, area normal and ID of skin points
 
     using SkinPointsToElementsMapType = std::unordered_map<ElementType::Pointer, SkinPointsDataVectorType, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
 
@@ -256,6 +255,7 @@ protected:
     // Also right now integration points of mpSkinModelPart (1 GP) are taken as skin points with area and normal.
     ModelPart* mpSkinModelPart = nullptr;
     ModelPart* mpBoundarySubModelPart = nullptr;
+    ModelPart* mpSkinPointsModelPart = nullptr;
 
     std::string mSkinModelPartName = "";
 

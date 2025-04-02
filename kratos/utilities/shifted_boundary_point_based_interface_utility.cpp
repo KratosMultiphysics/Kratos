@@ -22,6 +22,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
 #include "includes/smart_pointers.h"
+#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
 #include "input_output/logger.h"
@@ -37,7 +38,6 @@
 #include "utilities/geometry_utilities.h"
 #include "geometries/plane_3d.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
-#include <mutex>
 
 
 namespace Kratos
@@ -196,6 +196,11 @@ namespace Kratos
         } else {
             mpBoundarySubModelPart = &(mpModelPart->CreateSubModelPart(boundary_sub_model_part_name));
         }
+        // Get model part for skin points
+        mpSkinPointsModelPart = &rModel.GetModelPart("SkinPoints");
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpSkinPointsModelPart->NumberOfNodes() != 0) << "Provided SBM model part has nodes." << std::endl;
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpSkinPointsModelPart->NumberOfElements() != 0) << "Provided SBM model part has elements." << std::endl;
+        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpSkinPointsModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;
 
         // Set the order of the MLS extension operator used in the MLS shape functions utility
         mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
@@ -899,6 +904,7 @@ namespace Kratos
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated()
     {
         const std::size_t voigt_size = 3 * (TDim-1);
+        const std::size_t block_size = TDim +1;
 
         array_1d<double, 3> skin_drag = ZeroVector(3);
 
@@ -911,7 +917,7 @@ namespace Kratos
             const auto& skin_points_data_vector = rKeyData.second;
             const auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
-            const std::size_t local_size = n_nodes * (TDim+1);
+            const std::size_t local_size = n_nodes * block_size;
 
             // Calculate unknowns at the nodes of the element for the positive and the negative side of Gamma
             Vector unknowns_pos = ZeroVector(local_size);
@@ -935,61 +941,81 @@ namespace Kratos
                 const auto skin_pt_data = skin_points_data_vector[i_skin_pt];
                 const array_1d<double,3> skin_pt_position = std::get<0>(skin_pt_data);
                 const array_1d<double,3> skin_pt_area_normal = std::get<1>(skin_pt_data);
+                const std::size_t skin_pt_node_id = std::get<2>(skin_pt_data);
+
+                // Get normal and represented area of skin point
+                // NOTE that the normal points in fluid inward direction for the positive side of the skin and fluid outward for the negative side of the skin
+                const double skin_pt_area = norm_2(skin_pt_area_normal);
+                const array_1d<double,3> aux_unit_normal = skin_pt_area_normal / skin_pt_area;
 
                 // Get shape function values and derivatives of the element at the skin point
                 Vector skin_pt_N(n_nodes);
                 Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, TDim);
                 GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
-                // Calculate pressure at skin point for positive and negative side of Gamma
-                double p_pos = 0.0, p_neg = 0.0;
+                // Calculate velocity and pressure at skin point for positive and negative side of Gamma
+                array_1d<double, 3> u_pos = ZeroVector(3);
+                array_1d<double, 3> u_neg = ZeroVector(3);
+                double p_pos = 0.0;
+                double p_neg = 0.0;
                 for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                    const std::size_t row = i_node * TDim;
-                    p_pos += skin_pt_N(i_node) * unknowns_pos(row);
-                    p_neg += skin_pt_N(i_node) * unknowns_neg(row);
+                    const std::size_t row = i_node*block_size;
+                    for (std::size_t d = 0; d < TDim; ++d) {
+                        u_pos[d] += skin_pt_N(i_node) * unknowns_pos(row+d);
+                        u_neg[d] += skin_pt_N(i_node) * unknowns_neg(row+d);
+                    }
+                    p_pos += skin_pt_N(i_node) * unknowns_pos(row+TDim);
+                    p_neg += skin_pt_N(i_node) * unknowns_neg(row+TDim);
                 }
+                // NOTE that the pressure on the positive side of Gamma needs to be multiplied by the negative normal of the skin point,
+                // so it is pointing outwards of the fluid. The pressure on the negative side points outwards multiplied by the positive normal.
+                const array_1d<double, 3> traction_p = (p_neg-p_pos) * skin_pt_area_normal;
 
-                // Get the normal projection matrices for positive and negative side of Gamma in Voigt notation
-                //TODO NOTE that the unit normal is pointing inwards
-                const double skin_pt_weight = norm_2(skin_pt_area_normal);
-                const array_1d<double,3> aux_unit_normal = skin_pt_area_normal / skin_pt_weight;
-                BoundedMatrix<double, TDim, voigt_size> voigt_normal_proj_matrix_pos = ZeroMatrix(TDim, voigt_size);
-                ShiftedBoundaryUtilityInternals::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix_pos);
-                BoundedMatrix<double, TDim, voigt_size> voigt_normal_proj_matrix_neg = ZeroMatrix(TDim, voigt_size);
-                ShiftedBoundaryUtilityInternals::VoigtTransformForProduct(-aux_unit_normal, voigt_normal_proj_matrix_neg);
+                // Get the normal projection matrix in Voigt notation
+                BoundedMatrix<double, TDim, voigt_size> voigt_normal_proj_matrix = ZeroMatrix(TDim, voigt_size);
+                ShiftedBoundaryUtilityInternals::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
 
-                //Calculate strain rate for positive and negative side of Gamma
+                // Calculate strain rate for positive and negative side of Gamma
                 Matrix B_matrix = ZeroMatrix(voigt_size, local_size);
                 ShiftedBoundaryUtilityInternals::CalculateStrainMatrix<TDim>(skin_pt_DN_DX, n_nodes, B_matrix);
                 Vector strain_rate_pos = prod(B_matrix, unknowns_pos);
                 Vector strain_rate_neg = prod(B_matrix, unknowns_neg);
 
-                // Set constitutive law values and calculate material response, which sets the shear stress, for positive side
+                // Calculate the stress for the positive side
                 Vector shear_stress_pos = ZeroVector(voigt_size);
                 constitutive_law_values.SetStrainVector(strain_rate_pos);           //input
                 constitutive_law_values.SetStressVector(shear_stress_pos);          //output
                 p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-                // Set constitutive law values and calculate material response, which sets the shear stress, for negative side
+                // Calculate the stress for the negative side
                 Vector shear_stress_neg = ZeroVector(voigt_size);
                 constitutive_law_values.SetStrainVector(strain_rate_neg);           //input
                 constitutive_law_values.SetStressVector(shear_stress_neg);          //output
                 p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-                // Calculate shear stress at skin point for positive and negative side of Gamma
-                const array_1d<double, TDim> shear_proj_pos = skin_pt_weight * prod(voigt_normal_proj_matrix_pos, shear_stress_pos);
-                const array_1d<double, TDim> shear_proj_neg = skin_pt_weight * prod(voigt_normal_proj_matrix_neg, shear_stress_neg);
+                // Calculate shear stress at the skin point
+                // NOTE that the negative side shear stress needs to be multiplied by the negative normal, so that the normal is pointing inwards.
+                const array_1d<double, TDim> shear_proj_pos =  skin_pt_area * prod(voigt_normal_proj_matrix, shear_stress_pos);
+                const array_1d<double, TDim> shear_proj_neg = -skin_pt_area * prod(voigt_normal_proj_matrix, shear_stress_neg);
+                array_1d<double, 3> traction_shear = ZeroVector(3);
+                for (std::size_t d = 0; d < TDim ; ++d) {
+                    traction_shear(d) += shear_proj_pos(d) + shear_proj_neg(d);
+                }
 
-                // Add the shear stress and pressure drag contribution of the skin point to the skin_drag
+                // Add the shear stress and pressure drag contribution of the skin point to the skin drag of the skin geometry
                 {
                     std::scoped_lock<LockObject> lock(mutex);
-                    // The pressure on the positive side of Gamma needs to be multiplied by the negative normal of the skin point,
-                    // so it is pointing outwards of the fluid. The pressure on the negative side points outwards multiplied by the positive normal.
-                    skin_drag += (p_neg-p_pos) * skin_pt_area_normal;
-                    for (std::size_t d = 0; d < TDim ; ++d) {
-                        skin_drag(d) += shear_proj_pos(d) + shear_proj_neg(d);
-                    }
+                    skin_drag += traction_p + traction_shear;
                 }
+
+                // Store velocity, pressure and traction in a skin point model part
+                auto& skin_pt_in_model_part = mpSkinPointsModelPart->GetNode(skin_pt_node_id);
+                skin_pt_in_model_part.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY) = u_pos;
+                skin_pt_in_model_part.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY) = u_neg;
+                skin_pt_in_model_part.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p_pos;
+                skin_pt_in_model_part.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p_neg;
+                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE) = traction_p;
+                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS) = traction_shear;
             }
         });
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_split_elements_without_correct_extension > 0)
@@ -1078,6 +1104,7 @@ namespace Kratos
         // if (!pElement->Is(SBM_BOUNDARY)) {
         //     return 0;
         // }
+        const std::size_t block_size = TDim +1;
         const auto& r_geom = pElement->GetGeometry();
         const std::size_t n_nodes = r_geom.PointsNumber();
 
@@ -1106,7 +1133,7 @@ namespace Kratos
         bool element_is_without_negative_extension = false;
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
             const auto p_node = r_geom(i_node);
-            const std::size_t row = i_node * TDim;
+            const std::size_t row = i_node * block_size;
 
             // Check whether extension exists for node
             const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
@@ -1152,7 +1179,7 @@ namespace Kratos
             }
 
             // Store positive and negative side unknowns at the node
-            for (std::size_t d; d < TDim; ++d) {
+            for (std::size_t d = 0; d < TDim; ++d) {
                 rPositiveSideUnknowns(row+d) = u_node_pos(d);
                 rNegativeSideUnknowns(row+d) = u_node_neg(d);
             }
@@ -1438,13 +1465,18 @@ namespace Kratos
                 << n_skin_points_not_found << " skin points have not been found in any volume model part element." << std::endl;
         }
 
+        const std::size_t n_nodes_skin_point_model_part = mpSkinPointsModelPart->NumberOfNodes();
         for (std::size_t i_skin_pt = 0; i_skin_pt < skin_point_located_elements.size(); ++i_skin_pt) {
             auto p_element =  skin_point_located_elements[i_skin_pt];
+            auto& skin_pt_position = skin_point_positions[i_skin_pt];
+            auto& skin_pt_normal = skin_point_normals[i_skin_pt];
+            const std::size_t skin_pt_node_id = n_nodes_skin_point_model_part + i_skin_pt;
+
             // Check if skin point data already exists for the element in which the skin point is located in the map
             if (rSkinPointsMap.find(p_element) == rSkinPointsMap.end()) {
                 // If element is not found, add the first skin point to the new key
                 SkinPointsDataVectorType skin_points_data_vector(1);
-                skin_points_data_vector[0] = std::make_pair(skin_point_positions[i_skin_pt], skin_point_normals[i_skin_pt]);
+                skin_points_data_vector[0] = std::make_tuple(skin_pt_position, skin_pt_normal, skin_pt_node_id);
                 auto skin_points_key_data = std::make_pair(p_element, skin_points_data_vector);
                 rSkinPointsMap.insert(skin_points_key_data);
             } else {
@@ -1452,8 +1484,11 @@ namespace Kratos
                 SkinPointsDataVectorType& skin_points_data_vector = rSkinPointsMap[p_element];
                 const std::size_t n_skin_points_in_element = skin_points_data_vector.size();
                 skin_points_data_vector.resize(n_skin_points_in_element+1);
-                skin_points_data_vector[n_skin_points_in_element] = std::make_pair(skin_point_positions[i_skin_pt], skin_point_normals[i_skin_pt]);
+                skin_points_data_vector[n_skin_points_in_element] = std::make_tuple(skin_pt_position, skin_pt_normal, skin_pt_node_id);
             }
+
+            // Add skin point to skin point model part
+            mpSkinPointsModelPart->CreateNewNode(skin_pt_node_id, skin_pt_position[0], skin_pt_position[1], skin_pt_position[2]);
         }
 
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin points ("
