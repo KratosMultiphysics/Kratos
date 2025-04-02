@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDomainSizeIsInvalid, KratosGeo
 {
     Element::Pointer p_element = GenerateTransientThermalElementWithZeroDomainSize();
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(Pr ocessInfo()),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(ProcessInfo()),
                                       "DomainSize (0) is smaller than 1e-15 for element 1")
 }
 
