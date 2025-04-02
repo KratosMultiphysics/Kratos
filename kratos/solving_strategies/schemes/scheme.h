@@ -760,7 +760,7 @@ protected:
     bool mSchemeIsInitialized = false;      /// Flag to be used in controlling if the Scheme has been initialized or not
     bool mElementsAreInitialized = false;   /// Flag taking in account if the elements were initialized correctly or not
     bool mConditionsAreInitialized = false; /// Flag taking in account if the conditions were initialized correctly or not
-    bool mConstraintsAreInitialized = false; /// Flag taking in account if the constraintswere initialized correctly or not
+    bool mConstraintsAreInitialized = false; /// Flag taking in account if the constraints were initialized correctly or not
 
     ///@}
     ///@name Protected Operators
