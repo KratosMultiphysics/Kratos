@@ -360,8 +360,8 @@ public:
 
     std::size_t ReadNodalGraphFromEntitiesList(
         ConnectivitiesContainerType& rAuxConnectivities,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds) override;
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds) override;
 
 
     ///@}
@@ -699,29 +699,97 @@ private:
     template<class TVariableType, class TObjectsContainerType>
     void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const VariableData* rVariable, const std::string& rObjectName);
 
+    /**
+     * @brief Reads the geometries connectivities block from the input stream.
+     * @param rThisConnectivities Reference to the container where the connectivities will be stored.
+     * @return The number of geometries read.
+     */
     SizeType ReadGeometriesConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
+    /**
+     * @brief Reads the elements connectivities block from the input stream.
+     * @param rThisConnectivities Reference to the container where the connectivities will be stored.
+     * @return The number of elements read.
+     */
     SizeType ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
+    /**
+     * @brief Reads the conditions connectivities block from the input stream.
+     * @param rThisConnectivities Reference to the container where the connectivities will be stored.
+     * @return The number of conditions read.
+     */
     SizeType ReadConditionsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
+    /**
+     * @brief Reads the master-slave constraints connectivities block from the input stream.
+     * @param rThisConnectivities Reference to the container where the connectivities will be stored.
+     * @return The number of master-slave constraints read.
+     */
+    SizeType ReadMasterSlaveConstraintsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
+
+    /**
+     * @brief Fills the nodal connectivities from the geometry block.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     */
     void FillNodalConnectivitiesFromGeometryBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    /**
+     * @brief Fills the nodal connectivities from the element block.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     */
     void FillNodalConnectivitiesFromElementBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    /**
+     * @brief Fills the nodal connectivities from the condition block.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     */
     void FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    /**
+     * @brief Fills the nodal connectivities from the master-slave constraint block.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     */
+    void FillNodalConnectivitiesFromMasterSlaveConstraintBlock(ConnectivitiesContainerType& rNodalConnectivities);
+
+    /**
+     * @brief Fills the nodal connectivities from the geometry block for a specific list of geometries.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     * @param rGeometriesIds Set of geometry IDs to filter the connectivities.
+     */
     void FillNodalConnectivitiesFromGeometryBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
-        std::unordered_set<SizeType>& rGeometriesIds);
+        std::unordered_set<SizeType>& rGeometriesIds
+        );
 
+    /**
+     * @brief Fills the nodal connectivities from the element block for a specific list of elements.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     * @param rElementsIds Set of element IDs to filter the connectivities.
+     */
     void FillNodalConnectivitiesFromElementBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
-        std::unordered_set<SizeType>& rElementsIds);
+        std::unordered_set<SizeType>& rElementsIds
+        );
 
+    /**
+     * @brief Fills the nodal connectivities from the condition block for a specific list of conditions.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     * @param rConditionsIds Set of condition IDs to filter the connectivities.
+     */
     void FillNodalConnectivitiesFromConditionBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
-        std::unordered_set<SizeType>& rConditionsIds);
+        std::unordered_set<SizeType>& rConditionsIds
+        );
+
+    /**
+     * @brief Fills the nodal connectivities from the master-slave constraint block for a specific list of constraints.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     * @param rConstraintsIds Set of master-slave constraint IDs to filter the connectivities.
+     */
+    void FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(
+        ConnectivitiesContainerType& rNodalConnectivities,
+        std::unordered_set<SizeType>& rConstraintsIds
+        );
 
     void ReadCommunicatorDataBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
@@ -753,15 +821,45 @@ private:
 
     void ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the nodes block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the nodes will be added.
+     */
     void ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the elements block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the elements will be added.
+     */
     void ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the conditions block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the conditions will be added.
+     */
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the geometries block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the geometries will be added.
+     */
     void ReadSubModelPartGeometriesBlock(
         ModelPart &rMainModelPart,
         ModelPart &rSubModelPart);
+
+    /**
+     * @brief Reads the master-slave constraints block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the master-slave constraints will be added.
+     */
+    void ReadSubModelPartMasterSlaveConstraintsBlock(
+        ModelPart& rMainModelPart,
+        ModelPart& rSubModelPart
+        );
 
     void DivideInputToPartitionsImpl(
         OutputFilesContainerType& rOutputFiles,
@@ -774,20 +872,47 @@ private:
 
     void DividePropertiesBlock(OutputFilesContainerType& OutputFiles);
 
+    /**
+     * @brief Divides the nodes block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param NodesAllPartitions The partition indices for all nodes.
+     */
     void DivideNodesBlock(OutputFilesContainerType& OutputFiles,
                           PartitionIndicesContainerType const& NodesAllPartitions);
 
+    /**
+     * @brief Divides the geometries block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param GeometriesAllPartitions The partition indices for all geometries.
+     */
     void DivideGeometriesBlock(OutputFilesContainerType& OutputFiles,
                              PartitionIndicesContainerType const& GeometriesAllPartitions);
 
+    /**
+     * @brief Divides the elements block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     */
     void DivideElementsBlock(OutputFilesContainerType& OutputFiles,
                              PartitionIndicesContainerType const& ElementsAllPartitions);
 
-
-
+    /**
+     * @brief Divides the conditions block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     */
     void DivideConditionsBlock(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& ConditionsAllPartitions);
 
+    /**
+     * @brief Divides the master-slave constraints block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideMasterSlaveConstraintsBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        );
 
     void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
                               PartitionIndicesContainerType const& NodesAllPartitions);
@@ -798,65 +923,157 @@ private:
     void DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& NodesAllPartitions);
 
+    void DivideScalarVariableData(OutputFilesContainerType& OutputFiles,
+                                PartitionIndicesContainerType const& EntitiesPartitions,
+                                std::string BlockName);
+
     template<class TValueType>
     void DivideVectorialVariableData(OutputFilesContainerType& OutputFiles,
                                      PartitionIndicesContainerType const& EntitiesPartitions,
                                      std::string BlockName);
 
 
+    /**
+     * @brief Divides the elemental data block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     */
     void DivideElementalDataBlock(OutputFilesContainerType& OutputFiles,
                                   PartitionIndicesContainerType const& ElementsAllPartitions);
 
-    void DivideScalarVariableData(OutputFilesContainerType& OutputFiles,
-                                  PartitionIndicesContainerType const& EntitiesPartitions,
-                                  std::string BlockName);
-
-
+    /**
+     * @brief Divides the conditional data block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     */
     void DivideConditionalDataBlock(OutputFilesContainerType& OutputFiles,
                                     PartitionIndicesContainerType const& ConditionsAllPartitions);
 
+    /**
+     * @brief Divides the master-slave constraint data block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideMasterSlaveConstraintDataBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        );
 
-    void DivideMeshBlock(OutputFilesContainerType& OutputFiles,
-                                         PartitionIndicesContainerType const& NodesAllPartitions,
-                                         PartitionIndicesContainerType const& ElementsAllPartitions,
-                                         PartitionIndicesContainerType const& ConditionsAllPartitions);
+    /**
+     * @brief Divides the mesh block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rNodesAllPartitions The partition indices for all nodes.
+     * @param rElementsAllPartitions The partition indices for all elements.
+     * @param rConditionsAllPartitions The partition indices for all conditions.
+     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideMeshBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rNodesAllPartitions,
+        const PartitionIndicesContainerType& rElementsAllPartitions,
+        const PartitionIndicesContainerType& rConditionsAllPartitions,
+        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        );
 
-	void DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
-		PartitionIndicesContainerType const& NodesAllPartitions,
-		PartitionIndicesContainerType const& ElementsAllPartitions,
-		PartitionIndicesContainerType const& ConditionsAllPartitions);
+    /**
+     * @brief Divides the submodelpart block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rNodesAllPartitions The partition indices for all nodes.
+     * @param rElementsAllPartitions The partition indices for all elements.
+     * @param rConditionsAllPartitions The partition indices for all conditions.
+     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+	void DivideSubModelPartBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rNodesAllPartitions,
+        const PartitionIndicesContainerType& rElementsAllPartitions,
+        const PartitionIndicesContainerType& rConditionsAllPartitions,
+        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        );
 
     void DivideMeshDataBlock(OutputFilesContainerType& OutputFiles);
 
-
+    /**
+     * @brief Divides the mesh nodes block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param NodesAllPartitions The partition indices for all nodes.
+     */
     void DivideMeshNodesBlock(OutputFilesContainerType& OutputFiles,
                                          PartitionIndicesContainerType const& NodesAllPartitions);
 
-
+    /**
+     * @brief Divides the mesh elements block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     */
     void DivideMeshElementsBlock(OutputFilesContainerType& OutputFiles,
                                          PartitionIndicesContainerType const& ElementsAllPartitions);
 
+    /**
+     * @brief Divides the mesh conditions block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     */
     void DivideMeshConditionsBlock(OutputFilesContainerType& OutputFiles,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions);
 
+    /**
+     * @brief Divides the mesh master-slave constraints block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideMeshMasterSlaveConstraintsBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        );
 
-	void DivideSubModelPartDataBlock(OutputFilesContainerType& OutputFiles);
+    /**
+     * @brief Divides the submodelpart data block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     */
+    void DivideSubModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
-	void DivideSubModelPartTableBlock(OutputFilesContainerType& OutputFiles);
+    /**
+     * @brief Divides the submodelpart table block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     */
+    void DivideSubModelPartTableBlock(OutputFilesContainerType& OutputFiles);
 
+    /**
+     * @brief Divides the submodelpart nodes block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param NodesAllPartitions The partition indices for all nodes.
+     */
+    void DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputFiles,
+        PartitionIndicesContainerType const& NodesAllPartitions);
 
-	void DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputFiles,
-		PartitionIndicesContainerType const& NodesAllPartitions);
+    /**
+     * @brief Divides the submodelpart elements block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     */
+    void DivideSubModelPartElementsBlock(OutputFilesContainerType& OutputFiles,
+        PartitionIndicesContainerType const& ElementsAllPartitions);
 
+    /**
+     * @brief Divides the submodelpart conditions block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     */
+    void DivideSubModelPartConditionsBlock(OutputFilesContainerType& OutputFiles,
+        PartitionIndicesContainerType const& ConditionsAllPartitions);
 
-	void DivideSubModelPartElementsBlock(OutputFilesContainerType& OutputFiles,
-		PartitionIndicesContainerType const& ElementsAllPartitions);
-
-	void DivideSubModelPartConditionsBlock(OutputFilesContainerType& OutputFiles,
-		PartitionIndicesContainerType const& ConditionsAllPartitions);
+    /**
+     * @brief Divides the submodelpart master-slave constraints block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideSubModelPartMasterSlaveConstraintsBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        );
 
 	void WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions);
-
 
     void WriteCommunicatorData(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                PartitionIndicesType const& NodesPartitions,
@@ -873,9 +1090,6 @@ private:
 
     template<class TContainerType, class TKeyType>
     typename TContainerType::iterator FindKey(TContainerType& ThisContainer , TKeyType ThisKey, std::string ComponentName);
-
-
-
 
     // Basically it starts to read the character sequence until reaching a
     // "(" and then goes until corresponding ")" which means the vector or
