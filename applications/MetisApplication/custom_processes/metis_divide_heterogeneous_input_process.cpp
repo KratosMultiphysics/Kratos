@@ -12,19 +12,15 @@
 //                   Carlos Roig
 //
 
-
 // System includes
-
 
 // External includes
 #include "metis.h"
-
 
 // Project includes
 #include "processes/graph_coloring_process.h"
 #include "metis_divide_heterogeneous_input_process.h"
 #include "custom_utilities/legacy_partitioning_utilities.h" // TODO remove
-
 
 namespace Kratos {
 
@@ -88,15 +84,9 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
     int NumColors;
     GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.Graph,NumColors).Execute();
 
-    if (mVerbosity > 0)
-    {
-        KRATOS_WATCH(NumColors);
-    }
+    KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0) << "Number of colors: " << NumColors << std::endl;
 
-if (mVerbosity > 2)
-{
-        KRATOS_WATCH(rPartitioningInfo.Graph);
-}
+    KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 2) << "Graph: " << rPartitioningInfo.Graph << std::endl;
 
     // Write partition info into separate input files
     // Create lists containing all nodes/elements/conditions known to each partition
@@ -104,14 +94,12 @@ if (mVerbosity > 2)
     LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, ElementPartition);
     LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, ConditionPartition);
 
-    if (mVerbosity > 1)
-    {
-        auto& nodes_all_partitions = rPartitioningInfo.NodesAllPartitions;
+    if (mVerbosity > 1) {
+        auto& r_nodes_all_partitions = rPartitioningInfo.NodesAllPartitions;
         std::cout << "Final list of nodes known by each partition" << std::endl;
-        for(SizeType i = 0 ; i < NumNodes ; i++)
-        {
+        for(SizeType i = 0 ; i < NumNodes ; i++) {
             std::cout << "Node #" << i+1 << "->";
-            for(std::vector<std::size_t>::iterator j = nodes_all_partitions[i].begin() ; j != nodes_all_partitions[i].end() ; j++)
+            for(std::vector<std::size_t>::iterator j = r_nodes_all_partitions[i].begin() ; j != r_nodes_all_partitions[i].end() ; j++)
                 std::cout << *j << ",";
             std::cout << std::endl;
         }
