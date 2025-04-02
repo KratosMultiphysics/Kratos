@@ -45,4 +45,16 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficients_ReturnsCorrectValu
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 5.02655, 1e-5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    const std::unique_ptr<IntegrationCoefficientsCalculator> p_axisymmetric_integration_coefficients =
+        std::make_unique<AxisymmetricIntegrationCoefficients>();
+
+    // Act
+    const auto clone = p_axisymmetric_integration_coefficients->Clone();
+
+    // Assert
+    KRATOS_EXPECT_NE(clone, nullptr);
+}
 } // namespace Kratos::Testing

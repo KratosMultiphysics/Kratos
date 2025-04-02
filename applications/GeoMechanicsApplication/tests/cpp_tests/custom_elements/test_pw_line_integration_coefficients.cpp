@@ -43,4 +43,16 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, Kra
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, 1e-5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    const std::unique_ptr<IntegrationCoefficientsCalculator> p_pw_line_integration_coefficients =
+        std::make_unique<PwLineIntegrationCoefficients>();
+
+    // Act
+    const auto clone = p_pw_line_integration_coefficients->Clone();
+
+    // Assert
+    KRATOS_EXPECT_NE(clone, nullptr);
+}
 } // namespace Kratos::Testing

@@ -44,4 +44,16 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneIntegrationCoefficients_ReturnsCorrectValue, Krat
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, 1e-5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PlaneIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Set
+    const std::unique_ptr<IntegrationCoefficientsCalculator> p_plane_integration_coefficients =
+        std::make_unique<PlaneIntegrationCoefficients>();
+
+    // Act
+    const auto clone = p_plane_integration_coefficients->Clone();
+
+    // Assert
+    KRATOS_EXPECT_NE(clone, nullptr);
+}
 } // namespace Kratos::Testing

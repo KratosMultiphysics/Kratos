@@ -35,10 +35,9 @@ public:
             << std::endl;
     }
 
-    [[nodiscard]] std::vector<double> CalculateIntegrationCoefficients(
-        const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
-        const Vector&                                     rDetJs,
-        const Geometry<Node>&                             rGeometry) const;
+    [[nodiscard]] std::vector<double> CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
+                                                                       const Vector& rDetJs,
+                                                                       const Geometry<Node>& rGeometry) const;
 
     [[nodiscard]] virtual std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const = 0;
 
