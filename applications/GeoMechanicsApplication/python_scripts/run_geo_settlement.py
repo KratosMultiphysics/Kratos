@@ -9,7 +9,7 @@ def clean_up_api_object(api_object):
 def _main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-w", "--working-dir", help="working directory of the app", default="."
+        "-w", "--working-dir", help="working directory of the analysis run", default="."
     )
     parser.add_argument(
         "project_parameters_file",
