@@ -94,11 +94,11 @@ Geometry<Node>::Pointer CreateQuadrilateral2D4N(ModelPart&              rModelPa
 
 auto SetupPipingStrategy(Model& rModel)
 {
-    using SparseSpaceType          = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType           = UblasSpace<double, Matrix, Vector>;
-    using LinearSolverType         = LinearSolver<SparseSpaceType, LocalSpaceType>;
-    using ConvergenceCriteriaType  = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
-    using MixedGenericCriteriaType = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
+    using SparseSpaceType             = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType              = UblasSpace<double, Matrix, Vector>;
+    using LinearSolverType            = LinearSolver<SparseSpaceType, LocalSpaceType>;
+    using ConvergenceCriteriaType     = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using MixedGenericCriteriaType    = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
     using ConvergenceVariableListType = MixedGenericCriteriaType::ConvergenceVariableListType;
 
     auto& r_model_part = rModel.CreateModelPart("ModelPart", 1);
