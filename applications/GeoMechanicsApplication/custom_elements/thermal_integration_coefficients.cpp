@@ -21,15 +21,17 @@ Vector ThermalIntegrationCoefficients::CalculateIntegrationCoefficients(const Ge
                                                                         std::size_t LocalDimension) const
 {
     auto result = Vector{rIntegrationPoints.size()};
-    for (unsigned int integration_point_index = 0;
-         integration_point_index < rIntegrationPoints.size(); ++integration_point_index) {
-        result[integration_point_index] =
-            rIntegrationPoints[integration_point_index].Weight() * rDetJs[integration_point_index];
-        if (LocalDimension == 1) {
-            result[integration_point_index] *= CrossArea;
-        }
+    if (LocalDimension == 1) {
+        std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
+                       result.begin(), [&CrossArea](const auto& rIntegrationPoint, const auto& rDetJ) {
+            return rIntegrationPoint.Weight() * rDetJ * CrossArea;
+        });
+    } else {
+        std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
+                       result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
+            return rIntegrationPoint.Weight() * rDetJ;
+        });
     }
-
     return result;
 }
 
