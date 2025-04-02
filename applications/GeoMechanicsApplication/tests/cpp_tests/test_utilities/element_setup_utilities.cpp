@@ -13,6 +13,7 @@
 #include "element_setup_utilities.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/triangle_2d_10.h"
@@ -103,6 +104,19 @@ Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<No
 Element::Pointer ElementSetupUtilities::Create2D6NElement()
 {
     return Create2D6NElement(GenerateNodes(CreatePointsFor2D6NElement()), std::make_shared<Properties>(0));
+}
+
+Element::Pointer ElementSetupUtilities::Create2D6NDiffOrderElement(const PointerVector<Node>& rNodes,
+                                                                   const Properties::Pointer& rProperties)
+{
+    return make_intrusive<SmallStrainUPwDiffOrderElement>(1, std::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
+                                                          std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer ElementSetupUtilities::Create2D6NDiffOrderElement()
+{
+    return Create2D6NDiffOrderElement(GenerateNodes(CreatePointsFor2D6NElement()),
+                                      std::make_shared<Properties>(0));
 }
 
 Element::Pointer ElementSetupUtilities::Create2D10NElement(const PointerVector<Node>& rNodes,
