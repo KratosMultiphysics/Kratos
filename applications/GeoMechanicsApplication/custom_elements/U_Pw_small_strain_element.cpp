@@ -13,13 +13,15 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 #include "includes/cfd_variables.h"
+
 #include <numeric>
 
 namespace Kratos
@@ -506,6 +508,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                        [variable_index](const Matrix& constitutive_matrix) {
             return constitutive_matrix(variable_index, variable_index);
         });
+    } else if (rVariable == GEO_SHEAR_CAPACITY) {
+        OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
     } else if (r_properties.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
         std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
