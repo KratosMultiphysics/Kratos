@@ -35,7 +35,7 @@ public:
             << std::endl;
     }
 
-    [[nodiscard]] virtual std::vector<double> CalculateIntegrationCoefficients(
+    [[nodiscard]] std::vector<double> CalculateIntegrationCoefficients(
         const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
         const Vector&                                     rDetJs,
         const Geometry<Node>&                             rGeometry) const;
