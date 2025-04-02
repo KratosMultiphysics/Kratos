@@ -19,9 +19,9 @@
 namespace Kratos::Testing 
 {
 
-class SolidMechanicsApplicationFastSuite : public KratosCoreFastSuite {
+class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {
 public:
-  SolidMechanicsApplicationFastSuite();
+  KratosSolidMechanicsFastSuite();
 
 private:
   KratosSolidMechanicsApplication::Pointer mpSolidMechanicsApp;

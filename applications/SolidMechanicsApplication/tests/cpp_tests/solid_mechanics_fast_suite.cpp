@@ -19,7 +19,7 @@
 
 namespace Kratos::Testing{
 
-SolidMechanicsApplicationFastSuite::SolidMechanicsApplicationFastSuite() 
+KratosSolidMechanicsFastSuite::KratosSolidMechanicsFastSuite() 
   : KratosCoreFastSuite() {
   mpSolidMechanicsApp = std::make_shared<KratosSolidMechanicsApplication>();
   this->ImportApplicationIntoKernel(mpSolidMechanicsApp);
