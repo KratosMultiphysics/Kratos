@@ -149,6 +149,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
             self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
             i += 1
         
+        # TODO:
         # i = 0
         # for cond in current_model["IgaModelPart.surrogate_outer"].Conditions:
         #     if (abs(cond.GetNodes()[0].X-cond.GetNodes()[1].X) < 1e-10) :
