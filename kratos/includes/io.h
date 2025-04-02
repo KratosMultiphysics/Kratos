@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -13,8 +13,6 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 #include <unordered_set>
 
 // External includes
@@ -98,17 +96,21 @@ public:
 
     typedef DenseMatrix<int> GraphType;
 
-    // auxiliary struct containg information about the partitioning of the entities in a ModelPart
+    // Auxiliary struct containing information about the partitioning of the entities in a ModelPart
     struct PartitioningInfo
     {
         GraphType Graph;
-        PartitionIndicesType NodesPartitions; // partition where the Node is local
-        PartitionIndicesType ElementsPartitions; // partition where the Element is local
-        PartitionIndicesType ConditionsPartitions; // partition where the Condition is local
-        PartitionIndicesContainerType NodesAllPartitions; // partitions, in which the Node is present (local & ghost)
-        PartitionIndicesContainerType ElementsAllPartitions; // partitions, in which the Element is present (local & ghost)
-        PartitionIndicesContainerType ConditionsAllPartitions; // partitions, in which the Condition is present (local & ghost)
-    };
+        PartitionIndicesType NodesPartitions;                   // Partition where the Node is local
+        PartitionIndicesType ElementsPartitions;                // Partition where the Element is local
+        PartitionIndicesType ConditionsPartitions;              // Partition where the Condition is local
+        PartitionIndicesType ConstraintsPartitions;             // Partition where the MasterSlaveConstraint is local
+        PartitionIndicesType GeometriesPartitions;              // Partition where the Geometry is local
+        PartitionIndicesContainerType NodesAllPartitions;       // Partitions, in which the Node is present (local & ghost)
+        PartitionIndicesContainerType ElementsAllPartitions;    // Partitions, in which the Element is present (local & ghost)
+        PartitionIndicesContainerType ConditionsAllPartitions;  // Partitions, in which the Condition is present (local & ghost)
+        PartitionIndicesContainerType ConstraintsAllPartitions; // Partitions, in which the MasterSlaveConstraint is present (local & ghost)
+        PartitionIndicesContainerType GeometriesAllPartitions;  // Partitions, in which the Geometry is present (local & ghost)
+    };;
 
     ///@}
     ///@name Life Cycle
