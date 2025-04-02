@@ -136,8 +136,6 @@ public:
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
         , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
-        , mpSurrogateInnerLoopGeometries(rOther.mpSurrogateInnerLoopGeometries)
-        , mpSurrogateOuterLoopGeometries(rOther.mpSurrogateOuterLoopGeometries)
         , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
@@ -151,8 +149,6 @@ public:
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
         , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
-        , mpSurrogateInnerLoopGeometries(rOther.mpSurrogateInnerLoopGeometries)
-        , mpSurrogateOuterLoopGeometries(rOther.mpSurrogateOuterLoopGeometries)
         , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
