@@ -23,7 +23,7 @@ public:
     [[nodiscard]] Vector CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
                                                           const Vector& rDetJs,
                                                           double        CrossArea,
-                                                          std::size_t LocalDimension) const override;
+                                                          std::size_t LocalDimension = 0) const override;
     std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const override;
 
 private:
