@@ -747,14 +747,14 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
-    ElementsContainerType& rThisElements = rThisModelPart.Elements();
-    ConditionsContainerType& rThisConditions = rThisModelPart.Conditions();
-
+    // We need to read the initial values of the model part
+    auto& r_this_elements = rThisModelPart.Elements();
+    auto& r_this_conditions = rThisModelPart.Conditions();
+    auto& r_this_master_slave_constraints = rThisModelPart.MasterSlaveConstraints();
 
     ResetInput();
     std::string word;
-    while(true)
-    {
+    while(true) {
         ReadWord(word);
         if(mpStream->eof())
             break;
@@ -762,9 +762,11 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
         if(word == "NodalData")
             ReadNodalDataBlock(rThisModelPart);
         else if(word == "ElementalData")
-            ReadElementalDataBlock(rThisElements);
+            ReadElementalDataBlock(r_this_elements);
         else if(word == "ConditionalData")
-            ReadConditionalDataBlock(rThisConditions);
+            ReadConditionalDataBlock(r_this_conditions);
+        else if(word == "MasterSlaveConstraintData")
+            ReadMasterSlaveConstraintDataBlock(r_this_master_slave_constraints);
         else
             SkipBlock(word);
     }
@@ -840,6 +842,12 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             } else {
                 SkipBlock("ConditionalData");
             }
+        } else if (word == "MasterSlaveConstraintData") {
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
+                ReadMasterSlaveConstraintDataBlock(rThisModelPart.MasterSlaveConstraints());
+            } else {
+                SkipBlock("MasterSlaveConstraintData");
+            }
         } else if(word == "CommunicatorData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
@@ -881,6 +889,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
         WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
         WriteDataBlock(rThisModelPart.Elements(), "Element");
         WriteDataBlock(rThisModelPart.Conditions(),"Condition");
+        WriteDataBlock(rThisModelPart.MasterSlaveConstraints(),"MasterSlaveConstraint");
     }
 //     WriteCommunicatorDataBlock(); // TODO: FINISH ME
 //     WriteMeshBlock(rThisModelPart); // TODO: FINISH ME
@@ -1291,7 +1300,8 @@ void ModelPartIO::DivideInputToPartitions(
 void ModelPartIO::DivideInputToPartitionsImpl(
     OutputFilesContainerType& rOutputFiles,
     SizeType NumberOfPartitions,
-    const PartitioningInfo& rPartitioningInfo)
+    const PartitioningInfo& rPartitioningInfo
+    )
 {
     KRATOS_TRY
 
@@ -1402,7 +1412,7 @@ void ModelPartIO::ReadSubModelPartDataBlock(ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
+void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart)
 {
     KRATOS_TRY
 
@@ -1411,7 +1421,7 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_su
     while(!mpStream->eof())
     {
         ReadWord(variable_name);
-        if(!is_submodelpart){
+        if(!IsSubmodelpart){
             if(CheckEndBlock("ModelPartData", variable_name))
                 break;
         }
@@ -1484,7 +1494,7 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_su
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
+void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart)
 {
     KRATOS_TRY;
 
@@ -2968,6 +2978,103 @@ void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& 
             i_result->GetValue(rVariable) =  conditional_value;
         else
             KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing condition #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::ReadMasterSlaveConstraintDataBlock(MasterSlaveConstraintContainerType& rThisConstraints)
+{
+    KRATOS_TRY
+
+    std::string variable_name;
+
+    ReadWord(variable_name);
+
+    if(KratosComponents<Variable<double> >::Has(variable_name)) {
+        ReadMasterSlaveConstraintScalarVariableData(rThisConstraints, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
+    } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
+        ReadMasterSlaveConstraintScalarVariableData(rThisConstraints, static_cast<Variable<bool> const& >(KratosComponents<Variable<bool> >::Get(variable_name)));
+    } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
+        ReadMasterSlaveConstraintScalarVariableData(rThisConstraints, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+    } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+        ReadMasterSlaveConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+    } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
+        ReadMasterSlaveConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
+    } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
+        ReadMasterSlaveConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
+    } else if(KratosComponents<Variable<Vector> >::Has(variable_name)) {
+        ReadMasterSlaveConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
+    } else {
+        std::stringstream buffer;
+        buffer << variable_name << " is not a valid variable!!!" << std::endl;
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TVariableType>
+void ModelPartIO::ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    double constraint_value;
+
+    std::string value;
+
+    while(!mpStream->eof()) {
+        ReadWord(value); // reading id
+        if(CheckEndBlock("MasterSlaveConstraintData", value)) {
+            break;
+        }
+
+        ExtractValue(value, id);
+
+        // Reading constraint_value
+        ReadWord(value);
+        ExtractValue(value, constraint_value);
+
+        auto it_result = rThisConstraints.find(ReorderedMasterSlaveConstraintId(id));
+        if (it_result != rThisConstraints.end()) {
+            it_result->GetValue(rVariable) = constraint_value;
+        } else {
+            KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing master-slave constraint #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TVariableType, class TDataType>
+void ModelPartIO::ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable, TDataType Dummy)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    TDataType constraint_value;
+
+    std::string value;
+
+    while(!mpStream->eof()) {
+        ReadWord(value); // reading id
+        if(CheckEndBlock("MasterSlaveConstraintData", value)) {
+            break;
+        }
+
+        ExtractValue(value, id);
+
+        // Reading constraint_value
+        ReadVectorialValue(constraint_value);
+
+        auto it_result = rThisConstraints.find(ReorderedMasterSlaveConstraintId(id));
+        if(it_result != rThisConstraints.end()) {
+            it_result->GetValue(rVariable) = constraint_value;
+        } else {
+            KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing master-slave constraint #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
+        }
     }
 
     KRATOS_CATCH("")
@@ -4590,6 +4697,8 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
             index = ReorderedElementId(id);
         } else if (BlockName == "ConditionalData"){
             index = ReorderedConditionId(id);
+        } else if (BlockName == "MasterSlaveConstraintData"){
+            index = ReorderedMasterSlaveConstraintId(id);
         } else{
             KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
         }
@@ -4708,12 +4817,15 @@ void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles
 
         ExtractValue(word, id);
         SizeType index = 0;
-        if(BlockName == "ElementalData")
+        if(BlockName == "ElementalData") {
             index = ReorderedElementId(id);
-        else if(BlockName == "ConditionalData")
+        } else if(BlockName == "ConditionalData") {
             index = ReorderedConditionId(id);
-        else
+        } else if(BlockName == "MasterSlaveConstraintData") {
+            index = ReorderedMasterSlaveConstraintId(id);
+        } else {
             KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
+        }
 
         if(index > EntitiesPartitions.size())
         {
@@ -5701,5 +5813,12 @@ ModelPartIO::SizeType ModelPartIO::ReorderedConditionId(ModelPartIO::SizeType Co
     // The ModelPartIO does not reorder the conditions
     // This method is the one to be overridden by some reordering IO class
     return ConditionId;
+}
+
+ModelPartIO::SizeType ModelPartIO::ReorderedMasterSlaveConstraintId(ModelPartIO::SizeType ConstraintId)
+{
+    // The ModelPartIO does not reorder the constrints
+    // This method is the one to be overridden by some reordering IO class
+    return ConstraintId;
 }
 }  // namespace Kratos.
