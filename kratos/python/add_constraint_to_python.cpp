@@ -20,6 +20,7 @@
 #include "includes/master_slave_constraint.h"
 #include "constraints/linear_master_slave_constraint.h"
 #include "constraints/slip_constraint.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp" // LinearMultifreedomConstraint
 
 namespace Kratos::Python
 {
@@ -133,6 +134,22 @@ void AddConstraintToPython(pybind11::module &m)
         >())
     ;
 
+    pybind11::class_<LinearMultifreedomConstraint,
+                     LinearMultifreedomConstraint::Pointer,
+                     MasterSlaveConstraint>(m, "LinearMultifreedomConstraint")
+        .def(pybind11::init([](const IndexType Id,
+                               const LinearMultifreedomConstraint::DofPointerVectorType& rDofs,
+                               const std::vector<std::size_t>& rConstraintLabels,
+                               const LinearMultifreedomConstraint::MatrixType& rRelationMatrix,
+                               const LinearMultifreedomConstraint::VectorType& rConstraintGaps){
+                                    return std::make_shared<LinearMultifreedomConstraint>(
+                                        Id,
+                                        LinearMultifreedomConstraint::DofPointerVectorType(rDofs),
+                                        rConstraintLabels,
+                                        rRelationMatrix,
+                                        rConstraintGaps);
+                               }))
+        ;
 
     pybind11::class_<SlipConstraint, SlipConstraint::Pointer, LinearMasterSlaveConstraint, Flags>
             (m, "SlipConstraint")

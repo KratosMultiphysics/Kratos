@@ -66,6 +66,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_lagrange_multiplier.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -511,6 +512,12 @@ namespace Kratos:: Python
         .def(py::init< LinearSolverType::Pointer > ())
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
         ;
+
+        typedef PMultigridBuilderAndSolver<SparseSpaceType,LocalSpaceType,LinearSolverType> PMultigridBuilderAndSolverType;
+        py::class_<PMultigridBuilderAndSolverType,PMultigridBuilderAndSolverType::Pointer,BuilderAndSolverType>(m, "PMultigridBuilderAndSolver")
+            .def(py::init<>())
+            .def(py::init<const LinearSolverType::Pointer&,Parameters>())
+            ;
 
         //********************************************************************
         //********************************************************************

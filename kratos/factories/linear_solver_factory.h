@@ -157,6 +157,10 @@ typedef TUblasDenseSpace<double> LocalSparseSpaceType;
 typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<
+    TUblasSparseSpace<float>,
+    TUblasDenseSpace<double>
+>>;
 
 #ifdef KRATOS_REGISTER_LINEAR_SOLVER
 #undef KRATOS_REGISTER_LINEAR_SOLVER
