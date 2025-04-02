@@ -23,7 +23,6 @@ public:
 
 private:
   KratosSolidMechanicsApplication::Pointer mpSolidApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
 };
 
 } // namespace Kratos::Testing
