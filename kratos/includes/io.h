@@ -620,20 +620,77 @@ public:
         KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl;
     }
 
+    /**
+     * @brief Virtual method to read element and condition IDs from a sub-model part.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rModelPartName The name of the sub-model part to read from.
+     * @param rElementsIds Set to store element IDs.
+     * @param rConditionsIds Set to store condition IDs.
+     */
     virtual void ReadSubModelPartElementsAndConditionsIds(
         std::string const& rModelPartName,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds)
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds)
     {
         KRATOS_ERROR << "Calling base class method (ReadSubModelPartElementsAndConditionsIds). Please check the definition of derived class" << std::endl;
     }
 
+    /**
+     * @brief Virtual method to read element, condition, master-slave constraint, and geometry IDs from a sub-model part.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rModelPartName The name of the sub-model part to read from.
+     * @param rElementsIds Set to store element IDs.
+     * @param rConditionsIds Set to store condition IDs.
+     * @param rMasterSlaveConstraintIds Set to store master-slave constraint IDs.
+     * @param rGeometriesIds Set to store geometry IDs.
+     */
+    virtual void ReadSubModelPartElementsAndConditionsIds(
+        std::string const& rModelPartName,
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds,
+        std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
+        std::unordered_set<SizeType>& rGeometriesIds)
+    {
+        KRATOS_WARNING("ReadSubModelPartElementsAndConditionsIds") << " The method ReadSubModelPartElementsAndConditionsIds with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
+        return ReadSubModelPartElementsAndConditionsIds(rModelPartName, rElementsIds, rConditionsIds);
+    }
+
+    /**
+     * @brief Virtual method to read nodal graph from entities list.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rAuxConnectivities Container of connectivities.
+     * @param rElementsIds Set of element IDs.
+     * @param rConditionsIds Set of condition IDs.
+     * @return The size of the nodal graph.
+     */
     virtual std::size_t ReadNodalGraphFromEntitiesList(
         ConnectivitiesContainerType& rAuxConnectivities,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds)
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds)
     {
         KRATOS_ERROR << "Calling base class method (ReadNodalGraphFromEntitiesList). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief Virtual method to read nodal graph from entities list including master-slave constraints and geometries.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rAuxConnectivities Container of connectivities.
+     * @param rElementsIds Set of element IDs.
+     * @param rConditionsIds Set of condition IDs.
+     * @param rMasterSlaveConstraintIds Set of master-slave constraint IDs.
+     * @param rGeometriesIds Set of geometry IDs.
+     * @return The size of the nodal graph.
+     */
+    virtual std::size_t ReadNodalGraphFromEntitiesList(
+        ConnectivitiesContainerType& rAuxConnectivities,
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds,
+        std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
+        std::unordered_set<SizeType>& rGeometriesIds
+        )
+    {
+        KRATOS_WARNING("ReadNodalGraphFromEntitiesList") << " The method ReadNodalGraphFromEntitiesList with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
+        return ReadNodalGraphFromEntitiesList(rAuxConnectivities, rElementsIds, rConditionsIds);
     }
 
     ///@}
