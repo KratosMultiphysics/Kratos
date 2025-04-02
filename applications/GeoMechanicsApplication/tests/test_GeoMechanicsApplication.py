@@ -61,6 +61,7 @@ from test_three_dimensional_piping_validation import KratosGeoMechanicsThreeDime
 from test_master_slave_constraints import KratosGeoMechanicsMasterSlaveConstraints
 from test_deactivation_with_structural_element import KratosGeoMechanicsDeactivationWithStructuralTest
 from test_mohr_coulomb_with_tension_cutoff import KratosGeoMechanicsMohrCoulombWithTensionTests
+from test_single_element_with_Mohr_Coulomb import KratosGeoMechanicsSingleElementWithMohrCoulomb
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -110,6 +111,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTrussBackboneMaterialTests,
                         KratosGeoMechanicsInterfaceElementTests,
                         KratosGeoMechanicsMasterSlaveConstraints,
+                        KratosGeoMechanicsSingleElementWithMohrCoulomb,
     ]
 
     # Create an array with the selected tests
