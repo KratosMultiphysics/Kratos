@@ -128,6 +128,7 @@ intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rMod
 {
     auto r_nodes  = rModelPart.Nodes();
     auto node_ids = std::vector<ModelPart::IndexType>{};
+    node_ids.reserve(r_nodes.size());
     std::transform(r_nodes.begin(), r_nodes.end(), std::back_inserter(node_ids),
                    [](const auto& node) { return node.Id(); });
 

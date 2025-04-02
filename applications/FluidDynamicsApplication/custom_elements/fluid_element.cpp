@@ -25,6 +25,7 @@
 #include "data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_data.h"
 #include "data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
 #include "data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
+#include "data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -928,6 +929,7 @@ template class FluidElement< AxisymmetricNavierStokesData<2,4> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,3> >;
 template class FluidElement< QSVMSDEMCoupledData<3,4> >;
+template class FluidElement< QSVMSDEMCoupledData<3,10> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,4> >;
 template class FluidElement< QSVMSDEMCoupledData<2,6> >;
@@ -949,6 +951,8 @@ template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
 template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
 template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
+template class FluidElement<TwoFluidNavierStokesFractionalData<2, 3>>;
+template class FluidElement<TwoFluidNavierStokesFractionalData<3, 4>>;
 
 template class FluidElement< LowMachNavierStokesData<2,3> >;
 template class FluidElement< LowMachNavierStokesData<2,4> >;

@@ -39,6 +39,7 @@ from test_column_changing_waterlevel import KratosGeoMechanicsChangingWaterLevel
 from test_set_multiple_moving_load_process import KratosGeoMechanicsSetMultipleMovingLoadProcessTests
 from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
+from test_transient_thermal_validation import KratosGeoMechanicsTransientThermalValidationTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
 from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
 from c_phi_reduction_process import KratosGeoMechanicsCPhiReductionProcess
@@ -57,6 +58,8 @@ from test_integration_node_extrapolation import KratosGeoMechanicsExtrapolationT
 from test_truss_backbone_mat import KratosGeoMechanicsTrussBackboneMaterialTests
 from test_line_interface_elements import KratosGeoMechanicsInterfaceElementTests
 from test_three_dimensional_piping_validation import KratosGeoMechanicsThreeDimensionalPipingValidation
+from test_master_slave_constraints import KratosGeoMechanicsMasterSlaveConstraints
+from test_deactivation_with_structural_element import KratosGeoMechanicsDeactivationWithStructuralTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -104,7 +107,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsFixedSpatialVariationTests,
                         KratosGeoMechanicsExtrapolationTests,
                         KratosGeoMechanicsTrussBackboneMaterialTests,
-                        KratosGeoMechanicsInterfaceElementTests
+                        KratosGeoMechanicsInterfaceElementTests,
+                        KratosGeoMechanicsMasterSlaveConstraints,
     ]
 
     # Create an array with the selected tests
@@ -139,7 +143,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientGroundWaterFlowTests,
                         TestSellmeijersRuleValidation,
                         KratosGeoMechanicsDynamicsLongTests,
-                        KratosGeoMechanicsThreeDimensionalPipingValidation
+                        KratosGeoMechanicsThreeDimensionalPipingValidation,
+                        KratosGeoMechanicsTransientThermalValidationTests
                         ]
 
     # Create an array that contains all the tests from every testCase

@@ -1431,7 +1431,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
     
     // Operations performed: add Kpp stabilization to the rLefsHandSideMatrix
     CalculateAndAddSp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    KRATOS_WATCH(rLeftHandSideMatrix);
+    //KRATOS_WATCH(rLeftHandSideMatrix);
 
 }
 
@@ -1945,11 +1945,11 @@ void MPMUpdatedLagrangianVPVMS::FinalizeStepVariables( GeneralVariables & rVaria
     mDeterminantF0         = rVariables.detF* rVariables.detF0;
     mDeformationGradientF0 = prod(rVariables.F, rVariables.F0);
 
-    mMP.cauchy_stress_vector = rVariables.StressVector;
-    mMP.almansi_strain_vector = rVariables.StrainVector;
+   // mMP.cauchy_stress_vector = rVariables.StressVector;
+  // mMP.almansi_strain_vector = rVariables.StrainVector;
 
     // Delta Plastic Strains
-    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_STRAIN))
+/*     if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_STRAIN))
         mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, mMP.delta_plastic_strain );
     if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN))
         mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, mMP.delta_plastic_volumetric_strain);
@@ -1963,7 +1963,7 @@ void MPMUpdatedLagrangianVPVMS::FinalizeStepVariables( GeneralVariables & rVaria
         mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
     if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN))
         mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
-
+ */
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
         : false;

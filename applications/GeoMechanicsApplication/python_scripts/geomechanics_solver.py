@@ -34,13 +34,13 @@ class GeoMechanicalSolver(PythonSolver):
         self.solver_imports_model_part = not(self.model.HasModelPart(model_part_name))
         if self.solver_imports_model_part:
             self.main_model_part = self.model.CreateModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model[model_part_name]
 
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
                 raise ValueError('Please specify a "domain_size" >= 0')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        else:
+            self.main_model_part = self.model[model_part_name]
 
         self.min_buffer_size = 2
 

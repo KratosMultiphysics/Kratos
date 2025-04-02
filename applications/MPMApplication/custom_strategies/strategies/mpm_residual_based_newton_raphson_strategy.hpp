@@ -261,6 +261,7 @@ public:
             if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
         }
 
+
         // recompute first timestep if friction is active
         const bool friction_active = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
         const bool is_initial_loop = (BaseType::GetModelPart().GetProcessInfo()[STEP] ==  1);
@@ -282,8 +283,8 @@ public:
         }
 
         if (is_initial_loop && friction_active){
-            BaseType::GetModelPart().GetProcessInfo()[INITIAL_LOOP_COMPLETE] = true;
 
+            BaseType::GetModelPart().GetProcessInfo()[INITIAL_LOOP_COMPLETE] = true;
             // Transfer STICK_FORCE into a 'previous' timestep
             // [since friction algorithm requires values of normal forces at the 'previous' timestep]
             for (Node &curr_node : BaseType::GetModelPart().Nodes()){
@@ -292,7 +293,7 @@ public:
 
             is_converged=false;
 
-            KRATOS_INFO("") << "\n";
+	    KRATOS_INFO("") << "\n";
             KRATOS_INFO("MPMNewtonRaphsonStrategy") << "Running another Newton-Rhapson loop for friction" << std::endl;
 
 
@@ -351,8 +352,8 @@ private:
             {
                 KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number << std::endl;
 
-                if (this->GetKeepSystemConstantDuringIterations() == false)
-                {
+                if (this->GetKeepSystemConstantDuringIterations() == false)        
+		{
                     TSparseSpace::SetToZero(rA);
                     TSparseSpace::SetToZero(rDx);
                     TSparseSpace::SetToZero(rb);

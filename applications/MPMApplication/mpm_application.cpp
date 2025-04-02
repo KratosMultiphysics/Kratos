@@ -287,7 +287,7 @@ namespace Kratos
         // CL: Displacement-based Newtonian Fluid
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluid3DLaw", mDispNewtonianFluid3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrain2DLaw", mDispNewtonianFluidPlaneStrain2DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
+	KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrainUP2DLaw", mDispNewtonianFluidPlaneStrainUP2DLaw);
 
         //Register Flow Rules
@@ -323,7 +323,6 @@ namespace Kratos
 
         // Stabilization variables
         KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
-
         KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
         // For friction
         KRATOS_REGISTER_VARIABLE(STICK_FORCE)
@@ -333,7 +332,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(FRICTION_ASSIGNED)
         KRATOS_REGISTER_VARIABLE(HAS_INITIAL_MOMENTUM)
         KRATOS_REGISTER_VARIABLE(INITIAL_LOOP_COMPLETE)
-
     }
 
 }  // namespace Kratos.

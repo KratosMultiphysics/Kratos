@@ -38,7 +38,6 @@
 #include "custom_strategies/schemes/mpm_residual_based_simple_steady_scheme.hpp"
 #include "custom_strategies/schemes/mpm_residual_based_simple_steady_velocity_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/schemes/mpm_residual_based_bossak_velocity_scheme.hpp"
 
 
 //---builders and solvers
@@ -72,7 +71,6 @@ namespace Python{
         typedef MPMExplicitScheme< SparseSpaceType, LocalSpaceType >  MPMExplicitSchemeType;
         typedef MPMResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedSimpleSteadySchemeType;
         typedef MPMResidualBasedSimpleSteadyVelocityScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedSimpleSteadyVelocitySchemeType;
-        typedef MPMResidualBasedBossakVelocityScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakVelocitySchemeType;
 
         // MPM Residual Based Bossak Scheme Type
         py::class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
@@ -105,12 +103,6 @@ namespace Python{
         // MPM Explicit Strategy Type
         py::class_< MPMExplicitStrategyType, typename MPMExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m, "MPMExplicitStrategy")
             .def(py::init< ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
-            ;
-
-        // MPM Residual Based Bossak Velocity Scheme Type
-        py::class_< MPMResidualBasedBossakVelocitySchemeType,typename MPMResidualBasedBossakVelocitySchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakVelocityScheme")
-            .def(py::init < ModelPart&, unsigned int, unsigned int, double, double, bool>())
-            .def("Initialize", &MPMResidualBasedBossakVelocitySchemeType::Initialize)
             ;
     }
 
