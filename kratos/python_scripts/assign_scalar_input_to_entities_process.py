@@ -32,7 +32,6 @@ class AssignScalarInputToEntitiesProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"               : "This process assigns a given value (input) to the entities belonging a certain submodelpart",
-            "mesh_id"            : 0,
             "model_part_name"    : "please_specify_model_part_name",
             "variable_name"      : "SPECIFY_VARIABLE_NAME",
             "interval"           : [0.0, 1e30],
@@ -66,7 +65,6 @@ class AssignScalarInputToEntitiesProcess(KratosMultiphysics.Process):
         # Set parameters of the processes
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", settings["model_part_name"])
-        params.AddValue("mesh_id", settings["mesh_id"])
         params.AddValue("file", settings["file"])
         params.AddValue("transfer_algorithm", settings["transfer_algorithm"])
         params.AddValue("variable_name", settings["variable_name"])

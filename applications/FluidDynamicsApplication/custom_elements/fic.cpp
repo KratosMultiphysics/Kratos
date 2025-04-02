@@ -599,7 +599,7 @@ void FIC<TElementData>::CalculateTauGrad(
         }
     }
 
-    // Calculate characteristic lenghts on the gradient directions and gradient norms
+    // Calculate characteristic lengths on the gradient directions and gradient norms
     const Geometry< Node >& r_geometry = this->GetGeometry();
     array_1d<double,3> Hg = ZeroVector(3);
     array_1d<double,3> GradNorm;

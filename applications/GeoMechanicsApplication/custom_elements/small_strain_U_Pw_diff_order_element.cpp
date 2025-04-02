@@ -24,14 +24,16 @@
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "stress_state_policy.h"
+
 #include <numeric>
 
 namespace Kratos
@@ -499,6 +501,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 std::inner_product(shape_function_values.begin(), shape_function_values.end(),
                                    nodal_hydraulic_head.begin(), 0.0);
         }
+    } else if (rVariable == GEO_SHEAR_CAPACITY) {
+        OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), GetProperties());
     } else {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
@@ -1003,11 +1007,12 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables(ElementVariables& 
     rVariables.PressureVector.resize(num_p_nodes, false);
     rVariables.PressureDtVector.resize(num_p_nodes, false);
     rVariables.DeltaPressureVector.resize(num_p_nodes, false);
+    const auto& r_p_geometry = *mpPressureGeometry;
     for (SizeType i = 0; i < num_p_nodes; ++i) {
-        rVariables.PressureVector[i]      = r_geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.PressureDtVector[i]    = r_geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
-        rVariables.DeltaPressureVector[i] = r_geom[i].FastGetSolutionStepValue(WATER_PRESSURE) -
-                                            r_geom[i].FastGetSolutionStepValue(WATER_PRESSURE, 1);
+        rVariables.PressureVector[i] = r_p_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        rVariables.PressureDtVector[i] = r_p_geometry[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.DeltaPressureVector[i] = r_p_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE) -
+                                            r_p_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE, 1);
     }
 
     KRATOS_CATCH("")
@@ -1430,11 +1435,10 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
     }
 }
 
-Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()
+Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const
 {
     Vector result(mpPressureGeometry->PointsNumber());
-    std::transform(this->GetGeometry().begin(),
-                   this->GetGeometry().begin() + mpPressureGeometry->PointsNumber(), result.begin(),
+    std::transform(mpPressureGeometry->begin(), mpPressureGeometry->end(), result.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
     return result;
 }
