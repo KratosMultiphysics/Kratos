@@ -25,8 +25,8 @@ def _main() -> int:
     for project_parameters_filename in args.project_parameters_file:
         status = settlement_api.RunStage(args.working_dir, project_parameters_filename, no_logging, no_progress_reporting, no_progress_message, do_not_cancel)
         if status != 0:
-            print("Running analysis stage failed")
-            return 1
+            print(f"Running analysis stage failed: status = {status}")
+            return status
 
     return 0
 
