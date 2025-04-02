@@ -37,6 +37,10 @@ public:
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D6NElement();
 
+    static Element::Pointer Create2D6NDiffOrderElement(const PointerVector<Node>& rNodes,
+                                                       const Properties::Pointer& rProperties);
+    static Element::Pointer Create2D6NDiffOrderElement();
+
     static Element::Pointer Create2D10NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);
     static Element::Pointer Create2D10NElement();
