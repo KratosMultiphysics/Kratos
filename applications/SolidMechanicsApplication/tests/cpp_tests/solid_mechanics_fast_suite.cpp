@@ -11,17 +11,18 @@
 //
 
 // External includes
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+//#include <gmock/gmock.h>
+//#include <gtest/gtest.h>
 
 // Project includes
 #include "solid_mechanics_fast_suite.h"
 
 namespace Kratos::Testing{
-KratosSolidMechanicsFastSuite::KratosSolidMechanicsFastSuite() 
+
+SolidMechanicsApplicationFastSuite::SolidMechanicsApplicationFastSuite() 
   : KratosCoreFastSuite() {
   mpSolidMechanicsApp = std::make_shared<KratosSolidMechanicsApplication>();
-   this->ImportApplicationIntoKernel(mpSolidMechanicsApp);
+  this->ImportApplicationIntoKernel(mpSolidMechanicsApp);
 }
 
 } // namespace Kratos::Testing
