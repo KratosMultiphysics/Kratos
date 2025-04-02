@@ -45,66 +45,64 @@ void LegacyPartitioningUtilities::CalculateDomainsGraph(
 
 void LegacyPartitioningUtilities::DividingNodes(
     IO::PartitionIndicesContainerType& rNodesAllPartitions,
-    IO::ConnectivitiesContainerType& ElementsConnectivities,
-    IO::ConnectivitiesContainerType& ConditionsConnectivities,
-    PartitionIndicesType const& NodesPartitions,
-    PartitionIndicesType const& ElementsPartitions,
-    PartitionIndicesType const& ConditionsPartitions)
+    IO::ConnectivitiesContainerType& rElementsConnectivities,
+    IO::ConnectivitiesContainerType& rConditionsConnectivities,
+    const PartitionIndicesType& rNodesPartitions,
+    const PartitionIndicesType& rElementsPartitions,
+    const PartitionIndicesType& rConditionsPartitions
+    )
 {
-    SizeType number_of_nodes = NodesPartitions.size();
-    SizeType number_of_elements = ElementsPartitions.size();
-    SizeType number_of_conditions = ConditionsPartitions.size();
+    const SizeType number_of_nodes = rNodesPartitions.size();
+    const SizeType number_of_elements = rElementsPartitions.size();
+    const SizeType number_of_conditions = rConditionsPartitions.size();
 
     rNodesAllPartitions.resize(number_of_nodes);
 
-    for(SizeType i_element = 0 ; i_element < number_of_elements ; i_element++)
-    {
-        const int element_partition = ElementsPartitions[i_element];
+    for(IndexType i_element = 0 ; i_element < number_of_elements ; i_element++) {
+        const int element_partition = rElementsPartitions[i_element];
 
-        //for each element in the model loop over its connectivities
-        for(IO::ConnectivitiesContainerType::value_type::iterator i_node = ElementsConnectivities[i_element].begin() ;
-                i_node != ElementsConnectivities[i_element].end() ; i_node++)
-        {
-            //get global id. We assume that node ids are began with one
-            const int my_gid = *i_node-1;
+        // For each element in the model loop over its connectivities
+        auto& r_element_connectivity = rElementsConnectivities[i_element];
+        for(auto it_node = r_element_connectivity.begin(); it_node != r_element_connectivity.end() ; it_node++) {
+            // Get global id. We assume that node ids are began with one
+            const int my_gid = *it_node-1;
 
-            //get the partition index for the node i am interested in
-            const int node_partition = NodesPartitions[my_gid];
+            // Get the partition index for the node i am interested in
+            const int node_partition = rNodesPartitions[my_gid];
 
-            // adding the partition of the element to its nodes
-            if(element_partition != node_partition) // we will add the node_partition once afterward
+            // Adding the partition of the element to its nodes
+            if(element_partition != node_partition) { // We will add the node_partition once afterward
                 rNodesAllPartitions[my_gid].push_back(element_partition);
+            }
         }
     }
 
-    for(SizeType i_condition = 0 ; i_condition < number_of_conditions ; i_condition++)
-    {
-        const int condition_partition = ConditionsPartitions[i_condition];
+    for(IndexType i_condition = 0 ; i_condition < number_of_conditions ; i_condition++) {
+        const int condition_partition = rConditionsPartitions[i_condition];
 
-        //for each element in the model loop over its connectivities
-        for(IO::ConnectivitiesContainerType::value_type::iterator i_node = ConditionsConnectivities[i_condition].begin() ;
-                i_node != ConditionsConnectivities[i_condition].end() ; i_node++)
-        {
-            //get global id. We assume that node ids are began with one
-            const int my_gid = *i_node-1;
+        // For each element in the model loop over its connectivities
+        auto& r_condition_connectivity = rConditionsConnectivities[i_condition];
+        for(auto it_node = r_condition_connectivity.begin(); it_node != r_condition_connectivity.end() ; it_node++) {
+            // Get global id. We assume that node ids are began with one
+            const int my_gid = *it_node-1;
 
-            //get the partition index for the node i am interested in
-            const int node_partition = NodesPartitions[my_gid];
+            // Get the partition index for the node i am interested in
+            const int node_partition = rNodesPartitions[my_gid];
 
-            // adding the partition of the element to its nodes
-            if(condition_partition != node_partition) // we will add the node_partition once afterward
+            // Adding the partition of the element to its nodes
+            if (condition_partition != node_partition)  { // we will add the node_partition once afterward
                 rNodesAllPartitions[my_gid].push_back(condition_partition);
+            }
         }
     }
 
-    // adding the nodes partition to their array of partitions and clear the repeated ones
-    for(SizeType i_node = 0 ; i_node < number_of_nodes ; i_node++)
-    {
+    // Adding the nodes partition to their array of partitions and clear the repeated ones
+    for(IndexType i_node = 0 ; i_node < number_of_nodes ; i_node++) {
         IO::PartitionIndicesContainerType::value_type& node_partitions = rNodesAllPartitions[i_node];
-        node_partitions.push_back(NodesPartitions[i_node]);
+        node_partitions.push_back(rNodesPartitions[i_node]);
 
-        std::sort(node_partitions.begin(), node_partitions.end());
-        IO::PartitionIndicesContainerType::value_type::iterator new_end=std::unique(node_partitions.begin(), node_partitions.end());
+        std::sort(node_partitions.begin(), node_partitions.end()); // TODO: Add parallel sort from STL lib
+        IO::PartitionIndicesContainerType::value_type::iterator new_end = std::unique(node_partitions.begin(), node_partitions.end());
         node_partitions.resize(new_end - node_partitions.begin());
     }
 }
@@ -136,6 +134,21 @@ void LegacyPartitioningUtilities::DividingConditions(
     for(SizeType i_condition = 0 ; i_condition < number_of_conditions ; i_condition++)
     {
         rConditionsAllPartitions[i_condition].push_back(ConditionsPartitions[i_condition]);
+    }
+}
+
+void LegacyPartitioningUtilities::DividingConstraints(
+    IO::PartitionIndicesContainerType& rConstraintsAllPartitions,
+    const PartitionIndicesType& rConstraintsPartitions
+    )
+{
+    const SizeType number_of_constraints = rConstraintsPartitions.size();
+
+    rConstraintsAllPartitions.resize(number_of_constraints);
+
+    // Adding the constraint partition to their array of partitions
+    for(IndexType i_constraint = 0 ; i_constraint < number_of_constraints ; i_constraint++) {
+        rConstraintsAllPartitions[i_constraint].push_back(rConstraintsPartitions[i_constraint]);
     }
 }
 
