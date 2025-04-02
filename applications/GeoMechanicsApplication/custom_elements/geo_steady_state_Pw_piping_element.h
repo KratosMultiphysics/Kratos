@@ -14,6 +14,7 @@
 
 #include <numeric>
 
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
@@ -99,7 +100,7 @@ public:
     int Check(const ProcessInfo&) const override
     {
         KRATOS_TRY
-        CheckDomainSize();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
@@ -225,14 +226,6 @@ public:
     std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
 
 private:
-    void CheckDomainSize() const
-    {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize (" << GetGeometry().DomainSize() << ") is smaller than "
-            << min_domain_size << " for element " << Id() << std::endl;
-    }
-
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
         for (const auto& node : GetGeometry()) {
