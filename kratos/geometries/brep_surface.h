@@ -656,10 +656,10 @@ private:
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
+    // For Sbm
     Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries;
     Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries;
     
-
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
     */
