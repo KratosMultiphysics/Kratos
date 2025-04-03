@@ -147,7 +147,11 @@ void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part
 
 void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container);
 
-void CalculateLocalMassMatrix(ModelPart::ElementsContainerType::iterator&, Matrix&);
+void CalculateLocalMassMatrix(const ModelPart::ElementsContainerType::iterator&, Matrix&);
+
+void ComputeNonZeroMassMatrixIndex(const std::vector<std::map<unsigned, unsigned>>&, std::vector<std::unordered_set<unsigned>>&);
+
+void ConstructMassMatrixStructure(const unsigned&, const std::vector<std::map<unsigned, unsigned>>&, SparseSpaceType::MatrixType&);
 
 void AssembleMassMatrix(SparseSpaceType::MatrixType& global_matrix, const Matrix& local_lhs, const std::vector<std::map<unsigned, unsigned>>&);
 
@@ -276,6 +280,8 @@ VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
 PointPointSearch::Pointer mpPointPointSearch;
 
+SparseSpaceType::MatrixType mglobal_mass_matrix;  // To be declared as member variable
+SparseSpaceType::VectorType mprojection_rhs;
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius

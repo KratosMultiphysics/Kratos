@@ -50,7 +50,7 @@ void DerivativeRecovery<TDim>::AddTimeDerivativeComponent(ModelPart& r_model_par
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::CalculateLocalMassMatrix(ModelPart::ElementsContainerType::iterator& it_elem, Matrix& local_mass_matrix)
+void DerivativeRecovery<TDim>::CalculateLocalMassMatrix(const ModelPart::ElementsContainerType::iterator& it_elem, Matrix& local_mass_matrix)
 {
     GeometryData::IntegrationMethod integration_method = it_elem->GetIntegrationMethod();
     Geometry<Node>& r_geometry = it_elem->GetGeometry();
@@ -85,23 +85,44 @@ void DerivativeRecovery<TDim>::CalculateLocalMassMatrix(ModelPart::ElementsConta
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::AssembleMassMatrix(SparseSpaceType::MatrixType& global_matrix, const Matrix& local_lhs, const std::vector<std::map<unsigned, unsigned>>& elements_id_map)
 {
-    const SizeType local_size = local_lhs.size1();
-    const Geometry<Node>& r_geometry = it_elem->GetGeometry();
-
-    for(unsigned i_local = 0; i_local < local_size; i_local++)
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::ComputeNonZeroMassMatrixIndex(const std::vector<std::map<unsigned, unsigned>>& elements_id_map, std::vector<std::unordered_set<unsigned>>& inds)
+{
+    for(e = 0; e < number_of_elements; e++)
     {
-        // unsigned int i_global = TDim * id_to_position[r_geometry[i_local].Id()] + j_local;
-        double *values_vector = global_matrix.value_data().begin();
-        std::size_t * index1_vector = global_matrix.value_data().begin();
-        std::size_t * index2_vector = global_matrix.value_data().begin();
-
-        std::size_t node_i_id = r_geometry[i_local].Id();
-        unsigned i_global = id_to_position[node_i_id];
-        for(unsigned j_local = 0; j_local < local_size; j++)
+        // Get over all pair of nodes of each element
+        std::map<unsigned, unsigned> element_inds_map = elements_id_map[e];
+        for(unsigned i_local = 0; i_local < element_inds_map.size(); i_local++)
         {
-
+            unsigned row = element_inds_map[i_local];
+            for(unsigned j_local = 0; j_local < element_inds_map.size(); j_local++)
+            {
+                unsigned col = element_inds_map[j_local];
+                inds[row].emplace(col);
+            }
         }
     }
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::ConstructMassMatrixStructure(const unsigned& system_size, const std::vector<std::map<unsigned, unsigned>>& elements_id_map, SparseSpaceType::MatrixType& global_mass_matrix)
+{
+    // Indices for which mass matrix is non-zero
+    std::vector<std::unordered_set<unsigned>> inds(system_size);
+    ComputeNonZeroMassMatrixIndex(elements_id_map, inds);
+
+    // Define the structure of the mass matrix
+    global_mass_matrix.resize(system_size, system_size, false);  // false: do not fill with zeros!
+
+    unsigned number_of_non_zeros = non_zero_global_inds.size();
+    global_mass_matrix.reserve(number_of_non_zeros);  // See 'ConstructMatrixStructure' in mapping_matrix_utilities.cpp
+
+    std::cout << "Initialized the mass matrix with " << non_zero_global_inds.size() << " total entries." << std::endl;
+    exit(0);
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -113,54 +134,64 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
 {
     KRATOS_INFO("SwimmingDEM") << "Constructing the material derivative by computing the L2 projection..." << std::endl;
 
-    // Each element must have a map between the local and the global position of the position of its dof's (ux, uy and uz),
-    // i.e. a map between the local and the global position of the mass matrix array
-    unsigned int number_of_elements = r_model_part.NumberOfElements();
-    std::vector<std::map<unsigned, unsigned>> elements_id_map;
-    for (unsigned int e = 0; e < number_of_elements; e++)
-    {
-        ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
-        Geometry<Node>& r_geometry = it_elem->GetGeometry();
-
-        std::map<unsigned, unsigned> element_map;
-        unsigned local_dof_position = 0;
-        for(unsigned n = 0; n < r_geometry.size(); n++)
-        {
-            // Mass matrix takes into account VELOCITY_X, VELOCITY_Y and VELOCITY_Z
-            for (unsigned i = 0; i < 3; i++)
-            {
-                unsigned global_dof_position = r_geometry[n].Id() * TDim + i;  // Each DOF in the model part has a unique position
-                element_map[local_dof_position] = global_dof_position;  // This maps the local DOF position of the element to the global position of this DOF
-                ++local_dof_position;
-            }
-        }
-        elements_id_map.push_back(element_map);
-    }
+    // System size
+    const unsigned number_of_elements = r_model_part.NumberOfElements();
+    const unsigned number_of_nodes = r_model_part.NumberOfNodes();
+    const unsigned number_of_dofs = TDim;  // vx, vy, vz
+    const SizeType system_size = number_of_nodes * number_of_dofs;
 
     // Compute the full projection
-    const SizeType system_size = number_of_nodes * TDim;
-    SparseSpaceType::MatrixType global_mass_matrix;
-    SparseSpaceType::VectorType projection_rhs = ZeroVector(system_size);
-
     if(mMassMatrixAlreadyComputed == false)
     {
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-
-        ConstructMassMatrixStructure(mGlobalProjMassMatrix, rModelPart, system_size);
-
-        Matrix local_lhs;
-        #pragma omp parallel firstprivate(number_of_elements, local_lhs, id_to_position)
-        {
-            # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < number_of_elements; k++){
-                ModelPart::ElementsContainerType::iterator it_elem = el_begin + k;
-                // Node id to global index map
-                std::map<std::size_t, unsigned> local_index_map;
-                CalculateLocalMassMatrix(it_elem, local_lhs);
-                AssembleMassMatrix(global_matrix, local_lhs, elements_id_map);
-            }
+        // Make the nodes ids to go between 0 and number_of_nodes - 1
+        std::map <std::size_t, unsigned int> id_to_position;
+        unsigned int node_pos = 0;
+        for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+            noalias(inode->FastGetSolutionStepValue(material_derivative_container)) = ZeroVector(3);
+            id_to_position[inode->Id()] = node_pos;
+            ++node_pos;
         }
-        mMassMatrixAlreadyComputed = true;
+
+        // Map of local dof position to global dof position
+        std::vector<std::map<unsigned, unsigned>> elements_id_map;
+        for (unsigned int e = 0; e < number_of_elements; e++)
+        {
+            ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
+            Geometry<Node>& r_geometry = it_elem->GetGeometry();
+
+            std::map<unsigned, unsigned> element_map;
+            unsigned local_dof_position = 0;
+            for(unsigned n = 0; n < r_geometry.size(); n++)
+            {
+                // Mass matrix takes into account VELOCITY_X, VELOCITY_Y and VELOCITY_Z
+                for (unsigned i = 0; i < number_of_dofs; i++)
+                {
+                    const SizeType node_pos = id_to_position[r_geometry[n].Id()];
+                    unsigned global_dof_position = node_pos * TDim + i;  // Each DOF in the model part has a unique position
+                    element_map[local_dof_position++] = global_dof_position;  // This maps the local DOF position of the element to the global position of this DOF
+                }
+            }
+            elements_id_map.push_back(element_map);
+        }
+
+        // Construct the structure of the sparse mass matrix
+        ConstructMassMatrixStructure(system_size, elements_id_map, mglobal_mass_matrix);
+
+        // noalias(mprojection_rhs) = ZeroVector(system_size);
+        // ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+        // Matrix local_lhs;
+        // #pragma omp parallel firstprivate(number_of_elements, local_lhs, id_to_position)
+        // {
+        //     # pragma omp for schedule(guided, 512) nowait
+        //     for (int k = 0; k < number_of_elements; k++){
+        //         ModelPart::ElementsContainerType::iterator it_elem = el_begin + k;
+        //         // Node id to global index map
+        //         std::map<std::size_t, unsigned> local_index_map;
+        //         CalculateLocalMassMatrix(it_elem, local_lhs);
+        //         AssembleMassMatrix(global_matrix, local_lhs, elements_id_map);
+        //     }
+        // }
+        // mMassMatrixAlreadyComputed = true;
     }
 }
 //***************************************************************************************************************
