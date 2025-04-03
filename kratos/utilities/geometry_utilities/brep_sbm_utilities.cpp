@@ -207,7 +207,6 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
             std::sort(perpendicular_conditions_per_u_direction[vRow][wRow].begin(), perpendicular_conditions_per_u_direction[vRow][wRow].end());  
         }
     }   
-    // KRATOS_WATCH(perpendicular_conditions_per_u_direction)
     
     // Loop over each row and creation of the integration points
     for (IndexType j = 0; j < rSpansV.size() - 1; j++) {
