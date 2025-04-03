@@ -992,15 +992,15 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
         } else if (word == "Geometries") {
+            KRATOS_WARNING("ModelPartIO") << "Reading Geometries is not supported in this function. Skipping." << std::endl;
             SkipBlock(word);
-            // FillNodalConnectivitiesFromGeometryBlockInList(rAuxConnectivities, rGeometriesIds); TODO
         } else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlockInList(rAuxConnectivities, rElementsIds);
         } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
         } else if (word == "MasterSlaveConstraints") {
+            KRATOS_WARNING("ModelPartIO") << "Reading MasterSlaveConstraints is not supported in this function. Skipping." << std::endl;
             SkipBlock(word);
-            // FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(rAuxConnectivities, rMasterSlaveConstraintIds); TODO
         } else {
             SkipBlock(word);
         }
@@ -1014,6 +1014,55 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     //         << "The node is a hanging node, not connected to any element or condition\n"
     //         << "The nodes are not consecutively numbered. This can be avoided by using the \"ReorderConsecutiveModelPartIO\"" << std::endl;
     // }
+
+    // Sort each entry in the auxiliary connectivities vector, remove duplicates
+    for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
+        std::sort(it->begin(),it->end());
+        std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
+        it->resize(unique_end - it->begin());
+    }
+    const SizeType num_nodes = rAuxConnectivities.size();
+
+    return num_nodes;
+    KRATOS_CATCH("")
+}
+
+std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
+    ConnectivitiesContainerType& rAuxConnectivities,
+    std::unordered_set<SizeType>& rElementsIds,
+    std::unordered_set<SizeType>& rConditionsIds,
+    std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
+    std::unordered_set<SizeType>& rGeometriesIds
+    )
+{
+    KRATOS_TRY
+
+    // Fill the auxiliary vector by reading elemental and conditional connectivities
+    ResetInput();
+    std::string word;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if (word == "Nodes") {
+            // This call does nothing useful for ModelPartIO itself
+            // but, if a derived class reorders nodes, it gives
+            // a chance to the derived class to process and renumber
+            // the nodes before reading elements/conditions.
+            ScanNodeBlock();
+        } else if (word == "Geometries") {
+            FillNodalConnectivitiesFromGeometryBlockInList(rAuxConnectivities, rGeometriesIds);
+        } else if (word == "Elements") {
+            FillNodalConnectivitiesFromElementBlockInList(rAuxConnectivities, rElementsIds);
+        } else if (word == "Conditions") {
+            FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
+        } else if (word == "MasterSlaveConstraints") {
+            FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(rAuxConnectivities, rMasterSlaveConstraintIds);
+        } else {
+            SkipBlock(word);
+        }
+    }
 
     // Sort each entry in the auxiliary connectivities vector, remove duplicates
     for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
@@ -6256,8 +6305,9 @@ void ModelPartIO::ScanNodeBlock()
 
 void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
     std::string const& rModelPartName,
-    std::unordered_set<SizeType> &rElementsIds,
-    std::unordered_set<SizeType> &rConditionsIds)
+    std::unordered_set<SizeType>& rElementsIds,
+    std::unordered_set<SizeType>& rConditionsIds
+    )
 {
     KRATOS_TRY
     ResetInput();
@@ -6295,7 +6345,74 @@ void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
     }
 
     KRATOS_CATCH("")
+}
 
+void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
+    std::string const& rModelPartName,
+    std::unordered_set<SizeType>& rElementsIds,
+    std::unordered_set<SizeType>& rConditionsIds,
+    std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
+    std::unordered_set<SizeType>& rGeometriesIds
+    )
+{
+    KRATOS_TRY
+    ResetInput();
+    std::string word;
+    bool read_entities = false;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof()) {
+            break;
+        }
+        if (word == "SubModelPartElements" && read_entities){
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the element id or End
+                if(CheckEndBlock("SubModelPartElements", word)) {
+                    break;
+                }
+                SizeType element_id;
+                ExtractValue(word,element_id);
+                rElementsIds.insert(ReorderedElementId(element_id));
+            }
+        } else if (word == "SubModelPartConditions"  && read_entities) {
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the condition id or End
+                if(CheckEndBlock("SubModelPartConditions", word)) {
+                    break;
+                }
+                SizeType condition_id;
+                ExtractValue(word,condition_id);
+                rConditionsIds.insert(ReorderedConditionId(condition_id));
+            }
+            read_entities = false;
+        } else if (word == "SubModelPartMasterSlaveConstraints"  && read_entities) {
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the condition id or End
+                if(CheckEndBlock("SubModelPartMasterSlaveConstraints", word)) {
+                    break;
+                }
+                SizeType constraint_id;
+                ExtractValue(word,constraint_id);
+                rMasterSlaveConstraintIds.insert(ReorderedMasterSlaveConstraintId(constraint_id));
+            }
+            read_entities = false;
+        } else if (word == "SubModelPartGeometries"  && read_entities) {
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the condition id or End
+                if(CheckEndBlock("SubModelPartGeometries", word)) {
+                    break;
+                }
+                SizeType geometry_id;
+                ExtractValue(word,geometry_id);
+                rGeometriesIds.insert(ReorderedGeometryId(geometry_id));
+            }
+            read_entities = false;
+        } else if (word == rModelPartName) {
+            read_entities = true;
+        }
+    }
+
+    KRATOS_CATCH("")
 }
 
 ModelPartIO::SizeType ModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
