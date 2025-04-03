@@ -594,9 +594,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
                     pcond->Set(BOUNDARY, false);
-                    KRATOS_WATCH("False x")
-                    KRATOS_WATCH(pcond)
-                    KRATOS_WATCH("\n")
 
                     // surrogate_model_part_inner.AddCondition(pcond);
                     id_surrogate_condition++;
