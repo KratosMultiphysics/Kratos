@@ -576,7 +576,8 @@ public:
     virtual void ReadSubModelPartElementsAndConditionsIds(
         std::string const& rModelPartName,
         std::unordered_set<SizeType>& rElementsIds,
-        std::unordered_set<SizeType>& rConditionsIds)
+        std::unordered_set<SizeType>& rConditionsIds
+        )
     {
         KRATOS_ERROR << "Calling base class method (ReadSubModelPartElementsAndConditionsIds). Please check the definition of derived class" << std::endl;
     }
@@ -595,7 +596,8 @@ public:
         std::unordered_set<SizeType>& rElementsIds,
         std::unordered_set<SizeType>& rConditionsIds,
         std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
-        std::unordered_set<SizeType>& rGeometriesIds)
+        std::unordered_set<SizeType>& rGeometriesIds
+        )
     {
         KRATOS_WARNING("ReadSubModelPartElementsAndConditionsIds") << " The method ReadSubModelPartElementsAndConditionsIds with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
         return ReadSubModelPartElementsAndConditionsIds(rModelPartName, rElementsIds, rConditionsIds);
@@ -612,7 +614,8 @@ public:
     virtual std::size_t ReadNodalGraphFromEntitiesList(
         ConnectivitiesContainerType& rAuxConnectivities,
         std::unordered_set<SizeType>& rElementsIds,
-        std::unordered_set<SizeType>& rConditionsIds)
+        std::unordered_set<SizeType>& rConditionsIds
+        )
     {
         KRATOS_ERROR << "Calling base class method (ReadNodalGraphFromEntitiesList). Please check the definition of derived class" << std::endl;
     }
