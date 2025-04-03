@@ -50,8 +50,16 @@ public:
     using GeometryPointerType = typename GeometryType::Pointer;
     using GeometrySurrogateArrayType = DenseVector<GeometryPointerType>;
 
-
-    //template<class TBrepLoopType, class TPointType>
+    /**
+     * @brief Create a Brep Surface Sbm Integration Points object
+     * 
+     * @param rIntegrationPoints 
+     * @param rSpansU 
+     * @param rSpansV 
+     * @param rSurrogateOuterLoopGeometries 
+     * @param rSurrogateInnerLoopGeometries 
+     * @param rIntegrationInfo 
+     */
     static void CreateBrepSurfaceSbmIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpansU,
@@ -60,7 +68,17 @@ public:
         GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries,
         IntegrationInfo& rIntegrationInfo);
 
-    
+    /**
+     * @brief Create a Brep Volume Sbm Integration Points object
+     * 
+     * @param rIntegrationPoints 
+     * @param rSpansU 
+     * @param rSpansV 
+     * @param rSpansW 
+     * @param rOuterLoops 
+     * @param rInnerLoops 
+     * @param rIntegrationInfo 
+     */
     static void CreateBrepVolumeSbmIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpansU,
@@ -71,7 +89,14 @@ public:
         IntegrationInfo& rIntegrationInfo);
 
 private:
-
+    
+    /**
+     * @brief 
+     * 
+     * @param rSpans 
+     * @param coord 
+     * @return int 
+     */
     static int FindKnotSpans1D(
         const std::vector<double>& rSpans, const double coord);
 
