@@ -25,6 +25,14 @@ public:
                                                           double        CrossArea,
                                                           std::size_t LocalDimension = 0) const override;
 
+    [[nodiscard]] std::vector<double> CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType&,
+                                                                       const Vector&,
+                                                                       const Geometry<Node>&) const override
+    {
+        KRATOS_ERROR << "PwLineIntegrationCoefficients::CalculateIntegrationCoefficients is called."
+                     << std::endl;
+    }
+
     std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const override;
 
 private:
