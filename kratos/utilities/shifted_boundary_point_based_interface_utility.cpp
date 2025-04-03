@@ -811,7 +811,7 @@ namespace Kratos
                 rSkinNode.Coordinates(), skin_node_N, p_element,
                 search_results.begin(), point_locator_max_results, point_locator_tolerance);
 
-            // If the skin node is found, interpolate the POSITIVE_FACE_PRESSURE from the PRESSURE
+            // If the skin node is found, interpolate the positive and negative face pressure
             if (is_found) {
                 // Get positive and negative side pressure variables of skin node
                 double& r_skin_p_pos = rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
@@ -856,7 +856,7 @@ namespace Kratos
         // Initialize counter for number of skin nodes that can not be calculated properly
         std::size_t n_skin_nodes_without_correct_extension = 0;
 
-        // For each skin node interpolate the positive and negative side pressure from the fluid mesh
+        // For each skin node interpolate the positive and negative side velocity from the fluid mesh
         LockObject mutex_valid_ex;
         block_for_each(mpSkinModelPart->Nodes(), [&](NodeType& rSkinNode){
             // Locate node in fluid mesh (should be inside a deactivated element)
@@ -867,15 +867,15 @@ namespace Kratos
                 rSkinNode.Coordinates(), skin_node_N, p_element,
                 search_results.begin(), point_locator_max_results, point_locator_tolerance);
 
-            // If the skin node is found, interpolate the POSITIVE_FACE_PRESSURE from the PRESSURE
+            // If the skin node is found, interpolate the positive and negative face fluid velocity
             if (is_found) {
-                // Get positive and negative side pressure variables of skin node
+                // Get positive and negative side velocity variables of skin node
                 array_1d<double,3>& r_skin_u_pos = rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY);
                 array_1d<double,3>& r_skin_u_neg = rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY);
 
-                // Calculate pressure at skin node for positive and negative side of Gamma
-                const bool p_calculated_successfully = CalculateVelocityAtSplitElementSkinPoint(p_element, skin_node_N, r_skin_u_pos, r_skin_u_neg);
-                if (!p_calculated_successfully) {
+                // Calculate velocity at skin node for positive and negative side of Gamma
+                const bool u_calculated_successfully = CalculateVelocityAtSplitElementSkinPoint(p_element, skin_node_N, r_skin_u_pos, r_skin_u_neg);
+                if (!u_calculated_successfully) {
                     std::scoped_lock<LockObject> lock(mutex_valid_ex);
                     n_skin_nodes_without_correct_extension++;
                 }
