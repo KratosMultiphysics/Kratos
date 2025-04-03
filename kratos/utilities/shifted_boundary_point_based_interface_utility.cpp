@@ -906,7 +906,7 @@ namespace Kratos
         const std::size_t voigt_size = 3 * (TDim-1);
         const std::size_t block_size = TDim +1;
 
-        array_1d<double, 3> skin_drag = ZeroVector(3);
+        array_1d<double, 3> force_on_skin = ZeroVector(3);
 
         std::size_t n_split_elements_without_correct_extension = 0;
 
@@ -969,7 +969,7 @@ namespace Kratos
                 }
                 // NOTE that the pressure on the positive side of Gamma needs to be multiplied by the negative normal of the skin point,
                 // so it is pointing outwards of the fluid. The pressure on the negative side points outwards multiplied by the positive normal.
-                const array_1d<double, 3> traction_p = (p_neg-p_pos) * skin_pt_area_normal;
+                const array_1d<double, 3> traction_p = (p_neg-p_pos) * aux_unit_normal;
 
                 // Get the normal projection matrix in Voigt notation
                 BoundedMatrix<double, TDim, voigt_size> voigt_normal_proj_matrix = ZeroMatrix(TDim, voigt_size);
@@ -995,17 +995,17 @@ namespace Kratos
 
                 // Calculate shear stress at the skin point
                 // NOTE that the negative side shear stress needs to be multiplied by the negative normal, so that the normal is pointing inwards.
-                const array_1d<double, TDim> shear_proj_pos =  skin_pt_area * prod(voigt_normal_proj_matrix, shear_stress_pos);
-                const array_1d<double, TDim> shear_proj_neg = -skin_pt_area * prod(voigt_normal_proj_matrix, shear_stress_neg);
-                array_1d<double, 3> traction_shear = ZeroVector(3);
+                const array_1d<double, TDim> shear_proj_pos =  prod(voigt_normal_proj_matrix, shear_stress_pos);
+                const array_1d<double, TDim> shear_proj_neg = -prod(voigt_normal_proj_matrix, shear_stress_neg);
+                array_1d<double, 3> traction_viscous = ZeroVector(3);
                 for (std::size_t d = 0; d < TDim ; ++d) {
-                    traction_shear(d) += shear_proj_pos(d) + shear_proj_neg(d);
+                    traction_viscous(d) += shear_proj_pos(d) + shear_proj_neg(d);
                 }
 
                 // Add the shear stress and pressure drag contribution of the skin point to the skin drag of the skin geometry
                 {
                     std::scoped_lock<LockObject> lock(mutex);
-                    skin_drag += traction_p + traction_shear;
+                    force_on_skin += skin_pt_area * (traction_p + traction_viscous);
                 }
 
                 // Store velocity, pressure and traction in a skin point model part
@@ -1015,14 +1015,15 @@ namespace Kratos
                 skin_pt_in_model_part.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p_pos;
                 skin_pt_in_model_part.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p_neg;
                 skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE) = traction_p;
-                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS) = traction_shear;
+                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS) = traction_viscous;
+                //TODO store pressure and viscous force together as drag force at skin points? Or store traction as force per area instead?
             }
         });
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_split_elements_without_correct_extension > 0)
-        << "The traction inside " << n_split_elements_without_correct_extension << " split elements was calculated without valid extension." << std::endl;
+        << "The fluid force inside " << n_split_elements_without_correct_extension << " split elements was calculated without valid extension." << std::endl;
 
         // Add skin_drag to skin model part
-        mpSkinModelPart->GetValue(DRAG_FORCE) = skin_drag;
+        mpSkinModelPart->GetValue(DRAG_FORCE) = force_on_skin;
     }
 
     /*void ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDrag()
