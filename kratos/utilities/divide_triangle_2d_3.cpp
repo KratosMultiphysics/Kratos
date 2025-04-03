@@ -292,8 +292,8 @@ namespace Kratos
                         this->mNegativeInterfacesParentIds.push_back(i_subdivision);
 
                         //////////
-                        KRATOS_INFO("DivideTriangle2D3::GenerateDivision()") <<  "mContactFace.size=" << this->mContactFace.size() << std::endl;
-                        KRATOS_INFO("DivideTriangle2D3::GenerateDivision()") <<  "mContactPoint.size" << this->mContactPoint.size() << std::endl;
+                        //KRATOS_INFO("DivideTriangle2D3::GenerateDivision()") <<  "mContactFace.size=" << this->mContactFace.size() << std::endl;
+                        //KRATOS_INFO("DivideTriangle2D3::GenerateDivision()") <<  "mContactPoint.size" << this->mContactPoint.size() << std::endl;
                         //////////
 
                         // if (mContactFace.size() > 0){
@@ -302,10 +302,10 @@ namespace Kratos
                             for (unsigned int i_contact = 0; i_contact < this->mContactFace.size(); i_contact++){
 
                                 this->mContactInterface.push_back( this->mNegativeInterfaces.size() - 1 );
-                                KRATOS_INFO("this->mNegativeInterfaces.size()") <<  this->mNegativeInterfaces.size() << std::endl;
+                                //KRATOS_INFO("this->mNegativeInterfaces.size()") <<  this->mNegativeInterfaces.size() << std::endl;
                             }
                         }
-                        KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactInterface.size()=" << this->mContactInterface.size() << "mContactEdge.size()="<< this->mContactEdge.size()<<std::endl; 
+                        //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactInterface.size()=" << this->mContactInterface.size() << "mContactEdge.size()="<< this->mContactEdge.size()<<std::endl; 
 
                         // In triangles, a unique face can belong to the interface
                         break;

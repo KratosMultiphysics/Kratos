@@ -200,7 +200,7 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
                 // Cases exist when the element is not subdivided due to the characteristics of the provided distance
                 // In this cases the element is treated as AIR or FLUID depending on the side
 
-                KRATOS_INFO("Cut Element") << "NumberOfDivisions == 1" << std::endl;
+                //KRATOS_INFO("Cut Element") << "NumberOfDivisions == 1" << std::endl;
 
                 Vector gauss_weights;
                 Matrix shape_functions;
@@ -2092,13 +2092,13 @@ void DropletDynamicsElement<TElementData>::ComputeSplitInterface(
     auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     ///////
-    KRATOS_INFO("Debug") << "neighbour_elems size: " << neighbour_elems.size() << std::endl;
-    for (size_t i = 0; i < neighbour_elems.size(); ++i) {
-        if (neighbour_elems(i).get() == nullptr){
-            KRATOS_INFO("Debug") << "The face is boundary: " << i << std::endl;
-        }
+//     KRATOS_INFO("Debug") << "neighbour_elems size: " << neighbour_elems.size() << std::endl;
+//     for (size_t i = 0; i < neighbour_elems.size(); ++i) {
+//         if (neighbour_elems(i).get() == nullptr){
+//             KRATOS_INFO("Debug") << "The face is boundary: " << i << std::endl;
+//         }
 
-}
+// }
     //////
 
     for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
@@ -2109,7 +2109,7 @@ void DropletDynamicsElement<TElementData>::ComputeSplitInterface(
             KRATOS_WATCH(r_face[0].Coordinates())
         } */
          
-        KRATOS_INFO("Elemntal_Id") << this->Id() << std::endl;
+        // KRATOS_INFO("Elemntal_Id") << this->Id() << std::endl;
         //////////////////
         //KRATOS_INFO("contact_line_faces[i_cl]") << contact_line_faces[i_cl] << std::endl;
         //KRATOS_INFO("neighbour_elems[ contact_line_faces[i_cl] ]") << neighbour_elems[ 3 ] << std::endl;
@@ -2251,6 +2251,11 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
     double negative_density = 0.0;
     double positive_viscosity = 0.0;
     double negative_viscosity = 0.0;
+//////////////////////////
+    Vector force_sum_vector;
+force_sum_vector.resize(Dim);
+force_sum_vector = ZeroVector(Dim); // Initialize with zeros
+//////////////////////////
 
     for (unsigned int i = 0; i < NumNodes; i++){
         if (rData.Distance[i] > 0.0){
@@ -2276,6 +2281,7 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
 
         Vector contact_vector_macro = ZeroVector(Dim);
         Vector contact_vector_micro = ZeroVector(Dim);
+        Vector contact_vector_microS = ZeroVector(Dim);
         Vector wall_tangent = ZeroVector(Dim);
         Vector wall_normal_gp = ZeroVector(Dim);
         Vector velocity_gp = ZeroVector(Dim);
@@ -2295,7 +2301,7 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
         const unsigned int NumCLGP = (rCLShapeFunctions[i_cl]).size1();
         MathUtils<double>::UnitCrossProduct(contact_vector_macro, rTangential[i_cl], normal_avg);
         ////////
-        std::cout<<"normal_avg = "<<normal_avg<<std::endl<<"rTangential[i_cl] = "<<rTangential[i_cl]<<std::endl<<"contact_vector_macro = "<<contact_vector_macro<<std::endl;
+        //std::cout<<"normal_avg = "<<normal_avg<<std::endl<<"rTangential[i_cl] = "<<rTangential[i_cl]<<std::endl<<"contact_vector_macro = "<<contact_vector_macro<<std::endl;
         ////////
 
         double weight_sum = 0.0;
@@ -2335,8 +2341,8 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
             }
 
             // Debug output
-            std::cout << "Cross Product: " << cross_product << std::endl;
-            std::cout << "Unit Vector: " << unit_vector << std::endl;
+            //std::cout << "Cross Product: " << cross_product << std::endl;
+            //std::cout << "Unit Vector: " << unit_vector << std::endl;
 
             // Vector comparison needs to use proper comparison method
 if ((1-1e-5) < unit_vector[2] && unit_vector[2] < (1+1e-5)) {
@@ -2351,7 +2357,7 @@ if ((1-1e-5) < unit_vector[2] && unit_vector[2] < (1+1e-5)) {
             //const double contact_angle_macro_gp = avg_contact_angle;
             //////// 
             const double contact_angle_macro_gp = std::acos(inner_prod(wall_tangent,contact_vector_macro));
-            std::cout<<"contact_angle_macro_gp = "<<contact_angle_macro_gp<<std::endl<<"wall_tangent = "<<wall_tangent<<std::endl<<"wall_normal_gp = "<< wall_normal_gp<<std::endl;
+            //std::cout<<"contact_angle_macro_gp = "<<contact_angle_macro_gp<<std::endl<<"wall_tangent = "<<wall_tangent<<std::endl<<"wall_normal_gp = "<< wall_normal_gp<<std::endl;
             ////////
             double contact_angle_micro_gp = contact_angle_macro_gp;
 
@@ -2436,11 +2442,35 @@ if ((1-1e-5) < unit_vector[2] && unit_vector[2] < (1+1e-5)) {
 
             contact_vector_micro = std::cos(contact_angle_micro_gp)*wall_tangent +
                     std::sin(contact_angle_micro_gp)*wall_normal_gp;
+            contact_vector_microS = std::cos(contact_angle_micro_gp)*wall_tangent;
+
+
+
+// Arrays to store the sum of forces for each dimension
+std::vector<double> force_sum_by_dim(Dim, 0.0);
+
+// Calculate force components and their sums for each dimension
+for (unsigned int i = 0; i < NumNodes; i++) {
+    for (unsigned int dimi = 0; dimi < Dim; dimi++) {
+        // Calculate the force component (tangential - normal)
+        double force_component = 
+            coefficientS * wall_tangent[dimi] * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp, i) - 
+            coefficient * contact_vector_microS[dimi] * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp, i);
+        
+        // Add to the dimension sum
+        force_sum_by_dim[dimi] += force_component;
+    }
+}
+
+// Transfer the summed forces to the vector
+for (unsigned int dimi = 0; dimi < Dim; dimi++) {
+    force_sum_vector[dimi] = force_sum_by_dim[dimi];
+}
 
             for (unsigned int i = 0; i < NumNodes; i++){
                 for (unsigned int dimi = 0; dimi < Dim; dimi++){
-                    rhs[ i*(Dim+1) + dimi ] -= coefficient*contact_vector_micro[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i);
-                    rhs[ i*(Dim+1) + dimi ] += coefficientS*wall_tangent[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i); //Contac-line tangential force
+                    rhs[ i*(Dim+1) + dimi ] -= 0*coefficient*contact_vector_microS[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i);
+                    rhs[ i*(Dim+1) + dimi ] += 0*coefficientS*wall_tangent[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i); //Contac-line tangential force
 
                     for (unsigned int j = 0; j < NumNodes; j++){
                             lhs_dissipation( i*(Dim+1) + dimi, j*(Dim+1) + dimi) +=
@@ -2469,9 +2499,12 @@ if ((1-1e-5) < unit_vector[2] && unit_vector[2] < (1+1e-5)) {
 
             #pragma omp critical
             {
-            //(*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
-            (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+            (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VELOCITY) = contact_velocity;
+            (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+            //(*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+            (*p_geom)[i].FastGetSolutionStepValue(DISTANCE_AUX2) = force_sum_vector[0];
             (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector_macro;
+            (*p_geom)[i].FastGetSolutionStepValue(CONTACT_ANGLE_MICRO) = contact_angle_micro*180.0/PI;
             }
 
         }
