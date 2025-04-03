@@ -115,56 +115,38 @@ class TestModelersSbm(KratosUnittest.TestCase):
         run_modelers(current_model, modeler_settings)
 
         expected_nodes = [
-            [0, 0.4, 0],
-            [2, 0.4, 0],
-            [0, 0.8, 0],
-            [2, 0.8, 0],
-            [0, 1.2, 0],
-            [2, 1.2, 0],
-            [0, 1.6, 0],
-            [2, 1.6, 0],
-            [0, 2, 0],
-            [2, 2, 0],
-            [0.4, 0, 0],
-            [0.4, 2, 0],
-            [0.8, 0, 0],
-            [0.8, 2, 0],
-            [1.2, 0, 0],
-            [1.2, 2, 0],
-            [1.6, 0, 0],
-            [1.6, 2, 0],
-            [2, 0, 0],
-            [2, 2, 0]
+            [ 0.0  ,  0.4  ,  0.0 ],
+            [ 2.0  ,  0.4  ,  0.0 ],
+            [ 0.0  ,  0.8  ,  0.0 ],
+            [ 2.0  ,  0.8  ,  0.0 ],
+            [ 0.0  ,  1.2000000000000002  ,  0.0 ],
+            [ 2.0  ,  1.2000000000000002  ,  0.0 ],
+            [ 0.0  ,  1.6  ,  0.0 ],
+            [ 2.0  ,  1.6  ,  0.0 ],
+            [ 0.0  ,  2.0  ,  0.0 ],
+            [ 2.0  ,  2.0  ,  0.0 ],
+            [ 0.0  ,  0.0  ,  0.0 ],
+            [ 0.4  ,  2.0  ,  0.0 ],
+            [ 0.4  ,  0.0  ,  0.0 ],
+            [ 0.8  ,  2.0  ,  0.0 ],
+            [ 0.8  ,  0.0  ,  0.0 ],
+            [ 1.2000000000000002  ,  2.0  ,  0.0 ],
+            [ 1.2000000000000002  ,  0.0  ,  0.0 ],
+            [ 1.6  ,  2.0  ,  0.0 ],
+            [ 1.6  ,  0.0  ,  0.0 ],
+            [ 2.0  ,  2.0  ,  0.0 ]
         ]
 
-        # test surrogate nodes OUTER
+        # test surrogate nodes
         i = 0
         for cond in current_model["IgaModelPart.surrogate_outer"].Conditions:
-            expected_boundary = ((i)%2==0) #should be alternate between true and false
+            expected_boundary = (i%2==0) #should be alternate between true and false
             self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
             self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
             self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
-            if (abs(cond.GetNodes()[0].Y-cond.GetNodes()[1].Y) < 1e-10) :
-                break
             self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
             i += 1
         
-        # TODO:
-        # i = 0
-        # for cond in current_model["IgaModelPart.surrogate_outer"].Conditions:
-        #     if (abs(cond.GetNodes()[0].X-cond.GetNodes()[1].X) < 1e-10) :
-        #         i += 1
-        #         print(i)
-        #         # print(cond)
-        #         continue
-        #     expected_boundary = ((i+1)%2==0) #should be alternate between true and false
-        #     self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
-        #     self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
-        #     self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
-        #     print(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
-        #     self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
-        #     i += 1
-                
         # test the creation of the breps
         self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 21)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().X, 1.0)
@@ -212,38 +194,23 @@ class TestModelersSbm(KratosUnittest.TestCase):
         run_modelers(current_model, modeler_settings)
 
         expected_nodes = [
-            [2/3, 4/3, 0],
-            [2, 4/3, 0],
-            [2/3, 2, 0],
-            [2, 2, 0],
-            [2/3, 8/3, 0],
-            [2, 8/3, 0],
-            [2/3, 10/3, 0],
-            [2, 10/3, 0],
-            [4/3, 2/3, 0],
-            [4/3, 10/3, 0],
-            [2, 2/3, 0],
-            [2, 10/3, 0]
+            [ 0.6666666666666666  ,  0.6666666666666666  ,  0.0 ],
+            [ 2.0  ,  0.6666666666666666  ,  0.0 ],
+            [ 0.6666666666666666  ,  1.3333333333333333  ,  0.0 ],
+            [ 2.0  ,  1.3333333333333333  ,  0.0 ],
+            [ 0.6666666666666666  ,  2.0  ,  0.0 ],
+            [ 2.0  ,  2.0  ,  0.0 ],
+            [ 0.6666666666666666  ,  2.6666666666666665  ,  0.0 ],
+            [ 2.0  ,  2.6666666666666665  ,  0.0 ],
+            [ 1.3333333333333333  ,  0.6666666666666666  ,  0.0 ],
+            [ 1.3333333333333333  ,  3.333333333333333  ,  0.0 ],
+            [ 2.0  ,  0.6666666666666666  ,  0.0 ],
+            [ 2.0  ,  3.333333333333333  ,  0.0 ]
         ]
-        
-        # test surrogate nodes INNER
+        # test surrogate nodes
         i = 0
         for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
-            expected_boundary = ((i+1)%2==0) #should be alternate between true and false
-            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
-            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
-            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
-            if (abs(cond.GetNodes()[0].Y-cond.GetNodes()[1].Y) < 1e-10) :
-                break
-            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
-            i += 1
-        
-        i = 0
-        for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
-            if (abs(cond.GetNodes()[0].X-cond.GetNodes()[1].X) < 1e-10) :
-                i += 1
-                continue
-            expected_boundary = ((i)%2==0) #should be alternate between true and false
+            expected_boundary = (i%2==0) #should be alternate between true and false
             self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
             self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
             self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
@@ -307,62 +274,48 @@ class TestModelersSbm(KratosUnittest.TestCase):
         run_modelers(current_model, modeler_settings)
         
         expected_nodes = [
-            [0.4, 0.8, 0],
-            [2, 0.8, 0],
-            [0.4, 1.2, 0],
-            [2, 1.2, 0],
-            [0.4, 1.6, 0],
-            [2, 1.6, 0],
-            [0.4, 2, 0],
-            [2, 2, 0],
-            [0.4, 2.4, 0],
-            [2, 2.4, 0],
-            [0.4, 2.8, 0],
-            [2, 2.8, 0],
-            [0.4, 3.2, 0],
-            [2, 3.2, 0],
-            [0.4, 3.6, 0],
-            [2, 3.6, 0],
-            [0.8, 0.4, 0],
-            [0.8, 3.6, 0],
-            [1.2, 0.4, 0],
-            [1.2, 3.6, 0],
-            [1.6, 0.4, 0],
-            [1.6, 3.6, 0],
-            [2, 0.4, 0],
-            [2, 3.6, 0],
-            [2, 5.2, 0],
-            [3.6, 5.2, 0],
-            [2.8, 5.6, 0],
-            [3.2, 5.6, 0],
-            [2.4, 4.8, 0],
-            [2.4, 5.2, 0],
-            [2.8, 4.8, 0],
-            [2.8, 5.2, 0],
-            [3.2, 4.8, 0],
-            [3.2, 5.6, 0],
-            [3.6, 4.8, 0],
-            [3.6, 5.2, 0]
+            [ 0.4  ,  0.4  ,  0.0 ],
+            [ 2.0  ,  0.4  ,  0.0 ],
+            [ 0.4  ,  0.8  ,  0.0 ],
+            [ 2.0  ,  0.8  ,  0.0 ],
+            [ 0.4  ,  1.2000000000000002  ,  0.0 ],
+            [ 2.0  ,  1.2000000000000002  ,  0.0 ],
+            [ 0.4  ,  1.6  ,  0.0 ],
+            [ 2.0  ,  1.6  ,  0.0 ],
+            [ 0.4  ,  2.0  ,  0.0 ],
+            [ 2.0  ,  2.0  ,  0.0 ],
+            [ 0.4  ,  2.4  ,  0.0 ],
+            [ 2.0  ,  2.4  ,  0.0 ],
+            [ 0.4  ,  2.8  ,  0.0 ],
+            [ 2.0  ,  2.8  ,  0.0 ],
+            [ 0.4  ,  3.1999999999999997  ,  0.0 ],
+            [ 2.0  ,  3.1999999999999997  ,  0.0 ],
+            [ 0.8  ,  0.4  ,  0.0 ],
+            [ 0.8  ,  3.5999999999999996  ,  0.0 ],
+            [ 1.2000000000000002  ,  0.4  ,  0.0 ],
+            [ 1.2000000000000002  ,  3.5999999999999996  ,  0.0 ],
+            [ 1.6  ,  0.4  ,  0.0 ],
+            [ 1.6  ,  3.5999999999999996  ,  0.0 ],
+            [ 2.0  ,  0.4  ,  0.0 ],
+            [ 2.0  ,  3.5999999999999996  ,  0.0 ],
+            [ 2.0  ,  4.8  ,  0.0 ],
+            [ 3.5999999999999996  ,  4.8  ,  0.0 ],
+            [ 2.8  ,  5.2  ,  0.0 ],
+            [ 3.1999999999999997  ,  5.2  ,  0.0 ],
+            [ 2.4  ,  4.8  ,  0.0 ],
+            [ 2.4  ,  5.2  ,  0.0 ],
+            [ 2.8  ,  4.8  ,  0.0 ],
+            [ 2.8  ,  5.2  ,  0.0 ],
+            [ 3.1999999999999997  ,  4.8  ,  0.0 ],
+            [ 3.1999999999999997  ,  5.6000000000000005  ,  0.0 ],
+            [ 3.5999999999999996  ,  4.8  ,  0.0 ],
+            [ 3.5999999999999996  ,  5.2  ,  0.0 ]
         ]
 
         # test surrogate nodes
         i = 0
         for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
-            expected_boundary = ((i+1)%2==0) #should be alternate between true and false
-            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
-            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
-            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
-            if (abs(cond.GetNodes()[0].Y-cond.GetNodes()[1].Y) < 1e-10) :
-                break
-            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
-            i += 1
-        
-        i = 0
-        for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
-            if (abs(cond.GetNodes()[0].X-cond.GetNodes()[1].X) < 1e-10) :
-                i += 1
-                continue
-            expected_boundary = ((i)%2==0) #should be alternate between true and false
+            expected_boundary = (i%2==0) #should be alternate between true and false
             self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes[i][0])
             self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes[i][1])
             self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes[i][2])
@@ -429,125 +382,96 @@ class TestModelersSbm(KratosUnittest.TestCase):
         run_modelers(current_model, modeler_settings)
 
         expected_nodes_inner = [
-            [1.6, 1.2, 0],
-            [3, 1.2, 0],
-            [1.6, 1.8, 0],
-            [3, 1.8, 0],
-            [1.6, 2.4, 0],
-            [3, 2.4, 0],
-            [1.6, 3, 0],
-            [3, 3, 0],
-            [1.8, 0.6, 0],
-            [1.8, 3, 0],
-            [2, 0.6, 0],
-            [2, 3, 0],
-            [2.2, 0.6, 0],
-            [2.2, 3, 0],
-            [2.4, 0.6, 0],
-            [2.4, 3, 0],
-            [2.6, 0.6, 0],
-            [2.6, 3, 0],
-            [2.8, 0.6, 0],
-            [2.8, 3, 0],
-            [3, 0.6, 0],
-            [3, 3, 0]
+            [ 1.5999999999999999  ,  0.6  ,  0.0 ],
+            [ 3.0000000000000004  ,  0.6  ,  0.0 ],
+            [ 1.5999999999999999  ,  1.2  ,  0.0 ],
+            [ 3.0000000000000004  ,  1.2  ,  0.0 ],
+            [ 1.5999999999999999  ,  1.7999999999999998  ,  0.0 ],
+            [ 3.0000000000000004  ,  1.7999999999999998  ,  0.0 ],
+            [ 1.5999999999999999  ,  2.4  ,  0.0 ],
+            [ 3.0000000000000004  ,  2.4  ,  0.0 ],
+            [ 1.7999999999999998  ,  0.6  ,  0.0 ],
+            [ 1.7999999999999998  ,  3.0  ,  0.0 ],
+            [ 1.9999999999999998  ,  0.6  ,  0.0 ],
+            [ 1.9999999999999998  ,  3.0  ,  0.0 ],
+            [ 2.1999999999999997  ,  0.6  ,  0.0 ],
+            [ 2.1999999999999997  ,  3.0  ,  0.0 ],
+            [ 2.4  ,  0.6  ,  0.0 ],
+            [ 2.4  ,  3.0  ,  0.0 ],
+            [ 2.6  ,  0.6  ,  0.0 ],
+            [ 2.6  ,  3.0  ,  0.0 ],
+            [ 2.8000000000000003  ,  0.6  ,  0.0 ],
+            [ 2.8000000000000003  ,  3.0  ,  0.0 ],
+            [ 3.0000000000000004  ,  0.6  ,  0.0 ],
+            [ 3.0000000000000004  ,  3.0  ,  0.0 ]
         ]
 
         expected_nodes_outer = [
-            [0.4, 0.6, 0],
-            [3.6, 0.6, 0],
-            [0.4, 1.2, 0],
-            [3.4, 1.2, 0],
-            [0.6, 1.8, 0],
-            [3.4, 1.8, 0],
-            [0.6, 2.4, 0],
-            [3.4, 2.4, 0],
-            [0.6, 3, 0],
-            [3.4, 3, 0],
-            [0.8, 3.6, 0],
-            [3.4, 3.6, 0],
-            [0.8, 4.2, 0],
-            [3.2, 4.2, 0],
-            [0.8, 4.8, 0],
-            [3.2, 4.8, 0],
-            [1, 5.4, 0],
-            [2.8, 5.4, 0],
-            [0.6, 0, 0],
-            [0.6, 1.2, 0],
-            [0.8, 0, 0],
-            [0.8, 3, 0],
-            [1, 0, 0],
-            [1, 4.8, 0],
-            [1.2, 0, 0],
-            [1.2, 5.4, 0],
-            [1.4, 0, 0],
-            [1.4, 5.4, 0],
-            [1.6, 0, 0],
-            [1.6, 5.4, 0],
-            [1.8, 0, 0],
-            [1.8, 5.4, 0],
-            [2, 0, 0],
-            [2, 5.4, 0],
-            [2.2, 0, 0],
-            [2.2, 5.4, 0],
-            [2.4, 0, 0],
-            [2.4, 5.4, 0],
-            [2.6, 0, 0],
-            [2.6, 5.4, 0],
-            [2.8, 0, 0],
-            [2.8, 5.4, 0],
-            [3, 0, 0],
-            [3, 4.8, 0],
-            [3.2, 0, 0],
-            [3.2, 4.8, 0],
-            [3.4, 0, 0],
-            [3.4, 3.6, 0],
-            [3.6, 0, 0],
-            [3.6, 0.6, 0]
+            [ 0.4  ,  0.6  ,  0.0 ],
+            [ 3.600000000000001  ,  0.6  ,  0.0 ],
+            [ 0.4  ,  1.2  ,  0.0 ],
+            [ 3.400000000000001  ,  1.2  ,  0.0 ],
+            [ 0.6000000000000001  ,  1.7999999999999998  ,  0.0 ],
+            [ 3.400000000000001  ,  1.7999999999999998  ,  0.0 ],
+            [ 0.6000000000000001  ,  2.4  ,  0.0 ],
+            [ 3.400000000000001  ,  2.4  ,  0.0 ],
+            [ 0.6000000000000001  ,  3.0  ,  0.0 ],
+            [ 3.400000000000001  ,  3.0  ,  0.0 ],
+            [ 0.8  ,  3.6  ,  0.0 ],
+            [ 3.400000000000001  ,  3.6  ,  0.0 ],
+            [ 0.8  ,  4.2  ,  0.0 ],
+            [ 3.2000000000000006  ,  4.2  ,  0.0 ],
+            [ 0.8  ,  4.8  ,  0.0 ],
+            [ 3.2000000000000006  ,  4.8  ,  0.0 ],
+            [ 1.0  ,  5.3999999999999995  ,  0.0 ],
+            [ 2.8000000000000003  ,  5.3999999999999995  ,  0.0 ],
+            [ 0.4  ,  0.0  ,  0.0 ],
+            [ 0.4  ,  1.2  ,  0.0 ],
+            [ 0.6000000000000001  ,  0.0  ,  0.0 ],
+            [ 0.6000000000000001  ,  3.0  ,  0.0 ],
+            [ 0.8  ,  0.0  ,  0.0 ],
+            [ 0.8  ,  4.8  ,  0.0 ],
+            [ 1.0  ,  0.0  ,  0.0 ],
+            [ 1.0  ,  5.3999999999999995  ,  0.0 ],
+            [ 1.2  ,  0.0  ,  0.0 ],
+            [ 1.2  ,  5.3999999999999995  ,  0.0 ],
+            [ 1.4  ,  0.0  ,  0.0 ],
+            [ 1.4  ,  5.3999999999999995  ,  0.0 ],
+            [ 1.5999999999999999  ,  0.0  ,  0.0 ],
+            [ 1.5999999999999999  ,  5.3999999999999995  ,  0.0 ],
+            [ 1.7999999999999998  ,  0.0  ,  0.0 ],
+            [ 1.7999999999999998  ,  5.3999999999999995  ,  0.0 ],
+            [ 1.9999999999999998  ,  0.0  ,  0.0 ],
+            [ 1.9999999999999998  ,  5.3999999999999995  ,  0.0 ],
+            [ 2.1999999999999997  ,  0.0  ,  0.0 ],
+            [ 2.1999999999999997  ,  5.3999999999999995  ,  0.0 ],
+            [ 2.4  ,  0.0  ,  0.0 ],
+            [ 2.4  ,  5.3999999999999995  ,  0.0 ],
+            [ 2.6  ,  0.0  ,  0.0 ],
+            [ 2.6  ,  5.3999999999999995  ,  0.0 ],
+            [ 2.8000000000000003  ,  0.0  ,  0.0 ],
+            [ 2.8000000000000003  ,  4.8  ,  0.0 ],
+            [ 3.0000000000000004  ,  0.0  ,  0.0 ],
+            [ 3.0000000000000004  ,  4.8  ,  0.0 ],
+            [ 3.2000000000000006  ,  0.0  ,  0.0 ],
+            [ 3.2000000000000006  ,  3.6  ,  0.0 ],
+            [ 3.400000000000001  ,  0.0  ,  0.0 ],
+            [ 3.400000000000001  ,  0.6  ,  0.0 ]
         ]
 
-        # test surrogate nodes INNER
+        # test surrogate nodes
         i = 0
         for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
-            expected_boundary = ((i+1)%2==0) #should be alternate between true and false
-            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes_inner[i][0])
-            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes_inner[i][1])
-            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes_inner[i][2])
-            if (abs(cond.GetNodes()[0].Y-cond.GetNodes()[1].Y) < 1e-10) :
-                break
-            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
-            i += 1
-        
-        i = 0
-        for cond in current_model["IgaModelPart.surrogate_inner"].Conditions:
-            if (abs(cond.GetNodes()[0].X-cond.GetNodes()[1].X) < 1e-10) :
-                i += 1
-                continue
-            expected_boundary = ((i)%2==0) #should be alternate between true and false
+            expected_boundary = (i%2==0) #should be alternate between true and false
             self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes_inner[i][0])
             self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes_inner[i][1])
             self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes_inner[i][2])
             self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
             i += 1
 
-        # test surrogate nodes OUTER
         i = 0
         for cond in current_model["IgaModelPart.surrogate_outer"].Conditions:
-            expected_boundary = ((i)%2==0) #should be alternate between true and false
-            self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes_outer[i][0])
-            self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes_outer[i][1])
-            self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes_outer[i][2])
-            if (abs(cond.GetNodes()[0].Y-cond.GetNodes()[1].Y) < 1e-10) :
-                break
-            self.assertEqual(cond.Is(KratosMultiphysics.BOUNDARY), expected_boundary)
-            i += 1
-        
-        i = 0
-        for cond in current_model["IgaModelPart.surrogate_outer"].Conditions:
-            if (abs(cond.GetNodes()[0].X-cond.GetNodes()[1].X) < 1e-10) :
-                i += 1
-                continue
-            expected_boundary = ((i+1)%2==0) #should be alternate between true and false
+            expected_boundary = (i%2==0) #should be alternate between true and false
             self.assertAlmostEqual(cond.GetNodes()[1].X, expected_nodes_outer[i][0])
             self.assertAlmostEqual(cond.GetNodes()[1].Y, expected_nodes_outer[i][1])
             self.assertAlmostEqual(cond.GetNodes()[1].Z, expected_nodes_outer[i][2])
