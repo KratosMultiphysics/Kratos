@@ -234,9 +234,6 @@ namespace Kratos
         array_1d<double, 3> normal_true_master;  array_1d<double, 3> normal_true_slave;
         array_1d<double, 3> tau_true_master;     array_1d<double, 3> tau_true_slave;
         double n_ntilde_master;                  double n_ntilde_slave;
-        
-        // NodeType& projection_node_master = r_geometry_master.GetValue(NEIGHBOUR_NODES)[0];
-        // NodeType& projection_node_slave  = *(projection_node_master.GetValue(NEIGHBOUR_NODES)[0]);
 
         auto& projection_node_master = (r_geometry_master.GetValue(NEIGHBOUR_NODES)[0]);
         auto& projection_node_slave  = (projection_node_master.GetValue(NEIGHBOUR_NODES)[0]);
@@ -246,6 +243,12 @@ namespace Kratos
         normal_true_master = projection_node_master.GetValue(NORMAL);
         tau_true_master = projection_node_master.GetValue(LOCAL_TANGENT);
 
+        if (std::abs(inner_prod(normal_surrogate_master_3D, normal_true_master)) < 1e-8) 
+        {
+            normal_true_master = normal_surrogate_master_3D;
+            // return;
+        }
+
         this->SetValue(NORMAL_MASTER, normal_true_master);
 
         // projection_node_slave = projection_node_master.GetValue(NEIGHBOUR_NODES)[0];
@@ -253,9 +256,28 @@ namespace Kratos
         tau_true_slave = projection_node_slave.GetValue(LOCAL_TANGENT);
 
         this->SetValue(NORMAL_SLAVE, normal_true_slave);
+        if (std::abs(inner_prod(normal_surrogate_slave_3D, normal_true_slave)) < 1e-8) 
+        {
+            normal_true_slave = normal_surrogate_slave_3D;
+            // return;
+        }
 
-        n_ntilde_master = inner_prod(normal_surrogate_master_3D, normal_true_master);
-        n_ntilde_slave = inner_prod(normal_surrogate_slave_3D, normal_true_slave);
+        double curvature_true_master = projection_node_master.GetValue(CURVATURE);
+        double curvature_true_slave = projection_node_slave.GetValue(CURVATURE);
+
+        double curvature_sign_master = inner_prod(normal_true_master, mDistanceMaster) > 0 ? -1.0 : 1.0;
+        double curvature_sign_slave = inner_prod(normal_true_slave, mDistanceSlave) > 0 ? -1.0 : 1.0;
+        n_ntilde_master = inner_prod(normal_surrogate_master_3D, normal_true_master)/(1+curvature_sign_master*curvature_true_master*norm_2(mDistanceMaster));
+        n_ntilde_slave = inner_prod(normal_surrogate_slave_3D, normal_true_slave)/(1+curvature_sign_slave*curvature_true_slave*norm_2(mDistanceSlave));
+
+        const double corrective_factor_curvature_on_slave = 1.0;
+
+        // const double corrective_factor_curvature_on_slave = (1+curvature_sign_slave*curvature_true_slave*norm_2(mDistanceSlave))
+        //                                                     /(1+curvature_sign_master*curvature_true_master*norm_2(mDistanceMaster));
+
+        // n_ntilde_master = inner_prod(normal_surrogate_master_3D, normal_true_master);
+        // n_ntilde_slave = inner_prod(normal_surrogate_slave_3D, normal_true_slave);
+        
 
         KRATOS_ERROR_IF(n_ntilde_master <= 0) << ":::[SbmContact2DCondition]::: Error. Master: Negative n_ntilde_master" 
                     << r_geometry_master.Center() << normal_surrogate_master_3D << normal_true_master <<  std::endl;
@@ -415,45 +437,47 @@ namespace Kratos
         // }
 
         // -[sigma_1(u) \dot n_tilde] \dot * w_1)
-        // if (!projection_node_slave.GetValue(NEIGHBOUR_GEOMETRY)->GetValue(IS_ASSEMBLED))
-        for (IndexType i = 0; i < number_of_nodes_master; i++)
-        {
-            for (IndexType j = 0; j < number_of_nodes_master; j++)
-            {
-                for (IndexType idim = 0; idim < 2; idim++) {
-                    const int iglob = 2*i+idim;
-                    for (IndexType jdim = 0; jdim < 2; jdim++) {
-                        const int jglob = 2*j+jdim;
-                        Vector sigma_u_n(2);
-                        sigma_u_n[0] = (DB_master(0, jglob)* normal_surrogate_master_2D[0] + DB_master(2, jglob)* normal_surrogate_master_2D[1]);
-                        sigma_u_n[1] = (DB_master(2, jglob)* normal_surrogate_master_2D[0] + DB_master(1, jglob)* normal_surrogate_master_2D[1]);
-
-                        // rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_n[idim] * integration_weight_master;
-
-
-                        // Vector extension_sigma_u_n(2);
-                        // extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* normal_true_master[0] + DB_sum_master(2, jglob)* normal_true_master[1]);
-                        // extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* normal_true_master[0] + DB_sum_master(1, jglob)* normal_true_master[1]);
-
-                        // // double extension_sigma_u_n_n = extension_sigma_u_n[0]*normal_true_master[0] + extension_sigma_u_n[1]*normal_true_master[1];
-
-                        // rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*extension_sigma_u_n[idim] * n_ntilde_master * integration_weight_master;
-                    }
-                }
-            }
-        }
-        // else
-        // {KRATOS_WATCH(r_geometry_slave.Center());
-        // exit(0);
-        // }
-        
-        // Flux Term on Slave
-
-        // FIXME:
-        // for (IndexType i = 0; i < number_of_nodes_slave; i++)
-        //     for (IndexType j = 0; j < number_of_nodes_slave; j++)
+        // for (IndexType i = 0; i < number_of_nodes_master; i++)
+        // {
+        //     for (IndexType j = 0; j < number_of_nodes_master; j++)
+        //     {
         //         for (IndexType idim = 0; idim < 2; idim++) {
-        //             const int iglob = 2*i+idim + 2*number_of_nodes_master;
+        //             const int iglob = 2*i+idim;
+        //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+        //                 const int jglob = 2*j+jdim;
+        //                 Vector sigma_u_n(2);
+        //                 sigma_u_n[0] = (DB_master(0, jglob)* normal_surrogate_master_2D[0] + DB_master(2, jglob)* normal_surrogate_master_2D[1]);
+        //                 sigma_u_n[1] = (DB_master(2, jglob)* normal_surrogate_master_2D[0] + DB_master(1, jglob)* normal_surrogate_master_2D[1]);
+
+        //                 rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_n[idim] * integration_weight_master;
+
+
+        //                 Vector extension_sigma_u_n(2);
+        //                 extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* normal_true_master[0] + DB_sum_master(2, jglob)* normal_true_master[1]);
+        //                 extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* normal_true_master[0] + DB_sum_master(1, jglob)* normal_true_master[1]);
+
+        //                 // double extension_sigma_u_n_n = extension_sigma_u_n[0]*normal_true_master[0] + extension_sigma_u_n[1]*normal_true_master[1];
+
+        //                 rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*extension_sigma_u_n[idim] * n_ntilde_master * integration_weight_master;
+        //             }
+        //         }
+        //     }
+        // }
+        // // // else
+        // // // {KRATOS_WATCH(r_geometry_slave.Center());
+        // // // exit(0);
+        // // // }
+        
+        // // // Flux Term on Slave
+
+        // // // FIXME:
+        // double jacobian_determinant = 1/n_ntilde_slave*n_ntilde_master * std::abs(inner_prod(normal_true_slave, normal_true_master));
+        // for (IndexType i = 0; i < number_of_nodes_slave; i++)
+        //     for (IndexType idim = 0; idim < 2; idim++) 
+        //     {
+        //         const int iglob = 2*i+idim + 2*number_of_nodes_master;
+        //         for (IndexType j = 0; j < number_of_nodes_slave; j++)
+        //         {
         //             for (IndexType jdim = 0; jdim < 2; jdim++) {
         //                 const int jglob = 2*j+jdim + 2*number_of_nodes_master;
         //                 const int j_index = 2*j+jdim;
@@ -461,8 +485,6 @@ namespace Kratos
         //                 Vector sigma_u_n(2);
         //                 sigma_u_n[0] = (DB_slave(0, j_index)* normal_surrogate_slave_2D[0] + DB_slave(2, j_index)* normal_surrogate_slave_2D[1]);
         //                 sigma_u_n[1] = (DB_slave(2, j_index)* normal_surrogate_slave_2D[0] + DB_slave(1, j_index)* normal_surrogate_slave_2D[1]);
-
-        //                 double jacobian_determinant = 1/n_ntilde_slave*n_ntilde_master * std::abs(inner_prod(normal_true_slave, normal_true_master));
 
         //                 rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*sigma_u_n[idim] *jacobian_determinant* integration_weight_master;
 
@@ -473,6 +495,7 @@ namespace Kratos
         //                 rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*extension_sigma_u_n[idim] * n_ntilde_slave *jacobian_determinant* integration_weight_master;
         //             }
         //         }
+        //     }
 
         // -[sigma_2(u) \dot n_tilde] \dot * w_2)
         // if (!projection_node_slave.GetValue(NEIGHBOUR_GEOMETRY)->GetValue(IS_ASSEMBLED))
@@ -728,12 +751,12 @@ namespace Kratos
                             rLeftHandSideMatrix(iglob, jglob) += 2*0.5*n_ntilde_master/penalty_master 
                                                                 * H_sum_master(0,j) * normal_true_master[jdim]
                                                                 * H_slave(0, i) *normal_true_slave[idim]
-                                                                * integration_weight_master;
+                                                                * integration_weight_master * corrective_factor_curvature_on_slave;
                             
                             // -E(sigma(u_1))*v2_n
                             rLeftHandSideMatrix(iglob, jglob) -= 2*0.5*n_ntilde_master * extension_sigma_u_n_n 
                                                                 * H_slave(0, i) *normal_true_slave[idim]
-                                                                * integration_weight_master;
+                                                                * integration_weight_master * corrective_factor_curvature_on_slave;
                         }
                     }
                     // u_2 related
@@ -741,11 +764,11 @@ namespace Kratos
                         for (IndexType jdim = 0; jdim < 2; jdim++) {
                             const int jglob = 2*j+jdim+2*number_of_nodes_master;
                         
-                            // -E(u_2)*v1_n
+                            // -E(u_2)*v2_n
                             rLeftHandSideMatrix(iglob, jglob) -= 2*0.5*n_ntilde_master/penalty_master 
                                                                 * H_sum_slave(0,j) * normal_true_master[jdim]
                                                                 * H_slave(0, i) *normal_true_slave[idim]
-                                                                * integration_weight_master;
+                                                                * integration_weight_master * corrective_factor_curvature_on_slave;
                         }
                     }
 
@@ -755,7 +778,7 @@ namespace Kratos
                         rRightHandSideVector[iglob] += 2*0.5*n_ntilde_master/penalty_master 
                                                         * initial_normal_gap_true_master
                                                         * H_slave(0, i) *normal_true_slave[idim]
-                                                        * integration_weight_master;  
+                                                        * integration_weight_master * corrective_factor_curvature_on_slave;  
                     }
                 }
             }
