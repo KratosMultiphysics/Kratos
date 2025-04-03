@@ -160,9 +160,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.postprocess_pressure = self.shifted_boundary_formulation.postprocess_pressure
         self.boundary_sub_model_part_name = self.shifted_boundary_formulation.boundary_sub_model_part_name
 
-
         # Create a skin model part
-        self.skin_model_parts = []
         for skin_mp_name in self.skin_model_part_names:
             self.model.CreateModelPart(skin_mp_name)
 
@@ -192,7 +190,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 self.main_model_part.AddNodalSolutionStepVariable(variable)
 
         # Add nodal variables to skin model part
-        for skin_mp in self.skin_model_parts:
+        for skin_mp_name in self.skin_model_part_names:
+            skin_mp = self.model.GetModelPart(skin_mp_name)
             skin_mp.AddNodalSolutionStepVariable(KM.VELOCITY)
             skin_mp.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
             skin_mp.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_PRESSURE)
@@ -228,6 +227,16 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             # Set the shifted-boundary formulation configuration
             self.__SetShiftedBoundaryFormulation()
 
+        # Clone the solution step data for skin and skin points model parts
+        t =  self.GetComputingModelPart().ProcessInfo[KM.TIME]
+        step = self.GetComputingModelPart().ProcessInfo[KM.STEP]
+        for skin_mp_name in self.skin_model_part_names:
+            skin_mp = self.model.GetModelPart(skin_mp_name)
+            skin_mp.CloneTimeStep(t)
+            skin_mp.ProcessInfo[KM.STEP] = step
+        self.skin_point_model_part.CloneTimeStep(t)
+        self.skin_point_model_part.ProcessInfo[KM.STEP] = step
+
     def Initialize(self):
         # If the solver requires an instance of the stabilized shifted boundary formulation class, set the process info variables
         if hasattr(self, 'shifted_boundary_formulation'):
@@ -250,11 +259,12 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         KM.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def AdvanceInTime(self, current_time):
-        new_time = super(NavierStokesShiftedBoundaryMonolithicSolver, self).AdvanceInTime()
+        new_time = super(NavierStokesShiftedBoundaryMonolithicSolver, self).AdvanceInTime(current_time)
 
         # Clone the solution step data for skin and skin points model parts
-        step = self.main_model_part.ProcessInfo[KM.STEP]
-        for skin_mp in self.skin_model_parts:
+        step = self.GetComputingModelPart().ProcessInfo[KM.STEP]
+        for skin_mp_name in self.skin_model_part_names:
+            skin_mp = self.model.GetModelPart(skin_mp_name)
             skin_mp.CloneTimeStep(new_time)
             skin_mp.ProcessInfo[KM.STEP] = step
         self.skin_point_model_part.CloneTimeStep(new_time)
