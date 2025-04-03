@@ -291,7 +291,7 @@ private:
         const double SpecificHeatCV);
 
     /**
-     * @brief Buidls the TotalDerivativeUtil objects that will be used to compute inf norms
+     * @brief Builds the TotalDerivativeUtil objects that will be used to compute inf norms
      *
      * @param rElement: The element to compute them on
      * @return Tuple containing {TotalDerivativeUtil for entroy, TotalDerivativeUtil for density, Vector with total velocities}

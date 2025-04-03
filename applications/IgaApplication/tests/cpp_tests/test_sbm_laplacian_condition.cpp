@@ -14,7 +14,8 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "test_creation_utility.h"
-#include "custom_conditions/sbm_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
+#include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "includes/convection_diffusion_settings.h"
 
 namespace Kratos::Testing
@@ -23,9 +24,11 @@ namespace
 {
     typedef std::size_t SizeType;
 
-    typename Condition::Pointer GetSBMLaplacianCondition(
-          ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint, 
-          double penalty, std::string boundary_condition_type)
+    typename Condition::Pointer GetSbmDirichletLaplacianCondition(
+          ModelPart& rModelPart, 
+          SizeType PolynomialDegree, 
+          IntegrationPoint<3> IntegrationPoint, 
+          double penalty)
     {
         // Set the element properties
         auto p_elem_prop = rModelPart.CreateNewProperties(0);
@@ -49,20 +52,56 @@ namespace
         Condition::Pointer p_cond1 = rModelPart.CreateNewCondition("LineCondition2D2N", 1, {{1000, 1001}}, p_cond_prop );
         Condition::Pointer p_cond2 = rModelPart.CreateNewCondition("LineCondition2D2N", 2, {{1001, 1002}}, p_cond_prop );
         p_quadrature_point->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({p_cond1, p_cond2}));
-        p_quadrature_point->SetValue(BOUNDARY_CONDITION_TYPE, boundary_condition_type);
 
         Vector mesh_size(2); 
         mesh_size[0] = 0.1;  
         mesh_size[1] = 0.1;
         p_quadrature_point->SetValue(MARKER_MESHES, mesh_size);
 
-        return Kratos::make_intrusive<SBMLaplacianCondition>(1, p_quadrature_point, p_elem_prop);
+        return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(1, p_quadrature_point, p_elem_prop);
+    }
+    
+    typename Condition::Pointer GetSbmNeumannLaplacianCondition(
+          ModelPart& rModelPart, 
+          SizeType PolynomialDegree, 
+          IntegrationPoint<3> IntegrationPoint, 
+          double penalty)
+    {
+        // Set the element properties
+        auto p_elem_prop = rModelPart.CreateNewProperties(0);
+        p_elem_prop->SetValue(PENALTY_FACTOR, penalty); // Penalty-free formulation
+
+        auto p_quadrature_point = TestCreationUtility::GetQuadraturePointGeometryOnCurve(
+            rModelPart, PolynomialDegree, IntegrationPoint);
+        
+        rModelPart.CreateNewNode(1000, 0.0, 0.1, 0.0);
+        rModelPart.CreateNewNode(1001, 0.15, 0.2, 0.0);
+        rModelPart.CreateNewNode(1002, 0.25, 1.3, 0.0);
+        auto& node1 = rModelPart.GetNode(1000);
+        auto& node2 = rModelPart.GetNode(1001);
+        auto& node3 = rModelPart.GetNode(1002);
+        node1.SetValue(TEMPERATURE, 99.0);
+        node2.SetValue(TEMPERATURE, 199.0);
+        node3.SetValue(TEMPERATURE, 1199.0);
+        node1.SetValue(HEAT_FLUX, 1.0); // Set the HEAT_FLUX for Neumann Conditions
+        Properties::Pointer p_cond_prop = rModelPart.pGetProperties(0);
+
+        Condition::Pointer p_cond1 = rModelPart.CreateNewCondition("LineCondition2D2N", 1, {{1000, 1001}}, p_cond_prop );
+        Condition::Pointer p_cond2 = rModelPart.CreateNewCondition("LineCondition2D2N", 2, {{1001, 1002}}, p_cond_prop );
+        p_quadrature_point->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({p_cond1, p_cond2}));
+
+        Vector mesh_size(2); 
+        mesh_size[0] = 0.1;  
+        mesh_size[1] = 0.1;
+        p_quadrature_point->SetValue(MARKER_MESHES, mesh_size);
+
+        return Kratos::make_intrusive<SbmLaplacianConditionNeumann>(1, p_quadrature_point, p_elem_prop);
     }
 }
 
 
-// Tests the stiffness matrix of the SBMLaplacianCondition
-KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penaltyFree, KratosIgaFastSuite)
+// Tests the stiffness matrix of the SbmDirichletLaplacianCondition
+KRATOS_TEST_CASE_IN_SUITE(SbmLaplacianDirichletConditionP2PenaltyFree, KratosIgaFastSuite)
 {
     Model model;
     auto &r_model_part = model.CreateModelPart("ModelPart");
@@ -87,9 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penaltyFree, KratosIgaFastSuit
     double penalty = -1;
 
     IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
-    std::string boundary_condition_type = "dirichlet";
 
-    auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
+    auto p_support_condition = GetSbmDirichletLaplacianCondition(r_model_part, 3, integration_point, penalty);
 
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(TEMPERATURE);
@@ -102,8 +140,8 @@ KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penaltyFree, KratosIgaFastSuit
     //Check RHS and LHS results
     const double tolerance = 1.0e-4;
 
-    const std::array<double, 8> expected_LHS{-0.403943,-0.225679,0.0772782,0.044566,-0.0407768,-0.0411528,-0.0105702,-9.40019e-05};
-    const std::array<double, 8> expected_RHS{-59.4368,-34.6289,9.94865,6.20196,-4.33659,-3.63508,-0.38264,0.175377};
+    const std::array<double, 8> expected_LHS{0.00977238,-0.00166054,-0.00898983,-0.00285823,0.0093143,0.0131126,0.00612683,0.000949563};
+    const std::array<double, 8> expected_RHS{2.55094,3.8264,1.9132,0.318867,-2.55094,-3.8264,-1.9132,-0.318867};
 
     for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
       KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS[i], tolerance);
@@ -113,8 +151,8 @@ KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penaltyFree, KratosIgaFastSuit
     }
 }
 
-// Tests the stiffness matrix of the SBMLaplacianCondition
-KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penalty, KratosIgaFastSuite)
+// Tests the stiffness matrix of the SbmDirichletLaplacianCondition
+KRATOS_TEST_CASE_IN_SUITE(SbmDirichletLaplacianConditionP2Penalty, KratosIgaFastSuite)
 {
     Model model;
     auto &r_model_part = model.CreateModelPart("ModelPart");
@@ -139,9 +177,8 @@ KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penalty, KratosIgaFastSuite)
     double penalty = 10.0;
 
     IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
-    std::string boundary_condition_type = "dirichlet";
 
-    auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
+    auto p_support_condition = GetSbmDirichletLaplacianCondition(r_model_part, 3, integration_point, penalty);
 
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(TEMPERATURE);
@@ -166,7 +203,7 @@ KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_penalty, KratosIgaFastSuite)
 }
 
 
-// Tests the stiffness matrix of the SBMLaplacianCondition -> NEUMANN TYPE
+// Tests the stiffness matrix of the SbmDirichletLaplacianCondition -> NEUMANN TYPE
 KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_Neumann, KratosIgaFastSuite)
 {
     Model model;
@@ -192,9 +229,8 @@ KRATOS_TEST_CASE_IN_SUITE(SBMLaplacianConditionP2_Neumann, KratosIgaFastSuite)
     double penalty = -1;
 
     IntegrationPoint<3> integration_point(0.333333333333333, 0.05, 0.0, 0.086963711284364);
-    std::string boundary_condition_type = "neumann";
 
-    auto p_support_condition = GetSBMLaplacianCondition(r_model_part, 3, integration_point, penalty, boundary_condition_type);
+    auto p_support_condition = GetSbmNeumannLaplacianCondition(r_model_part, 3, integration_point, penalty);
 
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(TEMPERATURE);

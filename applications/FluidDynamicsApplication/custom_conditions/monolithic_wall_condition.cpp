@@ -230,7 +230,7 @@ void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
 }
 
 
-// protected funcions
+// protected functions
 
 
 template <>
