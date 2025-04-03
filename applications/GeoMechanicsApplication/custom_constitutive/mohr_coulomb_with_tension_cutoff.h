@@ -79,7 +79,8 @@ private:
                                                     double        PoissonsRatio) const;
     [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
     [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rPrincipalTrialStresses,
-                                                         double        TensileStrength) const;
+                                                         double        TensileStrength,
+                                                         double        Apex) const;
     [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rPrincipalTrialStresses,
                                                            double        TensileStrength,
                                                            double        Apex,
