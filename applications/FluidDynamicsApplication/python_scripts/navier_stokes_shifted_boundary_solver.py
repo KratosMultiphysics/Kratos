@@ -40,7 +40,7 @@ class ShiftedBoundaryFormulation(object):
             "level_set_type"               : "point-based",
             "extension_operator_type"      : "MLS",
             "mls_extension_operator_order" : 1,
-            "postprocess_drag"             : false,
+            "postprocess_skin_points"      : false,
             "postprocess_velocity"         : false,
             "postprocess_pressure"         : false
         }""")
@@ -79,7 +79,7 @@ class ShiftedBoundaryFormulation(object):
                         err_msg = 'Provided enclosed area designation is unknown. Available designations are \'none\', \'negative\' and \'positive\'.'
                         raise Exception(err_msg)
 
-        self.postprocess_drag = formulation_settings["postprocess_drag"].GetBool()
+        self.postprocess_skin_points = formulation_settings["postprocess_skin_points"].GetBool()
         self.postprocess_velocity = formulation_settings["postprocess_velocity"].GetBool()
         self.postprocess_pressure = formulation_settings["postprocess_pressure"].GetBool()
 
@@ -155,7 +155,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.non_historical_nodal_properties_variables_list = self.shifted_boundary_formulation.non_historical_nodal_properties_variables_list
         self.skin_model_part_names = self.shifted_boundary_formulation.skin_model_part_names
         self.enclosed_areas = self.shifted_boundary_formulation.enclosed_areas
-        self.postprocess_drag = self.shifted_boundary_formulation.postprocess_drag
+        self.postprocess_skin_points = self.shifted_boundary_formulation.postprocess_skin_points
         self.postprocess_velocity = self.shifted_boundary_formulation.postprocess_velocity
         self.postprocess_pressure = self.shifted_boundary_formulation.postprocess_pressure
         self.boundary_sub_model_part_name = self.shifted_boundary_formulation.boundary_sub_model_part_name
@@ -206,6 +206,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.skin_point_model_part.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_FLUID_VELOCITY)
         self.skin_point_model_part.AddNodalSolutionStepVariable(KM.TRACTION_FROM_FLUID_PRESSURE)
         self.skin_point_model_part.AddNodalSolutionStepVariable(KM.TRACTION_FROM_FLUID_STRESS)
+        self.skin_point_model_part.AddNodalSolutionStepVariable(KM.DRAG_FORCE)
 
         KM.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary fluid solver variables added correctly.")
 
@@ -282,8 +283,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
     def FinalizeSolutionStep(self):
         # Compute Variables for skin model parts in sbm utilities
         for sbm_interface_utility in self.sbm_interface_utilities:
-            if self.postprocess_drag:
-                sbm_interface_utility.CalculateSkinDrag()
+            if self.postprocess_skin_points:
+                sbm_interface_utility.CalculateVariablesAtSkinPoints()
             if self.postprocess_velocity:
                 sbm_interface_utility.CalculateVelocityAtSkinNodes()
             if self.postprocess_pressure:

@@ -101,7 +101,7 @@ namespace Kratos
     array_1d<double, 3> CalculateBodyFittedDrag(ModelPart &rModelPart);
 
     /**
-    * Computes the integral of the Cauchy stress term normal projection in the given modelpart elements.
+    * Computes the integral of the Cauchy stress term normal projection in the given model part elements.
     * @param rModelPart reference to the model part in where the drag is to be computed
     * @return An array containing the drag force value.
     */
@@ -113,6 +113,13 @@ namespace Kratos
     * @return An array containing the drag force location coordinates.
     */
     array_1d<double, 3> CalculateEmbeddedDragCenter(const ModelPart &rModelPart);
+
+    /**
+    * Computes the integral of the Cauchy stress term normal projection as a sum of the fluid force in the given model part nodes.
+    * @param rModelPart reference to the model part in where the drag is to be computed
+    * @return An array containing the drag force value.
+    */
+    array_1d<double, 3> CalculateShiftedBoundaryDrag(ModelPart &rModelPart);
 
     ///@}
     ///@name Access

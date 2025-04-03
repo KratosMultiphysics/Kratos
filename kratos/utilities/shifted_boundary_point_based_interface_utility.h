@@ -187,21 +187,21 @@ public:
     void FixEnclosedVolumesPressure();
 
     //TODO
-    // Calculate positive and negative side velocity and pressure at the nodes of the skin model part
-    // Result is stored in POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE
+    // Calculate positive and negative side pressure at the nodes of the skin model part
+    // Result is stored in POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE.
     template <std::size_t TDim>
     void CalculatePressureAtSkinNodesTemplated();
     void CalculatePressureAtSkinNodes();
+
+    //TODO
     template <std::size_t TDim>
     void CalculateVelocityAtSkinNodesTemplated();
     void CalculateVelocityAtSkinNodes();
-    //void CalculateVelocityAtSkinNodes();
-    //void CalculateDragForceAtSkinPoints();
+
+    //TODO
     template <std::size_t TDim>
-    void CalculateSkinDragTemplated();
-    void CalculateSkinDrag();
-    //     const Variable<array_1d<double, 3>>& rVariable,
-    //     array_1d<double, 3>& rOutput);
+    void CalculateVariablesAtSkinPointsTemplated();
+    void CalculateVariablesAtSkinPoints();
 
     ///@}
     ///@name Access

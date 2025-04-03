@@ -118,6 +118,41 @@ namespace Kratos
         return drag_force_center;
     }
 
+    array_1d<double, 3> DragUtilities::CalculateShiftedBoundaryDrag(ModelPart& rModelPart) {
+
+        // Initialize total drag force
+        array_1d<double, 3> drag_force = ZeroVector(3);
+        double& drag_x = drag_force[0];
+        double& drag_y = drag_force[1];
+        double& drag_z = drag_force[2];
+
+        // Iterate the model part nodes to compute the drag
+        array_1d<double, 3> node_drag;
+
+        // Auxiliary var to make the reduction
+        double drag_x_red = 0.0;
+        double drag_y_red = 0.0;
+        double drag_z_red = 0.0;
+
+        #pragma omp parallel for reduction(+:drag_x_red) reduction(+:drag_y_red) reduction(+:drag_z_red) private(node_drag) schedule(dynamic)
+        for(int i = 0; i < static_cast<int>(rModelPart.Nodes().size()); ++i){
+            auto it_node = rModelPart.NodesBegin() + i;
+            node_drag = it_node->GetSolutionStepValue(DRAG_FORCE);
+            drag_x_red += node_drag[0];
+            drag_y_red += node_drag[1];
+            drag_z_red += node_drag[2];
+        }
+
+        drag_x += drag_x_red;
+        drag_y += drag_y_red;
+        drag_z += drag_z_red;
+
+        // Perform MPI synchronization
+        drag_force = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(drag_force);
+
+        return drag_force;
+    }
+
     /* External functions *****************************************************/
 
     /// output stream function

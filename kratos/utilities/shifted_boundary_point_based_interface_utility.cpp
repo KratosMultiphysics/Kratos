@@ -885,15 +885,15 @@ namespace Kratos
             << "The velocity at " << n_skin_nodes_without_correct_extension << " skin nodes was calculated without valid extension." << std::endl;
     }
 
-    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDrag()
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPoints()
     {
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
         switch (n_dim) {
             case 2:
-                CalculateSkinDragTemplated<2>();
+                CalculateVariablesAtSkinPointsTemplated<2>();
                 break;
             case 3:
-                CalculateSkinDragTemplated<3>();
+                CalculateVariablesAtSkinPointsTemplated<3>();
                 break;
             default:
                 KRATOS_ERROR << "Wrong domain size.";
@@ -901,7 +901,7 @@ namespace Kratos
     }
 
     template <std::size_t TDim>
-    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated()
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsTemplated()
     {
         const std::size_t voigt_size = 3 * (TDim-1);
         const std::size_t block_size = TDim +1;
@@ -910,7 +910,8 @@ namespace Kratos
 
         std::size_t n_split_elements_without_correct_extension = 0;
 
-        // Loop over all elements containing skin points
+        // Loop over all elements containing skin points to integrate traction=sigma*n over the interface
+        // NOTE that both interface sides need to be integrated
         LockObject mutex, mutex_valid_ex;
         std::for_each(mSkinPointsMap.begin(), mSkinPointsMap.end(), [&](const std::pair<ElementType::Pointer, SkinPointsDataVectorType>& rKeyData){
             const auto p_element = rKeyData.first;
@@ -997,15 +998,16 @@ namespace Kratos
                 // NOTE that the negative side shear stress needs to be multiplied by the negative normal, so that the normal is pointing inwards.
                 const array_1d<double, TDim> shear_proj_pos =  prod(voigt_normal_proj_matrix, shear_stress_pos);
                 const array_1d<double, TDim> shear_proj_neg = -prod(voigt_normal_proj_matrix, shear_stress_neg);
-                array_1d<double, 3> traction_viscous = ZeroVector(3);
+                array_1d<double, 3> traction_tau = ZeroVector(3);
                 for (std::size_t d = 0; d < TDim ; ++d) {
-                    traction_viscous(d) += shear_proj_pos(d) + shear_proj_neg(d);
+                    traction_tau(d) += shear_proj_pos(d) + shear_proj_neg(d);
                 }
+                const array_1d<double, 3> skin_pt_force = skin_pt_area * (traction_p + traction_tau);
 
                 // Add the shear stress and pressure drag contribution of the skin point to the skin drag of the skin geometry
                 {
                     std::scoped_lock<LockObject> lock(mutex);
-                    force_on_skin += skin_pt_area * (traction_p + traction_viscous);
+                    force_on_skin += skin_pt_force;
                 }
 
                 // Store velocity, pressure and traction in a skin point model part
@@ -1015,20 +1017,16 @@ namespace Kratos
                 skin_pt_in_model_part.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p_pos;
                 skin_pt_in_model_part.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p_neg;
                 skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE) = traction_p;
-                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS) = traction_viscous;
-                //TODO store pressure and viscous force together as drag force at skin points? Or store traction as force per area instead?
+                skin_pt_in_model_part.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS) = traction_tau;
+                skin_pt_in_model_part.FastGetSolutionStepValue(DRAG_FORCE) = skin_pt_force;
             }
         });
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_split_elements_without_correct_extension > 0)
         << "The fluid force inside " << n_split_elements_without_correct_extension << " split elements was calculated without valid extension." << std::endl;
-
-        // Add skin_drag to skin model part
-        mpSkinModelPart->GetValue(DRAG_FORCE) = force_on_skin;
     }
 
-    /*void ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDrag()
     //void ShiftedBoundaryPointBasedInterfaceUtility::CalculateExtensionError()
-    {
+    /*{
         std::vector<double> x_pos, y_pos, error_u_pos, error_u_neg, error_p_pos, error_p_neg;
 
         std::size_t n_skin_points_without_correct_extension = 0;
@@ -2165,8 +2163,8 @@ namespace Kratos
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated<2>();
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated<3>();
 
-    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated<2>();
-    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDragTemplated<3>();
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsTemplated<2>();
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsTemplated<3>();
 
     template bool KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateUnknownsForBothSidesOfSplitElement<2>(
         const ElementType::Pointer pElement,
