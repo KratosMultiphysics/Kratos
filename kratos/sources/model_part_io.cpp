@@ -765,7 +765,7 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
             ReadElementalDataBlock(r_this_elements);
         else if(word == "ConditionalData")
             ReadConditionalDataBlock(r_this_conditions);
-        else if(word == "MasterSlaveConstraintData")
+        else if(word == "MasterSlaveConstraintalData")
             ReadMasterSlaveConstraintDataBlock(r_this_master_slave_constraints);
         else
             SkipBlock(word);
@@ -842,11 +842,11 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             } else {
                 SkipBlock("ConditionalData");
             }
-        } else if (word == "MasterSlaveConstraintData") {
+        } else if (word == "MasterSlaveConstraintalData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadMasterSlaveConstraintDataBlock(rThisModelPart.MasterSlaveConstraints());
             } else {
-                SkipBlock("MasterSlaveConstraintData");
+                SkipBlock("MasterSlaveConstraintalData");
             }
         } else if(word == "CommunicatorData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
@@ -3027,7 +3027,7 @@ void ModelPartIO::ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstra
 
     while(!mpStream->eof()) {
         ReadWord(value); // reading id
-        if(CheckEndBlock("MasterSlaveConstraintData", value)) {
+        if(CheckEndBlock("MasterSlaveConstraintalData", value)) {
             break;
         }
 
@@ -3060,7 +3060,7 @@ void ModelPartIO::ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveCons
 
     while(!mpStream->eof()) {
         ReadWord(value); // reading id
-        if(CheckEndBlock("MasterSlaveConstraintData", value)) {
+        if(CheckEndBlock("MasterSlaveConstraintalData", value)) {
             break;
         }
 
@@ -4697,7 +4697,7 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
             index = ReorderedElementId(id);
         } else if (BlockName == "ConditionalData"){
             index = ReorderedConditionId(id);
-        } else if (BlockName == "MasterSlaveConstraintData"){
+        } else if (BlockName == "MasterSlaveConstraintalData"){
             index = ReorderedMasterSlaveConstraintId(id);
         } else{
             KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
@@ -4821,7 +4821,7 @@ void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles
             index = ReorderedElementId(id);
         } else if(BlockName == "ConditionalData") {
             index = ReorderedConditionId(id);
-        } else if(BlockName == "MasterSlaveConstraintData") {
+        } else if(BlockName == "MasterSlaveConstraintalData") {
             index = ReorderedMasterSlaveConstraintId(id);
         } else {
             KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
