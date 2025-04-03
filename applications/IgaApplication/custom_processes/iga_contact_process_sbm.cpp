@@ -361,7 +361,7 @@ namespace Kratos
 
                 // compute normals and useful info
                 std::vector<CoordinatesArrayType> global_space_derivatives;
-                SizeType derivative_order = 1;
+                SizeType derivative_order = 2;
                 mrSlaveSkinModelPart->pGetGeometry(best_slave_curve_id)->GlobalSpaceDerivatives(global_space_derivatives, best_curve_projection_local_coord, derivative_order);
                 CoordinatesArrayType tangent_vector = global_space_derivatives[1];
                 double tangent_magnitude = norm_2(tangent_vector);
@@ -372,6 +372,13 @@ namespace Kratos
 
                 new_slave_skin_node->SetValue(NORMAL, normal_vector);
                 new_slave_skin_node->SetValue(LOCAL_TANGENT, tangent_vector);
+
+                // FIXME: compute the curvature
+                CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
+                CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
+
+                double curvature = norm_2(MathUtils<double>::CrossProduct(curve_first_derivative_vector, curve_second_derivative_vector)) / pow(norm_2(curve_first_derivative_vector), 3);
+                new_slave_skin_node->SetValue(CURVATURE, curvature);
 
 
                 // find the closest slave gauss point to the projected skin node on the slave boundary
@@ -458,7 +465,7 @@ namespace Kratos
             slave_brep_geometry->GetQuadraturePointGeometries(gp_list_slave);
             
             // FIXME:
-            if (slave_brep_geometry->GetValue(IDENTIFIER) == "active") continue;
+            // if (slave_brep_geometry->GetValue(IDENTIFIER) == "active") continue;
 
             // CREATE SBM LOAD CONDITIONS 
             const Condition& rReferenceCondition = KratosComponents<Condition>::Get(default_condition_name);
@@ -472,6 +479,11 @@ namespace Kratos
             for (auto it = gp_list_slave.ptr_begin(); it != gp_list_slave.ptr_end(); ++it) {
                 
                 if ((*it)->GetValue(IDENTIFIER) == "active") continue;
+                auto neigh_nodes = (*it)->GetValue(NEIGHBOUR_NODES);
+
+                std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+                outputFile <<  neigh_nodes(0)->X() << " " << neigh_nodes(0)->Y() << " "  << (*it)->Center().X() << " " << (*it)->Center().Y() <<"\n";
+                outputFile.close();
 
                 new_condition_list.push_back(
                     rReferenceCondition.Create(rIdCounter, (*it), mpPropSlave));
@@ -516,6 +528,13 @@ namespace Kratos
             for (auto it = gp_list_master.ptr_begin(); it != gp_list_master.ptr_end(); ++it) {
                 
                 if ((*it)->GetValue(IDENTIFIER) == "active") continue;
+
+                
+                auto neigh_nodes = (*it)->GetValue(NEIGHBOUR_NODES);
+
+                std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+                outputFile <<  neigh_nodes(0)->X() << " " << neigh_nodes(0)->Y() << " "  << (*it)->Center().X() << " " << (*it)->Center().Y() <<"\n";
+                outputFile.close();
 
                 new_condition_list.push_back(rReferenceCondition.Create(rIdCounter, (*it), mpPropMaster));
                 
@@ -950,6 +969,17 @@ namespace Kratos
         auto interval = rPairedGeometry.DomainInterval();
         curve_interval[0] = interval.GetT0();
         curve_interval[1] = interval.GetT1();
+
+        double curve_interval_min; double curve_interval_max; 
+        if (curve_interval[0] < curve_interval[1]) {
+            curve_interval_min = curve_interval[0];
+            curve_interval_max = curve_interval[1];
+        }
+        else {
+            curve_interval_min = curve_interval[1];
+            curve_interval_max = curve_interval[0];
+        }
+
         bool is_converged_at_least_once = false;
         double best_distance = 1e12;
 
@@ -1036,6 +1066,29 @@ namespace Kratos
                 // Increment the parametric coordinate
                 t[0] -= delta_t;
 
+                 // Check if the parameter gets out of its interval of definition and if so clamp it
+                // back to the boundaries
+                // CoordinatesArrayType closest_t = ZeroVector(3);
+                // int check = rPairedGeometry.ClosestPointLocalToLocalSpace(
+                //     t, t,2);
+
+                int check = 0;
+                
+                //----
+                if (t[0] > curve_interval_min && t[0] < curve_interval_max) check = 1;
+                else if (std::abs(t[0] - curve_interval_min) < 1e-7) {
+                    t[0] = curve_interval_min; 
+                    check = 2;
+                }
+                else if (std::abs(t[0] - curve_interval_max) < 1e-7) {
+                    t[0] = curve_interval_max; 
+                    check = 2;
+                }
+
+                if (check == 0) {
+                    break;
+                }
+
                 // Check if the increment is too small and if yes return true
                 if (norm_2(delta_t *gradient_derivatives_updated) < Accuracy) // Acc
                 {
@@ -1056,42 +1109,7 @@ namespace Kratos
                         break;
                     }
                 }
-                    
 
-                // Check if the parameter gets out of its interval of definition and if so clamp it
-                // back to the boundaries
-                // CoordinatesArrayType closest_t = ZeroVector(3);
-                // int check = rPairedGeometry.ClosestPointLocalToLocalSpace(
-                //     t, t,2);
-
-                int check = 0;
-                double curve_interval_min; double curve_interval_max; 
-                // KRATOS_WATCH(t)
-                if (curve_interval[0] < curve_interval[1]) {
-                    curve_interval_min = curve_interval[0];
-                    curve_interval_max = curve_interval[1];
-                }
-                else {
-                    curve_interval_min = curve_interval[1];
-                    curve_interval_max = curve_interval[0];
-                }
-                //----
-                if (t[0] > curve_interval_min && t[0] < curve_interval_max) check = 1;
-                else if (std::abs(t[0] - curve_interval_min) < 1e-7) {
-                    t[0] = curve_interval_min; 
-                    check = 2;
-                }
-                else if (std::abs(t[0] - curve_interval_max) < 1e-7) {
-                    t[0] = curve_interval_max; 
-                    check = 2;
-                }
-
-                if (check == 0) {
-                    // if (projection_reset_to_boundary) { return false; }
-                    // else { projection_reset_to_boundary = true; }
-
-                    break;
-                }
             }
         }
 

@@ -100,6 +100,9 @@ namespace Kratos
             true_n = projection_node.GetValue(NORMAL);
             true_tau = projection_node.GetValue(LOCAL_TANGENT);
 
+            if (loopIdentifier == "inner")
+                true_n = -true_n;
+
         } else if (this->GetValue(NEIGHBOUR_CONDITIONS).size() == 2)
         {
             Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
@@ -280,7 +283,14 @@ namespace Kratos
 
 
         // dot product n cdot n_tilde
+        double curvature_sign = inner_prod(true_n, d) > 0 ? 1.0 : -1.0;
+        // const double new_weight = IntToReferenceWeight*(n_ntilde/(1+curvature_sign*curvature*norm_2(d)));
+
         n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1];
+        double curvature = projection_node.GetValue(CURVATURE);
+
+
+        // n_ntilde /= (1.0+curvature_sign*curvature*norm_2(d));
 
         // double n_tautilde = true_n[0] * tangent_parameter_space[0] + true_n[1] * tangent_parameter_space[1];
 
@@ -301,6 +311,10 @@ namespace Kratos
                     
                         
                         rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor * n_ntilde;
+
+                        // rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor 
+                        //                                     * n_ntilde/(1+curvature*norm_2(d));
+
                     }
                 }
             }
@@ -359,13 +373,14 @@ namespace Kratos
 
             g_N[0] = projection_node.GetValue(FORCE_X);
             g_N[1] = projection_node.GetValue(FORCE_Y);
-                
-            
+
             for (IndexType i = 0; i < number_of_nodes; i++) {
                 
                 for (IndexType zdim = 0; zdim < 2; zdim++) {
                     
-                    rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * n_ntilde  * IntToReferenceWeight;
+                    rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * n_ntilde * IntToReferenceWeight;
+
+                    // rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * n_ntilde/(1+curvature*norm_2(d)) * IntToReferenceWeight;
 
                 }
             }

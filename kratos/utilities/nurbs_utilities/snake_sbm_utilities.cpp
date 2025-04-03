@@ -216,7 +216,7 @@ namespace Kratos
                     
                     // compute normal at the node coords
                     std::vector<CoordinatesArrayType> global_space_derivatives;
-                    SizeType derivative_order = 1;
+                    SizeType derivative_order = 2;
                     CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
                     p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
                     CoordinatesArrayType tangent_vector = global_space_derivatives[1];
@@ -237,6 +237,12 @@ namespace Kratos
                     {
                         node->SetValue(NORMAL, normal_vector);
                         node->SetValue(LOCAL_TANGENT, tangent_vector);
+                        // FIXME: compute the curvature
+                        CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
+                        CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
+
+                        double curvature = norm_2(MathUtils<double>::CrossProduct(curve_first_derivative_vector, curve_second_derivative_vector)) / pow(norm_2(curve_first_derivative_vector), 3);
+                        node->SetValue(CURVATURE, curvature);
                     }
             
                     skin_layer_sub_model_part.AddNode(node);
@@ -260,7 +266,7 @@ namespace Kratos
                     
                     // compute normal at the node coords
                     std::vector<CoordinatesArrayType> global_space_derivatives;
-                    SizeType derivative_order = 1;
+                    SizeType derivative_order = 2;
                     CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
                     p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
                     CoordinatesArrayType tangent_vector = global_space_derivatives[1];
@@ -281,6 +287,13 @@ namespace Kratos
                     {
                         last_node.SetValue(NORMAL, normal_vector);
                         last_node.SetValue(LOCAL_TANGENT, tangent_vector);
+
+                        // FIXME: compute the curvature
+                        CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
+                        CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
+
+                        double curvature = norm_2(MathUtils<double>::CrossProduct(curve_first_derivative_vector, curve_second_derivative_vector)) / pow(norm_2(curve_first_derivative_vector), 3);
+                        last_node.SetValue(CURVATURE, curvature);
                     }
             
                     skin_layer_sub_model_part.AddNode(&last_node);
@@ -603,7 +616,7 @@ namespace Kratos
             
             // compute normal and tangent informations at the local coord of the point 
             std::vector<CoordinatesArrayType> global_space_derivatives;
-            SizeType derivative_order = 1;
+            SizeType derivative_order = 2;
             CoordinatesArrayType new_point_local_coord = ZeroVector(3);
             new_point_local_coord[0] = local_coords[1];
             p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
@@ -615,6 +628,13 @@ namespace Kratos
             normal_vector[1] = -tangent_vector[0];
             node->SetValue(NORMAL, normal_vector);
             node->SetValue(LOCAL_TANGENT, tangent_vector);
+
+            // FIXME: compute the curvature
+            CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
+            CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
+
+            double curvature = norm_2(MathUtils<double>::CrossProduct(curve_first_derivative_vector, curve_second_derivative_vector)) / pow(norm_2(curve_first_derivative_vector), 3);
+            node->SetValue(CURVATURE, curvature);
 
             skin_layer_sub_model_part.AddNode(node);
 
