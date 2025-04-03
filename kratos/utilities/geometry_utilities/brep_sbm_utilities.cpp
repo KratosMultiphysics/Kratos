@@ -164,15 +164,15 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
 
             // When local refining is performed, the surrogate steps might be larger that the refined knot spans
             const double direction_v = ((*p_geometry)[2].Y()-(*p_geometry)[0].Y())/std::abs(((*p_geometry)[2].Y()-(*p_geometry)[0].Y()));
-            int vRow1 = FindKnotSpans1D(rSpansV, (*p_geometry)[0].Y() + 1e-12*(direction_v));
-            int vRow2 = FindKnotSpans1D(rSpansV, (*p_geometry)[2].Y() - 1e-12*(direction_v));
+            int v_row_1 = FindKnotSpans1D(rSpansV, (*p_geometry)[0].Y() + 1e-12*(direction_v));
+            int v_row_2 = FindKnotSpans1D(rSpansV, (*p_geometry)[2].Y() - 1e-12*(direction_v));
 
             const double direction_w = ((*p_geometry)[2].Z()-(*p_geometry)[0].Z())/std::abs(((*p_geometry)[2].Z()-(*p_geometry)[0].Z()));
-            int wRow1 = FindKnotSpans1D(rSpansW, (*p_geometry)[0].Z() + 1e-12*(direction_w));
-            int wRow2 = FindKnotSpans1D(rSpansW, (*p_geometry)[2].Z() - 1e-12*(direction_w));
+            int w_row_1 = FindKnotSpans1D(rSpansW, (*p_geometry)[0].Z() + 1e-12*(direction_w));
+            int w_row_2 = FindKnotSpans1D(rSpansW, (*p_geometry)[2].Z() - 1e-12*(direction_w));
 
-            for (int v_row = std::min(vRow1, vRow2); v_row < std::max(vRow1,vRow2)+1; v_row++) {
-                for (int w_row = std::min(wRow1, wRow2); w_row < std::max(wRow1,wRow2)+1; w_row++) {
+            for (int v_row = std::min(v_row_1, v_row_2); v_row < std::max(v_row_1,v_row_2)+1; v_row++) {
+                for (int w_row = std::min(w_row_1, w_row_2); w_row < std::max(w_row_1,w_row_2)+1; w_row++) {
                     perpendicular_conditions_per_u_direction[v_row][w_row].push_back((*p_geometry)[0].X());
                 }
             }
@@ -186,15 +186,15 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
 
             // When local refining is performed, the surrogate steps might be larger that the refined knot spans
             const double direction_v = ((*p_geometry)[2].Y()-(*p_geometry)[0].Y())/std::abs(((*p_geometry)[2].Y()-(*p_geometry)[0].Y()));
-            int vRow1 = FindKnotSpans1D(rSpansV, (*p_geometry)[0].Y() + 1e-12*(direction_v));
-            int vRow2 = FindKnotSpans1D(rSpansV, (*p_geometry)[2].Y() - 1e-12*(direction_v));
+            int v_row_1 = FindKnotSpans1D(rSpansV, (*p_geometry)[0].Y() + 1e-12*(direction_v));
+            int v_row_2 = FindKnotSpans1D(rSpansV, (*p_geometry)[2].Y() - 1e-12*(direction_v));
 
             const double direction_w = ((*p_geometry)[2].Z()-(*p_geometry)[0].Z())/std::abs(((*p_geometry)[2].Z()-(*p_geometry)[0].Z()));
-            int wRow1 = FindKnotSpans1D(rSpansW, (*p_geometry)[0].Z() + 1e-12*(direction_w));
-            int wRow2 = FindKnotSpans1D(rSpansW, (*p_geometry)[2].Z() - 1e-12*(direction_w));
+            int w_row_1 = FindKnotSpans1D(rSpansW, (*p_geometry)[0].Z() + 1e-12*(direction_w));
+            int w_row_2 = FindKnotSpans1D(rSpansW, (*p_geometry)[2].Z() - 1e-12*(direction_w));
 
-            for (int v_row = std::min(vRow1, vRow2); v_row < std::max(vRow1,vRow2)+1; v_row++) {
-                for (int w_row = std::min(wRow1, wRow2); w_row < std::max(wRow1,wRow2)+1; w_row++) {
+            for (int v_row = std::min(v_row_1, v_row_2); v_row < std::max(v_row_1,v_row_2)+1; v_row++) {
+                for (int w_row = std::min(w_row_1, w_row_2); w_row < std::max(w_row_1,w_row_2)+1; w_row++) {
                     perpendicular_conditions_per_u_direction[v_row][w_row].push_back((*p_geometry)[0].X());
                 }
             }
@@ -212,8 +212,8 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
     for (IndexType j = 0; j < rSpansV.size() - 1; j++) {
         for (IndexType k = 0; k < rSpansW.size() - 1; k++) {
 
-            int starting_u_index = 0;
-            int next_switch_knot_span;
+            IndexType starting_u_index = 0;
+            IndexType next_switch_knot_span;
             if (perpendicular_conditions_per_u_direction[j][k].size() > 0) {
                 // next_switch_knot_span = (vertical_conditions_per_row[j][0]+1e-13)/meshSizes_uv[0];
                 next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][0]+1e-13);
@@ -222,7 +222,7 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
             else {
                 next_switch_knot_span = rSpansU.size() - 1;
             }
-            int perpendicular_condition_index = 1;
+            IndexType perpendicular_condition_index = 1;
 
             if (is_outer_loop_defined){
                 if (perpendicular_conditions_per_u_direction[j][k].empty()) {continue;}
