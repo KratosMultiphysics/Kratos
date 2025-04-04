@@ -223,12 +223,10 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 {
     const auto& r_prop = rParameters.GetMaterialProperties();
 
-    double       young_module  = r_prop[YOUNG_MODULUS];
-    double       poisson_ratio = r_prop[POISSON_RATIO];
-    const Flags& r_options     = rParameters.GetOptions();
+    const Flags& r_options = rParameters.GetOptions();
     if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         rParameters.GetConstitutiveMatrix() =
-            mpConstitutiveDimension->CalculateElasticMatrix(young_module, poisson_ratio);
+            mpConstitutiveDimension->CalculateElasticMatrix(r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
     }
 
     const auto trail_stress_vector = CalculateTrialStressVector(
@@ -281,7 +279,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
 bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const
 {
-    const double tolerance = 1.0e-12;
+    constexpr auto tolerance = 1.0e-12;
     return mCoulombYieldSurface.YieldFunctionValue(rPrincipalStresses) < tolerance &&
            mTensionCutOff.YieldFunctionValue(rPrincipalStresses) < tolerance;
 }
