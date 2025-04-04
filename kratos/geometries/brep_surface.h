@@ -468,11 +468,11 @@ public:
                 
                 // Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
                 BrepSbmUtilitiesType::CreateBrepSurfaceSbmIntegrationPoints(
-                    rIntegrationPoints,
                     spans_u, 
                     spans_v,
                     *mpSurrogateOuterLoopGeometries,
                     *mpSurrogateInnerLoopGeometries,
+                    rIntegrationPoints,
                     rIntegrationInfo);
             }
             // body-fitted case
