@@ -14,7 +14,7 @@ class DEMPropertiesMeasureUtility:
         self.SphericElementGlobalPhysicsCalculator = SphericElementGlobalPhysicsCalculator(self.spheres_model_part)
         self.ContactElementGlobalPhysicsCalculator = ContactElementGlobalPhysicsCalculator()
 
-    def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type, domain_size=[1,1,1]):        
+    def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type, domain_size):        
         '''
         This is a function to establish a sphere to measure local packing properties
         The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress_tensor" or "strain" 
@@ -45,7 +45,10 @@ class DEMPropertiesMeasureUtility:
         if type == "stress_tensor":
             if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
                 measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
-                total_stress_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensorWithinSphere(self.contact_model_part, radius, [center_x, center_y, center_z])
+                Lx = domain_size[0]
+                Ly = domain_size[1]
+                Lz = domain_size[2]
+                total_stress_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensorWithinSphere(self.contact_model_part, radius, [center_x, center_y, center_z], Lx, Ly, Lz)
                 averaged_stress_tensor = np.array(total_stress_tensor) / measure_sphere_volume
                 return averaged_stress_tensor
             else:

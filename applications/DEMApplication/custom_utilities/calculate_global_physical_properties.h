@@ -874,7 +874,7 @@ class ContactElementGlobalPhysicsCalculator
         return measured_total_stress_tensor;
     }
 
-    std::vector<std::vector<double>> CalculateTotalStressTensorWithinSphere(ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
+    std::vector<std::vector<double>> CalculateTotalStressTensorWithinSphere(ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center, double Lx, double Ly, double Lz)
     {
         OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
         std::vector<std::vector<double>> measured_stress_tensor(3, std::vector<double>(3));
@@ -900,16 +900,41 @@ class ContactElementGlobalPhysicsCalculator
                 double y_contact = 0.5 * (y_0 + y_1);
                 double z_contact = 0.5 * (z_0 + z_1);
 
-                //double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
-                //double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
                 double center_to_contact_point = std::sqrt(std::pow(x_contact - center[0], 2) + std::pow(y_contact - center[1], 2) + std::pow(z_contact - center[2], 2));
-                double length_of_contact_element = std::sqrt(std::pow(x_0 - x_1, 2) + std::pow(y_0 - y_1, 2) + std::pow(z_0 - z_1, 2));
+
+                double dx, dy, dz;
+                
+                dx = x_0 - x_1;
+                if (dx > 0.5 * Lx){
+                    dx -= Lx;
+                }
+                else if (dx < -0.5 * Lx){
+                    dx += Lx;
+                }
+                
+                dy = y_0 - y_1;
+                if (dy > 0.5 * Ly){
+                    dy -= Ly;
+                }
+                else if (dy < -0.5 * Ly){
+                    dy += Ly;
+                }
+
+                dz = z_0 - z_1;
+                if (dz > 0.5 * Lz){
+                    dz -= Lz;
+                }
+                else if (dz < -0.5 * Lz){
+                    dz += Lz;
+                }
 
                 //if (center_to_sphere_distance_0 < (radius - r) || center_to_sphere_distance_1 < (radius - r)) {
-                if (center_to_contact_point < radius && length_of_contact_element < 1.5 * radius) {
+                if (center_to_contact_point < radius && (center_to_sphere_distance_0 < radius || center_to_sphere_distance_1 < radius)) {
                     const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
                     double contact_force_vector[3] = {contact_force[0], contact_force[1], contact_force[2]};
-                    double vector_l[3] = {x_0 - x_1, y_0 - y_1, z_0 - z_1};
+                    double vector_l[3] = {dx, dy, dz};
                     double tensor[3][3];
 
                     for (int i = 0; i < 3; i++){
