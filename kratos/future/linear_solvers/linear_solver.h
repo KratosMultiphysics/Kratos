@@ -22,7 +22,6 @@
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
 #include "includes/model_part.h"
-#include "future/linear_solvers/reorderer.h"
 
 namespace Kratos::Future
 {
@@ -52,15 +51,13 @@ namespace Kratos::Future
  * @details This class define the general interface for the linear solvers in Kratos.
  * @tparam TSparseSpaceType which specify type of the unknowns, coefficients, sparse matrix, vector of unknowns, right hand side vector and their respective operators.
  * @tparam TDenseMatrixType which specify type of the matrices used as temporary matrices or multi solve unknowns and right hand sides and their operators.
- * @tparam TReordererType which specify type of the Orderer that performs the reordering of matrix to optimize the solution.
  * @see SparseSpace
  * @see DenseSpace
- * @see Reorderer
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
  * @author Ruben Zorrilla
  */
-template<class TMatrixType = CsrMatrix<>, class TVectorType= SystemVector<>, class TReordererType = Future::Reorderer<TMatrixType, TVectorType>>
+template<class TMatrixType = CsrMatrix<>, class TVectorType= SystemVector<>>
 class LinearSolver
 {
 public:
@@ -102,13 +99,10 @@ public:
     ///@{
 
     /// Default constructor.
-    LinearSolver() : mpReorderer(new TReordererType()) {}
-
-    /// Constructor with specific reorderer.
-    LinearSolver(TReordererType NewReorderer) : mpReorderer(NewReorderer) {}
+    LinearSolver() {}
 
     /// Copy constructor.
-    LinearSolver(const LinearSolver& Other) : mpReorderer(Other.mpReorderer) {}
+    LinearSolver(const LinearSolver& Other) {}
 
     /// Destructor.
     virtual ~LinearSolver() = default;
@@ -120,8 +114,6 @@ public:
     /// Assignment operator.
     LinearSolver& operator=(const LinearSolver& Other)
     {
-        mpReorderer = Other.mpReorderer;
-
         return *this;
     }
 
@@ -138,7 +130,6 @@ public:
      */
     virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        mpReorderer->Initialize(rA, rX, rB);
     }
 
     /**
@@ -264,26 +255,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
-    /**
-     * @brief Virtual function to get the reorderer.
-     * @details This function returns a pointer to the reorderer used by the linear solver.
-     * @return A pointer to the reorderer.
-     */
-    virtual typename TReordererType::Pointer GetReorderer()
-    {
-        return mpReorderer;
-    }
-
-    /**
-     * @brief Virtual function to set the reorderer.
-     * @details This function sets the reorderer used by the linear solver.
-     * @param pNewReorderer A pointer to the new reorderer.
-     */
-    virtual void SetReorderer(typename TReordererType::Pointer pNewReorderer)
-    {
-        mpReorderer = pNewReorderer;
-    }
 
     /**
      * @brief This method allows to set the tolerance in the linear solver
@@ -459,9 +430,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    /// A counted pointer to the reorderer object.
-    typename TReordererType::Pointer mpReorderer;
 
     ///@}
     ///@name Private Operators
