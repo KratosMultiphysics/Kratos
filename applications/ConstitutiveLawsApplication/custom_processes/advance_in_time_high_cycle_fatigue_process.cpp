@@ -429,7 +429,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
             r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
             // #pragma omp critical
-            r_process_info[TIME_INCREMENT] = time_increment;
+            r_process_info[TIME_INCREMENT] = time_increment + mThisParameters["fatigue"]["time_overshoot"].GetDouble();
         }
     }
 }
