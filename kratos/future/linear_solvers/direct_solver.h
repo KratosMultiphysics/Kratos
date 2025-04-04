@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "future/linear_solvers/linear_solver.h"
-#include "future/linear_solvers/reorderer.h"
 
 namespace Kratos::Future
 {
@@ -36,17 +35,16 @@ namespace Kratos::Future
    - TDenseMatrixType which specify type of the
      matrices used as temporary matrices or multi solve unknowns and
    right hand sides and their operators.
-   - TReordererType which specify type of the Orderer that performs the reordering of matrix to optimize the solution.
 */
-template<class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>, class TReordererType = Reorderer<TMatrixType, TVectorType> >
-class DirectSolver : public Future::LinearSolver<TMatrixType, TVectorType, TReordererType>
+template<class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>>
+class DirectSolver : public Future::LinearSolver<TMatrixType, TVectorType>
 {
 public:
 
     /// Counted pointer of DirectSolver
     KRATOS_CLASS_POINTER_DEFINITION(DirectSolver);
 
-    using BaseType = LinearSolver<TMatrixType, TVectorType, TReordererType>;
+    using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
 
     using VectorType = TVectorType;
 
@@ -83,22 +81,20 @@ private:
 
 }; // Class DirectSolver
 
-
-
 /// input stream function
-template<class TMatrixType, class TVectorType, class TReordererType>
+template<class TMatrixType, class TVectorType>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    DirectSolver<TMatrixType, TVectorType,TReordererType>& rThis)
+    DirectSolver<TMatrixType, TVectorType>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType,class TReordererType>
+template<class TMatrixType, class TVectorType>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const DirectSolver<TMatrixType,TVectorType,TReordererType>& rThis)
+    const DirectSolver<TMatrixType,TVectorType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
