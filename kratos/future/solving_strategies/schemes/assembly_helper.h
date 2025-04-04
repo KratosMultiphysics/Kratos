@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
+//                   Riccardo Rossi
 //
 
 #pragma once
@@ -19,10 +20,11 @@
 // Project includes
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
+#include "containers/sparse_contiguous_row_graph.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 
-namespace Kratos
+namespace Kratos::Future
 {
 
 ///@addtogroup KratosCore
@@ -39,7 +41,7 @@ namespace Kratos
  * handle the building of the sparse sytem matrices
  * @author Ruben Zorrilla
  */
-template<class TThreadLocalStorage, class TMatrixType=CsrMatrix<>, class TVectorType=SystemVector<>>
+template<class TThreadLocalStorage, class TSparseMatrixType, class TSparseVectorType, class TSparseGraphType>
 class AssemblyHelper
 {
 public:
@@ -68,35 +70,17 @@ public:
     /// Size type definition
     using SizeType = std::size_t;
 
-    /// Matrix type definition
-    using SystemMatrixType = TMatrixType;
-
-    /// Matrix pointer type definition
-    using SystemMatrixPointerType = typename TMatrixType::Pointer;
-
-    /// Vector type definition
-    using SystemVectorType = TVectorType;
-
-    /// Vector pointer type definition
-    using SystemVectorPointerType = typename TVectorType::Pointer;
-
     /// Data type definition from sparse matrix
-    using DataType = typename SystemMatrixType::DataType;
+    using DataType = typename TSparseMatrixType::DataType;
 
     /// Index type definition from sparse matrix
-    using IndexType = typename SystemMatrixType::IndexType;
+    using IndexType = typename TSparseMatrixType::IndexType;
 
     /// DOF type definition
     using DofType = ModelPart::DofType;
 
     /// DOF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
-
-    /// Local system matrix type definition from TLS
-    using LocalSystemMatrixType = typename TThreadLocalStorage::LocalSystemMatrixType;
-
-    /// Local system vector type definition from TLS
-    using LocalSystemVectorType = typename TThreadLocalStorage::LocalSystemVectorType;
 
     /// Function type for elements assembly
     using ElementAssemblyFunctionType = std::function<void(ModelPart::ElementConstantIterator, const ProcessInfo&, TThreadLocalStorage&)>;
@@ -159,60 +143,67 @@ public:
         mEchoLevel = AssemblySettings["echo_level"].GetInt();
     }
 
+    virtual ~AssemblyHelper() = default;
 
     ///@}
     ///@name Operations
     ///@{
 
-    void ResizeAndInitializeVectors(
+    //TODO: In the future, add the one with
+    // - LHS alone
+    // - MassMatrix
+    // - DampingMatrix
+    virtual void ResizeAndInitializeVectors(
         const DofsArrayType& rDofSet,
-        SystemMatrixPointerType& rpLHS,
-        SystemVectorPointerType& rpDx,
-        SystemVectorPointerType& rpRHS,
+        typename TSparseMatrixType::Pointer& rpLHS,
+        typename TSparseVectorType::Pointer& rpDx,
+        typename TSparseVectorType::Pointer& rpRHS,
         const bool ReactionVector = false)
     {
         // Set up the sparse matrix graph (note that we do not need to keep it after the resizing)
-        SparseGraph<IndexType> sparse_graph;
+        TSparseGraphType sparse_graph;
         SetUpSparseGraph(sparse_graph);
 
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
-        auto p_lhs = Kratos::make_shared<SystemMatrixType>(sparse_graph);
+        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(sparse_graph);
         rpLHS.swap(p_lhs);
 
-        auto p_dx = Kratos::make_shared<SystemVectorType>(sparse_graph);
+        auto p_dx = Kratos::make_shared<TSparseVectorType>(sparse_graph);
         rpDx.swap(p_dx);
 
-        auto p_rhs = Kratos::make_shared<SystemVectorType>(sparse_graph);
+        auto p_rhs = Kratos::make_shared<TSparseVectorType>(sparse_graph);
         rpRHS.swap(p_rhs);
 
+        //TODO: Maybe we can avoid this if we rebuild the RHS for the reactions calculation --> Check it in the future
         // For the elimination build, also allocate the auxiliary reactions vector
         if (mBuildType == BuildType::Elimination && ReactionVector) {
             KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
-            auto p_react = Kratos::make_shared<SystemVectorType>(rDofSet.size() - mEquationSystemSize);
+            auto p_react = Kratos::make_shared<TSparseVectorType>(rDofSet.size() - mEquationSystemSize);
             mpReactionsVector.swap(p_react);
         }
     }
 
-    void SetUpSparseGraph(SparseGraph<IndexType>& rSparseGraph)
+    virtual void SetUpSparseGraph(TSparseGraphType& rSparseGraph)
     {
         if (!rSparseGraph.IsEmpty()) {
             KRATOS_WARNING("AssemblyHelper") << "Provided sparse graph is not empty and will be cleared." << std::endl;
             rSparseGraph.Clear();
         }
 
+        //FIXME: This works for the block build but doesn't for the elimination!!!!!!!!
         Element::EquationIdVectorType eq_ids;
         for (auto& r_elem : mpModelPart->Elements()) {
             r_elem.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
-            rSparseGraph.AddEntries(eq_ids);
+            rSparseGraph.AddEntries(eq_ids); //FIXME: For the elimination one we should do the AddEntry one by one
         }
         for (auto& r_cond : mpModelPart->Conditions()) {
             r_cond.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
-            rSparseGraph.AddEntries(eq_ids);
+            rSparseGraph.AddEntries(eq_ids); //FIXME: For the elimination one we should do the AddEntry one by one
         }
     }
 
-    SizeType SetUpSystemIds(const DofsArrayType& rDofSet)
+    virtual SizeType SetUpSystemIds(const DofsArrayType& rDofSet)
     {
         if (mBuildType == BuildType::Block) {
             // Set up the DOFs equation global ids
@@ -249,9 +240,9 @@ public:
         return mEquationSystemSize;
     }
 
-    void AssembleLocalSystem(
-        SystemMatrixType& rLHS,
-        SystemVectorType& rRHS,
+    virtual void AssembleLocalSystem(
+        TSparseMatrixType& rLHS,
+        TSparseVectorType& rRHS,
         TThreadLocalStorage& rTLS)
     {
         // Call the implementation of the function with building type template argument
@@ -264,8 +255,8 @@ public:
         }
     }
 
-    void AssembleLeftHandSide(
-        SystemMatrixType& rLHS,
+    virtual void AssembleLeftHandSide(
+        TSparseMatrixType& rLHS,
         TThreadLocalStorage& rTLS)
     {
         // Call the implementation of the function with building type template argument
@@ -278,8 +269,8 @@ public:
         }
     }
 
-    void AssembleRightHandSide(
-        SystemVectorType& rRHS,
+    virtual void AssembleRightHandSide(
+        TSparseVectorType& rRHS,
         TThreadLocalStorage& rTLS,
         const bool AssembleReactionVector = false)
     {
@@ -297,10 +288,10 @@ public:
         }
     }
 
-    void ApplyDirichletConditions(
+    virtual void ApplyDirichletConditions(
         const DofsArrayType& rDofSet,
-        SystemMatrixType& rLHS,
-        SystemVectorType& rRHS)
+        TSparseMatrixType& rLHS,
+        TSparseVectorType& rRHS)
     {
         if (mBuildType == BuildType::Block) {
             //TODO: Implement this in the CSR matrix or here? --> Most probably we shouldn't call it here neither
@@ -320,9 +311,9 @@ public:
         }
     }
 
-    void ApplyDirichletConditions(
+    virtual void ApplyDirichletConditions(
         const DofsArrayType& rDofSet,
-        SystemVectorType& rRHS)
+        TSparseVectorType& rRHS)
     {
         if (mBuildType == BuildType::Block) {
             ApplyBlockBuildDirichletConditions(rDofSet, rRHS);
@@ -333,9 +324,9 @@ public:
         }
     }
 
-    void CalculateReactionsRightHandSide(
+    virtual void CalculateReactionsRightHandSide(
         const DofsArrayType& rDofSet,
-        SystemVectorType& rRHS,
+        TSparseVectorType& rRHS,
         TThreadLocalStorage& rTLS)
     {
         // Initialize the provided RHS (note that this has been potentially used in the system resolution)
@@ -351,6 +342,7 @@ public:
                 rDof.GetSolutionStepReactionValue() = -rRHS[rDof.EquationId()];
             });
         } else if (mBuildType == BuildType::Elimination) {
+            //FIXME: This is wrong
             // Do the elimination RHS assembly without Dirichlet BCs
             AssembleImplementation<BuildType::Elimination, true>(rRHS, rTLS);
 
@@ -364,12 +356,13 @@ public:
                     rDof.GetSolutionStepReactionValue() = - r_reactions_vector[i_react];
                 }
             });
+            //FIXME: This is wrong
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
     }
 
-    double GetDiagonalScalingFactor(const SystemMatrixType& rLHS) const
+    virtual double GetDiagonalScalingFactor(const TSparseMatrixType& rLHS) const
     {
         if (mScalingType == ScalingType::NoScaling) {
             return 1.0;
@@ -388,7 +381,7 @@ public:
         }
     }
 
-    void Clear()
+    virtual void Clear()
     {
         // Clear the system info
         mEquationSystemSize = 0;
@@ -453,7 +446,7 @@ private:
 
     std::unique_ptr<ConstraintAssemblyFunctionType> mpConstraintAssemblyFunction = nullptr; // Pointer to the function to be called in the constraints assembly
 
-    SystemVectorPointerType mpReactionsVector = nullptr; // Auxiliary vector to calculate the reactions in the elimination build
+    typename TSparseVectorType::Pointer mpReactionsVector = nullptr; // Auxiliary vector to calculate the reactions in the elimination build
 
     ///@}
     ///@name Private Operations
@@ -461,8 +454,8 @@ private:
 
     template<BuildType TBuildType>
     void AssembleImplementation(
-        SystemMatrixType& rLHS,
-        SystemVectorType& rRHS,
+        TSparseMatrixType& rLHS,
+        TSparseVectorType& rRHS,
         TThreadLocalStorage& rTLS)
     {
         // Getting conditions and elements to be assembled
@@ -492,10 +485,6 @@ private:
                         // Calculate local LHS and RHS contributions
                         (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                        // Get the positions in the global system
-                        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-                        it_elem->EquationIdVector(r_loc_eq_ids, r_process_info);
-
                         // Assemble the local contributions to the global system
                         AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
                     }
@@ -511,10 +500,6 @@ private:
                         // Calculate local LHS and RHS contributions
                         (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                        // Get the positions in the global system
-                        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-                        it_cond->EquationIdVector(r_loc_eq_ids, r_process_info);
-
                         // Assemble the local contributions to the global system
                         AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
                     }
@@ -529,7 +514,7 @@ private:
 
     template<BuildType TBuildType>
     void AssembleImplementation(
-        SystemMatrixType& rLHS,
+        TSparseMatrixType& rLHS,
         TThreadLocalStorage& rTLS)
     {
         // Getting conditions and elements to be assembled
@@ -558,10 +543,6 @@ private:
                         // Calculate local LHS contributions
                         (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                        // Get the positions in the global system
-                        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-                        it_elem->EquationIdVector(r_loc_eq_ids, r_process_info);
-
                         // Assemble the local contributions to the global system
                         AssembleLocalContribution<TBuildType>(rTLS, rLHS);
                     }
@@ -577,10 +558,6 @@ private:
                         // Calculate local LHS contributions
                         (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                        // Get the positions in the global system
-                        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-                        it_cond->EquationIdVector(r_loc_eq_ids, r_process_info);
-
                         // Assemble the local contributions to the global system
                         AssembleLocalContribution<TBuildType>(rTLS, rLHS);
                     }
@@ -594,7 +571,7 @@ private:
 
     template<BuildType TBuildType, bool TAssembleReactionVector>
     void AssembleImplementation(
-        SystemVectorType& rRHS,
+        TSparseVectorType& rRHS,
         TThreadLocalStorage& rTLS)
     {
         // Getting conditions and elements to be assembled
@@ -623,10 +600,6 @@ private:
                         // Calculate local RHS contributions
                         (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                        // Get the positions in the global system
-                        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-                        it_elem->EquationIdVector(r_loc_eq_ids, r_process_info);
-
                         // Assemble the local contributions to the global system
                         AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
                     }
@@ -642,10 +615,6 @@ private:
                         // Calculate local RHS contributions
                         (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                        // Get the positions in the global system
-                        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-                        it_cond->EquationIdVector(r_loc_eq_ids, r_process_info);
-
                         // Assemble the local contributions to the global system
                         AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
                     }
@@ -654,14 +623,14 @@ private:
         }
 
         // Finalize RHS assembly
-        rRHS.BeginAssemble();
+        rRHS.FinalizeAssemble();
     }
 
     template<BuildType TBuildType>
     void AssembleLocalContribution(
         const TThreadLocalStorage& rTLS,
-        SystemMatrixType& rLHS,
-        SystemVectorType& rRHS)
+        TSparseMatrixType& rLHS,
+        TSparseVectorType& rRHS)
     {
         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
 
@@ -695,7 +664,7 @@ private:
     template<BuildType TBuildType>
     void AssembleLocalContribution(
         const TThreadLocalStorage& rTLS,
-        SystemMatrixType& rLHS)
+        TSparseMatrixType& rLHS)
     {
         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
 
@@ -726,7 +695,7 @@ private:
     template<BuildType TBuildType, bool TAssembleReactionVector>
     void AssembleLocalContribution(
         const TThreadLocalStorage& rTLS,
-        SystemVectorType& rRHS)
+        TSparseVectorType& rRHS)
     {
         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
 
@@ -765,12 +734,12 @@ private:
         const TContainerType& rContainer,
         const TThreadLocalStorage& rTLS)
     {
-        if constexpr (std::is_same_v<TContainerType, SystemMatrixType>) {
+        if constexpr (std::is_same_v<TContainerType, TSparseMatrixType>) {
             return rTLS.LocalLhs; // We can eventually do a get method in the TLS and call it in here
-        } else if (std::is_same_v<TContainerType, SystemVectorType>) {
+        } else if (std::is_same_v<TContainerType, TSparseVectorType>) {
             return rTLS.LocalRhs; // We can eventually do a get method in the TLS and call it in here
         } else {
-            static_assert(std::is_same_v<TContainerType, SystemMatrixType> || std::is_same_v<TContainerType, SystemVectorType>, "Unssupported container type.");
+            static_assert(std::is_same_v<TContainerType, TSparseMatrixType> || std::is_same_v<TContainerType, TSparseVectorType>, "Unssupported container type.");
         }
     }
 
@@ -786,8 +755,8 @@ private:
 
     void ApplyBlockBuildDirichletConditions(
         const DofsArrayType& rDofSet,
-        SystemMatrixType& rLHS,
-        SystemVectorType& rRHS) const
+        TSparseMatrixType& rLHS,
+        TSparseVectorType& rRHS) const
     {
         // Set the free DOFs vector (0 means fixed / 1 means free)
         // Note that we initialize to 1 so we start assuming all free
@@ -818,7 +787,7 @@ private:
 
     void ApplyBlockBuildDirichletConditions(
         const DofsArrayType& rDofSet,
-        SystemVectorType& rRHS) const
+        TSparseVectorType& rRHS) const
     {
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building

@@ -21,6 +21,7 @@
 
 // Future Extensions
 #include "future/python/add_strategies_to_python.h"
+#include "future/solving_strategies/schemes/assembly_helper.h"
 #include "future/solving_strategies/schemes/new_scheme.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
 
@@ -31,6 +32,15 @@ namespace py = pybind11;
 
 void AddStrategiesToPython(py::module& m)
 {
+    using TLSType = Future::NewScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>::ThreadLocalStorage;
+    using AssemblyHelper = Future::AssemblyHelper<TLSType, CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    py::class_<AssemblyHelper, typename AssemblyHelper::Pointer>(m, "AssemblyHelper")
+        .def(py::init<ModelPart&, Parameters>())
+        // .def("Execute",&Future::Process::Execute)
+        // .def("Info",&Future::Process::Info)
+        // .def("__str__", PrintObject<Future::Process>)
+    ;
+
     using SchemeType = Future::NewScheme<CsrMatrix<>, SystemVector<>>;
     py::class_<SchemeType, typename SchemeType::Pointer>(m, "NewScheme")
         .def(py::init<ModelPart&, Parameters>())
@@ -40,7 +50,7 @@ void AddStrategiesToPython(py::module& m)
     ;
 
     using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>, LinearSolverType>;
+    using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>>;
     py::class_<LinearStrategyType, typename LinearStrategyType::Pointer>(m, "LinearStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
         .def(py::init<ModelPart &, typename SchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
@@ -53,7 +63,6 @@ void AddStrategiesToPython(py::module& m)
         .def("Check", &LinearStrategyType::Check)
         .def("SetEchoLevel", &LinearStrategyType::SetEchoLevel)
         .def("SetComputeReactions", &LinearStrategyType::SetComputeReactions)
-        .def("SetReformDofSetAtEachStepFlag", &LinearStrategyType::SetReformDofSetAtEachStepFlag)
         .def("SetMoveMeshFlag", &LinearStrategyType::SetMoveMeshFlag)
         .def("Info", &LinearStrategyType::Info);
 }

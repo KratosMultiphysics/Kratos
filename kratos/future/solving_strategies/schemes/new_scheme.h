@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
+//                   Riccardo Rossi
 //
 
 #pragma once
@@ -23,7 +24,6 @@
 #include "includes/kratos_parameters.h"
 #include "spaces/kratos_space.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/dof_utilities/assembly_helper.h" //TODO: we should move this to somewhere else
 #include "utilities/dof_utilities/dof_array_utilities.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
@@ -32,6 +32,7 @@
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/amgcl_solver.h"
+#include "future/solving_strategies/schemes/assembly_helper.h"
 #endif
 
 namespace Kratos::Future
@@ -59,43 +60,24 @@ namespace Kratos::Future
  * @author Ruben Zorrilla
  */
 //TODO: Think about the template parameters
-template<class TMatrixType=CsrMatrix<>, class TVectorType=SystemVector<>>
-class NewScheme
+
+//TODO: Make base classes:
+// scheme.h --> pure virtual!
+// implicit_scheme.h --> the one we have in here
+template<class TSparseMatrixType=CsrMatrix<>, class TSparseVectorType=SystemVector<>, class TSparseGraphType=SparseContiguousRowGraph<>>
+class NewScheme //FIXME: This will be ImplicitScheme
 {
 public:
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", NewScheme, NewScheme, TMatrixType, TVectorType)
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", NewScheme, NewScheme, TMatrixType, TVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", NewScheme, NewScheme, TSparseMatrixType, TSparseVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", NewScheme, NewScheme, TSparseMatrixType, TSparseVectorType)
 
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of NewScheme
     KRATOS_CLASS_POINTER_DEFINITION(NewScheme);
-
-    /// TLS type definition
-    struct ThreadLocalStorage
-    {
-        /// Dense space definition
-        // using DenseSpaceType = UblasSpace<double, Matrix, Vector>; //TODO: We should eventually remove this and directly define the types
-        using DenseSpaceType = TKratosSmpDenseSpace<double>;
-
-        /// Local system matrix type definition
-        using LocalSystemMatrixType = DenseSpaceType::MatrixType;
-
-        /// Local system vector type definition
-        using LocalSystemVectorType = DenseSpaceType::VectorType;
-
-        // Local LHS contribution
-        LocalSystemMatrixType LocalLhs;
-
-        // Local RHS constribution
-        LocalSystemVectorType LocalRhs;
-
-        // Vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType LocalEqIds;
-    };
 
     /// The definition of the current class
     using ClassType = NewScheme;
@@ -104,32 +86,10 @@ public:
     using SizeType = std::size_t;
 
     /// Index type definition
-    using IndexType = typename TMatrixType::IndexType;
+    using IndexType = typename TSparseMatrixType::IndexType;
 
     /// Data type definition
-    using DataType = typename TMatrixType::DataType;
-
-    /// Matrix type definition
-    using SystemMatrixType = TMatrixType;
-
-    /// Matrix pointer type definition
-    using SystemMatrixPointerType = typename SystemMatrixType::Pointer;
-
-    /// Vector type definition
-    using SystemVectorType = TVectorType;
-
-    /// Vector type definition
-    using SystemVectorPointerType = typename SystemVectorType::Pointer;
-
-    /// Dense space definition
-    // using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
-    using DenseSpaceType = TKratosSmpDenseSpace<double>;
-
-    /// Local system matrix type definition from TLS
-    using LocalSystemMatrixType = typename ThreadLocalStorage::LocalSystemMatrixType;
-
-    /// Local system vector type definition from TLS
-    using LocalSystemVectorType = typename ThreadLocalStorage::LocalSystemVectorType;
+    using DataType = typename TSparseMatrixType::DataType;
 
     /// DoF type definition
     using DofType = Dof<double>;
@@ -143,8 +103,21 @@ public:
     /// Conditions containers definition
     using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
+    /// TLS type definition
+    struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme
+    {
+        // Local LHS contribution
+        DenseMatrix<DataType> LocalLhs;
+
+        // Local RHS constribution
+        DenseVector<DataType> LocalRhs;
+
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType LocalEqIds;
+    };
+
     /// Assembly helper type
-    using AssemblyHelperType = AssemblyHelper<ThreadLocalStorage, TMatrixType, TVectorType>;
+    using AssemblyHelperType = Future::AssemblyHelper<ThreadLocalStorage, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
 
     ///@}
     ///@name Life Cycle
@@ -182,6 +155,7 @@ public:
       : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
       , mElementsAreInitialized(rOther.mElementsAreInitialized)
       , mConditionsAreInitialized(rOther.mConditionsAreInitialized)
+      , mConstraintsAreInitialized(rOther.mConstraintsAreInitialized)
     {
         //TODO: Check this... particularly the mpAssemblyHelper pointer
     }
@@ -226,41 +200,17 @@ public:
     {
         KRATOS_TRY
 
-        mSchemeIsInitialized = true;
+        // Check if the Initialize has been already performed
+        if (!mSchemeIsInitialized) {
+            // Initialize elements, conditions and constraints
+            EntitiesUtilities::InitializeAllEntities(*mpModelPart);
+            mElementsAreInitialized = true; //TODO: Think if we really need these...
+            mConditionsAreInitialized = true; //TODO: Think if we really need these...
+            mConstraintsAreInitialized = true; //TODO: Think if we really need these...
 
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This is the place to initialize the elements.
-     * @details This is intended to be called just once when the strategy is initialized
-     * @param rModelPart The model part of the problem to solve
-     */
-    virtual void InitializeElements()
-    {
-        KRATOS_TRY
-
-        EntitiesUtilities::InitializeEntities<Element>(*mpModelPart);
-
-        SetElementsAreInitialized(true);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This is the place to initialize the conditions.
-     * @details This is intended to be called just once when the strategy is initialized
-     * @param rModelPart The model part of the problem to solve
-     */
-    virtual void InitializeConditions()
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initializing Conditions, initialize Elements FIRST" << std::endl;
-
-        EntitiesUtilities::InitializeEntities<Condition>(*mpModelPart);
-
-        SetConditionsAreInitialized(true);
+            // Set the flag to avoid calling this twice
+            mSchemeIsInitialized = true;
+        }
 
         KRATOS_CATCH("")
     }
@@ -275,14 +225,48 @@ public:
      * @param b RHS Vector
      */
     virtual void InitializeSolutionStep(
-        SystemMatrixType& A,
-        SystemVectorType& Dx,
-        SystemVectorType& b)
+        DofsArrayType& rDofSet,
+        typename TSparseMatrixType::Pointer& rpA,
+        typename TSparseVectorType::Pointer& rpDx,
+        typename TSparseVectorType::Pointer& rpB)
     {
         KRATOS_TRY
 
-        // Initializes solution step for all of the elements, conditions and constraints
-        EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
+        // Check if the InitializeSolutionStep has been already performed
+        if (!mSchemeSolutionStepIsInitialized) {
+            // Set up the system
+            // This operation is performed just once unless it is required to reform the dof set at each iteration
+            BuiltinTimer system_construction_time;
+            if (!mDofSetIsInitialized || mReformDofSetAtEachStep) {
+                // Setting up the DOFs list to be solved
+                BuiltinTimer setup_dofs_time;
+                SetUpDofArray(rDofSet);
+                mDofSetIsInitialized = true;
+                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+
+                // Shaping the system
+                BuiltinTimer setup_system_time;
+                SetUpSystemIds(rDofSet);
+                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
+
+                // Allocating the system vectors to their correct sizes
+                BuiltinTimer system_matrix_resize_time;
+                ResizeAndInitializeVectors(rDofSet, rpA, rpDx, rpB);
+                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
+            } else { //TODO:  this is a change wrt current behavior, properly explain why
+                // Shaping the system
+                BuiltinTimer setup_system_time;
+                SetUpSystemIds(rDofSet);
+                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
+            }
+            KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "System construction time: " << system_construction_time << std::endl;
+
+            // Initializes solution step for all of the elements, conditions and constraints
+            EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
+
+            // Set the flag to avoid calling this twice
+            mSchemeSolutionStepIsInitialized = true;
+        }
 
         KRATOS_CATCH("")
     }
@@ -295,14 +279,17 @@ public:
      * @param b RHS Vector
      */
     virtual void FinalizeSolutionStep(
-        SystemMatrixType& A,
-        SystemVectorType& Dx,
-        SystemVectorType& b)
+        TSparseMatrixType& A,
+        TSparseVectorType& Dx,
+        TSparseVectorType& b)
     {
         KRATOS_TRY
 
         // Finalizes solution step for all of the elements, conditions and constraints
         EntitiesUtilities::FinalizeSolutionStepAllEntities(*mpModelPart);
+
+        // Reset flags for next step
+        mSchemeSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("")
     }
@@ -318,9 +305,9 @@ public:
      * @param b RHS Vector
      */
     virtual void InitializeNonLinIteration(
-        SystemMatrixType& A,
-        SystemVectorType& Dx,
-        SystemVectorType& b)
+        TSparseMatrixType& A,
+        TSparseVectorType& Dx,
+        TSparseVectorType& b)
     {
         KRATOS_TRY
 
@@ -338,9 +325,9 @@ public:
      * @param b RHS Vector
      */
     virtual void FinalizeNonLinIteration(
-        SystemMatrixType& A,
-        SystemVectorType& Dx,
-        SystemVectorType& b)
+        TSparseMatrixType& A,
+        TSparseVectorType& Dx,
+        TSparseVectorType& b)
     {
         KRATOS_TRY
 
@@ -358,7 +345,7 @@ public:
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
     }
 
-    SizeType SetUpSystem(DofsArrayType& rDofSet)
+    SizeType SetUpSystemIds(DofsArrayType& rDofSet)
     {
         KRATOS_ERROR_IF(rDofSet.empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
 
@@ -369,9 +356,9 @@ public:
 
     void ResizeAndInitializeVectors(
         const DofsArrayType& rDofSet,
-        SystemMatrixPointerType& rpLHS,
-        SystemVectorPointerType& rpDx,
-        SystemVectorPointerType& rpRHS,
+        typename TSparseMatrixType::Pointer& rpLHS,
+        typename TSparseVectorType::Pointer& rpDx,
+        typename TSparseVectorType::Pointer& rpRHS,
         const bool CalculateReactions = false)
     {
         KRATOS_TRY
@@ -388,22 +375,34 @@ public:
         KRATOS_CATCH("")
     }
 
+    //FIXME: Missing methods
+    // - Build for LHS only
+    // - BuildMassMatrix
+    // - BuildDampingMatrix
     virtual void Build(
-        SystemMatrixType& rLHS,
-        SystemVectorType& rRHS)
+        TSparseMatrixType& rLHS,
+        TSparseVectorType& rRHS)
     {
         Timer::Start("Build");
 
         const auto timer = BuiltinTimer();
 
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            //FIXME: Check the ACTIVE flag!!!!!
             // Calculate local LHS and RHS contributions
             ItElem->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
+
+            // Get the positions in the global system
+            ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
         };
 
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            //FIXME: Check the ACTIVE flag!!!!!
             // Calculate local LHS and RHS contributions
             ItCond->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
+
+            // Get the positions in the global system
+            ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
         };
 
         ThreadLocalStorage aux_tls;
@@ -418,18 +417,20 @@ public:
         Timer::Stop("Build");
     }
 
-    virtual void Build(SystemVectorType& rRHS)
+    virtual void Build(TSparseVectorType& rRHS)
     {
         Timer::Start("Build");
 
         const auto timer = BuiltinTimer();
 
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            //FIXME: Check the ACTIVE flag!!!!!
             // Calculate the RHS contributions
             ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
         };
 
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
+            //FIXME: Check the ACTIVE flag!!!!!
             // Calculate the RHS contributions
             ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
         };
@@ -448,22 +449,22 @@ public:
 
     virtual void ApplyDirichletConditions(
         const DofsArrayType& rDofSet,
-        SystemMatrixType& rLHS,
-        SystemVectorType& rRHS)
+        TSparseMatrixType& rLHS,
+        TSparseVectorType& rRHS)
     {
         GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rLHS, rRHS);
     }
 
     virtual void ApplyDirichletConditions(
         const DofsArrayType& rDofSet,
-        SystemVectorType& rRHS)
+        TSparseVectorType& rRHS)
     {
         GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rRHS);
     }
 
     virtual void CalculateReactions(
         const DofsArrayType& rDofSet,
-        SystemVectorType& rRHS)
+        TSparseVectorType& rRHS)
     {
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
             // Calculate the RHS contributions
@@ -490,11 +491,15 @@ public:
      * @param b RHS Vector
      */
     virtual void Predict(
-        SystemMatrixType& A,
-        SystemVectorType& Dx,
-        SystemVectorType& b)
+        TSparseMatrixType& A,
+        TSparseVectorType& Dx,
+        TSparseVectorType& b)
     {
         KRATOS_TRY
+
+        // Internal solution loop check to avoid repetitions
+        KRATOS_ERROR_IF(!mSchemeIsInitialized) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
+        KRATOS_ERROR_IF(!mSchemeSolutionStepIsInitialized) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -510,9 +515,9 @@ public:
      */
     virtual void Update(
         DofsArrayType& rDofSet,
-        SystemMatrixType& A,
-        SystemVectorType& Dx,
-        SystemVectorType& b)
+        TSparseMatrixType& A,
+        TSparseVectorType& Dx,
+        TSparseVectorType& b)
     {
         KRATOS_TRY
 
@@ -535,33 +540,13 @@ public:
      * @param b RHS Vector
      */
     virtual void CalculateOutputData(
-        SystemMatrixType& A,
-        SystemVectorType& Dx,
-        SystemVectorType& b)
+        TSparseMatrixType& A,
+        TSparseVectorType& Dx,
+        TSparseVectorType& b)
     {
         KRATOS_TRY
 
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Functions that cleans the results data.
-     * @warning Must be implemented in the derived classes
-     */
-    virtual void CleanOutputData()
-    {
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed after the end of the solution step
-     * @warning Must be implemented in the derived classes
-     */
-    virtual void Clean()
-    {
-        KRATOS_TRY
+        //TODO: Think about creating a datavalue container in here that we can access from outside.
 
         KRATOS_CATCH("")
     }
@@ -578,6 +563,7 @@ public:
         mSchemeIsInitialized = false;
         mElementsAreInitialized = false;
         mConditionsAreInitialized = false;
+        mConstraintsAreInitialized = false;
 
         // Clear the assembly helper
         GetAssemblyHelper().Clear();
@@ -642,53 +628,53 @@ public:
     }
 
     /**
-     * @brief This method sets the flag mReshapeMatrixFlag
-     * @param ReshapeMatrixFlag The flag that tells if we need to reshape the LHS matrix
+     * @brief This method sets if the scheme has been initialized or not (false by default)
+     * @param SchemeIsInitialized If the flag must be set to true or false
      */
-    void SetReshapeMatrixFlag(const bool ReshapeMatrixFlag)
+    void SetSchemeIsInitialized(const bool SchemeIsInitialized)
     {
-        mReshapeMatrixFlag = ReshapeMatrixFlag;
+        mSchemeIsInitialized = SchemeIsInitialized;
     }
 
     /**
-     * @brief This method sets if the elements have been initialized or not (true by default)
+     * @brief This method sets if the scheme solution step has been initialized or not (false by default)
+     * @param SchemeSolutionStepIsInitialized If the flag must be set to true or false
+     */
+    void SetSchemeSolutionStepIsInitialized(const bool SchemeSolutionStepIsInitialized)
+    {
+        mSchemeSolutionStepIsInitialized = SchemeSolutionStepIsInitialized;
+    }
+
+    /**
+     * @brief This method sets if the elements have been initialized or not (false by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetSchemeIsInitialized(const bool SchemeIsInitializedFlag)
+    void SetElementsAreInitialized(const bool ElementsAreInitialized)
     {
-        mSchemeIsInitialized = SchemeIsInitializedFlag;
+        mElementsAreInitialized = ElementsAreInitialized;
     }
 
     /**
-     * @brief This method sets if the elements have been initialized or not (true by default)
-     * @param ElementsAreInitializedFlag If the flag must be set to true or false
-     */
-    void SetElementsAreInitialized(const bool ElementsAreInitializedFlag)
-    {
-        mElementsAreInitialized = ElementsAreInitializedFlag;
-    }
-
-    /**
-     * @brief This method sets if the conditions have been initialized or not (true by default)
+     * @brief This method sets if the conditions have been initialized or not (false by default)
      * @param ConditionsAreInitializedFlag If the flag must be set to true or false
      */
-    void SetConditionsAreInitialized(const bool ConditionsAreInitializedFlag)
+    void SetConditionsAreInitialized(const bool ConditionsAreInitialized)
     {
-        mConditionsAreInitialized = ConditionsAreInitializedFlag;
+        mConditionsAreInitialized = ConditionsAreInitialized;
+    }
+
+    /**
+     * @brief This method sets if the conditions have been initialized or not (false by default)
+     * @param mConstraintsAreInitialized If the flag must be set to true or false
+     */
+    void SetConstraintsAreInitialized(const bool ConstraintsAreInitialized)
+    {
+        mConstraintsAreInitialized = ConstraintsAreInitialized;
     }
 
     ///@}
     ///@name Inquiry
     ///@{
-
-    /**
-     * @brief This method returns the flag mReshapeMatrixFlag
-     * @return The flag that tells if we need to reshape the LHS matrix
-     */
-    bool GetReshapeMatrixFlag() const
-    {
-        return mReshapeMatrixFlag;
-    }
 
     /**
      * @brief This method returns if the scheme is initialized
@@ -697,6 +683,15 @@ public:
     bool SchemeIsInitialized() const
     {
         return mSchemeIsInitialized;
+    }
+
+    /**
+     * @brief This method returns if the scheme is initialized
+     * @return True if initialized, false otherwise
+     */
+    bool SchemeSolutionStepIsInitialized() const
+    {
+        return mSchemeSolutionStepIsInitialized;
     }
 
     /**
@@ -715,6 +710,15 @@ public:
     bool ConditionsAreInitialized() const
     {
         return mConditionsAreInitialized;
+    }
+
+    /**
+     * @brief This method returns if the constraints are initialized
+     * @return True if initialized, false otherwise
+     */
+    bool ConstraintsAreInitialized() const
+    {
+        return mConstraintsAreInitialized;
     }
 
     ///@}
@@ -753,11 +757,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mSchemeIsInitialized = false;      /// Flag to be used in controlling if the Scheme has been initialized or not
+    bool mSchemeIsInitialized = false; /// Flag to be used in controlling if the Scheme has been initialized or not
 
-    bool mElementsAreInitialized = false;   /// Flag taking in account if the elements were initialized correctly or not
+    bool mElementsAreInitialized = false; /// Flag taking in account if the elements were initialized correctly or not
 
     bool mConditionsAreInitialized = false; /// Flag taking in account if the conditions were initialized correctly or not
+
+    bool mConstraintsAreInitialized = false; /// Flag taking in account if the constraints were initialized correctly or not
+
+    bool mSchemeSolutionStepIsInitialized = false; /// Flag to be used in controlling if the Scheme solution step has been initialized or not
 
     ///@}
     ///@name Protected Operators
@@ -787,8 +795,8 @@ protected:
      */
     virtual void AssignSettings(const Parameters ThisParameters)
     {
-        // Set verbosity level
         mEchoLevel = ThisParameters["echo_level"].GetInt();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
     }
 
     ///@}
@@ -823,11 +831,15 @@ private:
     ///@name Member Variables
     ///@{
 
+    int mEchoLevel = 0;
+
+    bool mDofSetIsInitialized = false;
+
+    bool mReformDofSetAtEachStep = false;
+
     ModelPart* mpModelPart = nullptr;
 
-    bool mReshapeMatrixFlag = false; /// If the matrix is reshaped each step
-
-    int mEchoLevel = 0;
+    DofsArrayType mDofSet; /// The set containing the DoF of the system
 
     typename AssemblyHelperType::UniquePointer mpAssemblyHelper = nullptr;
 
