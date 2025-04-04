@@ -103,11 +103,8 @@ void KRATOS_API(KRATOS_CORE) AMGCLSolve(
  * @author Denis Demidov
  * @author Riccardo Rossi
  */
-template<
-    class TMatrixType,
-    class TVectorType,
-    class TReordererType = Future::Reorderer<TMatrixType, TVectorType> >
-class AMGCLSolver : public Future::LinearSolver< TMatrixType, TVectorType, TReordererType>
+template<class TMatrixType, class TVectorType>
+class AMGCLSolver : public Future::LinearSolver< TMatrixType, TVectorType>
 {
 public:
     ///@name Type Definitions
@@ -117,7 +114,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( AMGCLSolver );
 
     /// The base class definition
-    using BaseType = Future::LinearSolver<TMatrixType, TVectorType, TReordererType>;
+    using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
 
     /// The sparse matrix type
     using SparseMatrixType = TMatrixType;
@@ -867,9 +864,10 @@ protected:
 /**
  * input stream function
  */
-template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-inline std::istream& operator >> (std::istream& rIStream, AMGCLSolver< TSparseSpaceType,
-                                  TDenseSpaceType, TReordererType>& rThis)
+template<class TMatrixType, class TVectorType>
+inline std::istream& operator >> (
+    std::istream& rIStream,
+    AMGCLSolver< TMatrixType, TVectorType>& rThis)
 {
     return rIStream;
 }
@@ -877,10 +875,10 @@ inline std::istream& operator >> (std::istream& rIStream, AMGCLSolver< TSparseSp
 /**
  * output stream function
  */
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AMGCLSolver<TSparseSpaceType,
-                                  TDenseSpaceType, TReordererType>& rThis)
+template<class TMatrixType, class TVectorType>
+inline std::ostream& operator << (
+    std::ostream& rOStream,
+    const AMGCLSolver<TMatrixType, TVectorType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
