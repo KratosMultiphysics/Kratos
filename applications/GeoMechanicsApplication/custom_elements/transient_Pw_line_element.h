@@ -16,7 +16,7 @@
 #include "calculation_contribution.h"
 #include "compressibility_calculator.h"
 #include "custom_retention/retention_law_factory.h"
-#include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "filter_compressibility_calculator.h"

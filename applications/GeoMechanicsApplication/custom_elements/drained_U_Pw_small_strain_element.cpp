@@ -12,7 +12,7 @@
 
 // Application includes
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
-#include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/check_utilities.h"
 
 namespace Kratos
 {
