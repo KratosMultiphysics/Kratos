@@ -111,7 +111,7 @@ auto SetupPipingStrategy(Model& rModel)
 
     auto p_element = make_intrusive<SteadyStatePwElement<2, 4>>(
         0, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{13, 14, 15, 16}, 3.0, 4.0, 2000.0, 2000.0),
-        p_element_props, std::make_unique<PlaneStrainStressState>());
+        p_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
     p_element->Initialize(r_process_info);
     r_model_part.AddElement(p_element);
 
@@ -131,20 +131,20 @@ auto SetupPipingStrategy(Model& rModel)
     // Create the start piping element
     auto p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
         1, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{1, 2, 3, 4}, 0.0, 1.0, 0.0, 500.0),
-        p_piping_element_props, std::make_unique<PlaneStrainStressState>());
+        p_piping_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
     // Create other piping elements
     p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
         2, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{5, 6, 7, 8}, 2.0, 3.0, 500.0, 1000.0),
-        p_piping_element_props, std::make_unique<PlaneStrainStressState>());
+        p_piping_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
     p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
         3, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{9, 10, 11, 12}, 1.0, 2.0, 1000.0, 1500.0),
-        p_piping_element_props, std::make_unique<PlaneStrainStressState>());
+        p_piping_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 

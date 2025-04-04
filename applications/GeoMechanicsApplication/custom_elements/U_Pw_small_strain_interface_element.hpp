@@ -49,16 +49,18 @@ public:
     /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    const NodesArrayType&              ThisNodes,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 
     /// Constructor using Geometry
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 
@@ -66,8 +68,9 @@ public:
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;

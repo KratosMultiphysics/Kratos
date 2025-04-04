@@ -10,10 +10,12 @@
 //  Main authors:    Richard Faasse
 //
 #include "line_interface_element.h"
+
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
+#include "interface_integration_coefficients.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 
@@ -22,52 +24,16 @@ namespace
 
 using namespace Kratos;
 
-// The functions in this anonymous namespace are not specific to interface elements and
-// will be moved to a utility module.
-
-using IntegrationCoefficientCalculatorType =
-    std::function<double(const Geo::IntegrationPointType&, double, const Geometry<Node>&)>;
-
-std::vector<double> CalculateIntegrationCoefficients(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                                     const Geometry<Node>& rGeometry,
-                                                     const std::vector<double>& rDeterminantsOfJacobians,
-                                                     const IntegrationCoefficientCalculatorType& rIntegrationCoefficientCalculator)
+Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                           const Geometry<Node>& rGeometry)
 {
-    auto calculate_integration_coefficient = [&rGeometry, &rIntegrationCoefficientCalculator](
-                                                 const auto& rIntegrationPoint, auto DetJ) {
-        return rIntegrationCoefficientCalculator(rIntegrationPoint, DetJ, rGeometry);
-    };
-    auto result = std::vector<double>{};
-    result.reserve(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDeterminantsOfJacobians.begin(),
-                   std::back_inserter(result), calculate_integration_coefficient);
-
-    return result;
-}
-
-std::vector<double> CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                                                        const Geometry<Node>& rGeometry)
-{
-    auto result = std::vector<double>{};
-    result.reserve(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
+    auto result = Vector(rIntegrationPoints.size());
+    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), result.begin(),
                    [&rGeometry](const auto& rIntegrationPoint) {
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
     });
 
     return result;
-}
-
-std::vector<double> CalculateIntegrationCoefficients(
-    const Geo::IntegrationPointVectorType& rIntegrationPoints,
-    const Geometry<Node>&                  rGeometry,
-    const std::function<double(const Geo::IntegrationPointType&, double, const Geometry<Node>&)>& rIntegrationCoefficientCalculator)
-{
-    const auto determinants_of_jacobian =
-        CalculateDeterminantsOfJacobiansAtIntegrationPoints(rIntegrationPoints, rGeometry);
-
-    return CalculateIntegrationCoefficients(rIntegrationPoints, rGeometry, determinants_of_jacobian,
-                                            rIntegrationCoefficientCalculator);
 }
 
 std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
@@ -98,14 +64,17 @@ LineInterfaceElement::LineInterfaceElement(IndexType NewId,
                                            const Properties::Pointer& rProperties)
     : Element(NewId, rGeometry, rProperties),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<InterfaceStressState>())
+      mStressStatePolicy(std::make_unique<InterfaceStressState>()),
+      mpIntegrationCoefficientsCalculator(std::make_unique<InterfaceIntegrationCoefficients>())
 {
 }
 
 LineInterfaceElement::LineInterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
     : Element(NewId, rGeometry),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<InterfaceStressState>())
+      mStressStatePolicy(std::make_unique<InterfaceStressState>()),
+      mpIntegrationCoefficientsCalculator(std::make_unique<InterfaceIntegrationCoefficients>())
+
 {
 }
 
@@ -264,13 +233,10 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
 
 std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() const
 {
-    auto calculate_integration_coefficient = [p_policy = mStressStatePolicy.get()](
-                                                 const auto& rIntegrationPoint, auto DetJ, const auto& rGeometry) {
-        return p_policy->CalculateIntegrationCoefficient(rIntegrationPoint, DetJ, rGeometry);
-    };
-
-    auto result = ::CalculateIntegrationCoefficients(
-        mIntegrationScheme->GetIntegrationPoints(), GetGeometry(), calculate_integration_coefficient);
+    const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
+        mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
+    auto result = mpIntegrationCoefficientsCalculator->CalculateIntegrationCoefficients(
+        mIntegrationScheme->GetIntegrationPoints(), determinants_of_jacobian, GetGeometry());
 
     return result;
 }

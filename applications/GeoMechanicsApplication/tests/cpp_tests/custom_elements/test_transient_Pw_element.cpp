@@ -11,7 +11,9 @@
 //                   Gennady Markelov
 //
 
+#include "custom_elements/plane_integration_coefficients.h"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_elements/three_dimensional_integration_coefficients.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_element.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -83,13 +85,14 @@ intrusive_ptr<TransientPwElement<TDim, TNumNodes>> CreateTransientPwElementWithP
     if constexpr (TDim == 2) {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
-            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
-            rProperties, std::make_unique<PlaneStrainStressState>());
+            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)), rProperties,
+            std::make_unique<PlaneStrainStressState>(), std::make_unique<PlaneIntegrationCoefficients>());
     } else {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
             std::make_shared<Tetrahedra3D4<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
-            rProperties, std::make_unique<ThreeDimensionalStressState>());
+            rProperties, std::make_unique<ThreeDimensionalStressState>(),
+            std::make_unique<ThreeDimensionalIntegrationCoefficients>());
     }
     for (auto& r_node : p_element->GetGeometry()) {
         r_node.AddDof(WATER_PRESSURE);
@@ -104,7 +107,7 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutP
     auto p_element = make_intrusive<TransientPwElement<2, 3>>(
         NextElementNumber(rModelPart),
         std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart)), rProperties,
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 
     rModelPart.AddElement(p_element);
     return p_element;
@@ -143,7 +146,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, Kr
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
     const auto p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
-                                           std::make_unique<PlaneStrainStressState>());
+                                           std::make_unique<PlaneStrainStressState>(),
+                                           std::make_unique<PlaneIntegrationCoefficients>());
 
     // Act
     const auto p_created_element = element.Create(1, p_geometry, p_properties);
@@ -160,7 +164,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, Kratos
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()),
-                                           p_properties, std::make_unique<PlaneStrainStressState>());
+                                           p_properties, std::make_unique<PlaneStrainStressState>(),
+                                           std::make_unique<PlaneIntegrationCoefficients>());
 
     // Act
     const auto p_created_element = element.Create(1, CreateThreeNodes(), p_properties);
@@ -219,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechani
     // Arrange
     const TransientPwElement<2, 3> element(
         0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
-        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act
     const auto p_integration_method = element.GetIntegrationMethod();
@@ -235,7 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     const auto                     p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element_with_coincident_nodes(
         1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()), p_properties,
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
@@ -244,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
 
     const TransientPwElement<2, 3> element_with_correct_domain_size(
         1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()), p_properties,
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
                                       "Error: Missing variable WATER_PRESSURE on node 1")
 
@@ -413,7 +418,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
     // Arrange
     TransientPwElement<2, 3> element(
         0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
-        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
     const auto dummy_process_info = ProcessInfo{};
 
     // Act
@@ -707,7 +712,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
     // Arrange
     TransientPwElement<2, 3> element(
         0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
-        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
     const auto   dummy_process_info = ProcessInfo{};
     const auto   n_DoF              = 3;
     const Matrix expected_matrix    = ZeroMatrix(n_DoF, n_DoF);

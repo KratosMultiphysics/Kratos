@@ -61,16 +61,20 @@ public:
     /// Constructor using an array of nodes
     SteadyStatePwInterfaceElement(IndexType                          NewId,
                                   const NodesArrayType&              ThisNodes,
-                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                  std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 
     /// Constructor using Geometry
     SteadyStatePwInterfaceElement(IndexType                          NewId,
                                   GeometryType::Pointer              pGeometry,
-                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                  std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 
@@ -78,8 +82,10 @@ public:
     SteadyStatePwInterfaceElement(IndexType                          NewId,
                                   GeometryType::Pointer              pGeometry,
                                   PropertiesType::Pointer            pProperties,
-                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                  std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
     {
     }
 

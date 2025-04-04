@@ -49,8 +49,9 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<SmallStrainUPwDiffOrderElement>(NewId, pGeom, pProperties,
-                                                          this->GetStressStatePolicy().Clone());
+    return make_intrusive<SmallStrainUPwDiffOrderElement>(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+        this->GetIntegrationCoefficientsCalculator().Clone());
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
