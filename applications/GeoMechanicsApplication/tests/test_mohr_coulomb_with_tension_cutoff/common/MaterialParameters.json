@@ -1,0 +1,34 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.soil",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             : "GeoMohrCoulombWithTensionCutOff2D"
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  false,
+              "YOUNG_MODULUS"            :  1.0e3,
+              "POISSON_RATIO"            :  0.0,
+              "DENSITY_SOLID"            :  2650,
+              "DENSITY_WATER"            :  1000,
+              "POROSITY"                 :  0.0,
+              "BULK_MODULUS_SOLID"       :  1.0e9,
+              "BULK_MODULUS_FLUID"       :  2.0e6,
+              "PERMEABILITY_XX"          :  1.157e-12,
+              "PERMEABILITY_YY"          :  1.157e-12,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  1e-3,
+              "THICKNESS"                :  1.0,
+              "BIOT_COEFFICIENT"         :  1.0,
+              "RETENTION_LAW"                    : "SaturatedLaw",
+              "SATURATED_SATURATION"             :  1.0,
+              "GEO_COHESION"                     :  10.0,
+              "GEO_FRICTION_ANGLE"               :  35.0,
+              "GEO_TENSILE_STRENGTH"             :  10.0,
+              "GEO_DILATANCY_ANGLE"              :  20.0
+         },
+         "Tables": {}
+      }
+   }]
+}
