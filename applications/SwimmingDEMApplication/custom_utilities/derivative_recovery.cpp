@@ -306,21 +306,11 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         mMassMatrixAlreadyComputed = true;
     }
     // Print the diagonal of the mass matrix
-    for(unsigned i = 0; i < system_size; i++)
-    {
-        std::cout << "m_global_mass_matrix[" << i << ", "<< i << "] = " << m_global_mass_matrix(i, i) << std::endl;
-    }
-    exit(0);
-
-    // Physical variables to be computed
-    // #pragma omp parallel for
-    // for (int i = 0; i < number_of_nodes; i++) {
-    //     ModelPart::NodeIterator it_node = r_model_part.NodesBegin() + i;
-    //     noalias(it_node->FastGetSolutionStepValue(VELOCITY_X_GRADIENT)) = ZeroVector(3);
-    //     noalias(it_node->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT)) = ZeroVector(3);
-    //     noalias(it_node->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT)) = ZeroVector(3);
-    //     noalias(it_node->FastGetSolutionStepValue(MATERIAL_ACCELERATION)) = ZeroVector(3);
+    // for(unsigned i = 0; i < system_size; i++)
+    // {
+    //     std::cout << "m_global_mass_matrix[" << i << ", "<< i << "] = " << m_global_mass_matrix(i, i) << std::endl;
     // }
+    // exit(0);
 
     // Compute the projection of grad(u_j) for each j (RHS)
     std::cout << "Computing RHS..." << std::endl;
@@ -357,27 +347,51 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                             double nodal_value_j = r_geometry[b].FastGetSolutionStepValue(vector_container)[j];
                             double projection_rhs_value = Weight * nodal_value_j * NContainer(g, a) * shape_derivatives[g](b, d);
                             ProjectionRHS[a_global] += projection_rhs_value;
-
-                            // std::cout << "g = " << g << ", a = " << a << ", b = " << b << ", d = " << d << ":" << std::endl;
-                            // std::cout << "weight = " << Weight << std::endl;
-                            // std::cout << "nodal_value = " << nodal_value_j << std::endl;
-                            // std::cout << "shape_func = " << NContainer(g, a) << std::endl;
-                            // std::cout << "shape_derivative = " << shape_derivatives[g](b, d) << std::endl;
-                            // std::cout << "projection = " << projection_rhs_value << std::endl;
-                            // std::cout << "-------------------------------------------------------" << std::endl;
                         }
                     }
                 }
             }
         }
-        std::cout << "Solving system of equations for j = "<< j << "..." << std::endl;
-        SparseSpaceType::VectorType Proj = ZeroVector(system_size);
+        SparseSpaceType::VectorType ProjectionCoefficients = ZeroVector(system_size);
         // AMGCLSolver<TSparseSpace, TDenseSpace > LinearSolver;
         AMGCLSolver<SparseSpaceType, DenseSpaceType> LinearSolver;
-        LinearSolver.Solve(m_global_mass_matrix, Proj, ProjectionRHS);
-        std::cout << "Solved for j = " << j << std::endl;
-    }
+        LinearSolver.Solve(m_global_mass_matrix, ProjectionCoefficients, ProjectionRHS);
 
+        // Add values of material derivatives
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
+            array_1d <double, 3>& material_derivative_node = inode->FastGetSolutionStepValue(material_derivative_container);
+            array_1d <double, 3>& elemental_values = inode->FastGetSolutionStepValue(vector_container);
+            for (unsigned int d = 0; d < TDim; d++)
+            {
+                unsigned int index = TDim * id_to_position[inode->Id()] + d;
+                material_derivative_node[j] += elemental_values[d] * ProjectionCoefficients[index];
+
+                // Store the gradient of u_j, i.e. \partial_d u_j, d = 0, 1, 2
+                if (mStoreFullGradient)
+                {
+                    if (j == 0)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                        gradient[d] = ProjectionCoefficients[index];
+                    } else if (j == 1)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+                        gradient[d] = ProjectionCoefficients[index];
+                    } else if (j == 2)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+                        gradient[d] = ProjectionCoefficients[index];
+                    }
+                }
+            }
+        }
+
+        // Reset variables
+        ProjectionRHS = ZeroVector(system_size);
+        ProjectionCoefficients = ZeroVector(system_size);
+    }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
