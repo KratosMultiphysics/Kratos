@@ -7,13 +7,14 @@ def clean_up_api_object(api_object):
 
 
 def _main() -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Run GeoMechanics settlement analysis")
     parser.add_argument(
         "-w", "--working-dir", help="working directory of the analysis run", default="."
     )
     parser.add_argument(
-        "project_parameters_file",
-        help="'ProjectParameters.json' files of the stages",
+        "project_parameters_filenames",
+        metavar="PROJECT_PARAMETERS_FILENAME",
+        help="'ProjectParameters.json' filenames, one for each stage",
         nargs="+",
     )
 
@@ -33,7 +34,7 @@ def _main() -> int:
     )
     atexit.register(clean_up_api_object, settlement_api)
 
-    for project_parameters_filename in args.project_parameters_file:
+    for project_parameters_filename in args.project_parameters_filenames:
         status = settlement_api.RunStage(
             args.working_dir,
             project_parameters_filename,
