@@ -60,7 +60,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                 this->TimeIncrementBlock1(increment);
                 this->TimeIncrementBlock2(increment);
                 if (increment > 0.0) {
-                    this->TimeAndCyclesUpdate(increment);
+                    this->TimeAndCyclesUpdate(increment + mThisParameters["fatigue"]["time_overshoot"].GetDouble());
                 }
                 process_info[ADVANCE_STRATEGY_APPLIED] = true;
 
@@ -75,7 +75,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                 // } else if (std::abs(maximum_plastic_dissipation_increment) < tolerance) { //Stable conditions + Plastic dissipation but not accumulated in the last cycle -> Small jump after no-linearities initiation
                     this->TimeIncrementBlock1(increment);
                     increment = std::min(increment, mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble());
-                    this->TimeAndCyclesUpdate(increment + mThisParameters["fatigue"]["time_overshoot"].GetDouble());
+                    this->TimeAndCyclesUpdate(increment);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 // }
             }
