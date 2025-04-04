@@ -17,11 +17,11 @@ namespace Kratos
 ///@{
 template<bool TShiftedBoundary, class TNodeType>
 void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
-    IntegrationPointsArrayType& rIntegrationPoints,
     const std::vector<double>& rSpansU,
     const std::vector<double>& rSpansV,
-    GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries,
-    GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries,
+    const GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries,
+    const GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries,
+    IntegrationPointsArrayType& rIntegrationPoints,
     IntegrationInfo& rIntegrationInfo)
 {    
     // Loop over rSurrogateOuterLoopGeometries and collect the vertical conditions on each y-knot span
@@ -124,7 +124,9 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrat
 
 ///@} // Kratos Classes
 template<bool TShiftedBoundary, class TNodeType>
-int BrepSbmUtilities<TShiftedBoundary, TNodeType>::FindKnotSpans1D(const std::vector<double>& rSpans, const double coord) {
+int BrepSbmUtilities<TShiftedBoundary, TNodeType>::FindKnotSpans1D(
+    const std::vector<double>& rSpans, 
+    const double coord) {
     
     for (IndexType i_row = 1; i_row < rSpans.size(); ++i_row) {
         if (rSpans[i_row] > coord) {

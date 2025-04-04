@@ -53,19 +53,19 @@ public:
     /**
      * @brief Create a Brep Surface Sbm Integration Points object
      * 
-     * @param rIntegrationPoints 
      * @param rSpansU 
      * @param rSpansV 
      * @param rSurrogateOuterLoopGeometries 
      * @param rSurrogateInnerLoopGeometries 
+     * @param rIntegrationPoints 
      * @param rIntegrationInfo 
      */
     static void CreateBrepSurfaceSbmIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpansU,
         const std::vector<double>& rSpansV,
-        GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries,
-        GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries,
+        const GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries,
+        const GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries,
+        IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo);
 
     /**
