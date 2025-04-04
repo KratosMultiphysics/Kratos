@@ -30,4 +30,9 @@ std::vector<double> IntegrationCoefficientsCalculator::CalculateIntegrationCoeff
     return result;
 }
 
+CalculateIntegrationCoefficients::CalculateIntegrationCoefficients(std::unique_ptr<IntegrationCoefficientModifier> CoefficientModifier)
+    : mCoefficientModifier{std::move(CoefficientModifier)}
+{
+}
+
 } // namespace Kratos

@@ -12,6 +12,9 @@
 
 #include "pw_line_integration_coefficients.h"
 
+#include <includes/element.h>
+#include <structural_mechanics_application_variables.h>
+
 namespace Kratos
 {
 
@@ -41,6 +44,13 @@ void PwLineIntegrationCoefficients::save(Serializer&) const
 void PwLineIntegrationCoefficients::load(Serializer&)
 {
     // No data members to be loaded (yet)
+}
+
+double IntegrationCoefficientModifierForPwLineElement::operator()(double IntegrationCoefficient,
+                                                                  const Geo::IntegrationPointType& rIntegrationPoint,
+                                                                  const Element& rElement) const
+{
+    return IntegrationCoefficient * rElement.GetProperties()[CROSS_AREA];
 }
 
 } // namespace Kratos

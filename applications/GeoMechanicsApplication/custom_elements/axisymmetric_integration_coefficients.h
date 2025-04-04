@@ -32,4 +32,13 @@ private:
     void load(Serializer&) override;
 };
 
+class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientModifierForAxisymmetricElement
+    : public IntegrationCoefficientModifier
+{
+public:
+    double operator()(double                           IntegrationCoefficient,
+                      const Geo::IntegrationPointType& rIntegrationPoint,
+                      const Element&                   rElement) const override;
+};
+
 } // namespace Kratos

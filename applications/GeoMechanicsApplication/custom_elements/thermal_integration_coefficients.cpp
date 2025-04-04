@@ -12,6 +12,9 @@
 
 #include "thermal_integration_coefficients.h"
 
+#include <includes/element.h>
+#include <structural_mechanics_application_variables.h>
+
 namespace Kratos
 {
 
@@ -48,6 +51,15 @@ void ThermalIntegrationCoefficients::save(Serializer&) const
 void ThermalIntegrationCoefficients::load(Serializer&)
 {
     // No data members to be loaded (yet)
+}
+
+double IntegrationCoefficientModifierForThermalElement::operator()(double IntegrationCoefficient,
+                                                                   const Geo::IntegrationPointType& rIntegrationPoint,
+                                                                   const Element& rElement) const
+{
+    return rElement.GetGeometry().LocalSpaceDimension() == 1
+               ? IntegrationCoefficient * rElement.GetProperties()[CROSS_AREA]
+               : IntegrationCoefficient;
 }
 
 } // namespace Kratos

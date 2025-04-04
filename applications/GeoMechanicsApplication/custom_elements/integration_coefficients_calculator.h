@@ -11,6 +11,7 @@
 //
 #pragma once
 
+#include "geo_aliases.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
 #include "includes/ublas_interface.h"
@@ -18,6 +19,7 @@
 namespace Kratos
 {
 
+class Element;
 class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientsCalculator
@@ -54,6 +56,51 @@ private:
     friend class Serializer;
     virtual void save(Serializer& rSerializer) const = 0;
     virtual void load(Serializer& rSerializer)       = 0;
+};
+
+// Prototype for a simpler design
+class IntegrationCoefficientModifier
+{
+public:
+    virtual ~IntegrationCoefficientModifier() = default;
+
+    virtual double operator()(double                           IntegrationCoefficient,
+                              const Geo::IntegrationPointType& rIntegrationPoint,
+                              const Element&                   rElement) const = 0;
+};
+
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CalculateIntegrationCoefficients
+{
+public:
+    explicit CalculateIntegrationCoefficients(std::unique_ptr<IntegrationCoefficientModifier> = nullptr);
+
+    template <typename OutputContainer = std::vector<double>>
+    OutputContainer Run(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                        const Vector&                          rDetJs,
+                        const Element*                         pElement = nullptr) const
+    {
+        auto result = OutputContainer{};
+        result.reserve(rIntegrationPoints.size());
+        auto calculate_integration_coefficient = [](const auto& rIntegrationPoint, auto DetJ) {
+            return rIntegrationPoint.Weight() * DetJ;
+        };
+        std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
+                       std::back_inserter(result), calculate_integration_coefficient);
+
+        if (mCoefficientModifier && pElement) {
+            auto apply_modifier = [&element = *pElement, &modifier = *mCoefficientModifier](
+                                      auto IntegrationCoefficient, const auto& rIntegrationPoint) {
+                return modifier(IntegrationCoefficient, rIntegrationPoint, element);
+            };
+            std::transform(result.cbegin(), result.cend(), rIntegrationPoints.begin(),
+                           result.begin(), apply_modifier);
+        }
+
+        return result;
+    }
+
+private:
+    std::unique_ptr<IntegrationCoefficientModifier> mCoefficientModifier;
 };
 
 } // namespace Kratos

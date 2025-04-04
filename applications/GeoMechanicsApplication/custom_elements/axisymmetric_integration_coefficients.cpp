@@ -44,4 +44,15 @@ void AxisymmetricIntegrationCoefficients::load(Serializer&)
     // No data members to be loaded (yet)
 }
 
+double IntegrationCoefficientModifierForAxisymmetricElement::operator()(double IntegrationCoefficient,
+                                                                        const Geo::IntegrationPointType& rIntegrationPoint,
+                                                                        const Element& rElement) const
+{
+    auto shape_function_values = Vector{};
+    shape_function_values      = rElement.GetGeometry().ShapeFunctionsValues(
+        shape_function_values, rIntegrationPoint.Coordinates());
+    return IntegrationCoefficient * GeoElementUtilities::CalculateAxisymmetricCircumference(
+                                        shape_function_values, rElement.GetGeometry());
+}
+
 } // namespace Kratos
