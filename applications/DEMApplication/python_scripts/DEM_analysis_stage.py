@@ -857,7 +857,11 @@ class DEMAnalysisStage(AnalysisStage):
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
-    def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type, domain_size=[1,1,1]):        
+    def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type):        
+        domain_size = [0.0, 0.0, 0.0]
+        domain_size[0] = self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update
+        domain_size[1] = self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update
+        domain_size[2] = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
         return self.DEMPropertiesMeasureUtility.MeasureSphereForGettingPackingProperties(radius, center_x, center_y, center_z, type, domain_size)
     
     def MeasureSphereForGettingGlobalStressTensor(self):
