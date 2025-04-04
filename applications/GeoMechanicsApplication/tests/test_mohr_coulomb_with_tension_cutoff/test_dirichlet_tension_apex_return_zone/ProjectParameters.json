@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name":         "test_dirichlet_tension_apex_return_zone",
         "start_time":           0.0,
-        "end_time":             1200.0,
+        "end_time":             1.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -19,7 +19,7 @@
             "materials_filename":       "../common/MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                600,
+            "time_step":                1.0,
             "max_delta_time_factor":    1
         },
         "buffer_size":                        2,
@@ -54,7 +54,7 @@
               "scaling": true
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Init", "SideLeft", "SideRight", "Bottom", "Top", "Corner"],
+        "processes_sub_model_part_list":      ["Init", "SideLeft", "RightBottomCorner", "Bottom", "LeftTopCorner", "RightTopCorner"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -130,7 +130,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.SideRight",
+            "model_part_name": "PorousDomain.RightBottomCorner",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,false,false],
             "is_fixed":        [true,false,false],
@@ -142,7 +142,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Top",
+            "model_part_name": "PorousDomain.LeftTopCorner",
             "variable_name":   "DISPLACEMENT",
             "active":          [false,true,false],
             "is_fixed":        [false,true,false],
@@ -154,7 +154,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Corner",
+            "model_part_name": "PorousDomain.RightTopCorner",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,false],
             "is_fixed":        [true,true,false],

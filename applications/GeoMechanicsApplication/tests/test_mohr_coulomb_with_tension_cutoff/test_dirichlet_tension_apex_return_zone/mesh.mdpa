@@ -43,7 +43,7 @@ Begin SubModelPart SideLeft
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart SideRight
+Begin SubModelPart RightBottomCorner
   Begin SubModelPartNodes
     2
   End SubModelPartNodes
@@ -56,13 +56,13 @@ Begin SubModelPart Bottom
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Top
+Begin SubModelPart LeftTopCorner
   Begin SubModelPartNodes
     4
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Corner
+Begin SubModelPart RightTopCorner
   Begin SubModelPartNodes
     3
   End SubModelPartNodes
