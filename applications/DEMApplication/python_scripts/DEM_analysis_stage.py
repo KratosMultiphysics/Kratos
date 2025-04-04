@@ -874,7 +874,86 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMPropertiesMeasureUtility.MeasureSphereForGettingRadialDistributionFunction(radius, center_x, center_y, center_z, delta_r, d_mean)
 
     def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type):
-        raise Exception("MeasureCubicForGettingPackingProperties() is not avaiable anymore. It can be found in Commit:861eeac")
+
+        if type == "stress_tensor":
+            
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                measure_cubic_volume = side_length ** 3
+                total_tensor        = np.empty((3, 3))
+                total_tensor[:]     = 0.0
+
+                Lx = self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update
+                Ly = self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update
+                Lz = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
+                
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    
+                    x_mid = 0.5 * (x_0 + x_1)
+                    y_mid = 0.5 * (y_0 + y_1)
+                    z_mid = 0.5 * (z_0 + z_1)
+
+                    sphere_1_is_inside = False
+                    sphere_2_is_inside = False
+                    contact_is_inside = False
+
+                    if (center_x - 0.5 * side_length) < x_0 < (center_x + 0.5 * side_length):
+                        if (center_y - 0.5 * side_length) < y_0 < (center_y + 0.5 * side_length):
+                            if (center_z - 0.5 * side_length) < z_0 < (center_z + 0.5 * side_length):
+                                sphere_1_is_inside = True
+
+                    if (center_x - 0.5 * side_length) < x_1 < (center_x + 0.5 * side_length):
+                        if (center_y - 0.5 * side_length) < y_1 < (center_y + 0.5 * side_length):
+                            if (center_z - 0.5 * side_length) < z_1 < (center_z + 0.5 * side_length):
+                                sphere_2_is_inside = True
+                    
+                    if (center_x - 0.5 * side_length) < x_mid < (center_x + 0.5 * side_length):
+                        if (center_y - 0.5 * side_length) < y_mid < (center_y + 0.5 * side_length):
+                            if (center_z - 0.5 * side_length) < z_mid < (center_z + 0.5 * side_length):
+                                contact_is_inside = True
+
+                    if (sphere_1_is_inside or sphere_2_is_inside) and contact_is_inside:
+                
+                        dx = x_0 - x_1
+                        if dx > 0.5 * Lx:
+                            dx -= Lx
+                        elif dx < -0.5 * Lx:
+                            dx += Lx
+                        
+                        dy = y_0 - y_1
+                        if dy > 0.5 * Ly:
+                            dy -= Ly
+                        elif dy < -0.5 * Ly:
+                            dy += Ly
+
+                        dz = z_0 - z_1
+                        if dz > 0.5 * Lz:
+                            dz -= Lz
+                        elif dz < -0.5 * Lz:
+                            dz += Lz
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([dx , dy, dz])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
+
+                total_tensor = total_tensor / measure_cubic_volume
+
+                return total_tensor
+            
+            else:
+                
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
