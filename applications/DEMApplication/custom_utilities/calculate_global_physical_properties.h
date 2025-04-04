@@ -812,7 +812,6 @@ class ContactElementGlobalPhysicsCalculator
 
                 double dx, dy, dz;
                 
-                /*
                 dx = x_0 - x_1;
                 if (dx > 0.5 * Lx){
                     dx -= Lx;
@@ -835,8 +834,9 @@ class ContactElementGlobalPhysicsCalculator
                 }
                 else if (dz < -0.5 * Lz){
                     dz += Lz;
-                }*/
+                }
 
+                /*
                 dx = x_0 - x_1;
                 dy = y_0 - y_1;
                 dz = z_0 - z_1;
@@ -845,6 +845,7 @@ class ContactElementGlobalPhysicsCalculator
                 if (std::abs(dx) > 0.5 * Lx || std::abs(dy) > 0.5 * Ly || std::abs(dz) > 0.5 * Lz){
                     continue;
                 }
+                */
 
                 const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
 
@@ -892,14 +893,20 @@ class ContactElementGlobalPhysicsCalculator
                 double y_1 = (it)->GetGeometry()[1].Y();
                 double z_0 = (it)->GetGeometry()[0].Z();
                 double z_1 = (it)->GetGeometry()[1].Z();
-                double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-                double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
-                double r   = 0.5 * (r_0 + r_1);
+                //double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                //double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+                //double r   = 0.5 * (r_0 + r_1);
+                double x_contact = 0.5 * (x_0 + x_1);
+                double y_contact = 0.5 * (y_0 + y_1);
+                double z_contact = 0.5 * (z_0 + z_1);
 
-                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
-                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+                //double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                //double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+                double center_to_contact_point = std::sqrt(std::pow(x_contact - center[0], 2) + std::pow(y_contact - center[1], 2) + std::pow(z_contact - center[2], 2));
+                double length_of_contact_element = std::sqrt(std::pow(x_0 - x_1, 2) + std::pow(y_0 - y_1, 2) + std::pow(z_0 - z_1, 2));
 
-                if (center_to_sphere_distance_0 < (radius - r) || center_to_sphere_distance_1 < (radius - r)) {
+                //if (center_to_sphere_distance_0 < (radius - r) || center_to_sphere_distance_1 < (radius - r)) {
+                if (center_to_contact_point < radius && length_of_contact_element < 1.5 * radius) {
                     const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
                     double contact_force_vector[3] = {contact_force[0], contact_force[1], contact_force[2]};
                     double vector_l[3] = {x_0 - x_1, y_0 - y_1, z_0 - z_1};
