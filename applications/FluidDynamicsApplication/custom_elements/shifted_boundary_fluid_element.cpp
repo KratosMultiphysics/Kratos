@@ -111,7 +111,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
         // Integrate over the boundary using the element's "AddBoundaryTraction" method
         // NOTE that this requires the location of the integration points of the boundary in global coordinates, for which then the local coordinates of the element are calculated
-        /*if (sur_bd_ids_vect.size() != 0) {
+        if (sur_bd_ids_vect.size() != 0) {
 
             // Get the parent geometry data
             double size_parent;
@@ -189,12 +189,12 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     this->AddBoundaryTraction(data, normal_sur_bd, rLeftHandSideMatrix, rRightHandSideVector);
                 }
             }
-        }*/
+        }
 
         // Integrate over the boundary using the faces' geometry
         // NOTE that this is the safer alternative because integration points are used directly and do not need to be found inside the element
         //TODO SPEED UP
-        if (sur_bd_ids_vect.size() != 0) {
+        /*if (sur_bd_ids_vect.size() != 0) {
 
             // Get the parent geometry data. It is calculated at the element midpoint.
             double size_parent;
@@ -293,7 +293,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
             this->GetCurrentValuesVector(data, values);
             rLeftHandSideMatrix  += aux_LHS;
             rRightHandSideVector -= prod(aux_LHS, values);
-        }
+        }*/
     }
 
     KRATOS_CATCH("")
