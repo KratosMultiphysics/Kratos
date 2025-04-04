@@ -209,11 +209,11 @@ void MohrCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& 
 
 void MohrCoulombWithTensionCutOff::GetLawFeatures(Features& rFeatures)
 {
-    rFeatures.mOptions.Set(mpConstitutiveDimension->GetSpatialType());
-    rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
-    rFeatures.mOptions.Set(ISOTROPIC);
+    rFeatures.SetOptions(mpConstitutiveDimension->GetSpatialType());
+    rFeatures.SetOptions(INFINITESIMAL_STRAINS);
+    rFeatures.SetOptions(ISOTROPIC);
 
-    rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
+    rFeatures.SetStrainMeasure(StrainMeasure_Infinitesimal);
 
     rFeatures.mStrainSize     = GetStrainSize();
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
