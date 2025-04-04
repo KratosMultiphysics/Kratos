@@ -28,8 +28,8 @@ class StandardMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecove
 
     def RecoverMaterialAcceleration(self):
         if self.compute_exact_L2:
-            # self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeExactL2(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeExactL2Parallel(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeExactL2(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
+            # self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeExactL2Parallel(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
         else:
             self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
 

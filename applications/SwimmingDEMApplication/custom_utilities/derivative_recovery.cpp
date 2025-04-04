@@ -75,13 +75,13 @@ void DerivativeRecovery<TDim>::CalculateLocalMassMatrix(const unsigned& number_o
         {
             for (unsigned int b = 0; b < NumNodes; ++b)
             {
-                for(unsigned int i = 0; i < number_of_dofs; i++)
+                for(unsigned int i = 0; i < TDim; i++)
                 {
-                    unsigned local_pos_a = a * number_of_dofs + i;
+                    unsigned local_pos_a = a * TDim + i;
+                    unsigned local_pos_b = b * TDim + i;
                     // for(unsigned int j = 0; j < number_of_dofs; j++)
                     // {
                     // unsigned local_pos_b = b * number_of_dofs + j;
-                    unsigned local_pos_b = b * number_of_dofs + i;
                     local_mass_matrix(local_pos_a, local_pos_b) += Weight * NContainer(g, a) * NContainer(g, b);
                     // }
                 }
@@ -276,9 +276,9 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         // mprojection_rhs = ZeroVector(system_size);
         ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
         Matrix local_lhs;
-        // #pragma omp parallel firstprivate(number_of_elements, local_lhs, elements_id_map)
+        #pragma omp parallel firstprivate(number_of_elements, local_lhs, elements_id_map)
         {
-        // # pragma omp for schedule(guided, 512) nowait
+        # pragma omp for schedule(guided, 512) nowait
             for (unsigned e = 0; e < number_of_elements; e++){
                 ModelPart::ElementsContainerType::iterator it_elem = el_begin + e;
                 // Node id to global index map
@@ -286,19 +286,20 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                 AssembleMassMatrix(m_global_mass_matrix, local_lhs, elements_id_map[e]);
 
                 // Print local mass matrix result
-                if(e == 89)
-                {
-                    for(unsigned i = 0; i < local_lhs.size1(); i++)
-                    {
-                        for(unsigned j = 0; j < local_lhs.size2(); j++)
-                        {
-                            unsigned global_i = elements_id_map[e][i];
-                            unsigned global_j = elements_id_map[e][j];
-                            std::cout << "local_mass_matrix[" << i << ", "<< j << "] = " << local_lhs(i, j) << " will be send to (a_global, b_global) = (" << global_i << ", " << global_j << ")" << std::endl;
-                        }
-                    }
-                    exit(0);
-                }
+                // if(e == 89)
+                // {
+                //     for(unsigned i = 0; i < local_lhs.size1(); i++)
+                //     {
+                //         for(unsigned j = 0; j < local_lhs.size2(); j++)
+                //         {
+                //             unsigned global_i = elements_id_map[e][i];
+                //             unsigned global_j = elements_id_map[e][j];
+                //             std::cout << "local_mass_matrix[" << i << ", "<< j << "] = " << local_lhs(i, j) << " will be send to (a_global, b_global) = (" << global_i << ", " << global_j << ")" << std::endl;
+                //         }
+                //     }
+                //     exit(0);
+                // }
+                local_lhs = ZeroMatrix(local_lhs.size1(), local_lhs.size2());
             }
         }
         std::cout << "Mass matrix computed." << std::endl;
@@ -369,11 +370,6 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                 }
             }
         }
-        for(unsigned k = 0; k < system_size; k++)
-        {
-            std::cout << "projection[" << k << "] = " << ProjectionRHS[k] << std::endl;
-        }
-
         std::cout << "Solving system of equations for j = "<< j << "..." << std::endl;
         SparseSpaceType::VectorType Proj = ZeroVector(system_size);
         // AMGCLSolver<TSparseSpace, TDenseSpace > LinearSolver;
@@ -382,7 +378,6 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         std::cout << "Solved for j = " << j << std::endl;
     }
 
-    exit(0);
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -453,35 +448,36 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
                 }
             }
             // Print mass matrix
-            if (e == 89)
-            {
-                for (unsigned a = 0; a < NumNodes; a++)
-                {
-                    for(unsigned b = 0; b < NumNodes; b++)
-                    {
-                        for(unsigned d = 0; d < TDim; d++)
-                        {
-                            unsigned local_ind_a = a * TDim + d;
-                            unsigned local_ind_b = b * TDim + d;
-                            for (unsigned int g = 0; g < r_number_integration_points; g++)
-                            {
-                                double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
-                                localLHS(local_ind_a, local_ind_b) += Weight * NContainer(g, a) * NContainer(g, b);
-                            }
-                            unsigned int a_global = TDim * id_to_position[r_geometry[a].Id()] + d;
-                            unsigned int b_global = TDim * id_to_position[r_geometry[b].Id()] + d;
-                            std::cout << "localMassMatrix[" << local_ind_a << ", " << local_ind_b << "] = " << localLHS(local_ind_a, local_ind_b) << " will be send to (a_global, b_glboal) = (" << a_global << ", " << b_global << ")" << std::endl;
-                        }
-                    }
-                }
-                exit(0);
-            }
+            // if (e == 89)
+            // {
+            //     for (unsigned a = 0; a < NumNodes; a++)
+            //     {
+            //         for(unsigned b = 0; b < NumNodes; b++)
+            //         {
+            //             for(unsigned d = 0; d < TDim; d++)
+            //             {
+            //                 unsigned local_ind_a = a * TDim + d;
+            //                 unsigned local_ind_b = b * TDim + d;
+            //                 for (unsigned int g = 0; g < r_number_integration_points; g++)
+            //                 {
+            //                     double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
+            //                     localLHS(local_ind_a, local_ind_b) += Weight * NContainer(g, a) * NContainer(g, b);
+            //                 }
+            //                 unsigned int a_global = TDim * id_to_position[r_geometry[a].Id()] + d;
+            //                 unsigned int b_global = TDim * id_to_position[r_geometry[b].Id()] + d;
+            //                 std::cout << "localMassMatrix[" << local_ind_a << ", " << local_ind_b << "] = " << localLHS(local_ind_a, local_ind_b) << " will be send to (a_global, b_glboal) = (" << a_global << ", " << b_global << ")" << std::endl;
+            //             }
+            //         }
+            //     }
+            //     exit(0);
+            // }
         }
         // for(unsigned k = 0; k < number_of_nodes * TDim; k++)
         // {
         //     // std::cout << "rhs[" << k << "] = " << rhs[k] << std::endl;
         //     std::cout << "massMatrix[" << k << ", "<< k << "] = " << massMatrix(k, k) << std::endl;
         // }
+        // exit(0);
 
         // Solve system
         std::cout << "Solving for j = " << j << std::endl;
