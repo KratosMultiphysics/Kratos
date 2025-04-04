@@ -86,6 +86,8 @@ typedef SpatialSearch::VectorDistanceType                     VectorDistanceType
 
 // For the full projection L2 recover
 typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+typedef UblasSpace<double, DenseMatrix<double>, DenseVector<double>> DenseSpaceType;
+// typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 // typedef typename TSparseSpace::MatrixType TSystemMatrixType;
 // typedef typename TSparseSpace::VectorType TSystemVectorType;
 // typedef typename TSparseSpace::MatrixType MatrixType;
@@ -147,13 +149,15 @@ void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part
 
 void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container);
 
-void CalculateLocalMassMatrix(const ModelPart::ElementsContainerType::iterator&, Matrix&);
+void CalculateLocalMassMatrix(const unsigned&, const ModelPart::ElementsContainerType::iterator&, Matrix&);
 
-void ComputeNonZeroMassMatrixIndex(const std::vector<std::map<unsigned, unsigned>>&, std::vector<std::unordered_set<unsigned>>&);
+void CalculateLocalRHS(const unsigned&, const ModelPart::ElementsContainerType::iterator&, Vector&);
 
-void ConstructMassMatrixStructure(const unsigned&, const std::vector<std::map<unsigned, unsigned>>&, SparseSpaceType::MatrixType&);
+void ComputeNonZeroMassMatrixIndex(ModelPart&, const std::vector<std::map<unsigned, unsigned>>&, std::vector<std::unordered_set<unsigned>>&);
 
-void AssembleMassMatrix(SparseSpaceType::MatrixType& global_matrix, const Matrix& local_lhs, const std::vector<std::map<unsigned, unsigned>>&);
+void ConstructMassMatrixStructure(ModelPart&, const unsigned&, const std::vector<std::map<unsigned, unsigned>>&, SparseSpaceType::MatrixType&);
+
+void AssembleMassMatrix(SparseSpaceType::MatrixType& global_matrix, const Matrix& local_lhs, std::map<unsigned, unsigned>&);
 
 void CalculateVectorMaterialDerivativeExactL2Parallel(ModelPart&, Variable<array_1d<double, 3> >&, Variable<array_1d<double, 3> >&, Variable<array_1d<double, 3> >&);
 
@@ -280,8 +284,7 @@ VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
 PointPointSearch::Pointer mpPointPointSearch;
 
-SparseSpaceType::MatrixType mglobal_mass_matrix;  // To be declared as member variable
-SparseSpaceType::VectorType mprojection_rhs;
+SparseSpaceType::MatrixType m_global_mass_matrix;  // To be declared as member variable
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
