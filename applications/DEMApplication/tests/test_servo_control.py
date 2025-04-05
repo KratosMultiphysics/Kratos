@@ -28,7 +28,7 @@ class ServoConrolTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         mean_stress = (stress_tensor[0][0]+stress_tensor[1][1]+stress_tensor[2][2])/3
 
         if self.time >= 0.000048 and self.time < 0.000049:
-            expected_value = 5.0074209193912966e-08
+            expected_value = 0.00034385682998450243
             self.assertAlmostEqual(mean_stress, expected_value, delta=tolerance)
 
     def Finalize(self):

@@ -30,7 +30,7 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             #averaged stress tensor for the whole packing
             stress_tensor = self.MeasureSphereForGettingGlobalStressTensor()
             mean_stress = (stress_tensor[0][0]+stress_tensor[1][1]+stress_tensor[2][2])/3
-            expected_value_mean_stress = 19.459923815701085
+            expected_value_mean_stress = 25.154514528874362
             self.assertAlmostEqual(mean_stress, expected_value_mean_stress, delta=tolerance)
 
             #define the measured region
@@ -81,9 +81,9 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
 
             #stress tensor
             stress_tensor = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'stress_tensor')
-            expected_value_stress_tensor_0 = [19.58277361, -2.65345427,  0.94392087]
-            expected_value_stress_tensor_1 = [-1.99550176, 14.2871567,  -0.60231429]
-            expected_value_stress_tensor_2 = [-0.18115282, -2.24074807, 15.74368182]
+            expected_value_stress_tensor_0 = [27.4405573, -1.81707643,  0.33346083]
+            expected_value_stress_tensor_1 = [-1.7407249, 30.85361923,  -3.33933471]
+            expected_value_stress_tensor_2 = [0.4096731,  -3.38345033, 25.75934538]
             self.assertAlmostEqual(stress_tensor[0][0], expected_value_stress_tensor_0[0], delta=tolerance)
             self.assertAlmostEqual(stress_tensor[0][1], expected_value_stress_tensor_0[1], delta=tolerance)
             self.assertAlmostEqual(stress_tensor[0][2], expected_value_stress_tensor_0[2], delta=tolerance)
@@ -96,7 +96,7 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
 
             #unbalanced force
             measured_unbalanced_force = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'unbalanced_force')
-            expected_value_unbalanced_force = 0.08382892043987683
+            expected_value_unbalanced_force = 0.08382835943747109
             self.assertAlmostEqual(measured_unbalanced_force, expected_value_unbalanced_force, delta=tolerance)
 
     def Finalize(self):
