@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCheckThrowsOnFaultyInput, Kratos
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_coincident_nodes.Check(dummy_process_info),
-                                      "Error: Length smaller than 1e-15 for element 1")
+                                      "Error: Length (0) is smaller than 1e-15 for element 1")
     nodes.erase(nodes.begin() + 1);
     nodes.push_back(make_intrusive<Node>(1, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);

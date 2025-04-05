@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
@@ -57,8 +58,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geometry   = this->GetGeometry();
 
-    KRATOS_ERROR_IF(r_geometry.DomainSize() < 1.0e-15)
-        << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
     // Verify specific properties
     KRATOS_ERROR_IF_NOT(r_properties.Has(IGNORE_UNDRAINED))
