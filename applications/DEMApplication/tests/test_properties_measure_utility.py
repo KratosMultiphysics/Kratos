@@ -99,6 +99,21 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             expected_value_unbalanced_force = 0.08382835943747109
             self.assertAlmostEqual(measured_unbalanced_force, expected_value_unbalanced_force, delta=tolerance)
 
+            #stress tensor
+            stress_tensor = self.MeasureCubicForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'stress_tensor')
+            expected_value_stress_tensor_0 = [35.80063331, -5.49117716,  4.92315757]
+            expected_value_stress_tensor_1 = [-5.40785628, 34.7246711,  -3.6711161]
+            expected_value_stress_tensor_2 = [4.86465914, -3.59066233, 27.24608192]
+            self.assertAlmostEqual(stress_tensor[0][0], expected_value_stress_tensor_0[0], delta=tolerance)
+            self.assertAlmostEqual(stress_tensor[0][1], expected_value_stress_tensor_0[1], delta=tolerance)
+            self.assertAlmostEqual(stress_tensor[0][2], expected_value_stress_tensor_0[2], delta=tolerance)
+            self.assertAlmostEqual(stress_tensor[1][0], expected_value_stress_tensor_1[0], delta=tolerance)
+            self.assertAlmostEqual(stress_tensor[1][1], expected_value_stress_tensor_1[1], delta=tolerance)
+            self.assertAlmostEqual(stress_tensor[1][2], expected_value_stress_tensor_1[2], delta=tolerance)
+            self.assertAlmostEqual(stress_tensor[2][0], expected_value_stress_tensor_2[0], delta=tolerance)
+            self.assertAlmostEqual(stress_tensor[2][1], expected_value_stress_tensor_2[1], delta=tolerance)
+            self.assertAlmostEqual(stress_tensor[2][2], expected_value_stress_tensor_2[2], delta=tolerance)
+
     def Finalize(self):
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
