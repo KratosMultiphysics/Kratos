@@ -197,3 +197,16 @@ class DEMPropertiesMeasureUtility:
         data_to_save = np.column_stack((bin_edges[1:] / d_mean, rdf))
         output_file_name = "rdf_data_of_size_" + str(radius * 2) +".txt"
         np.savetxt(os.path.join(self.graphs_path, output_file_name), data_to_save, fmt='%.6f', delimiter='\t', comments='')
+
+    def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type, domain_size):
+        if type == "stress_tensor":
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                measure_cubic_volume = side_length ** 3
+                Lx = domain_size[0]
+                Ly = domain_size[1]
+                Lz = domain_size[2]
+                total_stress_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensorWithinCubic(self.contact_model_part, side_length, [center_x, center_y, center_z], Lx, Ly, Lz)
+                averaged_stress_tensor = np.array(total_stress_tensor) / measure_cubic_volume
+                return averaged_stress_tensor
+            else:
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')

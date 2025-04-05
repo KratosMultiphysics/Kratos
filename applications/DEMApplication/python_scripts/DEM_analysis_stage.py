@@ -874,7 +874,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMPropertiesMeasureUtility.MeasureSphereForGettingRadialDistributionFunction(radius, center_x, center_y, center_z, delta_r, d_mean)
 
     def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type):
-
+        domain_size = [0.0, 0.0, 0.0]
+        domain_size[0] = self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update
+        domain_size[1] = self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update
+        domain_size[2] = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
+        return self.DEMPropertiesMeasureUtility.MeasureCubicForGettingPackingProperties(side_length, center_x, center_y, center_z, type, domain_size)
+   
+        '''
         if type == "stress_tensor":
             
             if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
@@ -954,7 +960,7 @@ class DEMAnalysisStage(AnalysisStage):
             else:
                 
                 raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
-
+            '''
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
         project_parameters = KratosMultiphysics.Parameters(parameter_file.read())

@@ -970,6 +970,123 @@ class ContactElementGlobalPhysicsCalculator
 
     }
 
+    std::vector<std::vector<double>> CalculateTotalStressTensorWithinCubic(ModelPart& contact_model_part, const double side_length, const array_1d<double, 3>& center, double Lx, double Ly, double Lz)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        std::vector<std::vector<double>> measured_stress_tensor(3, std::vector<double>(3));
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                
+                double x_contact = 0.5 * (x_0 + x_1);
+                double y_contact = 0.5 * (y_0 + y_1);
+                double z_contact = 0.5 * (z_0 + z_1);
+
+                bool contact_is_inside = false;
+                bool sphere_1_is_inside = false;
+                bool sphere_2_is_inside = false;
+
+                if ((center[0] - 0.5 * side_length) < x_contact && (center[0] + 0.5 * side_length) > x_contact){
+                    if ((center[1] - 0.5 * side_length) < y_contact && (center[1] + 0.5 * side_length) > y_contact){
+                        if ((center[2] - 0.5 * side_length) < z_contact && (center[2] + 0.5 * side_length) > z_contact){
+                            contact_is_inside = true;
+                        }
+                    }
+                }
+
+                if ((center[0] - 0.5 * side_length) < x_0 && (center[0] + 0.5 * side_length) > x_0){
+                    if ((center[1] - 0.5 * side_length) < y_0 && (center[1] + 0.5 * side_length) > y_0){
+                        if ((center[2] - 0.5 * side_length) < z_0 && (center[2] + 0.5 * side_length) > z_0){
+                            sphere_1_is_inside = true;
+                        }
+                    }
+                }
+
+                if ((center[0] - 0.5 * side_length) < x_1 && (center[0] + 0.5 * side_length) > x_1){
+                    if ((center[1] - 0.5 * side_length) < y_1 && (center[1] + 0.5 * side_length) > y_1){
+                        if ((center[2] - 0.5 * side_length) < z_1 && (center[2] + 0.5 * side_length) > z_1){
+                            sphere_2_is_inside = true;
+                        }
+                    }
+                }
+
+                if (contact_is_inside && (sphere_1_is_inside || sphere_2_is_inside)) {
+                    
+                    double dx, dy, dz;
+                    dx = x_0 - x_1;
+                    if (dx > 0.5 * Lx){
+                        dx -= Lx;
+                    }
+                    else if (dx < -0.5 * Lx){
+                        dx += Lx;
+                    }
+                    
+                    dy = y_0 - y_1;
+                    if (dy > 0.5 * Ly){
+                        dy -= Ly;
+                    }
+                    else if (dy < -0.5 * Ly){
+                        dy += Ly;
+                    }
+
+                    dz = z_0 - z_1;
+                    if (dz > 0.5 * Lz){
+                        dz -= Lz;
+                    }
+                    else if (dz < -0.5 * Lz){
+                        dz += Lz;
+                    }
+
+                    const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
+                    double contact_force_vector[3] = {contact_force[0], contact_force[1], contact_force[2]};
+                    double vector_l[3] = {dx, dy, dz};
+                    double tensor[3][3];
+
+                    for (int i = 0; i < 3; i++){
+                        for (int j = 0; j < 3; j++){
+                            tensor[i][j] = contact_force_vector[i] * vector_l[j];
+                        }
+                    }
+
+                    s_00 += tensor[0][0];
+                    s_01 += tensor[0][1];
+                    s_02 += tensor[0][2];
+                    s_10 += tensor[1][0];
+                    s_11 += tensor[1][1];
+                    s_12 += tensor[1][2];
+                    s_20 += tensor[2][0];
+                    s_21 += tensor[2][1];
+                    s_22 += tensor[2][2];
+                }
+            }
+        }
+
+        measured_stress_tensor[0][0] = s_00;
+        measured_stress_tensor[0][1] = s_01;
+        measured_stress_tensor[0][2] = s_02;
+        measured_stress_tensor[1][0] = s_10;
+        measured_stress_tensor[1][1] = s_11;
+        measured_stress_tensor[1][2] = s_12;
+        measured_stress_tensor[2][0] = s_20;
+        measured_stress_tensor[2][1] = s_21;
+        measured_stress_tensor[2][2] = s_22;
+
+        return measured_stress_tensor;
+
+    }
+
     std::vector<std::vector<double>> CalculateFabricTensorWithinSphere(ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
     {
         OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
