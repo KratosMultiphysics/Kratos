@@ -75,6 +75,36 @@ class SphericElementGlobalPhysicsCalculator
         return added_volume;
       }
 
+      double CalculatePorosityWithinSphere(ModelPart& r_model_part, const double radius, const array_1d<double, 3>& center)
+      {
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          double sphere_volume_inside_range = 0.0;
+          const double total_volume = 4.0 / 3.0 * Globals::Pi * radius * radius * radius;
+
+          #pragma omp parallel for reduction(+ : sphere_volume_inside_range)
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  
+                  if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+                      SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
+                      const double particle_radius = r_spheric_particle.GetRadius();
+                      const array_1d<double, 3>& particle_coordinates = r_spheric_particle.GetGeometry()[0].Coordinates();
+                      const double distance = std::sqrt(std::pow(particle_coordinates[0] - center[0], 2) + std::pow(particle_coordinates[1] - center[1], 2) + std::pow(particle_coordinates[2] - center[2], 2));
+                      if (distance < radius - particle_radius) {
+                        sphere_volume_inside_range += 4.0 / 3.0 * Globals::Pi * particle_radius * particle_radius * particle_radius;
+                      } else if (distance <= radius + particle_radius) {
+                        const double other_part_d = radius - (radius * radius + distance * distance - particle_radius * particle_radius) / (distance * 2);
+                        const double my_part_d = particle_radius - (particle_radius * particle_radius + distance * distance - radius * radius) / (distance * 2);
+                        const double cross_volume = Globals::Pi * other_part_d * other_part_d * (radius - 1.0 / 3.0 * other_part_d) + Globals::Pi * my_part_d * my_part_d * (particle_radius - 1.0 / 3.0 * my_part_d);
+                        sphere_volume_inside_range += cross_volume;
+                      }
+                  }
+              }
+          }
+          return 1.0 - sphere_volume_inside_range / total_volume;
+      }
+
       //***************************************************************************************************************
       //***************************************************************************************************************
       // Returns the minimum value of a double variable in the model part.
@@ -427,27 +457,6 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius(ModelPart& r_model_part)
       {
-        /*
-        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
-
-        double particle_max_normal_ball_to_ball_force_times_radius = 0.0;
-
-        #pragma omp parallel for
-        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
-
-            for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
-                    double particle_normal_ball_to_ball_force_times_radius = 0.0;
-
-                    (it)->Calculate(PARTICLE_MAX_NORMAL_BALL_TO_BALL_FORCE_TIMES_RADIUS, particle_normal_ball_to_ball_force_times_radius, r_model_part.GetProcessInfo());
-
-                    if (particle_max_normal_ball_to_ball_force_times_radius < particle_normal_ball_to_ball_force_times_radius){
-                    particle_max_normal_ball_to_ball_force_times_radius = particle_normal_ball_to_ball_force_times_radius;
-                    }
-                }
-            }
-
-        }*/
 
         double global_max_normal_force_times_radius = 0.0;
 
@@ -589,6 +598,32 @@ class SphericElementGlobalPhysicsCalculator
             sum_of_contact_forces[2] = sum_of_contact_forces_z;
             return sum_of_contact_forces;
       }
+
+      double CalculateSumOfParticlesWithinSphere(ModelPart& sphere_model_part, const double radius, const array_1d<double, 3>& center)
+      {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), sphere_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        double total_particle_number = 0;
+
+        #pragma omp parallel for reduction(+ : total_particle_number)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(sphere_model_part, k); it != GetElementPartitionEnd(sphere_model_part, k); ++it){
+
+                double r = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double x = (it)->GetGeometry()[0].X();
+                double y = (it)->GetGeometry()[0].Y();
+                double z = (it)->GetGeometry()[0].Z();
+
+                double center_to_sphere_distance = std::sqrt(std::pow(x - center[0], 2) + std::pow(y - center[1], 2) + std::pow(z - center[2], 2));
+
+                if (center_to_sphere_distance < (radius - r)) {
+                    total_particle_number += 1;
+                }
+            }
+        }
+        return total_particle_number;
+      }
+
       //***************************************************************************************************************
       //***************************************************************************************************************
         ///@}
@@ -734,6 +769,566 @@ class SphericElementGlobalPhysicsCalculator
         ///@}
 
     }; // Class SphericElementGlobalPhysicsCalculator
+
+class ContactElementGlobalPhysicsCalculator
+    {
+     public:
+
+     typedef ModelPart::ElementsContainerType ElementsArrayType;
+
+     KRATOS_CLASS_POINTER_DEFINITION(ContactElementGlobalPhysicsCalculator);
+
+    /// Default constructor.
+
+    ContactElementGlobalPhysicsCalculator(){}
+
+    /// Destructor.
+
+    virtual ~ContactElementGlobalPhysicsCalculator(){}
+
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
+    std::vector<std::vector<double>> CalculateTotalStressTensor(ModelPart& r_model_part, double Lx, double Ly, double Lz)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        std::vector<std::vector<double>> measured_total_stress_tensor(3, std::vector<double>(3));
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+
+                double dx, dy, dz;
+                
+                dx = x_0 - x_1;
+                if (dx > 0.5 * Lx){
+                    dx -= Lx;
+                }
+                else if (dx < -0.5 * Lx){
+                    dx += Lx;
+                }
+                
+                dy = y_0 - y_1;
+                if (dy > 0.5 * Ly){
+                    dy -= Ly;
+                }
+                else if (dy < -0.5 * Ly){
+                    dy += Ly;
+                }
+
+                dz = z_0 - z_1;
+                if (dz > 0.5 * Lz){
+                    dz -= Lz;
+                }
+                else if (dz < -0.5 * Lz){
+                    dz += Lz;
+                }
+
+                /*
+                dx = x_0 - x_1;
+                dy = y_0 - y_1;
+                dz = z_0 - z_1;
+
+                //only consider the inner contacts
+                if (std::abs(dx) > 0.5 * Lx || std::abs(dy) > 0.5 * Ly || std::abs(dz) > 0.5 * Lz){
+                    continue;
+                }
+                */
+
+                const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
+
+                s_00 += contact_force[0] * dx;
+                s_01 += contact_force[0] * dy;
+                s_02 += contact_force[0] * dz;
+                s_10 += contact_force[1] * dx;
+                s_11 += contact_force[1] * dy;
+                s_12 += contact_force[1] * dz;
+                s_20 += contact_force[2] * dx;
+                s_21 += contact_force[2] * dy;
+                s_22 += contact_force[2] * dz;
+            }
+        }
+
+        measured_total_stress_tensor[0][0] = s_00;
+        measured_total_stress_tensor[0][1] = s_01;
+        measured_total_stress_tensor[0][2] = s_02;
+        measured_total_stress_tensor[1][0] = s_10;
+        measured_total_stress_tensor[1][1] = s_11;
+        measured_total_stress_tensor[1][2] = s_12;
+        measured_total_stress_tensor[2][0] = s_20;
+        measured_total_stress_tensor[2][1] = s_21;
+        measured_total_stress_tensor[2][2] = s_22;
+
+        return measured_total_stress_tensor;
+    }
+
+    std::vector<std::vector<double>> CalculateTotalStressTensorWithinSphere(ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center, double Lx, double Ly, double Lz)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        std::vector<std::vector<double>> measured_stress_tensor(3, std::vector<double>(3));
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                //double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                //double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+                //double r   = 0.5 * (r_0 + r_1);
+                double x_contact = 0.5 * (x_0 + x_1);
+                double y_contact = 0.5 * (y_0 + y_1);
+                double z_contact = 0.5 * (z_0 + z_1);
+
+                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+                double center_to_contact_point = std::sqrt(std::pow(x_contact - center[0], 2) + std::pow(y_contact - center[1], 2) + std::pow(z_contact - center[2], 2));
+
+                double dx, dy, dz;
+                
+                dx = x_0 - x_1;
+                if (dx > 0.5 * Lx){
+                    dx -= Lx;
+                }
+                else if (dx < -0.5 * Lx){
+                    dx += Lx;
+                }
+                
+                dy = y_0 - y_1;
+                if (dy > 0.5 * Ly){
+                    dy -= Ly;
+                }
+                else if (dy < -0.5 * Ly){
+                    dy += Ly;
+                }
+
+                dz = z_0 - z_1;
+                if (dz > 0.5 * Lz){
+                    dz -= Lz;
+                }
+                else if (dz < -0.5 * Lz){
+                    dz += Lz;
+                }
+
+                //if (center_to_sphere_distance_0 < (radius - r) || center_to_sphere_distance_1 < (radius - r)) {
+                if (center_to_contact_point < radius && (center_to_sphere_distance_0 < radius || center_to_sphere_distance_1 < radius)) {
+                    const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
+                    double contact_force_vector[3] = {contact_force[0], contact_force[1], contact_force[2]};
+                    double vector_l[3] = {dx, dy, dz};
+                    double tensor[3][3];
+
+                    for (int i = 0; i < 3; i++){
+                        for (int j = 0; j < 3; j++){
+                            tensor[i][j] = contact_force_vector[i] * vector_l[j];
+                        }
+                    }
+
+                    s_00 += tensor[0][0];
+                    s_01 += tensor[0][1];
+                    s_02 += tensor[0][2];
+                    s_10 += tensor[1][0];
+                    s_11 += tensor[1][1];
+                    s_12 += tensor[1][2];
+                    s_20 += tensor[2][0];
+                    s_21 += tensor[2][1];
+                    s_22 += tensor[2][2];
+                }
+            }
+        }
+
+        measured_stress_tensor[0][0] = s_00;
+        measured_stress_tensor[0][1] = s_01;
+        measured_stress_tensor[0][2] = s_02;
+        measured_stress_tensor[1][0] = s_10;
+        measured_stress_tensor[1][1] = s_11;
+        measured_stress_tensor[1][2] = s_12;
+        measured_stress_tensor[2][0] = s_20;
+        measured_stress_tensor[2][1] = s_21;
+        measured_stress_tensor[2][2] = s_22;
+
+        return measured_stress_tensor;
+
+    }
+
+    std::vector<std::vector<double>> CalculateTotalStressTensorWithinCubic(ModelPart& contact_model_part, const double side_length, const array_1d<double, 3>& center, double Lx, double Ly, double Lz)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        std::vector<std::vector<double>> measured_stress_tensor(3, std::vector<double>(3));
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                
+                double x_contact = 0.5 * (x_0 + x_1);
+                double y_contact = 0.5 * (y_0 + y_1);
+                double z_contact = 0.5 * (z_0 + z_1);
+
+                bool contact_is_inside = false;
+                bool sphere_1_is_inside = false;
+                bool sphere_2_is_inside = false;
+
+                if ((center[0] - 0.5 * side_length) < x_contact && (center[0] + 0.5 * side_length) > x_contact){
+                    if ((center[1] - 0.5 * side_length) < y_contact && (center[1] + 0.5 * side_length) > y_contact){
+                        if ((center[2] - 0.5 * side_length) < z_contact && (center[2] + 0.5 * side_length) > z_contact){
+                            contact_is_inside = true;
+                        }
+                    }
+                }
+
+                if ((center[0] - 0.5 * side_length) < x_0 && (center[0] + 0.5 * side_length) > x_0){
+                    if ((center[1] - 0.5 * side_length) < y_0 && (center[1] + 0.5 * side_length) > y_0){
+                        if ((center[2] - 0.5 * side_length) < z_0 && (center[2] + 0.5 * side_length) > z_0){
+                            sphere_1_is_inside = true;
+                        }
+                    }
+                }
+
+                if ((center[0] - 0.5 * side_length) < x_1 && (center[0] + 0.5 * side_length) > x_1){
+                    if ((center[1] - 0.5 * side_length) < y_1 && (center[1] + 0.5 * side_length) > y_1){
+                        if ((center[2] - 0.5 * side_length) < z_1 && (center[2] + 0.5 * side_length) > z_1){
+                            sphere_2_is_inside = true;
+                        }
+                    }
+                }
+
+                if (contact_is_inside && (sphere_1_is_inside || sphere_2_is_inside)) {
+                    
+                    double dx, dy, dz;
+                    dx = x_0 - x_1;
+                    if (dx > 0.5 * Lx){
+                        dx -= Lx;
+                    }
+                    else if (dx < -0.5 * Lx){
+                        dx += Lx;
+                    }
+                    
+                    dy = y_0 - y_1;
+                    if (dy > 0.5 * Ly){
+                        dy -= Ly;
+                    }
+                    else if (dy < -0.5 * Ly){
+                        dy += Ly;
+                    }
+
+                    dz = z_0 - z_1;
+                    if (dz > 0.5 * Lz){
+                        dz -= Lz;
+                    }
+                    else if (dz < -0.5 * Lz){
+                        dz += Lz;
+                    }
+
+                    const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
+                    double contact_force_vector[3] = {contact_force[0], contact_force[1], contact_force[2]};
+                    double vector_l[3] = {dx, dy, dz};
+                    double tensor[3][3];
+
+                    for (int i = 0; i < 3; i++){
+                        for (int j = 0; j < 3; j++){
+                            tensor[i][j] = contact_force_vector[i] * vector_l[j];
+                        }
+                    }
+
+                    s_00 += tensor[0][0];
+                    s_01 += tensor[0][1];
+                    s_02 += tensor[0][2];
+                    s_10 += tensor[1][0];
+                    s_11 += tensor[1][1];
+                    s_12 += tensor[1][2];
+                    s_20 += tensor[2][0];
+                    s_21 += tensor[2][1];
+                    s_22 += tensor[2][2];
+                }
+            }
+        }
+
+        measured_stress_tensor[0][0] = s_00;
+        measured_stress_tensor[0][1] = s_01;
+        measured_stress_tensor[0][2] = s_02;
+        measured_stress_tensor[1][0] = s_10;
+        measured_stress_tensor[1][1] = s_11;
+        measured_stress_tensor[1][2] = s_12;
+        measured_stress_tensor[2][0] = s_20;
+        measured_stress_tensor[2][1] = s_21;
+        measured_stress_tensor[2][2] = s_22;
+
+        return measured_stress_tensor;
+
+    }
+
+    std::vector<std::vector<double>> CalculateFabricTensorWithinSphere(ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        std::vector<std::vector<double>> measured_fabric_tensor(3, std::vector<double>(3));
+
+        double total_tensor[3][3];
+        total_tensor[0][0] = total_tensor[0][1] = total_tensor[0][2] = total_tensor[1][0] = total_tensor[1][1] = total_tensor[1][2] = total_tensor[2][0] = total_tensor[2][1] = total_tensor[2][2] = 0.0;
+        double total_contact_number = 0;
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22, total_contact_number)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+
+                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+
+                if (center_to_sphere_distance_0 < (radius - r_0) || center_to_sphere_distance_1 < (radius - r_1)) {
+                    double vector1[3] = {x_1 - x_0, y_1 - y_0, z_1 - z_0};
+                    double v1_norm = std::sqrt(std::pow(vector1[0], 2) + std::pow(vector1[1], 2) + std::pow(vector1[2], 2));
+                    double vector1_unit[3] = {vector1[0] / v1_norm, vector1[1] / v1_norm, vector1[2] / v1_norm};
+                    double tensor[3][3];
+
+                    for (int i = 0; i < 3; i++){
+                        for (int j = 0; j < 3; j++){
+                            tensor[i][j] = vector1_unit[i] * vector1_unit[j];
+                        }
+                    }
+
+                    s_00 += tensor[0][0];
+                    s_01 += tensor[0][1];
+                    s_02 += tensor[0][2];
+                    s_10 += tensor[1][0];
+                    s_11 += tensor[1][1];
+                    s_12 += tensor[1][2];
+                    s_20 += tensor[2][0];
+                    s_21 += tensor[2][1];
+                    s_22 += tensor[2][2];
+                    total_contact_number += 1;
+                }
+            }
+        }
+
+        if (total_contact_number) {
+            measured_fabric_tensor[0][0] = s_00 / total_contact_number;
+            measured_fabric_tensor[0][1] = s_01 / total_contact_number;
+            measured_fabric_tensor[0][2] = s_02 / total_contact_number;
+            measured_fabric_tensor[1][0] = s_10 / total_contact_number;
+            measured_fabric_tensor[1][1] = s_11 / total_contact_number;
+            measured_fabric_tensor[1][2] = s_12 / total_contact_number;
+            measured_fabric_tensor[2][0] = s_20 / total_contact_number;
+            measured_fabric_tensor[2][1] = s_21 / total_contact_number;
+            measured_fabric_tensor[2][2] = s_22 / total_contact_number;
+        }
+
+        return measured_fabric_tensor;
+    }
+
+    double CalculateAveragedCoordinationNumberWithinSphere(ModelPart& sphere_model_part, ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        double total_particle_number = 0.0;
+        double total_contact_number = 0.0;
+
+        #pragma omp parallel for reduction(+ : total_contact_number)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+
+                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+
+                if (center_to_sphere_distance_0 < (radius - r_0)) {
+                    total_contact_number += 1;
+                }
+
+                if (center_to_sphere_distance_1 < (radius - r_1)) {
+                    total_contact_number += 1;
+                }
+            }
+        }
+
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), sphere_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+        #pragma omp parallel for reduction(+ : total_particle_number)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(sphere_model_part, k); it != GetElementPartitionEnd(sphere_model_part, k); ++it){
+
+                double r = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double x = (it)->GetGeometry()[0].X();
+                double y = (it)->GetGeometry()[0].Y();
+                double z = (it)->GetGeometry()[0].Z();
+
+                double center_to_sphere_distance = std::sqrt(std::pow(x - center[0], 2) + std::pow(y - center[1], 2) + std::pow(z - center[2], 2));
+
+                if (center_to_sphere_distance < (radius - r)) {
+                    total_particle_number += 1;
+                }
+            }
+        }
+        
+        double measured_coordination_number = 0.0;
+
+        if (total_particle_number) {
+            measured_coordination_number = total_contact_number / total_particle_number;
+        }
+
+        return measured_coordination_number;
+
+    }
+
+    double CalculateUnbalancedForceWithinSphere(ModelPart& sphere_model_part, ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), sphere_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        double total_particle_force_modulus_square = 0.0;
+        double averaged_total_particle_force_modulus_square = 0.0;
+        double particle_number_count = 0;
+
+        #pragma omp parallel for reduction(+ : total_particle_force_modulus_square, particle_number_count)
+
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(sphere_model_part, k); it != GetElementPartitionEnd(sphere_model_part, k); ++it){
+
+                double r = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double x = (it)->GetGeometry()[0].X();
+                double y = (it)->GetGeometry()[0].Y();
+                double z = (it)->GetGeometry()[0].Z();
+
+                double center_to_sphere_distance = std::sqrt(std::pow(x - center[0], 2) + std::pow(y - center[1], 2) + std::pow(z - center[2], 2));
+
+                if (center_to_sphere_distance < (radius - r)) {
+                    const array_1d<double, 3>& total_force = (it)->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+                    double total_force_vector[3] = {total_force[0], total_force[1], total_force[2]};
+                    double total_force_vector_modulus = std::sqrt(std::pow(total_force_vector[0], 2) + std::pow(total_force_vector[1], 2) + std::pow(total_force_vector[2], 2));
+                    total_particle_force_modulus_square += std::pow(total_force_vector_modulus, 2);
+                    particle_number_count += 1;
+                }
+            }
+        }
+
+        if (particle_number_count) {
+            averaged_total_particle_force_modulus_square = total_particle_force_modulus_square / particle_number_count;
+        }
+
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        double total_contact_force_modulus_square = 0.0;
+        double averaged_contact_force_modulus_square = 0.0;
+        double total_contact_number = 0;
+
+        #pragma omp parallel for reduction(+ : total_contact_force_modulus_square, total_contact_number)
+        
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(contact_model_part, k); it != GetElementPartitionEnd(contact_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+                double r_0 = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double r_1 = (it)->GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+                double r   = 0.5 * (r_0 + r_1);
+
+                double center_to_sphere_distance_0 = std::sqrt(std::pow(x_0 - center[0], 2) + std::pow(y_0 - center[1], 2) + std::pow(z_0 - center[2], 2));
+                double center_to_sphere_distance_1 = std::sqrt(std::pow(x_1 - center[0], 2) + std::pow(y_1 - center[1], 2) + std::pow(z_1 - center[2], 2));
+
+                if (center_to_sphere_distance_0 < (radius - r) || center_to_sphere_distance_1 < (radius - r)) {
+                    const array_1d<double, 3>& contact_force = (it)->GetValue(GLOBAL_CONTACT_FORCE);
+                    double contact_force_vector[3] = {contact_force[0], contact_force[1], contact_force[2]};
+                    double contact_force_vector_modulus = std::sqrt(std::pow(contact_force_vector[0], 2) + std::pow(contact_force_vector[1], 2) + std::pow(contact_force_vector[2], 2));
+                    total_contact_force_modulus_square += std::pow(contact_force_vector_modulus, 2);
+                    total_contact_number += 1;
+                }
+            }
+        }
+
+        if (total_contact_number) {
+            averaged_contact_force_modulus_square = total_contact_force_modulus_square / total_contact_number;
+        }
+
+        double unbalanced_force = 0.0;
+
+        if (averaged_contact_force_modulus_square) {
+            unbalanced_force = std::sqrt(averaged_total_particle_force_modulus_square / averaged_contact_force_modulus_square);
+        } else {
+            unbalanced_force = 0.0;
+        }
+
+        return unbalanced_force;
+    }
+
+    private:
+
+        std::vector<unsigned int> mElementsPartition;
+
+        ElementsArrayType::iterator GetElementPartitionBegin(ModelPart& r_model_part, unsigned int k)
+        {
+            ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+            return (pElements.ptr_begin() + mElementsPartition[k]);
+        }
+    
+        ElementsArrayType::iterator GetElementPartitionEnd(ModelPart& r_model_part, unsigned int k)
+        {
+            ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+            return (pElements.ptr_begin() + mElementsPartition[k + 1]);
+        }
+
+        ///@name Static Member r_variables
+        ///@{
+
+
+        ///@}
+        ///@name Member r_variables
+        ///@{
+
+
+    }; // Class ContactElementGlobalPhysicsCalculator
 
 ///@}
 
