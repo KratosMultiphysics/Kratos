@@ -623,7 +623,7 @@ private:
 
     /**
      *  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION
-     *  Entire documentation can be found in the the Phd Thesis of Massimo Petracca
+     *  Entire documentation can be found in the Phd Thesis of Massimo Petracca
      *  << Computational Multiscale Analysis of Masonry Structures>>
      *
      *  UNIAXIAL BEZIER COMPRESSION DAMAGE
