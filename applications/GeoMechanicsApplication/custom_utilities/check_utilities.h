@@ -13,7 +13,7 @@
 #pragma once
 
 // Project includes
-#include "includes/exception.h"
+#include "includes/define.h"
 
 #include <optional>
 #include <string>
@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-class CheckUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CheckUtilities
 {
 public:
     static void CheckDomainSize(double                            DomainSize,
