@@ -181,17 +181,6 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
 }
 
 
-template <class TValue>
-std::string FormattedResidual(TValue Residual)
-{
-    std::stringstream stream;
-    stream << std::scientific
-           << std::setprecision(8)
-           << Residual;
-    return stream.str();
-}
-
-
 } // namespace detail
 
 
@@ -569,8 +558,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
 template <class TSparse, class TDense>
 void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                                   typename TSparse::VectorType& rSolution,
-                                                                                  typename TSparse::VectorType& rRhs,
-                                                                                  const std::size_t iIteration)
+                                                                                  typename TSparse::VectorType& rRhs)
 {
     KRATOS_TRY
 
@@ -589,11 +577,11 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeSolutionSte
 
 
 template <class TSparse, class TDense>
-typename ConstraintAssembler<TSparse,TDense>::Status
+bool
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                            typename TSparse::VectorType& rSolution,
                                                                            typename TSparse::VectorType& rRhs,
-                                                                           const std::size_t iIteration)
+                                                                           PMGStatusStream::Report& rReport)
 {
     KRATOS_TRY
 
@@ -601,33 +589,21 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
     typename TSparse::VectorType constraint_residual = this->GetConstraintGapVector();
     BalancedProduct<TSparse,TSparse,TSparse>(this->GetRelationMatrix(), rSolution, constraint_residual);
 
-    // Decide whether to keep looping.
-    const auto constraint_norm = TSparse::TwoNorm(constraint_residual);
-    if (3 <= this->mpImpl->mVerbosity)
-        std::cout << this->GetName() << ": iteration " << iIteration
-                  << " constraint residual " << detail::FormattedResidual(constraint_norm)
-                  << "\n";
+    // Update status.
+    rReport.maybe_constraint_residual = TSparse::TwoNorm(constraint_residual);
+    rReport.constraints_converged  = rReport.maybe_constraint_residual.value() <= this->GetTolerance();
 
-    const bool converged  = constraint_norm <= this->GetTolerance();
-    const int max_iterations = this->GetValue(NL_ITERATION_NUMBER);
-
-    if (converged) {
-        if (2 <= mpImpl->mVerbosity)
-            std::cout << this->GetName() << ": constraints converged (residual "
-                      << detail::FormattedResidual(constraint_norm)
-                      << ")\n";
-        return typename Base::Status {/*finished=*/true, /*converged=*/true};
+    // Decide on whether to keep looping.
+    if (rReport.constraints_converged) {
+        return true;
     } /*if converged*/ else {
-        if (static_cast<int>(iIteration) < max_iterations) {
-            return typename Base::Status {/*finished=*/false, /*converged=*/false};
+        const int max_iterations = this->GetValue(NL_ITERATION_NUMBER);
+        if (static_cast<int>(rReport.constraint_iteration) < max_iterations) {
+            return false;
         } /*if iIteration < max_iterations*/ else {
-            if (1 <= mpImpl->mVerbosity && !converged)
-                std::cerr << this->GetName() << ": constraints failed to converge (residual "
-                          << detail::FormattedResidual(constraint_norm)
-                          << ")\n";
-            return typename Base::Status {/*finished=*/true, /*converged=*/false};
+            return true;
         }
-    }
+    } /*if not converged*/
     KRATOS_CATCH("")
 }
 

@@ -245,13 +245,15 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse
 
 
 template <class TSparse, class TDense>
-typename ConstraintAssembler<TSparse,TDense>::Status
+bool
 MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                      typename TSparse::VectorType& rSolution,
                                                                      typename TSparse::VectorType& rRhs,
-                                                                     const std::size_t iIteration)
+                                                                     PMGStatusStream::Report& rReport)
 {
-    return typename Base::Status {/*finished=*/true, /*converged=*/true};
+    rReport.maybe_constraint_residual = 0;
+    rReport.constraints_converged = true;
+    return true;
 }
 
 

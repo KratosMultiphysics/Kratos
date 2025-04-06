@@ -59,15 +59,13 @@ public:
     /// @copydoc Base::InitializeSolutionStep
     void InitializeSolutionStep(typename TSparse::MatrixType& rLhs,
                                 typename TSparse::VectorType& rSolution,
-                                typename TSparse::VectorType& rRhs,
-                                const std::size_t iIteration) override;
+                                typename TSparse::VectorType& rRhs) override;
 
     /// @copydoc Base::FinalizeSolutionStep
-    typename ConstraintAssembler<TSparse,TDense>::Status
-    FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
-                         typename TSparse::VectorType& rSolution,
-                         typename TSparse::VectorType& rRhs,
-                         const std::size_t iIteration) override;
+    bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
+                              typename TSparse::VectorType& rSolution,
+                              typename TSparse::VectorType& rRhs,
+                              PMGStatusStream::Report& rReport) override;
 
     /// @copydoc Base::Finalize
     void Finalize(typename TSparse::MatrixType& rLhs,

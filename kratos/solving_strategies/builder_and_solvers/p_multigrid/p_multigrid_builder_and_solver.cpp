@@ -16,6 +16,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MakeSparseTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // DiagonalScaling, ParseDiagonalScaling, GetDiagonalScalingFactor
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_grid.hpp" // PGrid
+#include "solving_strategies/builder_and_solvers/p_multigrid/status_stream.hpp" // PMGStatusStream
 #include "includes/model_part.h" // ModelPart
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "linear_solvers/linear_solver.h" // LinearSolver
@@ -95,19 +96,25 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                               const typename Interface::TSystemVectorType& rRhs,
                               typename Interface::TSystemVectorType& rSolutionUpdate,
                               typename Interface::TSystemVectorType& rResidual,
-                              const typename TSparse::DataType InitialResidualNorm)
+                              const typename TSparse::DataType InitialResidualNorm,
+                              PMGStatusStream& rStream,
+                              PMGStatusStream::Report& rReport)
     {
         KRATOS_TRY
         // Inner loop for multigrid.
-        std::size_t i_multigrid_iteration = 0ul;
+        rReport.multigrid_converged = false;
+        rReport.multigrid_iteration = 0ul;
+        rReport.multigrid_residual = std::numeric_limits<typename TSparse::DataType>::max();
 
-        while (++i_multigrid_iteration <= static_cast<std::size_t>(mMaxIterations)) {
+        while (   rReport.multigrid_iteration < static_cast<std::size_t>(mMaxIterations)
+               && !rReport.multigrid_converged) {
             // Solve the coarse grid and apply its correction.
             if (mMaybeHierarchy.has_value()) {
-                std::visit([&rSolutionUpdate, &rResidual](auto& r_hierarchy){
+                std::visit([&rSolutionUpdate, &rResidual, &rStream](auto& r_hierarchy){
                                 return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
                                     rSolutionUpdate,
-                                    rResidual);},
+                                    rResidual,
+                                    rStream);},
                            mMaybeHierarchy.value());
 
                 // Update the fine solution.
@@ -130,38 +137,36 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
 
             // Emit status and check for convergence.
-            if (0 < mTolerance || 3 <= mVerbosity) {
-                const auto relative_residual_norm = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
-                if (3 <= mVerbosity) {
-                    std::stringstream residual_stream;
-                    residual_stream << std::setprecision(8) << std::scientific<< relative_residual_norm;
-                    std::cout << "Grid 0: "
-                              << "multigrid iteration " << i_multigrid_iteration
-                              << " residual " << residual_stream.str()
-                              << "\n";
-                }
-                if (relative_residual_norm < mTolerance) break;
-            } // 0 < mTolerance or 3 <= mVerbosity
+            rReport.multigrid_residual = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
+            rReport.multigrid_converged = rReport.multigrid_residual < mTolerance;
+            if (rReport.multigrid_iteration < static_cast<std::size_t>(mMaxIterations) && !rReport.multigrid_converged) rStream.IterationReport(rReport);
+
+            ++rReport.multigrid_iteration;
         } // while i_multigrid_iteration <= mMaxIterations
+
+        if (rReport.multigrid_iteration) rReport.multigrid_iteration -= 1;
         KRATOS_CATCH("")
     }
 
 
-    struct ConstraintLoopStatus
-    {
-        typename TSparse::DataType residual_norm;
-        typename ConstraintAssembler<TSparse,TDense>::Status constraint_status;
-    }; // struct ConstraintLoopStatus
-
-
-    [[nodiscard]] ConstraintLoopStatus
+    [[nodiscard]] PMGStatusStream::Report
     ExecuteConstraintLoop(typename Interface::TSystemMatrixType& rLhs,
                           typename Interface::TSystemVectorType& rSolution,
-                          typename Interface::TSystemVectorType& rRhs)
+                          typename Interface::TSystemVectorType& rRhs,
+                          PMGStatusStream& rStream)
     {
         KRATOS_TRY
-        typename ConstraintAssembler<TSparse,TDense>::Status constraint_status {/*converged=*/false, /*finished=*/false};
-        std::size_t i_constraint_iteration = 0ul;
+        bool constraint_status = false;
+        PMGStatusStream::Report status_report {
+            /*grid_level=*/                 0ul,
+            /*verbosity=*/                  mVerbosity,
+            /*multigrid_converged=*/        false,
+            /*multigrid_iteration=*/        0ul,
+            /*multigrid_residual=*/         1.0,
+            /*constraints_converged=*/      false,
+            /*constraint_iteration=*/       0ul,
+            /*maybe_constraint_residual=*/  {}
+        };
 
         typename TSparse::VectorType residual(rRhs.size()),
                                      residual_update(rRhs.size()),
@@ -176,10 +181,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
         // Outer loop for constraints.
         do {
-            ++i_constraint_iteration;
-
             // Initialize the constraint assembler and update residuals.
-            mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
+            mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs);
             TSparse::Copy(rRhs, residual);
             BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolution, residual, static_cast<typename TSparse::DataType>(-1));
 
@@ -189,26 +192,26 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                        rRhs,
                                        solution_update,
                                        residual,
-                                       initial_residual_norm);
+                                       initial_residual_norm,
+                                       rStream,
+                                       status_report);
 
             // Check for constraint convergence.
-            constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rLhs, rSolution, rRhs, i_constraint_iteration);
-        } while (!constraint_status.finished);
+            constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rLhs, rSolution, rRhs, status_report);
+            if (constraint_status) {
+                rStream.FinalReport(status_report);
+                status_report.maybe_constraint_residual.reset();
+                break;
+            } else {
+                rStream.IterationReport(status_report);
+                status_report.maybe_constraint_residual.reset();
+            }
 
-        return ConstraintLoopStatus {/*residual_norm=*/TSparse::TwoNorm(residual) / initial_residual_norm,
-                                     /*constraint_status=*/constraint_status};
+            ++status_report.constraint_iteration;
+        } while (true);
+
+        return status_report;
         KRATOS_CATCH("")
-    }
-
-
-    template <class TValue>
-    static std::string FormattedResidual(TValue Residual)
-    {
-        std::stringstream stream;
-        stream << std::scientific
-            << std::setprecision(8)
-            << Residual;
-        return stream.str();
     }
 
 
@@ -239,25 +242,16 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                        mMaybeHierarchy.value());
         } // if mMaybeHierarchy
 
-        const auto [residual_norm, constraint_status] = this->ExecuteConstraintLoop(
+        std::optional<PMGStatusStream> status_stream = PMGStatusStream(
+            /*Verbosity=*/      mVerbosity,
+            /*rStream=*/        std::cout,
+            /*UseAnsiColors=*/  true);
+        const auto status_report = this->ExecuteConstraintLoop(
             rLhs,
             rSolution,
-            rRhs);
-
-        // Emit status.
-        if (1 <= mVerbosity) {
-            if (!constraint_status.converged)
-                std::cerr << "Grid 0: constraints failed to converge\n";
-
-            if (mTolerance < residual_norm) {
-                std::cerr << "Grid 0: failed to converge "
-                          << "(residual " << this->FormattedResidual(residual_norm) << ")\n";
-            } /*if mTolerance < residual_norm*/ else {
-                if (2 <= mVerbosity)
-                    std::cout << "Grid 0: residual "
-                              << this->FormattedResidual(residual_norm) << "\n";
-            }
-        } // if 1 <= mVerbosity
+            rRhs,
+            status_stream.value());
+        status_stream.reset();
 
         // Clean up.
         if (mMaybeHierarchy.has_value()) {
@@ -276,7 +270,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                                         rRhs,
                                         mpInterface->GetDofSet());
 
-        return residual_norm <= mTolerance && constraint_status.converged;
+        return status_report.multigrid_converged && status_report.constraints_converged;
         KRATOS_CATCH("")
     }
 
@@ -1049,6 +1043,7 @@ TSolver& PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetLinearSolver() n
 // Template Instantiations
 // --------------------------------------------------------- //
 
+// https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGIM6SuADJ4DJgAcj4ARpjEEtIADqgKhE4MHt6%2B/qRJKY4CIWGRLDFxUraY9vkMQgRMxAQZPn4BdpgOabX1BIUR0bHxtnUNTVmtwz2hfSUDUgCUtqhexMjsHASYLAkGGyYAzG4EAJ4JjKyYANQAKpvbTBvK9az72CYaAIIKBMReDhfKxFQUXoLBMAHYrB8LhcNlsdph9ocTmc2BcAGJeBgdAQ3OH3FRPUF7V5Qi4AN1QeHQ6MxyAgoQIFwShIu%2BwAIhcxHhgAxUFQIBisdVcXcHoS5nN9pD3uC2VK3jKPrDRZdES8Fcr4YjjqdmKjBdiGCL4Y9iM9iQqKVT/oDgZtEQyXiAQAb6YImeLWRDZQqFQyLiwmKEIJLvaToQCgSCHYIXkzWXsOeCrGC5XtpdDoQkAHQGxHIBD1F4h%2BUfWUcBa0TgAVl4fg4WlIqE4bms1guCiWK1VZj2PFIBE0FYWAGsQNWNPpOJI60Om5xeAoQJPBw2K6Q4LAYIgQJhVO0vEQyBQIPVgApHmFaEIEKgAO71/toLZ0e5pS%2BVG/3%2BuN58JOgDMgBhGFwAAcXCTn%2BAHEOE5wLqQUH0MQADyh5fg%2Bc57u07zEOe8FYcgtT4PWvD8IIIhiOw5RkfIShqHOuhcPohjGG2lj6HgURLpACyoAk1RLhwvCoGSsTEFSmDcSGpA/IIeBsFcqCeFJCydssqx6F8xEftet4YdwvB3maCScDwlY1rOa7zhw2D7sgh4kBcqigQAbAAtC5kgXEBLEXGB2ZcNmGgXBAraWNYpAXLghCOeYfZzLwq5aBKpBjhOU4cDOpAsOOk4/sJ8FLiuQ4LJuO4EQ5x6UGeF6GJ%2BemPrwiFvgIOnoflCGoC%2BSEoMBwBmBoEGdd1sSwWw8GIbEqHCA1mF2TheFCYEdlEaE8E0RR4jUbIigqOoVm6AEfUoGxNi0JxKlNvxaSCcJonEOJWCXbJjgKUptCXWp3aaQQ2l1bp36mYZxlA%2BZHC1qQHXNjZdmVU5rkeV5PlGBcA0BUFIVhVY7FRfgR6sr2XAJQOJULAgmBMFgcTSVWmW8Dl6VQ4Vy4k2uKVpZOtN7JZjbQ4lpMZWYPMFUtSXDqQ90pM4khAA
 
 template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
                                                                   TUblasDenseSpace<double>,

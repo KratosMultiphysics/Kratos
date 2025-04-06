@@ -75,7 +75,8 @@ public:
 
     template <class TParentSparse>
     bool ApplyCoarseCorrection(typename TParentSparse::VectorType& rParentSolution,
-                               const typename TParentSparse::VectorType& rParentResidual);
+                               const typename TParentSparse::VectorType& rParentResidual,
+                               PMGStatusStream& rStream);
 
     template <class TParentSparse>
     void Finalize(ModelPart& rModelPart,
@@ -96,6 +97,12 @@ private:
     PGrid(const PGrid&) = delete;
 
     PGrid& operator=(const PGrid&) = delete;
+
+    void ExecuteMultigridLoop(PMGStatusStream& rStream,
+                              PMGStatusStream::Report& rReport);
+
+    void ExecuteConstraintLoop(PMGStatusStream& rStream,
+                               PMGStatusStream::Report& rReport);
 
     typename TSparse::MatrixType mRestrictionOperator;
 

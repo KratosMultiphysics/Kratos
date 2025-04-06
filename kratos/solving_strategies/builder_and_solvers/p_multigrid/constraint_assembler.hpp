@@ -13,6 +13,7 @@
 #pragma once
 
 // Project includes
+#include "solving_strategies/builder_and_solvers/p_multigrid/status_stream.hpp" // PMGStatusStream
 #include "containers/data_value_container.h" // DataValueContainer
 #include "containers/pointer_vector_set.h" // PointerVectorSet
 #include "includes/master_slave_constraint.h" // MasterSlaveConstraint
@@ -144,26 +145,11 @@ public:
     /// @param rLhs Left hand side matrix.
     /// @param rSolution Unconverged solution vector.
     /// @param rRhs Right hand side vector.
-    /// @param iIteration 1-based index of the current iteration in the solution loop.
     virtual void InitializeSolutionStep(typename TSparse::MatrixType& rLhs,
                                         typename TSparse::VectorType& rSolution,
-                                        typename TSparse::VectorType& rRhs,
-                                        const std::size_t iIteration)
+                                        typename TSparse::VectorType& rRhs)
     {
     }
-
-    /// @brief Return type of @ref ConstraintAssembler::FinalizeSolutionStep.
-    /// @details This class indicates
-    ///          - whether the solution loop converged, and
-    ///          - whether the constraint imposition is finished.
-    ///          The members of this class can be in 3 valid configurations:
-    ///          - constraints have not converged (@p converged is @p false) and more iterations are requested (@p finished is @p false).
-    ///          - constraints have not converged (@p converged is @p false) and no more iterations are requested (@p finished is @p true).
-    ///          - constraints have converged (@p converged is @p true) and no more iterations are requested (@p finished is @p true).
-    struct Status {
-        bool finished;      ///< @brief Indicates whether constraint imposition is finished (no more iterations are requested).
-        bool converged;     ///< @brief Indicates whether constraint imposition converged.
-    }; // struct Status
 
     /// @brief Perform constraint-related tasks after invoking the linear solver in the current iteration of the solution loop.
     /// @details This function is supposed to evaluate the convergence of constraint imposition,
@@ -171,14 +157,13 @@ public:
     /// @param rLhs Constrained left hand side matrix.
     /// @param rSolution Converged solution vector.
     /// @param rRhs Constrained right hand side vector.
-    /// @param iIteration 1-based index of the current iteration in the solution loop.
+    /// @param rReport Status information on the solution loop.
     /// @warning The solution loop will continue indefinitely unless this function eventually
-    ///          returns a @ref ConstraintImposition::Status whose @ref ConstraintImposition::Status::finished "finished"
-    ///          is @p true.
-    virtual Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
-                                        typename TSparse::VectorType& rSolution,
-                                        typename TSparse::VectorType& rRhs,
-                                        const std::size_t iIteration) = 0;
+    ///          returns @p true.
+    virtual bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
+                                      typename TSparse::VectorType& rSolution,
+                                      typename TSparse::VectorType& rRhs,
+                                      PMGStatusStream::Report& rReport) = 0;
 
     /// @brief Perform tasks related to constraint imposition after constraints converged.
     /// @param rLhs Constrained left hand side matrix.
