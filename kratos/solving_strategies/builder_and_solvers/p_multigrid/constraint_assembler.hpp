@@ -79,9 +79,13 @@ public:
         this->SetValue(ConstraintAssembler::GetImpositionVariable(), method_name);
     }
 
+    ConstraintAssembler(ConstraintAssembler&&) noexcept = default;
+
     /// @details Define an overriding virtual destructor to ensure compile time errors
     //           if the base class' destructor turns non-virtual.
     virtual ~ConstraintAssembler() override = default;
+
+    ConstraintAssembler& operator=(ConstraintAssembler&&) noexcept = default;
 
     /// @brief Allocate memory for the constraint gap vector and relation matrix, and compute its topology.
     /// @details This function is responsible for large memory allocations, as well as computing
@@ -237,6 +241,10 @@ protected:
     }
 
 private:
+    ConstraintAssembler(const ConstraintAssembler&) = delete;
+
+    ConstraintAssembler& operator=(const ConstraintAssembler&) = delete;
+
     static const Variable<std::string>& GetImpositionVariable() noexcept
     {
         return IDENTIFIER;
