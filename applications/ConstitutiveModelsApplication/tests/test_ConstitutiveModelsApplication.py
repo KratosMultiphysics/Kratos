@@ -27,7 +27,6 @@ def AssembleTestSuites():
     night_suite.addTests(small_suite)
     all_suite.addTests(small_suite)
     validation_suite.addTests(small_suite)
-    print(all_suite)
 
     # NIGHT TESTS
 
