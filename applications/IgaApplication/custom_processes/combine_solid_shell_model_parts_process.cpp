@@ -90,18 +90,28 @@ namespace Kratos
 		_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").RemoveSubModelPart("Load_3");
 
 		// assign each coupling geometry to the coupling condition
-		ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").CreateSubModelPart("CouplingInterface");
+		ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("CouplingInterface");
 		std::string name = "CouplingPenaltyCondition";
 		const Condition& rReferenceCondition = KratosComponents<Condition>::Get(name);
 
+		ModelPart::ConditionsContainerType new_condition_list;
+		IndexType condition_id = interface_model_part.GetParentModelPart().NumberOfConditions() + 1; // To be deleted
+
 		for (SizeType i = 0; i < Coupled_Quadrature_Point_Geometries.size(); ++i) {
+			PropertiesPointerType pProperty;
+			new_condition_list.push_back(
+				rReferenceCondition.Create(condition_id,
+					Coupled_Quadrature_Point_Geometries(i), // 
+					pProperty));
+
 			for (SizeType ii = 0; i < Coupled_Quadrature_Point_Geometries(i)->size(); ++ii) {
-                interface_model_part.AddNode(Coupled_Quadrature_Point_Geometries(i)->pGetPoint(ii));
-            }
-			//TO DO: check properties and condition id
-			Condition::Pointer p_condition = rReferenceCondition.Create(i+10000, Coupled_Quadrature_Point_Geometries(i), PropertiesPointerType());
-			interface_model_part.Conditions().push_back(p_condition);
-		}		
+				interface_model_part.AddNode(Coupled_Quadrature_Point_Geometries(i)->pGetPoint(ii));
+			}
+
+			condition_id++;
+		}
+
+		interface_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
 		
 		// Write points to VTK
 		std::string filename = "data/Intergration_Points_on_Solid1_Coupling_Surface.vtk";
