@@ -277,6 +277,14 @@ inline auto FindNodeIndex(ModelPart& rModelPart,
     );
 }
 
+
+struct DofData
+{
+    NodalData first;
+    Dof<double> second;
+}; // struct DofData
+
+
 } // namespace detail
 
 
@@ -298,7 +306,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                               const PointerVectorSet<Dof<double>>& rParentIndirectDofSet,
                               typename TUblasSparseSpace<TValue>::MatrixType& rRestrictionOperator,
                               const VariablesList::Pointer& rpVariableList,
-                              std::vector<std::pair<NodalData,Dof<double>>>& rDofSet,
+                              std::vector<detail::DofData>& rDofSet,
                               PointerVectorSet<Dof<double>>& rIndirectDofSet,
                               std::vector<std::size_t>& rDofMap)
 {
@@ -512,9 +520,9 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
             // has some bug with non-copyable classes in std::pair, so the following
             // line has to be rewritten in a manner that this fossil understands:
             //rDofSet.emplace_back(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
-            std::pair<NodalData,Dof<double>> entry(1ul, Dof<double>());
+            detail::DofData entry {1ul, Dof<double>()};
             entry.first = NodalData(rp_dof->Id(), rpVariableList);
-            std::pair<NodalData,Dof<double>> wtf = std::move(entry);
+            detail::DofData wtf = std::move(entry);
             rDofSet.push_back(std::move(wtf));
         }
         rDofSet.back().first.SetSolutionStepData(*rp_dof->GetSolutionStepsData());

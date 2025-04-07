@@ -15,9 +15,9 @@
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler.hpp" // ConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // DiagonalScaling
+#include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_utilities.hpp" // detail::DofData
 #include "linear_solvers/linear_solver.h" // LinearSolver, Reorderer
 #include "includes/dof.h" // Dof
-#include "containers/nodal_data.h" // NodalData
 
 // System includes
 #include <memory> // std::shared_ptr
@@ -121,10 +121,7 @@ private:
     ///          DoFs need a pointer to a @ref NodalData object, which is why
     ///          pairs of @ref NodalData and @ref Dof are stored instead of just
     ///          DoFs.
-    std::vector<std::pair<
-        NodalData,
-        Dof<typename TDense::DataType>>
-    > mDofSet;
+    std::vector<detail::DofData> mDofSet;
 
     IndirectDofSet mIndirectDofSet;
 
