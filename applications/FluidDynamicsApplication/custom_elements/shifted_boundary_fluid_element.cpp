@@ -111,7 +111,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
         // Integrate over the boundary using the element's "AddBoundaryTraction" method
         // NOTE that this requires the location of the integration points of the boundary in global coordinates, for which then the local coordinates of the element are calculated
-        if (sur_bd_ids_vect.size() != 0) {
+        /*if (sur_bd_ids_vect.size() != 0) {
 
             // Get the parent geometry data
             double size_parent;
@@ -189,12 +189,12 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     this->AddBoundaryTraction(data, normal_sur_bd, rLeftHandSideMatrix, rRightHandSideVector);
                 }
             }
-        }
+        }*/
 
         // Integrate over the boundary using the faces' geometry
         // NOTE that this is the safer alternative because integration points are used directly and do not need to be found inside the element
         //TODO SPEED UP
-        /*if (sur_bd_ids_vect.size() != 0) {
+        if (sur_bd_ids_vect.size() != 0) {
 
             // Get the parent geometry data. It is calculated at the element midpoint.
             double size_parent;
@@ -224,7 +224,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 // Get the surrogate face's geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const std::size_t n_bd_points = r_sur_bd_geom.PointsNumber();  // number of nodes of the surrogate face
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
 
                 // Get integration points and their global shape function values of the surrogate boundary face
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(integration_method);  // matrix of SF values F_{ij}, where i is integration pt index and j is SF index
@@ -293,7 +293,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
             this->GetCurrentValuesVector(data, values);
             rLeftHandSideMatrix  += aux_LHS;
             rRightHandSideVector -= prod(aux_LHS, values);
-        }*/
+        }
     }
 
     KRATOS_CATCH("")
