@@ -10,8 +10,6 @@
 //  Main authors:    Gennady Markelov
 //
 
-#pragma once
-
 // Project includes
 #include "check_utilities.h"
 #include "includes/exception.h"
