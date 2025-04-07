@@ -215,16 +215,15 @@ void MohrCoulombWithTensionCutOff::GetLawFeatures(Features& rFeatures)
 
     rFeatures.SetStrainMeasure(StrainMeasure_Infinitesimal);
 
-    rFeatures.mStrainSize     = GetStrainSize();
-    rFeatures.mSpaceDimension = WorkingSpaceDimension();
+    rFeatures.SetStrainSize(GetStrainSize());
+    rFeatures.SetSpaceDimension(WorkingSpaceDimension());
 }
 
 void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     const auto& r_prop = rParameters.GetMaterialProperties();
 
-    const Flags& r_options = rParameters.GetOptions();
-    if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         rParameters.GetConstitutiveMatrix() =
             mpConstitutiveDimension->CalculateElasticMatrix(r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
     }
@@ -244,16 +243,17 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             CalculateCornerPoint(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]),
                                  r_prop[GEO_COHESION], r_prop[GEO_TENSILE_STRENGTH]);
 
-        if (IsStressAtTensionApexReturnZone(principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH], apex)) {
+        const auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
+        if (IsStressAtTensionApexReturnZone(trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH], apex)) {
             principal_trial_stress_vector = ReturnStressAtTensionApexReturnZone(
                 principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH]);
-        } else if (IsStressAtTensionCutoffReturnZone(principal_trial_stress_vector,
+        } else if (IsStressAtTensionCutoffReturnZone(trial_sigma_tau,
                                                      r_prop[GEO_TENSILE_STRENGTH], apex, corner_point)) {
             principal_trial_stress_vector = ReturnStressAtTensionCutoffReturnZone(
                 principal_trial_stress_vector,
                 mTensionCutOff.DerivativeOfFlowFunction(principal_trial_stress_vector),
                 r_prop[GEO_TENSILE_STRENGTH]);
-        } else if (IsStressAtCornerReturnZone(principal_trial_stress_vector,
+        } else if (IsStressAtCornerReturnZone(trial_sigma_tau,
                                               MathUtils<>::DegreesToRadians(r_prop[GEO_DILATANCY_ANGLE]),
                                               corner_point)) {
             principal_trial_stress_vector =
@@ -282,29 +282,26 @@ bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector
            mTensionCutOff.YieldFunctionValue(rPrincipalStresses) < tolerance;
 }
 
-bool MohrCoulombWithTensionCutOff::IsStressAtTensionApexReturnZone(const Vector& rPrincipalTrialStresses,
+bool MohrCoulombWithTensionCutOff::IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau,
                                                                    double TensileStrength,
                                                                    double Apex) const
 {
-    const auto trial_tau = TransformPrincipalStressesToSigmaAndTau(rPrincipalTrialStresses);
-    return TensileStrength < Apex && trial_tau[0] - trial_tau[1] - TensileStrength > 0.0;
+    return TensileStrength < Apex && rTrialSigmaTau[0] - rTrialSigmaTau[1] - TensileStrength > 0.0;
 }
 
-bool MohrCoulombWithTensionCutOff::IsStressAtTensionCutoffReturnZone(const Vector& rPrincipalTrialStresses,
+bool MohrCoulombWithTensionCutOff::IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau,
                                                                      double TensileStrength,
                                                                      double Apex,
                                                                      const Vector& rCornerPoint) const
 {
-    const auto trial_tau = TransformPrincipalStressesToSigmaAndTau(rPrincipalTrialStresses);
-    return TensileStrength < Apex && rCornerPoint[1] - trial_tau[1] - rCornerPoint[0] + trial_tau[0] > 0.0;
+    return TensileStrength < Apex && rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
 }
 
-bool MohrCoulombWithTensionCutOff::IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
+bool MohrCoulombWithTensionCutOff::IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
                                                               double        DilatancyAngle,
                                                               const Vector& rCornerPoint)
 {
-    const auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(rPrincipalTrialStresses);
-    return trial_sigma_tau[0] - rCornerPoint[0] - (trial_sigma_tau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
+    return rTrialSigmaTau[0] - rCornerPoint[0] - (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
 }
 
 Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
