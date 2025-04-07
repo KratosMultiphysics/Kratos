@@ -53,14 +53,12 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
     std::shared_ptr<ConstraintAssembler<TSparse,TDense>> mpConstraintAssembler;
 
-    typename TSparse::DataType mDiagonalScaleFactor;
-
     std::optional<std::variant<
         PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
         PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>
     >> mMaybeHierarchy;
 
-    DiagonalScaling mDiagonalScaling;
+    std::unique_ptr<Scaling> mpDiagonalScaling;
 
     int mMaxIterations;
 
@@ -77,9 +75,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
     Impl(Interface* pInterface)
         : mpInterface(pInterface),
           mpConstraintAssembler(),
-          mDiagonalScaleFactor(1),
           mMaybeHierarchy(),
-          mDiagonalScaling(DiagonalScaling::None),
+          mpDiagonalScaling(),
           mMaxIterations(0),
           mTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
           mMaxDepth(-1),
@@ -497,7 +494,6 @@ PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver(c
     : Interface(pSolver),
       mpImpl(new Impl(this))
 {
-    Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
     this->AssignSettings(Settings);
 }
 
@@ -792,17 +788,17 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
     const auto it_dof_set_begin = this->GetDofSet().begin();
     const auto it_dof_set_end = this->GetDofSet().begin() + this->GetDofSet().size();
 
-    mpImpl->mDiagonalScaleFactor = GetDiagonalScaleFactor<TSparse>(rLhs, mpImpl->mDiagonalScaling);
+    mpImpl->mpDiagonalScaling->template Cache<TSparse>(rLhs);
+    const auto diagonal_scale = mpImpl->mpDiagonalScaling->Evaluate();
     Kratos::ApplyDirichletConditions<TSparse,TDense>(rLhs,
                                                      rRhs,
                                                      it_dof_set_begin,
                                                      it_dof_set_end,
-                                                     mpImpl->mDiagonalScaleFactor);
+                                                     diagonal_scale);
     if (mpImpl->mMaybeHierarchy.has_value()) {
         std::visit([this](auto& r_grid){
                        r_grid.ApplyDirichletConditions(this->GetDofSet().begin(),
-                                                       this->GetDofSet().end(),
-                                                       mpImpl->mDiagonalScaling);
+                                                       this->GetDofSet().end());
                    },
                    mpImpl->mMaybeHierarchy.value());
     } // if mMaybeHierarchy
@@ -906,27 +902,35 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
 template <class TSparse, class TDense, class TSolver>
 void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Parameters Settings)
 {
+    // Mutable parameters.
+    Parameters settings = Settings;
+
     KRATOS_TRY
-    Parameters(Settings).ValidateAndAssignDefaults(this->GetDefaultParameters());
+    // Parse diagonal scaling and validate other settings.
+    Parameters default_parameters = this->GetDefaultParameters();
+    Parameters default_diagonal_scaling = default_parameters["diagonal_scaling"].Clone();
+    default_parameters.RemoveValue("diagonal_scaling");
+    std::optional<Parameters> maybe_diagonal_scaling = settings.Has("diagonal_scaling") ? settings["diagonal_scaling"].Clone() : std::optional<Parameters>();
+    if (maybe_diagonal_scaling.has_value()) settings.RemoveValue("diagonal_scaling");
+    settings.ValidateAndAssignDefaults(default_parameters);
+    settings.AddValue("diagonal_scaling", maybe_diagonal_scaling.has_value() ? maybe_diagonal_scaling.value() : default_diagonal_scaling);
+    mpImpl->mpDiagonalScaling = std::make_unique<Scaling>(settings["diagonal_scaling"]);
     KRATOS_CATCH("")
 
     KRATOS_TRY
-    Interface::AssignSettings(Settings);
+    Interface::AssignSettings(settings);
     KRATOS_CATCH("")
-
-    // Set the scaling strategy for the diagonal entries of constrained DoFs.
-    mpImpl->mDiagonalScaling = ParseDiagonalScaling(Settings);
 
     // Set the relative residual tolerance and max W cycles.
-    mpImpl->mMaxIterations = Settings["max_iterations"].Get<int>();
-    mpImpl->mTolerance = Settings["tolerance"].Get<double>();
+    mpImpl->mMaxIterations = settings["max_iterations"].Get<int>();
+    mpImpl->mTolerance = settings["tolerance"].Get<double>();
 
     // Set multifreedom constraint imposition strategy.
-    mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition_settings"],
+    mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(settings["constraint_imposition_settings"],
                                                                                "Grid 0 constraints");
 
     // Construct the top level smoother.
-    Parameters smoother_settings = Settings["smoother_settings"];
+    Parameters smoother_settings = settings["smoother_settings"];
     KRATOS_TRY
     KRATOS_ERROR_IF_NOT(smoother_settings.Has("solver_type"));
     const std::string solver_name = smoother_settings["solver_type"].Get<std::string>();
@@ -939,8 +943,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
     KRATOS_CATCH("")
 
     // Construct the coarse hierarchy.
-    Parameters leaf_solver_settings = Settings["linear_solver_settings"];
-    Parameters coarse_hierarchy_settings = Settings["coarse_hierarchy_settings"];
+    Parameters leaf_solver_settings = settings["linear_solver_settings"];
+    Parameters coarse_hierarchy_settings = settings["coarse_hierarchy_settings"];
     std::string coarse_build_precision = coarse_hierarchy_settings.Has("precision") ?
                                          coarse_hierarchy_settings["precision"].Get<std::string>() :
                                          std::string {"double"};
@@ -953,7 +957,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
         if (0 < coarse_hierarchy_settings["max_depth"].Get<int>()) {
             mpImpl->mMaybeHierarchy = GridType(coarse_hierarchy_settings,
                                                smoother_settings,
-                                               leaf_solver_settings);
+                                               leaf_solver_settings,
+                                               settings["diagonal_scaling"]);
         }
     } else if (coarse_build_precision == "single") {
         using CoarseSparseSpace = TUblasSparseSpace<float>;
@@ -964,7 +969,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
         if (0 < coarse_hierarchy_settings["max_depth"].Get<int>()) {
             mpImpl->mMaybeHierarchy = GridType(coarse_hierarchy_settings,
                                                smoother_settings,
-                                               leaf_solver_settings);
+                                               leaf_solver_settings,
+                                               settings["diagonal_scaling"]);
         }
     } else {
         KRATOS_ERROR << "unsupported coarse precision: \"" << coarse_build_precision << "\". "
@@ -975,7 +981,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
 
     // Other settings.
     KRATOS_TRY
-    mpImpl->mVerbosity = Settings["verbosity"].Get<int>();
+    mpImpl->mVerbosity = settings["verbosity"].Get<int>();
     KRATOS_CATCH("")
 }
 
@@ -998,7 +1004,7 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParamet
 {
     Parameters parameters = Parameters(R"({
 "name"              : "p_multigrid",
-"diagonal_scaling"  : "abs_max",
+"diagonal_scaling"  : "max",
 "verbosity"         : 1,
 "max_iterations"    : 1e2,
 "tolerance"         : 1e-8,

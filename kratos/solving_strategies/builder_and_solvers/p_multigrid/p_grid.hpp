@@ -40,7 +40,8 @@ public:
 
     PGrid(Parameters Settings,
           Parameters SmootherSettings,
-          Parameters LeafSolverSettings);
+          Parameters LeafSolverSettings,
+          Parameters DiagonalScalingSettings);
 
     PGrid(PGrid&&) noexcept = default;
 
@@ -62,8 +63,7 @@ public:
                   IndirectDofSet& rParentDofSet);
 
     void ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
-                                  typename IndirectDofSet::const_iterator itParentDofEnd,
-                                  const DiagonalScaling& rDiagonalScaling);
+                                  typename IndirectDofSet::const_iterator itParentDofEnd);
 
     void ApplyConstraints();
 
@@ -92,7 +92,8 @@ private:
     PGrid(Parameters Settings,
           const unsigned CurrentDepth,
           Parameters SmootherSettings,
-          Parameters LeafSolverSettings);
+          Parameters LeafSolverSettings,
+          Parameters DiagonalScalingSettings);
 
     PGrid(const PGrid&) = delete;
 
@@ -130,6 +131,8 @@ private:
     std::vector<std::size_t> mDofMap;
 
     std::shared_ptr<ConstraintAssembler<TSparse,TDense>> mpConstraintAssembler;
+
+    std::unique_ptr<Scaling> mpDiagonalScaling;
 
     typename LinearSolverType::Pointer mpSolver;
 

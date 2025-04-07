@@ -34,7 +34,8 @@ template <class TSparse, class TDense>
 PGrid<TSparse,TDense>::PGrid(Parameters Settings,
                              const unsigned CurrentDepth,
                              Parameters SmootherSettings,
-                             Parameters LeafSolverSettings)
+                             Parameters LeafSolverSettings,
+                             Parameters DiagonalScalingSettings)
     : mRestrictionOperator(),
       mProlongationOperator(),
       mLhs(),
@@ -44,6 +45,7 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
       mIndirectDofSet(),
       mDofMap(),
       mpConstraintAssembler(),
+      mpDiagonalScaling(),
       mpSolver(),
       mMaybeChild(),
       mVerbosity(),
@@ -74,6 +76,7 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
 
     mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(Settings["constraint_imposition_settings"],
                                                                        "Grid " + std::to_string(mDepth) + " constraints");
+    mpDiagonalScaling = std::make_unique<Scaling>(DiagonalScalingSettings);
     mVerbosity = Settings["verbosity"].Get<int>();
 
     const int max_depth = Settings["max_depth"].Get<int>();
@@ -91,7 +94,8 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
         mMaybeChild = std::unique_ptr<PGrid>(new PGrid(Settings,
                                                        mDepth + 1u,
                                                        SmootherSettings,
-                                                       LeafSolverSettings));
+                                                       LeafSolverSettings,
+                                                       DiagonalScalingSettings));
         KRATOS_CATCH(std::to_string(mDepth + 1u));
     } else {
         KRATOS_ERROR_IF_NOT(LeafSolverSettings.Has("solver_type"));
@@ -120,11 +124,13 @@ PGrid<TSparse,TDense>::PGrid(Parameters Settings,
 template <class TSparse, class TDense>
 PGrid<TSparse,TDense>::PGrid(Parameters Settings,
                              Parameters SmootherSettings,
-                             Parameters LeafSolverSettings)
+                             Parameters LeafSolverSettings,
+                             Parameters DiagonalScalingSettings)
     : PGrid(Settings,
             1u,
             SmootherSettings,
-            LeafSolverSettings)
+            LeafSolverSettings,
+            DiagonalScalingSettings)
 {
 }
 
@@ -133,7 +139,8 @@ template <class TSparse, class TDense>
 PGrid<TSparse,TDense>::PGrid()
     : PGrid(Parameters(),
             Parameters(R"({"solver_type" : "gauss_seidel"})"),
-            Parameters(R"({"solver_type" : "amgcl"})"))
+            Parameters(R"({"solver_type" : "amgcl"})"),
+            Parameters(R"("norm")"))
 {
 }
 
@@ -277,8 +284,7 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
 
 template <class TSparse, class TDense>
 void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
-                                                     [[maybe_unused]] typename IndirectDofSet::const_iterator itParentDofEnd,
-                                                     const DiagonalScaling& rDiagonalScaling)
+                                                     [[maybe_unused]] typename IndirectDofSet::const_iterator itParentDofEnd)
 {
 
     if (mIndirectDofSet.empty()) return;
@@ -325,12 +331,14 @@ void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::co
 
     // Apply dirichlet conditions on the LHS.
     KRATOS_TRY
+    mpDiagonalScaling->Cache<TSparse>(mLhs);
+    const auto diagonal_scale = mpDiagonalScaling->Evaluate();
     Kratos::ApplyDirichletConditions<TSparse,TDense>(
         mLhs,
         mRhs,
         mIndirectDofSet.begin(),
         mIndirectDofSet.end(),
-        GetDiagonalScaleFactor<TSparse>(mLhs, rDiagonalScaling));
+        diagonal_scale);
     KRATOS_CATCH("")
 }
 

@@ -79,7 +79,7 @@ private:
 
     std::unordered_set<std::size_t> mInactiveSlaveIds;
 
-    DiagonalScaling mDiagonalScaling;
+    std::unique_ptr<Scaling> mpDiagonalScaling;
 }; // class MasterSlaveConstraintAssembler
 
 

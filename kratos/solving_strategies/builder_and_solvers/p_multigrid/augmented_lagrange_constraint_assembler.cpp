@@ -14,6 +14,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.hpp" // AugmentedLagrangeConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint
+#include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // Scaling
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 
@@ -133,6 +134,8 @@ struct AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Impl
 
     std::optional<typename TSparse::MatrixType> mMaybeTransposeRelationMatrix;
 
+    std::unique_ptr<Scaling> mpPenaltyFunctor;
+
     int mVerbosity;
 }; // struct AugmentedLagrangeConstraintAssembler::Impl
 
@@ -157,19 +160,30 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstrain
     : Base(ConstraintImposition::AugmentedLagrange, std::move(rInstanceName)),
       mpImpl(new Impl{/*mConstraintIdToIndexMap: */std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>(),
                       /*mMaybeTransposeRelationMatrix: */std::optional<typename TSparse::MatrixType>(),
+                      /*mpScaling*/ nullptr,
                       /*mVerbosity: */1})
 {
     KRATOS_INFO_IF(this->Info(), 2 <= mpImpl->mVerbosity && !this->GetName().empty())
         << ": aliased to " << this->GetName();
 
-    Settings.ValidateAndAssignDefaults(AugmentedLagrangeConstraintAssembler::GetDefaultParameters());
+    // Parse the penalty factor and validate other settings.
+    Parameters default_parameters = this->GetDefaultParameters();
+    Parameters default_penalty_factor = default_parameters["penalty_factor"].Clone();
+    default_parameters.RemoveValue("penalty_factor");
+    std::optional<Parameters> maybe_penalty_factor = Settings.Has("penalty_factor") ? Settings["penalty_factor"].Clone() : std::optional<Parameters>();
+    if (maybe_penalty_factor.has_value()) Settings.RemoveValue("penalty_factor");
+    Settings.ValidateAndAssignDefaults(default_parameters);
+    Settings.AddValue("penalty_factor", maybe_penalty_factor.has_value() ? maybe_penalty_factor.value() : default_penalty_factor);
+    mpImpl->mpPenaltyFunctor = std::make_unique<Scaling>(Settings["penalty_factor"]);
 
-    Vector algorithmic_parameters(3);
-    algorithmic_parameters[0] = Settings["penalty_factor"].Get<double>();
-    algorithmic_parameters[1] = Settings["initial_lagrange_multiplier"].Get<double>();
-    algorithmic_parameters[2] = Settings["tolerance"].Get<double>();
+    // Parse other algorithmic settings.
+    Vector algorithmic_parameters(2);
+    algorithmic_parameters[0] = Settings["initial_lagrange_multiplier"].Get<double>();
+    algorithmic_parameters[1] = Settings["tolerance"].Get<double>();
     this->SetValue(this->GetAlgorithmicParametersVariable(), algorithmic_parameters);
     this->SetValue(NL_ITERATION_NUMBER, Settings["max_iterations"].Get<int>());
+
+    // Parse miscellaneous settings.
     this->mpImpl->mVerbosity = Settings["verbosity"].Get<int>();
 }
 
@@ -269,7 +283,9 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
 
     // Fetch function-wide constants.
     using SparseUtils = SparseMatrixMultiplicationUtility;
+    mpImpl->mpPenaltyFunctor->template Cache<TSparse>(rLhs);
     const typename TSparse::DataType penalty_factor = this->GetPenaltyFactor();
+    std::cout << rLhs.size1() << " " << "penalty factor" << " " << penalty_factor << "\n";
     const typename TSparse::DataType initial_lagrange_multiplier = this->GetInitialLagrangeMultiplier();
 
     // Apply initial penalty- and lagrange terms to the left- and right hand sides.
@@ -390,12 +406,19 @@ Parameters AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetDefaultParam
 {
     return Parameters(R"({
 "method" : "augmented_lagrange",
-"penalty_factor" : 1e12,
+"penalty_factor" : "norm",
 "initial_lagrange_multiplier" : 0.0,
 "tolerance" : 1e-6,
 "max_iterations" : 1e1,
 "verbosity" : 1
 })");
+}
+
+
+template <class TSparse, class TDense>
+typename TSparse::DataType AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetPenaltyFactor() const
+{
+    return mpImpl->mpPenaltyFunctor->Evaluate();
 }
 
 

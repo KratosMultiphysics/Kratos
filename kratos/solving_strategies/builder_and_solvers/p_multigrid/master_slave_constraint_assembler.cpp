@@ -42,11 +42,18 @@ MasterSlaveConstraintAssembler<TSparse,TDense>::MasterSlaveConstraintAssembler(P
       mSlaveIds(),
       mMasterIds(),
       mInactiveSlaveIds(),
-      mDiagonalScaling(DiagonalScaling::None)
+      mpDiagonalScaling()
 {
     KRATOS_TRY
-    Settings.ValidateAndAssignDefaults(MasterSlaveConstraintAssembler::GetDefaultParameters());
-    mDiagonalScaling = ParseDiagonalScaling(Settings);
+    // Parse diagonal scaling and validate other settings.
+    Parameters default_parameters = this->GetDefaultParameters();
+    Parameters default_diagonal_scaling = default_parameters["diagonal_scaling"].Clone();
+    default_parameters.RemoveValue("diagonal_scaling");
+    std::optional<Parameters> maybe_diagonal_scaling = Settings.Has("diagonal_scaling") ? Settings["diagonal_scaling"].Clone() : std::optional<Parameters>();
+    if (maybe_diagonal_scaling.has_value()) Settings.RemoveValue("diagonal_scaling");
+    Settings.ValidateAndAssignDefaults(default_parameters);
+    Settings.AddValue("diagonal_scaling", maybe_diagonal_scaling.has_value() ? maybe_diagonal_scaling.value() : default_diagonal_scaling);
+    mpDiagonalScaling = std::make_unique<Scaling>(Settings["diagonal_scaling"]);
     KRATOS_CATCH("")
 }
 
@@ -231,7 +238,8 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse
     } // deallocate left_multiplied_lhs
 
     // Compute the scale factor for slave DoFs.
-    typename TSparse::DataType diagonal_scale_factor = GetDiagonalScaleFactor<TSparse>(rLhs, this->mDiagonalScaling);
+    mpDiagonalScaling->template Cache<TSparse>(rLhs);
+    typename TSparse::DataType diagonal_scale_factor = mpDiagonalScaling->Evaluate();
 
     // Apply diagonal values on slaves.
     block_for_each(this->mSlaveIds, [this, &rLhs, &rRhs, diagonal_scale_factor](const auto iSlave){
@@ -289,7 +297,7 @@ Parameters MasterSlaveConstraintAssembler<TSparse,TDense>::GetDefaultParameters(
 {
     return Parameters(R"({
 "method" : "master_slave",
-"diagonal_scaling" : "none"
+"diagonal_scaling" : "norm"
 })");
 }
 

@@ -78,19 +78,16 @@ public:
 
     static Parameters GetDefaultParameters();
 
-    typename TSparse::DataType GetPenaltyFactor() const
+    typename TSparse::DataType GetPenaltyFactor() const;
+
+    typename TSparse::DataType GetInitialLagrangeMultiplier() const
     {
         return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[0];
     }
 
-    typename TSparse::DataType GetInitialLagrangeMultiplier() const
-    {
-        return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[1];
-    }
-
     typename TSparse::DataType GetTolerance() const
     {
-        return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[2];
+        return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[1];
     }
 
     static const Variable<Vector>& GetAlgorithmicParametersVariable() noexcept
