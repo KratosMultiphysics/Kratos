@@ -95,7 +95,7 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 
 4. Evaluate the condition and mapping
   - If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.
-  - If the trial stress falls in the axial apex return zone. The trial stress then needs to be mapped back to the apex.
+  - If the trial stress falls in the tensile apex return zone. The trial stress then needs to be mapped back to the apex.
   - If the trial stress falls in the tensile cutoff zone. The trial stress then needs to be mapped back to the tension cutoff line.
   - If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.
   - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve along the normal direction of flow function. The flow function is defined by
