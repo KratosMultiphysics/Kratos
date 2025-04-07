@@ -241,8 +241,8 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
         }
         if(principal_damage_increment_vector[0] > 0.0 || principal_damage_increment_vector[1] > 0.0 || principal_damage_increment_vector[2] > 0.0){
             GetDamageEffectTensor(damage_effect_tensor, principal_damage_vector);
-            GetTransformedDamageEffectTensor(transformed_damage_effect_tensor, damage_effect_tensor, r_strain_vector);
-            MathUtils<double>::InvertMatrix(transformed_damage_effect_tensor, Inv_M, det_M);
+            //GetTransformedDamageEffectTensor(transformed_damage_effect_tensor, damage_effect_tensor, r_strain_vector);
+            MathUtils<double>::InvertMatrix(damage_effect_tensor, Inv_M, det_M);
             const BoundedMatrixVoigtType temp =prod(Inv_M, r_elasticity_matrix);
             noalias(r_stress_vector)  = prod(temp, r_strain_vector);
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
