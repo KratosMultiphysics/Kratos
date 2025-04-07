@@ -1016,9 +1016,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.initial_functional_derivatives_wrt_design = self.functional_derivatives_wrt_design
 
     def _ComputeFunctionalDerivatives(self):
+        mask = self._GetOptimizationDomainNodesMask()
         temp_functional_derivatives_wrt_design = np.zeros(self.n_nodes)
         temp_functional_derivatives_wrt_design = self._ComputeFunctionalDerivativesFunctionalContribution()
         temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesPhysicsContribution()
+        temp_functional_derivatives_wrt_design_projected = temp_functional_derivatives_wrt_design * self.design_parameter_projected_derivatives
+        temp_functional_derivatives_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(temp_functional_derivatives_wrt_design_projected[mask])
         return temp_functional_derivatives_wrt_design
         
     def _UpdateFunctionalDerivativesVariable(self):
@@ -1035,13 +1038,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ComputeFunctionalDerivativesFluidFunctionalContribution(self):
         mp = self._GetComputingModelPart()
         velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        return self.functional_weights[0]*self.resistance_derivative_wrt_design * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
+        return self.functional_weights[0]*self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
 
     def _ComputeFunctionalDerivativesFluidPhysicsContribution(self):
         mp = self._GetComputingModelPart()
         velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         velocity_adjoint= np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)        
-        return self.resistance_derivative_wrt_design * np.sum(velocity*velocity_adjoint, axis=1) * self.nodal_domain_sizes
+        return self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity_adjoint, axis=1) * self.nodal_domain_sizes
 
     def _EvaluateVolumeConstraintAndDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
@@ -1292,7 +1295,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _BuildNodesConnectivity(self):
         if (self.diffusive_filter_radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
             self.diffusive_filter_radius = 1e-10
-        print("--|" + self.topology_optimization_stage_str + "| ---> Build Nodes Connectivity self.nodes_connectivity_matrix")
+        print("--|" + self.topology_optimization_stage_str + "| ---> Build Nodes Connectivity")
         mp = self._GetComputingModelPart()
         mask = self._GetOptimizationDomainNodesMask()
         only_opt_mp_nodes = self._GetModelPartNodesSubset(mp, mask+1)
@@ -1307,7 +1310,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         row_indices = np.repeat(np.arange(self.nodes_connectivity_matrix.shape[0]), np.diff(self.nodes_connectivity_matrix.indptr))
         self.nodes_connectivity_matrix.data /= self.nodes_connectivity_weights_sum[row_indices]
         self.nodes_connectivity_matrix_for_derivatives = self.nodes_connectivity_matrix.copy()
-        self._CorrectNodesConnectivityMatrixForDerivativesWithSymmetry()
+        self._CorrectNodesConnectivityMatrixForDerivativesWithSymmetryAndTranspose()
 
     def _CorrectNodesConnectivityMatrixWithSymmetry(self):
         """
@@ -1327,7 +1330,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                         if col != row:
                             self.nodes_connectivity_matrix.data[idx] *= 2.0
 
-    def _CorrectNodesConnectivityMatrixForDerivativesWithSymmetry(self):
+    def _CorrectNodesConnectivityMatrixForDerivativesWithSymmetryAndTranspose(self):
         """
         Correct the nodes connnectvity matrix for drivatives to not take intop account a oduble value of the gradient in a node
         Note: IT WORKS WELL WITH REGULAR MESHES AND FILTER RADIUS OF THE SIZE OF THE ELEMENTS
@@ -1344,7 +1347,20 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                         col = self.nodes_connectivity_matrix_for_derivatives.indices[idx]
                         if col != row:
                             self.nodes_connectivity_matrix_for_derivatives.data[idx] /= 2.0
-
+        self.nodes_connectivity_matrix_for_derivatives = self.nodes_connectivity_matrix_for_derivatives.transpose().tocsr()
+        if (self.symmetry_enabled):
+            symm_to_opt_mask_nodes = self.global_to_opt_mask_nodes[self.symmetry_nodes_mask]
+            for inode in range(symm_to_opt_mask_nodes.size):
+                mask_node = symm_to_opt_mask_nodes[inode]
+                if (mask_node != -1):
+                    row = mask_node
+                    start = self.nodes_connectivity_matrix_for_derivatives.indptr[row]
+                    end = self.nodes_connectivity_matrix_for_derivatives.indptr[row + 1]
+                    for idx in range(start, end):
+                        col = self.nodes_connectivity_matrix_for_derivatives.indices[idx]
+                        if col != row:
+                            self.nodes_connectivity_matrix_for_derivatives.data[idx] *= 2.0
+        
     def _ApplyDesignParameterDiffusiveFilter(self, design_parameter):
         print("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter:", self.apply_diffusive_filter)
         self.design_parameter_filtered = design_parameter
@@ -1383,7 +1399,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _ApplyDiffusiveFilterDerivative(self, scalar_variable_derivative):
         if (self.apply_diffusive_filter):
-            return (scalar_variable_derivative.T @ self.nodes_connectivity_matrix_for_derivatives).T
+            return self.nodes_connectivity_matrix_for_derivatives @ scalar_variable_derivative
         else:
             return scalar_variable_derivative
         
