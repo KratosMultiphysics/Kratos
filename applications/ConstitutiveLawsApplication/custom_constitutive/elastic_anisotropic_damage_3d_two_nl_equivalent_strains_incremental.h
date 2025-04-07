@@ -368,6 +368,27 @@ protected:
     {
         return (Number > 0.0) ? Number : 0.0;
     }
+    double KroneckerDelta(const int i, const int j)
+    {
+        if( i==j )
+        return 1;
+        else
+        return 0;
+   }
+    void VoigtToTensorNotation(SizeType& first,
+    SizeType& second,
+    const SizeType& i);
+
+    SizeType ToVoigtNotation( const SizeType& i,
+    const SizeType& j){
+        if (i == j) return i;
+        if ((i == 0 && j == 1) || (i == 1 && j == 0)) return 3;
+        if ((i == 0 && j == 2) || (i == 2 && j == 0)) return 5;
+        if ((i == 1 && j == 2) || (i == 2 && j == 1)) return 4;
+        return -1;
+    }
+
+
     void TransformPrincipalDamageToGlobal(BoundedMatrixType& DamageTensor,
                                                     const BoundedVectorType& PrinicipalDamageVector,
                                                     const Vector& StrainVector
@@ -481,7 +502,18 @@ protected:
                                            const Variable<Vector>& rThisVariable);
 
 
-
+    void CalculatePartialDerivativeMatrix(
+        BoundedMatrixVoigtType& PartialDerivativeMatrix,
+        ConstitutiveLaw::Parameters& rParametersValues,
+        const BoundedVectorType &Damage_Vector,
+        const BoundedVectorType &kappa,
+        const BoundedVectorType& beta1,
+        const BoundedVectorType& beta2,
+        const BoundedVectorType& k0,
+        const BoundedVectorType &principal_nonlocal_equivalent_strains,
+        const Vector& local_equivalent_strains,
+        const Vector& nonlocal_equivalent_strains
+        );
     /**
      * @brief This method assembles constitutive matrix
      * @param ConstitutiveMatrix
@@ -499,7 +531,10 @@ protected:
                                     const double& H_NLNL
                                     );
 
-
+    void CalculateInverseDamageEffectTensor(
+    BoundedMatrixVoigtType& InverseDamageEffectTensor,
+    const BoundedMatrixType& DamageTensor
+    );
     ///@}
 private:
 
