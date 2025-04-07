@@ -28,10 +28,9 @@ Condition::Pointer UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::Create(Inde
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
+void UPwNormalFluxInterfaceCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                                     const ProcessInfo& CurrentProcessInfo)
 {
-    // Previous definitions
     const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(this->GetIntegrationMethod());
