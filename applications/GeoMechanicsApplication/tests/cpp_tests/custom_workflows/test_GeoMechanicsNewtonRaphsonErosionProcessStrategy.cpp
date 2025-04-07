@@ -31,8 +31,7 @@ TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
 {
     // Arrange
     auto workingDirectory =
-        "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/" +
-        GetParam();
+        "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/" + GetParam();
     auto projectFile = "ProjectParameters.json";
 
     auto execute = KratosExecute();
