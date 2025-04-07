@@ -26,6 +26,7 @@
 #include "includes/element.h"
 #include "utilities/divide_geometry.h"
 #include "modified_shape_functions/modified_shape_functions.h"
+#include "intersection_points_container.h"
 
 namespace Kratos
 {
