@@ -17,7 +17,6 @@
 
 // Project includes
 #include "future/linear_solvers/direct_solver.h"
-#include "future/linear_solvers/reorderer.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
@@ -488,15 +487,15 @@ public:
 
 
 
-template<class TMatrixType, class TVectorType, class TReordererType = Reorderer<TMatrixType, TVectorType> >
-class SkylineLUFactorizationSolver : public Future::DirectSolver<TMatrixType, TVectorType, TReordererType>
+template<class TMatrixType, class TVectorType>
+class SkylineLUFactorizationSolver : public Future::DirectSolver<TMatrixType, TVectorType>
 {
 public:
 
     /// Counted pointer of SkylineLUFactorizationSolver
     KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
-    typedef Future::DirectSolver<TMatrixType, TVectorType, TReordererType> BaseType;
+    typedef Future::DirectSolver<TMatrixType, TVectorType> BaseType;
 
     using VectorType = TVectorType;
 
@@ -614,19 +613,19 @@ public:
 
 
 /// input stream function
-template<class TMatrixType, class TVectorType,class TReordererType>
+template<class TMatrixType, class TVectorType>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    SkylineLUFactorizationSolver<TMatrixType,TVectorType,TReordererType>& rThis)
+    SkylineLUFactorizationSolver<TMatrixType,TVectorType>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType, class TReordererType>
+template<class TMatrixType, class TVectorType>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const SkylineLUFactorizationSolver<TMatrixType, TVectorType, TReordererType>& rThis)
+    const SkylineLUFactorizationSolver<TMatrixType, TVectorType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
