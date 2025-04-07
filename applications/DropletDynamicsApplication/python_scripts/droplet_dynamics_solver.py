@@ -353,16 +353,18 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         for element in self.main_model_part.Elements:
             KratosDroplet.IntersectionPointsUtility.CollectElementIntersectionPoints(element)
         
-        # Run diagnostic to check how many elements are split by the level-set
-        KratosDroplet.IntersectionPointsUtility.DiagnosticOutput(self.main_model_part)
+        # # Run diagnostic to check how many elements are split by the level-set
+        # KratosDroplet.IntersectionPointsUtility.DiagnosticOutput(self.main_model_part)
     
         # Get all intersection points
         points = KratosDroplet.IntersectionPointsUtility.GetIntersectionPoints()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Collected {len(points)} intersection points.")
     
-        # Save to file - make sure the path is correct
+        # Save intersection points to file
         KratosDroplet.IntersectionPointsUtility.SaveIntersectionPointsToFile("intersection_points.txt")
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Saved intersection points to intersection_points.txt")
+    
+        # Fit curves to the points on an element-by-element basis
+        KratosDroplet.IntersectionPointsUtility.ProcessIntersectionPointsAndFitCurves("element_curves.txt")
     
 
         # filtering noises is necessary for curvature calculation
