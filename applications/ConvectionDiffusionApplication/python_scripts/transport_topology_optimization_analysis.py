@@ -365,8 +365,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))
         transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        transport_diffusion_functional_derivatives_wrt_design  = self.functional_weights[5]*self.conductivity_derivative_wrt_design * np.sum(transport_scalar_gradient*transport_scalar_gradient, axis=1) * self.nodal_domain_sizes
-        transport_convection_functional_derivatives_wrt_design = self.functional_weights[6]*self.convection_coefficient_derivative_wrt_design * (transport_scalar*(np.sum(velocity*transport_scalar_gradient, axis=1))) * self.nodal_domain_sizes
+        transport_diffusion_functional_derivatives_wrt_design  = self.functional_weights[5]* self.conductivity_derivative_wrt_design * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_gradient) * self.nodal_domain_sizes
+        transport_convection_functional_derivatives_wrt_design = self.functional_weights[6]*self.convection_coefficient_derivative_wrt_design * (transport_scalar*(np.einsum('ij,ij->i', velocity, transport_scalar_gradient))) * self.nodal_domain_sizes
         transport_decay_functional_derivatives_wrt_design      = self.functional_weights[7]*self.decay_derivative_wrt_design * (transport_scalar**2) * self.nodal_domain_sizes
         return transport_diffusion_functional_derivatives_wrt_design+transport_convection_functional_derivatives_wrt_design+transport_decay_functional_derivatives_wrt_design 
     
@@ -377,7 +377,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         transport_scalar_adjoint = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_ADJ, 0))
         transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
         transport_scalar_adj_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_ADJ_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        transport_physics_functional_derivatives_wrt_design  = self.conductivity_derivative_wrt_design * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_adj_gradient) * self.nodal_domain_sizes
+        transport_physics_functional_derivatives_wrt_design  = self.conductivity_derivative_wrt_design * self.nodal_domain_sizes * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_adj_gradient)
         transport_physics_functional_derivatives_wrt_design += self.decay_derivative_wrt_design * (transport_scalar*transport_scalar_adjoint) * self.nodal_domain_sizes
         transport_physics_functional_derivatives_wrt_design += self.convection_coefficient_derivative_wrt_design * np.einsum('ij,ij->i', velocity, transport_scalar_gradient) * transport_scalar_adjoint * self.nodal_domain_sizes
         return transport_physics_functional_derivatives_wrt_design

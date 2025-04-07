@@ -19,7 +19,9 @@ class ApplyFluidTopologyOptimizationFixVelocityComponentProcess(KratosMultiphysi
                 "interval"        : [0.0,1e30],
                 "component"       : "Z",
                 "value_physics"   : 0.0,
-                "value_adjoint"   : 0.0
+                "value_adjoint"   : 0.0,
+                "constrained_physics" : true,
+                "constrained_adjoint" : true
             }
             """)
 
@@ -36,6 +38,8 @@ class ApplyFluidTopologyOptimizationFixVelocityComponentProcess(KratosMultiphysi
         component = settings["component"].GetString().upper()
         value_physics = settings["value_physics"].GetDouble()
         value_adjoint = settings["value_adjoint"].GetDouble()
+        constrained_physics = settings["constrained_physics"].GetBool()
+        constrained_adjoint = settings["constrained_adjoint"].GetBool()
 
         velocity_settings = KratosMultiphysics.Parameters("""
             {
@@ -44,7 +48,7 @@ class ApplyFluidTopologyOptimizationFixVelocityComponentProcess(KratosMultiphysi
                 "variable_name"        : "VELOCITY_""" + component + """\",
                 "interval"             : """ + interval + """,
                 "value"                : """ + str(value_physics) + """,
-                "constrained"          : true,
+                "constrained"          : """ + str(constrained_physics).lower() + """,
                 "local_axes"           : {}
             }
             """
@@ -57,7 +61,7 @@ class ApplyFluidTopologyOptimizationFixVelocityComponentProcess(KratosMultiphysi
                 "variable_name"        : "VELOCITY_ADJ_""" + component + """\",
                 "interval"             : """ + interval + """,
                 "value"                : """ + str(value_adjoint) + """,
-                "constrained"          : true,
+                "constrained"          : """ + str(constrained_adjoint).lower() + """,
                 "local_axes"           : {}
             }
             """

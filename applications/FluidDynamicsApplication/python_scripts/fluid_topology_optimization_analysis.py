@@ -364,6 +364,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.nodes_in_element = mp.Elements[1].GetGeometry().PointsNumber()
         self._OrderNodes()
         self._OrderElements()
+        self._InitializeDomainSymmetry()
         self._ComputeNodalDomainSizes()
     
     def _InitializeOptimization(self):  
@@ -462,6 +463,23 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (count != len(mp.Elements)):
             KratosMultiphysics.Logger.PrintError("Wrong reordering of elements ids. The counted number of elements is different from len(mp.Elements).")
         self.n_elements = count
+
+    def _InitializeDomainSymmetry(self):
+        self.symmetry_settings = self.optimization_settings["symmetry_settings"]
+        self.symmetry_enabled = self.symmetry_settings["symmetry"].GetBool()
+        self.symmetry_model_part_name = self.symmetry_settings["model_part_name"].GetString()
+        if (self.symmetry_enabled):
+            sym_mp = self._GetSubModelPart(self._GetMainModelPart(), self.symmetry_model_part_name)
+            if (sym_mp is None):
+                KratosMultiphysics.Logger.PrintError("Trying to exploit symmetry in a non existent symmetry plane model part")
+            else:
+                self.symmetry_nodes_mask = np.zeros(len(sym_mp.Nodes), dtype=int)
+                count = 0
+                for node in sym_mp.Nodes:
+                    self.symmetry_nodes_mask[count] = node.Id-1
+                    count +=1
+        else:
+            self.symmetry_nodes_mask = np.asarray([])
     
     def _ComputeNodalDomainSizes(self):
         """
@@ -480,7 +498,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.total_domain_size = self.total_domain_size + elem_domain_size
             for node in geom:
                 self.nodal_domain_sizes[node.Id-1] += elem_domain_size * contribution_factor
+        self._CorrectNodalDomainSizesWithSymmetry()
         self._UpdateNodalAreaVariable()
+
+    def _CorrectNodalDomainSizesWithSymmetry(self):
+        if (self.symmetry_enabled):
+            self.nodal_domain_sizes[self.symmetry_nodes_mask] *= 2.0
         
     def _UpdateNodalAreaVariable(self):
         mp = self._GetComputingModelPart()
@@ -493,12 +516,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         gradient_process.Execute()
 
     def _OptimizationGeometricalPreprocessing(self):
-        self._ComputeOptimizationDomainSize()
+        self._ComputeNodalOptimizationDomainSizes()
         self._ComputeOptimizationDomainNodesMask()
         self._ComputeDesignParameterDiffusiveFilterUtilities()
         self._ComputeDesignParameterProjectiveFilterUtilities()
     
-    def _ComputeOptimizationDomainSize(self):
+    def _ComputeNodalOptimizationDomainSizes(self):
         """
         This method compute the nodal optimization domain size. WORKS ONLY FOR TRIANGULAR AND TETRAHEDRAL MESH
         The idea is that the nodal contribution is defined on each node, but it is != 0.0 only in optimization nodes.
@@ -515,6 +538,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.optimization_domain_size = self.optimization_domain_size + elem_domain_size
             for node in geom:
                 self.nodal_optimization_domain_sizes[node.Id-1] += elem_domain_size * contribution_factor
+        self._CorrectNodalOptimizationDomainSizesWithSymmetry()
+
+    def _CorrectNodalOptimizationDomainSizesWithSymmetry(self):
+        if (self.symmetry_enabled):
+            self.nodal_optimization_domain_sizes[self.symmetry_nodes_mask] *= 2.0
 
     def _ComputeOptimizationDomainNodesMask(self):
         """
@@ -526,10 +554,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         mp = self._GetComputingModelPart()
 
         #define the boolean search for the nodes belonging only to the optimization domain model part
-        self.is_only_opt_domain_node = np.ones(self.n_nodes, dtype=int)
+        self.global_to_opt_mask_nodes = np.ones(self.n_nodes, dtype=int)
+        # -1: non opt
+        # else: position in th optimization mask
         if (not (non_opt_mp is None)):
             for node in non_opt_mp.Nodes:
-                self.is_only_opt_domain_node[node.Id-1] = 0
+                self.global_to_opt_mask_nodes[node.Id-1] = -1
             n_non_opt_nodes = len(non_opt_mp.Nodes)
         else:
             n_non_opt_nodes = 0
@@ -537,7 +567,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         # self.opt_non_opt_interface_nodes = np.zeros(self.n_nodes, dtype=int)
         # count_nodes_at_opt_non_opt_interface = 0
         # for node in opt_mp.Nodes:
-        #     if (self.is_only_opt_domain_node[node.Id] == 0):
+        #     if (self.global_to_opt_mask_nodes[node.Id] == 0):
         #         self.opt_non_opt_interface_nodes[count_nodes_at_opt_non_opt_interface] = node.Id-1
         #         count_nodes_at_opt_non_opt_interface = count_nodes_at_opt_non_opt_interface+1
         # self.opt_non_opt_interface_nodes = self.opt_non_opt_interface_nodes[:count_nodes_at_opt_non_opt_interface]
@@ -548,9 +578,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.optimization_domain_nodes_mask = np.zeros(self.n_opt_design_parameters, dtype=int)
         count_opt_nodes = 0
         for node in mp.Nodes:
-            if (self.is_only_opt_domain_node[node.Id-1] == 1): #if the node is only in the optimization domain, add it to the mask
+            if (self.global_to_opt_mask_nodes[node.Id-1] != -1): #if the node is only in the optimization domain, add it to the mask
                 self.optimization_domain_nodes_mask[count_opt_nodes] = node.Id-1
-                count_opt_nodes = count_opt_nodes+1
+                self.global_to_opt_mask_nodes[node.Id-1] = count_opt_nodes
+                count_opt_nodes +=1
         if (count_opt_nodes != self.n_opt_design_parameters):
             print("!!! WARNING: wrong initialization of the Optimization Domain Nodes Mask")
 
@@ -985,7 +1016,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.initial_functional_derivatives_wrt_design = self.functional_derivatives_wrt_design
 
     def _ComputeFunctionalDerivatives(self):
-        temp_functional_derivatives_wrt_design = np.asarray(self.n_nodes)
+        temp_functional_derivatives_wrt_design = np.zeros(self.n_nodes)
         temp_functional_derivatives_wrt_design = self._ComputeFunctionalDerivativesFunctionalContribution()
         temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesPhysicsContribution()
         return temp_functional_derivatives_wrt_design
@@ -1261,7 +1292,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _BuildNodesConnectivity(self):
         if (self.diffusive_filter_radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
             self.diffusive_filter_radius = 1e-10
-        print("--|" + self.topology_optimization_stage_str + "| ---> Build Nodes Connectivity Matrix")
+        print("--|" + self.topology_optimization_stage_str + "| ---> Build Nodes Connectivity self.nodes_connectivity_matrix")
         mp = self._GetComputingModelPart()
         mask = self._GetOptimizationDomainNodesMask()
         only_opt_mp_nodes = self._GetModelPartNodesSubset(mp, mask+1)
@@ -1270,10 +1301,49 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.nodes_connectivity_matrix = nodes_tree.sparse_distance_matrix(nodes_tree, self.diffusive_filter_radius, output_type="dok_matrix").tocsr()
         self.nodes_connectivity_matrix.data *= -1
         self.nodes_connectivity_matrix.data += self.diffusive_filter_radius
+        self._CorrectNodesConnectivityMatrixWithSymmetry()
         self.nodes_connectivity_weights_sum = np.array(self.nodes_connectivity_matrix.sum(axis=1)).flatten()  # Sum of each row as a 1D array
         # Normalization step: Divide non-zero entries by the corresponding row sum
         row_indices = np.repeat(np.arange(self.nodes_connectivity_matrix.shape[0]), np.diff(self.nodes_connectivity_matrix.indptr))
         self.nodes_connectivity_matrix.data /= self.nodes_connectivity_weights_sum[row_indices]
+        self.nodes_connectivity_matrix_for_derivatives = self.nodes_connectivity_matrix.copy()
+        self._CorrectNodesConnectivityMatrixForDerivativesWithSymmetry()
+
+    def _CorrectNodesConnectivityMatrixWithSymmetry(self):
+        """
+        Correct the nodes connnectvity matrix to take into account the node that would be in the other side of the symmetry axis
+        Note: IT WORKS WELL WITH REGULAR MESHES AND FILTER RADIUS OF THE SIZE OF THE ELEMENTS
+        """
+        if (self.symmetry_enabled):
+            symm_to_opt_mask_nodes = self.global_to_opt_mask_nodes[self.symmetry_nodes_mask]
+            for inode in range(symm_to_opt_mask_nodes.size):
+                mask_node = symm_to_opt_mask_nodes[inode]
+                if (mask_node != -1):
+                    row = mask_node
+                    start = self.nodes_connectivity_matrix.indptr[row]
+                    end = self.nodes_connectivity_matrix.indptr[row + 1]
+                    for idx in range(start, end):
+                        col = self.nodes_connectivity_matrix.indices[idx]
+                        if col != row:
+                            self.nodes_connectivity_matrix.data[idx] *= 2.0
+
+    def _CorrectNodesConnectivityMatrixForDerivativesWithSymmetry(self):
+        """
+        Correct the nodes connnectvity matrix for drivatives to not take intop account a oduble value of the gradient in a node
+        Note: IT WORKS WELL WITH REGULAR MESHES AND FILTER RADIUS OF THE SIZE OF THE ELEMENTS
+        """
+        if (self.symmetry_enabled):
+            symm_to_opt_mask_nodes = self.global_to_opt_mask_nodes[self.symmetry_nodes_mask]
+            for inode in range(symm_to_opt_mask_nodes.size):
+                mask_node = symm_to_opt_mask_nodes[inode]
+                if (mask_node != -1):
+                    row = mask_node
+                    start = self.nodes_connectivity_matrix_for_derivatives.indptr[row]
+                    end = self.nodes_connectivity_matrix_for_derivatives.indptr[row + 1]
+                    for idx in range(start, end):
+                        col = self.nodes_connectivity_matrix_for_derivatives.indices[idx]
+                        if col != row:
+                            self.nodes_connectivity_matrix_for_derivatives.data[idx] /= 2.0
 
     def _ApplyDesignParameterDiffusiveFilter(self, design_parameter):
         print("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter:", self.apply_diffusive_filter)
@@ -1313,7 +1383,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _ApplyDiffusiveFilterDerivative(self, scalar_variable_derivative):
         if (self.apply_diffusive_filter):
-            return (scalar_variable_derivative.T @ self.nodes_connectivity_matrix).T
+            return (scalar_variable_derivative.T @ self.nodes_connectivity_matrix_for_derivatives).T
         else:
             return scalar_variable_derivative
         
@@ -1492,6 +1562,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 "level_set": 0.15 ,
                 "min_max_element_size": [0.01, 0.1]
             },
+            "symmetry_settings": {
+                "symmetry": false, 
+                "model_part_name": ""
+            },
             "optimization_problem_settings": {
                 "functional_weights": {
                     "fluid_functionals": {
@@ -1528,6 +1602,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "diffusive_filter_settings": {},
             "projective_filter_settings": {},
             "remeshing_settings": {},
+            "symmetry_settings": {},
             "optimization_problem_settings": {}                                                  
         }""")
         return base_physics_parameters_settings
