@@ -153,6 +153,7 @@ public:
     // - LHS alone
     // - MassMatrix
     // - DampingMatrix
+    // TODO: To be discussed in the future. It would be great to have one with references. This will require a Resize method in the sparse arrays that admits a sparse graph.
     virtual void ResizeAndInitializeVectors(
         const DofsArrayType& rDofSet,
         typename TSparseMatrixType::Pointer& rpLHS,
@@ -161,7 +162,7 @@ public:
         const bool ReactionVector = false)
     {
         // Set up the sparse matrix graph (note that we do not need to keep it after the resizing)
-        TSparseGraphType sparse_graph;
+        TSparseGraphType sparse_graph(mEquationSystemSize);
         SetUpSparseGraph(sparse_graph);
 
         // Set the system arrays
@@ -186,6 +187,8 @@ public:
 
     virtual void SetUpSparseGraph(TSparseGraphType& rSparseGraph)
     {
+        KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Current equation system size is 0. Sparse graph cannot be set (call \'SetUpSystemIds\' first)." << std::endl;
+
         if (!rSparseGraph.IsEmpty()) {
             KRATOS_WARNING("AssemblyHelper") << "Provided sparse graph is not empty and will be cleared." << std::endl;
             rSparseGraph.Clear();
@@ -480,14 +483,12 @@ private:
             if (mpElementAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512) nowait
                 for (int k = 0; k < n_elems; ++k) {
+                    // Calculate local LHS and RHS contributions
                     auto it_elem = elems_begin + k;
-                    if (it_elem->IsActive()) {
-                        // Calculate local LHS and RHS contributions
-                        (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
+                    (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                        // Assemble the local contributions to the global system
-                        AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
-                    }
+                    // Assemble the local contributions to the global system
+                    AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
                 }
             }
 
@@ -495,20 +496,18 @@ private:
             if (mpConditionAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512)
                 for (int k = 0; k < n_conds; ++k) {
+                    // Calculate local LHS and RHS contributions
                     auto it_cond = conds_begin + k;
-                    if (it_cond->IsActive()) {
-                        // Calculate local LHS and RHS contributions
-                        (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
+                    (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                        // Assemble the local contributions to the global system
-                        AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
-                    }
+                    // Assemble the local contributions to the global system
+                    AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
                 }
             }
         }
 
         // Finalize RHS and LHS assembly
-        rRHS.BeginAssemble();
+        rRHS.FinalizeAssemble();
         rLHS.FinalizeAssemble();
     }
 
@@ -538,14 +537,12 @@ private:
             if (mpElementAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512) nowait
                 for (int k = 0; k < n_elems; ++k) {
+                    // Calculate local LHS contributions
                     auto it_elem = elems_begin + k;
-                    if (it_elem->IsActive()) {
-                        // Calculate local LHS contributions
-                        (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
+                    (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                        // Assemble the local contributions to the global system
-                        AssembleLocalContribution<TBuildType>(rTLS, rLHS);
-                    }
+                    // Assemble the local contributions to the global system
+                    AssembleLocalContribution<TBuildType>(rTLS, rLHS);
                 }
             }
 
@@ -553,14 +550,12 @@ private:
             if (mpConditionAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512)
                 for (int k = 0; k < n_conds; ++k) {
+                    // Calculate local LHS contributions
                     auto it_cond = conds_begin + k;
-                    if (it_cond->IsActive()) {
-                        // Calculate local LHS contributions
-                        (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
+                    (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                        // Assemble the local contributions to the global system
-                        AssembleLocalContribution<TBuildType>(rTLS, rLHS);
-                    }
+                    // Assemble the local contributions to the global system
+                    AssembleLocalContribution<TBuildType>(rTLS, rLHS);
                 }
             }
         }
@@ -595,14 +590,12 @@ private:
             if (mpElementAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512) nowait
                 for (int k = 0; k < n_elems; ++k) {
+                    // Calculate local RHS contributions
                     auto it_elem = elems_begin + k;
-                    if (it_elem->IsActive()) {
-                        // Calculate local RHS contributions
-                        (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
+                    (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                        // Assemble the local contributions to the global system
-                        AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
-                    }
+                    // Assemble the local contributions to the global system
+                    AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
                 }
             }
 
@@ -610,14 +603,12 @@ private:
             if (mpConditionAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512)
                 for (int k = 0; k < n_conds; ++k) {
+                    // Calculate local RHS contributions
                     auto it_cond = conds_begin + k;
-                    if (it_cond->IsActive()) {
-                        // Calculate local RHS contributions
-                        (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
+                    (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                        // Assemble the local contributions to the global system
-                        AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
-                    }
+                    // Assemble the local contributions to the global system
+                    AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
                 }
             }
         }
@@ -634,30 +625,32 @@ private:
     {
         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
 
-        if constexpr (TBuildType == BuildType::Block) {
-            rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
-            rLHS.Assemble(GetThreadLocalStorageContainer(rLHS, rTLS), r_loc_eq_ids); // LHS contributions assembly
+        if (r_loc_eq_ids.size() != 0) { // Note that inactive elements TLS is resized to zero
+            if constexpr (TBuildType == BuildType::Block) {
+                rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
+                rLHS.Assemble(GetThreadLocalStorageContainer(rLHS, rTLS), r_loc_eq_ids); // LHS contributions assembly
 
-        } else if (TBuildType == BuildType::Elimination) {
-            const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
-            const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
-            const SizeType loc_size = r_loc_rhs.size();
+            } else if (TBuildType == BuildType::Elimination) {
+                const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
+                const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
+                const SizeType loc_size = r_loc_rhs.size();
 
-            for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
-                IndexType i_glob = r_loc_eq_ids[i_loc];
-                if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                    rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
-                    for (IndexType j_loc = 0; j_loc < loc_size; ++j_loc) {
-                        const IndexType j_glob = r_loc_eq_ids[j_loc];
-                        if (j_glob < mEquationSystemSize) {// Check if current column DOF is free
-                            rLHS.AssembleEntry(r_loc_lhs(i_loc, j_loc), i_glob, j_glob); // LHS contribution assembly
+                for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
+                    IndexType i_glob = r_loc_eq_ids[i_loc];
+                    if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+                        rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+                        for (IndexType j_loc = 0; j_loc < loc_size; ++j_loc) {
+                            const IndexType j_glob = r_loc_eq_ids[j_loc];
+                            if (j_glob < mEquationSystemSize) {// Check if current column DOF is free
+                                rLHS.AssembleEntry(r_loc_lhs(i_loc, j_loc), i_glob, j_glob); // LHS contribution assembly
+                            }
                         }
                     }
                 }
-            }
 
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+            } else {
+                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+            }
         }
     }
 
@@ -668,27 +661,29 @@ private:
     {
         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
 
-        if constexpr (TBuildType == BuildType::Block) {
-            rLHS.Assemble(GetThreadLocalStorageContainer(rLHS, rTLS), r_loc_eq_ids); // LHS contributions assembly
+        if (r_loc_eq_ids.size() != 0) { // Note that inactive elements TLS is resized to zero
+            if constexpr (TBuildType == BuildType::Block) {
+                rLHS.Assemble(GetThreadLocalStorageContainer(rLHS, rTLS), r_loc_eq_ids); // LHS contributions assembly
 
-        } else if (TBuildType == BuildType::Elimination) {
-            const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
-            const SizeType loc_size = r_loc_lhs.size1();
+            } else if (TBuildType == BuildType::Elimination) {
+                const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
+                const SizeType loc_size = r_loc_lhs.size1();
 
-            for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
-                IndexType i_glob = r_loc_eq_ids[i_loc];
-                if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                    for (IndexType j_loc = 0; j_loc < loc_size; ++j_loc) {
-                        const IndexType j_glob = r_loc_eq_ids[j_loc];
-                        if (j_glob < mEquationSystemSize) {// Check if current column DOF is free
-                            rLHS.AssembleEntry(r_loc_lhs(i_loc, j_loc), i_glob, j_glob); // LHS contribution assembly
+                for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
+                    IndexType i_glob = r_loc_eq_ids[i_loc];
+                    if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+                        for (IndexType j_loc = 0; j_loc < loc_size; ++j_loc) {
+                            const IndexType j_glob = r_loc_eq_ids[j_loc];
+                            if (j_glob < mEquationSystemSize) {// Check if current column DOF is free
+                                rLHS.AssembleEntry(r_loc_lhs(i_loc, j_loc), i_glob, j_glob); // LHS contribution assembly
+                            }
                         }
                     }
                 }
-            }
 
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+            } else {
+                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+            }
         }
     }
 
@@ -699,33 +694,36 @@ private:
     {
         auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
 
-        if constexpr (TBuildType == BuildType::Block) {
-            if constexpr (!TAssembleReactionVector) {
-                rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
-            } else {
-                static_assert(TBuildType == BuildType::Block && TAssembleReactionVector == true, "Assemble reaction vector cannot be used with block build type.");
-            }
-        } else if (TBuildType == BuildType::Elimination) {
-            const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
-            const SizeType loc_size = r_loc_rhs.size();
-            for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
-                IndexType i_glob = r_loc_eq_ids[i_loc];
+        if (r_loc_eq_ids.size() != 0) { // Note that inactive elements TLS is resized to zero
+            if constexpr (TBuildType == BuildType::Block) {
                 if constexpr (!TAssembleReactionVector) {
-                    if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                        rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
-                    }
+                    rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
                 } else {
-                    if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                        rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+                    static_assert(TBuildType == BuildType::Block && TAssembleReactionVector == true, "Assemble reaction vector cannot be used with block build type.");
+                }
+
+            } else if (TBuildType == BuildType::Elimination) {
+                const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
+                const SizeType loc_size = r_loc_rhs.size();
+                for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
+                    IndexType i_glob = r_loc_eq_ids[i_loc];
+                    if constexpr (!TAssembleReactionVector) {
+                        if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+                            rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+                        }
                     } else {
-                        const IndexType react_vec_pos = i_glob - mEquationSystemSize;// Get the corresponding position in the reactions vector
-                        mpReactionsVector->AssembleEntry(r_loc_rhs[i_loc], react_vec_pos); // RHS contribution assembly to reactions vector
+                        if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+                            rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+                        } else {
+                            const IndexType react_vec_pos = i_glob - mEquationSystemSize;// Get the corresponding position in the reactions vector
+                            mpReactionsVector->AssembleEntry(r_loc_rhs[i_loc], react_vec_pos); // RHS contribution assembly to reactions vector
+                        }
                     }
                 }
-            }
 
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+            } else {
+                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+            }
         }
     }
 

@@ -104,7 +104,7 @@ public:
     using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     /// TLS type definition
-    struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme
+    struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme --> Also we need to move them out of here.
     {
         // Local LHS contribution
         DenseMatrix<DataType> LocalLhs;
@@ -153,9 +153,7 @@ public:
      */
     explicit NewScheme(NewScheme& rOther)
       : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
-      , mElementsAreInitialized(rOther.mElementsAreInitialized)
-      , mConditionsAreInitialized(rOther.mConditionsAreInitialized)
-      , mConstraintsAreInitialized(rOther.mConstraintsAreInitialized)
+      , mSchemeSolutionStepIsInitialized(rOther.mSchemeSolutionStepIsInitialized)
     {
         //TODO: Check this... particularly the mpAssemblyHelper pointer
     }
@@ -204,12 +202,9 @@ public:
         if (!mSchemeIsInitialized) {
             // Initialize elements, conditions and constraints
             EntitiesUtilities::InitializeAllEntities(*mpModelPart);
-            mElementsAreInitialized = true; //TODO: Think if we really need these...
-            mConditionsAreInitialized = true; //TODO: Think if we really need these...
-            mConstraintsAreInitialized = true; //TODO: Think if we really need these...
 
             // Set the flag to avoid calling this twice
-            mSchemeIsInitialized = true;
+            mSchemeIsInitialized = true; //TODO: Discuss with the KTC if these should remain or not
         }
 
         KRATOS_CATCH("")
@@ -228,36 +223,38 @@ public:
         DofsArrayType& rDofSet,
         typename TSparseMatrixType::Pointer& rpA,
         typename TSparseVectorType::Pointer& rpDx,
-        typename TSparseVectorType::Pointer& rpB)
+        typename TSparseVectorType::Pointer& rpB,
+        const bool ReformDofSet = true)
     {
         KRATOS_TRY
 
         // Check if the InitializeSolutionStep has been already performed
         if (!mSchemeSolutionStepIsInitialized) {
             // Set up the system
-            // This operation is performed just once unless it is required to reform the dof set at each iteration
             BuiltinTimer system_construction_time;
-            if (!mDofSetIsInitialized || mReformDofSetAtEachStep) {
+            if (!mDofSetIsInitialized || ReformDofSet) {
                 // Setting up the DOFs list to be solved
                 BuiltinTimer setup_dofs_time;
                 SetUpDofArray(rDofSet);
                 mDofSetIsInitialized = true;
                 KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
-                // Shaping the system
+                // Set up the equation ids
                 BuiltinTimer setup_system_time;
-                SetUpSystemIds(rDofSet);
+                const SizeType eq_system_size = SetUpSystemIds(rDofSet);
                 KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
+                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Equation system size: " << eq_system_size << std::endl;
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
                 ResizeAndInitializeVectors(rDofSet, rpA, rpDx, rpB);
                 KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
-            } else { //TODO:  this is a change wrt current behavior, properly explain why
-                // Shaping the system
+            } else {
+                // Set up the equation ids (note that this needs to be always done)
                 BuiltinTimer setup_system_time;
-                SetUpSystemIds(rDofSet);
+                const SizeType eq_system_size = SetUpSystemIds(rDofSet);
                 KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
+                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Equation system size: " << eq_system_size << std::endl;
             }
             KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "System construction time: " << system_construction_time << std::endl;
 
@@ -265,7 +262,7 @@ public:
             EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
 
             // Set the flag to avoid calling this twice
-            mSchemeSolutionStepIsInitialized = true;
+            mSchemeSolutionStepIsInitialized = true; //TODO: Discuss with the KTC if these should remain or not
         }
 
         KRATOS_CATCH("")
@@ -347,11 +344,17 @@ public:
 
     SizeType SetUpSystemIds(DofsArrayType& rDofSet)
     {
+        KRATOS_TRY
+
         KRATOS_ERROR_IF(rDofSet.empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
 
-        return mpAssemblyHelper->SetUpSystemIds(rDofSet);
+        const SizeType equation_system_size = mpAssemblyHelper->SetUpSystemIds(rDofSet);
 
         KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
+
+        return equation_system_size;
+
+        KRATOS_CATCH("")
     }
 
     void ResizeAndInitializeVectors(
@@ -388,21 +391,31 @@ public:
         const auto timer = BuiltinTimer();
 
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            //FIXME: Check the ACTIVE flag!!!!!
-            // Calculate local LHS and RHS contributions
-            ItElem->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
+            if (ItElem->Is(ACTIVE)) {
+                // Calculate local LHS and RHS contributions
+                ItElem->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
 
-            // Get the positions in the global system
-            ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+                // Get the positions in the global system
+                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+            } else {
+                rTLS.LocalRhs.resize(0);
+                rTLS.LocalLhs.resize(0,0);
+                rTLS.LocalEqIds.resize(0);
+            }
         };
 
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            //FIXME: Check the ACTIVE flag!!!!!
-            // Calculate local LHS and RHS contributions
-            ItCond->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
+            if (ItCond->Is(ACTIVE)) {
+                // Calculate local LHS and RHS contributions
+                ItCond->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
 
-            // Get the positions in the global system
-            ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+                // Get the positions in the global system
+                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+            } else {
+                rTLS.LocalRhs.resize(0);
+                rTLS.LocalLhs.resize(0,0);
+                rTLS.LocalEqIds.resize(0);
+            }
         };
 
         ThreadLocalStorage aux_tls;
@@ -424,15 +437,30 @@ public:
         const auto timer = BuiltinTimer();
 
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            //FIXME: Check the ACTIVE flag!!!!!
-            // Calculate the RHS contributions
-            ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+            if (ItElem->Is(ACTIVE)) {
+                // Calculate the RHS contributions
+                ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+
+                // Get the positions in the global system
+                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+            } else {
+                rTLS.LocalRhs.resize(0);
+                rTLS.LocalEqIds.resize(0);
+            }
         };
 
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            //FIXME: Check the ACTIVE flag!!!!!
-            // Calculate the RHS contributions
-            ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+            if (ItCond->Is(ACTIVE)) {
+                // Calculate the RHS contributions
+                ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+
+                // Get the positions in the global system
+                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+            } else {
+                rTLS.LocalRhs.resize(0);
+                rTLS.LocalLhs.resize(0,0);
+                rTLS.LocalEqIds.resize(0);
+            }
         };
 
         ThreadLocalStorage aux_tls;
@@ -467,13 +495,30 @@ public:
         TSparseVectorType& rRHS)
     {
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            // Calculate the RHS contributions
-            ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+            if (ItElem->Is(ACTIVE)) {
+                // Calculate the RHS contributions
+                ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+
+                // Get the positions in the global system
+                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+            } else {
+                rTLS.LocalRhs.resize(0);
+                rTLS.LocalEqIds.resize(0);
+            }
         };
 
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            // Calculate the RHS contributions
-            ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+            if (ItCond->Is(ACTIVE)) {
+                // Calculate the RHS contributions
+                ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+
+                // Get the positions in the global system
+                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+            } else {
+                rTLS.LocalRhs.resize(0);
+                rTLS.LocalLhs.resize(0,0);
+                rTLS.LocalEqIds.resize(0);
+            }
         };
 
         ThreadLocalStorage aux_tls;
@@ -501,6 +546,11 @@ public:
         KRATOS_ERROR_IF(!mSchemeIsInitialized) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
         KRATOS_ERROR_IF(!mSchemeSolutionStepIsInitialized) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
+        // If the mesh is to be updated, call the MoveMesh() method
+        if (GetMoveMesh()) {
+            this->MoveMesh();
+        }
+
         KRATOS_CATCH("")
     }
 
@@ -521,12 +571,17 @@ public:
     {
         KRATOS_TRY
 
-        //TODO: To be discussed. I think that te base scheme should do what the current IncrementalUpdateStaticScheme does that is the following
+        // Update DOFs with solution values (note that we solve for the increments)
         block_for_each(rDofSet, [&Dx](DofType& rDof){
             if (rDof.IsFree()) {
                 rDof.GetSolutionStepValue() += Dx[rDof.EquationId()];
             }
         });
+
+        // If the mesh is to be updated, call the MoveMesh() method
+        if (GetMoveMesh()) {
+            this->MoveMesh();
+        }
 
         KRATOS_CATCH("")
     }
@@ -561,9 +616,6 @@ public:
 
         // Reset initialization flags
         mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
-        mConstraintsAreInitialized = false;
 
         // Clear the assembly helper
         GetAssemblyHelper().Clear();
@@ -600,7 +652,9 @@ public:
                 "scaling_type" : "max_diagonal"
             },
             "echo_level" : 0,
-            "calculate_reactions" : false
+            "move_mesh" : false,
+            "calculate_reactions" : false,
+            "reform_dofs_at_each_step" : false
         })");
         return default_parameters;
     }
@@ -619,57 +673,21 @@ public:
     ///@{
 
     /**
+     * @brief This method sets the value of mMoveMesh
+     * @param MoveMesh If the flag must be set to true or false
+     */
+    void SetMoveMesh(const bool MoveMesh)
+    {
+        mMoveMesh = MoveMesh;
+    }
+
+    /**
      * @brief This method sets the value of mEchoLevel
      * @param EchoLevel The value to set
      */
-    void SetEchoLevel(const bool EchoLevel)
+    void SetEchoLevel(const int EchoLevel)
     {
         mEchoLevel = EchoLevel;
-    }
-
-    /**
-     * @brief This method sets if the scheme has been initialized or not (false by default)
-     * @param SchemeIsInitialized If the flag must be set to true or false
-     */
-    void SetSchemeIsInitialized(const bool SchemeIsInitialized)
-    {
-        mSchemeIsInitialized = SchemeIsInitialized;
-    }
-
-    /**
-     * @brief This method sets if the scheme solution step has been initialized or not (false by default)
-     * @param SchemeSolutionStepIsInitialized If the flag must be set to true or false
-     */
-    void SetSchemeSolutionStepIsInitialized(const bool SchemeSolutionStepIsInitialized)
-    {
-        mSchemeSolutionStepIsInitialized = SchemeSolutionStepIsInitialized;
-    }
-
-    /**
-     * @brief This method sets if the elements have been initialized or not (false by default)
-     * @param ElementsAreInitializedFlag If the flag must be set to true or false
-     */
-    void SetElementsAreInitialized(const bool ElementsAreInitialized)
-    {
-        mElementsAreInitialized = ElementsAreInitialized;
-    }
-
-    /**
-     * @brief This method sets if the conditions have been initialized or not (false by default)
-     * @param ConditionsAreInitializedFlag If the flag must be set to true or false
-     */
-    void SetConditionsAreInitialized(const bool ConditionsAreInitialized)
-    {
-        mConditionsAreInitialized = ConditionsAreInitialized;
-    }
-
-    /**
-     * @brief This method sets if the conditions have been initialized or not (false by default)
-     * @param mConstraintsAreInitialized If the flag must be set to true or false
-     */
-    void SetConstraintsAreInitialized(const bool ConstraintsAreInitialized)
-    {
-        mConstraintsAreInitialized = ConstraintsAreInitialized;
     }
 
     ///@}
@@ -677,48 +695,48 @@ public:
     ///@{
 
     /**
-     * @brief This method returns if the scheme is initialized
-     * @return True if initialized, false otherwise
+     * @brief This method returns if the mesh has to be updated
+     * @return bool True if to be moved, false otherwise
      */
-    bool SchemeIsInitialized() const
+    int GetMoveMesh() const
+    {
+        return mMoveMesh;
+    }
+
+    /**
+     * @brief This method returns the echo level value (verbosity level)
+     * @return int Echo level value
+     */
+    int GetEchoLevel() const
+    {
+        return mEchoLevel;
+    }
+
+    /**
+     * @brief This method returns if the scheme is initialized
+     * @return bool True if initialized, false otherwise
+     */
+    bool GetSchemeIsInitialized() const
     {
         return mSchemeIsInitialized;
     }
 
     /**
      * @brief This method returns if the scheme is initialized
-     * @return True if initialized, false otherwise
+     * @return bool True if initialized, false otherwise
      */
-    bool SchemeSolutionStepIsInitialized() const
+    bool GetSchemeSolutionStepIsInitialized() const
     {
         return mSchemeSolutionStepIsInitialized;
     }
 
     /**
-     * @brief This method returns if the elements are initialized
-     * @return True if initialized, false otherwise
+     * @brief This method returns if dof set (and corresponding arrays) need to be reset at each time step
+     * @return bool True if to be reset at each time step, false otherwise
      */
-    bool ElementsAreInitialized() const
+    bool GetReformDofSetAtEachStep() const
     {
-        return mElementsAreInitialized;
-    }
-
-    /**
-     * @brief This method returns if the conditions are initialized
-     * @return True if initialized, false otherwise
-     */
-    bool ConditionsAreInitialized() const
-    {
-        return mConditionsAreInitialized;
-    }
-
-    /**
-     * @brief This method returns if the constraints are initialized
-     * @return True if initialized, false otherwise
-     */
-    bool ConstraintsAreInitialized() const
-    {
-        return mConstraintsAreInitialized;
+        return mReformDofsAtEachStep;
     }
 
     ///@}
@@ -757,13 +775,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    bool mMoveMesh = false; /// Flag to activate the mesh motion from the DISPLACEMENT variable
+
     bool mSchemeIsInitialized = false; /// Flag to be used in controlling if the Scheme has been initialized or not
-
-    bool mElementsAreInitialized = false; /// Flag taking in account if the elements were initialized correctly or not
-
-    bool mConditionsAreInitialized = false; /// Flag taking in account if the conditions were initialized correctly or not
-
-    bool mConstraintsAreInitialized = false; /// Flag taking in account if the constraints were initialized correctly or not
 
     bool mSchemeSolutionStepIsInitialized = false; /// Flag to be used in controlling if the Scheme solution step has been initialized or not
 
@@ -774,6 +788,27 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This function is designed to move the mesh
+     * @note It considers DISPLACEMENT as the variable storing the motion. Derive it to adapt to your own strategies.
+     */
+    virtual void MoveMesh()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF_NOT(mpModelPart->HasNodalSolutionStepVariable(DISPLACEMENT_X))
+            << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the ModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+
+        block_for_each(mpModelPart->Nodes(), [](Node& rNode){
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+        });
+
+        KRATOS_INFO_IF("SolvingStrategy", mEchoLevel != 0) << "Mesh moved." << std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief This method validate and assign default parameters
@@ -795,8 +830,9 @@ protected:
      */
     virtual void AssignSettings(const Parameters ThisParameters)
     {
+        mMoveMesh = ThisParameters["move_mesh"].GetBool();
         mEchoLevel = ThisParameters["echo_level"].GetInt();
-        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
     }
 
     ///@}
@@ -835,7 +871,7 @@ private:
 
     bool mDofSetIsInitialized = false;
 
-    bool mReformDofSetAtEachStep = false;
+    bool mReformDofsAtEachStep = false;
 
     ModelPart* mpModelPart = nullptr;
 

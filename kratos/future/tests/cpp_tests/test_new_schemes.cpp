@@ -193,10 +193,18 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
     const double tol = 1.0e-12;
     std::vector<double> expected_rhs = {0.5,1.0,0.5};
     BoundedMatrix<double,3,3> expected_lhs;
-    expected_lhs(0,0) = 2.0; expected_lhs(0,1) = -1.0; expected_lhs(0,2) = 0.0;
+    expected_lhs(0,0) = 1.0; expected_lhs(0,1) = -1.0; expected_lhs(0,2) = 0.0;
     expected_lhs(1,0) = -1.0; expected_lhs(1,1) = 2.0; expected_lhs(1,2) = -1.0;
-    expected_lhs(2,0) = 0.0; expected_lhs(2,1) = -1.0; expected_lhs(2,2) = 2.0;
-    KRATOS_CHECK_VECTOR_NEAR((*p_rhs), expected_rhs, tol);
+    expected_lhs(2,0) = 0.0; expected_lhs(2,1) = -1.0; expected_lhs(2,2) = 1.0;
+    KRATOS_CHECK_VECTOR_NEAR((*p_rhs), expected_rhs, tol); // Note that as there are not non-zero entries in the sparse vector we can use the standard macro
+    for (unsigned int i = 0; i < p_lhs->size1(); ++i) {
+        for (unsigned int j = 0; j < p_lhs->size2(); ++j) {
+            const double expected_val = expected_lhs(i,j);
+            if (std::abs(expected_val) > tol) {
+                KRATOS_CHECK_NEAR(p_lhs->operator()(i,j), expected_val, tol); // Note that we check if the expected value is non-zero as this is a CSR matrix
+            }
+        }
+    }
 #else
     true;
 #endif

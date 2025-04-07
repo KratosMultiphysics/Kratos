@@ -61,9 +61,14 @@ void AddStrategiesToPython(py::module& m)
         .def("FinalizeSolutionStep", &LinearStrategyType::FinalizeSolutionStep)
         .def("Clear", &LinearStrategyType::Clear)
         .def("Check", &LinearStrategyType::Check)
+        .def("GetEchoLevel", &LinearStrategyType::GetEchoLevel)
+        .def("GetComputeReactions", &LinearStrategyType::GetComputeReactions)
+        .def("GetReformDofsAtEachStep", &LinearStrategyType::GetReformDofsAtEachStep)
+        .def("GetResidualNorm", &LinearStrategyType::GetResidualNorm)
+        .def("GetModelPart", [&](const LinearStrategyType& rThis) -> const ModelPart& {return rThis.GetModelPart();}, py::return_value_policy::reference_internal)
         .def("SetEchoLevel", &LinearStrategyType::SetEchoLevel)
         .def("SetComputeReactions", &LinearStrategyType::SetComputeReactions)
-        .def("SetMoveMeshFlag", &LinearStrategyType::SetMoveMeshFlag)
+        .def("SetReformDofsAtEachStep", &LinearStrategyType::SetReformDofsAtEachStep)
         .def("Info", &LinearStrategyType::Info);
 }
 

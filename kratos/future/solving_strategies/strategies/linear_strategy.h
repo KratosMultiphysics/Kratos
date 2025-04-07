@@ -120,17 +120,7 @@ public:
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        //TODO: In here we should leverage the Registry to construct the scheme from the json input settings
-
-
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        // FIXME:
-        // GetBuilderAndSolver()->SetComputeReactions(mComputeReactions);
-
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        // be reshaped at each step or not
-        // FIXME:
-        // GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        //TODO: In here we should leverage the Registry to construct the scheme and linear solver from the json input settings
     }
 
     /**
@@ -154,8 +144,7 @@ public:
         : mpModelPart(&rModelPart)
         , mpScheme(pScheme)
         , mpLinearSolver(pLinearSolver)
-        , mMoveMeshFlag(MoveMeshFlag)
-        , mReformDofSetAtEachStep(ReformDofSetAtEachStep)
+        , mReformDofsAtEachStep(ReformDofSetAtEachStep)
         , mComputeReactions(ComputeReactions)
     {
         KRATOS_TRY
@@ -207,11 +196,8 @@ public:
     {
         KRATOS_TRY
 
-        // Get scheme pointer
-        auto p_scheme = pGetScheme();
-
         // Initialize scheme (this has to be done once)
-        p_scheme->Initialize();
+        pGetScheme()->Initialize();
 
         KRATOS_CATCH("")
     }
@@ -225,11 +211,8 @@ public:
     {
         KRATOS_TRY
 
-        // Get scheme pointer
-        auto p_scheme = pGetScheme();
-
         // Call the scheme InitializeSolutionStep
-        p_scheme->InitializeSolutionStep(mDofSet, mpA, mpdx, mpb);
+        pGetScheme()->InitializeSolutionStep(mDofSet, mpA, mpdx, mpb, mReformDofsAtEachStep);
 
         KRATOS_CATCH("")
     }
@@ -243,7 +226,7 @@ public:
     {
         KRATOS_TRY
 
-        // Call the time scheme predict
+        // Call the time scheme predict (note that this also updates the mesh if needed)
         pGetScheme()->Predict(*mpA, *mpdx, *mpb);
 
         //TODO: Constraints implementation
@@ -267,11 +250,6 @@ public:
         //     TSparseSpace::SetToZero(rDx);
         //     this->pGetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         // }
-
-        // Mesh motion update //TODO: Should this be in the scheme predict?
-        if (GetMoveMeshFlag()) {
-            MoveMesh();
-        }
 
         KRATOS_CATCH("")
     }
@@ -316,19 +294,14 @@ public:
         // Debugging info
         EchoInfo();
 
-        // Update results
+        // Update results (note that this also updates the mesh if needed)
         p_scheme->Update(mDofSet, *mpA, *mpdx, *mpb);
-
-        // Move the mesh if needed --> TODO: Discuss if we want the MoveMesh() to be part of the Scheme and also if it should be inside the Update()
-        if (GetMoveMeshFlag()) {
-            MoveMesh();
-        }
 
         // Finalize current (unique) non linear iteration
         p_scheme->FinalizeNonLinIteration(*mpA, *mpdx, *mpb);
 
         // Calculate reactions if required
-        if (mComputeReactions) { // TODO: Should the if be inside the p_scheme->CalculateReactions or here
+        if (mComputeReactions) {
             p_scheme->CalculateReactions(mDofSet, *mpb);
         }
 
@@ -343,17 +316,14 @@ public:
     {
         KRATOS_TRY;
 
-        // Get scheme pointer
-        auto p_scheme = pGetScheme();
-
         // Finalisation of the solution step (operations to be done after achieving convergence)
-        p_scheme->FinalizeSolutionStep(*mpA, *mpdx, *mpb);
+        pGetScheme()->FinalizeSolutionStep(*mpA, *mpdx, *mpb);
 
         // Reset flags for next step
         mStiffnessMatrixIsBuilt = false; // By default we always rebuilt (if not implement a derived strategy)
 
         // Clear if needed (note that this deallocates the system arrays)
-        if (mReformDofSetAtEachStep) {
+        if (mReformDofsAtEachStep) {
             Clear();
         }
 
@@ -385,8 +355,8 @@ public:
 
         // Clearing scheme
         // Note that this resets the DOF set
-        if (mpScheme != nullptr) {
-            mpScheme->Clear();
+        if (pGetScheme() != nullptr) {
+            pGetScheme()->Clear();
         }
 
         KRATOS_CATCH("");
@@ -437,7 +407,6 @@ public:
      */
     Parameters GetDefaultParameters() const
     {
-        //TODO: move_mesh_flag --> move_mesh (provide backwards compatibility)
         Parameters default_parameters = Parameters(R"(
         {
             "name"                         : "linear_strategy",
@@ -493,12 +462,12 @@ public:
     }
 
     /**
-     * @brief This method sets the flag mMoveMeshFlag
-     * @param MoveMeshFlag The flag that tells if the mesh is to be updated
+     * @brief This method sets the flag mReformDofsAtEachStep
+     * @param ReformDofsAtEachStep The flag that indicates if the DOF set is reformed at each step
      */
-    void SetMoveMeshFlag(const bool MoveMeshFlag)
+    void SetReformDofsAtEachStep(const bool ReformDofsAtEachStep)
     {
-        mMoveMeshFlag = MoveMeshFlag;
+        mReformDofsAtEachStep = ReformDofsAtEachStep;
     }
 
     //TODO: Move to the future base class
@@ -630,12 +599,12 @@ public:
     }
 
     /**
-     * @brief This method returns the flag mMoveMeshFlag
-     * @return The flag that tells if the mesh is to be updated
+     * @brief This method returns the flag mReformDofsAtEachStep
+     * @return The flag that indicates if the DOF set is reformed at each step
      */
-    bool GetMoveMeshFlag() const
+    bool GetReformDofsAtEachStep() const
     {
-        return mMoveMeshFlag;
+        return mReformDofsAtEachStep;
     }
 
     /**
@@ -704,36 +673,14 @@ protected:
     void AssignSettings(const Parameters ThisParameters)
     {
         // BaseType::AssignSettings(ThisParameters); // TODO: Once we have a base class
-        mMoveMeshFlag = ThisParameters["move_mesh"].GetBool();
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
         mComputeReactions = ThisParameters["compute_reactions"].GetBool();
-        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
             KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
-    }
-
-    //TODO: Move this to the future base class or to the scheme
-    /**
-     * @brief This function is designed to move the mesh
-     * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
-     */
-    virtual void MoveMesh()
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X))
-            << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the ModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-
-        block_for_each(GetModelPart().Nodes(), [](Node& rNode){
-            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
-            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
-        });
-
-        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0) << "Mesh moved." << std::endl;
-
-        KRATOS_CATCH("")
     }
 
     ///@}
@@ -775,9 +722,7 @@ private:
 
     int mEchoLevel;
 
-    bool mMoveMeshFlag; // Flag to activate the mesh motion from the DISPLACEMENT variable
-
-    bool mReformDofSetAtEachStep = false;
+    bool mReformDofsAtEachStep = false;
 
     bool mStiffnessMatrixIsBuilt = false;
 
@@ -801,15 +746,13 @@ private:
         SystemVectorType& rDx = *mpdx;
         SystemVectorType& rb  = *mpb;
 
-        if (GetEchoLevel() == 3) //if it is needed to print the debug info
-        {
+        if (GetEchoLevel() == 3) { //if it is needed to print the debug info
             KRATOS_INFO("LHS") << "LHS = " << rA << std::endl;
             KRATOS_INFO("RHS") << "RHS = " << rb << std::endl;
             KRATOS_INFO("Dx")  << "Solution obtained = " << rDx << std::endl;
         }
 
-        if (this->GetEchoLevel() == 4) //print to matrix market file
-        {
+        if (this->GetEchoLevel() == 4) { //print to matrix market file
             //FIXME: Impllement the MatrixMarket output
 
             // std::stringstream matrix_market_name;
