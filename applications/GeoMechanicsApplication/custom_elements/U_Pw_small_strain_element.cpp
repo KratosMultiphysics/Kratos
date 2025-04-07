@@ -599,7 +599,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             return constitutive_matrix(variable_index, variable_index);
         });
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
+        try {
         OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
+        }
+        catch (...){ std::fill(rOutput.begin(), rOutput.end(), 0.0); }
     } else if (r_properties.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
         std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
@@ -804,6 +807,24 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
     }
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                                                                          std::vector<int>& rOutput,
+                                                                          const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == PLASTICITY) {
+        rOutput.resize(mConstitutiveLawVector.size());
+        for (unsigned int integration_point = 0; integration_point < mConstitutiveLawVector.size();
+             ++integration_point) {
+            rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
+                rVariable, rOutput[integration_point]);
+        }
+    } else {
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " is not supported in "
+                     << "UPwSmallStrainElement::CalculateOnIntegrationPoints" << std::endl;
+    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

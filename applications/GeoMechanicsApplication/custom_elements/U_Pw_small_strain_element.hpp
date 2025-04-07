@@ -115,6 +115,10 @@ public:
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                                      std::vector<int>&    rOutput,
+                                      const ProcessInfo&   rCurrentProcessInfo) override;
+
     using UPwBaseElement::CalculateOnIntegrationPoints;
 
     std::string Info() const override
