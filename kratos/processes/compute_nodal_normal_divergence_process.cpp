@@ -229,13 +229,13 @@ for (auto& rCond : mrModelPart.Conditions()) {
                               << N[1] << ","
                               << N[2] << std::endl;
             
-            // For each node, add boundary term contribution
-            for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-                double& r_divergence = GetDivergence(r_geometry, i_node);
+            // // For each node, add boundary term contribution
+            // for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
+            //     double& r_divergence = GetDivergence(r_geometry, i_node);
                 
-                // Add the boundary term contribution
-                AtomicAdd(r_divergence, N[i_node] * surface_element * vector_dot_normal);
-            }
+            //     // Add the boundary term contribution
+            //     AtomicAdd(r_divergence, N[i_node] * surface_element * vector_dot_normal);
+            // }
         }
         boundary_counter++;
 }

@@ -7,6 +7,7 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.DropletDynamicsApplication as KratosDroplet
+import numpy as np
 
 # Import base class file
 #from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
@@ -345,6 +346,25 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
+        # Clear any existing intersection points from previous steps
+        KratosDroplet.IntersectionPointsUtility.ClearIntersectionPoints()
+    
+        # Collect intersection points from all elements
+        for element in self.main_model_part.Elements:
+            KratosDroplet.IntersectionPointsUtility.CollectElementIntersectionPoints(element)
+        
+        # Run diagnostic to check how many elements are split by the level-set
+        KratosDroplet.IntersectionPointsUtility.DiagnosticOutput(self.main_model_part)
+    
+        # Get all intersection points
+        points = KratosDroplet.IntersectionPointsUtility.GetIntersectionPoints()
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Collected {len(points)} intersection points.")
+    
+        # Save to file - make sure the path is correct
+        KratosDroplet.IntersectionPointsUtility.SaveIntersectionPointsToFile("intersection_points.txt")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Saved intersection points to intersection_points.txt")
+    
+
         # filtering noises is necessary for curvature calculation
         # distance gradient is used as a boundary condition for smoothing process
         self._GetDistanceGradientProcess().Execute()
@@ -353,6 +373,22 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
         # distance gradient is called again to comply with the smoothed/modified DISTANCE
         self._GetDistanceGradientProcess().Execute()
+
+        for node in self.main_model_part.Nodes:
+            gx = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
+            gy = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+            gz = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z)
+            g = (gx**2+gy**2+gz**2)**0.5
+            gx /= g
+            gy /= g
+            gz /= g
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz)
+
+        # self.ExtrapolateBoundaryValues(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+        # self.ExtrapolateBoundaryValues(KratosMultiphysics.DISTANCE_GRADIENT_X)
+
         # curvature is calculated using nodal distance gradient
         self._GetDistanceCurvatureProcess().Execute()
 
@@ -933,6 +969,54 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         contact_angle_evaluator = KratosDroplet.ContactAngleEvaluatorProcess(self.main_model_part, contact_angle_settings)
 
         return contact_angle_evaluator
+    
+
+
+
+    def FitPlaneAndExtrapolate(self, neighbor_nodes, variable):
+        """
+        Fit a linear plane (z = ax + by + c) using least squares and return the coefficients.
+
+        :param neighbor_nodes: List of neighbor nodes.
+        :param variable: The Kratos variable to be extrapolated.
+        :return: (a, b, c) coefficients of the plane equation.
+        """
+        X, Y, Z = [], [], []
+
+        for node in neighbor_nodes:
+            X.append(node.X)
+            Y.append(node.Y)
+            Z.append(node.GetSolutionStepValue(variable))  # Get the value of the variable
+
+        # Solve the least squares problem: [X Y 1] * [a b c] = Z
+        A = np.vstack([X, Y, np.ones(len(X))]).T
+        coeffs, _, _, _ = np.linalg.lstsq(A, Z, rcond=None)  # Solve for [a, b, c]
+
+        return coeffs  # Returns (a, b, c)
+    
+    def ExtrapolateBoundaryValues(self, variable):
+        """
+        Extrapolate values for a given variable on boundary nodes using polynomial fitting.
+    
+        :param model_part: The Kratos ModelPart containing nodes and elements.
+        :param variable: The Kratos variable to extrapolate (e.g., KM.DISTANCE, KM.TEMPERATURE).
+        """
+        for node in self.main_model_part.Nodes:
+            if node.Is(KratosMultiphysics.BOUNDARY):  # Only process boundary nodes
+                neighbor_nodes = set()
+
+                # Find elements that contain this node
+                for elem in self.main_model_part.Elements:
+                    if node.Id in [n.Id for n in elem.GetNodes()]:  # Check if the node is in the element
+                        for neighbor in elem.GetNodes():
+                            if not neighbor.Is(KratosMultiphysics.BOUNDARY):  # Ensure we get non-boundary neighbors
+                                neighbor_nodes.add(neighbor)
+
+                # Ensure at least 3 neighbors for polynomial fitting
+                if len(neighbor_nodes) >= 3:
+                    a, b, c = self.FitPlaneAndExtrapolate(neighbor_nodes, variable)
+                    estimated_value = a * node.X + b * node.Y + c
+                    node.SetSolutionStepValue(variable, estimated_value)
 
 
 

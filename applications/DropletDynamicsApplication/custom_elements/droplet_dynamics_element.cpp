@@ -2031,6 +2031,20 @@ void DropletDynamicsElement<TElementData>::ComputeSplitting(
     }
 
     rData.NumberOfDivisions = (pModifiedShapeFunctions->pGetSplittingUtil())->mDivisionsNumber;
+
+//     // std::cout << "Intersection Points: " << pModifiedShapeFunctions->pGetSplittingUtil()->GetInterfacePoints() << std::endl;
+//     std::cout << "Element ID\tPoint ID\tX\tY\tZ" << std::endl;
+// std::cout << "------------------------------------------" << std::endl;
+
+// unsigned int elementId = this->GetId(); // Get your current element ID
+// auto interfacePoints = pModifiedShapeFunctions->pGetSplittingUtil()->GetInterfacePoints();
+// for (const auto& point : interfacePoints) {
+//     std::cout << elementId << "\t" 
+//               << point->Id() << "\t"     // Assuming IndexedPoint has Id() method
+//               << point->Coordinates()[0] << "\t" 
+//               << point->Coordinates()[1] << "\t" 
+//               << point->Coordinates()[2] << std::endl;
+// }
 }
 
 template <class TElementData>
