@@ -1,0 +1,43 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Soil",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "SmallStrainUDSM2DPlaneStrainLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2650,
+                    "DENSITY_WATER": 1000,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 1000000000.0,
+                    "BULK_MODULUS_FLUID": 2000000.0,
+                    "PERMEABILITY_XX": 4.5e-13,
+                    "PERMEABILITY_YY": 4.5e-13,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 8.9e-07,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
+                    "UDSM_NAME": "../MohrCoulomb64.dll",
+                    "UDSM_NUMBER": 1,
+                    "IS_FORTRAN_UDSM": true,
+                    "UMAT_PARAMETERS": [
+                        2000000,
+                        0.3,
+                        0.0,
+                        30.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.3
+                    ]
+                }
+            }
+        }
+    ]
+}
