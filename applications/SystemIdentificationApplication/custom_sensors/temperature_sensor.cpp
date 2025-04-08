@@ -6,7 +6,7 @@
 //
 //  License:         SystemIdentificationApplication/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 // System includes
@@ -129,10 +129,9 @@ double TemperatureSensor::CalculateValue(ModelPart& rModelPart)
 
         Vector Ns;
         r_geometry.ShapeFunctionsValues(Ns, mLocalPoint);
-        
+
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
             temperature += r_geometry[i].FastGetSolutionStepValue(TEMPERATURE) * Ns[i];
-            //std::cout << "Nodal temp is " << r_geometry[i].FastGetSolutionStepValue(TEMPERATURE) << " and shape func is " << Ns[i] << std::endl;
         }
     }
     return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(temperature);
@@ -145,31 +144,6 @@ void TemperatureSensor::CalculateGradient(
     Vector& rResponseGradient,
     const ProcessInfo& rProcessInfo)
 {
-    // KRATOS_TRY;
-
-    // if (rResponseGradient.size() != rResidualGradient.size1()) {
-    //     rResponseGradient.resize(rResidualGradient.size1(), false);
-    // }
-
-    // rResponseGradient.clear();
-
-    // if (rAdjointElement.Id() == mElementId) {
-    //     const auto& r_geometry = rAdjointElement.GetGeometry();
-    //     const IndexType block_size = rResidualGradient.size1() / r_geometry.size();
-
-    //     Vector Ns;
-    //     r_geometry.ShapeFunctionsValues(Ns, mLocalPoint);
-    //     for (IndexType i = 0; i < r_geometry.size(); ++i) {
-    //         rResponseGradient[i * block_size] = Ns[i];
-    //         rResponseGradient[i * block_size + 1] = Ns[i];
-    //         rResponseGradient[i * block_size + 2] = Ns[i];
-    //     }
-    // }
-
-    // rResponseGradient *= this->GetWeight();
-
-    // KRATOS_CATCH("");
-
     SetVectorToZero(rResponseGradient, rResidualGradient.size1());
 }
 
@@ -225,8 +199,6 @@ void TemperatureSensor::CalculatePartialSensitivity(
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    //SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
-    // This function calculates partial_J/partial_T therefore output size = num_nodes and not sensitivity_matrix size 
     KRATOS_TRY;
 
     if (rSensitivityGradient.size() != rSensitivityMatrix.size1()) {
@@ -241,8 +213,6 @@ void TemperatureSensor::CalculatePartialSensitivity(
 
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
             rSensitivityGradient[i * block_size] = mNs[i];
-            rSensitivityGradient[i * block_size + 1] = mNs[i];
-            rSensitivityGradient[i * block_size + 2] = mNs[i];
         }
     }
 
