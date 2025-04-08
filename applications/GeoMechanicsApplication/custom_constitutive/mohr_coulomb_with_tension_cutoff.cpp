@@ -83,7 +83,7 @@ Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rPrincipalTrialStress
 
 Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector, const Vector& rCornerPoint)
 {
-    Vector result = rPrincipalTrialStressVector;
+    auto result = rPrincipalTrialStressVector;
     result[0]     = rCornerPoint[0] + rCornerPoint[1];
     result[2]     = rCornerPoint[0] - rCornerPoint[1];
     return result;
