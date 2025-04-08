@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_dirichlet_tension_apex_return_zone",
+        "problem_name":         "test_dirichlet_corner_return_zone",
         "start_time":           0.0,
         "end_time":             1.0,
         "echo_level":           1,
@@ -13,10 +13,10 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "../common/mesh"
+            "input_filename":   "../common/mesh2D"
         },
         "material_import_settings":              {
-            "materials_filename":       "../common/MaterialParameters.json"
+            "materials_filename":       "../common/MaterialParameters2D.json"
         },
         "time_stepping":              {
             "time_step":                1.0,
@@ -52,7 +52,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_dirichlet_tension_apex_return_zone",
+                "output_name": "test_dirichlet_corner_return_zone",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -120,7 +120,7 @@
             "variable_name":   "DISPLACEMENT",
             "active":          [true,false,false],
             "is_fixed":        [true,false,false],
-            "value":           [0.017,0.0,0.0],
+            "value":           [0.022,0.0,0.0],
             "table":           [0,0,0]
         }
     },{
@@ -132,7 +132,7 @@
             "variable_name":   "DISPLACEMENT",
             "active":          [false,true,false],
             "is_fixed":        [false,true,false],
-            "value":           [0.0,0.013,0.0],
+            "value":           [0.0,-0.002,0.0],
             "table":           [0,0,0]
         }
     }]
