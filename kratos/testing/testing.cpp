@@ -18,7 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
     return Kratos::Testing::GTestMain::InitializeTesting(argc, argv);
 }
