@@ -47,6 +47,7 @@ jobs:
       KRATOS_CI_CORES: 4                              # Current limits are 4 CPU and 16 GB Ram
       OMPI_MCA_rmaps_base_oversubscribe: 1            # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
       OMPI_MCA_btl_vader_single_copy_mechanism: none  # Suppressing some annoying OpenMPI messages
+      SCCACHE_GHA_ENABLED: "true"                     # Enable sccache for C/C++
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
@@ -57,6 +58,10 @@ jobs:
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    # Set up a remote compilation cache to reduce compile times.
+    - name: Run sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: CI configuration
       shell: bash
@@ -99,7 +104,7 @@ jobs:
           export CC=/usr/bin/clang-14
           export CXX=/usr/bin/clang++-14
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/" 
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
@@ -252,6 +257,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
+      SCCACHE_GHA_ENABLED: "true" # Enable sccache for C/C++
 
     steps:
     - uses: actions/checkout@v4
@@ -278,6 +284,10 @@ jobs:
         pip install scipy
         pip install h5py
         pip install parameterized
+
+    # Set up a remote compilation cache to reduce compile times.
+    - name: Run sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Build
       shell: cmd
@@ -351,6 +361,7 @@ jobs:
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: "ONLY_CORE"
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      SCCACHE_GHA_ENABLED: "true"          # Enable sccache for C/C++
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
@@ -362,6 +373,10 @@ jobs:
     - name: CI configuration
       shell: bash
       run: python3 kratos/python_scripts/testing/ci_utilities.py
+
+    # Set up a remote compilation cache to reduce compile times.
+    - name: Run sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Build
       shell: bash
@@ -465,6 +480,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: "ONLY_CORE"
+      SCCACHE_GHA_ENABLED: "true" # Enable sccache for C/C++
 
     steps:
     - uses: actions/checkout@v4
@@ -489,6 +505,10 @@ jobs:
         pip install numpy
         pip install sympy
         pip install scipy
+
+    # Set up a remote compilation cache to reduce compile times.
+    - name: Run sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Build
       shell: cmd
@@ -550,6 +570,7 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
       OMPI_ALLOW_RUN_AS_ROOT: 1 # required since for now running as root
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1 # required since for now running as root
+      SCCACHE_GHA_ENABLED: "true" # Enable sccache for C/C++
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
@@ -564,6 +585,10 @@ jobs:
     - name: Install intel compiler
       shell: bash
       run: sudo apt-get install -y --no-install-recommends intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
+
+    # Set up a remote compilation cache to reduce compile times.
+    - name: Run sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Build
       shell: bash
@@ -652,7 +677,8 @@ jobs:
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_intel.json"
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
-      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
+      OMPI_MCA_btl_vader_single_copy_mechanism: none  # suppressing some annoying OpenMPI messages
+      SCCACHE_GHA_ENABLED: "true"                     # Enable sccache for C/C++
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
@@ -667,6 +693,10 @@ jobs:
     - name: CI configuration
       shell: bash
       run: python3 kratos/python_scripts/testing/ci_utilities.py
+
+    # Set up a remote compilation cache to reduce compile times.
+    - name: Run sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Build
       shell: bash
