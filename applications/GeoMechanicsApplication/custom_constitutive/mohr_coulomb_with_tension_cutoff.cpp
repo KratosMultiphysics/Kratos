@@ -67,9 +67,9 @@ Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double Tensil
 
 Vector ReturnStressAtTensionApexReturnZone(const Vector& rPrincipalTrialStressVector, double TensileStrength)
 {
-    Vector result = rPrincipalTrialStressVector;
-    result[0]     = TensileStrength;
-    result[2]     = result[0];
+    auto result = rPrincipalTrialStressVector;
+    result[0]   = TensileStrength;
+    result[2]   = result[0];
     return result;
 }
 
@@ -243,8 +243,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             CalculateCornerPoint(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]),
                                  r_prop[GEO_COHESION], r_prop[GEO_TENSILE_STRENGTH]);
 
-        const auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
-        if (IsStressAtTensionApexReturnZone(trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH], apex)) {
+        if (const auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
+            IsStressAtTensionApexReturnZone(trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH], apex)) {
             principal_trial_stress_vector = ReturnStressAtTensionApexReturnZone(
                 principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH]);
         } else if (IsStressAtTensionCutoffReturnZone(trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH],

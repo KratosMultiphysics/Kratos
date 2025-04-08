@@ -971,8 +971,8 @@ private:
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
 
-    const MohrCoulombWithTensionCutOff mMoreCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
-    const MohrCoulombWithTensionCutOff mMoreCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
+    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
+    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
     ///@}
 
 }; // Class KratosGeoMechanicsApplication

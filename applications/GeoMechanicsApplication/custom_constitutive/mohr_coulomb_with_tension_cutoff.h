@@ -78,14 +78,14 @@ private:
                                                     double        YoungsModulus,
                                                     double        PoissonsRatio) const;
     [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
-    [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTriaSigmalTau,
+    [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau,
                                                          double        TensileStrength,
                                                          double        Apex) const;
-    [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rTriaSigmalTau,
+    [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau,
                                                            double        TensileStrength,
                                                            double        Apex,
                                                            const Vector& rCornerPoint) const;
-    [[nodiscard]] static bool IsStressAtCornerReturnZone(const Vector& rTriaSigmalTau,
+    [[nodiscard]] static bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
                                                          double        DilatancyAngle,
                                                          const Vector& rCornerPoint);
 }; // Class MohrCoulombWithTensionCutOff
