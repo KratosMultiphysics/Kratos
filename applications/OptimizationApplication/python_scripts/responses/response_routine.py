@@ -19,6 +19,7 @@ class ResponseRoutine:
         self.__response_value = None
         self.__contributing_controls_list: 'list[Control]' = []
         self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
+        self.__name = self.__response.GetName()
 
     def GetMasterControl(self) -> MasterControl:
         return self.__master_control
@@ -63,6 +64,9 @@ class ResponseRoutine:
 
     def Finalize(self):
         self.__response.Finalize()
+
+    def GetName(self):
+        return self.__name
 
     def GetResponseName(self):
         return self.__response.GetName()

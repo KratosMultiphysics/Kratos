@@ -19,7 +19,11 @@ class MasterControl:
     """
     def __init__(self) -> None:
         self.__list_of_controls: 'list[Control]' = []
+        self.__name = "master_control"
 
+    def GetName(self) -> str:
+        return self.__name
+    
     def AddControl(self, control: Control) -> None:
         """Adds a given control to the master control.
 
