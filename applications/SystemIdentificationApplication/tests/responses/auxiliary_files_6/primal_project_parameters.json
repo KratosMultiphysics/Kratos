@@ -41,7 +41,6 @@
                 "help": "This process fixes the selected components of a given vector variable",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
-                    "mesh_id": 0,
                     "model_part_name": "AdjointStructure.DISPLACEMENT_fixed",
                     "variable_name": "DISPLACEMENT",
                     "value": [
@@ -70,7 +69,7 @@
                 "Parameters"    : {
                     "model_part_name" : "Structure.SurfacePressure3D_load",
                     "variable_name"   : "PRESSURE",
-                    "interval"        : [0.0,0.0], 
+                    "interval"        : [0.0,0.0],
                     "value"           : -0.1
                 }
             }
