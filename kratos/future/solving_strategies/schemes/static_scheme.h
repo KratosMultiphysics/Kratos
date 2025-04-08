@@ -32,28 +32,34 @@
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/amgcl_solver.h"
+#include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/schemes/assembly_helper.h"
 #endif
 
 namespace Kratos::Future
 {
+
 ///@name Kratos Globals
 ///@{
+
 ///@}
 ///@name Type Definitions
 ///@{
+
 ///@}
 ///@name  Enum's
 ///@{
+
 ///@}
 ///@name  Functions
 ///@{
+
 ///@}
 ///@name Kratos Classes
 ///@{
 
 /**
- * @class NewScheme
+ * @class StaticScheme
  * @ingroup KratosCore
  * @brief This class provides the implementation of the basic tasks that are needed by the solution strategy.
  * @details It is intended to be the place for tailoring the solution strategies to problem specific tasks.
@@ -65,22 +71,22 @@ namespace Kratos::Future
 // scheme.h --> pure virtual!
 // implicit_scheme.h --> the one we have in here
 template<class TSparseMatrixType=CsrMatrix<>, class TSparseVectorType=SystemVector<>, class TSparseGraphType=SparseContiguousRowGraph<>>
-class NewScheme //FIXME: This will be ImplicitScheme
+class StaticScheme //FIXME: This will be ImplicitScheme
 {
 public:
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", NewScheme, NewScheme, TSparseMatrixType, TSparseVectorType)
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", NewScheme, NewScheme, TSparseMatrixType, TSparseVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", StaticScheme, StaticScheme, TSparseMatrixType, TSparseVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", StaticScheme, StaticScheme, TSparseMatrixType, TSparseVectorType)
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of NewScheme
-    KRATOS_CLASS_POINTER_DEFINITION(NewScheme);
+    /// Pointer definition of StaticScheme
+    KRATOS_CLASS_POINTER_DEFINITION(StaticScheme);
 
     /// The definition of the current class
-    using ClassType = NewScheme;
+    using ClassType = StaticScheme;
 
     /// Size type definition
     using SizeType = std::size_t;
@@ -96,12 +102,6 @@ public:
 
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
-
-    /// Elements containers definition
-    using ElementsArrayType = ModelPart::ElementsContainerType;
-
-    /// Conditions containers definition
-    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     /// TLS type definition
     struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme --> Also we need to move them out of here.
@@ -127,12 +127,12 @@ public:
      * @brief Default Constructor
      * @details Initializes the flags
      */
-    explicit NewScheme() = default;
+    explicit StaticScheme() = default;
 
     /**
      * @brief Constructor with Parameters
      */
-    explicit NewScheme(
+    explicit StaticScheme(
         ModelPart& rModelPart,
         Parameters ThisParameters)
         : mpModelPart(&rModelPart)
@@ -151,7 +151,7 @@ public:
 
     /** Copy Constructor.
      */
-    explicit NewScheme(NewScheme& rOther)
+    explicit StaticScheme(StaticScheme& rOther)
       : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
       , mSchemeSolutionStepIsInitialized(rOther.mSchemeSolutionStepIsInitialized)
     {
@@ -160,7 +160,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~NewScheme() = default;
+    virtual ~StaticScheme() = default;
 
     ///@}
     ///@name Operators
@@ -170,44 +170,16 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Create method
-     * @param ThisParameters The configuration parameters
-     */
-    virtual typename ClassType::Pointer Create(
+    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Create(
         ModelPart& rModelPart,
-        Parameters ThisParameters) const
+        Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+        return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
     }
 
-    /**
-     * @brief Clone method
-     * @return The pointer of the cloned NewScheme
-     */
-    virtual Pointer Clone()
+    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone() override
     {
-        return Kratos::make_shared<NewScheme>(*this) ;
-    }
-
-    /**
-     * @brief This is the place to initialize the NewScheme.
-     * @details This is intended to be called just once when the strategy is initialized
-     */
-    virtual void Initialize()
-    {
-        KRATOS_TRY
-
-        // Check if the Initialize has been already performed
-        if (!mSchemeIsInitialized) {
-            // Initialize elements, conditions and constraints
-            EntitiesUtilities::InitializeAllEntities(*mpModelPart);
-
-            // Set the flag to avoid calling this twice
-            mSchemeIsInitialized = true; //TODO: Discuss with the KTC if these should remain or not
-        }
-
-        KRATOS_CATCH("")
+        return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(*this) ;
     }
 
     /**
@@ -219,12 +191,12 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    virtual void InitializeSolutionStep(
+    void InitializeSolutionStep(
         DofsArrayType& rDofSet,
         typename TSparseMatrixType::Pointer& rpA,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpB,
-        const bool ReformDofSet = true)
+        const bool ReformDofSet = true) override
     {
         KRATOS_TRY
 
@@ -237,26 +209,26 @@ public:
                 BuiltinTimer setup_dofs_time;
                 SetUpDofArray(rDofSet);
                 mDofSetIsInitialized = true;
-                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
                 // Set up the equation ids
                 BuiltinTimer setup_system_time;
                 const SizeType eq_system_size = SetUpSystemIds(rDofSet);
-                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
-                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Equation system size: " << eq_system_size << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Equation system size: " << eq_system_size << std::endl;
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
                 ResizeAndInitializeVectors(rDofSet, rpA, rpDx, rpB);
-                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
             } else {
                 // Set up the equation ids (note that this needs to be always done)
                 BuiltinTimer setup_system_time;
                 const SizeType eq_system_size = SetUpSystemIds(rDofSet);
-                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
-                KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "Equation system size: " << eq_system_size << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Equation system size: " << eq_system_size << std::endl;
             }
-            KRATOS_INFO_IF("NewScheme", mEchoLevel > 0) << "System construction time: " << system_construction_time << std::endl;
+            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "System construction time: " << system_construction_time << std::endl;
 
             // Initializes solution step for all of the elements, conditions and constraints
             EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
@@ -264,95 +236,6 @@ public:
             // Set the flag to avoid calling this twice
             mSchemeSolutionStepIsInitialized = true; //TODO: Discuss with the KTC if these should remain or not
         }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    virtual void FinalizeSolutionStep(
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b)
-    {
-        KRATOS_TRY
-
-        // Finalizes solution step for all of the elements, conditions and constraints
-        EntitiesUtilities::FinalizeSolutionStepAllEntities(*mpModelPart);
-
-        // Reset flags for next step
-        mSchemeSolutionStepIsInitialized = false;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief unction to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
-     * @note Take care: the elemental function with the same name is NOT called here.
-     * @warning Must be defined in derived classes
-     * @details The function is called in the builder for memory efficiency
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    virtual void InitializeNonLinIteration(
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b)
-    {
-        KRATOS_TRY
-
-        // Finalizes non-linear iteration for all of the elements, conditions and constraints
-        EntitiesUtilities::InitializeNonLinearIterationAllEntities(*mpModelPart);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Function to be called when it is needed to finalize an iteration. It is designed to be called at the end of each non linear iteration
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    virtual void FinalizeNonLinIteration(
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b)
-    {
-        KRATOS_TRY
-
-        // Finalizes non-linear iteration for all of the elements, conditions and constraints
-        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(*mpModelPart);
-
-        KRATOS_CATCH("")
-    }
-
-    virtual void SetUpDofArray(DofsArrayType& rDofSet)
-    {
-        // Call the external utility to set up the DOFs array
-        DofArrayUtilities::SetUpDofArray(*mpModelPart, rDofSet, mEchoLevel);
-
-        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
-    }
-
-    SizeType SetUpSystemIds(DofsArrayType& rDofSet)
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF(rDofSet.empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
-
-        const SizeType equation_system_size = mpAssemblyHelper->SetUpSystemIds(rDofSet);
-
-        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
-
-        return equation_system_size;
 
         KRATOS_CATCH("")
     }
@@ -373,159 +256,9 @@ public:
         //TODO: Think on the constraints stuff!
         // ConstructMasterSlaveConstraintsStructure(rModelPart);
 
-        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
+        KRATOS_INFO_IF("StaticScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
 
         KRATOS_CATCH("")
-    }
-
-    //FIXME: Missing methods
-    // - Build for LHS only
-    // - BuildMassMatrix
-    // - BuildDampingMatrix
-    virtual void Build(
-        TSparseMatrixType& rLHS,
-        TSparseVectorType& rRHS)
-    {
-        Timer::Start("Build");
-
-        const auto timer = BuiltinTimer();
-
-        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            if (ItElem->Is(ACTIVE)) {
-                // Calculate local LHS and RHS contributions
-                ItElem->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
-
-                // Get the positions in the global system
-                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-            } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalLhs.resize(0,0);
-                rTLS.LocalEqIds.resize(0);
-            }
-        };
-
-        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            if (ItCond->Is(ACTIVE)) {
-                // Calculate local LHS and RHS contributions
-                ItCond->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
-
-                // Get the positions in the global system
-                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-            } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalLhs.resize(0,0);
-                rTLS.LocalEqIds.resize(0);
-            }
-        };
-
-        ThreadLocalStorage aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
-        r_assembly_helper.SetElementAssemblyFunction(elem_func);
-        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        r_assembly_helper.AssembleLocalSystem(rLHS, rRHS, aux_tls);
-
-        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
-        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
-
-        Timer::Stop("Build");
-    }
-
-    virtual void Build(TSparseVectorType& rRHS)
-    {
-        Timer::Start("Build");
-
-        const auto timer = BuiltinTimer();
-
-        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            if (ItElem->Is(ACTIVE)) {
-                // Calculate the RHS contributions
-                ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
-
-                // Get the positions in the global system
-                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-            } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalEqIds.resize(0);
-            }
-        };
-
-        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            if (ItCond->Is(ACTIVE)) {
-                // Calculate the RHS contributions
-                ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
-
-                // Get the positions in the global system
-                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-            } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalLhs.resize(0,0);
-                rTLS.LocalEqIds.resize(0);
-            }
-        };
-
-        ThreadLocalStorage aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
-        r_assembly_helper.SetElementAssemblyFunction(elem_func);
-        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        r_assembly_helper.AssembleRightHandSide(rRHS, aux_tls);
-
-        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
-        KRATOS_INFO_IF("NewScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
-
-        Timer::Stop("Build");
-    }
-
-    virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofSet,
-        TSparseMatrixType& rLHS,
-        TSparseVectorType& rRHS)
-    {
-        GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rLHS, rRHS);
-    }
-
-    virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofSet,
-        TSparseVectorType& rRHS)
-    {
-        GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rRHS);
-    }
-
-    virtual void CalculateReactions(
-        const DofsArrayType& rDofSet,
-        TSparseVectorType& rRHS)
-    {
-        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            if (ItElem->Is(ACTIVE)) {
-                // Calculate the RHS contributions
-                ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
-
-                // Get the positions in the global system
-                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-            } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalEqIds.resize(0);
-            }
-        };
-
-        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, ThreadLocalStorage& rTLS){
-            if (ItCond->Is(ACTIVE)) {
-                // Calculate the RHS contributions
-                ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
-
-                // Get the positions in the global system
-                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-            } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalLhs.resize(0,0);
-                rTLS.LocalEqIds.resize(0);
-            }
-        };
-
-        ThreadLocalStorage aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
-        r_assembly_helper.SetElementAssemblyFunction(elem_func);
-        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        r_assembly_helper.CalculateReactionsRightHandSide(rDofSet, rRHS, aux_tls);
     }
 
     /**

@@ -162,6 +162,7 @@ public:
         const bool ReactionVector = false)
     {
         // Set up the sparse matrix graph (note that we do not need to keep it after the resizing)
+        KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
         TSparseGraphType sparse_graph(mEquationSystemSize);
         SetUpSparseGraph(sparse_graph);
 
@@ -179,7 +180,6 @@ public:
         //TODO: Maybe we can avoid this if we rebuild the RHS for the reactions calculation --> Check it in the future
         // For the elimination build, also allocate the auxiliary reactions vector
         if (mBuildType == BuildType::Elimination && ReactionVector) {
-            KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
             auto p_react = Kratos::make_shared<TSparseVectorType>(rDofSet.size() - mEquationSystemSize);
             mpReactionsVector.swap(p_react);
         }
