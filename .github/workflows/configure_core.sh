@@ -41,7 +41,9 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
--DCMAKE_UNITY_BUILD=ON
+-DCMAKE_UNITY_BUILD=ON                                              \
+-DCMAKE_C_COMPILER_LAUNCHER=sccache                                 \
+-DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
 # Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j${KRATOS_CI_CORES}

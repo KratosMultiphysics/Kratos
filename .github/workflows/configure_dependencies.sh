@@ -50,6 +50,8 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
 -DCMAKE_UNITY_BUILD=ON                                              \
 -DINCLUDE_MMG=ON                                                    \
+-DCMAKE_C_COMPILER_LAUNCHER=sccache                                 \
+-DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
 # Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j${KRATOS_CI_CORES}

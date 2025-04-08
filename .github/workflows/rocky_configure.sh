@@ -64,6 +64,8 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DBOOST_ROOT="${BOOST_ROOT}"                                        \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
 -DCMAKE_UNITY_BUILD=ON                                              \
+-DCMAKE_C_COMPILER_LAUNCHER=sccache                                 \
+-DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
 # Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2

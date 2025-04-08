@@ -50,7 +50,9 @@ cmake                                                 ^
   -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5                  ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   ^
-  -DCMAKE_UNITY_BUILD=ON                                    || goto :error
+  -DCMAKE_UNITY_BUILD=ON                              ^
+  -DCMAKE_C_COMPILER_LAUNCHER=sccache                 ^
+  -DCMAKE_CXX_COMPILER_LAUNCHER=sccache || goto :error
 
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_build -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
