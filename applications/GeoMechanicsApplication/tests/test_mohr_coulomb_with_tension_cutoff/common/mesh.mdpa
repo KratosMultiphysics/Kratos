@@ -43,27 +43,23 @@ Begin SubModelPart SideLeft
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart RightBottomCorner
+Begin SubModelPart SideRight
   Begin SubModelPartNodes
     2
+    3
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Bottom
+Begin SubModelPart SideBottom
   Begin SubModelPartNodes
     1
     2
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart LeftTopCorner
-  Begin SubModelPartNodes
-    4
-  End SubModelPartNodes
-End SubModelPart
-
-Begin SubModelPart RightTopCorner
+Begin SubModelPart SideTop
   Begin SubModelPartNodes
     3
+    4
   End SubModelPartNodes
 End SubModelPart
