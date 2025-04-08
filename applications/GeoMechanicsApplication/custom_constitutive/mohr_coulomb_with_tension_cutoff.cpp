@@ -276,11 +276,11 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
 bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const
 {
-    constexpr auto tolerance      = 1.0e-10;
+    constexpr auto tolerance          = 1.0e-10;
     const auto coulomb_yield_function = mCoulombYieldSurface.YieldFunctionValue(rPrincipalStresses);
     const auto tension_yield_function = mTensionCutOff.YieldFunctionValue(rPrincipalStresses);
-    const auto coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function));
-    const auto tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function));
+    const auto coulomb_tolerance      = tolerance * (1.0 + std::abs(coulomb_yield_function));
+    const auto tension_tolerance      = tolerance * (1.0 + std::abs(tension_yield_function));
     return coulomb_yield_function < coulomb_tolerance && tension_yield_function < tension_tolerance;
 }
 

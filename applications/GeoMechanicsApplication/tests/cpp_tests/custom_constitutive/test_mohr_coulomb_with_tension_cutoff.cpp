@@ -24,16 +24,6 @@ using namespace Kratos;
 
 namespace Kratos::Testing
 {
-Properties CreateProperties(double FrictionAngle, double Cohesion, double DilatancyAngle, double TensileStrength)
-{
-    Properties properties;
-    properties.SetValue(GEO_FRICTION_ANGLE, FrictionAngle);
-    properties.SetValue(GEO_COHESION, Cohesion);
-    properties.SetValue(GEO_DILATANCY_ANGLE, DilatancyAngle);
-    properties.SetValue(GEO_TENSILE_STRENGTH, TensileStrength);
-    return properties;
-}
-
 Vector CalculateMappedStressVector(Vector&                       rCauchyStressVector,
                                    ConstitutiveLaw::Parameters&  rParameters,
                                    MohrCoulombWithTensionCutOff& rLaw)
@@ -155,9 +145,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    const auto                  properties = CreateProperties(35.0, 10.0, 20.0, 10.0);
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -182,9 +175,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    const auto                  properties = CreateProperties(35.0, 10.0, 0.0, 10.0);
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -214,9 +210,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    const auto                  properties = CreateProperties(35.0, 10.0, 20.0, 10.0);
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -246,9 +245,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    const auto                  properties = CreateProperties(35.0, 10.0, 20.0, 10.0);
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -278,9 +280,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    const auto                  properties = CreateProperties(35.0, 10.0, 20.0, 10.0);
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -305,9 +310,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    const auto                  properties = CreateProperties(35.0, 10.0, 20.0, 20.0);
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 20.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
