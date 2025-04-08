@@ -1093,6 +1093,292 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std:
     std::cout << "Saved " << elementFits.size() << " element circle fits to " << output_file << std::endl;
     std::cout << "Used all available points from 2-hop neighborhoods." << std::endl;
 }
+
+void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(const std::string& output_file)
+{
+    // Get all intersection points
+    const auto& points = g_IntersectionPointsContainer;
+    
+    if (points.empty()) {
+        std::cout << "No intersection points available for curve fitting." << std::endl;
+        return;
+    }
+    
+    // Configuration parameters
+    const int MIN_POINTS_FOR_CURVE_FIT = 3;  // Absolute minimum needed for quadratic
+    const int NEIGHBOR_EXPANSION_LEVEL = 2;   // Expand to n-hop neighbors
+    
+    std::cout << "Starting quadratic curve fitting with " << points.size() << " intersection points." << std::endl;
+    std::cout << "Using all available points from 2-hop neighborhoods." << std::endl;
+    
+    // Group points by element
+    std::map<int, std::vector<IntersectionPointData>> element_points;
+    // Create a map of points by their coordinates
+    std::map<std::pair<double, double>, std::vector<int>> point_to_elements;
+    
+    for (const auto& point : points) {
+        int elemId = point.elementId;
+        
+        // Round coordinates to handle floating point precision
+        double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
+        double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
+        std::pair<double, double> coord_key(x, y);
+        
+        // Add this element to the list for this point
+        point_to_elements[coord_key].push_back(elemId);
+        
+        // Add this point to the element's list
+        element_points[elemId].push_back(point);
+    }
+    
+    // Find element neighbors (elements that share intersection points)
+    std::map<int, std::set<int>> element_neighbors;
+    
+    for (const auto& [coord, elements] : point_to_elements) {
+        // If this point belongs to multiple elements, they are neighbors
+        for (size_t i = 0; i < elements.size(); ++i) {
+            for (size_t j = i+1; j < elements.size(); ++j) {
+                element_neighbors[elements[i]].insert(elements[j]);
+                element_neighbors[elements[j]].insert(elements[i]);
+            }
+        }
+    }
+    
+    // Expand the neighborhood to n-hop neighbors
+    std::cout << "Expanding neighborhood with " << NEIGHBOR_EXPANSION_LEVEL << " hops..." << std::endl;
+    std::map<int, std::set<int>> expanded_neighbors = element_neighbors;
+    
+    for (int hop = 2; hop <= NEIGHBOR_EXPANSION_LEVEL; hop++) {
+        std::map<int, std::set<int>> next_level_neighbors = expanded_neighbors;
+        
+        for (const auto& [elemId, current_neighbors] : expanded_neighbors) {
+            for (int neighbor : current_neighbors) {
+                for (int next_hop : expanded_neighbors[neighbor]) {
+                    if (next_hop != elemId && !expanded_neighbors[elemId].count(next_hop)) {
+                        next_level_neighbors[elemId].insert(next_hop);
+                    }
+                }
+            }
+        }
+        
+        expanded_neighbors = next_level_neighbors;
+        std::cout << "Completed " << hop << "-hop neighborhood expansion." << std::endl;
+    }
+    
+    // Structure to hold quadratic curve fit coefficients (y = ax² + bx + c)
+    struct QuadraticCoefficients {
+        double a;  // coefficient of x²
+        double b;  // coefficient of x
+        double c;  // constant term
+    };
+    
+    // Maps to store results
+    std::map<int, QuadraticCoefficients> elementFits;
+    std::map<int, int> elementTotalPoints;
+    
+    // Process each element
+    for (const auto& [elemId, neighbors] : expanded_neighbors) {
+        // Get original points for this element
+        std::vector<IntersectionPointData> original_points = element_points[elemId];
+        int original_point_count = original_points.size();
+        
+        // Create a pool of neighbor points
+        std::vector<IntersectionPointData> neighbor_points;
+        for (int neighborId : neighbors) {
+            neighbor_points.insert(neighbor_points.end(), 
+                                 element_points[neighborId].begin(), 
+                                 element_points[neighborId].end());
+        }
+        
+        // Remove duplicates and points shared with original set
+        std::map<std::pair<double, double>, IntersectionPointData> unique_neighbor_points;
+        for (const auto& point : neighbor_points) {
+            double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
+            double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
+            std::pair<double, double> key(x, y);
+            
+            // Skip points that are in the original set
+            bool is_in_original = false;
+            for (const auto& orig_point : original_points) {
+                double ox = std::round(orig_point.coordinates[0] * 10000000.0) / 10000000.0;
+                double oy = std::round(orig_point.coordinates[1] * 10000000.0) / 10000000.0;
+                if (ox == x && oy == y) {
+                    is_in_original = true;
+                    break;
+                }
+            }
+            
+            if (!is_in_original) {
+                unique_neighbor_points[key] = point;
+            }
+        }
+        
+        // Create a vector of unique neighbor points
+        neighbor_points.clear();
+        for (const auto& [_, point] : unique_neighbor_points) {
+            neighbor_points.push_back(point);
+        }
+        
+        // Build the set of points for curve fitting
+        std::vector<IntersectionPointData> combined_points = original_points;
+        
+        // Add all neighbor points
+        combined_points.insert(combined_points.end(), neighbor_points.begin(), neighbor_points.end());
+        
+        int points_from_neighbors = neighbor_points.size();
+        
+        // Only fit if we have enough points
+        if (combined_points.size() >= MIN_POINTS_FOR_CURVE_FIT) {
+            std::cout << "Element " << elemId 
+                      << " has " << combined_points.size() 
+                      << " points for quadratic fitting (" 
+                      << original_point_count << " original + " 
+                      << points_from_neighbors << " from neighbors)." << std::endl;
+            
+            // Prepare matrices for least squares fitting of y = ax² + bx + c
+            double sum_x = 0.0, sum_y = 0.0;
+            double sum_x2 = 0.0, sum_x3 = 0.0, sum_x4 = 0.0;
+            double sum_xy = 0.0, sum_x2y = 0.0;
+            
+            for (const auto& point : combined_points) {
+                double x = point.coordinates[0];
+                double y = point.coordinates[1];
+                
+                double x2 = x * x;
+                
+                sum_x += x;
+                sum_y += y;
+                sum_x2 += x2;
+                sum_x3 += x2 * x;
+                sum_x4 += x2 * x2;
+                sum_xy += x * y;
+                sum_x2y += x2 * y;
+            }
+            
+            int n = combined_points.size();
+            
+            // Set up the system of equations for quadratic fit: y = ax² + bx + c
+            Matrix A(3, 3);
+            Vector b(3);
+            
+            A(0, 0) = sum_x4;    A(0, 1) = sum_x3;    A(0, 2) = sum_x2;
+            A(1, 0) = sum_x3;    A(1, 1) = sum_x2;    A(1, 2) = sum_x;
+            A(2, 0) = sum_x2;    A(2, 1) = sum_x;     A(2, 2) = n;
+            
+            b[0] = sum_x2y;
+            b[1] = sum_xy;
+            b[2] = sum_y;
+            
+            // Solve using Cramer's rule
+            double det = A(0, 0) * (A(1, 1) * A(2, 2) - A(2, 1) * A(1, 2)) -
+                         A(0, 1) * (A(1, 0) * A(2, 2) - A(1, 2) * A(2, 0)) +
+                         A(0, 2) * (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0));
+            
+            Matrix A1 = A, A2 = A, A3 = A;
+            
+            for (int i = 0; i < 3; i++) {
+                A1(i, 0) = b[i];
+                A2(i, 1) = b[i];
+                A3(i, 2) = b[i];
+            }
+            
+            double det1 = A1(0, 0) * (A1(1, 1) * A1(2, 2) - A1(2, 1) * A1(1, 2)) -
+                          A1(0, 1) * (A1(1, 0) * A1(2, 2) - A1(1, 2) * A1(2, 0)) +
+                          A1(0, 2) * (A1(1, 0) * A1(2, 1) - A1(1, 1) * A1(2, 0));
+                          
+            double det2 = A2(0, 0) * (A2(1, 1) * A2(2, 2) - A2(2, 1) * A2(1, 2)) -
+                          A2(0, 1) * (A2(1, 0) * A2(2, 2) - A2(1, 2) * A2(2, 0)) +
+                          A2(0, 2) * (A2(1, 0) * A2(2, 1) - A2(1, 1) * A2(2, 0));
+                          
+            double det3 = A3(0, 0) * (A3(1, 1) * A3(2, 2) - A3(2, 1) * A3(1, 2)) -
+                          A3(0, 1) * (A3(1, 0) * A3(2, 2) - A3(1, 2) * A3(2, 0)) +
+                          A3(0, 2) * (A3(1, 0) * A3(2, 1) - A3(1, 1) * A3(2, 0));
+            
+            // Solve for quadratic parameters
+            QuadraticCoefficients fit;
+            fit.a = det1 / det;  // coefficient of x²
+            fit.b = det2 / det;  // coefficient of x
+            fit.c = det3 / det;  // constant term
+            
+            // Store results
+            elementFits[elemId] = fit;
+            elementTotalPoints[elemId] = combined_points.size();
+            
+            // Calculate error on original points
+            double total_error = 0.0;
+            
+            for (const auto& point : original_points) {
+                double x = point.coordinates[0];
+                double y = point.coordinates[1];
+                
+                // Calculate y value from fitted curve
+                double fitted_y = fit.a * x * x + fit.b * x + fit.c;
+                
+                // Error is the vertical distance between point and curve
+                double error = std::abs(y - fitted_y);
+                total_error += error;
+            }
+            
+            double avg_error = total_error / (original_points.empty() ? 1.0 : original_points.size());
+            
+            std::cout << "Element " << elemId 
+                      << " fitted with " << combined_points.size() 
+                      << " points: y = " << fit.a
+                      << "x² + " << fit.b << "x + " << fit.c
+                      << std::endl;
+            std::cout << "    Average fit error on original points: " << avg_error << std::endl;
+        } else {
+            std::cout << "Element " << elemId 
+                      << " has only " << combined_points.size() 
+                      << " unique points (less than " << MIN_POINTS_FOR_CURVE_FIT 
+                      << " required) - cannot perform quadratic curve fitting." << std::endl;
+        }
+    }
+    
+    // Write results to file
+    std::ofstream outFile(output_file);
+    
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Could not open file " << output_file << " for writing." << std::endl;
+        return;
+    }
+    
+    outFile << "Element_ID\tNum_Original_Points\tTotal_Points\ta(x²)\tb(x)\tc(const)\tavg_error\n";
+    
+    for (const auto& [elemId, fit] : elementFits) {
+        int numPoints = element_points[elemId].size();
+        int totalPoints = elementTotalPoints[elemId];
+        
+        // Calculate error
+        double total_error = 0.0;
+        for (const auto& point : element_points[elemId]) {
+            double x = point.coordinates[0];
+            double y = point.coordinates[1];
+            
+            // Calculate y value from fitted curve
+            double fitted_y = fit.a * x * x + fit.b * x + fit.c;
+            
+            // Error is the vertical distance
+            double error = std::abs(y - fitted_y);
+            total_error += error;
+        }
+        
+        double avg_error = total_error / (numPoints > 0 ? numPoints : 1.0);
+        
+        outFile << elemId << "\t" 
+                << numPoints << "\t"
+                << totalPoints << "\t"
+                << fit.a << "\t" 
+                << fit.b << "\t" 
+                << fit.c << "\t"
+                << avg_error << "\n";
+    }
+    
+    outFile.close();
+    
+    std::cout << "Saved " << elementFits.size() << " element quadratic curve fits to " << output_file << std::endl;
+    std::cout << "Used all available points from 2-hop neighborhoods." << std::endl;
+}
 /////////////////////////////////////////////////////////
 }
 }

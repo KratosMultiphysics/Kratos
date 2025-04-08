@@ -58,6 +58,7 @@ public:
     
     // Add this function declaration inside the IntersectionPointsUtility class
     static void ProcessIntersectionPointsAndFitCurves(const std::string& output_file = "element_curves.txt");
+    static void ProcessIntersectionPointsAndFitCurvesparabola(const std::string& output_file = "element_curves_parabola.txt");
     //////////////////////////////////////
 };
 
@@ -84,6 +85,11 @@ struct ElementIntersection
     
     // Process all intersection points and fit curves using element connectivity
     static void ProcessIntersectionPointsAndFitCurves(
+        const std::vector<IntersectionPointData>& points,
+        const ModelPart& modelPart,
+        const std::string& output_file = "element_curves.txt");
+
+    static void ProcessIntersectionPointsAndFitCurvesparabola(
         const std::vector<IntersectionPointData>& points,
         const ModelPart& modelPart,
         const std::string& output_file = "element_curves.txt");
