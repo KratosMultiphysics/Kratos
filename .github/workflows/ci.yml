@@ -61,7 +61,7 @@ jobs:
 
     # Set up a remote compilation cache to reduce compile times.
     - name: Run sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.8
 
     - name: CI configuration
       shell: bash
@@ -287,7 +287,7 @@ jobs:
 
     # Set up a remote compilation cache to reduce compile times.
     - name: Run sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.8
 
     - name: Build
       shell: cmd
@@ -319,6 +319,7 @@ jobs:
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_rocky.json"
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      SCCACHE_GHA_ENABLED: "true" # Enable sccache for C/C++
 
     container:
       image: kratosmultiphysics/kratos-image-ci-rockylinux-8:latest
@@ -333,6 +334,10 @@ jobs:
     - name: CI configuration
       shell: bash
       run: python3.8 kratos/python_scripts/testing/ci_utilities.py
+
+    # Set up a remote compilation cache to reduce compile times.
+    - name: Run sccache
+      uses: mozilla-actions/sccache-action@v0.0.8
 
     - name: Build
       run: |
@@ -376,7 +381,7 @@ jobs:
 
     # Set up a remote compilation cache to reduce compile times.
     - name: Run sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.8
 
     - name: Build
       shell: bash
@@ -508,7 +513,7 @@ jobs:
 
     # Set up a remote compilation cache to reduce compile times.
     - name: Run sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.8
 
     - name: Build
       shell: cmd
@@ -588,7 +593,7 @@ jobs:
 
     # Set up a remote compilation cache to reduce compile times.
     - name: Run sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.8
 
     - name: Build
       shell: bash
@@ -696,7 +701,7 @@ jobs:
 
     # Set up a remote compilation cache to reduce compile times.
     - name: Run sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.8
 
     - name: Build
       shell: bash
