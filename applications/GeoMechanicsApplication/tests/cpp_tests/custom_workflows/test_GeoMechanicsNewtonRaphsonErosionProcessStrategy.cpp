@@ -30,28 +30,28 @@ class ParametrizedDGeoFlowTests : public ::testing::TestWithParam<std::string>
 TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
 {
     // Arrange
-    auto workingDirectory =
+    auto working_directory =
         "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/" + GetParam();
-    auto projectFile = "ProjectParameters.json";
+    auto project_file = "ProjectParameters.json";
 
     auto execute = KratosExecute();
 
     std::vector<double> progress_report_values;
-    auto                reportProgress = [&progress_report_values](double progress) {
-        progress_report_values.push_back(progress);
+    auto                reportProgress = [&progress_report_values](double Progress) {
+        progress_report_values.push_back(Progress);
     };
 
     std::vector<std::string> reported_textual_progress;
-    auto reportTextualProgress = [&reported_textual_progress](const char* message) {
-        reported_textual_progress.emplace_back(message);
+    auto report_textual_progress = [&reported_textual_progress](const char* pMessage) {
+        reported_textual_progress.emplace_back(pMessage);
     };
 
     const KratosExecute::CriticalHeadInfo  critical_head_info(3, 4, 0.1);
     const KratosExecute::CallBackFunctions call_back_functions(
-        &flow_stubs::emptyLog, reportProgress, reportTextualProgress, &flow_stubs::emptyCancel);
+        &flow_stubs::emptyLog, reportProgress, report_textual_progress, &flow_stubs::emptyCancel);
 
     // Act
-    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info,
+    const auto status = execute.ExecuteFlowAnalysis(working_directory, project_file, critical_head_info,
                                                    "PorousDomain.Left_head", call_back_functions);
 
     // Assert
@@ -59,8 +59,8 @@ TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
     KRATOS_EXPECT_EQ(reported_textual_progress.front(), "Calculating head level 3m (1/12)");
     KRATOS_EXPECT_EQ(reported_textual_progress.back(), "Calculating head level 3.8m (9/12)");
     KRATOS_EXPECT_EQ(reported_textual_progress.size(), 9);
-    KRATOS_EXPECT_EQ(progress_report_values.front(), 0.0);
-    KRATOS_EXPECT_EQ(progress_report_values.back(), 0.75);
+    KRATOS_EXPECT_DOUBLE_EQ(progress_report_values.front(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(progress_report_values.back(), 0.75);
     KRATOS_EXPECT_EQ(progress_report_values.size(), 10);
 }
 
