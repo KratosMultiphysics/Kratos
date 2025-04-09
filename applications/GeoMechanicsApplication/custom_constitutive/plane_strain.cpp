@@ -57,4 +57,14 @@ std::size_t PlaneStrain::GetNumberOfNormalComponents() const { return 3; }
 
 Flags PlaneStrain::GetSpatialType() const { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
 
+void PlaneStrain::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void PlaneStrain::load(Serializer&)
+{
+    // No data members to be saved (yet)
+}
+
 } // namespace Kratos
