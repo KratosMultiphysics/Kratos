@@ -829,8 +829,8 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std:
         int elemId = point.elementId;
         
         // Round coordinates to handle floating point precision
-        double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
-        double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
+        double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
+        double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
         std::pair<double, double> coord_key(x, y);
         
         // Add this element to the list for this point
@@ -902,15 +902,15 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std:
         // Remove duplicates and points shared with original set
         std::map<std::pair<double, double>, IntersectionPointData> unique_neighbor_points;
         for (const auto& point : neighbor_points) {
-            double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
-            double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
+            double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
+            double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
             std::pair<double, double> key(x, y);
             
             // Skip points that are in the original set
             bool is_in_original = false;
             for (const auto& orig_point : original_points) {
-                double ox = std::round(orig_point.coordinates[0] * 10000000.0) / 10000000.0;
-                double oy = std::round(orig_point.coordinates[1] * 10000000.0) / 10000000.0;
+                double ox = std::round(orig_point.coordinates[0] * 1.0E14) / 1.0E14;
+                double oy = std::round(orig_point.coordinates[1] * 1.0E14) / 1.0E14;
                 if (ox == x && oy == y) {
                     is_in_original = true;
                     break;
@@ -1120,8 +1120,8 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(co
         int elemId = point.elementId;
         
         // Round coordinates to handle floating point precision
-        double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
-        double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
+        double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
+        double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
         std::pair<double, double> coord_key(x, y);
         
         // Add this element to the list for this point
@@ -1193,15 +1193,15 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(co
         // Remove duplicates and points shared with original set
         std::map<std::pair<double, double>, IntersectionPointData> unique_neighbor_points;
         for (const auto& point : neighbor_points) {
-            double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
-            double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
+            double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
+            double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
             std::pair<double, double> key(x, y);
             
             // Skip points that are in the original set
             bool is_in_original = false;
             for (const auto& orig_point : original_points) {
-                double ox = std::round(orig_point.coordinates[0] * 10000000.0) / 10000000.0;
-                double oy = std::round(orig_point.coordinates[1] * 10000000.0) / 10000000.0;
+                double ox = std::round(orig_point.coordinates[0] * 1.0E14) / 1.0E14;
+                double oy = std::round(orig_point.coordinates[1] * 1.0E14) / 1.0E14;
                 if (ox == x && oy == y) {
                     is_in_original = true;
                     break;
