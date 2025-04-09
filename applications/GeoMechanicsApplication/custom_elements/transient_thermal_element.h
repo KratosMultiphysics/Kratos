@@ -17,6 +17,7 @@
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
@@ -124,7 +125,7 @@ public:
     {
         KRATOS_TRY
 
-        CheckDomainSize();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckHasSolutionStepsDataFor(TEMPERATURE);
         CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
         CheckHasDofsFor(TEMPERATURE);
@@ -138,13 +139,6 @@ public:
 
 private:
     std::unique_ptr<CalculateIntegrationCoefficients0> mpIntegrationCoefficientsCalculator;
-
-    void CheckDomainSize() const
-    {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
-    }
 
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
