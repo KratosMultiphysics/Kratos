@@ -213,7 +213,7 @@ protected:
 
     /**
      * @brief Finalize the Runge-Kutta intermediate substep
-     * In this method we calculate the linearised time derivatives after the intemediate substep
+     * In this method we calculate the linearised time derivatives after the intermediate substep
      */
     void FinalizeRungeKuttaIntermediateSubStep() override
     {

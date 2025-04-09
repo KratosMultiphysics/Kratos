@@ -26,7 +26,7 @@ class FluidSolver(PythonSolver):
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
 
-    The solution strategy, builder_and_solver, etc. should alway be retrieved
+    The solution strategy, builder_and_solver, etc. should always be retrieved
     using the getter functions _GetSolutionStrategy, _GetBuilderAndSolver,
     etc. from this base class.
 
