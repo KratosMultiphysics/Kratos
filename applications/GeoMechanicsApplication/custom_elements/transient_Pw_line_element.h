@@ -16,6 +16,7 @@
 #include "calculation_contribution.h"
 #include "compressibility_calculator.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "filter_compressibility_calculator.h"
@@ -138,7 +139,7 @@ public:
     {
         KRATOS_TRY
 
-        CheckElementLength();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
@@ -155,13 +156,6 @@ public:
 private:
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     std::vector<CalculationContribution> mContributions;
-
-    void CheckElementLength() const
-    {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "Length smaller than " << min_domain_size << " for element " << Id() << std::endl;
-    }
 
     void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
     {
