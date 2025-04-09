@@ -65,7 +65,7 @@ namespace Kratos::Future
  * @details It is intended to be the place for tailoring the solution strategies to problem specific tasks.
  * @author Ruben Zorrilla
  */
-template<class TSparseMatrixType=CsrMatrix<>, class TSparseVectorType=SystemVector<>, class TSparseGraphType=SparseContiguousRowGraph<>>
+template<class TSparseMatrixType, class TSparseVectorType, class TSparseGraphType>
 class StaticScheme : public ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>
 {
 public:
@@ -156,14 +156,14 @@ public:
     ///@name Operations
     ///@{
 
-    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Create(
+    typename BaseType::Pointer Create(
         ModelPart& rModelPart,
-        Parameters ThisParameters) const
+        Parameters ThisParameters) const override
     {
         return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
     }
 
-    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone()
+    typename BaseType::Pointer Clone() override
     {
         return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(*this) ;
     }
@@ -194,26 +194,26 @@ public:
                 // Setting up the DOFs list to be solved
                 BuiltinTimer setup_dofs_time;
                 this->SetUpDofArray(rDofSet);
-                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
                 // Set up the equation ids
                 BuiltinTimer setup_system_time;
                 const SizeType eq_system_size = this->SetUpSystemIds(rDofSet);
-                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
-                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
-                ResizeAndInitializeVectors(rDofSet, rpA, rpDx, rpB);
-                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
+                this->ResizeAndInitializeVectors(rDofSet, rpA, rpDx, rpB);
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
             } else {
                 // Set up the equation ids (note that this needs to be always done)
                 BuiltinTimer setup_system_time;
                 const SizeType eq_system_size = this->SetUpSystemIds(rDofSet);
-                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
-                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
             }
-            KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
+            KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 
             // Initializes solution step for all of the elements, conditions and constraints
             EntitiesUtilities::InitializeSolutionStepAllEntities(this->GetModelPart());
@@ -221,27 +221,6 @@ public:
             // Set the flag to avoid calling this twice
             this->SetSchemeSolutionStepIsInitialized(true); // TODO: Discuss with the KTC if these should remain or not
         }
-
-        KRATOS_CATCH("")
-    }
-
-    void ResizeAndInitializeVectors(
-        const DofsArrayType& rDofSet,
-        typename TSparseMatrixType::Pointer& rpLHS,
-        typename TSparseVectorType::Pointer& rpDx,
-        typename TSparseVectorType::Pointer& rpRHS,
-        const bool CalculateReactions = false) override
-    {
-        KRATOS_TRY
-
-        // Call the assembly helper to allocate and initialize the required vectors
-        // Note that this also allocates the required reaction vectors (e.g., elimination build)
-        (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rpLHS, rpDx, rpRHS, CalculateReactions);
-
-        //TODO: Think on the constraints stuff!
-        // ConstructMasterSlaveConstraintsStructure(rModelPart);
-
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -337,10 +316,14 @@ public:
 
     Parameters GetDefaultParameters() const override
     {
+        // Current class default parameters
         Parameters default_parameters = Parameters(R"({
             "name" : "static_scheme"
         })");
-        default_parameters.ValidateAndAssignDefaults(BaseType::GetDefaultParameters());
+
+        // Add base class default parameters
+        default_parameters.RecursivelyAddMissingParameters(BaseType::GetDefaultParameters());
+
         return default_parameters;
     }
 
@@ -364,7 +347,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Static scheme";
+        return "StaticScheme";
     }
 
     /// Print information about this object.

@@ -24,6 +24,7 @@
 #include "future/solving_strategies/schemes/assembly_helper.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
+#include "future/solving_strategies/strategies/implicit_strategy.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
 
 namespace Kratos::Future::Python
@@ -39,7 +40,7 @@ void AddStrategiesToPython(py::module& m)
         // .def("Execute",&Future::Process::Execute)
         // .def("Info",&Future::Process::Info)
         // .def("__str__", PrintObject<Future::Process>)
-        ;
+    ;
 
     using ImplicitSchemeType = Future::ImplicitScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     using StaticSchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
@@ -51,8 +52,9 @@ void AddStrategiesToPython(py::module& m)
     ;
 
     using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>>;
-    py::class_<LinearStrategyType, typename LinearStrategyType::Pointer>(m, "LinearStrategy")
+    using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using ImplicitStrategyType = Future::ImplicitStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, ImplicitStrategyType>(m, "LinearStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
         .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
         .def("Initialize", &LinearStrategyType::Initialize)

@@ -88,7 +88,7 @@ struct ImplicitThreadLocalStorage
 //TODO: Make base classes:
 // scheme.h --> pure virtual!
 // implicit_scheme.h --> the one we have in here
-template<class TSparseMatrixType=CsrMatrix<>, class TSparseVectorType=SystemVector<>, class TSparseGraphType=SparseContiguousRowGraph<>>
+template<class TSparseMatrixType, class TSparseVectorType, class TSparseGraphType>
 class ImplicitScheme
 {
 public:
@@ -176,7 +176,7 @@ public:
      * @brief Create method
      * @param ThisParameters The configuration parameters
      */
-    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Create(
+    virtual typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters) const
     {
@@ -187,7 +187,7 @@ public:
      * @brief Clone method
      * @return The pointer of the cloned ImplicitScheme
      */
-    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone()
+    virtual typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone()
     {
         return Kratos::make_shared<ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(*this) ;
     }
@@ -226,7 +226,10 @@ public:
         typename TSparseMatrixType::Pointer& rpA,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpB,
-        const bool ReformDofSet = true) = 0;
+        const bool ReformDofSet = true)
+    {
+        KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'InitializeSolutionStep\' method. Call derived class one." << std::endl;
+    }
 
     /**
      * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
@@ -320,12 +323,27 @@ public:
         KRATOS_CATCH("")
     }
 
+    //TODO: Think on the overloads for the mass and damping matrices
     virtual void ResizeAndInitializeVectors(
         const DofsArrayType& rDofSet,
         typename TSparseMatrixType::Pointer& rpLHS,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpRHS,
-        const bool CalculateReactions = false) = 0;
+        const bool CalculateReactions = false)
+    {
+        KRATOS_TRY
+
+        // Call the assembly helper to allocate and initialize the required vectors
+        // Note that this also allocates the required reaction vectors (e.g., elimination build)
+        (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rpLHS, rpDx, rpRHS, CalculateReactions);
+
+        //TODO: Think on the constraints stuff!
+        // ConstructMasterSlaveConstraintsStructure(rModelPart);
+
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     virtual void Build(
         TSparseMatrixType& rLHS,
@@ -500,7 +518,10 @@ public:
     virtual void Predict(
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
-        TSparseVectorType& b) = 0;
+        TSparseVectorType& b)
+    {
+        KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
+    }
 
     /**
      * @brief Performing the update of the solution.
@@ -512,10 +533,13 @@ public:
      * @param b RHS Vector
      */
     virtual void Update(
-        DofsArrayType& rDofSet,
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b) = 0;
+        DofsArrayType &rDofSet,
+        TSparseMatrixType &A,
+        TSparseVectorType &Dx,
+        TSparseVectorType &b)
+    {
+        KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
+    }
 
     /**
      * @brief Functions to be called to prepare the data needed for the output of results.
@@ -714,7 +738,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "Implicit scheme";
+        return "ImplicitScheme";
     }
 
     /// Print information about this object.

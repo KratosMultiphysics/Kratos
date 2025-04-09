@@ -170,7 +170,7 @@ KRATOS_TEST_CASE_IN_SUITE(StaticScheme, KratosCoreFastSuite)
             "build_type" : "block"
         }
     })");
-    auto p_scheme = Kratos::make_unique<Future::StaticScheme<>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_unique<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
 
     // Create the DOF set and set the global ids
     // Note that in a standard case this happens at the strategy level
@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
             "build_type" : "block"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
@@ -235,7 +235,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
