@@ -201,6 +201,9 @@ protected:
     ///@name Member Variables
     ///@{
 
+    double mViscousTime = 0.0;
+    array_1d<double, 2> mStrainRateHistory = ZeroVector(2);
+
     ///@}
     ///@name Private Operators
     ///@{
