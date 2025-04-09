@@ -28,6 +28,7 @@
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
 #include "custom_utilities/embedded_mls_constraint_process.h"
 #include "custom_utilities/surface_integral.h"
+#include "custom_utilities/blurriness_calculator.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -167,6 +168,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<EmbeddedMLSConstraintProcess, EmbeddedMLSConstraintProcess::Pointer, Process>(m,"EmbeddedMLSConstraintProcess")
     .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<BlurrinessCalculator>(m, "BlurrinessCalculator")
+    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&>())
+    .def("ComputeBlurriness", &BlurrinessCalculator::ComputeBlurriness)
+    .def("GetBlurriness", &BlurrinessCalculator::GetBlurriness)
     ;
 
 }
