@@ -13,6 +13,7 @@
 
 #include "axisymmetric_stress_state.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -70,5 +71,15 @@ const Vector& AxisymmetricStressState::GetVoigtVector() const { return VoigtVect
 SizeType AxisymmetricStressState::GetVoigtSize() const { return GetVoigtSize2D(); }
 
 SizeType AxisymmetricStressState::GetStressTensorSize() const { return GetStressTensorSize2D(); }
+
+void AxisymmetricStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void AxisymmetricStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
+}
 
 } // namespace Kratos

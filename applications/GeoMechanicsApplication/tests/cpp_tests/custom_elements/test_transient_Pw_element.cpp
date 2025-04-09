@@ -240,7 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_coincident_nodes.Check(dummy_process_info),
-                                      "Error: DomainSize < 1.0e-15 for the element 1")
+                                      "Error: DomainSize (0) is smaller than 1e-15 for element 1")
 
     const TransientPwElement<2, 3> element_with_correct_domain_size(
         1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()), p_properties,
@@ -751,7 +751,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
     // Assert
     KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
     KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
-
 }
 
 } // namespace Kratos::Testing

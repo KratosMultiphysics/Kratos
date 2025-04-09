@@ -12,12 +12,18 @@
 
 #include "containers/model.h"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_utilities/registration_utilities.h"
 #include "includes/checks.h"
+#include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
+#include <string>
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -118,6 +124,27 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectStressTensorSize, K
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<PlaneStrainStressState>();
     KRATOS_EXPECT_EQ(p_stress_state_policy->GetStressTensorSize(), STRESS_TENSOR_SIZE_2D);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"PlaneStrainStressState"s, PlaneStrainStressState{}};
+    const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneStrainStressState>()};
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_policy);
+    auto p_loaded_policy = std::unique_ptr<StressStatePolicy>{};
+    serializer.load("test_tag"s, p_loaded_policy);
+
+    // Assert
+    ASSERT_NE(p_loaded_policy, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_2D_PLANE_STRAIN);
+    auto expected_voigt_vector = Vector{4};
+    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

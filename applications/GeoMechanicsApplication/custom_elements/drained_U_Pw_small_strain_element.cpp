@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
+#include "custom_utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -56,8 +57,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType&   Geom = this->GetGeometry();
 
-    if (Geom.DomainSize() < 1.0e-15)
-        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(Geom.DomainSize(), this->Id());
 
     // Verify specific properties
 
@@ -80,7 +80,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     }
 
     // Check constitutive law
-    if (mConstitutiveLawVector.size() > 0) {
+    if (!mConstitutiveLawVector.empty()) {
         return mConstitutiveLawVector[0]->Check(Prop, Geom, rCurrentProcessInfo);
     }
 

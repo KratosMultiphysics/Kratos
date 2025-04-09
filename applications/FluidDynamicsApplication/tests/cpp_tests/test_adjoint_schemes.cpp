@@ -46,7 +46,7 @@ namespace Testing
 void SetModelPartOldValues(
     ModelPart& rModelPart)
 {
-    // this correspods to t = t - 1 time step in forward time
+    // this corresponds to t = t - 1 time step in forward time
     const double p_1 = 2.3;
     const double p_2 = 3.5;
     const double p_3 = 6.2;
@@ -72,7 +72,7 @@ void SetModelPartOldValues(
 void SetModelPartCurrentValues(
     ModelPart& rModelPart)
 {
-    // this correspods to t = t time step in forward time
+    // this corresponds to t = t time step in forward time
     // this is where we calculate testing derivatives
     const double p_1 = 1.5;
     const double p_2 = 2.7;
@@ -99,9 +99,9 @@ void SetModelPartCurrentValues(
 void SetModelPartNextalues(
     ModelPart& rModelPart)
 {
-    // this correspods to t = t + 1 time step in forward time
+    // this corresponds to t = t + 1 time step in forward time
     // this is required for adjoints since adjoints are calculated backwards in time,
-    // hence these values are loaded to fille the buffer of adjoint model part
+    // hence these values are loaded to fill the buffer of adjoint model part
     const double p_1 = 7.5;
     const double p_2 = 9.7;
     const double p_3 = 2.9;

@@ -14,8 +14,8 @@ class StabilizedStokesFormulation(StabilizedFormulation):
 
     element_name -- The registered element name for the chosen formulation
     condition_neme  -- The registered condition name for the chosen formulation
-    element_integrates_in_time -- States if the time integration is wether done by the element or not
-    element_has_nodal_properties -- States if the material properties are wether stored in the nodes or not
+    element_integrates_in_time -- States if the time integration is whether done by the element or not
+    element_has_nodal_properties -- States if the material properties are whether stored in the nodes or not
     process_data -- Auxiliary container to temporary store the elemental ProcessInfo data
     """
 
