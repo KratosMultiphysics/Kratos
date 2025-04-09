@@ -12,7 +12,7 @@ summary:
 
 *Clang-Tidy* is a tool developed and maintained by the *Clang/LLVM* community. The official documentation can be found at [http://clang.llvm.org/extra/clang-tidy/](http://clang.llvm.org/extra/clang-tidy/). 
 
-*Clang-Tidy* is a powerful tool for **automated code improvements**. It helps enforce modern C++ best practices, improve performance, and maintain high-quality code. By integrating it into your workflow, you can **automate code reviews and refactor large codebases efficiently**. 🚀
+*Clang-Tidy* is a powerful tool for **automated code improvements**. It helps enforce modern C++ best practices, improve performance, and maintain high-quality code. By integrating it into your workflow, you can **automate code reviews and refactor large codebases efficiently**.
 
 ## **Install** 
 
