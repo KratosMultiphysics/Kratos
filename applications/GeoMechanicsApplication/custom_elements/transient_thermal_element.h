@@ -37,11 +37,19 @@ public:
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
+        std::unique_ptr<IntegrationCoefficientModifier> modifier =
+            std::make_unique<IntegrationCoefficientModifierForThermalElement>();
+        mpIntegrationCoefficientsCalculator =
+            std::make_unique<CalculateIntegrationCoefficients0>(std::move(modifier));
     }
 
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
+        std::unique_ptr<IntegrationCoefficientModifier> modifier =
+            std::make_unique<IntegrationCoefficientModifierForThermalElement>();
+        mpIntegrationCoefficientsCalculator =
+            std::make_unique<CalculateIntegrationCoefficients0>(std::move(modifier));
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
@@ -86,9 +94,8 @@ public:
                                                                    GetIntegrationMethod());
         }
 
-        const auto integration_coefficients = mpIntegrationCoefficientsCalculator->CalculateIntegrationCoefficients(
-            GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container,
-            GetProperties()[CROSS_AREA], GetGeometry().LocalSpaceDimension());
+        const auto integration_coefficients = mpIntegrationCoefficientsCalculator->Run<vector<double>>(
+            GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
         const auto conductivity_matrix = CalculateConductivityMatrix(dN_dX_container, integration_coefficients);
         const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
@@ -130,8 +137,7 @@ public:
     }
 
 private:
-    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator =
-        std::make_unique<ThermalIntegrationCoefficients>();
+    std::unique_ptr<CalculateIntegrationCoefficients0> mpIntegrationCoefficientsCalculator;
 
     void CheckDomainSize() const
     {

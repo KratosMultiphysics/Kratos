@@ -55,4 +55,9 @@ double IntegrationCoefficientModifierForAxisymmetricElement::operator()(double I
                                         shape_function_values, rElement.GetGeometry());
 }
 
+std::unique_ptr<IntegrationCoefficientModifier> IntegrationCoefficientModifierForAxisymmetricElement::Clone() const
+{
+    return std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>();
+};
+
 } // namespace Kratos

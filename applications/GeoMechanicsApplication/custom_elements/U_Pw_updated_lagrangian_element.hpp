@@ -93,9 +93,9 @@ public:
     UPwUpdatedLagrangianElement(IndexType                          NewId,
                                 const NodesArrayType&              ThisNodes,
                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -103,9 +103,9 @@ public:
     UPwUpdatedLagrangianElement(IndexType                          NewId,
                                 GeometryType::Pointer              pGeometry,
                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -114,9 +114,9 @@ public:
                                 GeometryType::Pointer              pGeometry,
                                 PropertiesType::Pointer            pProperties,
                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 

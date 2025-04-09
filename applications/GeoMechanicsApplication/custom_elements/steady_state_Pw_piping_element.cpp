@@ -25,9 +25,9 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType N
                                                                      NodesArrayType const& ThisNodes,
                                                                      PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwPipingElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
-        this->GetStressStatePolicy().Clone(), this->GetIntegrationCoefficientsCalculator().Clone()));
+    return Element::Pointer(
+        new SteadyStatePwPipingElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+                                       this->GetStressStatePolicy().Clone(), this->CloneModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -36,8 +36,7 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType  
                                                                      PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SteadyStatePwPipingElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
-        this->GetIntegrationCoefficientsCalculator().Clone()));
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->CloneModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

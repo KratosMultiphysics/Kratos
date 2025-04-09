@@ -104,8 +104,7 @@ intrusive_ptr<UPwSmallStrainElement<TDim, TNumNodes>> CreateUPwSmallStrainElemen
     const Properties::Pointer& rProperties, const Geometry<Node>::Pointer& rGeometry)
 {
     auto p_result = make_intrusive<UPwSmallStrainElement<TDim, TNumNodes>>(
-        1, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>(),
-        std::make_unique<PlaneIntegrationCoefficients>());
+        1, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>());
     for (auto& r_node : p_result->GetGeometry()) {
         r_node.AddDof(DISPLACEMENT_X);
         r_node.AddDof(DISPLACEMENT_Y);
@@ -145,8 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CreateInstanceWithGeometryInput,
         std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
     const auto                        p_properties = std::make_shared<Properties>();
     const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
-                                              std::make_unique<PlaneStrainStressState>(),
-                                              std::make_unique<PlaneIntegrationCoefficients>());
+                                              std::make_unique<PlaneStrainStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, p_geometry, p_properties);

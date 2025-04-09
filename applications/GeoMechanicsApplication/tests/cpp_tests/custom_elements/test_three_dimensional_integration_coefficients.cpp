@@ -26,7 +26,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto calculate_integration_coefficients = CalculateIntegrationCoefficients{};
+    const auto calculate_integration_coefficients = CalculateIntegrationCoefficients0{};
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};

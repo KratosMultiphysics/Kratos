@@ -30,9 +30,18 @@ std::vector<double> IntegrationCoefficientsCalculator::CalculateIntegrationCoeff
     return result;
 }
 
-CalculateIntegrationCoefficients::CalculateIntegrationCoefficients(std::unique_ptr<IntegrationCoefficientModifier> CoefficientModifier)
+CalculateIntegrationCoefficients0::CalculateIntegrationCoefficients0(std::unique_ptr<IntegrationCoefficientModifier> CoefficientModifier)
     : mCoefficientModifier{std::move(CoefficientModifier)}
 {
 }
+
+std::unique_ptr<IntegrationCoefficientModifier> CalculateIntegrationCoefficients0::CloneModifier() const
+{
+    if (mCoefficientModifier) {
+        return mCoefficientModifier->Clone();
+    } else {
+        return nullptr;
+    }
+};
 
 } // namespace Kratos

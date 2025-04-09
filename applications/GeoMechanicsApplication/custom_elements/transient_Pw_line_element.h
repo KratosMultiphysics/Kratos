@@ -45,6 +45,10 @@ public:
                            const std::vector<CalculationContribution>& rContributions)
         : Element(NewId, pGeometry), mContributions(rContributions)
     {
+        std::unique_ptr<IntegrationCoefficientModifier> modifier =
+            std::make_unique<IntegrationCoefficientModifierForPwLineElement>();
+        mpIntegrationCoefficientsCalculator =
+            std::make_unique<CalculateIntegrationCoefficients0>(std::move(modifier));
     }
 
     TransientPwLineElement(IndexType                                   NewId,
@@ -53,6 +57,10 @@ public:
                            const std::vector<CalculationContribution>& rContributions)
         : Element(NewId, pGeometry, pProperties), mContributions(rContributions)
     {
+        std::unique_ptr<IntegrationCoefficientModifier> modifier =
+            std::make_unique<IntegrationCoefficientModifierForPwLineElement>();
+        mpIntegrationCoefficientsCalculator =
+            std::make_unique<CalculateIntegrationCoefficients0>(std::move(modifier));
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
@@ -156,8 +164,7 @@ public:
 private:
     std::vector<RetentionLaw::Pointer>                 mRetentionLawVector;
     std::vector<CalculationContribution>               mContributions;
-    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator =
-        std::make_unique<PwLineIntegrationCoefficients>();
+    std::unique_ptr<CalculateIntegrationCoefficients0> mpIntegrationCoefficientsCalculator;
 
     void CheckElementLength() const
     {
@@ -356,9 +363,8 @@ private:
         return [this]() -> Vector {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            return mpIntegrationCoefficientsCalculator->CalculateIntegrationCoefficients(
-                GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container,
-                GetProperties()[CROSS_AREA]);
+            return mpIntegrationCoefficientsCalculator->Run<vector<double>>(
+                GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
         };
     }
 

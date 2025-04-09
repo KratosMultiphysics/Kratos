@@ -85,14 +85,13 @@ intrusive_ptr<TransientPwElement<TDim, TNumNodes>> CreateTransientPwElementWithP
     if constexpr (TDim == 2) {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
-            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)), rProperties,
-            std::make_unique<PlaneStrainStressState>(), std::make_unique<PlaneIntegrationCoefficients>());
+            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
+            rProperties, std::make_unique<PlaneStrainStressState>());
     } else {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
             std::make_shared<Tetrahedra3D4<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
-            rProperties, std::make_unique<ThreeDimensionalStressState>(),
-            std::make_unique<ThreeDimensionalIntegrationCoefficients>());
+            rProperties, std::make_unique<ThreeDimensionalStressState>());
     }
     for (auto& r_node : p_element->GetGeometry()) {
         r_node.AddDof(WATER_PRESSURE);
@@ -146,8 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, Kr
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
     const auto p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
-                                           std::make_unique<PlaneStrainStressState>(),
-                                           std::make_unique<PlaneIntegrationCoefficients>());
+                                           std::make_unique<PlaneStrainStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, p_geometry, p_properties);
@@ -164,8 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, Kratos
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()),
-                                           p_properties, std::make_unique<PlaneStrainStressState>(),
-                                           std::make_unique<PlaneIntegrationCoefficients>());
+                                           p_properties, std::make_unique<PlaneStrainStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, CreateThreeNodes(), p_properties);

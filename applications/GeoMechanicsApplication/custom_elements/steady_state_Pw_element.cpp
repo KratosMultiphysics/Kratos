@@ -23,9 +23,9 @@ Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType        
                                                                NodesArrayType const& ThisNodes,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
-        this->GetStressStatePolicy().Clone(), this->GetIntegrationCoefficientsCalculator().Clone()));
+    return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes),
+                                                     pProperties, this->GetStressStatePolicy().Clone(),
+                                                     this->CloneModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -33,9 +33,8 @@ Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType        
                                                                GeometryType::Pointer pGeom,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new SteadyStatePwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
-                                 this->GetIntegrationCoefficientsCalculator().Clone()));
+    return Element::Pointer(new SteadyStatePwElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->CloneModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

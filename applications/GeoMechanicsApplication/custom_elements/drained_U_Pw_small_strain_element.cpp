@@ -23,7 +23,7 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType
 {
     return Element::Pointer(new DrainedUPwSmallStrainElement(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties,
-        this->GetStressStatePolicy().Clone(), this->GetIntegrationCoefficientsCalculator().Clone()));
+        this->GetStressStatePolicy().Clone(), this->CloneModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -32,8 +32,7 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType
                                                                        PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new DrainedUPwSmallStrainElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
-        this->GetIntegrationCoefficientsCalculator().Clone()));
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->CloneModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

@@ -62,30 +62,32 @@ private:
 class IntegrationCoefficientModifier
 {
 public:
-    virtual ~IntegrationCoefficientModifier() = default;
+    virtual ~IntegrationCoefficientModifier()                                           = default;
+    [[nodiscard]] virtual std::unique_ptr<IntegrationCoefficientModifier> Clone() const = 0;
 
     virtual double operator()(double                           IntegrationCoefficient,
                               const Geo::IntegrationPointType& rIntegrationPoint,
                               const Element&                   rElement) const = 0;
 };
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) CalculateIntegrationCoefficients
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CalculateIntegrationCoefficients0
 {
 public:
-    explicit CalculateIntegrationCoefficients(std::unique_ptr<IntegrationCoefficientModifier> = nullptr);
+    explicit CalculateIntegrationCoefficients0(std::unique_ptr<IntegrationCoefficientModifier> = nullptr);
+
+    [[nodiscard]] std::unique_ptr<IntegrationCoefficientModifier> CloneModifier() const;
 
     template <typename OutputContainer = std::vector<double>>
     OutputContainer Run(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                         const Vector&                          rDetJs,
                         const Element*                         pElement = nullptr) const
     {
-        auto result = OutputContainer{};
-        result.reserve(rIntegrationPoints.size());
+        auto result = OutputContainer(rIntegrationPoints.size());
         auto calculate_integration_coefficient = [](const auto& rIntegrationPoint, auto DetJ) {
             return rIntegrationPoint.Weight() * DetJ;
         };
         std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                       std::back_inserter(result), calculate_integration_coefficient);
+                       result.begin(), calculate_integration_coefficient);
 
         if (mCoefficientModifier && pElement) {
             auto apply_modifier = [&element = *pElement, &modifier = *mCoefficientModifier](

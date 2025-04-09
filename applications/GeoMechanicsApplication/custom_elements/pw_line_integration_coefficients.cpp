@@ -53,4 +53,9 @@ double IntegrationCoefficientModifierForPwLineElement::operator()(double Integra
     return IntegrationCoefficient * rElement.GetProperties()[CROSS_AREA];
 }
 
+std::unique_ptr<IntegrationCoefficientModifier> IntegrationCoefficientModifierForPwLineElement::Clone() const
+{
+    return std::make_unique<IntegrationCoefficientModifierForPwLineElement>();
+};
+
 } // namespace Kratos

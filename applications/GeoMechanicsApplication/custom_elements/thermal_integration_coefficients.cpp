@@ -62,4 +62,8 @@ double IntegrationCoefficientModifierForThermalElement::operator()(double Integr
                : IntegrationCoefficient;
 }
 
+std::unique_ptr<IntegrationCoefficientModifier> IntegrationCoefficientModifierForThermalElement::Clone() const
+{
+    return std::make_unique<IntegrationCoefficientModifierForThermalElement>();
+}
 } // namespace Kratos

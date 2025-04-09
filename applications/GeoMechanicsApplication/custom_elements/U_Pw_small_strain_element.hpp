@@ -53,8 +53,8 @@ public:
     UPwSmallStrainElement(IndexType                          NewId,
                           const NodesArrayType&              ThisNodes,
                           std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                          std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
-        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -62,8 +62,8 @@ public:
     UPwSmallStrainElement(IndexType                          NewId,
                           GeometryType::Pointer              pGeometry,
                           std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                          std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -72,8 +72,8 @@ public:
                           GeometryType::Pointer              pGeometry,
                           PropertiesType::Pointer            pProperties,
                           std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                          std::unique_ptr<IntegrationCoefficientsCalculator> pIntegrationCoefficientsCalculator)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pIntegrationCoefficientsCalculator))
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 

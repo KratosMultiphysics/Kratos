@@ -26,7 +26,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto p_pw_line_integration_coefficients = CalculateIntegrationCoefficients{
+    const auto p_pw_line_integration_coefficients = CalculateIntegrationCoefficients0{
         std::make_unique<IntegrationCoefficientModifierForPwLineElement>()};
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
