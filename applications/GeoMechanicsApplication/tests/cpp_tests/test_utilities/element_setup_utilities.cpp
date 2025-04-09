@@ -92,6 +92,21 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement()
     return Create2D3NElement(GenerateNodes(CreatePointsFor2D3NElement()), std::make_shared<Properties>(0));
 }
 
+Element::Pointer ElementSetupUtilities::Create2D3NElement(const Geo::ConstVariableRefs& rVariableRefs)
+{
+    auto result          = Create2D3NElement();
+    auto p_variable_list = make_intrusive<VariablesList>();
+    for (const auto& r_variable_ref : rVariableRefs) {
+        p_variable_list->Add(r_variable_ref);
+    }
+
+    for (auto& r_node : result->GetGeometry()) {
+        r_node.SetSolutionStepVariablesList(p_variable_list);
+    }
+
+    return result;
+}
+
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
