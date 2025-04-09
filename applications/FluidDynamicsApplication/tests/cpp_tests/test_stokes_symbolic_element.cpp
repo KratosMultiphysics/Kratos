@@ -821,7 +821,7 @@ namespace Kratos {
             KRATOS_EXPECT_VECTOR_NEAR(row(LHS, 0), LHS_row_0_expected, 1.0e-2);
         }
 
-        // /** Checks the SymbolicStokes3D6N element Calcualte method.
+        // /** Checks the SymbolicStokes3D6N element Calculate method.
         //  */
         KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes3D6NCalculate, FluidDynamicsApplicationFastSuite)
         {

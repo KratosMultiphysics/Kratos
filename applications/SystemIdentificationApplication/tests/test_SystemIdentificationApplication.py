@@ -5,6 +5,9 @@ import test_adjoint_sensors
 import test_sensor_output_process
 import test_system_identification
 import responses.test_damage_response
+import responses.test_temperature_response
+import responses.test_pressure_response
+import controls.test_data_values_control
 import test_smooth_clamper
 import test_mask_utils
 import test_distance_matrix
@@ -23,6 +26,15 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_system_identification.TestSystemIdentification]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionAdjointResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionResponse]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_damage_response.TestDamageDetectionResponseStrainSensor]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_temperature_response.TestTemperatureDetectionAdjointResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_temperature_response.TestTemperatureDetectionResponse]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_temperature_response.TestTemperatureDetectionResponseStrainSensor]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_pressure_response.TestPressureDetectionAdjointResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_pressure_response.TestPressureDetectionResponse]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_pressure_response.TestPressureDetectionResponseStrainSensor]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_nodal_historical]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_condition]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)

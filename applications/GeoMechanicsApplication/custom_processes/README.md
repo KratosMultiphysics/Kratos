@@ -115,7 +115,7 @@ After the stress adaptation by the $K_0$ procedure, the stress state may not be 
 The process is defined as follows in "ProjectParameters.json" (also found in some of the [integration tests](../tests/test_k0_procedure_process)). Without the addition of this process, no adaptation of the horizontal stresses takes place.
 ```json
 {
-  "auxilliary_process_list": [
+  "auxiliary_process_list": [
     {
       "python_module": "apply_k0_procedure_process",
       "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -147,7 +147,7 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "OCR":                         1.4,
     "POISSON_UNLOADING_RELOADING": 0.35,
     "POP":                         800.0
-  },
+  }
 }
 ```
 
