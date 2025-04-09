@@ -53,6 +53,7 @@
 #include "custom_constitutive/small_strains/viscoplasticity/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/small_strains/viscoplasticity/generic_small_strain_isotropic_perzyna_viscoplasticity.h"
+#include "custom_constitutive/small_strains/viscoplasticity/generic_small_strain_isotropic_cornejo_viscoplasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_isotropic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_kinematic_plasticity.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
@@ -712,6 +713,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw >
     (m,"SmallStrainIsotropicViscoPlasticity3DDruckerPragerMohrCoulomb").def(py::init<>());
 
+    // Custom viscoplasticity
+    py::class_< GenericSmallStrainIsotropicCornejoViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainIsotropicCornejoViscoPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicCornejoViscoPlasticity3DVonMisesVonMises").def(py::init<>());
 
 
     // Plastic Damage Model
