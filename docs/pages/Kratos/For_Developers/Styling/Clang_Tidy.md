@@ -172,6 +172,6 @@ sh modernize.sh
 ```
 
 This script is available at:  
-👉 [Modernize Shell Script](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Resources_files/Clang-tidy%20modernize/modernize.sh)
+[Modernize Shell Script](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Resources_files/Clang-tidy%20modernize/modernize.sh)
 
  
