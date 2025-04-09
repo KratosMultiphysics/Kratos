@@ -42,7 +42,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class GenericSmallStrainIsotropicViscoPlasticity
+ * @class GenericSmallStrainIsotropicPerzynaViscoPlasticity
  * @ingroup ConstitutiveLawsApp
  * @brief This CL implements a viscoplastic phenomenological model. In this case the Perzyna plastic
  * multiplier calculation is used. This approach requires one mandatory parameter MU and an optional one,
@@ -53,7 +53,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <class TConstLawIntegratorType>
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainIsotropicViscoPlasticity
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainIsotropicPerzynaViscoPlasticity
     : public GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>
 {
 public:
@@ -75,7 +75,7 @@ public:
     using BaseType = GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>;
 
     /// Counted pointer of GenericSmallStrainIsotropicPlasticity
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicViscoPlasticity);
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPerzynaViscoPlasticity);
 
     ///@}
     ///@name Life Cycle
@@ -84,7 +84,7 @@ public:
     /**
     * Default constructor.
     */
-   GenericSmallStrainIsotropicViscoPlasticity()
+   GenericSmallStrainIsotropicPerzynaViscoPlasticity()
     {
     }
 
@@ -93,13 +93,13 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainIsotropicViscoPlasticity<TConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericSmallStrainIsotropicPerzynaViscoPlasticity<TConstLawIntegratorType>>(*this);
     }
 
     /**
     * Copy constructor.
     */
-   GenericSmallStrainIsotropicViscoPlasticity(const GenericSmallStrainIsotropicViscoPlasticity &rOther)
+   GenericSmallStrainIsotropicPerzynaViscoPlasticity(const GenericSmallStrainIsotropicPerzynaViscoPlasticity &rOther)
         : BaseType(rOther)
     {
     }
@@ -107,7 +107,7 @@ public:
     /**
     * Destructor.
     */
-    ~GenericSmallStrainIsotropicViscoPlasticity() override
+    ~GenericSmallStrainIsotropicPerzynaViscoPlasticity() override
     {
     }
 
