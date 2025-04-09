@@ -160,9 +160,9 @@ run-clang-tidy.py -header-filter='.*' -checks='-*,modernize-use-override' -fix
 ```
 
 This command:
-✅ **Checks** all files in the project  
-✅ **Applies** `modernize-use-override` fixes  
-✅ **Uses** the compilation database (`compile_commands.json`)
+**Checks** all files in the project  
+**Applies** `modernize-use-override` fixes  
+**Uses** the compilation database (`compile_commands.json`)
 
 #### **3. Run All Modernization Fixes**
 To apply **all modernize transformations** at once, use the following **shell script**:
