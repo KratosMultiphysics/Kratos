@@ -25,7 +25,7 @@
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
-#include "future/solving_strategies/schemes/new_scheme.h"
+#include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
 #endif
 
@@ -156,7 +156,7 @@ static void SetUpTestSchemesModelPart(ModelPart& rModelPart)
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(StaticScheme, KratosCoreFastSuite)
 {
 #ifdef KRATOS_USE_FUTURE
     // Set up the test model part
@@ -168,10 +168,9 @@ KRATOS_TEST_CASE_IN_SUITE(NewScheme, KratosCoreFastSuite)
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
             "build_type" : "block"
-        },
-        "echo_level" : 2
+        }
     })");
-    auto p_scheme = Kratos::make_unique<Future::NewScheme<>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_unique<Future::StaticScheme<>>(r_test_model_part, scheme_settings);
 
     // Create the DOF set and set the global ids
     // Note that in a standard case this happens at the strategy level
@@ -222,10 +221,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
             "build_type" : "block"
-        },
-        "echo_level" : 2
+        }
     })");
-    auto p_scheme = Kratos::make_shared<Future::NewScheme<>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
@@ -236,7 +234,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
-        "move_mesh" : false
     })");
     auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
 

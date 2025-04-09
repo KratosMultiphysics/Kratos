@@ -112,9 +112,6 @@ public:
     /// Data type definition
     using DataType = typename TSparseMatrixType::DataType;
 
-    /// DoF type definition
-    using DofType = Dof<double>;
-
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
@@ -179,7 +176,7 @@ public:
      * @brief Create method
      * @param ThisParameters The configuration parameters
      */
-    virtual typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Create(
+    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters) const
     {
@@ -190,7 +187,7 @@ public:
      * @brief Clone method
      * @return The pointer of the cloned ImplicitScheme
      */
-    virtual typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone()
+    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone()
     {
         return Kratos::make_shared<ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(*this) ;
     }
@@ -302,6 +299,9 @@ public:
         // Call the external utility to set up the DOFs array
         DofArrayUtilities::SetUpDofArray(*mpModelPart, rDofSet, mEchoLevel);
 
+        // Set the corresponding flag
+        mDofSetIsInitialized = true;
+
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
     }
 
@@ -320,7 +320,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void ResizeAndInitializeVectors(
+    virtual void ResizeAndInitializeVectors(
         const DofsArrayType& rDofSet,
         typename TSparseMatrixType::Pointer& rpLHS,
         typename TSparseVectorType::Pointer& rpDx,
@@ -501,20 +501,6 @@ public:
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
         TSparseVectorType& b) = 0;
-    // {
-    //     KRATOS_TRY
-
-    //     // Internal solution loop check to avoid repetitions
-    //     KRATOS_ERROR_IF(!mSchemeIsInitialized) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
-    //     KRATOS_ERROR_IF(!mSchemeSolutionStepIsInitialized) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
-
-    //     // If the mesh is to be updated, call the MoveMesh() method
-    //     if (GetMoveMesh()) {
-    //         this->MoveMesh();
-    //     }
-
-    //     KRATOS_CATCH("")
-    // }
 
     /**
      * @brief Performing the update of the solution.
@@ -530,23 +516,6 @@ public:
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
         TSparseVectorType& b) = 0;
-    // {
-    //     KRATOS_TRY
-
-    //     // Update DOFs with solution values (note that we solve for the increments)
-    //     block_for_each(rDofSet, [&Dx](DofType& rDof){
-    //         if (rDof.IsFree()) {
-    //             rDof.GetSolutionStepValue() += Dx[rDof.EquationId()];
-    //         }
-    //     });
-
-    //     // If the mesh is to be updated, call the MoveMesh() method
-    //     if (GetMoveMesh()) {
-    //         this->MoveMesh();
-    //     }
-
-    //     KRATOS_CATCH("")
-    // }
 
     /**
      * @brief Functions to be called to prepare the data needed for the output of results.
@@ -614,9 +583,7 @@ public:
                 "scaling_type" : "max_diagonal"
             },
             "echo_level" : 0,
-            "move_mesh" : false,
-            "calculate_reactions" : false,
-            "reform_dofs_at_each_step" : false
+            "move_mesh" : false
         })");
 
         return default_parameters;
@@ -653,6 +620,44 @@ public:
         mEchoLevel = EchoLevel;
     }
 
+    /**
+     * @brief This method sets the value of mDofSetIsInitialized
+     * @param DofSetIsInitialized The value to set
+     */
+    void SetDofSetIsInitialized(const bool DofSetIsInitialized)
+    {
+        mDofSetIsInitialized = DofSetIsInitialized;
+    }
+
+    /**
+     * @brief This method sets the value of mSchemeIsInitialized
+     * @param SchemeIsInitialized The value to set
+     */
+    void SetSchemeIsInitialized(const bool SchemeIsInitialized)
+    {
+        mSchemeIsInitialized = SchemeIsInitialized;
+    }
+
+    /**
+     * @brief This method sets the value of mSchemeIsInitialized
+     * @param SchemeIsInitialized The value to set
+     */
+    void SetSchemeSolutionStepIsInitialized(const bool SchemeSolutionStepIsInitialized)
+    {
+        mSchemeSolutionStepIsInitialized = SchemeSolutionStepIsInitialized;
+    }
+
+
+    ModelPart& GetModelPart()
+    {
+        return *mpModelPart;
+    }
+
+    ModelPart& GetModelPart() const
+    {
+        return *mpModelPart;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -676,6 +681,15 @@ public:
     }
 
     /**
+     * @brief This method returns if the DOF set is initialized
+     * @return bool True if initialized, false otherwise
+     */
+    bool GetDofSetIsInitialized() const
+    {
+        return mDofSetIsInitialized;
+    }
+
+    /**
      * @brief This method returns if the scheme is initialized
      * @return bool True if initialized, false otherwise
      */
@@ -691,15 +705,6 @@ public:
     bool GetSchemeSolutionStepIsInitialized() const
     {
         return mSchemeSolutionStepIsInitialized;
-    }
-
-    /**
-     * @brief This method returns if dof set (and corresponding arrays) need to be reset at each time step
-     * @return bool True if to be reset at each time step, false otherwise
-     */
-    bool GetReformDofSetAtEachStep() const
-    {
-        return mReformDofsAtEachStep;
     }
 
     ///@}
@@ -738,12 +743,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mMoveMesh = false; /// Flag to activate the mesh motion from the DISPLACEMENT variable
-
-    bool mSchemeIsInitialized = false; /// Flag to be used in controlling if the Scheme has been initialized or not
-
-    bool mSchemeSolutionStepIsInitialized = false; /// Flag to be used in controlling if the Scheme solution step has been initialized or not
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -779,7 +778,7 @@ protected:
      * @param DefaultParameters The default parameters
      * @return Returns validated Parameters
      */
-    virtual Parameters ValidateAndAssignParameters(
+    Parameters ValidateAndAssignParameters(
         Parameters ThisParameters,
         const Parameters DefaultParameters) const
     {
@@ -795,7 +794,6 @@ protected:
     {
         mMoveMesh = ThisParameters["move_mesh"].GetBool();
         mEchoLevel = ThisParameters["echo_level"].GetInt();
-        mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
     }
 
     ///@}
@@ -832,9 +830,13 @@ private:
 
     int mEchoLevel = 0;
 
-    bool mDofSetIsInitialized = false;
+    bool mMoveMesh = false; /// Flag to activate the mesh motion from the DISPLACEMENT variable
 
-    bool mReformDofsAtEachStep = false;
+    bool mDofSetIsInitialized = false; /// Flag to be used in controlling if the DOF set has been already set
+
+    bool mSchemeIsInitialized = false; /// Flag to be used in controlling if the Scheme has been initialized or not
+
+    bool mSchemeSolutionStepIsInitialized = false; /// Flag to be used in controlling if the Scheme solution step has been initialized or not
 
     ModelPart* mpModelPart = nullptr;
 

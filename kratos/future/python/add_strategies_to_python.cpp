@@ -22,7 +22,8 @@
 // Future Extensions
 #include "future/python/add_strategies_to_python.h"
 #include "future/solving_strategies/schemes/assembly_helper.h"
-#include "future/solving_strategies/schemes/new_scheme.h"
+#include "future/solving_strategies/schemes/implicit_scheme.h"
+#include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
 
 namespace Kratos::Future::Python
@@ -32,17 +33,17 @@ namespace py = pybind11;
 
 void AddStrategiesToPython(py::module& m)
 {
-    using TLSType = Future::NewScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>::ThreadLocalStorage;
-    using AssemblyHelper = Future::AssemblyHelper<TLSType, CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
-    py::class_<AssemblyHelper, typename AssemblyHelper::Pointer>(m, "AssemblyHelper")
-        .def(py::init<ModelPart&, Parameters>())
+    using ImplicitAssemblyHelper = Future::AssemblyHelper<Future::ImplicitThreadLocalStorage<>, CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    py::class_<ImplicitAssemblyHelper, typename ImplicitAssemblyHelper::Pointer>(m, "ImplicitAssemblyHelper")
+        .def(py::init<ModelPart &, Parameters>())
         // .def("Execute",&Future::Process::Execute)
         // .def("Info",&Future::Process::Info)
         // .def("__str__", PrintObject<Future::Process>)
-    ;
+        ;
 
-    using SchemeType = Future::NewScheme<CsrMatrix<>, SystemVector<>>;
-    py::class_<SchemeType, typename SchemeType::Pointer>(m, "NewScheme")
+    using ImplicitSchemeType = Future::ImplicitScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using StaticSchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    py::class_<StaticSchemeType, typename StaticSchemeType::Pointer, ImplicitSchemeType>(m, "StaticSchemeType")
         .def(py::init<ModelPart&, Parameters>())
         // .def("Execute",&Future::Process::Execute)
         // .def("Info",&Future::Process::Info)
@@ -53,7 +54,7 @@ void AddStrategiesToPython(py::module& m)
     using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>>;
     py::class_<LinearStrategyType, typename LinearStrategyType::Pointer>(m, "LinearStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
-        .def(py::init<ModelPart &, typename SchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
+        .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
         .def("Initialize", &LinearStrategyType::Initialize)
         .def("InitializeSolutionStep", &LinearStrategyType::InitializeSolutionStep)
         .def("Predict", &LinearStrategyType::Predict)

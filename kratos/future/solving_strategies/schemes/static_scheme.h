@@ -65,13 +65,8 @@ namespace Kratos::Future
  * @details It is intended to be the place for tailoring the solution strategies to problem specific tasks.
  * @author Ruben Zorrilla
  */
-//TODO: Think about the template parameters
-
-//TODO: Make base classes:
-// scheme.h --> pure virtual!
-// implicit_scheme.h --> the one we have in here
 template<class TSparseMatrixType=CsrMatrix<>, class TSparseVectorType=SystemVector<>, class TSparseGraphType=SparseContiguousRowGraph<>>
-class StaticScheme //FIXME: This will be ImplicitScheme
+class StaticScheme : public ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>
 {
 public:
     // FIXME: Does not work... ask @Charlie
@@ -86,7 +81,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(StaticScheme);
 
     /// The definition of the current class
-    using ClassType = StaticScheme;
+    using BaseType = ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
 
     /// Size type definition
     using SizeType = std::size_t;
@@ -98,26 +93,26 @@ public:
     using DataType = typename TSparseMatrixType::DataType;
 
     /// DoF type definition
-    using DofType = Dof<double>;
+    using DofType = Dof<DataType>;
 
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
-    /// TLS type definition
-    struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme --> Also we need to move them out of here.
-    {
-        // Local LHS contribution
-        DenseMatrix<DataType> LocalLhs;
+    // /// TLS type definition
+    // struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme --> Also we need to move them out of here.
+    // {
+    //     // Local LHS contribution
+    //     DenseMatrix<DataType> LocalLhs;
 
-        // Local RHS constribution
-        DenseVector<DataType> LocalRhs;
+    //     // Local RHS constribution
+    //     DenseVector<DataType> LocalRhs;
 
-        // Vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType LocalEqIds;
-    };
+    //     // Vector containing the localization in the system of the different terms
+    //     Element::EquationIdVectorType LocalEqIds;
+    // };
 
-    /// Assembly helper type
-    using AssemblyHelperType = Future::AssemblyHelper<ThreadLocalStorage, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
+    // /// Assembly helper type
+    // using AssemblyHelperType = Future::AssemblyHelper<ThreadLocalStorage, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
 
     ///@}
     ///@name Life Cycle
@@ -135,25 +130,16 @@ public:
     explicit StaticScheme(
         ModelPart& rModelPart,
         Parameters ThisParameters)
-        : mpModelPart(&rModelPart)
+        : BaseType(rModelPart, ThisParameters)
     {
         // Validate default parameters
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
-
-        //TODO: User-definable reshaping stuff
-
-        // Set up the assembly helper
-        Parameters build_settings = ThisParameters["build_settings"];
-        build_settings.AddInt("echo_level", ThisParameters["echo_level"].GetInt());
-        mpAssemblyHelper = Kratos::make_unique<AssemblyHelperType>(rModelPart, build_settings);
     }
 
     /** Copy Constructor.
      */
     explicit StaticScheme(StaticScheme& rOther)
-      : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
-      , mSchemeSolutionStepIsInitialized(rOther.mSchemeSolutionStepIsInitialized)
     {
         //TODO: Check this... particularly the mpAssemblyHelper pointer
     }
@@ -172,12 +158,12 @@ public:
 
     typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Create(
         ModelPart& rModelPart,
-        Parameters ThisParameters) const override
+        Parameters ThisParameters) const
     {
         return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
     }
 
-    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone() override
+    typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone()
     {
         return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(*this) ;
     }
@@ -201,40 +187,39 @@ public:
         KRATOS_TRY
 
         // Check if the InitializeSolutionStep has been already performed
-        if (!mSchemeSolutionStepIsInitialized) {
+        if (!this->GetSchemeSolutionStepIsInitialized()) {
             // Set up the system
             BuiltinTimer system_construction_time;
-            if (!mDofSetIsInitialized || ReformDofSet) {
+            if (!(this->GetDofSetIsInitialized()) || ReformDofSet) {
                 // Setting up the DOFs list to be solved
                 BuiltinTimer setup_dofs_time;
-                SetUpDofArray(rDofSet);
-                mDofSetIsInitialized = true;
-                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+                this->SetUpDofArray(rDofSet);
+                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
                 // Set up the equation ids
                 BuiltinTimer setup_system_time;
-                const SizeType eq_system_size = SetUpSystemIds(rDofSet);
-                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
-                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Equation system size: " << eq_system_size << std::endl;
+                const SizeType eq_system_size = this->SetUpSystemIds(rDofSet);
+                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
                 ResizeAndInitializeVectors(rDofSet, rpA, rpDx, rpB);
-                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
             } else {
                 // Set up the equation ids (note that this needs to be always done)
                 BuiltinTimer setup_system_time;
-                const SizeType eq_system_size = SetUpSystemIds(rDofSet);
-                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Set up system time: " << setup_system_time << std::endl;
-                KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "Equation system size: " << eq_system_size << std::endl;
+                const SizeType eq_system_size = this->SetUpSystemIds(rDofSet);
+                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
+                KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
             }
-            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel > 0) << "System construction time: " << system_construction_time << std::endl;
+            KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 
             // Initializes solution step for all of the elements, conditions and constraints
-            EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
+            EntitiesUtilities::InitializeSolutionStepAllEntities(this->GetModelPart());
 
             // Set the flag to avoid calling this twice
-            mSchemeSolutionStepIsInitialized = true; //TODO: Discuss with the KTC if these should remain or not
+            this->SetSchemeSolutionStepIsInitialized(true); // TODO: Discuss with the KTC if these should remain or not
         }
 
         KRATOS_CATCH("")
@@ -245,18 +230,18 @@ public:
         typename TSparseMatrixType::Pointer& rpLHS,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpRHS,
-        const bool CalculateReactions = false)
+        const bool CalculateReactions = false) override
     {
         KRATOS_TRY
 
         // Call the assembly helper to allocate and initialize the required vectors
         // Note that this also allocates the required reaction vectors (e.g., elimination build)
-        mpAssemblyHelper->ResizeAndInitializeVectors(rDofSet, rpLHS, rpDx, rpRHS, CalculateReactions);
+        (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rpLHS, rpDx, rpRHS, CalculateReactions);
 
         //TODO: Think on the constraints stuff!
         // ConstructMasterSlaveConstraintsStructure(rModelPart);
 
-        KRATOS_INFO_IF("StaticScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -271,16 +256,16 @@ public:
     virtual void Predict(
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
-        TSparseVectorType& b)
+        TSparseVectorType& b) override
     {
         KRATOS_TRY
 
         // Internal solution loop check to avoid repetitions
-        KRATOS_ERROR_IF(!mSchemeIsInitialized) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
-        KRATOS_ERROR_IF(!mSchemeSolutionStepIsInitialized) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
+        KRATOS_ERROR_IF_NOT(this->GetSchemeIsInitialized()) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
+        KRATOS_ERROR_IF_NOT(this->GetSchemeSolutionStepIsInitialized()) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
         // If the mesh is to be updated, call the MoveMesh() method
-        if (GetMoveMesh()) {
+        if (this->GetMoveMesh()) {
             this->MoveMesh();
         }
 
@@ -300,7 +285,7 @@ public:
         DofsArrayType& rDofSet,
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
-        TSparseVectorType& b)
+        TSparseVectorType& b) override
     {
         KRATOS_TRY
 
@@ -312,7 +297,7 @@ public:
         });
 
         // If the mesh is to be updated, call the MoveMesh() method
-        if (GetMoveMesh()) {
+        if (this->GetMoveMesh()) {
             this->MoveMesh();
         }
 
@@ -330,7 +315,7 @@ public:
     virtual void CalculateOutputData(
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
-        TSparseVectorType& b)
+        TSparseVectorType& b) override
     {
         KRATOS_TRY
 
@@ -339,56 +324,23 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief Liberate internal storage.
-     * @warning Must be implemented in the derived classes
-     */
-    virtual void Clear()
+    int Check() const override
     {
         KRATOS_TRY
 
-        // Reset initialization flags
-        mSchemeIsInitialized = false;
+        int check = BaseType::Check();
 
-        // Clear the assembly helper
-        GetAssemblyHelper().Clear();
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @details Checks can be "expensive" as the function is designed
-     * @param rModelPart The model part of the problem to solve
-     * @return 0 all OK, 1 otherwise
-     */
-    virtual int Check() const
-    {
-        KRATOS_TRY
-
-        return 0;
+        return check;
 
         KRATOS_CATCH("");
     }
 
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    virtual Parameters GetDefaultParameters() const
+    Parameters GetDefaultParameters() const override
     {
-        const Parameters default_parameters = Parameters(R"({
-            "name" : "new_scheme",
-            "build_settings" : {
-                "build_type" : "block",
-                "scaling_type" : "max_diagonal"
-            },
-            "echo_level" : 0,
-            "move_mesh" : false,
-            "calculate_reactions" : false,
-            "reform_dofs_at_each_step" : false
+        Parameters default_parameters = Parameters(R"({
+            "name" : "static_scheme"
         })");
+        default_parameters.ValidateAndAssignDefaults(BaseType::GetDefaultParameters());
         return default_parameters;
     }
 
@@ -398,98 +350,31 @@ public:
      */
     static std::string Name()
     {
-        return "new_scheme";
+        return "static_scheme";
     }
 
     ///@}
     ///@name Access
     ///@{
 
-    /**
-     * @brief This method sets the value of mMoveMesh
-     * @param MoveMesh If the flag must be set to true or false
-     */
-    void SetMoveMesh(const bool MoveMesh)
-    {
-        mMoveMesh = MoveMesh;
-    }
-
-    /**
-     * @brief This method sets the value of mEchoLevel
-     * @param EchoLevel The value to set
-     */
-    void SetEchoLevel(const int EchoLevel)
-    {
-        mEchoLevel = EchoLevel;
-    }
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    /**
-     * @brief This method returns if the mesh has to be updated
-     * @return bool True if to be moved, false otherwise
-     */
-    int GetMoveMesh() const
-    {
-        return mMoveMesh;
-    }
-
-    /**
-     * @brief This method returns the echo level value (verbosity level)
-     * @return int Echo level value
-     */
-    int GetEchoLevel() const
-    {
-        return mEchoLevel;
-    }
-
-    /**
-     * @brief This method returns if the scheme is initialized
-     * @return bool True if initialized, false otherwise
-     */
-    bool GetSchemeIsInitialized() const
-    {
-        return mSchemeIsInitialized;
-    }
-
-    /**
-     * @brief This method returns if the scheme is initialized
-     * @return bool True if initialized, false otherwise
-     */
-    bool GetSchemeSolutionStepIsInitialized() const
-    {
-        return mSchemeSolutionStepIsInitialized;
-    }
-
-    /**
-     * @brief This method returns if dof set (and corresponding arrays) need to be reset at each time step
-     * @return bool True if to be reset at each time step, false otherwise
-     */
-    bool GetReformDofSetAtEachStep() const
-    {
-        return mReformDofsAtEachStep;
-    }
-
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
-        return "Scheme";
+        return "Static scheme";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -508,12 +393,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mMoveMesh = false; /// Flag to activate the mesh motion from the DISPLACEMENT variable
-
-    bool mSchemeIsInitialized = false; /// Flag to be used in controlling if the Scheme has been initialized or not
-
-    bool mSchemeSolutionStepIsInitialized = false; /// Flag to be used in controlling if the Scheme solution step has been initialized or not
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -523,64 +402,17 @@ protected:
     ///@{
 
     /**
-     * @brief This function is designed to move the mesh
-     * @note It considers DISPLACEMENT as the variable storing the motion. Derive it to adapt to your own strategies.
-     */
-    virtual void MoveMesh()
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF_NOT(mpModelPart->HasNodalSolutionStepVariable(DISPLACEMENT_X))
-            << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the ModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-
-        block_for_each(mpModelPart->Nodes(), [](Node& rNode){
-            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
-            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
-        });
-
-        KRATOS_INFO_IF("SolvingStrategy", mEchoLevel != 0) << "Mesh moved." << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method validate and assign default parameters
-     * @param rParameters Parameters to be validated
-     * @param DefaultParameters The default parameters
-     * @return Returns validated Parameters
-     */
-    virtual Parameters ValidateAndAssignParameters(
-        Parameters ThisParameters,
-        const Parameters DefaultParameters) const
-    {
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        return ThisParameters;
-    }
-
-    /**
      * @brief This method assigns settings to member variables
      * @param ThisParameters Parameters that are assigned to the member variables
      */
-    virtual void AssignSettings(const Parameters ThisParameters)
+    void AssignSettings(const Parameters ThisParameters) override
     {
-        mMoveMesh = ThisParameters["move_mesh"].GetBool();
-        mEchoLevel = ThisParameters["echo_level"].GetInt();
-        mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        //TODO:
     }
 
     ///@}
     ///@name Protected  Access
     ///@{
-
-    AssemblyHelperType& GetAssemblyHelper()
-    {
-        return *mpAssemblyHelper;
-    }
-
-    AssemblyHelperType& GetAssemblyHelper() const
-    {
-        return *mpAssemblyHelper;
-    }
 
     ///@}
     ///@name Protected Inquiry
@@ -591,7 +423,6 @@ protected:
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -599,18 +430,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    int mEchoLevel = 0;
-
-    bool mDofSetIsInitialized = false;
-
-    bool mReformDofsAtEachStep = false;
-
-    ModelPart* mpModelPart = nullptr;
-
-    DofsArrayType mDofSet; /// The set containing the DoF of the system
-
-    typename AssemblyHelperType::UniquePointer mpAssemblyHelper = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -633,7 +452,6 @@ private:
     ///@{
 
     ///@}
-
 }; // Class Scheme
 
 } // namespace Kratos::Future.

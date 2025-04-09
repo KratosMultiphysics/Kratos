@@ -23,7 +23,7 @@
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/linear_solver.h"
-#include "future/solving_strategies/schemes/new_scheme.h"
+#include "future/solving_strategies/schemes/implicit_scheme.h"
 #endif
 
 namespace Kratos::Future
@@ -74,7 +74,7 @@ public:
     using ClassType = LinearStrategy<TMatrixType, TVectorType>;
 
     // Scheme type definition
-    using SchemeType = NewScheme<TMatrixType, TVectorType>;
+    using SchemeType = ImplicitScheme<TMatrixType, TVectorType>;
 
     // Scheme pointer type definition
     using SchemePointerType = typename SchemeType::Pointer;
