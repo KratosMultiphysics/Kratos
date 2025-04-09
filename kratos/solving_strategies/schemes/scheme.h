@@ -97,14 +97,9 @@ public:
 
     /**
      * @brief Default Constructor
-     * @details Initializes the flags
      */
-    explicit Scheme()
-    {
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
-    }
+    Scheme() = default;
+
     /**
      * @brief Constructor with Parameters
      */
@@ -113,26 +108,15 @@ public:
         // Validate default parameters
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
-
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
     }
 
     /** Copy Constructor.
      */
-    explicit Scheme(Scheme& rOther)
-      :mSchemeIsInitialized(rOther.mSchemeIsInitialized)
-      ,mElementsAreInitialized(rOther.mElementsAreInitialized)
-      ,mConditionsAreInitialized(rOther.mConditionsAreInitialized)
-    {
-    }
+    Scheme(Scheme& rOther) = default;
 
     /** Destructor.
      */
-    virtual ~Scheme()
-    {
-    }
+    virtual ~Scheme() = default;
 
     ///@}
     ///@name Operators
@@ -773,10 +757,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
-    bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
-    bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
-    bool mConstraintsAreInitialized;
+    bool mSchemeIsInitialized = false;      /// Flag to be used in controlling if the Scheme has been initialized or not
+    bool mElementsAreInitialized = false;   /// Flag taking in account if the elements were initialized correctly or not
+    bool mConditionsAreInitialized = false; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mConstraintsAreInitialized = false; /// Flag taking in account if the constraints were initialized correctly or not
 
     ///@}
     ///@name Protected Operators

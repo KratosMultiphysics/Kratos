@@ -12,6 +12,7 @@
 
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/line_interface_geometry.h"
+#include "custom_utilities/registration_utilities.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -153,7 +154,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorS
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistrationOfAllStressStatePolicies{};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"InterfaceStressState"s, InterfaceStressState{}};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<InterfaceStressState>()};
     auto serializer = StreamSerializer{};
 

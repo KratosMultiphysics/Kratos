@@ -56,7 +56,7 @@ namespace
         Vector mesh_size(2); 
         mesh_size[0] = 0.1;  
         mesh_size[1] = 0.1;
-        p_quadrature_point->SetValue(MARKER_MESHES, mesh_size);
+        p_quadrature_point->SetValue(KNOT_SPAN_SIZES, mesh_size);
 
         return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(1, p_quadrature_point, p_elem_prop);
     }
@@ -93,7 +93,7 @@ namespace
         Vector mesh_size(2); 
         mesh_size[0] = 0.1;  
         mesh_size[1] = 0.1;
-        p_quadrature_point->SetValue(MARKER_MESHES, mesh_size);
+        p_quadrature_point->SetValue(KNOT_SPAN_SIZES, mesh_size);
 
         return Kratos::make_intrusive<SbmLaplacianConditionNeumann>(1, p_quadrature_point, p_elem_prop);
     }
