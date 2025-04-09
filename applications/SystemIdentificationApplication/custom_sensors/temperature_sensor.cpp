@@ -207,12 +207,14 @@ void TemperatureSensor::CalculatePartialSensitivity(
 
     rSensitivityGradient.clear();
 
-    if (rAdjointElement.Id() == mElementId) {
-        const auto& r_geometry = rAdjointElement.GetGeometry();
-        const IndexType block_size = rSensitivityGradient.size() / r_geometry.size();
+    if (rVariable == TEMPERATURE) {
+        if (rAdjointElement.Id() == mElementId) {
+            const auto& r_geometry = rAdjointElement.GetGeometry();
+            const IndexType block_size = rSensitivityGradient.size() / r_geometry.size();
 
-        for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            rSensitivityGradient[i * block_size] = mNs[i];
+            for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                rSensitivityGradient[i * block_size] = mNs[i];
+            }
         }
     }
 
