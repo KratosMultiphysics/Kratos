@@ -140,7 +140,8 @@ void IntersectionPointsUtility::SaveIntersectionPointsToFile(const std::string& 
         std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
         return;
     }
-    
+
+    outFile << std::fixed << std::setprecision(15);  
     outFile << "Element_ID\tPoint_ID\tX\tY\tZ" << std::endl;
     
     for (const auto& point : g_IntersectionPointsContainer) {
