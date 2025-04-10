@@ -66,6 +66,8 @@ public:
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
+    static constexpr double time_regularization = 1.0;
+
     /// Definition of the base class
     using BaseType = GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>;
 

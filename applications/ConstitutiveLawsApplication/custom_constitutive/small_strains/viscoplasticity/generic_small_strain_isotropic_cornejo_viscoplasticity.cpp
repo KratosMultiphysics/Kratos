@@ -52,9 +52,6 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
-    // Integrate Stress plasticity
-    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
-
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
@@ -63,44 +60,51 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
-        double threshold           = GetThreshold();
-        double plastic_dissipation = GetPlasticDissipation();
-        Vector plastic_strain      = GetPlasticStrain();
+        const auto &r_props = rValues.GetMaterialProperties();
 
-        BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
+        const double threshold = GetThreshold();
+        const double plastic_dissipation = GetPlasticDissipation();
+        const Vector plastic_strain = GetPlasticStrain();
+        const double time_regularization_factor = r_props.Has(TIME_REGULARIZATION) ? r_props[TIME_REGULARIZATION] : time_regularization;
+        const double strain_rate_norm = time_regularization_factor * mStrainRateHistory[0] + (1.0 - time_regularization_factor) * mStrainRateHistory[1];
 
-        noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
-        this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
+        // BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
 
-        double equivalent_stress;
-        ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
+        // noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+        // this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
 
-        const double F = equivalent_stress - threshold;
+        // double equivalent_stress;
+        // ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
 
-        if (F >= 0.0) {
-            BoundedArrayType deviatoric_stress_vector;
-            double I1, J2;
-            ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
-            ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
+        // const double F = equivalent_stress - threshold;
 
-            const auto& r_props = rValues.GetMaterialProperties();
-            const double mu = r_props[MIU];
-            const double sensitivity = r_props.Has(DP_EPSILON) ? r_props[DP_EPSILON] : 1.0; 
-            // Perzyna model
-            const double plastic_multiplier = (std::pow(equivalent_stress / threshold, 1.0 / sensitivity) - 1.0) / mu;
+        // if (F >= 0.0) {
+        //     // Integrate Stress plasticity
+        //     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
-            array_1d<double, VoigtSize> g_flux;
-            ConstLawIntegratorType::YieldSurfaceType::CalculatePlasticPotentialDerivative(predictive_stress_vector, deviatoric_stress_vector, J2, g_flux, rValues);
+        //     BoundedArrayType deviatoric_stress_vector;
+        //     double I1, J2;
+        //     ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
+        //     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
 
-            const array_1d<double, VoigtSize> plastic_strain_increment = plastic_multiplier * g_flux;
-            noalias(rValues.GetStressVector()) = predictive_stress_vector - prod(r_constitutive_matrix, plastic_strain_increment);
+        //     const auto& r_props = rValues.GetMaterialProperties();
+        //     const double mu = r_props[MIU];
+        //     const double sensitivity = r_props.Has(DP_EPSILON) ? r_props[DP_EPSILON] : 1.0; 
+        //     // Perzyna model
+        //     const double plastic_multiplier = (std::pow(equivalent_stress / threshold, 1.0 / sensitivity) - 1.0) / mu;
 
-            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                CalculateTangentTensor(rValues, plastic_strain);
-            }
-        } else {
-            noalias(rValues.GetStressVector()) = predictive_stress_vector;
-        }
+        //     array_1d<double, VoigtSize> g_flux;
+        //     ConstLawIntegratorType::YieldSurfaceType::CalculatePlasticPotentialDerivative(predictive_stress_vector, deviatoric_stress_vector, J2, g_flux, rValues);
+
+        //     const array_1d<double, VoigtSize> plastic_strain_increment = plastic_multiplier * g_flux;
+        //     noalias(rValues.GetStressVector()) = predictive_stress_vector - prod(r_constitutive_matrix, plastic_strain_increment);
+
+        //     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        //         CalculateTangentTensor(rValues, plastic_strain);
+        //     }
+        // } else {
+        //     noalias(rValues.GetStressVector()) = predictive_stress_vector;
+        // }
     }
 }
 
@@ -110,63 +114,63 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
+    // const Flags& r_constitutive_law_options = rValues.GetOptions();
 
-    // We get the strain vector
-    Vector& r_strain_vector = rValues.GetStrainVector();
+    // // We get the strain vector
+    // Vector& r_strain_vector = rValues.GetStrainVector();
 
-    // We get the constitutive tensor
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    // // We get the constitutive tensor
+    // Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
-    // Integrate Stress plasticity
-    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+    // // Integrate Stress plasticity
+    // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
-    if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
-    }
-    this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+    // if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+    //     BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
+    // }
+    // this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    // CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
-    double& r_threshold           = GetThreshold();
-    double& r_plastic_dissipation = GetPlasticDissipation();
-    Vector& r_plastic_strain      = GetPlasticStrain();
+    // double& r_threshold           = GetThreshold();
+    // double& r_plastic_dissipation = GetPlasticDissipation();
+    // Vector& r_plastic_strain      = GetPlasticStrain();
 
-    BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
+    // BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
 
-    noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
-    this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
+    // noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+    // this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
 
-    double equivalent_stress;
-    ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
+    // double equivalent_stress;
+    // ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
 
-    const double F = equivalent_stress - r_threshold;
+    // const double F = equivalent_stress - r_threshold;
 
-    if (F >= 0.0) {
-        BoundedArrayType deviatoric_stress_vector;
-        double I1, J2;
-        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
+    // if (F >= 0.0) {
+    //     BoundedArrayType deviatoric_stress_vector;
+    //     double I1, J2;
+    //     ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
+    //     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
 
-        const auto& r_props = rValues.GetMaterialProperties();
-        const double mu = r_props[MIU];
-        const double sensitivity = r_props[DP_EPSILON];
-        const double plastic_multiplier = (std::pow(equivalent_stress / r_threshold, 1.0 / sensitivity) - 1.0) / mu;
+    //     const auto& r_props = rValues.GetMaterialProperties();
+    //     const double mu = r_props[MIU];
+    //     const double sensitivity = r_props[DP_EPSILON];
+    //     const double plastic_multiplier = (std::pow(equivalent_stress / r_threshold, 1.0 / sensitivity) - 1.0) / mu;
 
-        array_1d<double, VoigtSize> g_flux;
-        ConstLawIntegratorType::YieldSurfaceType::CalculatePlasticPotentialDerivative(predictive_stress_vector, deviatoric_stress_vector, J2, g_flux, rValues);
+    //     array_1d<double, VoigtSize> g_flux;
+    //     ConstLawIntegratorType::YieldSurfaceType::CalculatePlasticPotentialDerivative(predictive_stress_vector, deviatoric_stress_vector, J2, g_flux, rValues);
 
-        const array_1d<double, VoigtSize> plastic_strain_increment = plastic_multiplier * g_flux;
-        noalias(rValues.GetStressVector()) = predictive_stress_vector - prod(r_constitutive_matrix, plastic_strain_increment);
+    //     const array_1d<double, VoigtSize> plastic_strain_increment = plastic_multiplier * g_flux;
+    //     noalias(rValues.GetStressVector()) = predictive_stress_vector - prod(r_constitutive_matrix, plastic_strain_increment);
 
-        const double g = r_props[FRACTURE_ENERGY] / characteristic_length;
+    //     const double g = r_props[FRACTURE_ENERGY] / characteristic_length;
 
-        r_plastic_dissipation += inner_prod(rValues.GetStressVector(), plastic_strain_increment) / g;
-        noalias(r_plastic_strain) += plastic_strain_increment;
+    //     r_plastic_dissipation += inner_prod(rValues.GetStressVector(), plastic_strain_increment) / g;
+    //     noalias(r_plastic_strain) += plastic_strain_increment;
 
-        double dummy = 0.0;
-        ConstLawIntegratorType::CalculateEquivalentStressThreshold(r_plastic_dissipation, 1, 0, r_threshold, dummy, rValues, dummy, characteristic_length);
-    }
+    //     double dummy = 0.0;
+    //     ConstLawIntegratorType::CalculateEquivalentStressThreshold(r_plastic_dissipation, 1, 0, r_threshold, dummy, rValues, dummy, characteristic_length);
+    // }
 }
 
 /***********************************************************************************/
