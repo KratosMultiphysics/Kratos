@@ -1,7 +1,7 @@
 ## @module iqnils
 # This module contains the class IQNMVJImplicitConvergenceAccelerator
 # Author: Susanna Baars
-# Date: April 04, 2025
+# Date: April 10, 2025
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
@@ -76,9 +76,9 @@ class IQNIMVJImplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         return np.sum([_rr.predict(x).reshape(np.shape(x)) for _rr in rr], axis=0)
         
     def _add_fidelity_level(self, V, W):
-        W_residual = W - self._make_multifidelity_prediction(self.rr, V.T).T
+        W_diff = W - self._make_multifidelity_prediction(self.rr, V.T).T
         rr = _RidgeRegression(regularization_param=self.regularization_param)
-        rr.fit(V.T, W_residual.T)
+        rr.fit(V.T, W_diff.T)
         self.rr.append(rr)
         
     def _compute_update(self, r, k):
@@ -132,14 +132,14 @@ class IQNIMVJImplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         V, W  = self._construct_difference_matrices(self.R, self.X, col)
         self._update_stored_matrices(V, W, k)
 
-        if k == 0 and len(self.v_matrices) == 0 and len(self.w_matrices) == 0:
+        if k == 0 and all(arr.size == 0 for arr in self.v_matrices) and all(arr.size == 0 for arr in self.w_matrices):
             if self.echo_level > 3:
                 cs_print_info(self._ClassName(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
 
             return self.alpha * r
         else:
             if self.echo_level > 3:
-                cs_print_info(self._ClassName(), "Applying the implicit IQN-MVJ method.")
+                cs_print_info(self._ClassName(), "Applying the implicit IQN-IMVJ method.")
             
             delta_x = self._compute_update(r, k)
             
@@ -158,9 +158,9 @@ class IQNIMVJImplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "iteration_horizon"               : 20,
-            "timestep_horizon"                : 30,
+            "timestep_horizon"                : 50,
             "alpha"                           : 0.125,
-            "regularization_param"            : 1e-14
+            "regularization_param"            : 0.0
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

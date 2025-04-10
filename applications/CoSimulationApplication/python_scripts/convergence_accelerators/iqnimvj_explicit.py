@@ -3,7 +3,7 @@
 # Author: Wei He
 # Date: Feb. 20, 2017
 # Revised: Susanna Baars
-# Date: April 04, 2025
+# Date: April 10, 2025
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
@@ -70,7 +70,7 @@ class IQNIMVJExplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 return self.alpha * r  # if no inverse Jacobian, do relaxation
             else:
                 if self.echo_level > 3:
-                    cs_tools.cs_print_info(self._ClassName(), "Applying the explicit IQN-MVJ method.")
+                    cs_tools.cs_print_info(self._ClassName(), "Applying the explicit IQN-IMVJ method.")
 
                 delta_x = self.J_inv @ delta_r - delta_r  # use the inverse Jacobian from previous step
 
@@ -84,8 +84,17 @@ class IQNIMVJExplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         W_diff = W - self.J_inv @ V
 
         # Update the Jacobian
-        V_right_inverse = np.linalg.lstsq(V, np.identity(row))[0]
+        V_right_inverse = np.linalg.lstsq(V, np.identity(row), rcond=-1)[0]
         J_update = W_diff @ V_right_inverse
+
+        K = np.dot(V.T, V)
+        try:
+            Z = np.linalg.solve(K, V.T)
+        except:
+            Z = np.linalg.lstsq(K, V.T)[0]
+
+        J_update = W_diff @ Z
+
         self.J_inv_hat = self.J_inv + J_update
 
         # Compute update
@@ -96,19 +105,14 @@ class IQNIMVJExplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## FinalizeSolutionStep()
     # Finalizes the current time step and initializes the next time step.
     def FinalizeSolutionStep( self ):
-        if self.J_inv_hat is None:
-            return
-
-        row = self.J_inv_hat.shape[0]
-        col = self.J_inv_hat.shape[1]
-        ## Assign J_inv = J_inv_hat
-        self.J_inv[:row,:col] = self.J_inv_hat[:row,:col]
+        if self.J_inv_hat is not None:
+            ## Assign J_inv = J_inv_hat
+            self.J_inv = np.copy(self.J_inv_hat)
         if self.echo_level > 3:
             cs_tools.cs_print_info(self._ClassName(), "Jacobian matrix updated!")
         ## Clear the buffer
-        if self.R and self.X:
-            self.R.clear()
-            self.X.clear()
+        self.R.clear()
+        self.X.clear()
 
     @classmethod
     def _GetDefaultParameters(cls):
