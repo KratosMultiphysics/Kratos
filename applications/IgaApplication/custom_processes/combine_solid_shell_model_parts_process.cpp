@@ -220,7 +220,9 @@ namespace Kratos
 
 		IndexType counter = 0;
 		for (auto it = mModelPart.Geometries().begin(); it != mModelPart.Geometries().end(); it++) {
-			it->SetId(CoupleIdCounter + counter);
+			if (!it->IsIdGeneratedFromString()) {
+				it->SetId(CoupleIdCounter + counter);
+			}
 			counter++;
 		}
 		CoupleIdCounter = mModelPart.NumberOfGeometries() + 1;
