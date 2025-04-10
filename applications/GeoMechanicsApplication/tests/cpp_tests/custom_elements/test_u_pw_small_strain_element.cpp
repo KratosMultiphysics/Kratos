@@ -307,8 +307,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectRHSAfterSaveAnd
     ScopedSerializerRegistration registration("SaturatedLaw", SaturatedLaw{});
     ScopedSerializerRegistration registration2("PlaneStrain", PlaneStrain{});
     ScopedSerializerRegistration registration3("PlaneStrainStressState", PlaneStrainStressState{});
-    Model model;
-    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    Model                        model;
+    auto element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForFluidFluxCheck(element);
     const auto process_info = ProcessInfo{};
 
