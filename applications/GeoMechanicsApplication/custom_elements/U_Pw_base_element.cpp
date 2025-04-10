@@ -453,6 +453,10 @@ void UPwBaseElement::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
     rSerializer.save("StressStatePolicy", mpStressStatePolicy);
+    rSerializer.save("RetentionLawVector", mRetentionLawVector);
+    rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
+    rSerializer.save("StressVector", mStressVector);
+    rSerializer.save("mThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod));
 }
 
 void UPwBaseElement::load(Serializer& rSerializer)
@@ -460,6 +464,12 @@ void UPwBaseElement::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
     rSerializer.load("StressStatePolicy", mpStressStatePolicy);
+    rSerializer.load("RetentionLawVector", mRetentionLawVector);
+    rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
+    rSerializer.load("StressVector", mStressVector);
+    int IntMethod;
+    rSerializer.load("mThisIntegrationMethod", IntMethod);
+    mThisIntegrationMethod = IntegrationMethod(IntMethod);
 }
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }

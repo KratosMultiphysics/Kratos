@@ -23,6 +23,7 @@
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <custom_utilities/registration_utilities.h>
 
 namespace
 {
@@ -256,6 +257,84 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAndLoad, KratosGeoMechanicsFastSuite)
+{
+    // Arrange
+    ScopedSerializerRegistration registration("SaturatedLaw", SaturatedLaw{});
+    ScopedSerializerRegistration registration2("PlaneStrain", PlaneStrain{});
+    ScopedSerializerRegistration registration3("PlaneStrainStressState", PlaneStrainStressState{});
+
+    Model model;
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    SetSolutionStepValuesForGeneralCheck(element);
+    const auto process_info = ProcessInfo{};
+
+    // Act
+    element->Initialize(process_info);
+
+    auto serializer = StreamSerializer{};
+    serializer.save("test_tag", element);
+
+    // Act
+    auto p_loaded_element = make_intrusive<UPwSmallStrainElement<2, 3>>();
+    serializer.load("test_tag", p_loaded_element);
+
+    Matrix actual_left_hand_side;
+    p_loaded_element->CalculateLeftHandSide(actual_left_hand_side, process_info);
+
+    // Assert
+    Matrix expected_left_hand_side(9, 9);
+    // clang-format off
+    expected_left_hand_side <<= 5000000,       0, -5000000,        0,        0,         0,          0,          0,          0,
+                                0,       2500000,  2500000, -2500000, -2500000,         0,          0,          0,          0,
+                               -5000000, 2500000,  7500000, -2500000, -2500000,         0,          0,          0,          0,
+                                0,      -2500000, -2500000,  7500000,  2500000, -5000000,           0,          0,          0,
+                                0,      -2500000, -2500000,  2500000,  2500000,         0,          0,          0,          0,
+                                0,             0,        0, -5000000,        0,  5000000,           0,          0,          0,
+                                0,             0,        0,        0,        0,         0, -0.0004542,  0.0004542,          0,
+                                0,             0,        0,        0,        0,         0,  0.0004542, -0.0009084,  0.0004542,
+                                0,             0,        0,        0,        0,         0,          0,  0.0004542, -0.0004542;
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectRHSAfterSaveAndLoad, KratosGeoMechanicsFastSuite)
+{
+    // Arrange
+    ScopedSerializerRegistration registration("SaturatedLaw", SaturatedLaw{});
+    ScopedSerializerRegistration registration2("PlaneStrain", PlaneStrain{});
+    ScopedSerializerRegistration registration3("PlaneStrainStressState", PlaneStrainStressState{});
+    Model model;
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    SetSolutionStepValuesForFluidFluxCheck(element);
+    const auto process_info = ProcessInfo{};
+
+    // Act
+    element->Initialize(process_info);
+    auto serializer = StreamSerializer{};
+    serializer.save("test_tag", element);
+
+    auto p_loaded_element = make_intrusive<UPwSmallStrainElement<2, 3>>();
+    serializer.load("test_tag", p_loaded_element);
+
+    Vector actual_right_hand_side;
+    p_loaded_element->CalculateRightHandSide(actual_right_hand_side, process_info);
+
+    // Assert
+    Vector expected_right_hand_side = ZeroVector(9);
+    expected_right_hand_side[7]     = -4.542;
+    expected_right_hand_side[8]     = +4.542;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance);
+    std::vector<array_1d<double, 3>> calculated_fluid_flux_at_integration_points;
+    element->CalculateOnIntegrationPoints(
+        FLUID_FLUX_VECTOR, calculated_fluid_flux_at_integration_points, process_info);
+    for (const auto& calculated_fluid_flux : calculated_fluid_flux_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+            calculated_fluid_flux, (array_1d<double, 3>{0., 9.084, 0.}), Defaults::relative_tolerance);
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
