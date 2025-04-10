@@ -21,6 +21,7 @@
 #include "geometries/coupling_geometry.h"
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/quadrature_point_curve_on_surface_geometry.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
