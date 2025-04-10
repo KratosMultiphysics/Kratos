@@ -11,8 +11,14 @@
 //
 
 #include "custom_retention/saturated_law.h"
+#include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
+#include <string>
+
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -64,6 +70,23 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedLawChecksInputParameters, KratosGeoMechanicsF
 
     properties.SetValue(SATURATED_SATURATION, 0.9);
     KRATOS_EXPECT_EQ(law.Check(properties, process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SaturatedLaw_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto scoped_registration = ScopedSerializerRegistration{"SaturatedLaw"s, SaturatedLaw{}};
+    const auto p_retention_law = std::unique_ptr<RetentionLaw>{std::make_unique<SaturatedLaw>()};
+    auto       serializer      = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_retention_law);
+    auto p_loaded_retention_law = std::unique_ptr<RetentionLaw>{};
+    serializer.load("test_tag"s, p_loaded_retention_law);
+
+    // Assert
+    KRATOS_EXPECT_NE(p_loaded_retention_law, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<SaturatedLaw*>(p_loaded_retention_law.get()), nullptr);
 }
 
 } // namespace Kratos::Testing
