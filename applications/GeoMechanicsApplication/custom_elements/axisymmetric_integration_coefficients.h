@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Gennady Markelov
+//                   Anne van de Graaf
 //
 
 #pragma once

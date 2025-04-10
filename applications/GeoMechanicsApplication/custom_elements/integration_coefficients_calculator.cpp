@@ -21,13 +21,22 @@ IntegrationCoefficientsCalculator::IntegrationCoefficientsCalculator(std::unique
 {
 }
 
+void IntegrationCoefficientsCalculator::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void IntegrationCoefficientsCalculator::load(Serializer&)
+{
+    // No data members to be loaded (yet)
+}
+
 std::unique_ptr<IntegrationCoefficientModifier> IntegrationCoefficientsCalculator::CloneModifier() const
 {
     if (mCoefficientModifier) {
         return mCoefficientModifier->Clone();
-    } else {
-        return nullptr;
     }
+    return nullptr;
 };
 
 } // namespace Kratos

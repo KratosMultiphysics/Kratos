@@ -73,7 +73,6 @@ LineInterfaceElement::LineInterfaceElement(IndexType NewId, const GeometryType::
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
       mStressStatePolicy(std::make_unique<InterfaceStressState>()),
       mpIntegrationCoefficientsCalculator(std::make_unique<IntegrationCoefficientsCalculator>())
-
 {
 }
 

@@ -15,7 +15,6 @@
 #include "geo_aliases.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
-#include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 
 namespace Kratos

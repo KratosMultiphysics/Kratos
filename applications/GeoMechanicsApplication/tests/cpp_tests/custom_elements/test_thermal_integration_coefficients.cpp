@@ -27,7 +27,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto calculator = IntegrationCoefficientsCalculator{
+    const auto thermal_integration_coefficients = IntegrationCoefficientsCalculator{
         std::make_unique<IntegrationCoefficientModifierForThermalElement>()};
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
@@ -43,7 +43,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, Kr
     const auto line_element = Element{1, p_geometry, p_properties};
 
     // Act and Assert
-    auto calculated_coefficients = calculator.Run<>(integration_points, detJs, &line_element);
+    auto calculated_coefficients =
+        thermal_integration_coefficients.Run<>(integration_points, detJs, &line_element);
 
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) * 0.5 (cross area) = 0.5
@@ -51,7 +52,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, Kr
 
     nodes.push_back(make_intrusive<Node>(2, 1.0, 1.0, 0.0));
     const auto plane_element = ElementSetupUtilities::Create2D3NElement(nodes, p_properties);
-    calculated_coefficients  = calculator.Run<>(integration_points, detJs, plane_element.get());
+    calculated_coefficients =
+        thermal_integration_coefficients.Run<>(integration_points, detJs, plane_element.get());
 
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) = 1.0
@@ -63,11 +65,11 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, Kr
 KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto calculator = IntegrationCoefficientsCalculator{
+    const auto thermal_integration_coefficients = IntegrationCoefficientsCalculator{
         std::make_unique<IntegrationCoefficientModifierForThermalElement>()};
 
     // Act
-    const auto clone_modifier = calculator.CloneModifier();
+    const auto clone_modifier = thermal_integration_coefficients.CloneModifier();
 
     // Assert
     KRATOS_EXPECT_NE(clone_modifier, nullptr);
