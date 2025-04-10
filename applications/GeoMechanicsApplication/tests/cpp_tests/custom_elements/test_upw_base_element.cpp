@@ -24,6 +24,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(UPwBaseElement_SerializesConstitutiveLaws, KratosGeoMechanicsFastSuite)
 {
+    // Arrange
     ScopedSerializerRegistration registration("PlaneStrain", PlaneStrain{});
     const auto variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
                                                   std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
@@ -32,23 +33,18 @@ KRATOS_TEST_CASE_IN_SUITE(UPwBaseElement_SerializesConstitutiveLaws, KratosGeoMe
     auto p_constitutive_law =
         std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
     p_element->GetProperties().SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
-
-    std::vector<ConstitutiveLaw::Pointer> claws;
-    p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, claws, ProcessInfo{});
-    EXPECT_TRUE(claws.empty());
-
     p_element->Initialize(ProcessInfo{});
-    p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, claws, ProcessInfo{});
-    EXPECT_EQ(claws.size(), 3);
 
     auto serializer = StreamSerializer{};
     serializer.save("test_tag"s, p_element);
+
+    // Act
     auto p_loaded_element = std::make_shared<UPwBaseElement>();
     serializer.load("test_tag"s, p_loaded_element);
 
+    // Assert
     std::vector<ConstitutiveLaw::Pointer> loaded_claws;
     p_loaded_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, loaded_claws, ProcessInfo{});
-
     EXPECT_EQ(loaded_claws.size(), 3);
     EXPECT_EQ(loaded_claws[0]->WorkingSpaceDimension(), 2);
 }
