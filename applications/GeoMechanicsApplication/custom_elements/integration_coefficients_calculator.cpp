@@ -16,12 +16,12 @@
 namespace Kratos
 {
 
-CalculateIntegrationCoefficients0::CalculateIntegrationCoefficients0(std::unique_ptr<IntegrationCoefficientModifier> CoefficientModifier)
+IntegrationCoefficientsCalculator::IntegrationCoefficientsCalculator(std::unique_ptr<IntegrationCoefficientModifier> CoefficientModifier)
     : mCoefficientModifier{std::move(CoefficientModifier)}
 {
 }
 
-std::unique_ptr<IntegrationCoefficientModifier> CalculateIntegrationCoefficients0::CloneModifier() const
+std::unique_ptr<IntegrationCoefficientModifier> IntegrationCoefficientsCalculator::CloneModifier() const
 {
     if (mCoefficientModifier) {
         return mCoefficientModifier->Clone();

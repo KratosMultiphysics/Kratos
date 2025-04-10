@@ -15,8 +15,8 @@
 #include "geo_aliases.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
-#include "includes/ublas_interface.h"
 #include "includes/serializer.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -34,10 +34,10 @@ public:
                               const Element&                   rElement) const = 0;
 };
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) CalculateIntegrationCoefficients0
+class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientsCalculator
 {
 public:
-    explicit CalculateIntegrationCoefficients0(std::unique_ptr<IntegrationCoefficientModifier> = nullptr);
+    explicit IntegrationCoefficientsCalculator(std::unique_ptr<IntegrationCoefficientModifier> = nullptr);
 
     [[nodiscard]] std::unique_ptr<IntegrationCoefficientModifier> CloneModifier() const;
 

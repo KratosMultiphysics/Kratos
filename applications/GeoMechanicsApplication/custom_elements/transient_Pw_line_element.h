@@ -49,7 +49,7 @@ public:
         std::unique_ptr<IntegrationCoefficientModifier> modifier =
             std::make_unique<IntegrationCoefficientModifierForPwLineElement>();
         mpIntegrationCoefficientsCalculator =
-            std::make_unique<CalculateIntegrationCoefficients0>(std::move(modifier));
+            std::make_unique<IntegrationCoefficientsCalculator>(std::move(modifier));
     }
 
     TransientPwLineElement(IndexType                                   NewId,
@@ -61,7 +61,7 @@ public:
         std::unique_ptr<IntegrationCoefficientModifier> modifier =
             std::make_unique<IntegrationCoefficientModifierForPwLineElement>();
         mpIntegrationCoefficientsCalculator =
-            std::make_unique<CalculateIntegrationCoefficients0>(std::move(modifier));
+            std::make_unique<IntegrationCoefficientsCalculator>(std::move(modifier));
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
@@ -165,7 +165,7 @@ public:
 private:
     std::vector<RetentionLaw::Pointer>                 mRetentionLawVector;
     std::vector<CalculationContribution>               mContributions;
-    std::unique_ptr<CalculateIntegrationCoefficients0> mpIntegrationCoefficientsCalculator;
+    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator;
 
     void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
     {

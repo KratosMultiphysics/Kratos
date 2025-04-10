@@ -27,7 +27,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto calculate_integration_coefficients = CalculateIntegrationCoefficients0{};
+    const auto calculate_integration_coefficients = IntegrationCoefficientsCalculator{};
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
@@ -46,8 +46,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficients_ReturnsCorrectValue, 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const std::unique_ptr<CalculateIntegrationCoefficients0> p_interface_integration_coefficients =
-        std::make_unique<CalculateIntegrationCoefficients0>();
+    const std::unique_ptr<IntegrationCoefficientsCalculator> p_interface_integration_coefficients =
+        std::make_unique<IntegrationCoefficientsCalculator>();
 
     // Act
     const auto clone_modifier = p_interface_integration_coefficients->CloneModifier();

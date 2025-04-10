@@ -41,7 +41,7 @@ public:
         std::unique_ptr<IntegrationCoefficientModifier> modifier =
             std::make_unique<IntegrationCoefficientModifierForThermalElement>();
         mpIntegrationCoefficientsCalculator =
-            std::make_unique<CalculateIntegrationCoefficients0>(std::move(modifier));
+            std::make_unique<IntegrationCoefficientsCalculator>(std::move(modifier));
     }
 
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
@@ -50,7 +50,7 @@ public:
         std::unique_ptr<IntegrationCoefficientModifier> modifier =
             std::make_unique<IntegrationCoefficientModifierForThermalElement>();
         mpIntegrationCoefficientsCalculator =
-            std::make_unique<CalculateIntegrationCoefficients0>(std::move(modifier));
+            std::make_unique<IntegrationCoefficientsCalculator>(std::move(modifier));
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
@@ -138,7 +138,7 @@ public:
     }
 
 private:
-    std::unique_ptr<CalculateIntegrationCoefficients0> mpIntegrationCoefficientsCalculator;
+    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator;
 
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {

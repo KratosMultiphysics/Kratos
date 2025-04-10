@@ -27,7 +27,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto calculator = CalculateIntegrationCoefficients0{
+    const auto calculator = IntegrationCoefficientsCalculator{
         std::make_unique<IntegrationCoefficientModifierForThermalElement>()};
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, Kr
 KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto calculator = CalculateIntegrationCoefficients0{
+    const auto calculator = IntegrationCoefficientsCalculator{
         std::make_unique<IntegrationCoefficientModifierForThermalElement>()};
 
     // Act
