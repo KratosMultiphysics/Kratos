@@ -17,6 +17,7 @@
 
 #include "containers/flags.h"
 #include "custom_constitutive/linear_elastic_law.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
@@ -197,8 +198,9 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     if (rProp.Has(K0_NC)) {
         std::fill(k0_vector.begin(), k0_vector.end(), rProp[K0_NC]);
     } else if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(UMAT_PARAMETERS)) {
-        const auto phi = rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
-        std::fill(k0_vector.begin(), k0_vector.end(), 1.0 - std::sin(MathUtils<>::DegreesToRadians(phi)));
+        const auto phi =
+            MathUtils<>::DegreesToRadians(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rProp));
+        std::fill(k0_vector.begin(), k0_vector.end(), 1.0 - std::sin(phi));
     } else {
         k0_vector[0] = rProp[K0_VALUE_XX];
         k0_vector[1] = rProp[K0_VALUE_YY];
