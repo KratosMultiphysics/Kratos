@@ -59,6 +59,12 @@ public:
     // Add this function declaration inside the IntersectionPointsUtility class
     static void ProcessIntersectionPointsAndFitCurves(const std::string& output_file = "element_curves.txt");
     static void ProcessIntersectionPointsAndFitCurvesparabola(const std::string& output_file = "element_curves_parabola.txt");
+    static void ProcessIntersectionPointsAndFitGeneralConic(const std::string& output_file = "element_curves_general_conic.txt");
+    
+    // Helper functions for matrix operations
+    static double determinant5x5(const Matrix& A);
+    static double determinant4x4(const Matrix& A);
+    static double determinant3x3(const Matrix& A);
     //////////////////////////////////////
 };
 
@@ -83,6 +89,12 @@ struct ElementIntersection
         QuadraticCoefficients() : a(0.0), b(0.0), c(0.0) {}
     };
     
+    struct ConicCoefficients
+    {
+        double a, b, c, d, e;  // y² + ax² + bxy + cy + dx + e = 0
+        ConicCoefficients() : a(0.0), b(0.0), c(0.0), d(0.0), e(0.0) {}
+    };
+    
     // Process all intersection points and fit curves using element connectivity
     static void ProcessIntersectionPointsAndFitCurves(
         const std::vector<IntersectionPointData>& points,
@@ -93,6 +105,11 @@ struct ElementIntersection
         const std::vector<IntersectionPointData>& points,
         const ModelPart& modelPart,
         const std::string& output_file = "element_curves.txt");
+        
+    static void ProcessIntersectionPointsAndFitGeneralConic(
+        const std::vector<IntersectionPointData>& points,
+        const ModelPart& modelPart,
+        const std::string& output_file = "element_curves_general_conic.txt");
         
 private:
     // Group points by element
@@ -117,10 +134,21 @@ private:
         const std::map<int, std::vector<IntersectionPointData>>& curves,
         std::map<int, QuadraticCoefficients>& fits);
         
+    // Fit general conic section curves to points
+    static void FitGeneralConicCurves(
+        const std::map<int, std::vector<IntersectionPointData>>& curves,
+        std::map<int, ConicCoefficients>& fits);
+        
     // Save results to file
     static void SaveToFile(
         const std::map<int, std::vector<IntersectionPointData>>& curves,
         const std::map<int, QuadraticCoefficients>& fits,
+        const std::string& filename);
+        
+    // Save results for general conic fits to file
+    static void SaveConicFitsToFile(
+        const std::map<int, std::vector<IntersectionPointData>>& curves,
+        const std::map<int, ConicCoefficients>& fits,
         const std::string& filename);
 };
 

@@ -863,7 +863,8 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std:
         
         for (const auto& [elemId, current_neighbors] : expanded_neighbors) {
             for (int neighbor : current_neighbors) {
-                for (int next_hop : expanded_neighbors[neighbor]) {
+                // for (int next_hop : expanded_neighbors[neighbor]) {
+                for (int next_hop : element_neighbors[neighbor]) {
                     if (next_hop != elemId && !expanded_neighbors[elemId].count(next_hop)) {
                         next_level_neighbors[elemId].insert(next_hop);
                     }
@@ -1154,7 +1155,8 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(co
         
         for (const auto& [elemId, current_neighbors] : expanded_neighbors) {
             for (int neighbor : current_neighbors) {
-                for (int next_hop : expanded_neighbors[neighbor]) {
+                // for (int next_hop : expanded_neighbors[neighbor]) {
+                for (int next_hop : element_neighbors[neighbor]) {
                     if (next_hop != elemId && !expanded_neighbors[elemId].count(next_hop)) {
                         next_level_neighbors[elemId].insert(next_hop);
                     }
@@ -1379,6 +1381,405 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(co
     
     std::cout << "Saved " << elementFits.size() << " element quadratic curve fits to " << output_file << std::endl;
     std::cout << "Used all available points from 2-hop neighborhoods." << std::endl;
+}
+
+void IntersectionPointsUtility::ProcessIntersectionPointsAndFitGeneralConic(const std::string& output_file)
+{
+    // Get all intersection points
+    const auto& points = g_IntersectionPointsContainer;
+    
+    if (points.empty()) {
+        std::cout << "No intersection points available for curve fitting." << std::endl;
+        return;
+    }
+    
+    // Configuration parameters
+    const int MIN_POINTS_FOR_CURVE_FIT = 5;  // Minimum needed for general conic section
+    const int NEIGHBOR_EXPANSION_LEVEL = 3;   // Expand to n-hop neighbors
+    
+    std::cout << "Starting general conic section fitting with " << points.size() << " intersection points." << std::endl;
+    std::cout << "Using all available points from 2-hop neighborhoods." << std::endl;
+    
+    // Group points by element
+    std::map<int, std::vector<IntersectionPointData>> element_points;
+    // Create a map of points by their coordinates
+    std::map<std::pair<double, double>, std::vector<int>> point_to_elements;
+    
+    for (const auto& point : points) {
+        int elemId = point.elementId;
+        
+        // Round coordinates to handle floating point precision
+        double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
+        double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
+        std::pair<double, double> coord_key(x, y);
+        
+        // Add this element to the list for this point
+        point_to_elements[coord_key].push_back(elemId);
+        
+        // Add this point to the element's list
+        element_points[elemId].push_back(point);
+    }
+    
+    // Find element neighbors (elements that share intersection points)
+    std::map<int, std::set<int>> element_neighbors;
+    
+    for (const auto& [coord, elements] : point_to_elements) {
+        // If this point belongs to multiple elements, they are neighbors
+        for (size_t i = 0; i < elements.size(); ++i) {
+            for (size_t j = i+1; j < elements.size(); ++j) {
+                element_neighbors[elements[i]].insert(elements[j]);
+                element_neighbors[elements[j]].insert(elements[i]);
+            }
+        }
+    }
+    
+    // Expand the neighborhood to n-hop neighbors
+    std::cout << "Expanding neighborhood with " << NEIGHBOR_EXPANSION_LEVEL << " hops..." << std::endl;
+    std::map<int, std::set<int>> expanded_neighbors = element_neighbors;
+    
+    for (int hop = 2; hop <= NEIGHBOR_EXPANSION_LEVEL; hop++) {
+        std::map<int, std::set<int>> next_level_neighbors = expanded_neighbors;
+        
+        for (const auto& [elemId, current_neighbors] : expanded_neighbors) {
+            for (int neighbor : current_neighbors) {
+                // for (int next_hop : expanded_neighbors[neighbor]) {
+                for (int next_hop : element_neighbors[neighbor]) {
+                    if (next_hop != elemId && !expanded_neighbors[elemId].count(next_hop)) {
+                        next_level_neighbors[elemId].insert(next_hop);
+                    }
+                }
+            }
+        }
+        
+        expanded_neighbors = next_level_neighbors;
+        std::cout << "Completed " << hop << "-hop neighborhood expansion." << std::endl;
+    }
+    
+    // Structure to hold general conic section coefficients (y² + ax² + bxy + cy + dx + e = 0)
+    struct ConicCoefficients {
+        double a;  // coefficient of x²
+        double b;  // coefficient of xy
+        double c;  // coefficient of y
+        double d;  // coefficient of x
+        double e;  // constant term
+    };
+    
+    // Maps to store results
+    std::map<int, ConicCoefficients> elementFits;
+    std::map<int, int> elementTotalPoints;
+    
+    // Process each element
+    for (const auto& [elemId, neighbors] : expanded_neighbors) {
+        // Get original points for this element
+        std::vector<IntersectionPointData> original_points = element_points[elemId];
+        int original_point_count = original_points.size();
+        
+        // Create a pool of neighbor points
+        std::vector<IntersectionPointData> neighbor_points;
+        for (int neighborId : neighbors) {
+            neighbor_points.insert(neighbor_points.end(), 
+                                 element_points[neighborId].begin(), 
+                                 element_points[neighborId].end());
+        }
+        
+        // Remove duplicates and points shared with original set
+        std::map<std::pair<double, double>, IntersectionPointData> unique_neighbor_points;
+        for (const auto& point : neighbor_points) {
+            double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
+            double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
+            std::pair<double, double> key(x, y);
+            
+            // Skip points that are in the original set
+            bool is_in_original = false;
+            for (const auto& orig_point : original_points) {
+                double ox = std::round(orig_point.coordinates[0] * 1.0E14) / 1.0E14;
+                double oy = std::round(orig_point.coordinates[1] * 1.0E14) / 1.0E14;
+                if (ox == x && oy == y) {
+                    is_in_original = true;
+                    break;
+                }
+            }
+            
+            if (!is_in_original) {
+                unique_neighbor_points[key] = point;
+            }
+        }
+        
+        // Create a vector of unique neighbor points
+        neighbor_points.clear();
+        for (const auto& [_, point] : unique_neighbor_points) {
+            neighbor_points.push_back(point);
+        }
+        
+        // Build the set of points for curve fitting
+        std::vector<IntersectionPointData> combined_points = original_points;
+        
+        // Add all neighbor points
+        combined_points.insert(combined_points.end(), neighbor_points.begin(), neighbor_points.end());
+        
+        int points_from_neighbors = neighbor_points.size();
+        
+        // Only fit if we have enough points
+        if (combined_points.size() >= MIN_POINTS_FOR_CURVE_FIT) {
+            std::cout << "Element " << elemId 
+                      << " has " << combined_points.size() 
+                      << " points for general conic fitting (" 
+                      << original_point_count << " original + " 
+                      << points_from_neighbors << " from neighbors)." << std::endl;
+            
+            // Prepare matrices for least squares fitting of y² + ax² + bxy + cy + dx + e = 0
+            // We'll use Matrix class (as in the original function)
+            
+            // For a general conic, we need to solve for 5 parameters (a, b, c, d, e)
+            // We'll rearrange as: y² = -ax² - bxy - cy - dx - e
+            Matrix A(5, 5);
+            Vector b(5);
+            
+            // Initialize matrices with zeros
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    A(i, j) = 0.0;
+                }
+                b[i] = 0.0;
+            }
+            
+            // Fill matrices by summing contributions from each point
+            for (const auto& point : combined_points) {
+                double x = point.coordinates[0];
+                double y = point.coordinates[1];
+                
+                double x2 = x * x;
+                double y2 = y * y;
+                double xy = x * y;
+                
+                // Row 0: x^4 x^3y x^2y x^3 x^2 | x^2y^2
+                A(0, 0) += x2 * x2;       // x^4
+                A(0, 1) += x2 * x * y;     // x^3y
+                A(0, 2) += x2 * y;         // x^2y
+                A(0, 3) += x2 * x;         // x^3
+                A(0, 4) += x2;             // x^2
+                b[0] += x2 * y2;           // x^2y^2
+                
+                // Row 1: x^3y x^2y^2 xy^2 x^2y xy | xy^3
+                A(1, 0) += x2 * x * y;     // x^3y
+                A(1, 1) += x2 * y2;        // x^2y^2
+                A(1, 2) += x * y2;         // xy^2
+                A(1, 3) += x2 * y;         // x^2y
+                A(1, 4) += x * y;          // xy
+                b[1] += x * y2 * y;        // xy^3
+                
+                // Row 2: x^2y xy^2 y^2 xy y | y^3
+                A(2, 0) += x2 * y;         // x^2y
+                A(2, 1) += x * y2;         // xy^2
+                A(2, 2) += y2;             // y^2
+                A(2, 3) += x * y;          // xy
+                A(2, 4) += y;              // y
+                b[2] += y2 * y;            // y^3
+                
+                // Row 3: x^3 x^2y xy x^2 x | xy^2
+                A(3, 0) += x2 * x;         // x^3
+                A(3, 1) += x2 * y;         // x^2y
+                A(3, 2) += x * y;          // xy
+                A(3, 3) += x2;             // x^2
+                A(3, 4) += x;              // x
+                b[3] += x * y2;            // xy^2
+                
+                // Row 4: x^2 xy y x 1 | y^2
+                A(4, 0) += x2;             // x^2
+                A(4, 1) += x * y;          // xy
+                A(4, 2) += y;              // y
+                A(4, 3) += x;              // x
+                A(4, 4) += 1.0;            // 1
+                b[4] += y2;                // y^2
+            }
+            
+            // Solve the system for the conic coefficients
+            // For simplicity, we'll use Cramer's rule as in the original code
+            
+            double det = determinant5x5(A);
+            
+            // Create copies of A for solving using Cramer's rule
+            Matrix A1 = A, A2 = A, A3 = A, A4 = A, A5 = A;
+            
+            // Replace columns with b vector
+            for (int i = 0; i < 5; i++) {
+                A1(i, 0) = b[i];
+                A2(i, 1) = b[i];
+                A3(i, 2) = b[i];
+                A4(i, 3) = b[i];
+                A5(i, 4) = b[i];
+            }
+            
+            // Calculate determinants
+            double det1 = determinant5x5(A1);
+            double det2 = determinant5x5(A2);
+            double det3 = determinant5x5(A3);
+            double det4 = determinant5x5(A4);
+            double det5 = determinant5x5(A5);
+            
+            // Solve for conic parameters
+            ConicCoefficients fit;
+            fit.a = -det1 / det;  // coefficient of x²
+            fit.b = -det2 / det;  // coefficient of xy
+            fit.c = -det3 / det;  // coefficient of y
+            fit.d = -det4 / det;  // coefficient of x
+            fit.e = -det5 / det;  // constant term
+            
+            // Store results
+            elementFits[elemId] = fit;
+            elementTotalPoints[elemId] = combined_points.size();
+            
+            // Calculate error on original points
+            double total_error = 0.0;
+            
+            for (const auto& point : original_points) {
+                double x = point.coordinates[0];
+                double y = point.coordinates[1];
+                
+                // Calculate error as deviation from the conic equation: y² + ax² + bxy + cy + dx + e = 0
+                double equation_value = y*y + fit.a*x*x + fit.b*x*y + fit.c*y + fit.d*x + fit.e;
+                
+                // Error is the absolute value of the equation
+                double error = std::abs(equation_value);
+                total_error += error;
+            }
+            
+            double avg_error = total_error / (original_points.empty() ? 1.0 : original_points.size());
+            
+            std::cout << "Element " << elemId 
+                      << " fitted with " << combined_points.size() 
+                      << " points: y² + " << fit.a << "x² + " 
+                      << fit.b << "xy + " << fit.c << "y + " 
+                      << fit.d << "x + " << fit.e << " = 0"
+                      << std::endl;
+            std::cout << "    Average fit error on original points: " << avg_error << std::endl;
+        } else {
+            std::cout << "Element " << elemId 
+                      << " has only " << combined_points.size() 
+                      << " unique points (less than " << MIN_POINTS_FOR_CURVE_FIT 
+                      << " required) - cannot perform general conic curve fitting." << std::endl;
+        }
+    }
+    
+    // Write results to file
+    std::ofstream outFile(output_file);
+    
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Could not open file " << output_file << " for writing." << std::endl;
+        return;
+    }
+    
+    outFile << "Element_ID\tNum_Original_Points\tTotal_Points\ta(x²)\tb(xy)\tc(y)\td(x)\te(const)\tavg_error\n";
+    
+    for (const auto& [elemId, fit] : elementFits) {
+        int numPoints = element_points[elemId].size();
+        int totalPoints = elementTotalPoints[elemId];
+        
+        // Calculate error
+        double total_error = 0.0;
+        for (const auto& point : element_points[elemId]) {
+            double x = point.coordinates[0];
+            double y = point.coordinates[1];
+            
+            // Calculate error as deviation from the conic equation
+            double equation_value = y*y + fit.a*x*x + fit.b*x*y + fit.c*y + fit.d*x + fit.e;
+            
+            // Error is the absolute value of the equation
+            double error = std::abs(equation_value);
+            total_error += error;
+        }
+        
+        double avg_error = total_error / (numPoints > 0 ? numPoints : 1.0);
+        
+        outFile << elemId << "\t" 
+                << numPoints << "\t"
+                << totalPoints << "\t"
+                << fit.a << "\t" 
+                << fit.b << "\t" 
+                << fit.c << "\t"
+                << fit.d << "\t" 
+                << fit.e << "\t"
+                << avg_error << "\n";
+    }
+    
+    outFile.close();
+    
+    std::cout << "Saved " << elementFits.size() << " element general conic curve fits to " << output_file << std::endl;
+    std::cout << "Used all available points from 2-hop neighborhoods." << std::endl;
+}
+
+// Helper function to calculate determinant of a 5x5 matrix
+double IntersectionPointsUtility::determinant5x5(const Matrix& A) {
+    // For a general 5x5 determinant, we'll expand along the first row
+    // This is not the most efficient method but it's straightforward to implement
+    
+    double det = 0.0;
+    
+    for (int j = 0; j < 5; j++) {
+        // Create a 4x4 submatrix by excluding row 0 and column j
+        Matrix subMatrix(4, 4);
+        
+        // Fill the submatrix
+        for (int r = 0; r < 4; r++) {
+            int row = r + 1;  // Skip row 0
+            int subCol = 0;
+            
+            for (int c = 0; c < 5; c++) {
+                if (c != j) {
+                    subMatrix(r, subCol) = A(row, c);
+                    subCol++;
+                }
+            }
+        }
+        
+        // Calculate sign: (-1)^(i+j)
+        double sign = ((j % 2) == 0) ? 1.0 : -1.0;
+        
+        // Calculate determinant recursively
+        det += sign * A(0, j) * determinant4x4(subMatrix);
+    }
+    
+    return det;
+}
+
+// Helper function to calculate determinant of a 4x4 matrix
+double IntersectionPointsUtility::determinant4x4(const Matrix& A) {
+    // Calculate determinant using cofactor expansion
+    
+    double det = 0.0;
+    
+    for (int j = 0; j < 4; j++) {
+        // Create a 3x3 submatrix by excluding row 0 and column j
+        Matrix subMatrix(3, 3);
+        
+        // Fill the submatrix
+        for (int r = 0; r < 3; r++) {
+            int row = r + 1;  // Skip row 0
+            int subCol = 0;
+            
+            for (int c = 0; c < 4; c++) {
+                if (c != j) {
+                    subMatrix(r, subCol) = A(row, c);
+                    subCol++;
+                }
+            }
+        }
+        
+        // Calculate sign: (-1)^(i+j)
+        double sign = ((j % 2) == 0) ? 1.0 : -1.0;
+        
+        // Calculate determinant recursively
+        det += sign * A(0, j) * determinant3x3(subMatrix);
+    }
+    
+    return det;
+}
+
+// Helper function to calculate determinant of a 3x3 matrix
+double IntersectionPointsUtility::determinant3x3(const Matrix& A) {
+    return A(0, 0) * (A(1, 1) * A(2, 2) - A(2, 1) * A(1, 2)) -
+           A(0, 1) * (A(1, 0) * A(2, 2) - A(1, 2) * A(2, 0)) +
+           A(0, 2) * (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0));
 }
 /////////////////////////////////////////////////////////
 }
