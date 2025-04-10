@@ -19,6 +19,7 @@
 #include "combine_solid_shell_model_parts_process.h"
 #include "utilities/parallel_utilities.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
+//print(self.model.GetModelPart("CoupledSolidShellModelPart"))
 
 
 namespace Kratos
@@ -82,6 +83,19 @@ namespace Kratos
 
 			}
 		}		
+
+		// Remove conditions which belong to Neumann_BC (NurbsMesh)
+		std::vector<size_t> ConditionsIds;
+		for (auto& cond_it = _Model.GetModelPart("NurbsMesh").ConditionsBegin(); cond_it != _Model.GetModelPart("NurbsMesh").ConditionsEnd(); ++cond_it) {
+			if (_Model.GetModelPart("NurbsMesh").GetSubModelPart("Neumann_BC").HasCondition(cond_it->Id())) {
+				std::cout << " Neumann Condition must be removed from Neumann_BC " << std::endl;
+				ConditionsIds.push_back(cond_it->Id());
+				//_Model.GetModelPart("CoupledSolidShellModelPart").RemoveConditionFromAllLevels(cond_it->Id());
+			}
+		}
+		for (auto& cond_it = ConditionsIds.begin(); cond_it != ConditionsIds.end(); ++cond_it) {
+			_Model.GetModelPart("NurbsMesh").RemoveConditionFromAllLevels(*cond_it);
+		}
 
 		//Combine Model Parts merged the two model parts to one without deleted the original ones
 		CombineModelParts();
