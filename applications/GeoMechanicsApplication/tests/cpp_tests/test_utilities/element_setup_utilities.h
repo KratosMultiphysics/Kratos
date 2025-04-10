@@ -13,6 +13,7 @@
 #pragma once
 
 #include "geometries/point.h"
+#include "includes/condition.h"
 #include "includes/element.h"
 
 #include <geo_aliases.h>
@@ -25,6 +26,7 @@ class ElementSetupUtilities
 {
 public:
     static std::vector<Kratos::Point> CreatePointsFor2D3NElement();
+    static std::vector<Kratos::Point> CreatePointsFor2D3NLineEntity();
     static std::vector<Kratos::Point> CreatePointsFor2D6NElement();
     static std::vector<Kratos::Point> CreatePointsFor2D10NElement();
     static std::vector<Kratos::Point> CreatePointsFor2D15NElement();
@@ -54,6 +56,10 @@ public:
     static Element::Pointer Create3D10NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);
     static Element::Pointer Create3D10NElement();
+
+    static Condition::Pointer Create2D3NLineCondition(const PointerVector<Node>& rNodes,
+                                                      const Properties::Pointer& rProperties);
+    static Condition::Pointer Create2D3NLineCondition();
 };
 
 } // namespace Kratos::Testing
