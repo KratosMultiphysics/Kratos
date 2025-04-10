@@ -452,12 +452,14 @@ void UPwBaseElement::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("StressStatePolicy", mpStressStatePolicy);
 }
 
 void UPwBaseElement::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("StressStatePolicy", mpStressStatePolicy);
 }
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }
