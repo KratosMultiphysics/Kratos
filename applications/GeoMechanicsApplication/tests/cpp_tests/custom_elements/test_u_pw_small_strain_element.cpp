@@ -359,7 +359,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
 {
     std::vector<Vector> calculated_values_at_integration_points;
     pElement->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
-                                          calculated_values_at_integration_points, ProcessInfo);
+                                           calculated_values_at_integration_points, ProcessInfo);
     Vector expected_values_at_integration_point(4);
     expected_values_at_integration_point <<= 300000, 150000, 0, -75000;
     for (const auto& calculated_cauchy_stress_vector : calculated_values_at_integration_points) {
@@ -367,7 +367,8 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
                                            Defaults::relative_tolerance);
     }
 
-    pElement->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, calculated_values_at_integration_points, ProcessInfo);
+    pElement->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR,
+                                           calculated_values_at_integration_points, ProcessInfo);
     expected_values_at_integration_point <<= 310000, 160000, 10000, -75000;
     for (const auto& calculated_total_stress_vector : calculated_values_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_total_stress_vector, expected_values_at_integration_point,
@@ -375,7 +376,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
     }
 
     pElement->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR,
-                                          calculated_values_at_integration_points, ProcessInfo);
+                                           calculated_values_at_integration_points, ProcessInfo);
     expected_values_at_integration_point <<= 0.03, 0.015, 0, -0.015;
     for (const auto& calculated_engineering_strain_vector : calculated_values_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_engineering_strain_vector,
@@ -383,7 +384,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
     }
 
     pElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,
-                                          calculated_values_at_integration_points, ProcessInfo);
+                                           calculated_values_at_integration_points, ProcessInfo);
     for (const auto& calculated_green_lagrange_strain_vector : calculated_values_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_green_lagrange_strain_vector,
                                            expected_values_at_integration_point, Defaults::relative_tolerance);
@@ -394,7 +395,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
     initial_strain_vector <<= 10000, -10000, 5000, -5000;
     pElement->GetProperties().SetValue(INITIAL_STRAIN_VECTOR, initial_strain_vector);
     pElement->CalculateOnIntegrationPoints(INITIAL_STRAIN_VECTOR,
-                                          calculated_values_at_integration_points, ProcessInfo);
+                                           calculated_values_at_integration_points, ProcessInfo);
     for (const auto& calculated_initial_strain_vector : calculated_values_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_initial_strain_vector, initial_strain_vector,
                                            Defaults::relative_tolerance);
@@ -403,7 +404,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
     // getting values from a constitutive law: does nothing right now
     calculated_values_at_integration_points.clear();
     pElement->CalculateOnIntegrationPoints(KIRCHHOFF_STRESS_VECTOR,
-                                          calculated_values_at_integration_points, ProcessInfo);
+                                           calculated_values_at_integration_points, ProcessInfo);
     for (const auto& kirchhoff_stress_vector : calculated_values_at_integration_points) {
         KRATOS_EXPECT_TRUE(kirchhoff_stress_vector.empty())
     }

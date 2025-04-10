@@ -12,7 +12,9 @@
 #include "containers/variables_list.h"
 #include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
 #include "custom_utilities/registration_utilities.h"
+#include "geo_aliases.h"
 #include "geo_mechanics_application.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -28,10 +30,12 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_condition_registration =
+    const auto registration1 =
         ScopedSerializerRegistration{"LineLoad2DDiffOrderCondition"s, LineLoad2DDiffOrderCondition{}};
-    const auto scoped_line_registration =
+    const auto registration2 =
         ScopedSerializerRegistration{"Line2D3"s, Line2D3<Node>{PointerVector<Node>(3)}};
+    const auto registration3 =
+        ScopedSerializerRegistration{"Line2D2"s, Line2D2<Node>{PointerVector<Node>(2)}};
 
     auto p_condition      = ElementSetupUtilities::Create2D3NLineCondition();
     auto p_variables_list = make_intrusive<VariablesList>();
@@ -55,7 +59,19 @@ KRATOS_TEST_CASE_IN_SUITE(LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded, Krat
     auto p_loaded_condition = Condition::Pointer{nullptr};
     serializer.load("test_tag"s, p_loaded_condition);
 
-    KRATOS_EXPECT_NE(p_loaded_condition, nullptr);
+    // Assert
+    ASSERT_NE(p_loaded_condition, nullptr);
+
+    auto dofs = Condition::DofsVectorType{};
+    p_loaded_condition->GetDofList(dofs, dummy_process_info);
+    const auto expected_dof_variables = Geo::ConstVariableRefs{
+        std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_X),
+        std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
+        std::cref(WATER_PRESSURE), std::cref(WATER_PRESSURE)};
+    ASSERT_EQ(dofs.size(), expected_dof_variables.size());
+    for (auto i = std::size_t{0}; i < dofs.size(); ++i) {
+        KRATOS_EXPECT_EQ(dofs[i]->GetVariable(), expected_dof_variables[i].get());
+    }
 }
 
 } // namespace Kratos::Testing
