@@ -84,8 +84,8 @@ Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rPrincipalTrialStress
 Vector ReturnStressAtCornerReturnZone(const Vector& rPrincipalTrialStressVector, const Vector& rCornerPoint)
 {
     auto result = rPrincipalTrialStressVector;
-    result[0]     = rCornerPoint[0] + rCornerPoint[1];
-    result[2]     = rCornerPoint[0] - rCornerPoint[1];
+    result[0]   = rCornerPoint[0] + rCornerPoint[1];
+    result[2]   = rCornerPoint[0] - rCornerPoint[1];
     return result;
 }
 
@@ -222,11 +222,6 @@ void MohrCoulombWithTensionCutOff::GetLawFeatures(Features& rFeatures)
 void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     const auto& r_prop = rParameters.GetMaterialProperties();
-
-    if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        rParameters.GetConstitutiveMatrix() =
-            mpConstitutiveDimension->CalculateElasticMatrix(r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
-    }
 
     const auto trail_stress_vector = CalculateTrialStressVector(
         rParameters.GetStrainVector(), r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);

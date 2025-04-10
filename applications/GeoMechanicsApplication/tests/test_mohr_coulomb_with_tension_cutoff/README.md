@@ -13,6 +13,14 @@ The boundary conditions are shown below:
 
 <img src="MeshStructure.svg" width="600">
 
-All degrees of freedom have been prescribed. In horizontal and vertical directions, the element is compressed or extended  by imposing displacements. The elastic behavior of the elements is described by a Young's modulus of $`10o0 \mathrm{Pa}`$ and a Poisson's ratio of $`0.0`$. The material behavior is described using a cohesion of $`10.0 \mathrm{Pa}`$, a friction angle $`35^{\circ}`$, a dilatancy angle of $`20^{\circ}`$ and a tensile strength of $`10 \mathrm{Pa}`$.
+||$\Delta x \mathrm{[m]}$|$\Delta y\mathrm{[m]}$|
+|--------------------------|-----|------|
+|Elastic zone              |-0.01|-0.01 |
+|Tensile apex return zone  |0.017|0.013 |
+|Tensile cutoff return zone|0.012|0.008 |
+|Corner return zone        |0.022|-0.002|
+|Regular failure zone      |0.008|-0.028|
+
+All degrees of freedom have been prescribed. In horizontal and vertical directions, the element is compressed or extended by imposing displacements. The elastic behavior of the elements is described by a Young's modulus of $`1000 \mathrm{Pa}`$ and a Poisson's ratio of $`0.0`$. The material behavior is described using a cohesion of $`10.0 \mathrm{Pa}`$, a friction angle of $`35^{\circ}`$, a dilatancy angle of $`20^{\circ}`$ and a tensile strength of $`10 \mathrm{Pa}`$.
 
 These tests are also extended to three dimensional elements. The 3D cases are applied on hexahydrons of 8 nodes, namely 3D8N.
