@@ -260,11 +260,15 @@ std::string GeneralUPwDiffOrderCondition::Info() const { return "GeneralUPwDiffO
 void GeneralUPwDiffOrderCondition::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+
+    rSerializer.save("mpPressureGeometry", mpPressureGeometry);
 }
 
 void GeneralUPwDiffOrderCondition::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+
+    rSerializer.load("mpPressureGeometry", mpPressureGeometry);
 }
 
 } // Namespace Kratos.
