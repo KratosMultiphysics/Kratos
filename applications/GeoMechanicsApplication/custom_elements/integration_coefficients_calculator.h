@@ -82,7 +82,7 @@ public:
                         const Vector&                          rDetJs,
                         const Element*                         pElement = nullptr) const
     {
-        auto result = OutputContainer(rIntegrationPoints.size());
+        auto result                            = OutputContainer(rIntegrationPoints.size());
         auto calculate_integration_coefficient = [](const auto& rIntegrationPoint, auto DetJ) {
             return rIntegrationPoint.Weight() * DetJ;
         };

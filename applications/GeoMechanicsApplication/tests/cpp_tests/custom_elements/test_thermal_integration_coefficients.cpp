@@ -12,11 +12,11 @@
 //
 
 #include "custom_elements/thermal_integration_coefficients.h"
+#include "structural_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
-#include <structural_mechanics_application_variables.h>
-#include <tests/cpp_tests/test_utilities/element_setup_utilities.h>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -42,19 +42,21 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, Kr
     const auto p_geometry   = std::make_shared<Line2D2<Node>>(nodes);
     const auto line_element = Element{1, p_geometry, p_properties};
 
-    // Act
+    // Act and Assert
     auto calculated_coefficients = calculator.Run<>(integration_points, detJs, &line_element);
 
-    // Assert
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) * 0.5 (cross area) = 0.5
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, 1e-5);
 
-    const auto plane_element = ElementSetupUtilities::Create2D3NElement();
+    nodes.push_back(make_intrusive<Node>(2, 1.0, 1.0, 0.0));
+    const auto plane_element = ElementSetupUtilities::Create2D3NElement(nodes, p_properties);
     calculated_coefficients  = calculator.Run<>(integration_points, detJs, plane_element.get());
 
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) = 1.0
+    // cross area is not taken into account
+    KRATOS_EXPECT_NEAR(plane_element.get()->GetProperties()[CROSS_AREA], 0.5, 1e-5);
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, 1e-5);
 }
 
