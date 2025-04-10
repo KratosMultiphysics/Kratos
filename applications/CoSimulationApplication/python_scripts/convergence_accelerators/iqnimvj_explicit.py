@@ -84,9 +84,6 @@ class IQNIMVJExplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         W_diff = W - self.J_inv @ V
 
         # Update the Jacobian
-        V_right_inverse = np.linalg.lstsq(V, np.identity(row), rcond=-1)[0]
-        J_update = W_diff @ V_right_inverse
-
         K = np.dot(V.T, V)
         try:
             Z = np.linalg.solve(K, V.T)
