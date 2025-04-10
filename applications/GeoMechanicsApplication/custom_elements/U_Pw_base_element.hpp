@@ -180,17 +180,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
-    }
+    void load(Serializer& rSerializer) override;
 
     std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
 };
