@@ -68,15 +68,22 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
         const double time_regularization_factor = r_props.Has(TIME_REGULARIZATION) ? r_props[TIME_REGULARIZATION] : time_regularization;
         const double strain_rate_norm = time_regularization_factor * mStrainRateHistory[0] + (1.0 - time_regularization_factor) * mStrainRateHistory[1];
 
-        // BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
+        BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
 
-        // noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
-        // this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
+        noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+        this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
 
-        // double equivalent_stress;
-        // ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
+        double equivalent_stress;
+        ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
 
-        // const double F = equivalent_stress - threshold;
+        const double viscous_eta = r_props[VISCOUS_PARAMETER];
+        const double viscous_alpha = r_props.Has(VISCOUS_ALPHA) ? r_props[VISCOUS_ALPHA] : 1.0;
+        const double viscous_beta = r_props.Has(VISCOUS_BETA) ? r_props[VISCOUS_BETA] : 1.0;
+        const double time_delay = r_props[DELAY_TIME];
+        const double yield_strain = r_props[YIELD_STRESS] / r_props[YOUNG_MODULUS];
+        const double viscous_overstress = viscous_eta * (std::exp(viscous_alpha * strain_rate_norm / yield_strain) - 1.0) * std::exp(-viscous_beta * mViscousTime / time_delay);
+
+        const double F = equivalent_stress - threshold - viscous_overstress;
 
         // if (F >= 0.0) {
         //     // Integrate Stress plasticity
