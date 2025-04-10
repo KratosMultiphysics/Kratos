@@ -11,9 +11,8 @@
 //                   Gennady Markelov
 //
 
-#include "custom_elements/plane_integration_coefficients.h"
+#include "custom_elements/integration_coefficients_calculator.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_elements/three_dimensional_integration_coefficients.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_element.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"

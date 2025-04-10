@@ -17,30 +17,6 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PwLineIntegrationCoefficients : public IntegrationCoefficientsCalculator
-{
-public:
-    [[nodiscard]] Vector CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
-                                                          const Vector& rDetJs,
-                                                          double        CrossArea,
-                                                          std::size_t LocalDimension = 0) const override;
-
-    [[nodiscard]] std::vector<double> CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType&,
-                                                                       const Vector&,
-                                                                       const Geometry<Node>&) const override
-    {
-        KRATOS_ERROR << "PwLineIntegrationCoefficients::CalculateIntegrationCoefficients is called."
-                     << std::endl;
-    }
-
-    std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const override;
-
-private:
-    friend class Serializer;
-    void save(Serializer&) const override;
-    void load(Serializer&) override;
-};
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientModifierForPwLineElement : public IntegrationCoefficientModifier
 {
 public:

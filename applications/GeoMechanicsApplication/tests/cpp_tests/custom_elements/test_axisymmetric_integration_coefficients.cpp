@@ -50,13 +50,14 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficients_ReturnsCorrectValu
 KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const std::unique_ptr<IntegrationCoefficientsCalculator> p_axisymmetric_integration_coefficients =
-        std::make_unique<AxisymmetricIntegrationCoefficients>();
+    const auto axisymmetric_integration_coefficients =
+        CalculateIntegrationCoefficients0{
+            std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     // Act
-    const auto clone = p_axisymmetric_integration_coefficients->Clone();
+    const auto clone_modifier = axisymmetric_integration_coefficients.CloneModifier();
 
     // Assert
-    KRATOS_EXPECT_NE(clone, nullptr);
+    KRATOS_EXPECT_NE(clone_modifier, nullptr);
 }
 } // namespace Kratos::Testing

@@ -18,34 +18,6 @@
 namespace Kratos
 {
 
-Vector PwLineIntegrationCoefficients::CalculateIntegrationCoefficients(const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
-                                                                       const Vector& rDetJs,
-                                                                       double        CrossArea,
-                                                                       std::size_t) const
-{
-    auto result = Vector{rIntegrationPoints.size()};
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                   result.begin(), [&CrossArea](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return rIntegrationPoint.Weight() * rDetJ * CrossArea;
-    });
-    return result;
-}
-
-std::unique_ptr<IntegrationCoefficientsCalculator> PwLineIntegrationCoefficients::Clone() const
-{
-    return std::make_unique<PwLineIntegrationCoefficients>();
-}
-
-void PwLineIntegrationCoefficients::save(Serializer&) const
-{
-    // No data members to be saved (yet)
-}
-
-void PwLineIntegrationCoefficients::load(Serializer&)
-{
-    // No data members to be loaded (yet)
-}
-
 double IntegrationCoefficientModifierForPwLineElement::operator()(double IntegrationCoefficient,
                                                                   const Geo::IntegrationPointType& rIntegrationPoint,
                                                                   const Element& rElement) const

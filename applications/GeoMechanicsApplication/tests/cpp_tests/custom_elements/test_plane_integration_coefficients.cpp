@@ -11,7 +11,7 @@
 //                   Gennady Markelov
 //
 
-#include "custom_elements/plane_integration_coefficients.h"
+#include "custom_elements/integration_coefficients_calculator.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
@@ -45,13 +45,12 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneIntegrationCoefficients_ReturnsCorrectValue, Krat
 KRATOS_TEST_CASE_IN_SUITE(PlaneIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const std::unique_ptr<IntegrationCoefficientsCalculator> p_plane_integration_coefficients =
-        std::make_unique<PlaneIntegrationCoefficients>();
+    const auto plane_integration_coefficients = CalculateIntegrationCoefficients0{};
 
     // Act
-    const auto clone = p_plane_integration_coefficients->Clone();
+    const auto clone_modifier = plane_integration_coefficients.CloneModifier();
 
     // Assert
-    KRATOS_EXPECT_NE(clone, nullptr);
+    KRATOS_EXPECT_EQ(clone_modifier, nullptr);
 }
 } // namespace Kratos::Testing

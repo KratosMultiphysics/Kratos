@@ -63,14 +63,14 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ReturnsCorrectValue, Kr
 KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const std::unique_ptr<IntegrationCoefficientsCalculator> p_pw_line_integration_coefficients =
-        std::make_unique<ThermalIntegrationCoefficients>();
+    const auto calculator = CalculateIntegrationCoefficients0{
+        std::make_unique<IntegrationCoefficientModifierForThermalElement>()};
 
     // Act
-    const auto clone = p_pw_line_integration_coefficients->Clone();
+    const auto clone_modifier = calculator.CloneModifier();
 
     // Assert
-    KRATOS_EXPECT_NE(clone, nullptr);
+    KRATOS_EXPECT_NE(clone_modifier, nullptr);
 }
 
 } // namespace Kratos::Testing

@@ -26,7 +26,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto p_pw_line_integration_coefficients = CalculateIntegrationCoefficients0{
+    const auto pw_line_integration_coefficients = CalculateIntegrationCoefficients0{
         std::make_unique<IntegrationCoefficientModifierForPwLineElement>()};
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
@@ -43,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, Kra
 
     // Act
     const auto calculated_coefficients =
-        p_pw_line_integration_coefficients.Run<>(integration_points, detJs, &element);
+        pw_line_integration_coefficients.Run<>(integration_points, detJs, &element);
 
     // Assert
     // The expected number is calculated as follows:
@@ -54,13 +54,13 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, Kra
 KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const std::unique_ptr<IntegrationCoefficientsCalculator> p_pw_line_integration_coefficients =
-        std::make_unique<PwLineIntegrationCoefficients>();
+    const auto pw_line_integration_coefficients = CalculateIntegrationCoefficients0{
+        std::make_unique<IntegrationCoefficientModifierForPwLineElement>()};
 
     // Act
-    const auto clone = p_pw_line_integration_coefficients->Clone();
+    const auto clone_modifier = pw_line_integration_coefficients.CloneModifier();
 
     // Assert
-    KRATOS_EXPECT_NE(clone, nullptr);
+    KRATOS_EXPECT_NE(clone_modifier, nullptr);
 }
 } // namespace Kratos::Testing

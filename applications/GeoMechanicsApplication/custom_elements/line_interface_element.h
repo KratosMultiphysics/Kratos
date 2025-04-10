@@ -76,7 +76,7 @@ private:
     std::unique_ptr<IntegrationScheme>                 mIntegrationScheme;
     std::unique_ptr<StressStatePolicy>                 mStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer>              mConstitutiveLaws;
-    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator;
+    std::unique_ptr<CalculateIntegrationCoefficients0> mpIntegrationCoefficientsCalculator;
 };
 
 } // namespace Kratos

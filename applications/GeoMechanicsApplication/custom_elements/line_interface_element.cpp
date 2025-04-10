@@ -15,7 +15,6 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
-#include "interface_integration_coefficients.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 
@@ -65,7 +64,7 @@ LineInterfaceElement::LineInterfaceElement(IndexType NewId,
     : Element(NewId, rGeometry, rProperties),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
       mStressStatePolicy(std::make_unique<InterfaceStressState>()),
-      mpIntegrationCoefficientsCalculator(std::make_unique<InterfaceIntegrationCoefficients>())
+      mpIntegrationCoefficientsCalculator(std::make_unique<CalculateIntegrationCoefficients0>())
 {
 }
 
@@ -73,7 +72,7 @@ LineInterfaceElement::LineInterfaceElement(IndexType NewId, const GeometryType::
     : Element(NewId, rGeometry),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
       mStressStatePolicy(std::make_unique<InterfaceStressState>()),
-      mpIntegrationCoefficientsCalculator(std::make_unique<InterfaceIntegrationCoefficients>())
+      mpIntegrationCoefficientsCalculator(std::make_unique<CalculateIntegrationCoefficients0>())
 
 {
 }
@@ -235,8 +234,7 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
 {
     const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
         mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
-    auto result = mpIntegrationCoefficientsCalculator->CalculateIntegrationCoefficients(
-        mIntegrationScheme->GetIntegrationPoints(), determinants_of_jacobian, GetGeometry());
+    auto result = mpIntegrationCoefficientsCalculator->Run<>(mIntegrationScheme->GetIntegrationPoints(), determinants_of_jacobian, this);
 
     return result;
 }

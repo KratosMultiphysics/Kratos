@@ -11,7 +11,7 @@
 //                   Gennady Markelov
 //
 
-#include "custom_elements/three_dimensional_integration_coefficients.h"
+#include "custom_elements/integration_coefficients_calculator.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
@@ -46,13 +46,12 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalIntegrationCoefficients_ClobeReturnsNo
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const std::unique_ptr<IntegrationCoefficientsCalculator> p_three_dimensional_integration_coefficients =
-        std::make_unique<ThreeDimensionalIntegrationCoefficients>();
+    const auto three_dimensional_integration_coefficients = CalculateIntegrationCoefficients0{};
 
     // Act
-    const auto clone = p_three_dimensional_integration_coefficients->Clone();
+    const auto clone_modifier = three_dimensional_integration_coefficients.CloneModifier();
 
     // Assert
-    KRATOS_EXPECT_NE(clone, nullptr);
+    KRATOS_EXPECT_EQ(clone_modifier, nullptr);
 }
 } // namespace Kratos::Testing

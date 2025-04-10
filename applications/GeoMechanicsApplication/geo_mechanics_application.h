@@ -106,9 +106,7 @@
 // Element policies
 #include "custom_elements/axisymmetric_integration_coefficients.h"
 #include "custom_elements/axisymmetric_stress_state.h"
-#include "custom_elements/plane_integration_coefficients.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_elements/three_dimensional_integration_coefficients.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 
 // geo structural element

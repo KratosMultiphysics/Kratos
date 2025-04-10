@@ -17,21 +17,6 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricIntegrationCoefficients : public IntegrationCoefficientsCalculator
-{
-public:
-    std::unique_ptr<IntegrationCoefficientsCalculator> Clone() const override;
-
-private:
-    [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                         double DetJ,
-                                                         const Geometry<Node>& rGeometry) const override;
-
-    friend class Serializer;
-    void save(Serializer&) const override;
-    void load(Serializer&) override;
-};
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientModifierForAxisymmetricElement
     : public IntegrationCoefficientModifier
 {
