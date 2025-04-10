@@ -11,8 +11,13 @@
 //
 
 #include "custom_retention/van_genuchten_law.h"
+#include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
+#include <string>
+
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -132,6 +137,23 @@ KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawChecksInputParameters, KratosGeoMechani
     properties.SetValue(VAN_GENUCHTEN_GL, 1.5);
 
     KRATOS_EXPECT_EQ(law.Check(properties, process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLaw_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto scoped_registration = ScopedSerializerRegistration{"VanGenuchtenLaw"s, VanGenuchtenLaw{}};
+    const auto p_retention_law = std::unique_ptr<RetentionLaw>{std::make_unique<VanGenuchtenLaw>()};
+    auto       serializer      = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_retention_law);
+    auto p_loaded_retention_law = std::unique_ptr<RetentionLaw>{};
+    serializer.load("test_tag"s, p_loaded_retention_law);
+
+    // Assert
+    KRATOS_EXPECT_NE(p_loaded_retention_law, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<VanGenuchtenLaw*>(p_loaded_retention_law.get()), nullptr);
 }
 
 } // namespace Kratos::Testing
