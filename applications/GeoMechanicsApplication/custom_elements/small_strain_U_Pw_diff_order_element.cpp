@@ -1435,6 +1435,18 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
     }
 }
 
+void SmallStrainUPwDiffOrderElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
+    rSerializer.save("PressureGeometry", mpPressureGeometry);
+}
+
+void SmallStrainUPwDiffOrderElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
+    rSerializer.load("PressureGeometry", mpPressureGeometry);
+}
+
 Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const
 {
     Vector result(mpPressureGeometry->PointsNumber());

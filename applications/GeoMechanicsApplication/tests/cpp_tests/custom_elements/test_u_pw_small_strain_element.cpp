@@ -411,7 +411,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndCalculateOnIntegrationPointsVectors,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;

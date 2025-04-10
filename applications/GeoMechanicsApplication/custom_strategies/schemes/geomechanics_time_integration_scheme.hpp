@@ -57,6 +57,8 @@ public:
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
+    GeoMechanicsTimeIntegrationScheme() = default;
+
     GeoMechanicsTimeIntegrationScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                                       const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables)
         : mFirstOrderScalarVariables(rFirstOrderScalarVariables),
@@ -361,6 +363,17 @@ private:
     double                                 mDeltaTime = 1.0;
     std::vector<FirstOrderScalarVariable>  mFirstOrderScalarVariables;
     std::vector<SecondOrderVectorVariable> mSecondOrderVectorVariables;
+
+    friend class Serializer;
+    void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("DeltaTime", mDeltaTime);
+    }
+
+    void load(Serializer& rSerializer)
+    {
+        rSerializer.load("DeltaTime", mDeltaTime);
+    }
 };
 
 } // namespace Kratos
