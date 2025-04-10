@@ -13,7 +13,6 @@
 
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -82,16 +81,6 @@ int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties,
         << std::endl;
 
     return 0;
-}
-
-void SaturatedBelowPhreaticLevelLaw::save(Serializer& rSerializer) const
-{
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RetentionLaw)
-}
-
-void SaturatedBelowPhreaticLevelLaw::load(Serializer& rSerializer)
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RetentionLaw)
 }
 
 } // Namespace Kratos

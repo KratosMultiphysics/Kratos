@@ -13,7 +13,6 @@
 
 #include "custom_retention/saturated_law.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -50,16 +49,6 @@ int SaturatedLaw::Check(const Properties& rMaterialProperties, const ProcessInfo
     }
 
     return 0;
-}
-
-void SaturatedLaw::save(Serializer& rSerializer) const
-{
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RetentionLaw)
-}
-
-void SaturatedLaw::load(Serializer& rSerializer)
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RetentionLaw)
 }
 
 } // namespace Kratos

@@ -18,8 +18,6 @@
 namespace Kratos
 {
 
-class Serializer;
-
 /**
  * @class SaturatedLaw
  * @ingroup GeoMechanicsApplication
@@ -55,11 +53,6 @@ public:
      * @return 0 if OK, 1 otherwise
      */
     int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
-
-private:
-    friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
 }; // Class SaturatedLaw
 
 } // namespace Kratos.
