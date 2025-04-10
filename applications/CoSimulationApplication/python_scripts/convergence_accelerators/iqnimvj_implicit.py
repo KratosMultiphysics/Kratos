@@ -23,8 +23,8 @@ def Create(settings):
     return IQNIMVJImplicitConvergenceAccelerator(settings)
 
 class _RidgeRegression:
-    def __init__(self, nugget=1e-14):
-        self.nugget = nugget
+    def __init__(self, regularization_param=1e-14):
+        self.regularization_param = regularization_param
 
     def fit(self, X, y):
         self.X = np.copy(X)
@@ -32,7 +32,7 @@ class _RidgeRegression:
 
         K = np.dot(X, X.T)
         n_samples = K.shape[0]
-        K.flat[:: n_samples + 1] += self.nugget
+        K.flat[:: n_samples + 1] += self.regularization_param
         try:
             self.Z = np.linalg.solve(K, X).T
         except:
@@ -57,7 +57,7 @@ class IQNIMVJImplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         iteration_horizon = self.settings["iteration_horizon"].GetInt()
         timestep_horizon = self.settings["timestep_horizon"].GetInt()
         self.alpha = self.settings["alpha"].GetDouble()
-        self.nugget = self.settings["nugget"].GetDouble()
+        self.regularization_param = self.settings["regularization_param"].GetDouble()
 
         self.R = deque(maxlen = iteration_horizon)
         self.X = deque(maxlen = iteration_horizon)
@@ -77,7 +77,7 @@ class IQNIMVJImplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         
     def _add_fidelity_level(self, V, W):
         W_residual = W - self._make_multifidelity_prediction(self.rr, V.T).T
-        rr = _RidgeRegression(nugget=self.nugget)
+        rr = _RidgeRegression(regularization_param=self.regularization_param)
         rr.fit(V.T, W_residual.T)
         self.rr.append(rr)
         
@@ -157,10 +157,10 @@ class IQNIMVJImplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "iteration_horizon" : 20,
-            "timestep_horizon"  : 30,
-            "alpha"             : 0.125,
-            "nugget"            : 1e-14
+            "iteration_horizon"               : 20,
+            "timestep_horizon"                : 30,
+            "alpha"                           : 0.125,
+            "regularization_param"            : 1e-14
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
