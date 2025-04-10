@@ -18,9 +18,6 @@
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 
-// System includes
-#include <unordered_set> // std::unordered_set
-
 
 namespace Kratos {
 
