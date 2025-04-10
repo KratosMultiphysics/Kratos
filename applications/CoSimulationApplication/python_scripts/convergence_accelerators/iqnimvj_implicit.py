@@ -20,7 +20,7 @@ from collections import deque
 
 def Create(settings):
     SettingsTypeCheck(settings)
-    return IQNMVJImplicitConvergenceAccelerator(settings)
+    return IQNIMVJImplicitConvergenceAccelerator(settings)
 
 class _RidgeRegression:
     def __init__(self, nugget=1e-14):
@@ -47,7 +47,7 @@ class _RidgeRegression:
 ## Class IQNMVJImplicitConvergenceAccelerator.
 # This class contains the implementation of the IQN-ILS method and helper functions.
 # Reference: T. Spenke et al. "A multi-vector interface quasi-Newton method with linear complexity for partitioned fluid–structure interaction", Computer Methods in Applied Mechanics and Engineering, Volume 361; 2020
-class IQNMVJImplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
+class IQNIMVJImplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param iteration_horizon Maximum number of vectors to be stored in each time step.
     # @param timestep_horizon Maximum number of time steps of which the vectors are used.
     # @param alpha Relaxation factor for computing the update, when no vectors available.

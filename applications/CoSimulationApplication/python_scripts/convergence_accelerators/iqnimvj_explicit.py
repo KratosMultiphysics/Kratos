@@ -22,12 +22,12 @@ import typing
 
 def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    return IQNMVJExplicitConvergenceAccelerator(settings)
+    return IQNIMVJExplicitConvergenceAccelerator(settings)
 
 ## Class IQNMVJExplicitConvergenceAccelerator.
 # This class contains the implementation of the explicit IQN-MVJ method and helper functions.
 # Reference: F. Lindner et al. "A comparison of various quasi-Newton schemes for partitioned fluid-structure interaction", 6th International Conference on Computational Methods for Coupled Problems in Science and Engineering; 2015. p. 477–88.
-class IQNMVJExplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
+class IQNIMVJExplicitConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param iteration_horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
