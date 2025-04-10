@@ -17,9 +17,7 @@
 
 // Project includes
 #include "combine_solid_shell_model_parts_process.h"
-#include "utilities/parallel_utilities.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
-//print(self.model.GetModelPart("CoupledSolidShellModelPart"))
 
 
 namespace Kratos
@@ -88,9 +86,7 @@ namespace Kratos
 		std::vector<size_t> ConditionsIds;
 		for (auto& cond_it = _Model.GetModelPart("NurbsMesh").ConditionsBegin(); cond_it != _Model.GetModelPart("NurbsMesh").ConditionsEnd(); ++cond_it) {
 			if (_Model.GetModelPart("NurbsMesh").GetSubModelPart("Neumann_BC").HasCondition(cond_it->Id())) {
-				std::cout << " Neumann Condition must be removed from Neumann_BC " << std::endl;
 				ConditionsIds.push_back(cond_it->Id());
-				//_Model.GetModelPart("CoupledSolidShellModelPart").RemoveConditionFromAllLevels(cond_it->Id());
 			}
 		}
 		for (auto& cond_it = ConditionsIds.begin(); cond_it != ConditionsIds.end(); ++cond_it) {
@@ -126,6 +122,17 @@ namespace Kratos
 		}
 
 		interface_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
+
+		// Assign the p_properties to the model part's elements and conditions.
+		auto& r_conditions_array = interface_model_part.Conditions();
+
+		auto& p_prop = interface_model_part.pGetProperties(3); // TO DO: ID is preset to three (StructuralMaterials.json). Generalize it later
+
+		block_for_each(
+			r_conditions_array,
+			[&p_prop](Condition& rCondition)
+			{ rCondition.SetProperties(p_prop); }
+		);
 		
 		// Write points to VTK
 		std::string filename = "data/Intergration_Points_on_Solid1_Coupling_Surface.vtk";
