@@ -211,6 +211,7 @@ protected:
 
     double mViscousTime = 0.0;
     array_1d<double, 2> mStrainRateHistory = ZeroVector(2);
+    Vector mPreviousStrain = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -238,11 +239,17 @@ protected:
     void save(Serializer &rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+        rSerializer.save("ViscousTime", mViscousTime);
+        rSerializer.save("StrainRateHistory", mStrainRateHistory);
+        rSerializer.save("PreviousStrain", mPreviousStrain);
     }
 
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
+        rSerializer.load("ViscousTime", mViscousTime);
+        rSerializer.load("StrainRateHistory", mStrainRateHistory);
+        rSerializer.load("PreviousStrain", mPreviousStrain);
     }
 
     ///@}
