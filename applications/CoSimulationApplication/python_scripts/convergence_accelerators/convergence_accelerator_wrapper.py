@@ -62,6 +62,19 @@ class ConvergenceAcceleratorWrapper:
     def FinalizeNonLinearIteration(self):
         self.conv_acc.FinalizeNonLinearIteration()
 
+    def ComputeLastAcceleratorDataPoint(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
+        residual = self.residual_computation.ComputeResidual(self.input_data)
+        input_data_for_acc = self.input_data
+
+        if self.gather_scatter_required:
+            residual = np.array(np.concatenate(self.data_comm.GathervDoubles(residual, 0)))
+            input_data_for_acc = np.array(np.concatenate(self.data_comm.GathervDoubles(input_data_for_acc, 0)))
+
+        if self.executing_rank:
+            self.conv_acc.UpdateSolution(residual, input_data_for_acc)
+
     def ComputeAndApplyUpdate(self):
         if not self.interface_data.IsDefinedOnThisRank(): return
 
