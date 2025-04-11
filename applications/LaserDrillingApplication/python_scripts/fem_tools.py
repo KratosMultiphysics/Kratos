@@ -1,6 +1,7 @@
 import numpy as np
 from sympy import *
 
+#TODO: Why is all this symbolic?
 class SurfaceFEMProjector:
     def __init__(self, n_elements, R_far, sparse_option):
         n = n_elements
@@ -191,6 +192,7 @@ class SurfaceFEMProjector:
         return float(2.0 * np.pi * total_energy)
 
     def InterpolateFunctionAndNormalize(self, f): #, normalization_value):
+        # TODO: Check this function to see if it is normalizing the argument or not or what
         X = self.X
         n = self.n_elements
 
