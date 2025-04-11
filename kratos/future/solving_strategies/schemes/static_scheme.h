@@ -206,12 +206,19 @@ public:
                 BuiltinTimer system_matrix_resize_time;
                 this->ResizeAndInitializeVectors(rDofSet, rpA, rpDx, rpB);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
+
+                // Set up the system constraints
+                BuiltinTimer constraints_construction_time;
+                this->ConstructMasterSlaveConstraintsStructure(rDofSet);
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
             } else {
                 // Set up the equation ids (note that this needs to be always done)
                 BuiltinTimer setup_system_time;
                 const SizeType eq_system_size = this->SetUpSystemIds(rDofSet);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+
+                //TODO: Check if the constraints need to be also set in here!!!!!!
             }
             KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 

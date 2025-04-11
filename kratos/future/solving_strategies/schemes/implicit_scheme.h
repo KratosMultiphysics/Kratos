@@ -337,10 +337,19 @@ public:
         // Note that this also allocates the required reaction vectors (e.g., elimination build)
         (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rpLHS, rpDx, rpRHS, CalculateReactions);
 
-        //TODO: Think on the constraints stuff!
-        // ConstructMasterSlaveConstraintsStructure(rModelPart);
-
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    virtual void ConstructMasterSlaveConstraintsStructure(const DofsArrayType& rDofSet)
+    {
+        KRATOS_TRY
+
+        // Call the assembly helper to set the master-slave constraints
+        (this->GetAssemblyHelper()).ConstructMasterSlaveConstraintsStructure(rDofSet, *mpModelPart);
+
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -526,7 +535,6 @@ public:
     /**
      * @brief Performing the update of the solution.
      * @warning Must be defined in derived classes
-     * @param rModelPart The model part of the problem to solve
      * @param rDofSet Set of all primary variables
      * @param A LHS matrix
      * @param Dx Incremental update of primary variables
@@ -544,7 +552,6 @@ public:
     /**
      * @brief Functions to be called to prepare the data needed for the output of results.
      * @warning Must be defined in derived classes
-     * @param rModelPart The model part of the problem to solve
      * @param A LHS matrix
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
@@ -583,7 +590,6 @@ public:
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
      * @details Checks can be "expensive" as the function is designed
-     * @param rModelPart The model part of the problem to solve
      * @return 0 all OK, 1 otherwise
      */
     virtual int Check() const

@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "constraints/linear_master_slave_constraint.h"
 #include "containers/model.h"
 #include "includes/define.h"
 #include "includes/element.h"
@@ -216,6 +217,62 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
     SetUpTestSchemesModelPart(r_test_model_part);
+
+    // Create the scheme
+    Parameters scheme_settings = Parameters(R"({
+        "build_settings" : {
+            "build_type" : "block"
+        }
+    })");
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+
+    // Create the linear solver
+    Parameters amgcl_settings = Parameters(R"({
+    })");
+    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
+    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
+
+    // Create the strategy
+    Parameters strategy_settings = Parameters(R"({
+    })");
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+
+    // Apply Dirichlet BCs
+    auto p_node_1 = r_test_model_part.pGetNode(1);
+    p_node_1->Fix(DISTANCE);
+    p_node_1->FastGetSolutionStepValue(DISTANCE, 0, 1.0);
+
+    // Solve the problem
+    p_strategy->Initialize();
+    p_strategy->Check();
+    p_strategy->InitializeSolutionStep();
+    p_strategy->Predict();
+    p_strategy->SolveSolutionStep();
+    p_strategy->FinalizeSolutionStep();
+    p_strategy->Clear();
+
+    // Check results
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 1.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 2.0, 1.0e-12);
+#else
+    true;
+#endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithConstraints, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    SetUpTestSchemesModelPart(r_test_model_part);
+
+    // Create a periodicity constraint with jump
+    const double jump = 2.0;
+    r_test_model_part.CreateNewMasterSlaveConstraint(
+        "LinearMasterSlaveConstraint", 1, r_test_model_part.GetNode(1), DISTANCE, r_test_model_part.GetNode(3), DISTANCE, 1.0, jump);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({

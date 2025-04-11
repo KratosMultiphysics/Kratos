@@ -185,6 +185,19 @@ public:
         }
     }
 
+    virtual void ConstructMasterSlaveConstraintsStructure(
+        const DofsArrayType& rDofSet, //TODO: Confirm once we do the elimination if this is needed
+        const ModelPart& rModelPart)
+    {
+        if (mBuildType == BuildType::Block) {
+            BlockBuildConstructMasterSlaveConstraintsStructure(rModelPart);
+        } else if (mBuildType == BuildType::Elimination) {
+            EliminationBuildConstructMasterSlaveConstraintsStructure(rDofSet, rModelPart);
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
+    }
+
     virtual void SetUpSparseGraph(TSparseGraphType& rSparseGraph)
     {
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Current equation system size is 0. Sparse graph cannot be set (call \'SetUpSystemIds\' first)." << std::endl;
@@ -393,6 +406,14 @@ public:
         mpElementAssemblyFunction = nullptr;
         mpConditionAssemblyFunction = nullptr;
         mpConstraintAssemblyFunction = nullptr;
+
+        // If set, clear the constraint arrays
+        if (mpConstraintsRelationMatrix != nullptr) {
+            mpConstraintsRelationMatrix->Clear();
+        }
+        if (mpConstraintsConstantVector != nullptr) {
+            mpConstraintsConstantVector->Clear();
+        }
     }
 
     ///@}
@@ -450,6 +471,14 @@ private:
     std::unique_ptr<ConstraintAssemblyFunctionType> mpConstraintAssemblyFunction = nullptr; // Pointer to the function to be called in the constraints assembly
 
     typename TSparseVectorType::Pointer mpReactionsVector = nullptr; // Auxiliary vector to calculate the reactions in the elimination build
+
+    typename TSparseMatrixType::Pointer mpConstraintsRelationMatrix = nullptr; // Constraints relation matrix (only used in the block build)
+
+    typename TSparseVectorType::Pointer mpConstraintsConstantVector = nullptr; // Constratins constant vector (only used in the block build)
+
+    std::vector<IndexType> mSlaveIds; /// Vector containing the equation ids of the slaves
+
+    std::vector<IndexType> mMasterIds; /// Vector containing the equation ids of the master
 
     ///@}
     ///@name Private Operations
@@ -796,6 +825,87 @@ private:
                 rRHS[Index] = 0.0;
             }
         });
+    }
+
+    //FIXME: This only works in serial!!!
+    void BlockBuildConstructMasterSlaveConstraintsStructure(const ModelPart& rModelPart)
+    {
+        const SizeType n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
+        if (n_constraints) {
+
+            // Constraint initial iterator
+            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+
+            std::vector<LockObject> lock_array(mEquationSystemSize);
+            std::vector<std::unordered_set<IndexType>> indices(mEquationSystemSize);
+
+            #pragma omp parallel
+            {
+                Element::EquationIdVectorType slave_eq_ids;
+                Element::EquationIdVectorType master_eq_ids;
+                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_slave_eq_ids;
+
+                #pragma omp for schedule(guided, 512) nowait
+                for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
+                    // Get current constraint master and slave equation ids
+                    auto it_const = it_const_begin + i_const;
+                    it_const->EquationIdVector(slave_eq_ids, master_eq_ids, rModelPart.GetProcessInfo());
+
+                    // For each slave DOF save its corresponding master equation ids
+                    for (auto slave_eq_id : slave_eq_ids) {
+                        //FIXME: should we throw an error if temp_slave_eq_ids[slave_eq_id] is already there?
+                        temp_slave_eq_ids[slave_eq_id].insert(master_eq_ids.begin(), master_eq_ids.end());
+                    }
+                }
+
+                // Merging all the temporal indexes
+                for (auto& slave_pair : temp_slave_eq_ids) {
+                    const auto& r_master_eq_ids = slave_pair.second;
+                    lock_array[slave_pair.first].lock();
+                    indices[slave_pair.first].insert(r_master_eq_ids.begin(), r_master_eq_ids.end());
+                    lock_array[slave_pair.first].unlock();
+                }
+            }
+
+            // Clear the equation ids vectors
+            mSlaveIds.clear();
+            mMasterIds.clear();
+
+            // Set up constraints matrix sparse graph (note that mEquationSystemSize is the DOF set size in the block build)
+            KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
+            TSparseGraphType constraints_sparse_graph(mEquationSystemSize);
+
+            // Loop the equation id indices vector
+            // If entry is empty means a master DOF
+            // If entry is not empty it is a slave DOF and contains the corresponding master equation ids
+            for (IndexType i_dof_eq_id = 0; i_dof_eq_id < mEquationSystemSize; ++i_dof_eq_id) {
+                // Check if current DOF is master or slave
+                // Note that if it is slave we add its corresponding master DOFs to the sparse graph
+                if (indices[i_dof_eq_id].size() == 0) {
+                    mMasterIds.push_back(i_dof_eq_id); // Add to master DOFs equation ids vector
+                } else {
+                    mSlaveIds.push_back(i_dof_eq_id); // Add to slave DOFs equation ids vector
+                    constraints_sparse_graph.AddEntries(i_dof_eq_id, indices[i_dof_eq_id]); // Add slave DOF (row) master entries (cols) to constraints matrix graph
+                }
+
+                // Ensure that the diagonal is there in T
+                constraints_sparse_graph.AddEntry(i_dof_eq_id, i_dof_eq_id); // Add diagonal contribution for master DOFs
+            }
+
+            // Allocate the constraints arrays
+            auto p_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
+            mpConstraintsRelationMatrix.swap(p_T);
+
+            auto p_b = Kratos::make_shared<TSparseVectorType>(mEquationSystemSize);
+            mpConstraintsConstantVector.swap(p_b);
+        }
+    }
+
+    void EliminationBuildConstructMasterSlaveConstraintsStructure(
+        const DofsArrayType& rDofSet,
+        const ModelPart& rModelPart)
+    {
+        KRATOS_ERROR << "Not implemented yet." << std::endl;
     }
 
     ///@}
