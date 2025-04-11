@@ -68,8 +68,8 @@ private:
     std::unique_ptr<IntegrationCoefficientModifier> mCoefficientModifier;
 
     friend class Serializer;
-    void save(Serializer& rSerializer) const;
-    void load(Serializer& rSerializer);
+    void save(const Serializer& rSerializer) const;
+    void load(const Serializer& rSerializer) const;
 };
 
 } // namespace Kratos

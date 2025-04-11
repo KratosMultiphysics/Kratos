@@ -21,12 +21,12 @@ IntegrationCoefficientsCalculator::IntegrationCoefficientsCalculator(std::unique
 {
 }
 
-void IntegrationCoefficientsCalculator::save(Serializer&) const
+void IntegrationCoefficientsCalculator::save(const Serializer&) const
 {
     // No data members to be saved (yet)
 }
 
-void IntegrationCoefficientsCalculator::load(Serializer&)
+void IntegrationCoefficientsCalculator::load(const Serializer&) const
 {
     // No data members to be loaded (yet)
 }
