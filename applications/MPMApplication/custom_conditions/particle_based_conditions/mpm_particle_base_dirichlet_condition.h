@@ -112,6 +112,10 @@ public:
     ///@}
     ///@name Access Get Values
     ///@{
+    void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
@@ -146,7 +150,12 @@ protected:
     /// Calculate Shape Function Values as a vector
     virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
-    ///@}
+    /// Calculate reaction forces at the boundary particles (BPs)
+    virtual void CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo );
+
+    /// Calculate intermediate reaction forces at the background grid nodes which are used to calcualte the reaction forces at the BPs
+    virtual void CalculateNodalReactions(const ProcessInfo& rCurrentProcessInfo );
+
 
 private:
     ///@name Serialization
