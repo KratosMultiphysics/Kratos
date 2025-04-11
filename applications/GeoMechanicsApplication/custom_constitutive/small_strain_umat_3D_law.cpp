@@ -15,7 +15,7 @@
 // External includes
 
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
 #include "windows.hpp"
@@ -29,7 +29,7 @@ namespace Kratos
 {
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-typedef void(__stdcall* f_UMATMod)(double*       STRESS,
+using f_UMATMod = void(__stdcall*)(double*       STRESS,
                                    double*       STATEV,
                                    double**      DDSDDE,
                                    double*       SSE,
@@ -69,43 +69,43 @@ typedef void(__stdcall* f_UMATMod)(double*       STRESS,
 #endif
 
 #ifdef KRATOS_COMPILED_IN_LINUX
-typedef void (*f_UMATMod)(double*       STRESS,
-                          double*       STATEV,
-                          double**      DDSDDE,
-                          double*       SSE,
-                          double*       SPD,
-                          double*       SCD,
-                          double*       rpl,
-                          double*       ddsddt,
-                          double*       drplde,
-                          double*       drpldt,
-                          double*       stran,
-                          double*       dstran,
-                          double*       time,
-                          double*       dtime,
-                          double*       temp,
-                          double*       dtemp,
-                          double*       predef,
-                          double*       dpred,
-                          char*         materl,
-                          int*          ndi,
-                          int*          nshr,
-                          int*          ntens,
-                          int*          nstatv,
-                          const double* props,
-                          int*          nprops,
-                          double*       coords,
-                          double**      drot,
-                          double*       pnewdt,
-                          double*       celent,
-                          double**      dfgrd0,
-                          double**      dfgrd1,
-                          int*          noel,
-                          int*          npt,
-                          double*       kslay,
-                          double*       kspt,
-                          int*          kstep,
-                          int*          kinc);
+using f_UMATMod = void (*)(double*       STRESS,
+                           double*       STATEV,
+                           double**      DDSDDE,
+                           double*       SSE,
+                           double*       SPD,
+                           double*       SCD,
+                           double*       rpl,
+                           double*       ddsddt,
+                           double*       drplde,
+                           double*       drpldt,
+                           double*       stran,
+                           double*       dstran,
+                           double*       time,
+                           double*       dtime,
+                           double*       temp,
+                           double*       dtemp,
+                           double*       predef,
+                           double*       dpred,
+                           char*         materl,
+                           int*          ndi,
+                           int*          nshr,
+                           int*          ntens,
+                           int*          nstatv,
+                           const double* props,
+                           int*          nprops,
+                           double*       coords,
+                           double**      drot,
+                           double*       pnewdt,
+                           double*       celent,
+                           double**      dfgrd0,
+                           double**      dfgrd1,
+                           int*          noel,
+                           int*          npt,
+                           double*       kslay,
+                           double*       kspt,
+                           int*          kstep,
+                           int*          kinc);
 #endif
 
 SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther)
