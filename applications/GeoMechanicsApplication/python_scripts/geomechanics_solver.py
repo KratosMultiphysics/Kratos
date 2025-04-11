@@ -207,10 +207,10 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
         self.computing_model_part_name = "porous_computational_model_part"
 
-        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"]]
+        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"].values()]
         self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 
-        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["loads_sub_model_part_list"]]
+        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["loads_sub_model_part_list"].values()]
         self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
@@ -357,7 +357,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_FLUID_FLUX)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
-        
+
         # Add integration \ gauss point values that will likely need extrapolating to node
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_HEAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_TENSOR)
