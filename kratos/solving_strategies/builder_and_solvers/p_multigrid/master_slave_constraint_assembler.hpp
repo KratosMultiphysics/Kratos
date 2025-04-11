@@ -22,7 +22,7 @@ namespace Kratos {
 
 
 template <class TSparse, class TDense>
-class MasterSlaveConstraintAssembler : public ConstraintAssembler<TSparse,TDense>
+class MasterSlaveConstraintAssembler final : public ConstraintAssembler<TSparse,TDense>
 {
 public:
     using Base = ConstraintAssembler<TSparse,TDense>;
@@ -33,6 +33,8 @@ public:
 
     MasterSlaveConstraintAssembler(Parameters Settings,
                                    std::string&& rInstanceName);
+
+    ~MasterSlaveConstraintAssembler();
 
     /// @copydoc Base::Allocate
     void Allocate(const typename Base::ConstraintArray& rConstraints,
@@ -61,11 +63,8 @@ public:
                               typename TSparse::VectorType& rRhs,
                               PMGStatusStream::Report& rReport) override;
 
-    /// @copydoc Base::Finalize
-    void Finalize(typename TSparse::MatrixType& rLhs,
-                  typename TSparse::VectorType& rSolution,
-                  typename TSparse::VectorType& rRhs,
-                  typename Base::DofSet& rDofSet) override;
+    /// @copydoc Base::Apply
+    void Apply(typename TSparse::VectorType& rSolution) const override;
 
     /// @copydoc Base::Clear
     void Clear() override;
@@ -73,13 +72,8 @@ public:
     static Parameters GetDefaultParameters();
 
 private:
-    std::vector<std::size_t> mSlaveIds;
-
-    std::vector<std::size_t> mMasterIds;
-
-    std::unordered_set<std::size_t> mInactiveSlaveIds;
-
-    std::unique_ptr<Scaling> mpDiagonalScaling;
+    struct Impl;
+    std::unique_ptr<Impl> mpImpl;
 }; // class MasterSlaveConstraintAssembler
 
 
