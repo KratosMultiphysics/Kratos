@@ -18,6 +18,9 @@
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 
+// STL includes
+#include <filesystem> // std::filesystem::current_path
+
 
 namespace Kratos {
 
@@ -265,6 +268,21 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
                                                                       typename Base::DofSet::iterator itDofEnd)
 {
     KRATOS_TRY
+
+    // Output the relation matrix and constraint gaps if the verbosity is high enough.
+    if (4 <= mpImpl->mVerbosity) {
+        KRATOS_INFO(this->GetName() + ": ")
+            << "write relation matrix to "
+            << (std::filesystem::current_path() / "relation_matrix.mm")
+            << "\n";
+        TSparse::WriteMatrixMarketMatrix("relation_matrix.mm", this->GetRelationMatrix(), false);
+
+    KRATOS_INFO(this->GetName() + ": ")
+        << "write constraint gaps to "
+        << (std::filesystem::current_path() / "constraint_gaps.mm")
+        << "\n";
+    TSparse::WriteMatrixMarketVector("constraint_gaps.mm", this->GetConstraintGapVector());
+    } // if 4 <= verbosity
 
     // Reset the relation matrix' transpose to make sure that propagated dirichlet
     // conditions are reflected in the transpose as well.
