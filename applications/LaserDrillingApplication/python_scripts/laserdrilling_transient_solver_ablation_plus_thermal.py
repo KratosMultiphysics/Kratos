@@ -5,10 +5,14 @@ import KratosMultiphysics
 import KratosMultiphysics.LaserDrillingApplication as LaserDrillingApplication
 from KratosMultiphysics.LaserDrillingApplication import laserdrilling_transient_solver
 
+
 def CreateSolver(model, custom_settings):
     return LaserDrillingTransientSolverAblationPlusThermal(model, custom_settings)
 
-class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_solver.LaserDrillingTransientSolver):
+
+class LaserDrillingTransientSolverAblationPlusThermal(
+    laserdrilling_transient_solver.LaserDrillingTransientSolver
+):
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
 
@@ -17,28 +21,28 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
     def ComputeIonizationEnergyPerUnitVolumeThreshold(self):
         # Compute ionization energy per volume of C11_H12_O3
-        E_m_H = 1312e3 #  J/mol (1st level ionization energy)
-        E_m_C = 4621e3 #  J/mol (3rd level ionization energy)
-        E_m_O = 3388e3 #  J/mol (2nd level ionization energy)
-        W_m   = 192e-3 # Kg/mol (molecular weight)
-        return self.rho * (E_m_H + E_m_C + E_m_O) / W_m # J/mm3
+        E_m_H = 1312e3  #  J/mol (1st level ionization energy)
+        E_m_C = 4621e3  #  J/mol (3rd level ionization energy)
+        E_m_O = 3388e3  #  J/mol (2nd level ionization energy)
+        W_m = 192e-3  # Kg/mol (molecular weight)
+        return self.rho * (E_m_H + E_m_C + E_m_O) / W_m  # J/mm3
 
     def ImposeTemperatureIncreaseDueToLaserWithRefraction(self):
+        # TODO: add a test that compares the case without refraction to the case with refraction at normal incidence
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
-        print("\nPulse number", self.pulse_number, '\n')
+        print("\nPulse number", self.pulse_number, "\n")
 
-        self.hole_profile_in_Y_zero_file = open('hole_profile_in_Y_zero.txt', "w")
+        self.hole_profile_in_Y_zero_file = open("hole_profile_in_Y_zero.txt", "w")
 
         # Equation of the approximated hole shape (as a parabola)
         # x(y) = A * y^2 + C
         a = Y[-1]
         b = X[0]
         A = b / (a * a)
-        C = - b
+        C = -b
 
         for node in self.main_model_part.Nodes:
-
             y0 = node.Y
             x0 = A * y0 * y0 + C
             z = node.X + x0
@@ -47,7 +51,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             n1 = 1
             n2 = self.refractive_index_n
             theta_2 = np.arcsin(n1 * np.sin(theta_1) / n2)
-            
+
             alpha = 0.5 * np.pi + theta_2
             l = z * np.sin(0.5 * np.pi - theta_1) / np.sin(alpha)
 
@@ -67,7 +71,14 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             F_p = self.F_p
             omega_0 = self.omega_0
             import math
-            q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (y1 / omega_0)**2) * math.exp(- l / delta_pen) * math.cos(incident_angle)
+
+            q_energy_per_volume = (
+                (1.0 / delta_pen)
+                * F_p
+                * math.exp(-2.0 * (y1 / omega_0) ** 2)
+                * math.exp(-l / delta_pen)
+                * math.cos(incident_angle)
+            )
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
@@ -78,18 +89,27 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         self.hole_profile_in_Y_zero_file.close()
 
         for elem in self.main_model_part.Elements:
-            q_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
+            q_energy_per_volume = elem.CalculateOnIntegrationPoints(
+                LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
+            )
             elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume[0])
-            enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
+            enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(
+                LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
+            )
             elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume[0])
 
     def ImposeTemperatureIncreaseDueToLaser(self):
+        # TODO: absorb this function into ImposeTemperatureIncreaseDueToLaserWithRefraction in the case of normal incidence
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
-        print("\nPulse number", self.pulse_number, '\n')
+        print(
+            "\nPulse number", self.pulse_number, "\n"
+        )  # TODO: Move into InitializeSolutionStep when it checks if a new pulse is added?
 
-        self.hole_profile_in_Y_zero_file = open('hole_profile_in_Y_zero.txt', "w")
+        # TODO: change 'open's to 'with open as xx' if possible
+        self.hole_profile_in_Y_zero_file = open("hole_profile_in_Y_zero.txt", "w")
 
+        # TODO: vectorize this loop
         for node in self.main_model_part.Nodes:
             radius = node.Y
             F = interp1d(Y, X, bounds_error=False, fill_value=0.0)
@@ -97,56 +117,91 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             z = node.X - distance_to_surface
             delta_temp = self.TemperatureVariationDueToLaser(radius, z)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            # TODO: this feels a bit wrong, adding up temperatures is not trivial. Maybe it would be better to
+            # add up energies and then calculate temperatures?
             new_temp = old_temp + delta_temp
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
 
-            if radius < 1e-8:
+            if radius < 1e-8:  # TODO: why this value? Make it into a variable or even a simluation parameter?
                 self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
 
             delta_pen = self.delta_pen
             F_p = self.F_p
             omega_0 = self.omega_0
             import math
-            q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen)
+
+            q_energy_per_volume = (
+                (1.0 / delta_pen) * F_p * math.exp(-2.0 * (radius / omega_0) ** 2) * math.exp(-z / delta_pen)
+            )
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
-            delta_temp = self.T_e - old_temp
+            delta_temp = self.T_e - old_temp  # TODO: warning: possible temperature addition
             enthalpy_energy_per_volume = self.rho * (self.H_ev + self.cp * delta_temp)
             node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume)
 
         self.hole_profile_in_Y_zero_file.close()
 
         for elem in self.main_model_part.Elements:
-            q_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
+            q_energy_per_volume = elem.CalculateOnIntegrationPoints(
+                LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
+            )
             elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume[0])
-            enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo)
+            enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(
+                LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
+            )
             elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume[0])
 
-    def TemperatureVariationDueToLaser(self, radius, z, incidence_angle = 0):        
+    def TemperatureVariationDueToLaser(self, radius, z, incidence_angle=0):
         delta_pen = self.delta_pen
         F_p = self.F_p
         omega_0 = self.omega_0
         import math
-        q_energy_per_volume = (1.0 / delta_pen) * F_p * math.exp(- 2.0 * (radius / omega_0)**2) * math.exp(- z / delta_pen) #* math.cos(incidence_angle)
-        delta_temp = q_energy_per_volume / (self.rho * self.cp)            
+
+        q_energy_per_volume = (
+            (1.0 / delta_pen) * F_p * math.exp(-2.0 * (radius / omega_0) ** 2) * math.exp(-z / delta_pen)
+        )  # * math.cos(incidence_angle)
+        delta_temp = q_energy_per_volume / (self.rho * self.cp)
         return delta_temp
 
     def ComputePulseVolume(self):
         import math
-        return 0.25 * self.delta_pen * math.pi * self.omega_0**2 * (math.log(self.F_p / (self.delta_pen * self.q_ast)))**2
+
+        return (
+            0.25
+            * self.delta_pen
+            * math.pi
+            * self.omega_0**2
+            * (math.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
+        )
 
     def RemoveElementsByAblation(self):
+        """
+        Removes elements by ablation. (this comment is WIP)
 
+        Overrides LaserDrillingTransientSolver.RemoveElementsByAblation
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         self.RemoveElementsUsingEnergyPerVolumeThreshold()
 
         if self.print_debug_info:
             decomp_vol = self.MonitorDecomposedVolume()
-            print("Actual volume loss due to laser:",  decomp_vol, "mm3")
+            print("Actual volume loss due to laser:", decomp_vol, "mm3")
             self.analytical_ablated_volume_in_n_pulses += self.ComputePulseVolume()
             print("Expected volume loss due to laser:", self.analytical_ablated_volume_in_n_pulses, "mm3\n")
-            relative_error = 100.0 * (decomp_vol - self.analytical_ablated_volume_in_n_pulses) / self.analytical_ablated_volume_in_n_pulses
+            relative_error = (
+                100.0
+                * (decomp_vol - self.analytical_ablated_volume_in_n_pulses)
+                / self.analytical_ablated_volume_in_n_pulses
+            )
             print("Relative error in volume (%):", relative_error, "\n\n")
 
     def ResidualHeatStage(self):
@@ -156,12 +211,16 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         if self.ablation_energy_fraction:
             for elem in self.main_model_part.Elements:
                 q_energy_per_volume = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME)
-                enthalpy_energy_per_volume = elem.GetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME)
+                enthalpy_energy_per_volume = elem.GetValue(
+                    LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME
+                )
                 if self.use_enthalpy_and_ionization:
                     ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold
                     energy_threshold = min(enthalpy_energy_per_volume, ionization_energy_per_volume_threshold)
                 else:
-                    energy_threshold = elem.GetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME) #self.q_ast
+                    energy_threshold = elem.GetValue(
+                        LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME
+                    )  # self.q_ast
                 if q_energy_per_volume >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     for node in elem.GetNodes():
@@ -181,26 +240,34 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
     def Finalize(self):
         super().Finalize()
         if self.print_hole_geometry_files:
-
-            self.hole_theoretical_profile_file = open('hole_theoretical_profile.txt', "w")
+            self.hole_theoretical_profile_file = open("hole_theoretical_profile.txt", "w")
             for i, node_Y in enumerate(self.hole_theoretical_Y_coords):
                 if self.hole_theoretical_X_coords[i]:
-                    self.hole_theoretical_profile_file.write(str(node_Y) + " " + str(-self.hole_theoretical_X_coords[i]) + "\n")
+                    self.hole_theoretical_profile_file.write(
+                        str(node_Y) + " " + str(-self.hole_theoretical_X_coords[i]) + "\n"
+                    )
             self.hole_theoretical_profile_file.close()
 
-            self.hole_theoretical_profile_file_no_z_offset_variation = open('hole_theoretical_profile_no_z_offset_variation.txt', "w")
+            self.hole_theoretical_profile_file_no_z_offset_variation = open(
+                "hole_theoretical_profile_no_z_offset_variation.txt", "w"
+            )
             for i, node_Y in enumerate(self.one_pulse_hole_theoretical_Y_coords):
                 if self.one_pulse_hole_theoretical_X_coords[i]:
-                    self.hole_theoretical_profile_file_no_z_offset_variation.write(str(node_Y) + " " + str(-self.pulse_number * self.one_pulse_hole_theoretical_X_coords[i]) + "\n")
+                    self.hole_theoretical_profile_file_no_z_offset_variation.write(
+                        str(node_Y)
+                        + " "
+                        + str(-self.pulse_number * self.one_pulse_hole_theoretical_X_coords[i])
+                        + "\n"
+                    )
             self.hole_theoretical_profile_file_no_z_offset_variation.close()
 
             a = self.list_of_ablated_nodes_coords_Y[-1]
             b = self.list_of_ablated_nodes_coords_X[0]
             A = b / (a * a)
-            C = - b
+            C = -b
 
             parabola_Y_coords = np.linspace(0.0, a, 101)
-            self.hole_parabolical_profile = open('hole_parabolical_profile.txt', "w")
+            self.hole_parabolical_profile = open("hole_parabolical_profile.txt", "w")
             for Y_coords in parabola_Y_coords:
                 X_coords = A * Y_coords * Y_coords + C
                 self.hole_parabolical_profile.write(str(Y_coords) + " " + str(X_coords) + "\n")

@@ -486,6 +486,7 @@ class LaserDrillingTransientSolver(
 
         self.SetParameters()
 
+        # TODO: change python arrays into numpy arrays?
         # TODO: Explain what these are
         self.list_of_decomposed_nodes_coords = []
         self.list_of_decomposed_nodes_coords_X = []
@@ -966,6 +967,7 @@ class LaserDrillingTransientSolver(
         return energy
 
     def RemoveElementsByAblation(self):
+        # TODO: make this method abstract? It is overridden by LaserDrillingTransientSolverAblationPlusThermal.RemoveElementsByAblation
         if self.ablation_energy_fraction:
             X = self.list_of_decomposed_nodes_coords_X
             Y = self.list_of_decomposed_nodes_coords_Y
