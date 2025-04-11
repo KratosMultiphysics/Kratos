@@ -26,7 +26,8 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType         
                                                               PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UpdatedLagrangianUPwDiffOrderElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->CloneModifier()));
 }
 
 Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
@@ -34,7 +35,7 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType         
                                                               PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UpdatedLagrangianUPwDiffOrderElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->CloneModifier()));
 }
 
 void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,

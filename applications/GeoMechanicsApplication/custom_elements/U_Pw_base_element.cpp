@@ -401,13 +401,7 @@ void UPwBaseElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
 std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
 {
-    auto result = std::vector<double>{};
-    result.reserve(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                   std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ, GetGeometry());
-    });
-    return result;
+    return mpIntegrationCoefficientsCalculator->Run<>(rIntegrationPoints, rDetJs, this);
 }
 
 void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
@@ -449,5 +443,10 @@ Element::DofsVectorType UPwBaseElement::GetDofs() const
 }
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }
+
+std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneModifier() const
+{
+    return mpIntegrationCoefficientsCalculator->CloneModifier();
+}
 
 } // Namespace Kratos

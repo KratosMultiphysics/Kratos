@@ -28,6 +28,7 @@
 #include "geo_mechanics_application_variables.h"
 
 // conditions
+// conditions
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_conditions/Pw_point_flux_condition.hpp"
 #include "custom_conditions/T_microclimate_flux_condition.h"
@@ -103,6 +104,7 @@
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
 // Element policies
+#include "custom_elements/axisymmetric_integration_coefficients.h"
 #include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
@@ -367,20 +369,30 @@ private:
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
         std::make_unique<PlaneStrainStressState>()};
     const SteadyStatePwElement<3, 4> mSteadyStatePwElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const SteadyStatePwElement<3, 8> mSteadyStatePwElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const SteadyStatePwElement<3, 10> mSteadyStatePwElement3D10N{
-        0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const SteadyStatePwElement<3, 20> mSteadyStatePwElement3D20N{
-        0, Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const SteadyStatePwElement<3, 27> mSteadyStatePwElement3D27N{
-        0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     const SteadyStatePwInterfaceElement<2, 4> mSteadyStatePwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
@@ -452,11 +464,15 @@ private:
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
     const DrainedUPwSmallStrainElement<3, 4> mDrainedUPwSmallStrainElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const DrainedUPwSmallStrainElement<3, 8> mDrainedUPwSmallStrainElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     // small strain undrained elements:
     const UndrainedUPwSmallStrainElement<2, 3> mUndrainedUPwSmallStrainElement2D3N{
@@ -466,11 +482,15 @@ private:
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
     const UndrainedUPwSmallStrainElement<3, 4> mUndrainedUPwSmallStrainElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UndrainedUPwSmallStrainElement<3, 8> mUndrainedUPwSmallStrainElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     // FIC elements
     const UPwSmallStrainFICElement<2, 3> mUPwSmallStrainFICElement2D3N{
@@ -480,11 +500,15 @@ private:
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
     const UPwSmallStrainFICElement<3, 4> mUPwSmallStrainFICElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UPwSmallStrainFICElement<3, 8> mUPwSmallStrainFICElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     // Small strain different order elements
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D6N{
@@ -503,81 +527,109 @@ private:
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
         std::make_unique<PlaneStrainStressState>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N{
-        0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N{
-        0, Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D27N{
-        0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     // small strain axisymmtric elements:
     const UPwSmallStrainElement<2, 3> mUPwSmallStrainAxisymmetricElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 4> mUPwSmallStrainAxisymmetricElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 6> mUPwSmallStrainAxisymmetricElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 8> mUPwSmallStrainAxisymmetricElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 9> mUPwSmallStrainAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 10> mUPwSmallStrainAxisymmetricElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 15> mUPwSmallStrainAxisymmetricElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     const UPwSmallStrainFICElement<2, 3> mUPwSmallStrainAxisymmetricFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainFICElement<2, 4> mUPwSmallStrainAxisymmetricFICElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     // interface elements
     const UPwSmallStrainInterfaceElement<2, 4> mUPwSmallStrainInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
     const UPwSmallStrainInterfaceElement<3, 6> mUPwSmallStrainInterfaceElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UPwSmallStrainInterfaceElement<3, 8> mUPwSmallStrainInterfaceElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     const UPwSmallStrainLinkInterfaceElement<2, 4> mUPwSmallStrainLinkInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
     const UPwSmallStrainLinkInterfaceElement<3, 6> mUPwSmallStrainLinkInterfaceElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UPwSmallStrainLinkInterfaceElement<3, 8> mUPwSmallStrainLinkInterfaceElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
         0, Kratos::make_shared<LineInterfaceGeometry<Line2D2<NodeType>>>(
@@ -609,20 +661,30 @@ private:
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
         std::make_unique<PlaneStrainStressState>()};
     const UPwUpdatedLagrangianElement<3, 4> mUPwUpdatedLagrangianElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UPwUpdatedLagrangianElement<3, 8> mUPwUpdatedLagrangianElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UPwUpdatedLagrangianElement<3, 10> mUPwUpdatedLagrangianElement3D10N{
-        0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UPwUpdatedLagrangianElement<3, 20> mUPwUpdatedLagrangianElement3D20N{
-        0, Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UPwUpdatedLagrangianElement<3, 27> mUPwUpdatedLagrangianElement3D27N{
-        0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     const UPwUpdatedLagrangianFICElement<2, 3> mUPwUpdatedLagrangianFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
@@ -631,11 +693,15 @@ private:
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
     const UPwUpdatedLagrangianFICElement<3, 4> mUPwUpdatedLagrangianFICElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UPwUpdatedLagrangianFICElement<3, 8> mUPwUpdatedLagrangianFICElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
@@ -653,60 +719,80 @@ private:
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
         std::make_unique<PlaneStrainStressState>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D10N{
-        0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D20N{
-        0, Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D27N{
-        0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
-        std::make_unique<ThreeDimensionalStressState>()};
+        0,
+        Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
+        std::make_unique<ThreeDimensionalStressState>(),
+    };
 
     // Updated-Lagrangian axisymmetric elements
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianAxisymmetricElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 4> mUPwUpdatedLagrangianAxisymmetricElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 6> mUPwUpdatedLagrangianAxisymmetricElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 8> mUPwUpdatedLagrangianAxisymmetricElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 9> mUPwUpdatedLagrangianAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 10> mUPwUpdatedLagrangianAxisymmetricElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 15> mUPwUpdatedLagrangianAxisymmetricElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     const UPwUpdatedLagrangianFICElement<2, 3> mUPwUpdatedLagrangianAxisymmetricFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianFICElement<2, 4> mUPwUpdatedLagrangianAxisymmetricFICElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     // geo structural element
     const GeoCrBeamElement2D2N mGeoCrBeamElement2D2N{

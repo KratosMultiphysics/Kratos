@@ -14,6 +14,7 @@
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/integration_coefficients_calculator.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -184,7 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMech
         std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
     const auto                        p_properties = std::make_shared<Properties>();
     const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
-                                              std::make_unique<PlaneStrainStressState>());
+                                              std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act and Assert
     KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
