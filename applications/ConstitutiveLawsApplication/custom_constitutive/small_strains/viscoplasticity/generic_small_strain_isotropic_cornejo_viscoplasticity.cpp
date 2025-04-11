@@ -41,6 +41,10 @@
 namespace Kratos
 {
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
@@ -81,7 +85,11 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
         const double viscous_beta = r_props.Has(VISCOUS_BETA) ? r_props[VISCOUS_BETA] : 1.0;
         const double time_delay = r_props[DELAY_TIME];
         const double yield_strain = r_props.Has(YIELD_STRESS) ? r_props[YIELD_STRESS] / r_props[YOUNG_MODULUS] : r_props[YIELD_STRESS_TENSION] / r_props[YOUNG_MODULUS];
-        const double viscous_overstress = viscous_eta * (std::exp(viscous_alpha * strain_rate_norm / yield_strain) - 1.0) * std::exp(-viscous_beta * mViscousTime / time_delay);
+
+        const double equivalent_strain = inner_prod(predictive_stress_vector, r_strain_vector) / equivalent_stress;
+        const double m = r_props[COHESION];
+        const double strain_regularization = (equivalent_strain - yield_strain > 0.0) ? 1.0 - std::exp(-m * (equivalent_strain - yield_strain) / yield_strain) : 0.0;
+        const double viscous_overstress = strain_regularization * viscous_eta * (std::exp(viscous_alpha * strain_rate_norm / yield_strain) - 1.0) * std::exp(-viscous_beta * mViscousTime / time_delay);
 
         double F = equivalent_stress - threshold - viscous_overstress;
 
@@ -188,7 +196,11 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
         const double viscous_beta = r_props.Has(VISCOUS_BETA) ? r_props[VISCOUS_BETA] : 1.0;
         const double time_delay = r_props[DELAY_TIME];
         const double yield_strain = r_props.Has(YIELD_STRESS) ? r_props[YIELD_STRESS] / r_props[YOUNG_MODULUS] : r_props[YIELD_STRESS_TENSION] / r_props[YOUNG_MODULUS];
-        const double viscous_overstress = viscous_eta * (std::exp(viscous_alpha * strain_rate_norm / yield_strain) - 1.0) * std::exp(-viscous_beta * mViscousTime / time_delay);
+
+        const double equivalent_strain = inner_prod(predictive_stress_vector, r_strain_vector) / equivalent_stress;
+        const double m = r_props[COHESION];
+        const double strain_regularization = (equivalent_strain-yield_strain > 0.0) ? 1.0 - std::exp(-m * (equivalent_strain-yield_strain) / yield_strain) : 0.0;
+        const double viscous_overstress = strain_regularization * viscous_eta * (std::exp(viscous_alpha * strain_rate_norm / yield_strain) - 1.0) * std::exp(-viscous_beta * mViscousTime / time_delay);
 
         double F = equivalent_stress - threshold - viscous_overstress;
 
