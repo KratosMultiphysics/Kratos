@@ -107,8 +107,8 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawChecksInputParameters, K
 KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLaw_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistration{"SaturatedBelowPhreaticLevelLaw"s,
-                                                                  SaturatedBelowPhreaticLevelLaw{}};
+    const auto scoped_registration = ScopedSerializerRegistration{
+        std::make_pair("SaturatedBelowPhreaticLevelLaw"s, SaturatedBelowPhreaticLevelLaw{})};
     const auto p_retention_law =
         std::unique_ptr<RetentionLaw>{std::make_unique<SaturatedBelowPhreaticLevelLaw>()};
     auto serializer = StreamSerializer{};

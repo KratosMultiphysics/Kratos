@@ -75,7 +75,8 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedLawChecksInputParameters, KratosGeoMechanicsF
 KRATOS_TEST_CASE_IN_SUITE(SaturatedLaw_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistration{"SaturatedLaw"s, SaturatedLaw{}};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("SaturatedLaw"s, SaturatedLaw{})};
     const auto p_retention_law = std::unique_ptr<RetentionLaw>{std::make_unique<SaturatedLaw>()};
     auto       serializer      = StreamSerializer{};
 

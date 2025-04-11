@@ -142,7 +142,8 @@ KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawChecksInputParameters, KratosGeoMechani
 KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLaw_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistration{"VanGenuchtenLaw"s, VanGenuchtenLaw{}};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("VanGenuchtenLaw"s, VanGenuchtenLaw{})};
     const auto p_retention_law = std::unique_ptr<RetentionLaw>{std::make_unique<VanGenuchtenLaw>()};
     auto       serializer      = StreamSerializer{};
 
