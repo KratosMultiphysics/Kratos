@@ -62,56 +62,87 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
 
         const auto &r_props = rValues.GetMaterialProperties();
 
-        const double threshold = GetThreshold();
-        const double plastic_dissipation = GetPlasticDissipation();
-        const Vector plastic_strain = GetPlasticStrain();
+        double threshold = GetThreshold();
+        double plastic_dissipation = GetPlasticDissipation();
+        Vector plastic_strain = GetPlasticStrain();
         const double time_regularization_factor = r_props.Has(TIME_REGULARIZATION) ? r_props[TIME_REGULARIZATION] : time_regularization;
         const double strain_rate_norm = time_regularization_factor * mStrainRateHistory[0] + (1.0 - time_regularization_factor) * mStrainRateHistory[1];
 
-        BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
+        BoundedArrayType predictive_stress_vector;
 
         noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
         this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
 
         double equivalent_stress;
-        ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
+        CLIntegrator::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
 
         const double viscous_eta = r_props[VISCOUS_PARAMETER];
         const double viscous_alpha = r_props.Has(VISCOUS_ALPHA) ? r_props[VISCOUS_ALPHA] : 1.0;
         const double viscous_beta = r_props.Has(VISCOUS_BETA) ? r_props[VISCOUS_BETA] : 1.0;
         const double time_delay = r_props[DELAY_TIME];
-        const double yield_strain = r_props[YIELD_STRESS] / r_props[YOUNG_MODULUS];
+        const double yield_strain = r_props.Has(YIELD_STRESS) ? r_props[YIELD_STRESS] / r_props[YOUNG_MODULUS] : r_props[YIELD_STRESS_TENSION] / r_props[YOUNG_MODULUS];
         const double viscous_overstress = viscous_eta * (std::exp(viscous_alpha * strain_rate_norm / yield_strain) - 1.0) * std::exp(-viscous_beta * mViscousTime / time_delay);
 
-        const double F = equivalent_stress - threshold - viscous_overstress;
+        double F = equivalent_stress - threshold - viscous_overstress;
 
-        // if (F >= 0.0) {
-        //     // Integrate Stress plasticity
-        //     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+        if (F > 0.0) {
+            // Integrate Stress plasticity
+            const double characteristic_length = AdvCLUtils::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
-        //     BoundedArrayType deviatoric_stress_vector;
-        //     double I1, J2;
-        //     ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
-        //     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
+            IndexType iteration = 0;
+            IndexType max_iter = r_props.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_props[MAX_NUMBER_NL_CL_ITERATIONS] : 100;
+            bool is_converged = false;
 
-        //     const auto& r_props = rValues.GetMaterialProperties();
-        //     const double mu = r_props[MIU];
-        //     const double sensitivity = r_props.Has(DP_EPSILON) ? r_props[DP_EPSILON] : 1.0; 
-        //     // Perzyna model
-        //     const double plastic_multiplier = (std::pow(equivalent_stress / threshold, 1.0 / sensitivity) - 1.0) / mu;
+            // Initialize Plastic Parameters
+            double uniaxial_stress = 0.0;
+            double plastic_denominator = 0.0;
+            array_1d<double, VoigtSize> dF_dS; // DF/DS
+            array_1d<double, VoigtSize> dG_dS; // DG/DS
+            array_1d<double, VoigtSize> plastic_strain_increment;
+            dF_dS.clear();
+            dG_dS.clear();
+            plastic_strain_increment.clear();
+            double plastic_consistency_factor_increment; // lambda dot
 
-        //     array_1d<double, VoigtSize> g_flux;
-        //     ConstLawIntegratorType::YieldSurfaceType::CalculatePlasticPotentialDerivative(predictive_stress_vector, deviatoric_stress_vector, J2, g_flux, rValues);
+            // Compute the plastic parameters
+            F = CLIntegrator::CalculatePlasticParameters(
+                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                    threshold, plastic_denominator, dF_dS, dG_dS,
+                    plastic_dissipation, plastic_strain_increment,
+                    r_constitutive_matrix, rValues, characteristic_length,
+                    plastic_strain) -
+                viscous_overstress;
 
-        //     const array_1d<double, VoigtSize> plastic_strain_increment = plastic_multiplier * g_flux;
-        //     noalias(rValues.GetStressVector()) = predictive_stress_vector - prod(r_constitutive_matrix, plastic_strain_increment);
+            // Backward Euler
+            while (!is_converged && iteration <= max_iter) {
+                plastic_consistency_factor_increment = (F * plastic_denominator > 0.0) ? F * plastic_denominator : 0.0;
+                noalias(plastic_strain_increment) = plastic_consistency_factor_increment * dG_dS;
+                noalias(plastic_strain) += plastic_strain_increment;
+    
+                noalias(predictive_stress_vector) -= prod(r_constitutive_matrix, plastic_strain_increment);
 
-        //     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        //         CalculateTangentTensor(rValues, plastic_strain);
-        //     }
-        // } else {
-        //     noalias(rValues.GetStressVector()) = predictive_stress_vector;
-        // }
+                F = CLIntegrator::CalculatePlasticParameters(
+                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                    threshold, plastic_denominator, dF_dS, dG_dS,
+                    plastic_dissipation, plastic_strain_increment,
+                    r_constitutive_matrix, rValues, characteristic_length,
+                    plastic_strain) -
+                viscous_overstress;
+
+                if (F <= std::abs(return_mapping_tol * threshold)) { // Has converged
+                    is_converged = true;
+                } else {
+                    iteration++;
+                }
+            }
+            KRATOS_WARNING_IF("Backward Euler ViscoPlasticity: ", iteration > max_iter) << "Maximum number of iterations in plasticity loop, F = " << F << std::endl;
+
+            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                CalculateTangentTensor(rValues, plastic_strain);
+            }
+        } else {
+            noalias(rValues.GetStressVector()) = predictive_stress_vector;
+        }
     }
 }
 

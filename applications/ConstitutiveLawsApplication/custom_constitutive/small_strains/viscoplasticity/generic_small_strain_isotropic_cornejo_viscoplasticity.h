@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -58,7 +59,9 @@ public:
     // The size type definition
     using SizeType = std::size_t;
 
-    using ConstLawIntegratorType = TConstLawIntegratorType;
+    using CLIntegrator = TConstLawIntegratorType;
+
+    using AdvCLUtils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
@@ -67,6 +70,9 @@ public:
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
     static constexpr double time_regularization = 1.0;
+
+
+    static constexpr double return_mapping_tol = 1.0e-4;
 
     /// Definition of the base class
     using BaseType = GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>;
