@@ -6,7 +6,6 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # Other imports
-import sys
 from importlib import import_module
 
 class LaserDrillingAnalysis(AnalysisStage):
