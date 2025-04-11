@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -17,15 +17,11 @@
 // System includes
 #include <filesystem>
 #include <fstream>
-#include <string>
-#include <unordered_set>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/io.h"
-#include "containers/flags.h"
 
 namespace Kratos
 {
@@ -52,7 +48,8 @@ namespace Kratos
 /// An IO class for reading and writing a modelpart
 /** This class reads and writes all modelpart data including the meshes.
 */
-class KRATOS_API(KRATOS_CORE) ModelPartIO : public IO
+class KRATOS_API(KRATOS_CORE) ModelPartIO 
+    : public IO
 {
 public:
     ///@name Type Definitions
@@ -61,20 +58,40 @@ public:
     /// Pointer definition of ModelPartIO
     KRATOS_CLASS_POINTER_DEFINITION(ModelPartIO);
 
-    typedef IO                                    BaseType;
+    /// Alias for the base IO type.
+    using BaseType = IO;
 
-    typedef BaseType::NodeType                    NodeType;
-    typedef BaseType::MeshType                    MeshType;
-    typedef BaseType::NodesContainerType          NodesContainerType;
-    typedef BaseType::PropertiesContainerType     PropertiesContainerType;
-    typedef BaseType::ElementsContainerType       ElementsContainerType;
-    typedef BaseType::ConditionsContainerType     ConditionsContainerType;
-    typedef BaseType::ConnectivitiesContainerType ConnectivitiesContainerType;
+    /// Alias for the node type.
+    using NodeType = BaseType::NodeType;
 
-    typedef std::vector<std::ostream*>            OutputFilesContainerType;
-    typedef std::size_t                           SizeType;
+    /// Alias for the mesh type.
+    using MeshType = BaseType::MeshType;
 
-    // Prevents this class from hiding IO::WriteProperties(Properties)
+    /// Alias for the nodes container type.
+    using NodesContainerType = BaseType::NodesContainerType;
+
+    /// Alias for the properties container type.
+    using PropertiesContainerType = BaseType::PropertiesContainerType;
+
+    /// Alias for the elements container type.
+    using ElementsContainerType = BaseType::ElementsContainerType;
+
+    /// Alias for the conditions container type.
+    using ConditionsContainerType = BaseType::ConditionsContainerType;
+
+    /// Alias for the master-slave constraints container type.
+    using MasterSlaveConstraintContainerType = BaseType::MasterSlaveConstraintContainerType;
+
+    /// Alias for the connectivities container type.
+    using ConnectivitiesContainerType = BaseType::ConnectivitiesContainerType;
+
+    /// Alias for the output files container type.
+    using OutputFilesContainerType = std::vector<std::ostream*>;
+
+    /// Alias for the size type.
+    using SizeType = std::size_t;
+
+    /// Prevents this class from hiding IO::WriteProperties(Properties)
     using BaseType::WriteProperties;
 
     ///@}
@@ -91,22 +108,18 @@ public:
         Kratos::shared_ptr<std::iostream> Stream,
         const Flags Options = IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
-
     /// Constructor with filenames.
     // ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename)
     //     : mNumberOfLines(0), mInput(std::ifstream(InputFilename.c_str())), mOutput(std::ofstream(OutputFilename.c_str()))
     // {
     // }
 
-
     /// Destructor.
     ~ModelPartIO() override;
-
 
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -216,7 +229,7 @@ public:
      * @param rElementsConnectivities The elements connectivities
      * @return The number of elements
      */
-    std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
+    std::size_t ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
 
     /**
      * @brief This method writes an array of elements
@@ -241,13 +254,40 @@ public:
      * @param rConditionsConnectivities The conditions connectivities
      * @return The number of conditions
      */
-    std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
+    std::size_t ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
     /**
      * @brief This method writes an array of conditions
      * @param rThisConditions The array of conditions to be written
      */
     void WriteConditions(ConditionsContainerType const& rThisConditions) override;
+
+    /**
+     * @brief Reads the master-slave constraints from an input source.
+     * @details This method is intended to be overridden by derived classes to implement
+     * the specific logic for reading master-slave constraints into the provided
+     * container. The base class implementation throws an error, indicating that
+     * the method must be implemented in the derived class.
+     * @param rThisNodes The nodes to be used for associating the master-slave constraints.
+     * @param rMasterSlaveConstraintContainer The container where the master-slave
+     *        constraints will be stored. This container is expected to be populated
+     *        by the derived class implementation.
+     */
+    void ReadMasterSlaveConstraints(
+        NodesContainerType& rThisNodes,
+        MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
+        ) override;
+
+    /**
+     * @brief Writes the master-slave constraints to the output.
+     * @details This method is intended to be overridden by derived classes to provide
+     * specific functionality for writing master-slave constraints. The base
+     * class implementation throws an error, indicating that the method must
+     * be implemented in the derived class.
+     * @param rMasterSlaveConstraintContainer The container holding the master-slave
+     *        constraints to be written.
+     */
+    void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rMasterSlaveConstraintContainer) override;
 
     /**
      * @brief This method reads the initial values of the model part
@@ -359,23 +399,18 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -390,19 +425,15 @@ protected:
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -419,11 +450,9 @@ private:
 
     Kratos::shared_ptr<std::iostream> mpStream;
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -465,11 +494,35 @@ private:
 
     void ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements);
 
-
     void ReadConditionsBlock(ModelPart& rModelPart);
 
     void ReadConditionsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions);
 
+    /**
+     * @brief Reads the master-slave constraints block from the input file.
+     * @details This function is responsible for parsing and loading the master-slave 
+     * constraints defined in the input file into the provided ModelPart. 
+     * Master-slave constraints are used to define relationships between 
+     * degrees of freedom in the model.
+     * @param rModelPart Reference to the ModelPart where the constraints will be added.
+     */
+    void ReadMasterSlaveConstraintsBlock(ModelPart& rModelPart);
+
+    /**
+     * @brief Reads a block of master-slave constraints from the input.
+     * @details This function processes and reads the master-slave constraint data
+     * from the input file, associating it with the provided nodes and
+     * storing the constraints in the specified container.
+     * @param rThisNodes A reference to the container of nodes to be used
+     *                   for associating the master-slave constraints.
+     * @param rMasterSlaveConstraints A reference to the container where
+     *                                the read master-slave constraints
+     *                                will be stored.
+     */
+    void ReadMasterSlaveConstraintsBlock(
+        NodesContainerType& rThisNodes,
+        MasterSlaveConstraintContainerType& rMasterSlaveConstraints
+        );
 
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
 
