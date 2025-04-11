@@ -94,7 +94,6 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
             bool is_converged = false;
 
             // Initialize Plastic Parameters
-            double uniaxial_stress = 0.0;
             double plastic_denominator = 0.0;
             array_1d<double, VoigtSize> dF_dS; // DF/DS
             array_1d<double, VoigtSize> dG_dS; // DG/DS
@@ -106,7 +105,7 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
 
             // Compute the plastic parameters
             F = CLIntegrator::CalculatePlasticParameters(
-                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                    predictive_stress_vector, r_strain_vector, equivalent_stress,
                     threshold, plastic_denominator, dF_dS, dG_dS,
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, rValues, characteristic_length,
@@ -122,7 +121,7 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
                 noalias(predictive_stress_vector) -= prod(r_constitutive_matrix, plastic_strain_increment);
 
                 F = CLIntegrator::CalculatePlasticParameters(
-                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                    predictive_stress_vector, r_strain_vector, equivalent_stress,
                     threshold, plastic_denominator, dF_dS, dG_dS,
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, rValues, characteristic_length,
@@ -177,11 +176,6 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
         const double time_regularization_factor = r_props.Has(TIME_REGULARIZATION) ? r_props[TIME_REGULARIZATION] : time_regularization;
         const double strain_rate_norm = time_regularization_factor * mStrainRateHistory[0] + (1.0 - time_regularization_factor) * mStrainRateHistory[1];
 
-        // We update the strain rate history
-        mStrainRateHistory[1] = mStrainRateHistory[0];
-        mStrainRateHistory[0] = norm_2(r_strain_vector - mPreviousStrain);
-        noalias(mPreviousStrain) = r_strain_vector;
-
         BoundedArrayType predictive_stress_vector;
         noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
         this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
@@ -208,7 +202,6 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
             bool is_converged = false;
 
             // Initialize Plastic Parameters
-            double uniaxial_stress = 0.0;
             double plastic_denominator = 0.0;
             array_1d<double, VoigtSize> dF_dS; // DF/DS
             array_1d<double, VoigtSize> dG_dS; // DG/DS
@@ -220,7 +213,7 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
 
             // Compute the plastic parameters
             F = CLIntegrator::CalculatePlasticParameters(
-                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                    predictive_stress_vector, r_strain_vector, equivalent_stress,
                     threshold, plastic_denominator, dF_dS, dG_dS,
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, rValues, characteristic_length,
@@ -236,7 +229,7 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
                 noalias(predictive_stress_vector) -= prod(r_constitutive_matrix, plastic_strain_increment);
 
                 F = CLIntegrator::CalculatePlasticParameters(
-                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                    predictive_stress_vector, r_strain_vector, equivalent_stress,
                     threshold, plastic_denominator, dF_dS, dG_dS,
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, rValues, characteristic_length,
@@ -254,6 +247,11 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
             // If we enter elasticity, the viscous time is reset.
             mViscousTime = 0.0;
         }
+
+        // We update the strain rate history
+        mStrainRateHistory[1] = mStrainRateHistory[0];
+        mStrainRateHistory[0] = inner_prod(predictive_stress_vector, r_strain_vector - mPreviousStrain) / (equivalent_stress * rValues.GetProcessInfo()[DELTA_TIME]);
+        noalias(mPreviousStrain) = r_strain_vector;
     }
 }
 
