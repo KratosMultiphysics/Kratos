@@ -18,9 +18,6 @@
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
 
-// System includes
-#include <unordered_set> // std::unordered_set
-
 
 namespace Kratos {
 
@@ -273,19 +270,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
     // conditions are reflected in the transpose as well.
     mpImpl->mMaybeTransposeRelationMatrix.reset();
 
-    //// Propagate obvious dirichlet conditions.
-    //detail::ApplyDirichletConditions<TSparse,TDense>(this->GetRelationMatrix(),
-    //                                                 this->GetConstraintGapVector(),
-    //                                                 itDofBegin,
-    //                                                 itDofEnd,
-    //                                                 this->GetName(),
-    //                                                 mpImpl->mVerbosity);
-
     // Fetch function-wide constants.
     using SparseUtils = SparseMatrixMultiplicationUtility;
     mpImpl->mpPenaltyFunctor->template Cache<TSparse>(rLhs);
     const typename TSparse::DataType penalty_factor = this->GetPenaltyFactor();
-    std::cout << rLhs.size1() << " " << "penalty factor" << " " << penalty_factor << "\n";
     const typename TSparse::DataType initial_lagrange_multiplier = this->GetInitialLagrangeMultiplier();
 
     // Apply initial penalty- and lagrange terms to the left- and right hand sides.

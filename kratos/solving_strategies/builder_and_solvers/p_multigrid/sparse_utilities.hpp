@@ -19,9 +19,21 @@
 
 // System includes
 #include <cstdint> // std::uint8_t
+#include <climits> // CHAR_BIT
 
 
 namespace Kratos {
+
+
+// "Hey compiler trust me, my arrays are aligned so try vectorizing my loops over them."
+#if defined(__GNUC__) || defined(__clang__)
+#define KRATOS_GET_ALIGNED_INDEX_ARRAY(POINTER_TYPE, POINTER_NAME, POINTER_VALUE)                                                   \
+    POINTER_TYPE __restrict POINTER_NAME = (POINTER_TYPE) __builtin_assume_aligned(POINTER_VALUE, CHAR_BIT * sizeof(POINTER_TYPE));
+#else
+// Someone can figure out how to encourage AVX on MSVC, I won't.
+#define KRATOS_GET_ALIGNED_INDEX_ARRAY(POINTER_TYPE, POINTER_NAME, POINTER_VALUE)   \
+    POINTER_TYPE POINTER_NAME = POINTER_VALUE;
+#endif
 
 
 /// @brief Computes \f$A += c * B\f$.
@@ -243,12 +255,13 @@ void MapRowContribution(typename TSparse::MatrixType& rLhs,
 
     const auto i_row_begin = r_row_extents[iRow];
     const auto i_row_end = r_row_extents[iRow + 1];
+    const typename TDense::IndexType row_size = rEquationIds.size();
 
-    for (unsigned int i_local_column=0; i_local_column<rEquationIds.size(); i_local_column++) {
-        const unsigned int iColumn = rEquationIds[i_local_column];
+    for (typename TDense::IndexType i_local_column=0; i_local_column<row_size; ++i_local_column) {
+        const typename TSparse::IndexType iColumn = rEquationIds[i_local_column];
         const auto it = std::lower_bound(r_column_indices.begin() + i_row_begin,
-                                            r_column_indices.begin() + i_row_end,
-                                            iColumn);
+                                         r_column_indices.begin() + i_row_end,
+                                         iColumn);
         r_entries[std::distance(r_column_indices.begin(), it)] += rLocalLhs(iLocalRow, i_local_column);
     }
 }
@@ -260,10 +273,10 @@ void MapContribution(typename TSparse::VectorType& rRhs,
                      const typename TDense::VectorType& rContribution,
                      const Element::EquationIdVectorType& rEquationIds) noexcept
 {
-    const unsigned local_size = rContribution.size();
+    const typename TDense::IndexType local_size = rContribution.size();
 
-    for (unsigned i_local = 0; i_local < local_size; i_local++) {
-        const unsigned i_global = rEquationIds[i_local];
+    for (typename TDense::IndexType i_local = 0; i_local < local_size; i_local++) {
+        const typename TSparse::IndexType i_global = rEquationIds[i_local];
         AtomicAdd(rRhs[i_global], static_cast<typename TSparse::DataType>(rContribution[i_local]));
     }
 }
@@ -276,8 +289,8 @@ void MapContribution(typename TSparse::MatrixType& rLhs,
                      const Element::EquationIdVectorType& rEquationIds,
                      LockObject* pLockBegin) noexcept
 {
-    const std::size_t local_size = rContribution.size1();
-    for (IndexType i_local = 0; i_local < local_size; i_local++) {
+    const typename TDense::IndexType local_size = rContribution.size1();
+    for (typename TDense::IndexType i_local = 0; i_local < local_size; i_local++) {
         const IndexType i_global = rEquationIds[i_local];
         std::scoped_lock<LockObject> lock(pLockBegin[i_global]);
         MapRowContribution<TSparse,TDense>(rLhs,
@@ -298,9 +311,9 @@ void MapContribution(typename TSparse::MatrixType& rLhs,
                      const Element::EquationIdVectorType& rEquationIds,
                      LockObject* pLockBegin) noexcept
 {
-    const unsigned local_size = rLhsContribution.size1();
-    for (unsigned i_local = 0; i_local < local_size; i_local++) {
-        const unsigned i_global = rEquationIds[i_local];
+    const typename TDense::IndexType local_size = rLhsContribution.size1();
+    for (typename TDense::IndexType i_local = 0; i_local < local_size; i_local++) {
+        const typename TSparse::IndexType i_global = rEquationIds[i_local];
         std::scoped_lock<LockObject> lock(pLockBegin[i_global]);
         rRhs[i_global] += rRhsContribution[i_local];
         MapRowContribution<TSparse,TDense>(rLhs,
@@ -550,6 +563,18 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
 }
 
 
+/// @brief Compute a scaled matrix-vector product and add it to the provided output vector.
+/// @details Computes @f[
+///             r += a * A b
+///          @f]
+///          where @p A is the input matrix, @p b the input vector, @p r the output vector and @p a the scaling coefficient.
+/// @tparam TLHSSparse Sparse space of the input matrix.
+/// @tparam TRHSSparse Sparse space of the input vector.
+/// @tparam TOutputSparse Sparse space of the output vector.
+/// @param rLhs Input matrix.
+/// @param rRhs Input vector.
+/// @param rOutput Output vector.
+/// @param Coefficient Coefficient to scale each output component by.
 template <class TLHSSparse, class TRHSSparse, class TOutputSparse>
 void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                      const typename TRHSSparse::VectorType& rRhs,
@@ -558,18 +583,19 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
 {
     // Create partition for entries in the matrix.
     const auto thread_count = ParallelUtilities::GetNumThreads();
-    std::vector<std::size_t> partition(thread_count + 1);
+    std::vector<typename TLHSSparse::IndexType> partition(thread_count + 1);
 
     partition.front() = 0ul;
     const auto chunk_size = rLhs.nnz() / partition.size();
-    for (std::size_t i_end=1ul; i_end<partition.size(); ++i_end) {
+    for (typename TLHSSparse::IndexType i_end=1ul; i_end<partition.size(); ++i_end) {
         partition[i_end] = partition[i_end - 1] + chunk_size;
     } // for i_end in range(1, partition.size())
     partition.back() = rLhs.nnz();
 
     // Compute matrix-vector product.
     #define KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT(OPERATOR)                                                                                 \
-        IndexPartition<std::size_t>(thread_count).for_each([&rLhs, &rRhs, &rOutput, &partition, Coefficient](const std::size_t i_chunk){    \
+        IndexPartition<typename TLHSSparse::IndexType>(thread_count).for_each(                                                              \
+        [&rLhs, &rRhs, &rOutput, &partition, Coefficient](const typename TLHSSparse::IndexType i_chunk){                                    \
             (void)Coefficient; /*<== suppress unused capture warnings*/                                                                     \
             /* Define the entry range to compute on. */                                                                                     \
             const auto i_chunk_begin = partition[i_chunk];                                                                                  \
@@ -579,7 +605,7 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
             const auto it_initial_row = std::lower_bound(rLhs.index1_data().begin(),                                                        \
                                                          rLhs.index1_data().end(),                                                          \
                                                          static_cast<typename TLHSSparse::IndexType>(i_chunk_begin));                       \
-            std::size_t i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                                                  \
+            auto i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                                                         \
             if (i_row != i_chunk_begin) --i_row;                                                                                            \
                                                                                                                                             \
             do {                                                                                                                            \
@@ -589,14 +615,17 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                 const auto i_begin = std::max(i_row_begin, i_chunk_begin);                                                                  \
                 const auto i_end = std::min(i_row_end, i_chunk_end);                                                                        \
                                                                                                                                             \
-                const auto it_column_end = rLhs.index2_data().begin() + i_end;                                                              \
-                auto it_entry = rLhs.value_data().begin() + i_begin;                                                                        \
                 auto contribution = static_cast<typename TOutputSparse::DataType>(0);                                                       \
                                                                                                                                             \
-                for (auto it_column=rLhs.index2_data().begin() + i_begin; it_column!=it_column_end; ++it_column, ++it_entry) {              \
-                    const auto i_column = *it_column;                                                                                       \
-                    const auto entry = *it_entry;                                                                                           \
-                    contribution += entry * rRhs[i_column];                                                                                 \
+                KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TLHSSparse::IndexType*, it_column, &*(rLhs.index2_data().begin() + i_begin)); \
+                KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TLHSSparse::DataType*, it_entry, &*(rLhs.value_data().begin() + i_begin));    \
+                KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TRHSSparse::DataType*, it_rhs, &*rRhs.begin());                               \
+                const typename TLHSSparse::IndexType chunk_size = i_end - i_begin;                                                          \
+                                                                                                                                            \
+                for (typename TLHSSparse::IndexType i=0; i<chunk_size; ++i) {                                                               \
+                    const auto i_column = it_column[i];                                                                                     \
+                    const auto entry = it_entry[i];                                                                                         \
+                    contribution += entry * it_rhs[i_column];                                                                               \
                 } /* for i_entry in range(i_begin, i_end) */                                                                                \
                                                                                                                                             \
                 if constexpr (std::is_same_v<OPERATOR,std::plus<typename TOutputSparse::DataType>>) {                                       \
@@ -622,7 +651,12 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
     } else {
         KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT(std::multiplies<typename TOutputSparse::DataType>);
     }
+
+    #undef KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT
 }
+
+
+#undef KRATOS_GET_ALIGNED_INDEX_ARRAY
 
 
 } // namespace Kratos
