@@ -70,20 +70,6 @@ std::shared_ptr<Properties> CreateProperties()
     return p_properties;
 }
 
-void SetSolutionStepValuesForFluidFluxCheck(const Element::Pointer& rElement)
-{
-    const auto zero_values = array_1d<double, 3>{0.0, 0.0, 0.0};
-    for (auto& r_node : rElement->GetGeometry()) {
-        r_node.FastGetSolutionStepValue(DISPLACEMENT) = zero_values;
-        r_node.FastGetSolutionStepValue(VELOCITY)     = zero_values;
-        // Zero acceleration -> no Fluid Body Flow
-        r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = zero_values;
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE)      = 1.0E4;
-        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE)   = 0.0;
-    }
-    rElement->GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE) = 2.0E4;
-}
-
 void SetSolutionStepValuesForGeneralCheck(const Element::Pointer& rElement)
 {
     const auto zero_values = array_1d<double, 3>{0.0, 0.0, 0.0};
