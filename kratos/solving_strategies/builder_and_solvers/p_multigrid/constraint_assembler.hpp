@@ -79,13 +79,9 @@ public:
         this->SetValue(ConstraintAssembler::GetImpositionVariable(), method_name);
     }
 
-    ConstraintAssembler(ConstraintAssembler&&) noexcept = default;
-
     /// @details Define an overriding virtual destructor to ensure compile time errors
     //           if the base class' destructor turns non-virtual.
     virtual ~ConstraintAssembler() override = default;
-
-    ConstraintAssembler& operator=(ConstraintAssembler&&) noexcept = default;
 
     /// @brief Allocate memory for the constraint gap vector and relation matrix, and compute its topology.
     /// @details This function is responsible for large memory allocations, as well as computing
@@ -179,6 +175,13 @@ public:
                           typename TSparse::VectorType& rRhs,
                           DofSet& rDofSet)
     {
+        this->Apply(rSolution);
+    }
+
+    /// @brief Transform the input vector from the independent space to the constrained space.
+    /// @param rSolution Input solution vector in the independent space.
+    virtual void Apply(typename TSparse::VectorType& rSolution) const
+    {
     }
 
     /// @brief Release memory related to the linear system and constraints.
@@ -241,9 +244,13 @@ protected:
     }
 
 private:
+    ConstraintAssembler(ConstraintAssembler&&) noexcept = default;
+
     ConstraintAssembler(const ConstraintAssembler&) = delete;
 
     ConstraintAssembler& operator=(const ConstraintAssembler&) = delete;
+
+    ConstraintAssembler& operator=(ConstraintAssembler&&) noexcept = default;
 
     static const Variable<std::string>& GetImpositionVariable() noexcept
     {
