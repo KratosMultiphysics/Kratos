@@ -11,8 +11,14 @@
 //
 
 #include "custom_retention/saturated_below_phreatic_level_law.h"
+#include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
+#include <string>
+
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -96,6 +102,25 @@ KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLawChecksInputParameters, K
     properties.SetValue(MINIMUM_RELATIVE_PERMEABILITY, 0.05);
 
     KRATOS_EXPECT_EQ(law.Check(properties, process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SaturatedBelowPhreaticLevelLaw_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto scoped_registration = ScopedSerializerRegistration{"SaturatedBelowPhreaticLevelLaw"s,
+                                                                  SaturatedBelowPhreaticLevelLaw{}};
+    const auto p_retention_law =
+        std::unique_ptr<RetentionLaw>{std::make_unique<SaturatedBelowPhreaticLevelLaw>()};
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_retention_law);
+    auto p_loaded_retention_law = std::unique_ptr<RetentionLaw>{};
+    serializer.load("test_tag"s, p_loaded_retention_law);
+
+    // Assert
+    KRATOS_EXPECT_NE(p_loaded_retention_law, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<SaturatedBelowPhreaticLevelLaw*>(p_loaded_retention_law.get()), nullptr);
 }
 
 } // namespace Kratos::Testing
