@@ -48,7 +48,7 @@ public:
                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : Element(NewId, ThisNodes), mpStressStatePolicy{std::move(pStressStatePolicy)}
     {
-        mpCalculateIntegrationCoefficients =
+        mpIntegrationCoefficientsCalculator =
             std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier));
     }
 
@@ -59,7 +59,7 @@ public:
                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : Element(NewId, pGeometry), mpStressStatePolicy{std::move(pStressStatePolicy)}
     {
-        mpCalculateIntegrationCoefficients =
+        mpIntegrationCoefficientsCalculator =
             std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier));
     }
 
@@ -73,7 +73,7 @@ public:
     {
         // this is needed for interface elements
         mThisIntegrationMethod = this->GetIntegrationMethod();
-        mpCalculateIntegrationCoefficients =
+        mpIntegrationCoefficientsCalculator =
             std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier));
     }
 
@@ -203,7 +203,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
-    std::unique_ptr<IntegrationCoefficientsCalculator> mpCalculateIntegrationCoefficients;
+    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator;
 };
 
 // Class UPwBaseElement
