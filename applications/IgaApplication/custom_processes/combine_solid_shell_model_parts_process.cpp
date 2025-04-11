@@ -73,8 +73,8 @@ namespace Kratos
 		
 		PointerVector<CouplingGeometry<Node>> Coupled_Quadrature_Point_Geometries(num_integration_points);
 		
-		for (SizeType i = 0; i < num_integration_points; ++i) {
-			Coupled_Quadrature_Point_Geometries(i) = Kratos::make_shared<CouplingGeometry<Node>>(master_quadrature_points_geometry(i), slave_quadrature_points_geometry(i));
+		for (SizeType i = 0; i < num_integration_points; ++i) { 
+			Coupled_Quadrature_Point_Geometries(i) = Kratos::make_shared<CouplingGeometry<Node>>(master_quadrature_points_geometry(i), slave_quadrature_points_geometry(i)); 
 			if (i < 1) {
 				std::cout << " Print the geometry Info for master of coupled geometry" << master_quadrature_points_geometry(i)->Info() << std::endl;
 				std::cout << " Print the geometry Info for slave of coupled geometry" << slave_quadrature_points_geometry(i)->Info() << std::endl;
@@ -97,7 +97,7 @@ namespace Kratos
 		CombineModelParts();
 
 		_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("NurbsMesh").RemoveSubModelPart("Neumann_BC");
-		_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").RemoveSubModelPart("Load_3");
+		//_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").RemoveSubModelPart("Load_3");
 
 		// assign each coupling geometry to the coupling condition
 		ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("CouplingInterface");
