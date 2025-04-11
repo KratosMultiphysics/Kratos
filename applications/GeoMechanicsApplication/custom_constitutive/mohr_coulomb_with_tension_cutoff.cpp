@@ -271,4 +271,23 @@ void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLa
     mStressVectorFinalized = mStressVector;
 }
 
+void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
+{
+    rSerializer.save("ConstitutiveLawDimension", mpConstitutiveDimension);
+    rSerializer.save("StressVector", mStressVector);
+    rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
+    rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
+    rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
+    rSerializer.save("TensionCutOff", mTensionCutOff);
+}
+
+void MohrCoulombWithTensionCutOff::load(Serializer&rSerializer)
+{
+    rSerializer.load("ConstitutiveLawDimension", mpConstitutiveDimension);
+    rSerializer.load("StressVector", mStressVector);
+    rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
+    rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
+    rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
+    rSerializer.load("TensionCutOff", mTensionCutOff);
+}
 } // Namespace Kratos
