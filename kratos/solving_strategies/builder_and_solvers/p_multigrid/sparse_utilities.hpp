@@ -605,7 +605,7 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
             const auto it_initial_row = std::lower_bound(rLhs.index1_data().begin(),                                                        \
                                                          rLhs.index1_data().end(),                                                          \
                                                          static_cast<typename TLHSSparse::IndexType>(i_chunk_begin));                       \
-            auto i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                                                         \
+            typename TLHSSparse::IndexType i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                               \
             if (i_row != i_chunk_begin) --i_row;                                                                                            \
                                                                                                                                             \
             do {                                                                                                                            \
