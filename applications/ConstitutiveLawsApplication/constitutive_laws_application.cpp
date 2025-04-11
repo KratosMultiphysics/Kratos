@@ -129,6 +129,8 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicViscoPlasticityPlaneStrainDruckerPragerMohrCoulomb", mSmallStrainIsotropicViscoPlasticityPlaneStrainDruckerPragerMohrCoulomb);
 
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicCornejoViscoPlasticity3DVonMisesVonMises", mSmallStrainIsotropicCornejoViscoPlasticity3DVonMisesVonMises);
+    
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DVonMisesVonMises", mSmallStrainIsotropicPlasticity3DVonMisesVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb", mSmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DVonMisesDruckerPrager", mSmallStrainIsotropicPlasticity3DVonMisesDruckerPrager);

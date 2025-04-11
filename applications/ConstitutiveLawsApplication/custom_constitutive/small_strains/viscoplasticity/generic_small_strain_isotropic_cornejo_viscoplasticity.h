@@ -150,10 +150,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
-        void CalculateAnalyticalTangentConstitutiveMatrix(
-            ConstitutiveLaw::Parameters& rValues
-        );
-
     ///@}
     ///@name Access
     ///@{
