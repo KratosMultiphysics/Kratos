@@ -24,6 +24,8 @@
 
 #include "modeler/voxel_mesh_generator_modeler.h"
 
+#include "modeler/voxel_mesh_generator_modeler_with_min_dist.h"
+
 namespace Kratos::Testing {
 
 namespace {
@@ -663,5 +665,77 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 
 	}
 
+	KRATOS_TEST_CASE_IN_SUITE(VoxelMesherWithVectorDistances, KratosCoreFastSuite)
+	{
+		using namespace Kratos;
+
+		WriteCubeSkinMeshMdpaFileForVoxelModelerTest();
+		std::cout << "Cube writen" << std::endl;
+
+		Parameters mesher_parameters(R"(
+			{
+				"output_model_part_name" : "main_model_part",
+				"input_model_part_name" : "skin_model_part",
+				"mdpa_file_name" : "cube_skin_mesh",
+				"key_plane_generator": {
+					"Parameters" : {
+						"voxel_sizes" : [0.025, 0.025, 0.025],
+						"min_point" : [-0.05, -0.05, 0],
+						"max_point" : [0.05, 0.05, 0.1]
+					}
+				},
+				"coloring_settings_list": [
+				{
+					"type" : "cells_in_touch",
+					"model_part_name": "skin_model_part.workpiece",
+					"color": 14
+				},
+				{
+					"type" : "cells_with_inside_center",
+					"model_part_name": "skin_model_part.workpiece",
+					"color": 14
+				}
+				],
+				"entities_generator_list": [
+				{
+					"type" : "elements_with_cell_color",
+					"model_part_name": "main_model_part.workpiece",
+					"color": 14,
+					"properties_id": 1
+				} 
+				]
+			})");
+			
+		Model current_model;
+		current_model.CreateModelPart("main_model_part");
+
+		// Generate the skin
+		current_model.CreateModelPart("skin_model_part");
+
+		std::cout << "Modelpart created" << std::endl;
+
+		// Generating the mesh
+		auto voxel_mesher = VoxelMeshGeneratorModelerWithMinDist(current_model, mesher_parameters);
+		voxel_mesher.SetupGeometryModel();
+		voxel_mesher.SetupModelPart();
+
+		std::cout << "VoxelMeshModeler created" << std::endl;
+
+		//voxel_mesher.FindVectorDistanceToSurface();
+		voxel_mesher.FindDistanceToSkin();
+		voxel_mesher.ApplyColoringToNodes();
+
+		std::cout << "Distances and colors computed" << std::endl;
+		
+		std::vector<array_1d<double,3>> dists = voxel_mesher.GetDistances();
+
+		for (array_1d<double,3> distance : dists) 
+		{
+			for(std::size_t i = 0; i < 3; i++)
+			{
+				//KRATOS_EXPECT_NEAR(distance[i], 0, 1e-6);
+			}
+		}
+	}
 
 } // namespace Kratos::Testing
