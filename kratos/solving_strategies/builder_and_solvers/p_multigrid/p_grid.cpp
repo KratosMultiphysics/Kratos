@@ -431,6 +431,7 @@ template <class TSparse, class TDense>
 template <class TParentSparse>
 bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::VectorType& rParentSolution,
                                                   const typename TParentSparse::VectorType& rParentRhs,
+                                                  const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
                                                   PMGStatusStream& rStream)
 {
     #ifndef NDEBUG
@@ -445,9 +446,6 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
 
     // Restrict the residual from the fine grid to the coarse one (this grid).
     KRATOS_TRY
-    // This is a matrix-vector product of potentially different value types. In its current state,
-    // sparse spaces do not support computing the products of arguments with different value types,
-    // so I'm directly invoking the UBLAS template that does support it.
     TSparse::SetToZero(mRhs);
     TSparse::SetToZero(mSolution);
     BalancedProduct<TSparse,TParentSparse,TSparse>(mRestrictionOperator, rParentRhs, mRhs);
@@ -467,9 +465,6 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
 
     // Prolong the coarse solution to the fine grid.
     KRATOS_TRY
-    // This is a matrix-vector product of potentially different value types. In its current state,
-    // sparse spaces do not support computing the products of arguments with different value types,
-    // so I'm directly invoking the UBLAS template that does support it.
     TParentSparse::SetToZero(rParentSolution);
     BalancedProduct<TSparse,TSparse,TParentSparse>(mProlongationOperator, mSolution, rParentSolution);
     KRATOS_CATCH("")
@@ -565,6 +560,7 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
                                                                    const TParentSparse::VectorType&);                           \
     template bool PGrid<TSparse,TDense>::ApplyCoarseCorrection<TParentSparse>(TParentSparse::VectorType&,                       \
                                                                               const TParentSparse::VectorType&,                 \
+                                                                              const ConstraintAssembler<TParentSparse,TDense>&, \
                                                                               PMGStatusStream&);                                \
     template void PGrid<TSparse,TDense>::Finalize<TParentSparse>(ModelPart&,                                                    \
                                                                  const TParentSparse::MatrixType&,                              \

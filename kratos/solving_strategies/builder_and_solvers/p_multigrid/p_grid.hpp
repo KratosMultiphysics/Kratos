@@ -76,6 +76,7 @@ public:
     template <class TParentSparse>
     bool ApplyCoarseCorrection(typename TParentSparse::VectorType& rParentSolution,
                                const typename TParentSparse::VectorType& rParentResidual,
+                               const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
                                PMGStatusStream& rStream);
 
     template <class TParentSparse>

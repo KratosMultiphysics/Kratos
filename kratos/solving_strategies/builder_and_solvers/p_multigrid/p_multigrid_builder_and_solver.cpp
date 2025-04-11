@@ -107,10 +107,11 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
                && !rReport.multigrid_converged) {
             // Solve the coarse grid and apply its correction.
             if (mMaybeHierarchy.has_value()) {
-                std::visit([&rSolutionUpdate, &rResidual, &rStream](auto& r_hierarchy){
+                std::visit([&rSolutionUpdate, &rResidual, &rStream, this](auto& r_hierarchy){
                                 return r_hierarchy.template ApplyCoarseCorrection<TSparse>(
                                     rSolutionUpdate,
                                     rResidual,
+                                    *mpConstraintAssembler,
                                     rStream);},
                            mMaybeHierarchy.value());
 
