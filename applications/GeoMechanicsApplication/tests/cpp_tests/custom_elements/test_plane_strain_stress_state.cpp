@@ -130,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CanBeSavedAndLoadedThroughInter
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"PlaneStrainStressState"s, PlaneStrainStressState{}};
+        ScopedSerializerRegistration{std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{})};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneStrainStressState>()};
     auto serializer = StreamSerializer{};
 

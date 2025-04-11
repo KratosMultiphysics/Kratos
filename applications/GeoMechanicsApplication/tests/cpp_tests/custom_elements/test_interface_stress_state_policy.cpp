@@ -155,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterfa
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"InterfaceStressState"s, InterfaceStressState{}};
+        ScopedSerializerRegistration{std::make_pair("InterfaceStressState"s, InterfaceStressState{})};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<InterfaceStressState>()};
     auto serializer = StreamSerializer{};
 

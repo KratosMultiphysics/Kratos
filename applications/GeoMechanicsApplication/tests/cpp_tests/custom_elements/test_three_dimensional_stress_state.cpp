@@ -143,8 +143,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CanBeSavedAndLoadedThrough
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration =
-        ScopedSerializerRegistration{"ThreeDimensionalStressState"s, ThreeDimensionalStressState{}};
+    const auto scoped_registration = ScopedSerializerRegistration{
+        std::make_pair("ThreeDimensionalStressState"s, ThreeDimensionalStressState{})};
     const auto p_policy =
         std::unique_ptr<StressStatePolicy>{std::make_unique<ThreeDimensionalStressState>()};
     auto serializer = StreamSerializer{};

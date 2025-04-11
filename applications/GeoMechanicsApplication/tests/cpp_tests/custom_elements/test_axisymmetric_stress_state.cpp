@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CanBeSavedAndLoadedThroughInte
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"AxisymmetricStressState"s, AxisymmetricStressState{}};
+        ScopedSerializerRegistration{std::make_pair("AxisymmetricStressState"s, AxisymmetricStressState{})};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<AxisymmetricStressState>()};
     auto serializer = StreamSerializer{};
 

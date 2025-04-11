@@ -49,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterfac
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"CoulombYieldSurface"s, CoulombYieldSurface{}};
+        ScopedSerializerRegistration{std::make_pair("CoulombYieldSurface"s, CoulombYieldSurface{})};
     constexpr auto friction_angle          = MathUtils<>::DegreesToRadians(60.0);
     constexpr auto cohesion                = 2.0;
     constexpr auto dilatancy_angle         = MathUtils<>::DegreesToRadians(30.0);
@@ -94,7 +94,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
 KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistration{"TensionCutoff"s, TensionCutoff{}};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("TensionCutoff"s, TensionCutoff{})};
     constexpr auto tensile_strength = 2.0;
     auto p_tension_cut_off = std::unique_ptr<YieldSurface>(std::make_unique<TensionCutoff>(tensile_strength));
     auto serializer = StreamSerializer{};

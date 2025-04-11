@@ -24,11 +24,13 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <custom_utilities/registration_utilities.h>
+#include <string>
 
 namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 ModelPart& CreateModelPartWithUPwSolutionStepVariables(Model& rModel)
 {
@@ -262,9 +264,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAndLoad, KratosGeoMechanicsFastSuite)
 {
     // Arrange
-    ScopedSerializerRegistration registration("SaturatedLaw", SaturatedLaw{});
-    ScopedSerializerRegistration registration2("PlaneStrain", PlaneStrain{});
-    ScopedSerializerRegistration registration3("PlaneStrainStressState", PlaneStrainStressState{});
+    ScopedSerializerRegistration registration(
+        std::make_pair("SaturatedLaw"s, SaturatedLaw{}), std::make_pair("PlaneStrain"s, PlaneStrain{}),
+        std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     Model model;
     auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
@@ -304,11 +306,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAnd
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectRHSAfterSaveAndLoad, KratosGeoMechanicsFastSuite)
 {
     // Arrange
-    ScopedSerializerRegistration registration("SaturatedLaw", SaturatedLaw{});
-    ScopedSerializerRegistration registration2("PlaneStrain", PlaneStrain{});
-    ScopedSerializerRegistration registration3("PlaneStrainStressState", PlaneStrainStressState{});
-    Model                        model;
-    auto element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    ScopedSerializerRegistration registration(
+        std::make_pair("SaturatedLaw"s, SaturatedLaw{}), std::make_pair("PlaneStrain"s, PlaneStrain{}),
+        std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
+
+    Model model;
+    auto  element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForFluidFluxCheck(element);
     const auto process_info = ProcessInfo{};
 
@@ -429,9 +432,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndCalculateOnIntegrationPointsVectors_WithSaveAndLoad,
                           KratosGeoMechanicsFastSuite)
 {
-    ScopedSerializerRegistration registration("SaturatedLaw", SaturatedLaw{});
-    ScopedSerializerRegistration registration2("PlaneStrain", PlaneStrain{});
-    ScopedSerializerRegistration registration3("PlaneStrainStressState", PlaneStrainStressState{});
+    ScopedSerializerRegistration registration(
+        std::make_pair("SaturatedLaw"s, SaturatedLaw{}), std::make_pair("PlaneStrain"s, PlaneStrain{}),
+        std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     // Arrange
     Model model;

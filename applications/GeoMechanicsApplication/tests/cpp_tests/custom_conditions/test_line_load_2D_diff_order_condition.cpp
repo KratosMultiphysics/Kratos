@@ -30,12 +30,10 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto registration1 =
-        ScopedSerializerRegistration{"LineLoad2DDiffOrderCondition"s, LineLoad2DDiffOrderCondition{}};
-    const auto registration2 =
-        ScopedSerializerRegistration{"Line2D3"s, Line2D3<Node>{PointerVector<Node>(3)}};
-    const auto registration3 =
-        ScopedSerializerRegistration{"Line2D2"s, Line2D2<Node>{PointerVector<Node>(2)}};
+    const auto registration = ScopedSerializerRegistration(
+        std::make_pair("LineLoad2DDiffOrderCondition"s, LineLoad2DDiffOrderCondition{}),
+        std::make_pair("Line2D3"s, Line2D3<Node>{PointerVector<Node>(3)}),
+        std::make_pair("Line2D2"s, Line2D2<Node>{PointerVector<Node>(2)}));
 
     auto p_condition      = ElementSetupUtilities::Create2D3NLineCondition();
     auto p_variables_list = make_intrusive<VariablesList>();

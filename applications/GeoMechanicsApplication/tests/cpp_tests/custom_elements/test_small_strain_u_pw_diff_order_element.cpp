@@ -10,7 +10,11 @@
 //  Main authors:    Anne van de Graaf
 //
 
+#include "custom_constitutive/incremental_linear_elastic_law.h"
+#include "custom_constitutive/plane_strain.h"
+#include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
@@ -18,15 +22,13 @@
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
-#include <custom_constitutive/incremental_linear_elastic_law.h>
-#include <custom_constitutive/plane_strain.h>
-#include <custom_elements/plane_strain_stress_state.h>
-#include <custom_utilities/registration_utilities.h>
+#include <string>
 
 namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 ModelPart& CreateModelPartWithUPwSolutionStepVariables(Model& rModel)
 {
@@ -183,9 +185,10 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeo
 
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAndLoad, KratosGeoMechanicsFastSuite)
 {
-    ScopedSerializerRegistration registration("SaturatedLaw", SaturatedLaw{});
-    ScopedSerializerRegistration registration2("PlaneStrain", PlaneStrain{});
-    ScopedSerializerRegistration registration3("PlaneStrainStressState", PlaneStrainStressState{});
+    ScopedSerializerRegistration registration(
+        std::make_pair("SaturatedLaw"s, SaturatedLaw{}), std::make_pair("PlaneStrain"s, PlaneStrain{}),
+        std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
+
     // Arrange
     Model model;
     auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(model, CreateProperties());
