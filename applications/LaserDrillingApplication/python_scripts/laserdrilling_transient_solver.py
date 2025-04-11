@@ -2,6 +2,8 @@ import os
 import time as timer
 from os import environ
 
+from abc import ABC, abstractmethod
+
 import h5py
 import numpy as np
 from scipy.interpolate import interp1d
@@ -12,9 +14,6 @@ from scipy.interpolate import interp1d
 environ["OMP_NUM_THREADS"] = "4"
 
 import KratosMultiphysics
-
-# Marked as unused by Ruff. I still don't trust it enough to simply remove the line.
-# import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 from KratosMultiphysics.ConvectionDiffusionApplication import (
     convection_diffusion_transient_solver,
@@ -33,7 +32,9 @@ def CreateSolver(model, custom_settings):
     return LaserDrillingTransientSolver(model, custom_settings)
 
 
-class LaserDrillingTransientSolver(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver):
+class LaserDrillingTransientSolver(
+    convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, ABC
+):
     def __init__(self, model, custom_settings):
         # Construct the base solver and validate the settings in base class
         super().__init__(model, custom_settings)
@@ -41,12 +42,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
-        self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] #TODO: Make delta_time a local variable
+        self.delta_time = self.main_model_part.ProcessInfo[
+            KratosMultiphysics.DELTA_TIME
+        ]  # TODO: Make delta_time a local variable
 
-        self.jump_between_pulses_counter += self.delta_time 
+        self.jump_between_pulses_counter += self.delta_time
         error_in_delta_time = abs(self.jump_between_pulses_counter - self.time_jump_between_pulses)
-        
-        numerical_error = 1e-16 #TODO: Make it global or a parameter?
+
+        numerical_error = 1e-16  # TODO: Make it global or a parameter?
         if (
             self.jump_between_pulses_counter >= self.time_jump_between_pulses
             or error_in_delta_time < numerical_error
@@ -238,7 +241,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             ].GetBool()
 
         self.Q = self.average_laser_power / self.pulse_frequency  # Energy per pulse
-        self.time_jump_between_pulses = 1.0 / self.pulse_frequency # TODO: rename to something like pulse_period?
+        self.time_jump_between_pulses = (
+            1.0 / self.pulse_frequency
+        )  # TODO: rename to something like pulse_period?
         self.cp = self.material_settings["Variables"]["SPECIFIC_HEAT"].GetDouble()
         self.conductivity = self.material_settings["Variables"]["CONDUCTIVITY"].GetDouble()
         self.rho = self.material_settings["Variables"]["DENSITY"].GetDouble()
@@ -1189,3 +1194,21 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             name_string = f"{condition_name}{domain_size}D{num_nodes_conditions}N"
             self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
         return self.settings["element_replace_settings"]
+
+    @abstractmethod
+    def ImposeTemperatureIncreaseDueToLaser(self):
+        """
+        Increases the temperature as an effect of the energy deposition by the laser pulse.
+        Does not take into account the refraction of the ray at the boundary air-solid.
+        Must be implemented by child classes.
+        """
+        pass
+
+    @abstractmethod
+    def ImposeTemperatureIncreaseDueToLaserWithRefraction(self):
+        """
+        Increases the temperature as an effect of the energy deposition by the laser pulse.
+        Takes into account the refraction of the ray at the boundary air-solid.
+        Must be implemented by child classes.
+        """
+        pass
