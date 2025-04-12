@@ -14,6 +14,7 @@
 #include "containers/model.h"
 #include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/stress_state_policy.h"
+#include "custom_utilities/registration_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
@@ -127,7 +128,8 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectStressTensorSize, 
 KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistrationOfAllStressStatePolicies{};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"AxisymmetricStressState"s, AxisymmetricStressState{}};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<AxisymmetricStressState>()};
     auto serializer = StreamSerializer{};
 
