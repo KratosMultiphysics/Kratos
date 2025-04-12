@@ -311,7 +311,7 @@ jobs:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-rockylinux-8:latest
+      image: kratosmultiphysics/kratos-image-ci-rocky8:latest
       options: --user 1001
 
     steps:
