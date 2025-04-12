@@ -21,6 +21,7 @@
 namespace Kratos {
 
 
+/// @internal
 class PMGStatusStream {
 public:
     struct Report {

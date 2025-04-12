@@ -474,6 +474,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
 }
 
 
+/// @internal
 struct MatrixChecks
 {
     static constexpr std::uint8_t None                    = 0;
@@ -492,6 +493,7 @@ struct MatrixChecks
 }; // struct MatrixCheck
 
 
+/// @internal
 template <class TValue, std::uint8_t Checks>
 void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
 {
@@ -568,6 +570,8 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
 ///             r += a * A b
 ///          @f]
 ///          where @p A is the input matrix, @p b the input vector, @p r the output vector and @p a the scaling coefficient.
+///          This function parallelizes on equal sized nonzero chunks instead of rows, which may lead to better
+///          performance when the matrix' rows have very different number of nonzeros.
 /// @tparam TLHSSparse Sparse space of the input matrix.
 /// @tparam TRHSSparse Sparse space of the input vector.
 /// @tparam TOutputSparse Sparse space of the output vector.

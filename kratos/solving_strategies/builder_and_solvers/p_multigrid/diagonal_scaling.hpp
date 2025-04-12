@@ -24,20 +24,45 @@
 namespace Kratos {
 
 
+/// @brief Class handling expressions involving the diagonal of a sparse matrix.
+/// @details
+/// @subsection Configuration
+///             This class can either be configured with a numeric literal that does not
+///             depend on the matrix's diagonal, or a string that is a function of:
+///             - @p "max" The infinitiy norm (abs max) of the matrix' diagonal.
+///             - @p "norm" 2-norm of the matrix' diagonal.
+///
+/// @subsection Usage
+///             Invoke @ref Scaling::Cache "Cache" with a matrix to evaluate the stored
+///             expression for later use. The computed value can be retrived from
+///             @ref Scaling::Evaluate "Evaluate". You should call
+///             @ref Scaling::ClearCache "ClearCache" whenever the input matrix changes.
+///
+/// @note The input expression is parsed and evaluated with @p tinyexpr.
 class KRATOS_API(KRATOS_CORE) Scaling final
 {
 public:
+    /// @brief Construct using the default settings.
     Scaling();
 
+    /// @brief Construct from @ref Parameters representing a numeric literal or a string.
+    /// @details
     Scaling(Parameters Settings);
 
+    /// @internal
     ~Scaling();
 
+    /// @brief Compute and store the provided expression using the diagonal of an input matrix.
+    /// @note Invoking this function is mandatory before calling @ref Scaling::Evaluate "Evaluate".
     template <class TSparse>
     void Cache(const typename TSparse::MatrixType& rMatrix);
 
+    /// @brief Reset the expression's cached value.
+    /// @note Subsequent calls to @ref Scaling::Evaluate will fail unless @ref Scaling::Cache is called beforehand.
     void ClearCache();
 
+    /// @brief Get the cached value of the stored expression.
+    /// @warning A call to @ref Scaling::Cache must precede any call to @p Evaluate.
     double Evaluate() const;
 
 private:
@@ -56,11 +81,13 @@ private:
 }; // class Scaling
 
 
+/// @internal
 template <class TSparse>
 void NormalizeRows(typename TSparse::MatrixType& rLhs,
                    typename TSparse::VectorType& rRhs);
 
 
+/// @internal
 template <class TSparse>
 void NormalizeSystem(typename TSparse::MatrixType& rLhs,
                      typename TSparse::VectorType& rRhs,
@@ -70,6 +97,7 @@ void NormalizeSystem(typename TSparse::MatrixType& rLhs,
 namespace detail {
 
 
+/// @internal
 template <class TSparse>
 std::optional<typename TSparse::DataType> FindDiagonal(const typename TSparse::MatrixType& rMatrix,
                                                        const std::size_t iRow) noexcept
@@ -92,6 +120,7 @@ std::optional<typename TSparse::DataType> FindDiagonal(const typename TSparse::M
 } // namespace detail
 
 
+/// @internal
 template <class TSparse>
 void Scaling::Cache(const typename TSparse::MatrixType& rMatrix)
 {
