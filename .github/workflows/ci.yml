@@ -333,12 +333,14 @@ jobs:
 
     - name: Running C++ tests
       run: |
+        if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.8 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
       run: |
+        if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.8 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3.8
