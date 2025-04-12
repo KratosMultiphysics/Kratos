@@ -28,6 +28,37 @@
 namespace Kratos {
 
 
+/** @brief Coarse grid level of @PMultigridBuilderAndSolver.
+ *  @details Settings:
+ *           @code
+ *           {
+ *               "max_depth" : 0,
+ *               "precision" : "double",
+ *               "verbosity" : 1,
+ *               "constraint_imposition_settings" : {
+ *                   "method" : "augmented_lagrange",
+ *                   "max_iterations" : 1
+ *               }
+ *           }
+ *           @endcode
+ *           - @p "max_depth" Maximum number of coarse grid levels. If set to 0 (default), there are no
+ *                            coarse grids and no multigrid preconditioning is done. This also means that
+ *                            that the top-level grid uses the linear solver instead of the smoother.
+ *           - @p "precision" Floating point precision of system matrices and vectors. Either @p "double" (default)
+ *                            or @p "single". The potential benefit of using single precision systems is reducing
+ *                            memory consumtion on accelerator hardware (e.g.: VRAM on GPUs). This is viable because
+ *                            coarse corrections in a p-multigrid preconditioner need not have high accuracy.
+ *           - @p "verbosity" Level of verbosity. Every level includes lower verbosity levels and
+ *                            adds new events to report:
+ *              - @p 0 No messages, not even in case of failure.
+ *              - @p 1 Warnings and failure messages.
+ *              - @p 2 Aggregated status reports.
+ *              - @p 3 Per-iteration status reports.
+ *              - @p 4 Output system matrices and vectors.
+ *          - @p "constraint_imposition_settings" : Settings of the top-level constraint assembler.
+ *                                                  Refer to @ref ConstraintAssemblerFactory for more
+ *                                                  information.
+ */
 template <class TSparse, class TDense>
 class PGrid
 {

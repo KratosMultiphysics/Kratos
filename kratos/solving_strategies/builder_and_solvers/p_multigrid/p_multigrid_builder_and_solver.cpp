@@ -930,54 +930,64 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
     mpImpl->mpConstraintAssembler = ConstraintAssemblerFactory<TSparse,TDense>(settings["constraint_imposition_settings"],
                                                                                "Grid 0 constraints");
 
-    // Construct the top level smoother.
+    // Construct smoother, solver and coarse hierarchy.
     Parameters smoother_settings = settings["smoother_settings"];
-    KRATOS_TRY
-    KRATOS_ERROR_IF_NOT(smoother_settings.Has("solver_type"));
-    const std::string solver_name = smoother_settings["solver_type"].Get<std::string>();
-    using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
-    KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
-        << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
-        << "Make sure you imported the application it is defined in and that the spelling is correct.";
-    const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
-    this->mpLinearSystemSolver = r_factory.Create(smoother_settings);
-    KRATOS_CATCH("")
-
-    // Construct the coarse hierarchy.
-    Parameters leaf_solver_settings = settings["linear_solver_settings"];
     Parameters coarse_hierarchy_settings = settings["coarse_hierarchy_settings"];
-    std::string coarse_build_precision = coarse_hierarchy_settings.Has("precision") ?
-                                         coarse_hierarchy_settings["precision"].Get<std::string>() :
-                                         std::string {"double"};
-    if (coarse_build_precision == "double") {
-        using CoarseSparseSpace = TUblasSparseSpace<double>;
-        using CoarseDenseSpace = TUblasDenseSpace<double>;
-        using GridType = PGrid<CoarseSparseSpace,CoarseDenseSpace>;
+    Parameters leaf_solver_settings = settings["linear_solver_settings"];
 
-        coarse_hierarchy_settings.ValidateAndAssignDefaults(GridType().GetDefaultParameters());
-        if (0 < coarse_hierarchy_settings["max_depth"].Get<int>()) {
+    if (coarse_hierarchy_settings["max_depth"].Get<int>()) {
+        KRATOS_TRY
+        KRATOS_ERROR_IF_NOT(smoother_settings.Has("solver_type"));
+        const std::string solver_name = smoother_settings["solver_type"].Get<std::string>();
+        using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
+        KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
+            << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
+            << "Make sure you imported the application it is defined in and that the spelling is correct.";
+        const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
+        this->mpLinearSystemSolver = r_factory.Create(smoother_settings);
+
+        // Construct the coarse hierarchy.
+        const std::string coarse_build_precision = coarse_hierarchy_settings["precision"].Get<std::string>();
+        if (coarse_build_precision == "double") {
+            using CoarseSparseSpace = TUblasSparseSpace<double>;
+            using CoarseDenseSpace = TUblasDenseSpace<double>;
+            using GridType = PGrid<CoarseSparseSpace,CoarseDenseSpace>;
+
+            coarse_hierarchy_settings.ValidateAndAssignDefaults(GridType().GetDefaultParameters());
+            if (coarse_hierarchy_settings["max_depth"].Get<int>()) {
+                mpImpl->mMaybeHierarchy = GridType(coarse_hierarchy_settings,
+                                                   smoother_settings,
+                                                   leaf_solver_settings,
+                                                   settings["diagonal_scaling"]);
+            }
+        } /* if coarse_build_precision == "double" */ else if (coarse_build_precision == "single") {
+            using CoarseSparseSpace = TUblasSparseSpace<float>;
+            using CoarseDenseSpace = TUblasDenseSpace<double>;
+            using GridType = PGrid<CoarseSparseSpace,CoarseDenseSpace>;
+
+            coarse_hierarchy_settings.ValidateAndAssignDefaults(GridType().GetDefaultParameters());
             mpImpl->mMaybeHierarchy = GridType(coarse_hierarchy_settings,
                                                smoother_settings,
                                                leaf_solver_settings,
                                                settings["diagonal_scaling"]);
+        } /* elif coarse_build_precision == "single" */ else {
+            KRATOS_ERROR << "unsupported coarse precision: \"" << coarse_build_precision << "\". "
+                         << "Options are:\n"
+                         << "\t\"single\""
+                         << "\t\"double\"";
         }
-    } else if (coarse_build_precision == "single") {
-        using CoarseSparseSpace = TUblasSparseSpace<float>;
-        using CoarseDenseSpace = TUblasDenseSpace<double>;
-        using GridType = PGrid<CoarseSparseSpace,CoarseDenseSpace>;
-
-        coarse_hierarchy_settings.ValidateAndAssignDefaults(GridType().GetDefaultParameters());
-        if (0 < coarse_hierarchy_settings["max_depth"].Get<int>()) {
-            mpImpl->mMaybeHierarchy = GridType(coarse_hierarchy_settings,
-                                               smoother_settings,
-                                               leaf_solver_settings,
-                                               settings["diagonal_scaling"]);
-        }
-    } else {
-        KRATOS_ERROR << "unsupported coarse precision: \"" << coarse_build_precision << "\". "
-                     << "Options are:\n"
-                     << "\t\"single\""
-                     << "\t\"double\"";
+        KRATOS_CATCH("")
+    } /* if coarse_hierarchy_settings["max_depth"].Get<int>() */ else {
+        KRATOS_TRY
+        KRATOS_ERROR_IF_NOT(leaf_solver_settings.Has("solver_type"));
+        const std::string solver_name = leaf_solver_settings["solver_type"].Get<std::string>();
+        using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
+        KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
+            << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
+            << "Make sure you imported the application it is defined in and that the spelling is correct.";
+        const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
+        this->mpLinearSystemSolver = r_factory.Create(leaf_solver_settings);
+        KRATOS_CATCH("")
     }
 
     // Other settings.
@@ -1006,11 +1016,11 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParamet
     Parameters parameters = Parameters(R"({
 "name"              : "p_multigrid",
 "diagonal_scaling"  : "max",
-"verbosity"         : 1,
 "max_iterations"    : 1e2,
 "tolerance"         : 1e-8,
+"verbosity"         : 1,
 "smoother_settings" : {
-    "solver_type" : "gauss_seidel"
+    "solver_type" : ""
 },
 "linear_solver_settings" : {
     "solver_type" : "amgcl"

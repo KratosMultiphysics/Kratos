@@ -32,7 +32,7 @@ namespace Kratos {
  *
  *  @section Overview
  *
- *  The system's entry point is the @ref PMultigridBuilderAndSolver, which is also the only exposed class to the rest of Kratos (other classes/functions/utilities should remain inside the P-Multigrid system and are not allowed to leak out). As the name suggests, the main responsibilities of this class are
+ *  The system's entry point is the @ref PMultigridBuilderAndSolver. As the name suggests, the main responsibilities of this class are
  *  - allocating the left hand side matrix, as well as the right hand side vector and the solution vector
  *  - assembling the left hand side matrix, right hand side vector
  *  - solving the resulting linear system of equations.
@@ -42,6 +42,14 @@ namespace Kratos {
  *  - applying Dirichlet conditions
  *  - partial reassembly of the linear system
  *  - computing reactions.
+ *
+ *  The other exposed family of classes from this system is @ref MultifreedomConstraint. Its main difference compared to
+ *  @ref MasterSlaveConstraint (which it derives from) is that it only models the constraint equations and does not impose
+ *  a partition of slave- and master @ref Dof "DoFs".
+ *  @see LinearMultifreedomConstraint.
+ *  @see LinkConstraint
+ *
+ *  @note The rest of the classes in this system are meant for internal use and must not be exposed to the rest of Kratos.
  *
  *  Although the primary purpose of this system is to exploit the structure arising from a model using high order elements,
  *  the multigrid feature can be completely disabled to use it as a standard @ref BuilderAndSolver. One reason for
@@ -88,10 +96,111 @@ namespace Kratos {
  */
 
 
-
 ///@name Kratos Classes
 ///@{
 
+/** @brief Class used as a standard @ref BuilderAndSolver with a built-in optional preconditioner for high-order elements. See @ref P-Multigrid.
+ *
+ *  @details
+ *  @section Structure
+ *           PMultigridBuilderAndSolver consists of 3 main components:
+ *           - The top-level grid, which is responsible for assembling the main linear system
+ *             of equations from @ref Element "elements" and @ref Condition "conditions".
+ *           - The top-level @ref ConstraintAssembler "constraint assembler" responsible for assembling
+ *             and imposing constraint equations defined by @ref MasterSlaveConstraint "multifreedom constraints".
+ *           - A hierarchy of coarser grid levels, each with its own @ref LinearSolver "linear solver" and
+ *             @ref ConstraintAssembler "constraint assembler".
+ *
+ *          @copydoc PMultigridBuilderAndSolver::GetDefaultParameters
+ *
+ *  @subsection Top-Level-Grid Top-Level Grid
+ *              Like any other grid level, the fine grid has its own linear solver and constraint assembler, but
+ *              they can be configured separately from coarse grid levels.
+ *              Settings:
+ *              @code
+ *              {
+ *                  "name"              : "p_multigrid",
+ *                  "diagonal_scaling"  : "max",
+ *                  "max_iterations"    : 1e2,
+ *                  "tolerance"         : 1e-8,
+ *                  "verbosity"         : 1,
+ *                  ...
+ *              }
+ *              @endcode
+ *              - @p "name" Name of this builder-and-solver to refer to in @ref PythonSolver solvers.
+ *              - @p "diagonal_scaling" Expression to scale diagonal entries of the LHS that are
+ *                                      related to @ref Dof "DoFs" constrained by Dirichlet conditions.
+ *                                      It can either be a numeric literal, or a string that defines
+ *                                      the scaling factor as a function of:
+ *                  - @p "max" Infinity norm (maximum absolute value) of the LHS' main diagonal.
+ *                  - @p "norm" 2-norm of the LHS' main diagonal.
+ *              - @p "max_iterations" Max number of multigrid iterations to carry out while attempting
+ *                                      to reduce the residual to the requested value.
+ *              - @p "tolerance" Target relative residual norm to achieve.
+ *              - @p "verbosity" Level of verbosity. Every level includes lower verbosity levels and
+ *                                 adds new events to report:
+ *                  - @p 0 No messages, not even in case of failure.
+ *                  - @p 1 Warnings and failure messages.
+ *                  - @p 2 Aggregated status reports.
+ *                  - @p 3 Per-iteration status reports.
+ *                  - @p 4 Output system matrices and vectors.
+ *
+ *  @subsection Top-Level-Constraints Top-Level Constraint Assembler
+ *              The fine-level constraint assembler is responsible for building and imposing
+ *              constraint equations defined by @ref MasterSlaveConstraint "multifreedom constraints" of
+ *              the input @ref ModelPart "model part".
+ *              Settings:
+ *              @code
+ *              {
+ *                  ...
+ *                  "constraint_imposition_settings" {
+ *                      "method" "master_slave_elimination"
+ *                  }
+ *                  ...
+ *              }
+ *              @endcode
+ *              - @p "constraint_imposition_settings" Settings of the top-level constraint assembler.
+ *                                                    Refer to @ref ConstraintAssemblerFactory for more
+ *                                                    information.
+ *
+ *  @subsection Coarse-Hierarchy Coarse Hierarchy
+ *              Coarse grid levels have their own linear solvers as well as constraint assemblers. However,
+ *              all of them share the same configuration (except the coarses grid's linear solver, which is
+ *              defined by @p "linear_solver_settings" ). Coarse grids and their constraint assemblers do
+ *              not actually construct their systems by assembly, but by applying their restriction operators
+ *              to their parent grid's matrices/vectors. Refer to @ref PGrid for more information.
+ *              Default settings:
+ *              @code
+ *              {
+ *                  ...
+ *                  "coarse_hierarchy_settings" {}
+ *                  ...
+ *              }
+ *              @endcode
+ *              - @p "coarse_hierarchy_settings" Coarse grid hierarchy configuration.
+ *
+ *              @copydoc PGrid
+ *
+ *  @subsection Solvers-Smoother Solvers and Smoothers
+ *              PMultigridBuilderAndSolver uses two linear solvers in general. A smoother defined by
+ *              @p "smoother_settings" for all grid levels except the coarses, and a proper linear solver
+ *              on the coarsest grid, defined by @p "linear_solver_settings".
+ *              Note that if @p "coarse_hierarchy_settings.max_depth" is @p 0, the coarsest grid level is
+ *              the top-level one, in which case the smoother is not used. Both solvers are constructed by
+ *              @ref LinearSolverFactory, so check there for more information.
+ *              Settings:
+ *              @code
+ *              {
+ *                  ...
+ *                  "smoother_settings" {
+ *                      "solver_type" : ""
+ *                  },
+ *                  "linear_solver_settings" : {
+ *                      "solver_type" : "amgcl"
+ *                  }
+ *              }
+ *              @endcode
+ */
 template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver>
@@ -102,14 +211,18 @@ private:
     using Interface = BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>;
 
 public:
+    /// @internal
     KRATOS_CLASS_POINTER_DEFINITION(PMultigridBuilderAndSolver);
 
     /// @details Required by PIMPL.
-    ~PMultigridBuilderAndSolver();
+    /// @internal
+    ~PMultigridBuilderAndSolver() override;
 
     PMultigridBuilderAndSolver();
 
     /// @brief Construct from a linear solver and parameters.
+    /// @note The provided linear solver is not used. Check the input settings
+    ///       on how to configure linear solvers for this class.
     /// @see PMultigridBuilderAndSolver::GetDefaultParameters
     PMultigridBuilderAndSolver(const typename TLinearSolver::Pointer& pSolver,
                                Parameters Settings);
@@ -215,12 +328,24 @@ public:
     /// @copydoc BuilderAndSolver::Clear
     void Clear() override;
 
+    /// @brief Default configuration.
     /// @details @code
     ///          {
-    ///             "name"              : "p_multigrid",
-    ///             "diagonal_scaling"  : "abs_max",
-    ///             "max_depth"         : -1,
-    ///             "verbosity"         : 0
+    ///              "name"              : "p_multigrid",
+    ///              "diagonal_scaling"  : "max",
+    ///              "max_iterations"    : 1e2,
+    ///              "tolerance"         : 1e-8,
+    ///              "verbosity"         : 1,
+    ///              "constraint_imposition_settings" : {
+    ///                  "method" : "master_slave_elimination"
+    ///              },
+    ///              "coarse_hierarchy_settings" : {}
+    ///              "smoother_settings" : {
+    ///                  "solver_type" : ""
+    ///              },
+    ///              "linear_solver_settings" : {
+    ///                  "solver_type" : "amgcl"
+    ///              },
     ///          }
     ///          @endcode
     Parameters GetDefaultParameters() const override;
