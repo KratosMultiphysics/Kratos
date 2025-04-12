@@ -30,7 +30,6 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "multi_point_constraints_used": false,
             "linear_solver_settings" : {
                 "solver_type" : "amesos",
                 "amesos_solver_type" : "Amesos_Klu"
@@ -80,26 +79,23 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _CreateBuilderAndSolver(self):
-        if self.settings["multi_point_constraints_used"].GetBool():
-            raise Exception("MPCs not yet implemented in MPI")
-
-        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
-
         linear_solver = self._GetLinearSolver()
         epetra_communicator = self._GetEpetraCommunicator()
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             guess_row_size = 15
         else:
             guess_row_size = 45
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
-            builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(epetra_communicator,
-                                                                                   guess_row_size,
-                                                                                   linear_solver)
+            bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+            bs_params.AddEmptyValue("guess_row_size")
+            bs_params["guess_row_size"].SetInt(guess_row_size)
+            builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(epetra_communicator, linear_solver, bs_params)
         else:
-            builder_and_solver = TrilinosApplication.TrilinosEliminationBuilderAndSolver(epetra_communicator,
-                                                                                         guess_row_size,
-                                                                                         linear_solver)
+            if self.settings["multi_point_constraints_used"].GetBool():
+                raise Exception("MPCs not yet implemented in MPI")
+            if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0:
+                KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
+            builder_and_solver = TrilinosApplication.TrilinosEliminationBuilderAndSolver(epetra_communicator, guess_row_size, linear_solver)
         return builder_and_solver
 
     def _create_linear_strategy(self):
