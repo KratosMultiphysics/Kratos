@@ -14,6 +14,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/master_slave_constraint_assembler.hpp" // MasterSlaveConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // GetDiagonalScaleFactor
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MakeSparseTopology
+#include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // ParseDiagonalScaling, GetDiagonalScaleFactor
 #include "includes/define.h" // KRATOS_TRY, KRATOS_CATCH
 #include "spaces/ublas_space.h" // TUblasSparseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility

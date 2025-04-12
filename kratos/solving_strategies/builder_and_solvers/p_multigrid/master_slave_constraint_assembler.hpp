@@ -14,7 +14,6 @@
 
 // Project Includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler.hpp" // ConstraintAssembler
-#include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // ParseDiagonalScaling, GetDiagonalScaleFactor
 #include "includes/kratos_parameters.h" // Parameters
 
 

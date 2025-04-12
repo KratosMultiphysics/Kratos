@@ -20,6 +20,39 @@
 namespace Kratos {
 
 
+/// @brief Class implementing constraint imposition with the augmented Lagrange multiplier method.
+/// @details In a nutshell, the augmented Lagrange method is a combination of the penalty method
+///          and the method of Lagrange multipliers. The solution potentially involves multiple
+///          iterations, depending on the choice of penalty factor as well as the properties of
+///          the system to be solved.
+///
+///          Default settings:
+///          @code
+///          {
+///             "method" : "augmented_lagrange",
+///             "penalty_factor" : "norm",
+///             "initial_lagrange_multiplier" : 0.0,
+///             "tolerance" : 1e-6,
+///             "max_iterations" : 1e1,
+///             "verbosity" : 1
+///          }
+///          @endcode
+///          - @p "method" name of the constrained assembler to refer to in @ref ConstraintAssemblerFactory.
+///          - @p "penalty_factor" Coefficient to scale the constraint equations by. It can either be a
+///                                numeric literal or a string representing a function of the left hand side
+///                                matrix' diagonal. See @ref Scaling for more information.
+///             - @p "max" Infinity norm (abs max) of the matrix' diagonal.
+///             - @p "norm" 2-norm of the matrix' diagonal.
+///         - @p "initial_lagrange_multiplier" Value to initialize lagrange multipliers with.
+///         - @p "tolerance" Target absolute norm of the constraint equations (without penalty scaling).
+///         - @p "max_iterations" Stop iterating if the desired tolerance was not reached after this many iterations.
+///         - @p "verbosity" Level of verbosity. Every level includes lower verbosity levels and
+///                          adds new events to report:
+///             - @p 0 No messages, not even in case of failure.
+///             - @p 1 Warnings and failure messages.
+///             - @p 2 Aggregated status reports.
+///             - @p 3 Per-iteration status reports.
+///             - @p 4 Output system matrices and vectors.
 template <class TSparse, class TDense>
 class AugmentedLagrangeConstraintAssembler : public ConstraintAssembler<TSparse,TDense>
 {
@@ -78,18 +111,22 @@ public:
 
     static Parameters GetDefaultParameters();
 
+    /// @internal
     typename TSparse::DataType GetPenaltyFactor() const;
 
+    /// @internal
     typename TSparse::DataType GetInitialLagrangeMultiplier() const
     {
         return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[0];
     }
 
+    /// @internal
     typename TSparse::DataType GetTolerance() const
     {
         return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[1];
     }
 
+    /// @internal
     static const Variable<Vector>& GetAlgorithmicParametersVariable() noexcept
     {
         return SHAPE_FUNCTIONS_VECTOR;
