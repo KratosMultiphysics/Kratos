@@ -15,6 +15,7 @@
 #include "includes/define.h"
 #include "includes/process_info.h"
 #include "includes/variables.h" // DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z
+#include "includes/serializer.h" // Serializer
 
 // STL includes
 #include <algorithm> // std::max_element, std::equal, std::transform
@@ -283,5 +284,32 @@ int LinkConstraint::Check(const ProcessInfo& rProcessInfo) const
 
     return 0;
 }
+
+
+void LinkConstraint::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MultifreedomConstraint);
+    rSerializer.save("Dimensions", mpImpl->mDimensions);
+    rSerializer.save("Nodes", mpImpl->mNodePair);
+    // The rest of the private members should be computed/cached after restarting.
+}
+
+
+void LinkConstraint::load(Serializer& rDeserializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rDeserializer, MultifreedomConstraint);
+    rDeserializer.load("Dimensions", mpImpl->mDimensions);
+    rDeserializer.load("Nodes", mpImpl->mNodePair);
+}
+
+
+std::ostream& operator<<(std::ostream& rStream, const LinkConstraint& rInstance)
+{
+    return rStream << "LinkConstraint between nodes "
+                   << rInstance.mpImpl->mNodePair.front()->Id()
+                   << " and "
+                   << rInstance.mpImpl->mNodePair.back()->Id();
+}
+
 
 } // namespace Kratos

@@ -16,6 +16,7 @@
 
 // STL includes
 #include <memory> // std::unique_ptr
+#include <iosfwd> // std::ostream
 
 
 namespace Kratos {
@@ -85,6 +86,8 @@ public:
 
     int Check(const ProcessInfo& rProcessInfo) const override;
 
+    friend std::ostream& operator<<(std::ostream& rStream, const LinkConstraint& rInstance);
+
     /// @name Unsupported Interface
     /// @{
 
@@ -123,6 +126,12 @@ public:
     /// @}
 
 private:
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rDeserializer) override;
+
     struct Impl;
     std::unique_ptr<Impl> mpImpl;
 }; // class LinkConstraint
