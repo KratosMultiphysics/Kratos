@@ -880,6 +880,9 @@ class DEMAnalysisStage(AnalysisStage):
         domain_size[2] = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
         return self.DEMPropertiesMeasureUtility.MeasureCubicForGettingPackingProperties(side_length, center_x, center_y, center_z, type, domain_size)
 
+    def MeasureTotalSpheresVolume(self):
+        return self.DEMPropertiesMeasureUtility.MeasureTotalSpheresVolume()
+
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
         project_parameters = KratosMultiphysics.Parameters(parameter_file.read())

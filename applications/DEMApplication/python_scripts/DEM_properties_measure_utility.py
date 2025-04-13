@@ -210,3 +210,6 @@ class DEMPropertiesMeasureUtility:
                 return averaged_stress_tensor
             else:
                 raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
+    def MeasureTotalSpheresVolume(self):
+        return self.SphericElementGlobalPhysicsCalculator.CalculateTotalVolume(self.spheres_model_part)
