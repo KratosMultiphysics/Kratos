@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Mate Kelemen
+//  Main authors:    Máté Kelemen
 //
 
 // Project includes

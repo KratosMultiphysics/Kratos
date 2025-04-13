@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Mate Kelemen
+//  Main authors:    Máté Kelemen
 //
 
 // Project includes
@@ -21,7 +21,31 @@
 namespace Kratos {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinkConstraint final : public MultifreedomConstraint
+/** @brief A constraint enforcing the distance between two @ref Node "nodes" to remain constant.
+ *  @details Let @f$ n^0_i @f$ and @f$ n^1_i @f$ denote the coordinates of the initial positions of @ref Node "node"
+ *           @f$ n^0 @f$ and @f$ n^1 @f$ that get displaced by @f$ u^0_i @f$ and @f$ u^1_i @f$ respectively.
+ *           @p LinkConstraint then represents the following constraint equation:
+ *           @f[
+ *              \sum_i \left( (n^0_i + u^0_i) - (n^1_i + u^1_i) \right)^2
+ *              -
+ *              \sum_i \left( n^0_i - n^1_i \right)^2
+ *              = 0
+ *           @f]
+ *
+ *           The constraint equation above is linearized in each nonlinear iteration @f$ k @f$
+ *           to the following form:
+ *           @f[
+ *              \sum_i \left( (2 n^0_i + u^0_{i,k-1}) -  (2 n^1_i + u^1_{i,k-1}) \right)
+ *              \left( u^0_{i,k} - u^1_{i,k} \right)
+ *              = 0
+ *           @f]
+ *
+ *  @note @p LinkConstraint is nonlinear and as such, should not be imposed via master-slave elimination (the slave
+ *        DoF's coefficient may vanish). Consider using the @ref AugmentedLagrangeConstraintAssembler "penalty method",
+ *        the method of Lagrange multipliers, or @ref AugmentedLagrangeConstraintAssembler "augmented lagrange" multipliers.
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinkConstraint final
+    : public MultifreedomConstraint
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LinkConstraint);
@@ -42,6 +66,7 @@ public:
 
     LinkConstraint& operator=(const LinkConstraint& rRhs);
 
+    /// @internal
     ~LinkConstraint();
 
     MasterSlaveConstraint::Pointer Clone(IndexType NewId) const override;
@@ -60,7 +85,7 @@ public:
 
     int Check(const ProcessInfo& rProcessInfo) const override;
 
-    /// @name Unsupported Virtual Functions
+    /// @name Unsupported Interface
     /// @{
 
     MasterSlaveConstraint::Pointer Create(IndexType,
