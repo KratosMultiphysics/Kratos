@@ -10,6 +10,9 @@
 //  Main authors:    Máté Kelemen
 //
 
+// External includes
+#include "tinyexpr/tinyexpr.h" // te_expr, te_compile, te_eval, te_free
+
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // DiagonalScaling, ParseDiagonalScaling, GetDiagonalScaleFactor
 #include "spaces/ublas_space.h" // TUblasSparseSpace
@@ -23,87 +26,82 @@
 namespace Kratos {
 
 
-DiagonalScaling ParseDiagonalScaling(Parameters Settings)
+struct Scaling::Impl {
+    using ExpressionPtr = std::unique_ptr<te_expr,std::function<void(te_expr*)>>;
+
+    std::optional<double> mMaybeAbsMax;
+
+    std::optional<double> mMaybeNorm;
+
+    mutable ExpressionPtr mpExpression;
+}; // struct Scaling::Impl
+
+
+Scaling::Scaling()
+    : Scaling(Parameters())
 {
+}
+
+
+Scaling::Scaling(Parameters Settings)
+    : mpImpl(new Impl {/*mMaybeAbsMax=*/0.0,
+                       /*mMaybeNorm=*/  0.0,
+                       /*mpExpression*/ Impl::ExpressionPtr(nullptr, [](te_expr*){})})
+{
+    // Sanity checks.
+    KRATOS_ERROR_IF_NOT(Settings.IsNumber() || Settings.Is<std::string>())
+        << "Expecting a numeric literal or a string, but got " << Settings;
+
     KRATOS_TRY
-    const auto diagonal_scaling_strategy = Settings["diagonal_scaling"].Get<std::string>();
-    if (diagonal_scaling_strategy == "none") {
-        return DiagonalScaling::None;
-    } else if (diagonal_scaling_strategy == "abs_max") {
-        return DiagonalScaling::AbsMax;
-    } else if (diagonal_scaling_strategy == "norm") {
-        return DiagonalScaling::Norm;
-    } else {
-        KRATOS_ERROR << "unsupported setting for \"diagonal_scaling\": "
-                     << diagonal_scaling_strategy << ". Options are:\n"
-                     << "- \"none\"\n"
-                     << "- \"abs_max\"\n"
-                     << "- \"norm\"\n";
-    }
+
+    std::string expression;
+    if (Settings.IsNumber()){
+        expression = std::to_string(Settings.Get<double>());
+    } /*if Settings.IsNumber*/ else {
+        expression = Settings.Get<std::string>();
+    } /*if Settings.Is<std::string>*/
+
+    te_variable variables[] = {
+        {"max",  &mpImpl->mMaybeAbsMax.value()},
+        {"norm", &mpImpl->mMaybeNorm.value()}
+    };
+
+    int error = 0;
+    mpImpl->mpExpression = Impl::ExpressionPtr(/*function ptr: */te_compile(expression.c_str(), variables, 2, &error),
+                                               /*deleter: */     [](te_expr* p){if (p) te_free(p);});
+    KRATOS_ERROR_IF_NOT(mpImpl->mpExpression.get())
+        << "Failed to compile expression (error at position " << error - 1 << " in \"" << expression << "\"). "
+        << "Make sure the expression is compatible with TinyExpr and is a function of "
+        << "only \"max\" and \"norm\".";
+
+    this->ClearCache();
     KRATOS_CATCH("")
 }
 
 
-namespace detail {
+Scaling::~Scaling() = default;
 
 
-template <class TSparse>
-std::optional<typename TSparse::DataType> FindDiagonal(const typename TSparse::MatrixType& rMatrix,
-                                                       const std::size_t iRow) noexcept
+void Scaling::ClearCache()
 {
-    const auto i_entry_begin = rMatrix.index1_data()[iRow];
-    const auto i_entry_end   = rMatrix.index1_data()[iRow + 1];
-
-    const auto it_column_begin = rMatrix.index2_data().begin() + i_entry_begin;
-    const auto it_column_end = rMatrix.index2_data().begin() + i_entry_end;
-
-    // Look for the diagonal entry in the current row.
-    const auto it_column = std::lower_bound(it_column_begin, it_column_end, iRow);
-
-    return (it_column == it_column_end || *it_column != iRow)
-         ? std::optional<typename TSparse::DataType>()
-         : rMatrix.value_data()[rMatrix.index1_data()[iRow] + std::distance(it_column_begin, it_column)];
+    mpImpl->mMaybeAbsMax.reset();
+    mpImpl->mMaybeNorm.reset();
 }
 
 
-} // namespace detail
-
-
-template <class TSparse>
-typename TSparse::DataType
-GetDiagonalScaleFactor(const typename TSparse::MatrixType& rMatrix,
-                       const DiagonalScaling ScalingStrategy)
+double Scaling::Evaluate() const
 {
-    KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
-    KRATOS_TRY
-    switch (ScalingStrategy) {
-        case DiagonalScaling::None:
-            return 1;
+    KRATOS_ERROR_IF_NOT(mpImpl->mMaybeAbsMax.has_value() && mpImpl->mMaybeNorm.has_value())
+        << "Matrix diagonal norms are not cached. Make sure to invoke Scaling::Cache before Scaling::Evaluate.";
 
-        case DiagonalScaling::AbsMax:
-            return IndexPartition(rMatrix.size1()).template for_each<AbsMaxReduction<typename TSparse::DataType>>(
-                [&rMatrix](std::size_t i_row) -> typename TSparse::DataType {
-                    const auto maybe_diagonal_entry = detail::FindDiagonal<TSparse>(rMatrix, i_row);
-                    KRATOS_ERROR_IF_NOT(maybe_diagonal_entry.has_value()) << "row " << i_row << " has no diagonal entry";
-                    return maybe_diagonal_entry.value();
-            });
+    return te_eval(mpImpl->mpExpression.get());
+}
 
-        case DiagonalScaling::Norm: {
-            typename TSparse::DataType output = IndexPartition(rMatrix.size1()).template for_each<SumReduction<typename TSparse::DataType>>(
-                [&rMatrix](std::size_t i_row) -> typename TSparse::DataType {
-                    const auto maybe_diagonal_entry = detail::FindDiagonal<TSparse>(rMatrix, i_row);
-                    KRATOS_ERROR_IF_NOT(maybe_diagonal_entry.has_value()) << "row " << i_row << " has no diagonal entry";
-                    const auto diagonal_entry = maybe_diagonal_entry.value();
-                    return diagonal_entry * diagonal_entry;
-            });
-            return std::sqrt(output) / rMatrix.size1();
-        }
 
-        default: {
-            KRATOS_ERROR << "unsupported diagonal scaling (" << (int)ScalingStrategy << ')';
-        }
-    } // switch ScalingStrategy
-    KRATOS_CATCH("")
+void Scaling::Cache(double DiagonalMax, double DiagonalNorm)
+{
+    mpImpl->mMaybeAbsMax = DiagonalMax;
+    mpImpl->mMaybeNorm = DiagonalNorm;
 }
 
 
@@ -159,8 +157,6 @@ void NormalizeSystem(typename TSparse::MatrixType& rLhs,
 
 // Explicit instantiations for UBLAS.
 #define KRATOS_DEFINE_DIAGONAL_SCALE_FUNCTIONS(TSparseSpace)                                                        \
-    template TSparseSpace::DataType GetDiagonalScaleFactor<TSparseSpace>(const typename TSparseSpace::MatrixType&,  \
-                                                                         const DiagonalScaling);                    \
     template void NormalizeRows<TSparseSpace>(typename TSparseSpace::MatrixType&,                                   \
                                               typename TSparseSpace::VectorType&);                                  \
     template void NormalizeSystem<TSparseSpace>(typename TSparseSpace::MatrixType&,                                 \

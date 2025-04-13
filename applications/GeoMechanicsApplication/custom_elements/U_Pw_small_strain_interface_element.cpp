@@ -13,7 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
 #include <custom_utilities/stress_strain_utilities.h>

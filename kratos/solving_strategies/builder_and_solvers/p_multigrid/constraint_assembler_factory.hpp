@@ -20,6 +20,12 @@
 namespace Kratos {
 
 
+/// @brief Construct a @ref ConstraintAssembler instance.
+/// @param Settings Parameters configuring the requested constraint assembler.
+/// @param rInstanceName Name of the constraint assembler instance to be constructed.
+/// @details This factory operates similary to @ref LinearSolverFactory.
+///          @p "method" setting controls what type of constraint assembler to construct,
+///          while the rest of the settings are passed on to the instance's constructor.
 template <class TSparseSpace, class TDenseSpace>
 typename ConstraintAssembler<TSparseSpace,TDenseSpace>::Pointer
 ConstraintAssemblerFactory(Parameters Settings,

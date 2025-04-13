@@ -14,6 +14,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/master_slave_constraint_assembler.hpp" // MasterSlaveConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // GetDiagonalScaleFactor
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MakeSparseTopology
+#include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // ParseDiagonalScaling, GetDiagonalScaleFactor
 #include "includes/define.h" // KRATOS_TRY, KRATOS_CATCH
 #include "spaces/ublas_space.h" // TUblasSparseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
@@ -21,6 +22,21 @@
 
 
 namespace Kratos {
+
+
+template <class TSparse, class TDense>
+struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
+{
+    std::vector<std::size_t> mSlaveIds;
+
+    std::vector<std::size_t> mMasterIds;
+
+    std::unordered_set<std::size_t> mInactiveSlaveIds;
+
+    std::unique_ptr<Scaling> mpDiagonalScaling;
+
+    int mVerbosity;
+};
 
 
 template <class TSparse, class TDense>
@@ -39,16 +55,25 @@ template <class TSparse, class TDense>
 MasterSlaveConstraintAssembler<TSparse,TDense>::MasterSlaveConstraintAssembler(Parameters Settings,
                                                                                std::string&& rInstanceName)
     : Base(ConstraintImposition::MasterSlave, std::move(rInstanceName)),
-      mSlaveIds(),
-      mMasterIds(),
-      mInactiveSlaveIds(),
-      mDiagonalScaling(DiagonalScaling::None)
+      mpImpl(new Impl)
 {
     KRATOS_TRY
-    Settings.ValidateAndAssignDefaults(MasterSlaveConstraintAssembler::GetDefaultParameters());
-    mDiagonalScaling = ParseDiagonalScaling(Settings);
+    // Parse diagonal scaling and validate other settings.
+    Parameters default_parameters = this->GetDefaultParameters();
+    Parameters default_diagonal_scaling = default_parameters["diagonal_scaling"].Clone();
+    default_parameters.RemoveValue("diagonal_scaling");
+    std::optional<Parameters> maybe_diagonal_scaling = Settings.Has("diagonal_scaling") ? Settings["diagonal_scaling"].Clone() : std::optional<Parameters>();
+    if (maybe_diagonal_scaling.has_value()) Settings.RemoveValue("diagonal_scaling");
+    Settings.ValidateAndAssignDefaults(default_parameters);
+    Settings.AddValue("diagonal_scaling", maybe_diagonal_scaling.has_value() ? maybe_diagonal_scaling.value() : default_diagonal_scaling);
+    mpImpl->mpDiagonalScaling = std::make_unique<Scaling>(Settings["diagonal_scaling"]);
+    mpImpl->mVerbosity = Settings["verbosity"].Get<int>();
     KRATOS_CATCH("")
 }
+
+
+template <class TSparse, class TDense>
+MasterSlaveConstraintAssembler<TSparse,TDense>::~MasterSlaveConstraintAssembler() = default;
 
 
 template <class TSparse, class TDense>
@@ -88,13 +113,13 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Allocate(const typename Bas
         }
     }
 
-    mSlaveIds.clear();
-    mMasterIds.clear();
+    mpImpl->mSlaveIds.clear();
+    mpImpl->mMasterIds.clear();
     for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
         if (indices[i].size() == 0) // Master dof!
-            mMasterIds.push_back(i);
+            mpImpl->mMasterIds.push_back(i);
         else // Slave dof
-            mSlaveIds.push_back(i);
+            mpImpl->mSlaveIds.push_back(i);
         indices[i].insert(i); // Ensure that the diagonal is there in T
     }
 
@@ -126,7 +151,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
     ///       to be done and what can be omitted for each case. - matekelemen
 
     // Init.
-    mInactiveSlaveIds.clear();
+    mpImpl->mInactiveSlaveIds.clear();
     TSparse::SetToZero(this->GetRelationMatrix());
     TSparse::SetToZero(this->GetConstraintGapVector());
     std::vector<LockObject> mutexes(rDofSet.size());
@@ -182,19 +207,19 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
         // We merge all the sets in one thread
         #pragma omp critical
         {
-            mInactiveSlaveIds.insert(tls_inactive_slave_dofs.begin(), tls_inactive_slave_dofs.end());
+            mpImpl->mInactiveSlaveIds.insert(tls_inactive_slave_dofs.begin(), tls_inactive_slave_dofs.end());
         }
     }
 
     // Setting the master dofs into the T and C system
-    for (auto eq_id : mMasterIds) {
+    for (auto eq_id : mpImpl->mMasterIds) {
         std::scoped_lock<LockObject> lock(mutexes[eq_id]);
         this->GetConstraintGapVector()[eq_id] = 0.0;
         this->GetRelationMatrix()(eq_id, eq_id) = 1.0;
     }
 
     // Setting inactive slave dofs in the T and C system
-    for (auto eq_id : mInactiveSlaveIds) {
+    for (auto eq_id : mpImpl->mInactiveSlaveIds) {
         std::scoped_lock<LockObject> lock(mutexes[eq_id]);
         this->GetConstraintGapVector()[eq_id] = 0.0;
         this->GetRelationMatrix()(eq_id, eq_id) = 1.0;
@@ -211,6 +236,22 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse
                                                                 [[maybe_unused]] typename Base::DofSet::iterator itDofEnd)
 {
     KRATOS_TRY
+
+    // Output the relation matrix and constraint gaps if the verbosity is high enough.
+    if (4 <= mpImpl->mVerbosity) {
+        KRATOS_INFO(this->GetName() + ": ")
+            << "write relation matrix to "
+            << (std::filesystem::current_path() / "relation_matrix.mm")
+            << "\n";
+        TSparse::WriteMatrixMarketMatrix("relation_matrix.mm", this->GetRelationMatrix(), false);
+
+    KRATOS_INFO(this->GetName() + ": ")
+        << "write constraint gaps to "
+        << (std::filesystem::current_path() / "constraint_gaps.mm")
+        << "\n";
+    TSparse::WriteMatrixMarketVector("constraint_gaps.mm", this->GetConstraintGapVector());
+    } // if 4 <= verbosity
+
     // Compute the transposed matrix of the global relation matrix
     {
         // Storage for an intermediate matrix transpose(relation_matrix) * lhs_matrix
@@ -231,43 +272,44 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse
     } // deallocate left_multiplied_lhs
 
     // Compute the scale factor for slave DoFs.
-    typename TSparse::DataType diagonal_scale_factor = GetDiagonalScaleFactor<TSparse>(rLhs, this->mDiagonalScaling);
+    mpImpl->mpDiagonalScaling->template Cache<TSparse>(rLhs);
+    typename TSparse::DataType diagonal_scale_factor = mpImpl->mpDiagonalScaling->Evaluate();
 
     // Apply diagonal values on slaves.
-    block_for_each(this->mSlaveIds, [this, &rLhs, &rRhs, diagonal_scale_factor](const auto iSlave){
-        if (this->mInactiveSlaveIds.find(iSlave) == this->mInactiveSlaveIds.end()) {
+    block_for_each(mpImpl->mSlaveIds, [this, &rLhs, &rRhs, diagonal_scale_factor](const auto iSlave){
+        if (mpImpl->mInactiveSlaveIds.find(iSlave) == mpImpl->mInactiveSlaveIds.end()) {
             rLhs(iSlave, iSlave) = diagonal_scale_factor;
             rRhs[iSlave] = 0.0;
         }
     });
+
     KRATOS_CATCH("")
 }
 
 
 template <class TSparse, class TDense>
-typename ConstraintAssembler<TSparse,TDense>::Status
+bool
 MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                      typename TSparse::VectorType& rSolution,
                                                                      typename TSparse::VectorType& rRhs,
-                                                                     const std::size_t iIteration)
+                                                                     PMGStatusStream::Report& rReport)
 {
-    return typename Base::Status {/*finished=*/true, /*converged=*/true};
+    rReport.maybe_constraint_residual = 0;
+    rReport.constraints_converged = true;
+    return true;
 }
 
 
 template <class TSparse, class TDense>
-void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize(typename TSparse::MatrixType& rLhs,
-                                                              typename TSparse::VectorType& rSolution,
-                                                              typename TSparse::VectorType& rRhs,
-                                                              typename Base::DofSet& rDofSet)
+void MasterSlaveConstraintAssembler<TSparse,TDense>::Apply(typename TSparse::VectorType& rSolution) const
 {
     KRATOS_TRY
-    typename TSparse::VectorType original_solution(rSolution.size());
-    TSparse::SetToZero(original_solution);
+    typename TSparse::VectorType constrained_solution(rSolution.size());
+    TSparse::SetToZero(constrained_solution);
     BalancedProduct<TSparse,TSparse,TSparse>(this->GetRelationMatrix(),
                                              rSolution,
-                                             original_solution);
-    rSolution.swap(original_solution);
+                                             constrained_solution);
+    rSolution.swap(constrained_solution);
     KRATOS_CATCH("")
 }
 
@@ -276,9 +318,9 @@ template <class TSparse, class TDense>
 void MasterSlaveConstraintAssembler<TSparse,TDense>::Clear()
 {
     Base::Clear();
-    mSlaveIds = decltype(mSlaveIds)();
-    mMasterIds = decltype(mMasterIds)();
-    mInactiveSlaveIds = decltype(mInactiveSlaveIds)();
+    mpImpl->mSlaveIds = decltype(mpImpl->mSlaveIds)();
+    mpImpl->mMasterIds = decltype(mpImpl->mMasterIds)();
+    mpImpl->mInactiveSlaveIds = decltype(mpImpl->mInactiveSlaveIds)();
 }
 
 
@@ -287,7 +329,8 @@ Parameters MasterSlaveConstraintAssembler<TSparse,TDense>::GetDefaultParameters(
 {
     return Parameters(R"({
 "method" : "master_slave",
-"diagonal_scaling" : "none"
+"diagonal_scaling" : "norm",
+"verbosity" : 1
 })");
 }
 

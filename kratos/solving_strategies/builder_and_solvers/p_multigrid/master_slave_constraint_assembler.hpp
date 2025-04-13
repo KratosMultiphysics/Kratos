@@ -14,7 +14,6 @@
 
 // Project Includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler.hpp" // ConstraintAssembler
-#include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // ParseDiagonalScaling, GetDiagonalScaleFactor
 #include "includes/kratos_parameters.h" // Parameters
 
 
@@ -22,7 +21,7 @@ namespace Kratos {
 
 
 template <class TSparse, class TDense>
-class MasterSlaveConstraintAssembler : public ConstraintAssembler<TSparse,TDense>
+class MasterSlaveConstraintAssembler final : public ConstraintAssembler<TSparse,TDense>
 {
 public:
     using Base = ConstraintAssembler<TSparse,TDense>;
@@ -33,6 +32,8 @@ public:
 
     MasterSlaveConstraintAssembler(Parameters Settings,
                                    std::string&& rInstanceName);
+
+    ~MasterSlaveConstraintAssembler();
 
     /// @copydoc Base::Allocate
     void Allocate(const typename Base::ConstraintArray& rConstraints,
@@ -56,17 +57,13 @@ public:
                     typename Base::DofSet::iterator itDofEnd) override;
 
     /// @copydoc Base::FinalizeSolutionStep
-    typename ConstraintAssembler<TSparse,TDense>::Status
-    FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
-                         typename TSparse::VectorType& rSolution,
-                         typename TSparse::VectorType& rRhs,
-                         const std::size_t iIteration) override;
+    bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
+                              typename TSparse::VectorType& rSolution,
+                              typename TSparse::VectorType& rRhs,
+                              PMGStatusStream::Report& rReport) override;
 
-    /// @copydoc Base::Finalize
-    void Finalize(typename TSparse::MatrixType& rLhs,
-                  typename TSparse::VectorType& rSolution,
-                  typename TSparse::VectorType& rRhs,
-                  typename Base::DofSet& rDofSet) override;
+    /// @copydoc Base::Apply
+    void Apply(typename TSparse::VectorType& rSolution) const override;
 
     /// @copydoc Base::Clear
     void Clear() override;
@@ -74,13 +71,8 @@ public:
     static Parameters GetDefaultParameters();
 
 private:
-    std::vector<std::size_t> mSlaveIds;
-
-    std::vector<std::size_t> mMasterIds;
-
-    std::unordered_set<std::size_t> mInactiveSlaveIds;
-
-    DiagonalScaling mDiagonalScaling;
+    struct Impl;
+    std::unique_ptr<Impl> mpImpl;
 }; // class MasterSlaveConstraintAssembler
 
 
