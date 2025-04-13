@@ -26,6 +26,11 @@ namespace Kratos {
 /// @details This factory operates similary to @ref LinearSolverFactory.
 ///          @p "method" setting controls what type of constraint assembler to construct,
 ///          while the rest of the settings are passed on to the instance's constructor.
+///
+///          Options for @p "method":
+///          - @p "master_slave" @ref MasterSlaveConstraintAssembler
+///          - @p "augmented_lagrange" @ref AugmentedLagrangeConstraintAssembler
+///          - @p "none" @ref NoOpConstraintAssembler
 template <class TSparseSpace, class TDenseSpace>
 typename ConstraintAssembler<TSparseSpace,TDenseSpace>::Pointer
 ConstraintAssemblerFactory(Parameters Settings,
