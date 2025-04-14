@@ -213,7 +213,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         elif (self.level_set_type == "discontinuous"):
             discontinuous_distance_settings = KratosMultiphysics.Parameters("""{
                 "calculate_elemental_edge_distances" : true,
-                "calculate_elemental_edge_distances_extrapolated" : true
+                "calculate_elemental_edge_distances_extrapolated" : fakse
             }""")
             if self._GetDomainSize() == 2:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
