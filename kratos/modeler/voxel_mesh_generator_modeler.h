@@ -159,11 +159,6 @@ protected:
             return mNodalData[index];
         }
 
-        std::vector<CartesianNodalData> &GetAllNodalData()
-        {
-            return mNodalData;
-        }
-
         const array_1d<std::size_t, 3> &GetNumberOfDivisions()
         {
             return mNumberOfDivisions;

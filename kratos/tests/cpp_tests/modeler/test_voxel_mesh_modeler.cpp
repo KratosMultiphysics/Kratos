@@ -24,8 +24,6 @@
 
 #include "modeler/voxel_mesh_generator_modeler.h"
 
-#include "modeler/surrogate_boundary_modeler.h"
-
 namespace Kratos::Testing {
 
 namespace {
@@ -664,82 +662,5 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 		}
 
 	}
-
-	KRATOS_TEST_CASE_IN_SUITE(VoxelMesherWithVectorDistances, KratosCoreFastSuite)
-	{
-		using namespace Kratos;
-
-		WriteCubeSkinMeshMdpaFileForVoxelModelerTest();
-		std::cout << "Cube writen" << std::endl;
-
-		Parameters mesher_parameters(R"(
-			{
-				"output_model_part_name" : "main_model_part",
-				"input_model_part_name" : "skin_model_part",
-				"mdpa_file_name" : "cube_skin_mesh",
-				"key_plane_generator": {
-					"Parameters" : {
-						"voxel_sizes" : [0.025, 0.025, 0.025],
-						"min_point" : [-0.05, -0.05, 0],
-						"max_point" : [0.05, 0.05, 0.1]
-					}
-				},
-				"coloring_settings_list": [
-				{
-					"type" : "cells_in_touch",
-					"model_part_name": "skin_model_part.workpiece",
-					"color": 14
-				},
-				{
-					"type" : "cells_with_inside_center",
-					"model_part_name": "skin_model_part.workpiece",
-					"color": 14
-				}
-				],
-				"entities_generator_list": [
-				{
-					"type" : "elements_with_cell_color",
-					"model_part_name": "main_model_part.workpiece",
-					"color": 14,
-					"properties_id": 1
-				} 
-				]
-			})");
-			
-		Model current_model;
-		current_model.CreateModelPart("main_model_part");
-
-		// Generate the skin
-		current_model.CreateModelPart("skin_model_part");
-
-		std::cout << "Modelpart created" << std::endl;
-
-		// Generating the mesh
-		auto voxel_mesher = SurrogateBoundaryModeler(current_model, mesher_parameters);
-		voxel_mesher.SetupGeometryModel();
-		voxel_mesher.SetupModelPart();
-
-		std::cout << "SurrogateBoundaryModeler created" << std::endl;
-
-		//voxel_mesher.FindDistanceToSkin();
-		//voxel_mesher.ApplyColoringToNodes();
-
-		voxel_mesher.ComputeSurrogateBoundary();
-
-		std::cout << "Distances and colors computed" << std::endl;
-		
-		auto& nodalSBdata = voxel_mesher.GetSurrogateBoundaryData();
-
-		for (SurrogateBoundaryModeler::SurrogateBoundaryNode& node : nodalSBdata) 
-		{
-			if (node.IsActive()) 
-			{
-				std::cout << *node.GetNodePtr() 
-						  << " \n  Vector distance to skin: " << node.GetVectorDistance()
-						  << " \n  Signed distance to skin: " << node.GetSignedDistance() 
-						  << " \n  Is inside: " << node.IsInside();
-			}
-		}
-	}
-
+	
 } // namespace Kratos::Testing
