@@ -124,7 +124,7 @@ public:
      */
     void ComputeSurrogateBoundary() 
     {
-        int inside_color = 14;
+        int inside_color = -1;
         int outside_color = 1;
 
         GeometricalObjectsBins triangle_bin(mpInputModelPart->ElementsBegin(),mpInputModelPart->ElementsEnd());

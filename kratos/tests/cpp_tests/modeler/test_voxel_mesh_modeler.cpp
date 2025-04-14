@@ -662,5 +662,6 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 		}
 
 	}
-	
+
+
 } // namespace Kratos::Testing

@@ -130,12 +130,12 @@ End SubModelPart
 				{
 					"type" : "cells_in_touch",
 					"model_part_name": "skin_model_part.workpiece",
-					"color": 14
+					"color": -1
 				},
 				{
 					"type" : "cells_with_inside_center",
 					"model_part_name": "skin_model_part.workpiece",
-					"color": 14
+					"color": -1
 				}
 				],
 				"entities_generator_list": [
@@ -163,9 +163,6 @@ End SubModelPart
 
 		std::cout << "SurrogateBoundaryModeler created" << std::endl;
 
-		//voxel_mesher.FindDistanceToSkin();
-		//voxel_mesher.ApplyColoringToNodes();
-
 		voxel_mesher.ComputeSurrogateBoundary();
 
 		std::cout << "Distances and colors computed" << std::endl;
@@ -174,14 +171,21 @@ End SubModelPart
 
 		for (SurrogateBoundaryModeler::SurrogateBoundaryNode& node : nodalSBdata) 
 		{
-			// GetSurrogateBoundaryNode(i,j,k)
+			// We could also use GetSurrogateBoundaryNode(i,j,k)
 			if (node.IsActive()) 
 			{
 				std::cout << *node.GetNodePtr() 
 						  << " \n  Vector distance to skin: " << node.GetVectorDistance()
 						  << " \n  Signed distance to skin: " << node.GetSignedDistance() 
 						  << " \n  Is inside: " << node.IsInside() << std::endl;
-			}
+			
+                if (std::abs(node.GetNodePtr()->X()) > 0.03 ||
+                    std::abs(node.GetNodePtr()->Y()) > 0.03 ||
+                    node.GetNodePtr()->Z() < 0.03 || node.GetNodePtr()->Z() > 0.09)
+                {
+                    KRATOS_CHECK_IS_FALSE(node.IsInside());
+                }
+            }
 		}
 	}
 
