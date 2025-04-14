@@ -13,8 +13,8 @@
 
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
-
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -332,11 +332,11 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    auto p_law = std::unique_ptr<ConstitutiveLaw>{
+        std::make_unique<MohrCoulombWithTensionCutOff>(std::make_unique<PlaneStrain>())};
     Properties properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
@@ -346,24 +346,36 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization,
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
     const auto dummy_shape_function_values = Vector{};
-    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+    p_law->InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     Vector cauchy_stress_vector(4);
     cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
-    const auto expected_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+    Vector strain_vector = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+    const auto dummy_process_info = ProcessInfo{};
+    p_law->SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, dummy_process_info);
+    p_law->FinalizeMaterialResponseCauchy(parameters);
+    p_law->CalculateMaterialResponseCauchy(parameters);
+
+    Vector calculated_cauchy_stress_vector;
+    p_law->GetValue(CAUCHY_STRESS_VECTOR, calculated_cauchy_stress_vector);
+
+    const auto scoped_registration_dimension = ScopedSerializerRegistration{"PlaneStrain"s, PlaneStrain{}};
+    const auto scoped_registration_law =
+        ScopedSerializerRegistration{"MohrCoulombWithTensionCutOff"s, MohrCoulombWithTensionCutOff{}};
     auto serializer = StreamSerializer{};
 
     // Act
-    serializer.save("test_tag"s, law);
-    auto       loaded_law = MohrCoulombWithTensionCutOff(nullptr);
-    serializer.load("test_tag"s, loaded_law);
-    loaded_law.CalculateMaterialResponseCauchy(parameters);
+    serializer.save("test_tag"s, p_law);
+    auto p_loaded_law = std::unique_ptr<ConstitutiveLaw>();
+    serializer.load("test_tag"s, p_loaded_law);
+    p_loaded_law->CalculateMaterialResponseCauchy(parameters);
 
     // Assert
-    Vector clone_expected_cauchy_stress_vector;
-    loaded_law.GetValue(CAUCHY_STRESS_VECTOR, clone_expected_cauchy_stress_vector);
-    KRATOS_EXPECT_VECTOR_EQ(clone_expected_cauchy_stress_vector,
-                            expected_cauchy_stress_vector);
+    Vector loaded_calculated_cauchy_stress_vector;
+    p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_cauchy_stress_vector);
+    KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_cauchy_stress_vector, calculated_cauchy_stress_vector);
 }
 
 } // namespace Kratos::Testing

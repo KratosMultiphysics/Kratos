@@ -90,8 +90,8 @@ private:
                                                          const Vector& rCornerPoint);
 
     friend class Serializer;
-     void save(Serializer& rSerializer) const override;
-     void load(Serializer& rSerializer)       override;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // Class MohrCoulombWithTensionCutOff
 
 } // namespace Kratos

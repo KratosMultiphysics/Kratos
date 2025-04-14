@@ -325,9 +325,10 @@ void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
+    rSerializer.save("mIsModelInitialized", mIsModelInitialized);
 }
 
-void MohrCoulombWithTensionCutOff::load(Serializer&rSerializer)
+void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
 {
     rSerializer.load("ConstitutiveLawDimension", mpConstitutiveDimension);
     rSerializer.load("StressVector", mStressVector);
@@ -335,5 +336,6 @@ void MohrCoulombWithTensionCutOff::load(Serializer&rSerializer)
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
+    rSerializer.save("mIsModelInitialized", mIsModelInitialized);
 }
 } // Namespace Kratos
