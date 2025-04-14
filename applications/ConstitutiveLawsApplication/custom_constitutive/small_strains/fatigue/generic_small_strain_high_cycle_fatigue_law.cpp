@@ -212,9 +212,7 @@ template <class TConstLawIntegratorType>
 void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Integrate Stress Damage
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const Flags& r_constitutive_law_options = rValues.GetOptions();
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
@@ -224,14 +222,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
-    // Elastic Matrix
-    if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-    }
-
     // We compute the stress
     if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        auto& r_integrated_stress_vector = rValues.GetStressVector();
         // Elastic Matrix
+        auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
         // Converged values
@@ -239,9 +234,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         double damage = this->GetDamage();
 
         // S0 = C:E
-        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+        BoundedArrayType predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
 
-        // Initialize Plastic Parameters
         double fatigue_reduction_factor = mFatigueReductionFactor;
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
@@ -254,26 +248,17 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 r_constitutive_matrix *= (1.0 - damage);
-                this->SetStressVector(r_integrated_stress_vector);
-                rValues.SetStressVector(r_integrated_stress_vector);
             }
         } else { // Damage case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(
-                predictive_stress_vector,
-                uniaxial_stress,
-                damage,
-                threshold,
-                rValues,
-                characteristic_length);
+            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
+
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
+
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector,uniaxial_stress, rValues);
-                this->SetStressVector(r_integrated_stress_vector);
-                rValues.SetStressVector(r_integrated_stress_vector);
-                this->SetStressVector(rValues.GetStressVector());
+                r_constitutive_matrix *= (1.0 - damage);
                 this->CalculateTangentTensor(rValues);
             }
         }
@@ -318,7 +303,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 {
     // Integrate Stress Damage
     const Flags& r_constitutive_law_options = rValues.GetOptions();
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
@@ -328,23 +312,18 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
-    // Elastic Matrix
-    if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-    }
-    array_1d<double, VoigtSize> predictive_stress_vector;
     // We compute the stress
     if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-
         // Elastic Matrix
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+
+        // S0 = C:E
+        BoundedArrayType predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
 
         // Converged values
         double threshold = this->GetThreshold();
         double damage = this->GetDamage();
-
-        // S0 = C:E
-        noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
 
         // Initialize Plastic Parameters
         double uniaxial_stress;
@@ -375,21 +354,12 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         const double F = uniaxial_stress - threshold;
 
-        if (F > threshold_tolerance) {
+        if (F >= threshold_tolerance) { // Damage case
                 const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
                 // This routine updates the PredictiveStress to verify the yield surface
-                TConstLawIntegratorType::IntegrateStressVector(
-                    predictive_stress_vector,
-                    uniaxial_stress,
-                    damage,
-                    threshold,
-                    rValues,
-                    characteristic_length);
+                TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
                 this->SetDamage(damage);
                 this->SetThreshold(uniaxial_stress);
-        } else {
-            predictive_stress_vector *= (1.0 - this->GetDamage());
-            TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
         }
 
         Vector previous_stresses = ZeroVector(2);
