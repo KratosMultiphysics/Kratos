@@ -50,7 +50,7 @@ struct LinkConstraint::Impl
         for (std::size_t i_component=0u; i_component<Dimensions; ++i_component) {
             rRelationMatrix(0, i_component) = 2 * (rLastPositions[i_component] - rLastPositions[i_component + Dimensions])
                                               + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
-            rRelationMatrix(0, i_component + Dimensions) = -rRelationMatrix(i_component);
+            rRelationMatrix(0, i_component + Dimensions) = -rRelationMatrix(0, i_component);
         } // for i_component in range(mDimensions)
     }
 
@@ -153,8 +153,8 @@ LinkConstraint::LinkConstraint(const IndexType Id,
                       /*mNodePair           : */{&rFirst, &rSecond},
                       /*mLastPositions      : */{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                       /*mLastDisplacements  : */{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                      /*mRelationMatrix     : */{},
-                      /*mConstraintGaps     : */{}})
+                      /*mRelationMatrix     : */ZeroMatrix(1, 2 * Dimensions),
+                      /*mConstraintGaps     : */ZeroVector(1)})
 {
 }
 
@@ -203,7 +203,7 @@ MasterSlaveConstraint::Pointer LinkConstraint::Clone(IndexType NewId) const
 }
 
 
-void LinkConstraint::Initialize([[maybe_unused]] const ProcessInfo&)
+void LinkConstraint::Initialize([[maybe_unused]] const ProcessInfo& rProcessInfo)
 {
 }
 
@@ -221,7 +221,11 @@ void LinkConstraint::InitializeSolutionStep(const ProcessInfo& rProcessInfo)
         for (std::size_t i_component=0ul; i_component<mpImpl->mLastPositions.size(); ++i_component)
             mpImpl->mLastPositions[i_component] += mpImpl->mLastDisplacements[i_component];
 
-    this->InitializeNonLinearIteration(rProcessInfo);
+    Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
+                                mpImpl->mConstraintGaps,
+                                mpImpl->mLastPositions,
+                                mpImpl->mLastDisplacements,
+                                mpImpl->mDimensions);
     KRATOS_CATCH("")
 }
 
@@ -230,7 +234,8 @@ void LinkConstraint::InitializeNonLinearIteration([[maybe_unused]] const Process
 {
     KRATOS_TRY
     [[maybe_unused]] std::array<Impl::ValueType,6> dummy;
-    mpImpl->FetchNodePositions(dummy, mpImpl->mLastDisplacements);
+    mpImpl->FetchNodePositions(dummy,  mpImpl->mLastDisplacements);
+
     Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
                                 mpImpl->mConstraintGaps,
                                 mpImpl->mLastPositions,
