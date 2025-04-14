@@ -21,6 +21,7 @@
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -329,6 +330,40 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     expected_cauchy_stress_vector <<= 14.2814800674211450, 14.2814800674211450, 14.2814800674211450, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    Vector cauchy_stress_vector(4);
+    cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
+    const auto expected_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, law);
+    auto       loaded_law = MohrCoulombWithTensionCutOff(nullptr);
+    serializer.load("test_tag"s, loaded_law);
+    loaded_law.CalculateMaterialResponseCauchy(parameters);
+
+    // Assert
+    Vector clone_expected_cauchy_stress_vector;
+    loaded_law.GetValue(CAUCHY_STRESS_VECTOR, clone_expected_cauchy_stress_vector);
+    KRATOS_EXPECT_VECTOR_EQ(clone_expected_cauchy_stress_vector,
+                            expected_cauchy_stress_vector);
 }
 
 } // namespace Kratos::Testing
