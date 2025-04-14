@@ -403,17 +403,17 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
                         Node::Pointer p_new_node;
                         serializer.load("bring_node_" + std::to_string(index), p_new_node);
                         KRATOS_DEBUG_ERROR_IF(r_root_model_part.HasNode(p_new_node->Id())) << "The node " << p_new_node->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        entities_to_bring.push_back(p_new_node);
+                        entities_to_bring.insert(entities_to_bring.end(), p_new_node);
                     } else if constexpr (std::is_same<TObjectType, Element>::value) {
                         Element::Pointer p_new_element;
                         serializer.load("bring_element_" + std::to_string(index), p_new_element);
                         KRATOS_DEBUG_ERROR_IF(r_root_model_part.HasElement(p_new_element->Id())) << "The element " << p_new_element->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        entities_to_bring.push_back(p_new_element);
+                        entities_to_bring.insert(entities_to_bring.end(), p_new_element);
                     } else if constexpr (std::is_same<TObjectType, Condition>::value) {
                         Condition::Pointer p_new_condition;
                         serializer.load("bring_condition_" + std::to_string(index), p_new_condition);
                         KRATOS_DEBUG_ERROR_IF(r_root_model_part.HasCondition(p_new_condition->Id())) << "The condition " << p_new_condition->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        entities_to_bring.push_back(p_new_condition);
+                        entities_to_bring.insert(entities_to_bring.end(), p_new_condition);
                     } else {
                         KRATOS_ERROR << "Entity type not supported" << std::endl;
                     }
