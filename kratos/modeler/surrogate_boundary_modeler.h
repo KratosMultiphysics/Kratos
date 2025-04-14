@@ -48,9 +48,10 @@ namespace Kratos
 /**
  * @class SurrogateBoundaryModeler
  * @ingroup KratosCore
- * @brief Generates the voxel mesh plus stores the min distance from every node to the skin of the model.
+ * @brief Generates the voxel mesh plus stores the vector and signed distance from every node to the skin of the model.
  */
-class SurrogateBoundaryModeler : public VoxelMeshGeneratorModeler
+class KRATOS_API(KRATOS_CORE) SurrogateBoundaryModeler 
+    : public VoxelMeshGeneratorModeler
 {
 public:
 
@@ -63,7 +64,6 @@ public:
     typedef GeometryType::Pointer GeometryPtrType;
     typedef GeometryType::GeometriesArrayType GeometryArrayType;
     typedef GeometryType::PointsArrayType PointsArrayType;
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
 
     /// Pointer definition of SurrogateBoundaryModeler
     KRATOS_CLASS_POINTER_DEFINITION( SurrogateBoundaryModeler );
@@ -71,11 +71,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    
     /**
      * @brief Default constructor
      */
@@ -85,30 +81,24 @@ public:
     SurrogateBoundaryModeler(
         Model& rModel, Parameters rParameters = Parameters()) 
         : VoxelMeshGeneratorModeler(rModel, rParameters ) {
-
-            // bool cells_in_touch = false;
-            // for(auto parameters : rParameters["coloring_settings_list"]){
-            //     cells_in_touch = cells_in_touch || (parameters["type"].GetString() == "cells_in_touch");
-            //     mInsideColor = parameters["color"].GetDouble();
-            // }
-
-            // KRATOS_ERROR_IF(!cells_in_touch) 
-            //     << "Surrogate Boundary only works properly including cells_in_touch in the colouring settings" << std::endl;
-            
-            // //FindVectorDistanceToSurface();
-
-            mInsideColor = 14;
         }
 
     /// Destructor
     virtual ~SurrogateBoundaryModeler(){}
 
     ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
     ///@name Operations
     ///@{
     
     /**
-     * 
+     * Data stored for every voxel in the mesh. Nodes that are not created by the Modeler
+     * are marked as non active and pointer to node will be null. Active nodes will have 
+     * a vector distance to skin and a signed distance (magnitude of vector distance with
+     * positive sign if inside the volume and negative sign otherwise)
      */
     class SurrogateBoundaryNode 
     {
@@ -117,7 +107,7 @@ public:
         array_1d<double,3> mDistanceToSkin{0,0,0};
         Node::Pointer node_pointer = nullptr;
 
-        public: 
+     public: 
         bool IsActive() { return mIsActive; }
         void SetActive(bool active) { mIsActive = active; }
         double GetSignedDistance() { return mSignedDistance; }
@@ -128,20 +118,27 @@ public:
         void SetNodePointer(Node::Pointer pNode) { node_pointer = pNode; }
     };
 
+    /**
+     * Computes the distance (vector and signed) for every node in the voxel mesher.
+     * @note This method should only be called after calling SetupGeometryModel() and SetupModelPart().
+     */
     void ComputeSurrogateBoundary() 
     {
+        int inside_color = 14;
+        int outside_color = 1;
+
         GeometricalObjectsBins triangle_bin(mpInputModelPart->ElementsBegin(),mpInputModelPart->ElementsEnd());
 
         array_1d<std::size_t, 3> number_of_divisions = mMeshingData.GetNumberOfDivisions();
         mSurrogateBoundaryData.resize(number_of_divisions[0]*number_of_divisions[1]*number_of_divisions[2]);
 
+        array_1d< std::size_t, 3 > min_ray_position{0,0,0};
+        mColors.InitializeRays(min_ray_position, number_of_divisions, "nodes");
         for(auto& r_element : mpInputModelPart->Elements()) {
             Element::GeometryType& r_geometry = r_element.GetGeometry();
             mColors.AddGeometry(r_geometry, false);
         }
-        array_1d< std::size_t, 3 > min_ray_position{0,0,0};
-        mColors.InitializeRays(min_ray_position, number_of_divisions, "nodes");
-        mColors.CalculateNodalRayColors(min_ray_position, number_of_divisions, mInsideColor, 0);
+        mColors.CalculateNodalRayColors(min_ray_position, number_of_divisions, inside_color, outside_color);
 
         for (std::size_t i = 0; i < number_of_divisions[0]; i++) 
         {
@@ -174,94 +171,15 @@ public:
                         }   
                         
                         double d = norm_2(mSurrogateBoundaryData[node_index].GetVectorDistance());
-                        if (mColors.GetNodalColor(i,j,k) == mInsideColor) 
+                        if (mColors.GetNodalColor(i,j,k) == inside_color) 
                         {
                             mSurrogateBoundaryData[node_index].SetSignedDistance( d);
                         } else {
                             mSurrogateBoundaryData[node_index].SetSignedDistance(-d);
                         }
-
-                        KRATOS_INFO("ModelerDistances") << "Point: " << point << " Signed distance to closest point: " << mSurrogateBoundaryData[node_index].GetSignedDistance()  << std::endl; 
                     }
                 } 
             }  
-        }
-    }
-
-    void FindDistanceToSkin() {
-        GeometricalObjectsBins triangle_bin(mpInputModelPart->ElementsBegin(),mpInputModelPart->ElementsEnd());
-
-        array_1d<std::size_t, 3> number_of_divisions = mMeshingData.GetNumberOfDivisions();
-        mDistances.resize(number_of_divisions[0]*number_of_divisions[1]*number_of_divisions[2]);
-
-        for (std::size_t i = 0; i < number_of_divisions[0]; i++) 
-        {
-            for (std::size_t j = 0; j < number_of_divisions[1]; j++) 
-            {
-                for (std::size_t k = 0; k < number_of_divisions[2]; k++) 
-                {
-                    CartesianNodalData& nodal_data = mMeshingData.GetNodalData(i,j,k);
-                    Node::Pointer node_pointer = nodal_data.pGetNode();
-                    int node_index = mMeshingData.GetNodeIndex(i,j,k);
-                    if (node_pointer) 
-                    {
-                        Point point = *node_pointer;
-                        const auto& search_result = triangle_bin.SearchNearest(point);
-
-                        if(search_result.IsObjectFound()) // It should always be found
-                        {
-                            auto p_result = search_result.Get().get();
-                            GeometryPtrType geometry = p_result->pGetGeometry();
-                            const PointsArrayType& points = geometry->Points();
-                            Point closest_point = NearestPointUtilities::TriangleNearestPoint(point, points[0],points[1],points[2]);
-                            
-                            for (std::size_t ii = 0; ii < 3; ii++) 
-                            {
-                                mDistances[node_index][ii] = point[ii] - closest_point[ii];
-                            }
-
-                            KRATOS_INFO("ModelerDistances") << "Point: " << point << " Distance to closest point: " << mDistances[node_index] << std::endl; 
-                        }   
-                    }
-                } 
-            }  
-        }
-    }
-
-    void ApplyColoringToNodes()
-    {
-        //auto parameters = GetParameters();
-        //const int inside_color = parameters["color"].GetInt();
-        //const int outside_color = parameters["outside_color"].GetInt();
-        array_1d<std::size_t, 3> number_of_divisions = mMeshingData.GetNumberOfDivisions();
-        mIsInside.resize(number_of_divisions[0]*number_of_divisions[1]*number_of_divisions[2]);
-        const int inside_color = mInsideColor;
-        const int outside_color = 1;
-        const std::string input_entities = "elements";
-
-        array_1d< std::size_t, 3 > min_ray_position{0,0,0};
-        mColors.InitializeRays(min_ray_position, number_of_divisions, "nodes");
-
-        if(input_entities == "elements") {
-            for(auto& r_element : mpInputModelPart->Elements()) {
-                Element::GeometryType& r_geometry = r_element.GetGeometry();
-                mColors.AddGeometry(r_geometry, false);
-            }
-        } 
-
-        mColors.CalculateNodalRayColors(min_ray_position, number_of_divisions, inside_color, outside_color);
-        for (std::size_t i = 0; i < number_of_divisions[0]; i++) 
-        {
-            for (std::size_t j = 0; j < number_of_divisions[1]; j++) 
-            {
-                for (std::size_t k = 0; k < number_of_divisions[2]; k++) 
-                {
-                    CartesianNodalData& nodal_data = mMeshingData.GetNodalData(i,j,k);
-                    Node::Pointer node_pointer = nodal_data.pGetNode();
-                    int node_index = mMeshingData.GetNodeIndex(i,j,k);
-                    mIsInside[node_index] = mColors.GetNodalColor(i,j,k) == mInsideColor? 1:0; 
-                }
-            }
         }
     }
 
@@ -284,15 +202,6 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
-
-    /// The color assigned to the nodes inside the volume
-    double mInsideColor;
-
-    /// @brief For each node, 1 if it is inside the volume, 0 if outside.
-    std::vector<int> mIsInside; //bools
-
-    /// @brief Distance from each node to the closest skin point.
-    std::vector<array_1d<double,3>> mDistances;
 
     /// The data of every node in the voxel mesh, with its corresponging SB information
     std::vector<SurrogateBoundaryNode> mSurrogateBoundaryData;
