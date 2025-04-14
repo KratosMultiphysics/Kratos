@@ -24,7 +24,7 @@
 
 #include "modeler/voxel_mesh_generator_modeler.h"
 
-#include "modeler/voxel_mesh_generator_modeler_with_min_dist.h"
+#include "modeler/surrogate_boundary_modeler.h"
 
 namespace Kratos::Testing {
 
@@ -715,25 +715,29 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 		std::cout << "Modelpart created" << std::endl;
 
 		// Generating the mesh
-		auto voxel_mesher = VoxelMeshGeneratorModelerWithMinDist(current_model, mesher_parameters);
+		auto voxel_mesher = SurrogateBoundaryModeler(current_model, mesher_parameters);
 		voxel_mesher.SetupGeometryModel();
 		voxel_mesher.SetupModelPart();
 
-		std::cout << "VoxelMeshModeler created" << std::endl;
+		std::cout << "SurrogateBoundaryModeler created" << std::endl;
 
-		//voxel_mesher.FindVectorDistanceToSurface();
-		voxel_mesher.FindDistanceToSkin();
-		voxel_mesher.ApplyColoringToNodes();
+		//voxel_mesher.FindDistanceToSkin();
+		//voxel_mesher.ApplyColoringToNodes();
+
+		voxel_mesher.ComputeSurrogateBoundary();
 
 		std::cout << "Distances and colors computed" << std::endl;
 		
-		std::vector<array_1d<double,3>> dists = voxel_mesher.GetDistances();
+		auto& nodalSBdata = voxel_mesher.GetSurrogateBoundaryData();
 
-		for (array_1d<double,3> distance : dists) 
+		for (SurrogateBoundaryModeler::SurrogateBoundaryNode& node : nodalSBdata) 
 		{
-			for(std::size_t i = 0; i < 3; i++)
+			if (node.IsActive()) 
 			{
-				//KRATOS_EXPECT_NEAR(distance[i], 0, 1e-6);
+				std::cout << *node.GetNodePtr() 
+						  << " \n  Vector distance to skin: " << node.GetVectorDistance()
+						  << " \n  Signed distance to skin: " << node.GetSignedDistance() 
+						  << " \n  Is inside: " << node.IsInside();
 			}
 		}
 	}
