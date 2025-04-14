@@ -857,8 +857,8 @@ class ExplicitStrategy():
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
         if not properties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
-            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelConstantTorque"
-            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelConstantTorque] for material relation with parameter \"material_ids_list\": [" + str(parent_id) + ", " + str(properties.Id) + "]")
+            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material relation with parameter \"material_ids_list\": [" + str(parent_id) + ", " + str(properties.Id) + "]")
 
         rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
         rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)
