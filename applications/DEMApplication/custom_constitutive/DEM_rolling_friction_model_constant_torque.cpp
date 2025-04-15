@@ -50,12 +50,12 @@ namespace Kratos{
             // Get normal contact force
             const double force = std::abs(LocalContactForce[2]);
 
-            // Calculate arm length (particle radius discounted by identation)
-            const double my_young    = p_element->GetYoung();
-            const double other_young = p_neighbor->GetYoung();
+            //Calculate arm length (particle radius discounted by identation)
+            //const double my_young    = p_element->GetYoung();
+            //const double other_young = p_neighbor->GetYoung();
             //const double arm_length  = p_element->GetRadius() - indentation * other_young / (other_young + my_young);
-            // calculate equuivalent radius as the arm length
-            const double arm_length  = p_element->GetRadius() * p_neighbor->GetRadius() / (p_element->GetRadius() + p_neighbor->GetRadius());
+            const double min_radius  = std::min(p_element->GetRadius(), p_neighbor->GetRadius());
+            const double arm_length  = min_radius;
 
             // Calculate rolling friction moment
             array_1d<double, 3> rolling_friction_moment;
