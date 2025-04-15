@@ -61,7 +61,6 @@ namespace Kratos {
         if (r_process_info[USE_MESH_REPAIR_OPTION] == 1) {
             MeshRepairOperations();
         }
-        MeshRepairOperations();
         SearchNeighbours();
 
         const bool automatic_skin_computation = r_process_info[AUTOMATIC_SKIN_COMPUTATION];
