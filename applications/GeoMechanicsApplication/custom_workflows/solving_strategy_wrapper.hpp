@@ -111,6 +111,8 @@ public:
             KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size())
                 << "The number of old displacements (" << mOldTotalDisplacements.size()
                 << ") does not match the current number of nodes (" << mrModelPart.Nodes().size() << ").";
+
+            KRATOS_INFO("Accumulating Total Displacement")<<std::endl;
             std::size_t count = 0;
             for (auto& node : mrModelPart.Nodes()) {
                 node.GetSolutionStepValue(TOTAL_DISPLACEMENT) =

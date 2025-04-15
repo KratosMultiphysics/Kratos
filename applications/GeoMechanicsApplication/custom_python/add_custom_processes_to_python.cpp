@@ -50,6 +50,7 @@
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 #include "custom_processes/set_multiple_moving_loads.h"
 #include "custom_processes/set_parameter_field_process.hpp"
+#include "custom_processes/fix_model_part_above_phreatic_line_process.h"
 
 namespace Kratos::Python
 {
@@ -180,6 +181,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ResetDisplacementProcess, ResetDisplacementProcess::Pointer, Process>(
         m, "ResetDisplacementProcess")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<FixModelPartAbovePhreaticLineProcess, FixModelPartAbovePhreaticLineProcess::Pointer, Process>(
+        m, "FixModelPartAbovePhreaticLineProcess")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 

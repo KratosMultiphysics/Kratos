@@ -51,6 +51,7 @@ void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Paramet
                 "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
+                "move_mesh_flag":         false,
                 "x_coordinates":           [0.0, 1.0],
                 "y_coordinates":           [1.0, 0.5],
                 "z_coordinates":           [0.0, 0.0],
