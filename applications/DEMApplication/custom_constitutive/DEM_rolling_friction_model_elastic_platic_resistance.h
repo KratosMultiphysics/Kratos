@@ -39,6 +39,8 @@ namespace Kratos{
 
         void CalculateInelasticRollingResistanceEnergyWithWall(double& inelastic_rollingresistance_energy, const array_1d<double, 3>& rolling_friction_moment, const array_1d<double, 3>& relative_angular_velocity, double dt) override;
     
+        double m_rolling_friction_moment[3] = {0.0};
+    
     private:
 
         friend class Serializer;
