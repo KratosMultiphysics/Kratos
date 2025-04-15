@@ -4,12 +4,12 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 1.0,
-        "end_time"      : 2.0
+        "end_time"      : 100
     },
     "solver_settings"  : {
         "time_stepping"                      : {
-            "time_step"             : 0.001,
-            "max_delta_time_factor" : 100
+            "time_step"             : 0.1,
+            "max_delta_time_factor" : 1
         },
         "solver_type"                        : "U_Pw",
         "solution_type"                      : "Quasi-Static",
@@ -43,7 +43,7 @@
         "water_pressure_relative_tolerance"  : 1.0e-4,
         "water_pressure_absolute_tolerance"  : 1.0e-9,
         "min_iterations"                     : 6,
-        "max_iterations"                     : 100,
+        "max_iterations"                     : 150,
         "number_cycles"                      : 100,
         "reduction_factor"                   : 0.5,
         "increase_factor"                    : 2.0,

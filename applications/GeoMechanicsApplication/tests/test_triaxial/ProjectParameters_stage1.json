@@ -8,8 +8,8 @@
     },
     "solver_settings"  : {
         "time_stepping"                      : {
-            "time_step"             : 0.001,
-            "max_delta_time_factor" : 100
+            "time_step"             : 0.01,
+            "max_delta_time_factor" : 1
         },
         "solver_type"                        : "U_Pw",
         "solution_type"                      : "Quasi-Static",
