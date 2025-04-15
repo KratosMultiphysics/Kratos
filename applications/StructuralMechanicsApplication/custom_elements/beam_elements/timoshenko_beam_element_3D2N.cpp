@@ -329,7 +329,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateGeneralizedStrainsVector(
 
     const auto& r_props = GetProperties();
     const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, Length);
-    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, Length);
+    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, Length, 1);
 
     rStrain[0] = CalculateAxialStrain(Length, 0.0, xi, rNodalValues);
     rStrain[1] = CalculateBendingCurvatureX(Length, 0.0, xi, rNodalValues);
@@ -374,7 +374,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
 
     const double length = CalculateLength();
     const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, length);
+    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length, 1);
     const double J      = 0.5 * length;
     const double area   = GetCrossArea();
 
@@ -521,7 +521,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
 
     const double length = CalculateLength();
     const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, length);
+    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length, 1);
     const double J    = 0.5 * length;
     const double area = GetCrossArea();
 
@@ -734,7 +734,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
 
     const double length = CalculateLength();
     const double Phi_rot_z  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhiY(r_props, length);
+    const double Phi_rot_y  = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length, 1);
     const double J     = 0.5 * length;
 
     VectorType strain_vector(strain_size), stress_vector(strain_size);

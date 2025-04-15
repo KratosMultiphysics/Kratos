@@ -348,8 +348,7 @@ double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
  * @brief This function computes the shear psi factor
  * @param rValues The constitutive law parameters
  */
-KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L);
-KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhiY(const Properties& rProperties, const double L);
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L, const SizeType Plane = 0);
 
 void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix);
