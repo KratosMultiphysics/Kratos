@@ -63,6 +63,7 @@ def run_triaxial_test(output_file_paths):
 
     cauchy_stress_results = []
     displacement_results = []
+    strain_results = []
 
     for output_file_path in output_file_paths:
         reader = test_helper.GiDOutputFileReader()
@@ -83,6 +84,14 @@ def run_triaxial_test(output_file_paths):
                     time = result_item["time"]
                     values = result_item["values"]
                     displacement_results.append({
+                        "time": time,
+                        "values": values
+                    })
+            elif result_name == "ENGINEERING_STRAIN_TENSOR":
+                for result_item in result_items:
+                    time = result_item["time"]
+                    values = result_item["values"]
+                    strain_results.append({
                         "time": time,
                         "values": values
                     })
@@ -109,20 +118,54 @@ def run_triaxial_test(output_file_paths):
 
         reshaped_values_by_time[time_step] = reshaped_values
 
-    # Process displacement results
-    node_2_displacements = []
-    for result in displacement_results:
+
+    volumetric_strains = []
+    yy_strains = []
+
+    for idx, result in enumerate(strain_results):
         element_values = result["values"]
 
-        # Find the entry for node:2
-        for element in element_values:
-            if element["node"] == 2:
-                # Extract the second array (index 1) from the value
-                if len(element["value"]) > 1:  # Ensure there is a second array
-                    node_2_displacements.append(element["value"][1])
-                break  # Exit loop once node:2 is found
+        if not element_values:  # Skip empty lists
+            continue
 
-    return reshaped_values_by_time, node_2_displacements
+        element = element_values[0]
+        sublist = element["value"][0]
+        epsilon_xx = sublist[0]
+        epsilon_yy = sublist[1]
+        epsilon_zz = sublist[2]
+
+        epsilon_v = epsilon_xx + epsilon_yy + epsilon_zz
+
+        volumetric_strains.append(epsilon_v)
+        yy_strains.append(epsilon_yy)
+
+
+    # # Process displacement results
+    # node_2_y_displacements = []
+    # for result in displacement_results:
+    #     element_values = result["values"]
+    #
+    #     # Find the entry for node:2
+    #     for element in element_values:
+    #         if element["node"] == 2:
+    #             # Extract the second array (index 1) from the value
+    #             if len(element["value"]) > 1:  # Ensure there is a second array
+    #                 node_2_y_displacements.append(element["value"][1])
+    #             break  # Exit loop once node:2 is found
+    #
+    #
+    # # Build the volumetric strain tensor
+    # node_2_displacements = []
+    # for result in displacement_results:
+    #     element_values = result["values"]
+    #     for element in element_values:
+    #         if element["node"] == 2:
+    #             # Extract all the arrays from the value
+    #             if len(element["value"]) > 1:  # Ensure there is a second array
+    #                 node_2_displacements.append(element["value"])
+    #             break  # Exit loop once node:2 is found
+
+    return reshaped_values_by_time, yy_strains, volumetric_strains
 
 def plot_sigma(sigma_1, sigma_3):
     """
@@ -182,7 +225,7 @@ def plot_sigma(sigma_1, sigma_3):
     )
     fig.show()
 
-def plot_delta_sigma(displacement, diff):
+def plot_delta_sigma(vertical_strain, sigma_diff):
     """
     Plots the difference between σ₁ and σ₃ against displacement.
 
@@ -194,8 +237,8 @@ def plot_delta_sigma(displacement, diff):
 
     # Add scatter plot for σ₁ vs σ₃
     fig.add_trace(go.Scatter(
-        x=displacement,
-        y=diff,
+        x=vertical_strain,
+        y=sigma_diff,
         mode='markers',
         marker=dict(size=10, color='blue'),
         name='σ₁ vs σ₃'
@@ -203,13 +246,14 @@ def plot_delta_sigma(displacement, diff):
 
     fig.update_layout(
         title=dict(
-            text='|σ₁ - σ₃| vs displacement Plot',
+            text='|σ₁ - σ₃| vs Vertical Strain Plot',
             x=0.5,
             xanchor='center',
             yanchor='top'
         ),
         xaxis=dict(
-            title='Displacement [m]',
+            title='Vertical Strain [-]',
+            autorange='reversed',
             showline=True,
             linewidth=2,
             linecolor='black',
@@ -292,7 +336,6 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3):
         ),
         xaxis=dict(
             title="σ' (Effective Stress) [kN/m²]",
-            # range=[0, center + 2.5 * radius],
             showline=True,
             linewidth=2,
             linecolor='black',
@@ -305,7 +348,6 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3):
         ),
         yaxis=dict(
             title="τ (Mobilized Shear Stress) [kN/m²]",
-            # range=[0, 1.5 * radius],
             showline=True,
             linewidth=2,
             linecolor='black',
@@ -352,6 +394,63 @@ def plot_p_q(p_list, q_list):
             linecolor='black'
         ),
         template='plotly_white'
+    )
+    fig.update_layout(
+        xaxis=dict(rangemode='tozero'),
+        yaxis=dict(rangemode='tozero'),
+    )
+    fig.show()
+
+def plot_volumetric_strain(vertical_strain, volumetric_strain):
+    """
+    Plots volumetric strain against axial displacement.
+
+    Args:
+        displacement (list): List of axial displacements.
+        vol_strains (list): List of volumetric strains.
+    """
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=vertical_strain,
+        y=volumetric_strain,
+        mode='markers',
+        marker=dict(size=10, color='blue'),
+        name='Volumetric Strain'
+    ))
+
+    fig.update_layout(
+        title=dict(
+            text='Volumetric Strain vs Vertical Strain Plot',
+            x=0.5,
+            xanchor='center',
+            yanchor='top'
+        ),
+        xaxis=dict(
+            title='Vertical Strain [−]',
+            autorange='reversed',
+            showline=True,
+            linewidth=2,
+            linecolor='black',
+            ticks='outside',
+            tickwidth=2,
+            tickcolor='black',
+            ticklen=5,
+            mirror=True
+        ),
+        yaxis=dict(
+            title='Volumetric Strain [−]',
+            autorange='reversed',
+            showline=True,
+            linewidth=2,
+            linecolor='black',
+            ticks='outside',
+            tickwidth=2,
+            tickcolor='black',
+            ticklen=5,
+            mirror=True
+        ),
+        template='plotly_white',
     )
     fig.update_layout(
         xaxis=dict(rangemode='tozero'),
@@ -491,12 +590,20 @@ if __name__ == "__main__":
     output_files = [
         os.path.join('gid_output', "triaxial_Stage_2.post.res")]
 
-    reshaped_values_by_time, node_2_displacements = run_triaxial_test(output_files)
+    reshaped_values_by_time, vertical_strain, volumetric_strain = run_triaxial_test(output_files)
 
-    displacement_list=[]
-    for i in range (len(node_2_displacements)):
-        displacement = np.linalg.norm(np.array(node_2_displacements[i]))
-        displacement_list.append(displacement)
+    # y_displacement_list=[]
+    # for i in range (len(node_2_y_displacements)):
+    #     displacement = node_2_y_displacements[i]
+    #     y_displacement_list.append(displacement)
+
+    # volumetric_strains = []
+    # for disp_vector in node_2_displacements:
+    #     epsilon_xx = disp_vector[0] / 1.0  # ∆u_x / ∆x
+    #     epsilon_yy = disp_vector[1] / 1.0  # ∆u_y / ∆y
+    #     epsilon_zz = disp_vector[2] / 1.0  # ∆u_z / ∆z
+    #     epsilon_v = epsilon_xx + epsilon_yy + epsilon_zz
+    #     volumetric_strains.append(epsilon_v)
 
     sigma1_list = []
     sigma3_list = []
@@ -528,8 +635,8 @@ if __name__ == "__main__":
     value_list = eigenvalue_list
     plot_sigma(sigma1_list, sigma3_list)
 
-    diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
-    plot_delta_sigma(displacement_list, diff)
+    sigma_diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
+    plot_delta_sigma(vertical_strain, sigma_diff)
     plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1])
     plot_p_q(p_list, q_list)
-
+    plot_volumetric_strain(vertical_strain, volumetric_strain)
