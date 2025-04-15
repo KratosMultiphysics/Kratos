@@ -11,7 +11,7 @@
 //                   Gennady Markelov
 //
 
-#include "custom_elements/pw_line_integration_coefficients.h"
+#include "custom_elements/integration_coefficient_modifier_pw_line_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>

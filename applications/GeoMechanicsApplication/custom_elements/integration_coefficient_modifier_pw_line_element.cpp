@@ -10,7 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "pw_line_integration_coefficients.h"
+#include "integration_coefficient_modifier_pw_line_element.h"
 
 #include <includes/element.h>
 #include <structural_mechanics_application_variables.h>

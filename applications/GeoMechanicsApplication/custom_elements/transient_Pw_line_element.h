@@ -26,7 +26,7 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "permeability_calculator.h"
-#include "pw_line_integration_coefficients.h"
+#include "integration_coefficient_modifier_pw_line_element.h"
 #include <numeric>
 #include <optional>
 
