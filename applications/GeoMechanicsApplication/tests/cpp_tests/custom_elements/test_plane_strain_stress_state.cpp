@@ -21,6 +21,7 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
+#include <type_traits>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -92,6 +93,14 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStra
     KRATOS_CHECK_VECTOR_NEAR(calculated_strain, expected_vector, 1e-12)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<PlaneStrainStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<PlaneStrainStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<PlaneStrainStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<PlaneStrainStressState>);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
@@ -99,6 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMec
     const auto p_clone = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<PlaneStrainStressState*>(p_clone.get()), nullptr);
+    KRATOS_EXPECT_NE(p_clone.get(), p_stress_state_policy.get());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
