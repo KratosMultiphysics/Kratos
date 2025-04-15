@@ -61,6 +61,7 @@
 #include "custom_constitutive/DEM_parallel_bond_bilinear_damage_mixed_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
+#include "custom_constitutive/DEM_rolling_friction_model_elastic_platic_resistance.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
 #include "custom_constitutive/DEM_global_damping.h"
