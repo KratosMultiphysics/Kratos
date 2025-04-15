@@ -24,6 +24,10 @@
 namespace Kratos {
 
 
+/// @brief Class representing (part of) a linear constraint equation.
+/// @details The relation matrix is stored in the GEOMETRIC_STIFFNESS_MATRIX
+///          while the constraint gap in the INTERNAL_FORCES_VECTOR variable
+///          of the instance's @ref DataValueContainer.
 class KRATOS_API(KRATOS_CORE) LinearMultifreedomConstraint final
     : public MultifreedomConstraint
 {
@@ -42,6 +46,7 @@ public:
         : LinearMultifreedomConstraint(std::numeric_limits<IndexType>::max())
     {}
 
+    /// @copydoc MultifreedomConstraint::MultifreedomConstraint(const IndexType)
     LinearMultifreedomConstraint(const IndexType Id) noexcept
         : LinearMultifreedomConstraint(Id,
                                        DofPointerVectorType {},
@@ -50,6 +55,15 @@ public:
                                        VectorType {})
     {}
 
+    /// @brief Construct a constraint instance will all necessary information.
+    /// @param Id Identifier of the constraint instance. Unrelated to the identifier of the constrain equation.
+    /// @param rDofs DoFs participating in the constrain equation(s).
+    /// @param rConstraintLabels Identifiers of the constraint equations.
+    /// @param rRelationMatrix Matrix storing the coefficients of the participating DoFs. Each row of the matrix
+    ///                        defines a constraint equation. The coefficients must be in the same order as the
+    ///                        DoFs in @p rDofs. The number of rows must match the size of @p rConstraintLabels.
+    /// @param rConstraintGaps Constants of the constraint equations. The constraint gap vector's size must match
+    ///                        the number of rows in @p rRelationMatrix.
     LinearMultifreedomConstraint(const IndexType Id,
                                  DofPointerVectorType&& rDofs,
                                  const std::vector<std::size_t>& rConstraintLabels,
@@ -59,6 +73,9 @@ public:
     void CalculateLocalSystem(MatrixType& rRelationMatrix,
                               VectorType& rConstraintGaps,
                               const ProcessInfo& rProcessInfo) const override;
+
+    /// @name Unsupported Interface
+    /// @{
 
     MasterSlaveConstraint::Pointer
     Create(IndexType,
@@ -77,6 +94,8 @@ public:
            const double,
            const double) const override
     {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not supported.";}
+
+    /// @}
 }; // class LinearMultifreedomConstraint
 
 

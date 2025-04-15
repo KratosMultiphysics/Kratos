@@ -26,8 +26,6 @@ class NoOpConstraintAssembler final : public ConstraintAssembler<TSparse,TDense>
 public:
     using Base = ConstraintAssembler<TSparse,TDense>;
 
-    using typename Base::Status;
-
     NoOpConstraintAssembler()
         : NoOpConstraintAssembler(Parameters())
     {}
@@ -40,12 +38,14 @@ public:
         : Base(ConstraintImposition::None, std::move(rInstanceName))
     {}
 
-    Status FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
+    bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                 typename TSparse::VectorType& rSolution,
                                 typename TSparse::VectorType& rRhs,
-                                const std::size_t iIteration) override
+                                PMGStatusStream::Report& rReport) override
     {
-        return Status {/*finished=*/true, /*converged=*/true};
+        rReport.maybe_constraint_residual = 0;
+        rReport.constraints_converged = true;
+        return true;
     }
 }; // class NoOpConstraintAssembler
 

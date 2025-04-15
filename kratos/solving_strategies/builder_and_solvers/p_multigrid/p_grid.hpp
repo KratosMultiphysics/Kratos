@@ -15,9 +15,9 @@
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler.hpp" // ConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // DiagonalScaling
+#include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_utilities.hpp" // detail::DofData
 #include "linear_solvers/linear_solver.h" // LinearSolver, Reorderer
 #include "includes/dof.h" // Dof
-#include "containers/nodal_data.h" // NodalData
 
 // System includes
 #include <memory> // std::shared_ptr
@@ -28,6 +28,37 @@
 namespace Kratos {
 
 
+/** @brief Coarse grid level of @PMultigridBuilderAndSolver.
+ *  @details Settings:
+ *           @code
+ *           {
+ *               "max_depth" : 0,
+ *               "precision" : "double",
+ *               "verbosity" : 1,
+ *               "constraint_imposition_settings" : {
+ *                   "method" : "augmented_lagrange",
+ *                   "max_iterations" : 1
+ *               }
+ *           }
+ *           @endcode
+ *           - @p "max_depth" Maximum number of coarse grid levels. If set to 0 (default), there are no
+ *                            coarse grids and no multigrid preconditioning is done. This also means that
+ *                            that the top-level grid uses the linear solver instead of the smoother.
+ *           - @p "precision" Floating point precision of system matrices and vectors. Either @p "double" (default)
+ *                            or @p "single". The potential benefit of using single precision systems is reducing
+ *                            memory consumtion on accelerator hardware (e.g.: VRAM on GPUs). This is viable because
+ *                            coarse corrections in a p-multigrid preconditioner need not have high accuracy.
+ *           - @p "verbosity" Level of verbosity. Every level includes lower verbosity levels and
+ *                            adds new events to report:
+ *              - @p 0 No messages, not even in case of failure.
+ *              - @p 1 Warnings and failure messages.
+ *              - @p 2 Aggregated status reports.
+ *              - @p 3 Per-iteration status reports.
+ *              - @p 4 Output system matrices and vectors.
+ *          - @p "constraint_imposition_settings" : Settings of the top-level constraint assembler.
+ *                                                  Refer to @ref ConstraintAssemblerFactory for more
+ *                                                  information.
+ */
 template <class TSparse, class TDense>
 class PGrid
 {
@@ -40,7 +71,8 @@ public:
 
     PGrid(Parameters Settings,
           Parameters SmootherSettings,
-          Parameters LeafSolverSettings);
+          Parameters LeafSolverSettings,
+          Parameters DiagonalScalingSettings);
 
     PGrid(PGrid&&) noexcept = default;
 
@@ -62,8 +94,7 @@ public:
                   IndirectDofSet& rParentDofSet);
 
     void ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
-                                  typename IndirectDofSet::const_iterator itParentDofEnd,
-                                  const DiagonalScaling& rDiagonalScaling);
+                                  typename IndirectDofSet::const_iterator itParentDofEnd);
 
     void ApplyConstraints();
 
@@ -75,7 +106,9 @@ public:
 
     template <class TParentSparse>
     bool ApplyCoarseCorrection(typename TParentSparse::VectorType& rParentSolution,
-                               const typename TParentSparse::VectorType& rParentResidual);
+                               const typename TParentSparse::VectorType& rParentResidual,
+                               const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler,
+                               PMGStatusStream& rStream);
 
     template <class TParentSparse>
     void Finalize(ModelPart& rModelPart,
@@ -91,11 +124,18 @@ private:
     PGrid(Parameters Settings,
           const unsigned CurrentDepth,
           Parameters SmootherSettings,
-          Parameters LeafSolverSettings);
+          Parameters LeafSolverSettings,
+          Parameters DiagonalScalingSettings);
 
     PGrid(const PGrid&) = delete;
 
     PGrid& operator=(const PGrid&) = delete;
+
+    void ExecuteMultigridLoop(PMGStatusStream& rStream,
+                              PMGStatusStream::Report& rReport);
+
+    void ExecuteConstraintLoop(PMGStatusStream& rStream,
+                               PMGStatusStream::Report& rReport);
 
     typename TSparse::MatrixType mRestrictionOperator;
 
@@ -113,16 +153,15 @@ private:
     ///          DoFs need a pointer to a @ref NodalData object, which is why
     ///          pairs of @ref NodalData and @ref Dof are stored instead of just
     ///          DoFs.
-    std::vector<std::pair<
-        NodalData,
-        Dof<typename TDense::DataType>>
-    > mDofSet;
+    std::vector<detail::DofData> mDofSet;
 
     IndirectDofSet mIndirectDofSet;
 
     std::vector<std::size_t> mDofMap;
 
     std::shared_ptr<ConstraintAssembler<TSparse,TDense>> mpConstraintAssembler;
+
+    std::unique_ptr<Scaling> mpDiagonalScaling;
 
     typename LinearSolverType::Pointer mpSolver;
 

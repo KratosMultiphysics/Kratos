@@ -260,6 +260,34 @@ void MakePRestrictionOperator(const Geometry<TNode>& rGeometry,
 }
 
 
+namespace detail {
+
+
+inline auto FindNodeIndex(ModelPart& rModelPart,
+                          Node& rNode) noexcept
+{
+    return std::distance(
+        rModelPart.Nodes().begin(),
+        std::lower_bound(rModelPart.Nodes().begin(),
+                         rModelPart.Nodes().end(),
+                         rNode,
+                         [](const Node& r_left, const Node& r_right){
+                            return r_left.Id() < r_right.Id();
+                         })
+    );
+}
+
+
+struct DofData
+{
+    NodalData first;
+    Dof<double> second;
+}; // struct DofData
+
+
+} // namespace detail
+
+
 /// @brief Compute the p-multigrid restriction operator for the provided mesh.
 /// @tparam TValue Number type of stored values in the sparse matrix.
 /// @tparam OrderReduction
@@ -278,7 +306,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                               const PointerVectorSet<Dof<double>>& rParentIndirectDofSet,
                               typename TUblasSparseSpace<TValue>::MatrixType& rRestrictionOperator,
                               const VariablesList::Pointer& rpVariableList,
-                              std::vector<std::pair<NodalData,Dof<double>>>& rDofSet,
+                              std::vector<detail::DofData>& rDofSet,
                               PointerVectorSet<Dof<double>>& rIndirectDofSet,
                               std::vector<std::size_t>& rDofMap)
 {
@@ -312,18 +340,6 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         std::vector<LockObject> locks(FineSystemSize);
         using Triplet = std::tuple<LocalIndex,LocalIndex,TValue>;
 
-        const auto find_node_index = [&rModelPart](const Node& r_node) -> std::size_t {
-            return std::distance(
-                rModelPart.Nodes().begin(),
-                std::lower_bound(rModelPart.Nodes().begin(),
-                                 rModelPart.Nodes().end(),
-                                 r_node,
-                                 [](const Node& r_left, const Node& r_right){
-                                    return r_left.Id() < r_right.Id();
-                                 })
-            );
-        }; // def find_node_index
-
         // A vector of bools indicating whether the node at the same position
         // is a hanging node (i.e.: not part of any element/condition) or not.
         // In case you're wondering, I'm not using an std::vector<std::atomic<bool>>
@@ -333,19 +349,25 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         std::vector<std::atomic<std::uint8_t>> hanging_nodes(rModelPart.Nodes().size());
         block_for_each(hanging_nodes, [](auto& r_flag) {r_flag = 1;});
 
+        struct TLS
+        {
+            std::vector<Triplet> local_restriction_operator;
+            std::vector<bool> included_dofs;
+        }; // struct TLS
+
         // Collect terms from elements.
         KRATOS_TRY
         block_for_each(rModelPart.Elements(),
-                       std::vector<Triplet>(),
-                       [&rows, &locks, &hanging_nodes, &find_node_index, &rParentIndirectDofSet](const Element& r_element, std::vector<Triplet>& r_tls) {
+                       TLS(),
+                       [&rows, &locks, &hanging_nodes, &rParentIndirectDofSet, &rModelPart](const Element& r_element, TLS& r_tls) {
             if (r_element.IsActive()) {
                 const auto& r_geometry = r_element.GetGeometry();
 
                 // Fetch the local restriction operator of the element.
-                r_tls.clear();
-                MakePRestrictionOperator<OrderReduction,TValue,LocalIndex>(r_geometry, std::back_inserter(r_tls));
+                r_tls.local_restriction_operator.clear();
+                MakePRestrictionOperator<OrderReduction,TValue,LocalIndex>(r_geometry, std::back_inserter(r_tls.local_restriction_operator));
 
-                for (const auto& [i_row, i_column, value] : r_tls) {
+                for (const auto& [i_row, i_column, value] : r_tls.local_restriction_operator) {
                     auto& r_row_dofs = r_geometry[i_row].GetDofs();
                     const auto& r_column_dofs = r_geometry[i_column].GetDofs();
                     KRATOS_DEBUG_ERROR_IF_NOT(r_row_dofs.size() == r_column_dofs.size());
@@ -361,7 +383,9 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                         if (it_first_dof == rParentIndirectDofSet.end()) continue;
 
                         // Find which DoFs are included from the node.
-                        std::vector<bool> included_dofs(r_row_dofs.size(), false);
+                        r_tls.included_dofs.resize(r_row_dofs.size());
+                        std::fill(r_tls.included_dofs.begin(), r_tls.included_dofs.end(), false);
+
                         {
                             const auto i_row_node = r_row_dofs.front()->Id();
                             auto it_parent_dof = it_first_dof;
@@ -369,22 +393,18 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                                 const Dof<double>& r_row_dof = *r_row_dofs[i_component];
                                 if (it_parent_dof->Id() == i_row_node) {
                                     if (it_parent_dof->GetVariable().Key() == r_row_dof.GetVariable().Key()) {
-                                        included_dofs[i_component] = true;
+                                        r_tls.included_dofs[i_component] = true;
                                         ++it_parent_dof;
                                     }
                                 } else break;
                             } // for i_component in range(r_row_dofs.size())
                         }
 
-                        // No need acquire the mutexes of all row DoFs, since all
-                        // nodes are assumed to have an identical set of DoFs.
-                        // ==> set the lock related to the first DoF in the set.
-                        [[maybe_unused]] std::scoped_lock<LockObject> row_lock(locks[r_row_dofs.front()->EquationId()]);
-
                         const unsigned component_count = r_row_dofs.size();
                         for (unsigned i_component=0u; i_component<component_count; ++i_component) {
-                            if (!included_dofs[i_component]) continue;
+                            if (!r_tls.included_dofs[i_component]) continue;
                             Dof<double>* p_fine_row_dof = r_row_dofs[i_component].get();
+                            [[maybe_unused]] std::scoped_lock<LockObject> row_lock(locks[p_fine_row_dof->EquationId()]);
 
                             const std::size_t i_row_dof = p_fine_row_dof->EquationId();
                             rows[i_row_dof].second = p_fine_row_dof;
@@ -402,7 +422,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
                 // Mark nodes as not hanging.
                 for (Node& r_node : r_element.GetGeometry()) {
-                    const std::size_t i_node = find_node_index(r_node);
+                    const std::size_t i_node = detail::FindNodeIndex(rModelPart, r_node);
                     KRATOS_DEBUG_ERROR_IF_NOT(i_node < hanging_nodes.size());
                     hanging_nodes[i_node] = 0u;
                 } // for r_node in r_element.GetGeometry()
@@ -500,9 +520,9 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
             // has some bug with non-copyable classes in std::pair, so the following
             // line has to be rewritten in a manner that this fossil understands:
             //rDofSet.emplace_back(NodalData(rp_dof->Id(), rpVariableList), Dof<double>());
-            std::pair<NodalData,Dof<double>> entry(1ul, Dof<double>());
+            detail::DofData entry {1ul, Dof<double>()};
             entry.first = NodalData(rp_dof->Id(), rpVariableList);
-            std::pair<NodalData,Dof<double>> wtf = std::move(entry);
+            detail::DofData wtf = std::move(entry);
             rDofSet.push_back(std::move(wtf));
         }
         rDofSet.back().first.SetSolutionStepData(*rp_dof->GetSolutionStepsData());
