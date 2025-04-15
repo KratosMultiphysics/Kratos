@@ -34,6 +34,7 @@ public:
 
     void ExecuteInitialize() override;
     int  Check() override;
+    void ExecuteBeforeSolutionLoop() override;
 
 private:
     ModelPart& mrModelPart;
@@ -41,6 +42,9 @@ private:
     static void CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
                                           const std::vector<Vector>& rStressesOnIntegrationPoints,
                                           IndexType                  ElementId);
+
+    std::map<IndexType, std::vector<Vector>> mStressesByElementId;
+
 };
 
 } // namespace Kratos

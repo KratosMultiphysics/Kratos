@@ -37,10 +37,12 @@ void ResetDisplacementProcess::ExecuteInitialize()
             rElement.CalculateOnIntegrationPoints(
                 CAUCHY_STRESS_VECTOR, stresses_on_integration_points, mrModelPart.GetProcessInfo());
         }
+        KRATOS_INFO("stresses on integration points") << stresses_on_integration_points << " for element " << rElement.GetId() << std::endl;
         std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
         rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
 
         CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, rElement.GetId());
+        mStressesByElementId[rElement.GetId()] = stresses_on_integration_points;
 
         for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
             auto p_initial_state = make_intrusive<InitialState>();
@@ -53,11 +55,27 @@ void ResetDisplacementProcess::ExecuteInitialize()
 
 int ResetDisplacementProcess::Check()
 {
-    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo()[IS_RESTARTED])
-        << "The IS_RESTARTED flag must be set to true in the ProcessInfo of the "
-           "model part. Please use the \"rest\" option for the model input type";
+    // KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo()[IS_RESTARTED])
+    //     << "The IS_RESTARTED flag must be set to true in the ProcessInfo of the "
+    //        "model part. Please use the \"rest\" option for the model input type";
 
     return 0;
+}
+
+void ResetDisplacementProcess::ExecuteBeforeSolutionLoop()
+{
+    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
+    std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+    rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
+    const auto stresses_on_integration_points = mStressesByElementId[rElement.GetId()];
+    for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
+        auto p_initial_state = make_intrusive<InitialState>();
+        p_initial_state->SetInitialStressVector(stresses_on_integration_points[i]);
+        p_initial_state->SetInitialStrainVector(ZeroVector{constitutive_laws[i]->GetStrainSize()});
+        constitutive_laws[i]->SetInitialState(p_initial_state);
+    }
+});
+    mStressesByElementId.clear();
 }
 
 void ResetDisplacementProcess::CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
