@@ -411,7 +411,7 @@ std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
 }
 
 void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
-    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int IntegrationPointIndex) const
+    double& rDetJ, Matrix& rJ0, Matrix& rInvJ0, Matrix& rDNu_DX0, unsigned int IntegrationPointIndex) const
 {
     KRATOS_TRY
 
@@ -419,10 +419,10 @@ void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(mThisIntegrationMethod);
 
-    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[IntegrationPointIndex], J0);
+    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[IntegrationPointIndex], rJ0);
     const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
-    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ);
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
+    MathUtils<double>::InvertMatrix(rJ0, rInvJ0, rDetJ);
+    GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ0, rDNu_DX0);
 
     KRATOS_CATCH("")
 }

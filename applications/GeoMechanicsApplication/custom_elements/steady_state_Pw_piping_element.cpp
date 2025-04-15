@@ -283,25 +283,24 @@ double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const PropertiesT
 /// <summary>
 /// Calculates the equilibrium pipe height of a piping element according to Sellmeijers rule
 /// </summary>
-/// <param name="Prop"></param>
-/// <param name="Geom"></param>
+/// <param name="rProperties"></param>
+/// <param name="rGeometry"></param>
 /// <returns></returns>
 template <unsigned int TDim, unsigned int TNumNodes>
-double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeight(const PropertiesType& Prop,
-                                                                                   const GeometryType& Geom,
-                                                                                   double pipe_length)
+double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeight(
+    const PropertiesType& rProperties, const GeometryType& rGeometry, double PipeLength)
 {
-    const double modelFactor  = Prop[PIPE_MODEL_FACTOR];
-    const double eta          = Prop[PIPE_ETA];
-    const double theta        = Prop[PIPE_THETA];
-    const double SolidDensity = Prop[DENSITY_SOLID];
-    const double FluidDensity = Prop[DENSITY_WATER];
+    const double modelFactor  = rProperties[PIPE_MODEL_FACTOR];
+    const double eta          = rProperties[PIPE_ETA];
+    const double theta        = rProperties[PIPE_THETA];
+    const double SolidDensity = rProperties[DENSITY_SOLID];
+    const double FluidDensity = rProperties[DENSITY_WATER];
 
     // calculate head gradient over element
-    double dhdx = CalculateHeadGradient(Prop, Geom, pipe_length);
+    double dhdx = CalculateHeadGradient(rProperties, rGeometry, PipeLength);
 
     // calculate particle diameter
-    double particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(Prop);
+    double particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(rProperties);
 
     // todo calculate slope of pipe, currently pipe is assumed to be horizontal
     const double pipeSlope = 0;

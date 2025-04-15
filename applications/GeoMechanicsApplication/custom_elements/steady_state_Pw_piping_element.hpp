@@ -101,7 +101,9 @@ public:
 
     double CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
 
-    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
+    double CalculateEquilibriumPipeHeight(const PropertiesType& rProperties,
+                                          const GeometryType&   rGeometry,
+                                          double                PipeLength);
 
     void CalculateLength(const GeometryType& Geom);
 
