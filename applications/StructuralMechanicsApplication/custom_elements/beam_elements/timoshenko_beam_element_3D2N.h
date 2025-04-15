@@ -272,26 +272,6 @@ public:
         ) const override;
 
     /**
-     * @brief Sets on rResult the ID's of the element degrees of freedom
-     * @param rResult The vector containing the equation id
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
-
-    /**
-     * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     * @param rElementalDofList The vector containing the dof of the element
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
-
-    /**
      * @brief This function builds a Frenet-Serret rotation matrix from local to global in 3D
      * This is valid for STRAIGHT lines
      * The change of sign is required in this case since in the x-z plane the y axis is inverted (goes downwards) with respect
