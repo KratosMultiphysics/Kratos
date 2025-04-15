@@ -58,8 +58,8 @@ public:
     /// Pointer definition of DVMSDEMCoupled
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DVMSDEMCoupled);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -92,6 +92,8 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
+    typedef GeometryType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+
     constexpr static unsigned int Dim = DVMS<TElementData>::Dim;
     constexpr static unsigned int NumNodes = DVMS<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = DVMS<TElementData>::BlockSize;
@@ -104,7 +106,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -124,7 +126,7 @@ public:
      */
     DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -162,7 +164,7 @@ public:
     /**
      * Returns a pointer to a new DVMSDEMCoupled element, created using given input
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
@@ -172,6 +174,8 @@ public:
         Properties::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -210,11 +214,18 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    // Velocity subscale history, stored at integration points
-    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
+    DenseVector< array_1d<double,3> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,3> > mOldSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mPreviousVelocity;
+    DenseVector <BoundedMatrix<double,3,3>> mViscousResistanceTensor;
+    int mInterpolationOrder = 1;
+    std::vector<double> mPorosity;
+    std::vector<double> mPorosityOld;
+    std::vector<double> mPorosityRate;
+    std::vector<Vector> mPorosityGradient;
+    std::vector<Vector> mBodyForce;
+
+    std::vector<Vector> mWeightsVector;
 
     ///@}
     ///@name Protected Operators
@@ -242,7 +253,10 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
-    // Implementation details of DVMSDEMCoupled /////////////////////////////////////////
+    void AddReactionStabilization(
+        TElementData& rData,
+        BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& rLHS,
+        VectorType& rLocalRHS);
 
     void AddMassStabilization(
         TElementData& rData,
@@ -256,6 +270,14 @@ protected:
         BoundedMatrix<double,Dim,Dim> &TauOne,
         double &TauTwo) const;
 
+    void UpdateIntegrationPointDataSecondDerivatives(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX,
+        const typename TElementData::ShapeFunctionsSecondDerivativesType& rDDN_DDX) const;
+
     void SubscaleVelocity(
         const TElementData& rData,
         array_1d<double,3>& rVelocitySubscale) const override;
@@ -263,6 +285,28 @@ protected:
     void SubscalePressure(
         const TElementData& rData,
         double& rPressureSubscale) const override;
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+                            const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<array_1d<double,3>>& rVariable,
+        array_1d<double,3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+                                            VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
     array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const override;
@@ -273,10 +317,53 @@ protected:
     void UpdateSubscaleVelocity(
         const TElementData& rData);
 
+    void AddMassLHS(
+        TElementData& rData,
+        MatrixType& rMassMatrix) override;
+
     void MassProjTerm(
         const TElementData& rData,
         double& rMassRHS) const override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rOutput,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rOutput,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<array_1d<double,3>> const& rVariable,
+        std::vector<array_1d<double,3>> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
     ///@name Protected  Access
     ///@{

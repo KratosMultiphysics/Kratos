@@ -8,7 +8,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from generalTests import KratosDamGeneralTests
 
-
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
@@ -28,7 +27,15 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosDamGeneralTests('testSmallExample'))
+    smallSuite.addTest(KratosDamGeneralTests('test_joint_elastic_cohesive_2d_normal'))
+    smallSuite.addTest(KratosDamGeneralTests('test_joint_elastic_cohesive_2d_shear'))
+    smallSuite.addTest(KratosDamGeneralTests('test_joint_isotropic_damage_cohesive_2d_normal'))
+    smallSuite.addTest(KratosDamGeneralTests('test_joint_isotropic_damage_cohesive_2d_shear'))
+    smallSuite.addTest(KratosDamGeneralTests('test_joint_elastic_cohesive_3d_normal'))
+    smallSuite.addTest(KratosDamGeneralTests('test_joint_elastic_cohesive_3d_shear'))
+    smallSuite.addTest(KratosDamGeneralTests('test_joint_isotropic_damage_cohesive_3d_normal'))
+    smallSuite.addTest(KratosDamGeneralTests('test_joint_isotropic_damage_cohesive_3d_shear'))
+    smallSuite.addTest(KratosDamGeneralTests('test_construction'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:

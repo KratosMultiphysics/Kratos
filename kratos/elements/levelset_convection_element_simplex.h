@@ -13,8 +13,7 @@
 //
 
 
-#if !defined(KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED )
-#define  KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED
+#pragma once
 
 // System includes
 
@@ -110,6 +109,16 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Initialize(const ProcessInfo& rProcessInfo) override
+    {
+        const auto& r_geometry = GetGeometry();
+        mElementTauNodal = std::all_of(r_geometry.begin(),
+                                       r_geometry.end(),
+                                       [](const auto& rNode) {
+                                           return rNode.Has(TAU);
+                                       });
+    }
+    
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -127,6 +136,7 @@ public:
         const ConvectionDiffusionSettings::Pointer& my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
+        const Variable<array_1d<double, 3 > >& rConvMeshVar = my_settings->GetMeshVelocityVariable();
         const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
 
 
@@ -146,10 +156,8 @@ public:
         {
             phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
             phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
-//             dphi_dt[i] = dt_inv*(phi[i] - phi_old [i];
-
-            v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
-            vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
+            v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar) - GetGeometry()[i].FastGetSolutionStepValue(rConvMeshVar);
+            vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1) - GetGeometry()[i].FastGetSolutionStepValue(rConvMeshVar, 1);
         }
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
         const double norm_grad = norm_2(grad_phi_halfstep);
@@ -189,9 +197,20 @@ public:
             }
             const double norm_vel = norm_2(vel_gauss);
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
+            double tau = 0.0;
 
-            const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + std::abs(/*beta**/div_v),  1e-2); //the term std::abs(div_v) is added following Pablo Becker's suggestion
-            const double tau = 1.0 / (tau_denom);
+            if (mElementTauNodal){
+                
+                for (unsigned int i = 0; i < TNumNodes; i++)
+                {
+                    tau += N[i] * GetGeometry()[i].GetValue(TAU);
+                }
+            }
+            else{
+                const double tau_denom = std::max(dyn_st_beta * dt_inv + 2.0 * norm_vel / h + std::abs(/*beta**/ div_v), 1e-2); // the term std::abs(div_v) is added following Pablo Becker's suggestion
+                tau = 1.0 / (tau_denom);
+            }
+
 
             //terms multiplying dphi/dt (aux1)
             noalias(aux1) += (1.0+tau*beta*div_v)*outer_prod(N, N);
@@ -409,6 +428,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    bool mElementTauNodal; // Flag to indicate if the stabilization tau is evaluated at each Gauss point or interpolated
+
     ///@}
     ///@name Serialization
     ///@{
@@ -483,7 +504,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED  defined
-
-

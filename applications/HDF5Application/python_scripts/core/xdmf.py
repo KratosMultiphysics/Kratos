@@ -227,16 +227,32 @@ class TopologyCellType:
 
     _topologies = {
         (2,1): "Polyvertex_1",
-        (2,2): "Polyline_2",
-        (2,3): "Triangle",
-        (2,4): "Quadrilateral",
-
         (3,1): "Polyvertex_1",
+
+        (2,2): "Polyline_2",
         (3,2): "Polyline_2",
+
+        (2,3): "Triangle",
+        (2,6): "Triangle_6",
         (3,3): "Triangle",
+
+        (2,4): "Quadrilateral",
+        (2,8): "Quadrilateral_8",
+        (2,9): "Quadrilateral_9",
+
         (3,4): "Tetrahedron",
-        (3,8): "Hexahedron"
-        }
+        (3,10): "Tetrahedron_10",
+
+        (3,5): "Pyramid",
+        (3,13): "Pyramid_13",
+
+        (3,6): "Wedge",
+        (3,15): "Wedge_15",
+
+        (3,8): "Hexahedron",
+        (3,20): "Hexahedron_20",
+        (3,27): "Hexahedron_27"
+    }
 
     def __init__(self, dim, num_points):
         """Construct the object.

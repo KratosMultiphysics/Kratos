@@ -12,8 +12,7 @@
 //                   Mohammad Reza Hashemi
 //
 
-#if !defined(KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED )
-#define  KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -38,6 +37,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "utilities/pointer_map_communicator.h"
+#include "processes/find_nodal_h_process.h"
 
 namespace Kratos
 {
@@ -68,6 +68,37 @@ template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinea
 class LevelSetConvectionProcess
     : public Process
 {
+private:
+    ///@name Type Definitions
+    ///@{
+
+    class ProcessInfoDataContainer
+    {
+    public:
+        ProcessInfoDataContainer(const ProcessInfo& rInputProcessInfo)
+        : DeltaTime(rInputProcessInfo.GetValue(DELTA_TIME))
+        , pUnknownVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetUnknownVariable()))
+        , pGradientVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetGradientVariable()))
+        , pConvectionVariable(&((rInputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->GetConvectionVariable()))
+        {}
+
+        void RestoreProcessInfoData(ProcessInfo& rOutputProcessInfo) const
+        {
+            rOutputProcessInfo.SetValue(DELTA_TIME, DeltaTime);
+            (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetUnknownVariable(*pUnknownVariable);
+            (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetGradientVariable(*pGradientVariable);
+            (rOutputProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS))->SetConvectionVariable(*pConvectionVariable);
+        }
+
+    private:
+        const double DeltaTime;
+        const Variable<double>* pUnknownVariable;
+        const Variable<array_1d<double,3>>* pGradientVariable;
+        const Variable<array_1d<double,3>>* pConvectionVariable;
+    };
+
+    ///@}
+
 public:
 
     ///@name Type Definitions
@@ -91,7 +122,7 @@ public:
 
     /**
      * @brief Construct a new Level Set Convection Process object
-     * Level set convection proces model constructor
+     * Level set convection process model constructor
      * @param rModel Model container
      * @param pLinearSolver Linear solver to be used in the level set convection problem
      * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
@@ -109,7 +140,7 @@ public:
 
     /**
      * @brief Construct a new Level Set Convection Process object
-     * Level set convection proces model part constructor
+     * Level set convection process model part constructor
      * @param rBaseModelPart Origin model part
      * @param pLinearSolver Linear solver to be used in the level set convection problem
      * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
@@ -168,32 +199,54 @@ public:
             ReGenerateConvectionModelPart(mrBaseModelPart);
         }
 
+        // If required, calculate nodal element size
+        // Note that this is done once assuming no mesh deformation
+        if (mElementTauNodal || mCalculateNodalH) {
+            ComputeNodalH();
+            mCalculateNodalH = false;
+        }
+
         // Evaluate steps needed to achieve target max_cfl
         const auto n_substep = EvaluateNumberOfSubsteps();
 
-        auto& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
-
         // Save the variables to be employed so that they can be restored after the solution
-        const auto& r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
-        const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
+        const auto process_info_data = ProcessInfoDataContainer(mpDistanceModelPart->GetProcessInfo());
+
+        // We set these values at every time step as other processes/solvers also use them
+        // Note that this function sets the element related data (e.g. stabilization parameters)
+        auto fill_process_info_function = GetFillProcessInfoFormulationDataFunction();
+        fill_process_info_function(mrBaseModelPart);
+
+        // Set convection problem data
+        auto& r_conv_process_info = mpDistanceModelPart->GetProcessInfo();
+        const double previous_delta_time = r_conv_process_info.GetValue(DELTA_TIME);
+        const double dt =  previous_delta_time / static_cast<double>(n_substep);
+        r_conv_process_info.SetValue(DELTA_TIME, dt);
+        r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
+        r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetGradientVariable(*mpLevelSetGradientVar);
+        r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetConvectionVariable(*mpConvectVar);
+        r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetMeshVelocityVariable(*mpMeshConvectVar);
 
         // Save current level set value and current and previous step velocity values
+        // If the nodal stabilization tau is to be used, it is also computed in here
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
         [&](int i_node){
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
             mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
+            mMeshVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpMeshConvectVar);
+            mMeshVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpMeshConvectVar,1);
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
+
+            if (mElementTauNodal) {
+                double velocity_norm = norm_2(mVelocity[i_node]);
+                const double nodal_h = it_node-> GetValue(NODAL_H);
+                const double dynamic_tau = r_conv_process_info.GetValue(DYNAMIC_TAU);
+                const double tau = 1.0 / (dynamic_tau / dt + velocity_norm / std::pow(nodal_h,2));
+                it_node->GetValue(TAU) = tau;
+            }
             }
         );
-
-        const double dt =  previous_delta_time / static_cast<double>(n_substep);
-        rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
-        rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
-
-        // We set these values at every time step as other processes/solvers also use them
-        auto fill_process_info_function = GetFillProcessInfoFunction();
-        fill_process_info_function(mrBaseModelPart);
 
         for(unsigned int step = 1; step <= n_substep; ++step){
             KRATOS_INFO_IF("LevelSetConvectionProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
@@ -217,9 +270,13 @@ public:
 
                 const array_1d<double,3>& r_v = mVelocity[i_node];
                 const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
+                const array_1d<double,3>& r_v_mesh = mMeshVelocity[i_node];
+                const array_1d<double,3>& r_v_mesh_old = mMeshVelocityOld[i_node];
 
                 noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = Nold * r_v_old + Nnew * r_v;
                 noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = Nold_before * r_v_old + Nnew_before * r_v;
+                noalias(it_node->FastGetSolutionStepValue(*mpMeshConvectVar)) = Nold * r_v_mesh_old + Nnew * r_v_mesh;
+                noalias(it_node->FastGetSolutionStepValue(*mpMeshConvectVar, 1)) = Nold_before * r_v_mesh_old + Nnew_before * r_v_mesh;
                 it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
             }
             );
@@ -241,8 +298,7 @@ public:
         }
 
         // Reset the processinfo to the original settings
-        rCurrentProcessInfo.SetValue(DELTA_TIME, previous_delta_time);
-        rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(r_previous_var);
+        process_info_data.RestoreProcessInfoData(mpDistanceModelPart->GetProcessInfo());
 
         // Reset the velocities and levelset values to the one saved before the solution process
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
@@ -250,6 +306,8 @@ public:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(*mpConvectVar) = mVelocity[i_node];
             it_node->FastGetSolutionStepValue(*mpConvectVar,1) = mVelocityOld[i_node];
+            it_node->FastGetSolutionStepValue(*mpMeshConvectVar) = mMeshVelocity[i_node];
+            it_node->FastGetSolutionStepValue(*mpMeshConvectVar,1) = mMeshVelocityOld[i_node];
             it_node->FastGetSolutionStepValue(*mpLevelSetVar,1) = mOldDistance[i_node];
         }
         );
@@ -269,6 +327,8 @@ public:
 
         mVelocity.clear();
         mVelocityOld.clear();
+        mMeshVelocity.clear();
+        mMeshVelocityOld.clear();
         mOldDistance.clear();
 
         mSigmaPlus.clear();
@@ -286,6 +346,7 @@ public:
             "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_mesh_convection_variable_name" : "MESH_VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
@@ -347,6 +408,8 @@ protected:
 
     const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
 
+    const Variable<array_1d<double,3>>* mpMeshConvectVar = nullptr;
+
     const Variable<array_1d<double,3>>* mpLevelSetGradientVar = nullptr;
 
     double mMaxAllowedCFL = 1.0;
@@ -356,6 +419,10 @@ protected:
     bool mIsBfecc;
 
     bool mElementRequiresLimiter;
+
+    bool mElementTauNodal;
+
+    bool mCalculateNodalH = true;
 
     bool mElementRequiresLevelSetGradient;
 
@@ -378,6 +445,10 @@ protected:
     std::vector<array_1d<double,3>> mVelocity;
 
     std::vector<array_1d<double,3>> mVelocityOld;
+
+    std::vector<array_1d<double,3>> mMeshVelocity;
+
+    std::vector<array_1d<double,3>> mMeshVelocityOld;
 
     bool mDistancePartIsInitialized = false;
 
@@ -445,6 +516,7 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
+            p_conv_diff_settings->SetMeshVelocityVariable(*mpMeshConvectVar);
             if (mpLevelSetGradientVar) {
                 p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
             }
@@ -452,7 +524,7 @@ protected:
 
         // This call returns a function pointer with the ProcessInfo filling directives
         // If the user-defined level set convection requires nothing to be set, the function does nothing
-        auto fill_process_info_function = GetFillProcessInfoFunction();
+        auto fill_process_info_function = GetFillProcessInfoFormulationDataFunction();
         fill_process_info_function(mrBaseModelPart);
     }
 
@@ -460,9 +532,7 @@ protected:
 
         KRATOS_TRY
 
-        if (mrModel.HasModelPart(mAuxModelPartName)) {
-            mrModel.DeleteModelPart(mAuxModelPartName);
-        }
+        KRATOS_ERROR_IF(mrModel.HasModelPart(mAuxModelPartName)) << "A process or operation using an auxiliar model_part with the name '" << mAuxModelPartName << "' already exists. Please choose another." << std::endl;
 
         mpDistanceModelPart= &(mrModel.CreateModelPart(mAuxModelPartName));
 
@@ -510,6 +580,8 @@ protected:
         const auto n_nodes = mpDistanceModelPart->NumberOfNodes();
         mVelocity.resize(n_nodes);
         mVelocityOld.resize(n_nodes);
+        mMeshVelocity.resize(n_nodes);
+        mMeshVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
 
         if (mEvaluateLimiter){
@@ -540,7 +612,10 @@ protected:
         }
 
         if (mElementRequiresLimiter){
-                block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
+                block_for_each(mpDistanceModelPart->Nodes(), [&](Node& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
+        }
+        if(mElementTauNodal){
+                block_for_each(mpDistanceModelPart->Nodes(), [&](Node& rNode){rNode.SetValue(TAU, 0.0);});
         }
     }
 
@@ -602,11 +677,11 @@ protected:
         const double epsilon = 1.0e-12;
 
         auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
-        GlobalPointersVector< Node<3 > > gp_list;
+        GlobalPointersVector< Node > gp_list;
 
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -615,10 +690,10 @@ protected:
             }
         }
 
-        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+        GlobalPointerCommunicator< Node > pointer_comm(r_default_comm, gp_list);
 
         auto coordinate_proxy = pointer_comm.Apply(
-            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            [](GlobalPointer<Node >& global_pointer) -> Point::CoordinatesArrayType
             {
                 return global_pointer->Coordinates();
             }
@@ -636,7 +711,7 @@ protected:
             double S_plus = 0.0;
             double S_minus = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -656,7 +731,7 @@ protected:
         );
 
         auto combined_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3>> &global_pointer) -> std::pair<double, array_1d<double,3>> {
+            [&](GlobalPointer<Node> &global_pointer) -> std::pair<double, array_1d<double,3>> {
                 return std::make_pair(
                     global_pointer->FastGetSolutionStepValue(*mpLevelSetVar),
                     global_pointer->Coordinates());
@@ -673,7 +748,7 @@ protected:
             double numerator = 0.0;
             double denominator = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -726,9 +801,11 @@ protected:
      */
     void ErrorCalculationAndCorrection()
     {
-        block_for_each(mpDistanceModelPart->Nodes(), [this](Node<3>& rNode){
+        block_for_each(mpDistanceModelPart->Nodes(), [this](Node& rNode){
             noalias(rNode.FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar);
             noalias(rNode.FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar, 1);
+            noalias(rNode.FastGetSolutionStepValue(*mpMeshConvectVar)) = -1.0 * rNode.FastGetSolutionStepValue(*mpMeshConvectVar);
+            noalias(rNode.FastGetSolutionStepValue(*mpMeshConvectVar, 1)) = -1.0 * rNode.FastGetSolutionStepValue(*mpMeshConvectVar, 1);
             rNode.FastGetSolutionStepValue(*mpLevelSetVar, 1) = rNode.FastGetSolutionStepValue(*mpLevelSetVar);
         });
 
@@ -750,6 +827,8 @@ protected:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar);
             noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar, 1);
+            noalias(it_node->FastGetSolutionStepValue(*mpMeshConvectVar)) = -1.0 * it_node->FastGetSolutionStepValue(*mpMeshConvectVar);
+            noalias(it_node->FastGetSolutionStepValue(*mpMeshConvectVar, 1)) = -1.0 * it_node->FastGetSolutionStepValue(*mpMeshConvectVar, 1);
             const double phi_n_star = it_node->GetValue(*mpLevelSetVar) + mLimiter[i_node]*mError[i_node];
             it_node->FastGetSolutionStepValue(*mpLevelSetVar) = phi_n_star;
             it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = phi_n_star;
@@ -759,6 +838,16 @@ protected:
         mpSolvingStrategy->Predict();
         mpSolvingStrategy->SolveSolutionStep(); // forward convection to obtain the corrected phi_n+1
         mpSolvingStrategy->FinalizeSolutionStep();
+    }
+
+    /**
+     * @brief Nodal H calculation
+     * This function calculates the nodal h  by executing a process where the nodal h calculaiton is implemented.
+     */
+    void ComputeNodalH()
+    {
+        auto nodal_h_process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(mrBaseModelPart);
+        nodal_h_process.Execute();
     }
 
     ///@}
@@ -803,6 +892,7 @@ private:
 
         mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
         mElementRequiresLimiter =  ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
+        mElementTauNodal = ThisParameters["element_settings"].Has("tau_nodal") ? ThisParameters["element_settings"]["tau_nodal"].GetBool() : false;
 
         if (ThisParameters["element_settings"].Has("elemental_limiter_acuteness") && mElementRequiresLimiter) {
             mPowerElementalLimiter = ThisParameters["element_settings"]["elemental_limiter_acuteness"].GetDouble();
@@ -825,6 +915,7 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
+        mpMeshConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_mesh_convection_variable_name"].GetString());
         if (ThisParameters["convection_model_part_name"].GetString() == "") {
             mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
         } else {
@@ -850,7 +941,7 @@ private:
         }
         std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
         if (!KratosComponents<Element>::Has(element_register_name)) {
-            KRATOS_ERROR << "Specified \'" << element_type << "\' is not in the available elements list: " << element_list 
+            KRATOS_ERROR << "Specified \'" << element_type << "\' is not in the available elements list: " << element_list
             << " and it is nor registered as a kratos element either. Please check your settings\n";
         }
         return element_register_name;
@@ -899,7 +990,8 @@ private:
                 "dynamic_tau" : 0.0,
                 "cross_wind_stabilization_factor" : 0.7,
                 "requires_distance_gradient" : false,
-                "time_integration_theta" : 0.5
+                "time_integration_theta" : 0.5,
+                "tau_nodal": false
             })");
         } else if (ElementType == "levelset_convection_algebraic_stabilization") {
             default_parameters = Parameters(R"({
@@ -919,7 +1011,7 @@ private:
      * It has to be particularised for all the formulations. If not particularised a do nothing instruction is returned
      * @return const std::function<void(ModelPart&)> A function pointer to be called when setting up the distance model part
      */
-    const virtual std::function<void(ModelPart&)> GetFillProcessInfoFunction()
+    const virtual std::function<void(ModelPart&)> GetFillProcessInfoFormulationDataFunction()
     {
         std::function<void(ModelPart&)> fill_process_info_function;
 
@@ -951,6 +1043,7 @@ private:
         // Check that the level set and convection variables are in the nodal database
         VariableUtils().CheckVariableExists<Variable<double>>(*mpLevelSetVar, mrBaseModelPart.Nodes());
         VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mrBaseModelPart.Nodes());
+        VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpMeshConvectVar, mrBaseModelPart.Nodes());
 
         // Check the base model part element family (only simplex elements are supported)
         if constexpr (TDim == 2){
@@ -1029,5 +1122,3 @@ inline std::ostream& operator << (
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined

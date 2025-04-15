@@ -11,7 +11,6 @@
         "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
-        "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
             "input_filename":   "test_cable_between_soils"
@@ -49,7 +48,6 @@
         "number_cycles":                      100,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
-        "realised_factor":                    0.9999,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
@@ -66,7 +64,7 @@
             "scaling"     : true
         }, 
         "problem_domain_sub_model_part_list": ["soils","Cable-auto-1"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Point_Load-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Point_Load-auto-1","Cable-auto-1"],
         "body_domain_sub_model_part_list":    ["soils","Cable-auto-1"]
     },
     "output_processes": {
@@ -113,7 +111,19 @@
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
-    }],
+    },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyVectorConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.Cable-auto-1",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [false,false,true],
+                "is_fixed":        [false,false,true],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",

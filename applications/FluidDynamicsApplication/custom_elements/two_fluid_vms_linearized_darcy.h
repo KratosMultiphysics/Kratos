@@ -45,8 +45,8 @@ public:
 
     using ElementBaseType = TwoFluidVMS<TDim,TNumNodes>;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
     
     /**
      * Properties are used to store any parameters
@@ -68,7 +68,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -90,7 +90,7 @@ public:
     TwoFluidVMSLinearizedDarcy(IndexType NewId, GeometryType::Pointer pGeometry)
         : ElementBaseType(NewId, pGeometry) {}
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object

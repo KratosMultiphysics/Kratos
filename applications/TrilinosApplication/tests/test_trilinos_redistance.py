@@ -50,16 +50,13 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }"""))
 
-        epetra_comm = TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.DataCommunicator.GetDefault())
+        epetra_comm = TrilinosApplication.CreateEpetraCommunicator(self.model_part.GetCommunicator().GetDataCommunicator())
 
-        max_iterations = 2
-        TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(
-            epetra_comm,
-            self.model_part,
-            trilinos_linear_solver,
-            max_iterations,
-            (KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE).AsFalse()
-            ).Execute()
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "Main",
+            "max_iterations" : 2
+        }""")
+        TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(epetra_comm, self.current_model, trilinos_linear_solver, settings).Execute()
 
         # Check the obtained values
         max_distance = -1.0

@@ -10,15 +10,13 @@
 //  Main authors:    Riccardo Rossi
 //
 
+#pragma once
 
-#if !defined(KRATOS_SCHEME )
-#define  KRATOS_SCHEME
+// System includes
 
-/* System includes */
+// External includes
 
-/* External includes */
-
-/* Project includes */
+// Project includes
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "includes/kratos_parameters.h"
@@ -64,28 +62,34 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Scheme);
 
     /// The definition of the current class
-    typedef Scheme< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = Scheme<TSparseSpace, TDenseSpace>;
 
     /// Data type definition
-    typedef typename TSparseSpace::DataType TDataType;
+    using TDataType = typename TSparseSpace::DataType;
+
     /// Matrix type definition
-    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename TSparseSpace::MatrixType;
+
     /// Vector type definition
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    using TSystemVectorType = typename TSparseSpace::VectorType;
+
     /// Local system matrix type definition
-    typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
+    using LocalSystemMatrixType = typename TDenseSpace::MatrixType;
+
     /// Local system vector type definition
-    typedef typename TDenseSpace::VectorType LocalSystemVectorType;
+    using LocalSystemVectorType = typename TDenseSpace::VectorType;
 
     /// DoF type definition
-    typedef Dof<double> TDofType;
+    using TDofType = Dof<double>;
+
     /// DoF array type definition
-    typedef ModelPart::DofsArrayType DofsArrayType;
+    using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Elements containers definition
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
+
     /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -93,14 +97,9 @@ public:
 
     /**
      * @brief Default Constructor
-     * @details Initializes the flags
      */
-    explicit Scheme()
-    {
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
-    }
+    Scheme() = default;
+
     /**
      * @brief Constructor with Parameters
      */
@@ -109,26 +108,15 @@ public:
         // Validate default parameters
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
-
-        mSchemeIsInitialized = false;
-        mElementsAreInitialized = false;
-        mConditionsAreInitialized = false;
     }
 
     /** Copy Constructor.
      */
-    explicit Scheme(Scheme& rOther)
-      :mSchemeIsInitialized(rOther.mSchemeIsInitialized)
-      ,mElementsAreInitialized(rOther.mElementsAreInitialized)
-      ,mConditionsAreInitialized(rOther.mConditionsAreInitialized)
-    {
-    }
+    Scheme(Scheme& rOther) = default;
 
     /** Destructor.
      */
-    virtual ~Scheme()
-    {
-    }
+    virtual ~Scheme() = default;
 
     ///@}
     ///@name Operators
@@ -213,6 +201,12 @@ public:
         return mConditionsAreInitialized;
     }
 
+    /// @brief Return true if @ref MasterSlaveConstraint "constraints" have already been initialized.
+    bool ConstraintsAreInitialized() noexcept
+    {
+        return mConstraintsAreInitialized;
+    }
+
     /**
      * @brief This method sets if the conditions have been initialized or not (true by default)
      * @param ConditionsAreInitializedFlag If the flag must be set to true or false
@@ -220,6 +214,12 @@ public:
     void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag = true)
     {
         mConditionsAreInitialized = ConditionsAreInitializedFlag;
+    }
+
+    /// @brief Set flag indicating whether @ref MasterSlaveConstraint "constraints" are initialized.
+    void SetConstraintsAreInitialized(bool Flag = true) noexcept
+    {
+        mConstraintsAreInitialized = Flag;
     }
 
     /**
@@ -253,6 +253,15 @@ public:
 
         SetConditionsAreInitialized();
 
+        KRATOS_CATCH("")
+    }
+
+    /// @brief Initialize all @ref MasterSlaveConstraint "constraints" of the input @ref ModelPart.
+    virtual void InitializeConstraints(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+        EntitiesUtilities::InitializeEntities<MasterSlaveConstraint>(rModelPart);
+        SetConstraintsAreInitialized();
         KRATOS_CATCH("")
     }
 
@@ -376,36 +385,6 @@ public:
         // Finalizes non-linear iteration for all of the elements, conditions and constraints
         EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
 
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @warning Must be defined in derived classes
-     * @param rCurrentElement The element to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
-        Element::Pointer rCurrentElement,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @warning Must be defined in derived classes
-     * @param rCurrentCondition The condition to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
-        Condition::Pointer rCurrentCondition,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_TRY
         KRATOS_CATCH("")
     }
 
@@ -778,9 +757,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
-    bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
-    bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mSchemeIsInitialized = false;      /// Flag to be used in controlling if the Scheme has been initialized or not
+    bool mElementsAreInitialized = false;   /// Flag taking in account if the elements were initialized correctly or not
+    bool mConditionsAreInitialized = false; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mConstraintsAreInitialized = false; /// Flag taking in account if the constraints were initialized correctly or not
 
     ///@}
     ///@name Protected Operators
@@ -860,5 +840,3 @@ private:
 }; // Class Scheme
 
 } // namespace Kratos.
-
-#endif /* KRATOS_SCHEME  defined */

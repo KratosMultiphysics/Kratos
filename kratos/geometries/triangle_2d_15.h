@@ -9,10 +9,10 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Mohamed Nabi
-//                   
-//                   
-//  Contributors:    
-//                   
+//
+//
+//  Contributors:
+//
 //
 
 #pragma once
@@ -62,8 +62,8 @@ namespace Kratos
      *          |         `\
      *          0--3--4--5--1
      * @author Mohamed Nabi
-     * @author 
-     * @author 
+     * @author
+     * @author
      */
     template<class TPointType>
     class Triangle2D15 : public Geometry<TPointType>
@@ -202,7 +202,7 @@ namespace Kratos
         ///@}
         ///@name Life Cycle
         ///@{
-        
+
         Triangle2D15(const PointType& Point01, const PointType& Point02, const PointType& Point03,
             const PointType& Point04, const PointType& Point05, const PointType& Point06,
             const PointType& Point07, const PointType& Point08, const PointType& Point09,
@@ -275,12 +275,12 @@ namespace Kratos
         explicit Triangle2D15(const std::string& rGeometryName, const PointsArrayType& rThisPoints)
             : BaseType(rGeometryName, rThisPoints, &msGeometryData)
         {
-            KRATOS_ERROR_IF(this->PointsNumber() != 15) << "Invalid points number. Expected 15, given " 
+            KRATOS_ERROR_IF(this->PointsNumber() != 15) << "Invalid points number. Expected 15, given "
                 << this->PointsNumber() << std::endl;
         }
 
         /**
-         * Copy constructor. 
+         * Copy constructor.
          * Construct this geometry as a copy of given geometry.
          *
          * @note This copy constructor does not copy the points and new
@@ -293,10 +293,10 @@ namespace Kratos
         }
 
         /**
-         * Copy constructor from a geometry with other point type. 
-         * Construct this geometry as a copy of given geometry which 
-         * has different type of points. The given goemetry's 
-         * TOtherPointType* must be implicity convertible to this 
+         * Copy constructor from a geometry with other point type.
+         * Construct this geometry as a copy of given geometry which
+         * has different type of points. The given goemetry's
+         * TOtherPointType* must be implicitly convertible to this
          * geometry PointType.
          *
          * @note This copy constructor does not copy the points and new
@@ -314,14 +314,34 @@ namespace Kratos
          */
         ~Triangle2D15() override {}
 
+        /**
+         * @brief Gets the geometry family.
+         * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+         * @return GeometryData::KratosGeometryFamily The geometry family.
+         */
         GeometryData::KratosGeometryFamily GetGeometryFamily() const override
         {
             return GeometryData::KratosGeometryFamily::Kratos_Triangle;
         }
 
+        /**
+         * @brief Gets the geometry type.
+         * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+         * @return GeometryData::KratosGeometryType The specific geometry type.
+         */
         GeometryData::KratosGeometryType GetGeometryType() const override
         {
             return GeometryData::KratosGeometryType::Kratos_Triangle2D15;
+        }
+
+        /**
+         * @brief Gets the geometry order type.
+         * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+         * @return GeometryData::KratosGeometryOrderType The geometry order type.
+         */
+        GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+        {
+            return GeometryData::KratosGeometryOrderType::Kratos_Quartic_Order;
         }
 
         ///@}
@@ -496,7 +516,7 @@ namespace Kratos
         }
 
         /** This method calculates and returns area or surface area of
-         * this geometry depending to it's dimension. For one dimensional
+         * this geometry depending on its dimension. For one dimensional
          * geometry it returns zero, for two dimensional it gives area
          * and for three dimensional geometries it gives surface area.
          *
@@ -520,7 +540,7 @@ namespace Kratos
         }
 
         /** This method calculates and returns length, area or volume of
-         * this geometry depending to it's dimension. For one dimensional
+         * this geometry depending on its dimension. For one dimensional
          * geometry it returns its length, for two dimensional it gives area
          * and for three dimensional geometries it gives its volume.
          *
@@ -671,6 +691,12 @@ namespace Kratos
         ///@name Input and output
         ///@{
 
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Triangle2D15N";
+    }
+
         /**
          * Turn back information as a string.
          *
@@ -704,14 +730,18 @@ namespace Kratos
          * @see PrintInfo()
          * @see Info()
          */
-        void PrintData(std::ostream& rOStream) const override
+        void PrintData( std::ostream& rOStream ) const override
         {
-            PrintInfo(rOStream);
-            BaseType::PrintData(rOStream);
+            // Base Geometry class PrintData call
+            BaseType::PrintData( rOStream );
             std::cout << std::endl;
-            Matrix jacobian;
-            this->Jacobian(jacobian, PointType());
-            rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+            // If the geometry has valid points, calculate and output its data
+            if (this->AllPointsAreValid()) {
+                Matrix jacobian;
+                this->Jacobian( jacobian, PointType() );
+                rOStream << "    Jacobian in the origin\t : " << jacobian;
+            }
         }
 
         ///@}
@@ -721,7 +751,7 @@ namespace Kratos
         /**
          * @brief This method gives you number of all edges of this geometry.
          * @details For example, for a hexahedron, this would be 12
-         * @return SizeType containes number of this geometry edges.
+         * @return SizeType contains number of this geometry edges.
          * @see EdgesNumber()
          * @see Edges()
          * @see GenerateEdges()
@@ -738,7 +768,7 @@ namespace Kratos
          * @brief This method gives you all edges of this geometry.
          * @details This method will gives you all the edges with one dimension less than this geometry.
          * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-         * @return GeometriesArrayType containes this geometry edges.
+         * @return GeometriesArrayType contains this geometry edges.
          * @see EdgesNumber()
          * @see Edge()
          */
@@ -800,7 +830,7 @@ namespace Kratos
          */
         virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(IntegrationMethod ThisMethod)
         {
-            ShapeFunctionsGradientsType localGradients 
+            ShapeFunctionsGradientsType localGradients
                 = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
             const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
             ShapeFunctionsGradientsType Result(integration_points_number);
@@ -1600,6 +1630,6 @@ namespace Kratos
         );
 
     template<class TPointType>
-    const GeometryDimension Triangle2D15<TPointType>::msGeometryDimension(2, 2, 2);
+    const GeometryDimension Triangle2D15<TPointType>::msGeometryDimension(2, 2);
 
 }// namespace Kratos.

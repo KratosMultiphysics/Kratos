@@ -13,8 +13,7 @@
 //                   Alejandro Cornejo
 //
 //
-#if !defined(KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED )
-#define  KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -527,7 +526,7 @@ protected:
 
 	/**
 	*  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION
-	*  Entire documentation can be found in the the Phd Thesis of Massimo Petracca
+	*  Entire documentation can be found in the Phd Thesis of Massimo Petracca
 	*  << Computational Multiscale Analysis of Masonry Structures>>
 	*
 	*  UNIAXIAL BEZIER COMPRESSION DAMAGE
@@ -724,4 +723,3 @@ private:
 }; // Class DamageDPlusDMinusMasonry2DLaw
 
 } // namespace Kratos
-#endif // KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED  defined

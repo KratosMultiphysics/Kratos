@@ -176,7 +176,7 @@ public:
             }
         }
 
-        // Initialize all the elemnets and conditions
+        // Initialize all the elements and conditions
         EntitiesUtilities::InitializeAllEntities(BaseType::GetModelPart());
     }
 
@@ -737,7 +737,7 @@ protected:
         for (int i = 0; i < num_nodes_in_model_part; i++)
         {
             ModelPart::NodeIterator itNode = rModelPart.NodesBegin() + i;
-            const Node<3>& r_const_node = *itNode;
+            const Node& r_const_node = *itNode;
 
             if ( r_const_node.Is(rSlipWallFlag) )
             {
@@ -762,7 +762,7 @@ protected:
     /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
      * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
      * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
-     * 2- The non-historical containers are added across processes, transmiting the right value from the condition owner to all partitions.\n
+     * 2- The non-historical containers are added across processes, transmitting the right value from the condition owner to all partitions.\n
      * 3- The value on all periodic nodes is replaced by the one received in step 2.
      */
      void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
@@ -778,10 +778,10 @@ protected:
                  ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
                  if (rGeom.PointsNumber() == 2)
                  {
-                     Node<3>& rNode0 = rGeom[0];
+                     Node& rNode0 = rGeom[0];
                      int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                     Node<3>& rNode1 = rGeom[1];
+                     Node& rNode1 = rGeom[1];
                      int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
                      // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
@@ -864,10 +864,10 @@ protected:
                  ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
                  if (rGeom.PointsNumber() == 2)
                  {
-                     Node<3>& rNode0 = rGeom[0];
+                     Node& rNode0 = rGeom[0];
                      int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                     Node<3>& rNode1 = rGeom[1];
+                     Node& rNode1 = rGeom[1];
                      int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
                      // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)

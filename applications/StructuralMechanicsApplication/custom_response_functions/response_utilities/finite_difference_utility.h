@@ -1,18 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#if !defined(KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED )
-#define  KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -53,7 +50,7 @@ public:
     static void CalculateRightHandSideDerivative(TElementType& rElement,
                                                 const Vector& rRHS,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Vector& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -85,9 +82,30 @@ public:
             rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
             rNode.Coordinates()[coord_dir] -= rPertubationSize;
         }
+        else if( rDesignVariable == TEMPERATURE )
+        {
+            // define working variables
+            Vector RHS_perturbed;
+
+            rOutput.resize(rRHS.size(), false);
+
+            // perturb the design variable
+            rNode.FastGetSolutionStepValue(rDesignVariable) += rPertubationSize;
+
+            // compute LHS after perturbation
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+
+            // compute derivative of RHS w.r.t. design variable with finite differences
+            noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
+
+            // unperturb the design variable
+            rNode.FastGetSolutionStepValue(rDesignVariable) -= rPertubationSize;
+
+        }
         else
         {
-            KRATOS_WARNING("FiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            KRATOS_WARNING("FiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << ". " << std::endl
+            << "Supported variables are SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z, TEMPERATURE." << std::endl;
             if ( (rOutput.size() != 0) )
                 rOutput.resize(0,false);
         }
@@ -98,7 +116,7 @@ public:
     static void CalculateLeftHandSideDerivative(Element& rElement,
                                                 const Matrix& rLHS,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
@@ -106,7 +124,7 @@ public:
     static void CalculateMassMatrixDerivative(Element& rElement,
                                                 const Matrix& rMassMatrix,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
@@ -120,7 +138,5 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FINITE_DIFFERENCE_UTILITY_H_INCLUDED  defined
 
 

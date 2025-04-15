@@ -24,13 +24,38 @@ class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
     kratos_libs = os.path.join(kratos_install_path, "libs")
+    kratos_module_libs = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".libs")
     kratos_applications = os.path.join(kratos_install_path, "applications")
     kratos_scripts = os.path.join(kratos_install_path, "kratos", "python_scripts")
     kratos_tests = os.path.join(kratos_install_path, "kratos", "tests")
 
 # import core library (Kratos.so)
 sys.path.append(KratosPaths.kratos_libs)
-from Kratos import *
+sys.path.append(KratosPaths.kratos_module_libs)
+
+try:
+    from Kratos import *
+except ImportError as e:
+    var_name = {
+        "posix": "LD_LIBRARY_PATH or DYLD_LIBRARY_PATH",
+        "nt": "PATH"
+    }
+
+    if os.name in var_name.keys():
+        print(f"Unable to find KratosCore. Please make sure that your {var_name[os.name]} environment variable includes the path to the Kratos libraries.")
+    else:
+        print(f"Unable to find KratosCore. Your OS is unknown and we cannot provide further info. Please open an issue at https://github.com/KratosMultiphysics/Kratos")
+
+    raise e
+
+except OSError as e:
+    if os.name == 'nt':
+        print("Please download the latest Microsfot Visual C++ Redistributable from https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist")
+    else:
+        print("Please make sure that the Kratos libraries are compiled for your system.")
+    raise e
+
+Kernel.RegisterPythonVersion()
 
 def __getattr__(name):
     if name == "CppRegistry":
@@ -53,10 +78,11 @@ def __ModuleInitDetail():
         or "MPI_LOCALNRANKS" in os.environ   # Recent mpich detected
     )
     mpi_requested = "--using-mpi" in sys.argv[1:] # Forcing MPI initialization through command-line flag
+    mpi_disabled = "--not-using-mpi" in sys.argv[1:] # Forcing MPI disabled through command-line flag
 
     using_mpi = False
 
-    if mpi_detected or mpi_requested:
+    if (mpi_detected or mpi_requested) and not mpi_disabled:
         from KratosMultiphysics.kratos_utilities import IsMPIAvailable
         if IsMPIAvailable():
             import KratosMultiphysics.mpi

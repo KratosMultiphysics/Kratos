@@ -162,7 +162,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
             self.main_model_part.Set(KM.RIGID, False)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -313,22 +313,6 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         condition_name = "MPCMortarContact"
 
         return condition_name
-
-    def _get_final_string(self, key = "0"):
-        """ This method returns the final string of the condition name
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        key -- The key to identify the current pair
-        """
-        # Determine the geometry of the element
-        super()._get_final_string(key)
-        # We compute the number of nodes of the conditions
-        number_nodes, number_nodes_master = super()._compute_number_nodes()
-        if number_nodes != number_nodes_master:
-            return str(number_nodes_master) + "N"
-        else:
-            return ""
 
     def _get_problem_name(self):
         """ This method returns the problem name to be solved

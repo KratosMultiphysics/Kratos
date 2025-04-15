@@ -70,8 +70,8 @@ public:
     ///base type: an GeometricalObject that automatically has a unique number
     typedef GeometricalObject BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -114,7 +114,7 @@ public:
 
     /**
      * CONDITIONS inherited from this class have to implement next
-     * contructors, copy constructors and destructor: MANDATORY
+     * constructors, copy constructors and destructor: MANDATORY
      */
 
     /**
@@ -476,7 +476,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition left hand side matrix for the first derivatives constributions
+     * to calculate the condition left hand side matrix for the first derivatives contributions
      * @param rLeftHandSideMatrix the condition left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -490,7 +490,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition right hand side vector for the first derivatives constributions
+     * to calculate the condition right hand side vector for the first derivatives contributions
      * @param rRightHandSideVector the condition right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -533,7 +533,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition left hand side matrix for the second derivatives constributions
+     * to calculate the condition left hand side matrix for the second derivatives contributions
      * @param rLeftHandSideMatrix the condition left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -547,7 +547,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition right hand side vector for the second derivatives constributions
+     * to calculate the condition right hand side vector for the second derivatives contributions
      * @param rRightHandSideVector the condition right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -669,6 +669,11 @@ public:
      * the Output is given on integration points and characterizes the condition
      * Calculate(..) methods are: OPTIONAL
      */
+    virtual void Calculate(const Variable<int >& rVariable,
+               int& Output,
+               const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     virtual void Calculate(const Variable<double >& rVariable,
                double& Output,
@@ -678,6 +683,12 @@ public:
 
     virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
                array_1d<double,3>& Output,
+               const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void Calculate(const Variable< array_1d<double,6> >& rVariable,
+               array_1d<double,6>& Output,
                const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -703,45 +714,66 @@ public:
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
      */
 
-    virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
-                          std::vector<bool>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
-                          std::vector<int>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                          std::vector<double>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                          std::vector< array_1d<double, 3 > >& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector< array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                          std::vector< array_1d<double, 6 > >& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 4>>& rVariable,
+        std::vector< array_1d<double, 4>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-                          std::vector< Vector >& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        std::vector<array_1d<double, 6>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-                          std::vector< Matrix >& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 9>>& rVariable,
+        std::vector<array_1d<double, 9>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -758,45 +790,66 @@ public:
 
     //SET ON INTEGRATION POINTS - METHODS
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<bool>& rVariable,
-                         const std::vector<bool>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        const std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-                         const std::vector<int>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        const std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                         const std::vector<double>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         const std::vector<array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        const std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                         const std::vector<array_1d<double, 6 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 4>>& rVariable,
+        const std::vector<array_1d<double, 4>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-                         const std::vector<Vector>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        const std::vector<array_1d<double, 6>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                         const std::vector<Matrix>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 9>>& rVariable,
+        const std::vector<array_1d<double, 9>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        const std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        const std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 

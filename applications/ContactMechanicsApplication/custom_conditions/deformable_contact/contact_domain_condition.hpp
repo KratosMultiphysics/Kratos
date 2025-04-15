@@ -60,7 +60,7 @@ public:
   typedef GeometryData::IntegrationMethod IntegrationMethod;
 
   ///NodeType
-  typedef Node < 3 > NodeType;
+  typedef Node NodeType;
   ///Geometry Type
   typedef Geometry<NodeType> GeometryType;
   ///Element Type
@@ -76,7 +76,7 @@ public:
   ///BaseLengths
   typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
-  typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node >       NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
@@ -505,7 +505,7 @@ public:
 
 
   /**
-   * Called at the end of eahc solution step
+   * Called at the end of each solution step
    */
   void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
@@ -529,7 +529,7 @@ public:
    * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
    * thus telling what is the desired output
    * @param rLeftHandSideMatrices: container with the output left hand side matrices
-   * @param rLHSVariables: paramter describing the expected LHSs
+   * @param rLHSVariables: parameter describing the expected LHSs
    * @param rRightHandSideVectors: container for the desired RHS output
    * @param rRHSVariables: parameter describing the expected RHSs
    */

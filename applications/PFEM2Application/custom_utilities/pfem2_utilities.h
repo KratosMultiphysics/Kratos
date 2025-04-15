@@ -49,7 +49,7 @@ namespace Kratos
 class Pfem2Utils
 {
 public:
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     //**********************************************************************************************
     //**********************************************************************************************
 
@@ -147,7 +147,7 @@ public:
                 i!=ThisModelPart.ElementsEnd(); i++)
         {
             //calculating shape functions values
-            Geometry< Node<3> >& geom = i->GetGeometry();
+            Geometry< Node >& geom = i->GetGeometry();
 
             for(unsigned int i = 0; i<geom.size(); i++)
                 geom[i].FastGetSolutionStepValue(IS_FLUID) = 1;
@@ -158,7 +158,7 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    void ApplyMinimalPressureConditions(std::vector< GlobalPointersVector< Node<3> > >& connected_components)
+    void ApplyMinimalPressureConditions(std::vector< GlobalPointersVector< Node > >& connected_components)
     {
         KRATOS_TRY;
 
@@ -169,8 +169,8 @@ public:
         {
             int boundary_nodes = 0;
             int prescribed_vel_nodes = 0;
-            GlobalPointersVector< Node<3> >& node_list = connected_components[i];
-            for( GlobalPointersVector< Node<3> >::iterator in = node_list.begin();
+            GlobalPointersVector< Node >& node_list = connected_components[i];
+            for( GlobalPointersVector< Node >::iterator in = node_list.begin();
                     in != node_list.end(); in++)
             {
                 //free the pressure
@@ -194,7 +194,7 @@ public:
             if(boundary_nodes == prescribed_vel_nodes)
             {
                 bool one_is_prescribed = false;
-                for( GlobalPointersVector< Node<3> >::iterator in = node_list.begin();
+                for( GlobalPointersVector< Node >::iterator in = node_list.begin();
                         in != node_list.end(); in++)
                 {
                     if( one_is_prescribed == false &&
@@ -224,7 +224,7 @@ public:
                 i!=ThisModelPart.ElementsEnd(); i++)
         {
             //calculating shape functions values
-            Geometry< Node<3> >& geom = i->GetGeometry();
+            Geometry< Node >& geom = i->GetGeometry();
 
             for(unsigned int i1 = 0; i1 < geom.size()-1; i1++)
             {
@@ -349,7 +349,7 @@ public:
                 hnode2 *= hnode2; //take the square
 
                 //loop on neighbours and erase if they are too close
-                for( GlobalPointersVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                for( GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
                     if( bool(i->Is(TO_ERASE)) == false) //we can erase the current node only if the neighb is not to be erased
@@ -411,7 +411,7 @@ public:
                     i!=ThisModelPart.ElementsEnd(); i++)
             {
                 //calculating shape functions values
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
 
                 area = GeometryUtils::CalculateVolume2D(geom);
                 area *= 0.333333333333333333333333333;
@@ -430,7 +430,7 @@ public:
             {
                 double vol;
                 //calculating shape functions values
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 //counting number of structural nodes
 
                 if (geom.size()==4) //not to calculate the nodal area of the membrane which is a 2d element in 3d
@@ -467,7 +467,7 @@ public:
                 int n_fs=0;
 
                 //counting number on nodes at the wall
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 n_fs = int(geom[0].FastGetSolutionStepValue(IS_FREE_SURFACE));
                 n_fs+= int(geom[1].FastGetSolutionStepValue(IS_FREE_SURFACE));
                 n_fs+= int(geom[2].FastGetSolutionStepValue(IS_FREE_SURFACE));
@@ -525,7 +525,7 @@ public:
                 double n_str=0;
 
                 //counting number on nodes at the wall
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 n_str = geom[0].FastGetSolutionStepValue(IS_BOUNDARY);
                 n_str+= geom[1].FastGetSolutionStepValue(IS_BOUNDARY);
                 n_str+= geom[2].FastGetSolutionStepValue(IS_BOUNDARY);
@@ -593,7 +593,7 @@ public:
                 double n_int=0;
 
                 //counting number on nodes at the wall
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 if(geom.size() == 4)
                 {
                     for(int ii = 0; ii <= domain_size ; ++ii)
@@ -697,7 +697,7 @@ public:
                 int n_str=0;
 
                 //counting number on nodes at the wall
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 n_str = int(geom[0].FastGetSolutionStepValue(IS_STRUCTURE));
                 n_str+= int(geom[1].FastGetSolutionStepValue(IS_STRUCTURE));
                 n_str+= int(geom[2].FastGetSolutionStepValue(IS_STRUCTURE));
@@ -732,7 +732,7 @@ public:
                 int n_lag=0;
                 int n_interf=0;
                 //counting number on nodes at the wall
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 for (unsigned int iii=0; iii<geom.size(); iii++)
                 {
                     n_lag += int(geom[iii].FastGetSolutionStepValue(IS_LAGRANGIAN_INLET));
@@ -817,8 +817,8 @@ public:
         */
     }
 
-    bool AlphaShape(double alpha_param, Geometry<Node<3> >& pgeom)
-    //bool AlphaShape(double alpha_param, Triangle2D<Node<3> >& pgeom)
+    bool AlphaShape(double alpha_param, Geometry<Node >& pgeom)
+    //bool AlphaShape(double alpha_param, Triangle2D<Node >& pgeom)
     {
         KRATOS_TRY
         BoundedMatrix<double,2,2> J; //local jacobian
@@ -898,7 +898,7 @@ public:
 
         KRATOS_CATCH("")
     }
-    bool AlphaShape3D( double alpha_param, Geometry<Node<3> >& geom	)
+    bool AlphaShape3D( double alpha_param, Geometry<Node >& geom	)
     {
         KRATOS_TRY
 
@@ -1099,7 +1099,7 @@ public:
                     i!=ThisModelPart.ElementsEnd(); i++)
             {
                 //calculating shape functions values
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 for (unsigned int kkk=0; kkk<(i->GetGeometry()).size(); kkk++)
                 {
                     //n_struct += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE) );
@@ -1125,7 +1125,7 @@ public:
                     i!=ThisModelPart.ElementsEnd(); i++)
             {
                 //calculating shape functions values
-                Geometry< Node<3> >& geom = i->GetGeometry();
+                Geometry< Node >& geom = i->GetGeometry();
                 for (unsigned int kkk=0; kkk<(i->GetGeometry()).size(); kkk++)
                 {
                     //n_struct += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE) );

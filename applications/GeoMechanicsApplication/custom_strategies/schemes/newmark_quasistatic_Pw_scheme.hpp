@@ -10,137 +10,45 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
 
 // Application includes
+#include "generalized_newmark_scheme.hpp"
 #include "geo_mechanics_application_variables.h"
-#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 
 namespace Kratos
 {
 
-template<class TSparseSpace, class TDenseSpace>
-
-class NewmarkQuasistaticPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
+template <class TSparseSpace, class TDenseSpace>
+class NewmarkQuasistaticPwScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
 {
-
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticPwScheme);
 
-    KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticPwScheme );
-
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace> MotherType;
-    using MotherType::mDeltaTime;
-    using MotherType::mBeta;
-    using MotherType::mGamma;
-    using MotherType::mTheta;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ///Constructor
-    NewmarkQuasistaticPwScheme(double theta) : 
-        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
-    { }
-
-    //------------------------------------------------------------------------------------
-
-    ///Destructor
-    ~NewmarkQuasistaticPwScheme() override {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    int Check(const ModelPart& rModelPart) const override
+    explicit NewmarkQuasistaticPwScheme(double theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)}, theta)
     {
-        KRATOS_TRY
-
-        BaseType::Check(rModelPart);
-
-        //check that variables are correctly allocated
-        for (const auto& rNode : rModelPart.Nodes())
-        {
-            if (rNode.SolutionStepsDataHas(WATER_PRESSURE) == false)
-                KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
-
-            if (rNode.SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-                KRATOS_ERROR << "DT_WATER_PRESSURE variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
-
-            if (rNode.HasDofFor(WATER_PRESSURE) == false)
-                KRATOS_ERROR << "missing WATER_PRESSURE dof on node "
-                             << rNode.Id()
-                             << std::endl;
-        }
-
-        //check for minimum value of the buffer index.
-        if (rModelPart.GetBufferSize() < 2)
-            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
-                         << rModelPart.GetBufferSize()
-                         << std::endl;
-
-        // Check beta, gamma and theta
-        if (mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
-            KRATOS_ERROR << "Some of the scheme variables: beta, gamma or theta has an invalid value "
-                         << std::endl;
-
-        return 0;
-
-        KRATOS_CATCH( "" )
     }
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
-    {
-        KRATOS_TRY
-
-        MotherType::FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
-
-        KRATOS_CATCH("")
-    }
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
-    /// Member Variables
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
-        //Update DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
-            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const auto &PreviousDtPressure = rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
-
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                                 r_first_order_scalar_variable.first_time_derivative);
+            }
         });
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
 }; // Class NewmarkQuasistaticPwScheme
-}  // namespace Kratos
 
-#endif // KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME defined
+} // namespace Kratos

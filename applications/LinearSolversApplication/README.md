@@ -1,3 +1,5 @@
+@anchor LinearSolversApplicationMainPage
+
 # LinearSolversApplication
 
 The *LinearSolversApplication* is a thin wrapper for the [Eigen linear algebra library](http://eigen.tuxfamily.org/index.php?title=Main_Page).
@@ -107,7 +109,7 @@ If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~p
 
     **Linux:** in `configure.sh`
 
-    ```bash
+    ```console
     add_app ${KRATOS_APP_DIR}/LinearSolversApplication
     ```
 
@@ -137,7 +139,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
 
     **Linux:**
 
-    ```bash
+    ```console
     source /opt/intel/oneapi/setvars.sh intel64
     ```
 
@@ -151,7 +153,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
 
     **Linux:**
 
-    ```bash
+    ```console
     -DUSE_EIGEN_MKL=ON \
     ```
 
@@ -168,8 +170,8 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
     **Linux:**
 
     Set the environment before using MKL
-    
-    ```bash
+
+    ```console
     source /opt/intel/oneapi/setvars.sh intel64
     ```
 
@@ -178,7 +180,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
 Intel MKL can be installed with apt on Ubuntu. A guide can be found in [here](https://neelravi.com/post/intel-oneapi-install/).
 For example to install the MKL 2022 version
 
-```bash
+```console
 sudo bash
 # <type your user password when prompted.  this will put you in a root shell>
 # If they are not installed, you can install using the following command:
@@ -200,6 +202,6 @@ exit
 
 To enable the MKL environment (needs to be done before build/run) use
 
-```bash
+```console
 source /opt/intel/oneapi/setvars.sh intel64
 ```

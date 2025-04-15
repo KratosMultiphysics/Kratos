@@ -46,12 +46,12 @@ namespace Kratos {
 ///@{
 
 /// Convection diffusion settings. This class contains information to be used by the convection diffusion solver, all the variables that will be needed by the solver.
-/** All the variables needed by any convection diffusion problem are included here. However, many problems do not require such a large ammount of variables.
- * For those cases, variables that are not defined will be set to either zero or one (depending on the varible)
- * For this purpouse, there are flags to ask wether a varible has been defined or not. For each variable, there are three main functions.
- * SetVaribleforXuse: we assing the varible for this use. When doing that we also set the flag that now this variable has been defined.
+/** All the variables needed by any convection diffusion problem are included here. However, many problems do not require such a large amount of variables.
+ * For those cases, variables that are not defined will be set to either zero or one (depending on the variable)
+ * For this purpose, there are flags to ask whether a variable has been defined or not. For each variable, there are three main functions.
+ * SetVariableforXuse: we assign the variable for this use. When doing that we also set the flag that now this variable has been defined.
  * GetVariableforXuse: we return the variable for this use.
- * IsDefinedVariableforXuse: tells wether that variable has been defined or not.
+ * IsDefinedVariableforXuse: tells whether that variable has been defined or not.
 */
 class KRATOS_API(KRATOS_CORE) ConvectionDiffusionSettings
 {

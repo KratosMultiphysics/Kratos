@@ -868,14 +868,8 @@ protected:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = const_begin + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if( it_const->IsDefined(ACTIVE) ) {
-                    constraint_is_active = it_const->Is(ACTIVE);
-                }
-
-                if(constraint_is_active) {
+                // If the constraint is active
+                if(it_const->IsActive()) {
                     it_const->EquationIdVector(ids, second_ids, r_current_process_info);
                     // Slave DoFs
                     for (auto& id_i : ids) {
@@ -996,14 +990,8 @@ protected:
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
             auto it_const = it_const_begin + i_const;
 
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if( it_const->IsDefined(ACTIVE) ) {
-                constraint_is_active = it_const->Is(ACTIVE);
-            }
-
-            if(constraint_is_active) {
+            // If the constraint is active
+            if(it_const->IsActive()) {
                 it_const->EquationIdVector(ids, second_ids, r_current_process_info);
                 for (auto& slave_id : ids) {
                     if (slave_id < BaseType::mEquationSystemSize) {
@@ -1543,13 +1531,8 @@ private:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = it_const_begin + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
+                // If the constraint is active
+                if (it_const->IsActive()) {
                     it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
 
                     // Filling the set of dofs master and fixed at the same time
@@ -1802,12 +1785,8 @@ private:
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i<nelements; ++i) {
                 auto it_elem = it_elem_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
@@ -1822,12 +1801,8 @@ private:
             #pragma omp  for schedule(guided, 512)
             for (int i = 0; i<nconditions; ++i) {
                 auto it_cond = it_cond_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_cond, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
@@ -1875,12 +1850,8 @@ private:
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i<nelements; ++i) {
                 auto it_elem = it_elem_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental Right Hand Side Contribution
                     pScheme->CalculateRHSContribution(*it_elem, rhs_contribution, equation_id, r_current_process_info);
 
@@ -1895,12 +1866,8 @@ private:
             #pragma omp  for schedule(guided, 512)
             for (int i = 0; i<nconditions; ++i) {
                 auto it_cond = it_cond_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateRHSContribution(*it_cond, rhs_contribution, equation_id, r_current_process_info);
 
@@ -2131,13 +2098,8 @@ private:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
+                // If the constraint is active
+                if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                     it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
 

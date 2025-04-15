@@ -19,12 +19,11 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/cfd_variables.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/variable_utils.h"
 
@@ -37,6 +36,7 @@
 #include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
 #include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
 #include "fluid_dynamics_application_variables.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos
 {
@@ -46,7 +46,7 @@ namespace Testing
 void SetModelPartOldValues(
     ModelPart& rModelPart)
 {
-    // this correspods to t = t - 1 time step in forward time
+    // this corresponds to t = t - 1 time step in forward time
     const double p_1 = 2.3;
     const double p_2 = 3.5;
     const double p_3 = 6.2;
@@ -72,7 +72,7 @@ void SetModelPartOldValues(
 void SetModelPartCurrentValues(
     ModelPart& rModelPart)
 {
-    // this correspods to t = t time step in forward time
+    // this corresponds to t = t time step in forward time
     // this is where we calculate testing derivatives
     const double p_1 = 1.5;
     const double p_2 = 2.7;
@@ -99,9 +99,9 @@ void SetModelPartCurrentValues(
 void SetModelPartNextalues(
     ModelPart& rModelPart)
 {
-    // this correspods to t = t + 1 time step in forward time
+    // this corresponds to t = t + 1 time step in forward time
     // this is required for adjoints since adjoints are calculated backwards in time,
-    // hence these values are loaded to fille the buffer of adjoint model part
+    // hence these values are loaded to fill the buffer of adjoint model part
     const double p_1 = 7.5;
     const double p_2 = 9.7;
     const double p_3 = 2.9;
@@ -517,7 +517,7 @@ KRATOS_TEST_CASE_IN_SUITE(SimpleSteadySensitivityBuilderScheme, FluidDynamicsApp
                                            {&SHAPE_SENSITIVITY_X, &SHAPE_SENSITIVITY_Y},
                                            EvaluateSteadyResidual, delta);
 
-    KRATOS_CHECK_MATRIX_NEAR(fd_sensitivities, analytical_sensitivities, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(fd_sensitivities, analytical_sensitivities, 1e-6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SimpleSteadyAdjointScheme, FluidDynamicsApplicationFastSuite)
@@ -563,7 +563,7 @@ KRATOS_TEST_CASE_IN_SUITE(SimpleSteadyAdjointScheme, FluidDynamicsApplicationFas
                                            {&VELOCITY_X, &VELOCITY_Y, &PRESSURE},
                                            EvaluateSteadyResidual, delta);
 
-    KRATOS_CHECK_MATRIX_NEAR(fd_sensitivities, lhs, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(fd_sensitivities, lhs, 1e-6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VelocityBossakSensitivityBuilderScheme, FluidDynamicsApplicationFastSuite)
@@ -601,7 +601,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakSensitivityBuilderScheme, FluidDynamicsA
                                            {&SHAPE_SENSITIVITY_X, &SHAPE_SENSITIVITY_Y},
                                            EvaluateBossakResidual, delta);
 
-    KRATOS_CHECK_MATRIX_NEAR(fd_sensitivities, analytical_sensitivities, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(fd_sensitivities, analytical_sensitivities, 1e-6);
 }
 
 
@@ -669,7 +669,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeLHS, FluidDynamicsApplicati
 
     noalias(fd_sensitivities_1) += fd_sensitivities_2;
 
-    KRATOS_CHECK_MATRIX_NEAR(fd_sensitivities_1, lhs, 1e-6);
+    KRATOS_EXPECT_MATRIX_NEAR(fd_sensitivities_1, lhs, 1e-6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicationFastSuite)
@@ -798,7 +798,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicati
     // making the followings zero because, these values are not stored in ADJOINT_FLUID_VECTOR_2 variable, and those contributions are
     // directly taken to RHS from  objective_first_derivatives and prod(residual_first_derivatives, lambda_1)
     fd_lambda_2[2] = fd_lambda_2[5] = fd_lambda_2[8] = 0.0;
-    KRATOS_CHECK_VECTOR_NEAR(fd_lambda_2, lambda_2, 1e-6);
+    KRATOS_EXPECT_VECTOR_NEAR(fd_lambda_2, lambda_2, 1e-6);
 
     // compute and check lambda_3 using finite difference approach
     Vector fd_lambda_3 = -objective_second_derivatives -
@@ -807,12 +807,12 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicati
     // making the followings zero because, these values are not stored in ADJOINT_FLUID_VECTOR_2 variable, and those contributions are
     // directly taken to RHS from  objective_first_derivatives and prod(residual_first_derivatives, lambda_1)
     fd_lambda_3[2] = fd_lambda_3[5] = fd_lambda_3[8] = 0.0;
-    KRATOS_CHECK_VECTOR_NEAR(fd_lambda_3, lambda_3, 1e-6);
+    KRATOS_EXPECT_VECTOR_NEAR(fd_lambda_3, lambda_3, 1e-6);
 
     // compute and check rhs using finite difference sensitivities
     Vector fd_rhs = -objective_first_derivatives * c6 - objective_second_derivatives * c7 +
                     lambda_2_old * c4 + lambda_3_old * c5 - prod(lhs, lambda_1);
-    KRATOS_CHECK_VECTOR_NEAR(fd_rhs, rhs, 1e-6);
+    KRATOS_EXPECT_VECTOR_NEAR(fd_rhs, rhs, 1e-6);
 }
 
 } // namespace Testing

@@ -121,7 +121,7 @@ public:
     //      ^ Change this to a distributed dense type
 
     /// DoF types definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
     typedef moodycamel::ConcurrentQueue<DofType::Pointer> DofQueue;

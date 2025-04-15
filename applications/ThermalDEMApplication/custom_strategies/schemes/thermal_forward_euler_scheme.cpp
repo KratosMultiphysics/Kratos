@@ -27,7 +27,7 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ThermalForwardEulerScheme::UpdateTemperature(Node<3>& i, const double delta_t, const double c) {
+  void ThermalForwardEulerScheme::UpdateTemperature(Node& i, const double delta_t, const double c) {
     // Particle properties
     const double q = i.FastGetSolutionStepValue(HEATFLUX);
     const double m = i.FastGetSolutionStepValue(NODAL_MASS);

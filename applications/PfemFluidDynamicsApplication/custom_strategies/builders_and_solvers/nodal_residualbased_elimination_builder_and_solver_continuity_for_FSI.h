@@ -103,7 +103,7 @@ namespace Kratos
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
@@ -299,7 +299,7 @@ namespace Kratos
             // calculate elemental contribution
             (*it)->CalculateLocalSystem(elementalLHS_Contribution, elementalRHS_Contribution, CurrentProcessInfo);
 
-            Geometry<Node<3>> &geom = (*it)->GetGeometry();
+            Geometry<Node> &geom = (*it)->GetGeometry();
             if (elementalEquationId.size() != geom.size())
               elementalEquationId.resize(geom.size(), false);
 

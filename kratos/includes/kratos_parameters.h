@@ -58,7 +58,7 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) Parameters
 {
 private:
-    ///@name Nested clases
+    ///@name Nested classes
     ///@{
     /**
      * @class iterator_adaptor
@@ -139,7 +139,7 @@ private:
 
         /**
          * @brief operator ->
-         * @details This operator acces to the pointer of the Parameter
+         * @details This operator access to the pointer of the Parameter
          * @return The pointer of the parameter
          */
         Parameters* operator->() const;
@@ -149,7 +149,7 @@ private:
         ///@{
 
         /**
-         * @brief This method returs the current iterator
+         * @brief This method returns the current iterator
          * @return The current iterator
          */
         inline value_iterator GetCurrentIterator() const;
@@ -253,7 +253,7 @@ private:
 
         /**
          * @brief operator ->
-         * @details This operator acces to the pointer of the Parameter
+         * @details This operator access to the pointer of the Parameter
          * @return The pointer of the parameter
          */
         const Parameters* operator->() const;
@@ -263,7 +263,7 @@ private:
         ///@{
 
         /**
-         * @brief This method returs the current iterator
+         * @brief This method returns the current iterator
          * @return The current iterator
          */
         inline value_iterator GetCurrentIterator() const;
@@ -301,7 +301,7 @@ public:
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
-    /// Definiton of the iterators
+    /// Definition of the iterators
     using iterator = iterator_adaptor;
     using const_iterator = const_iterator_adaptor;
 
@@ -368,14 +368,14 @@ public:
     Parameters operator[](const std::string& rEntry) const;
 
     /**
-     * @brief This method allows to acces to an array item with the operator []
+     * @brief This method allows to access to an array item with the operator []
      * @param Index The index of the term of interest
      * @return The desired Parameter
      */
     Parameters operator[](const IndexType Index);
 
     /**
-     * @brief This method allows to acces to an array item with the operator [] (const version)
+     * @brief This method allows to access to an array item with the operator [] (const version)
      * @param Index The index of the term of interest
      * @return The desired Parameter
      */
@@ -383,7 +383,7 @@ public:
 
     /**
      * @brief This is the move operator
-     * @param rOther The othe parameter to compute the move
+     * @param rOther The other parameter to compute the move
      */
     Parameters& operator=(Parameters&& rOther);
 
@@ -523,6 +523,12 @@ public:
      * @return True if it is an array, false otherwise
      */
     bool IsArray() const;
+
+    /**
+     * @brief This method checks if the parameter is an array of strings
+     * @return True if it is a string array, false otherwise
+     */
+    bool IsStringArray() const;
 
     /**
      * @brief This method checks if the parameter is a vector
@@ -753,7 +759,7 @@ public:
 
     /**
      * @brief This method does a swap between two parameters
-     * @param rOther The othe parameter to compute the swap
+     * @param rOther The other parameter to compute the swap
      */
     void swap(Parameters& rOther) noexcept;
 
@@ -964,7 +970,7 @@ private:
     ///@{
 
     nlohmann::json* mpValue;                   /// This is where the json is actually stored
-    Kratos::shared_ptr<nlohmann::json> mpRoot; /// This is a shared pointer to the root structure (this is what allows us to acces in a tree structure to the JSON database)
+    Kratos::shared_ptr<nlohmann::json> mpRoot; /// This is a shared pointer to the root structure (this is what allows us to access in a tree structure to the JSON database)
 
     ///@}
     ///@name Private Operators

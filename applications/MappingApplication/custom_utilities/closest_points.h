@@ -5,14 +5,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_CLOSEST_POINTS_H_INCLUDED )
-#define  KRATOS_CLOSEST_POINTS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <set>
@@ -25,7 +24,6 @@
 #include "includes/indexed_object.h"
 #include "includes/serializer.h"
 #include "geometries/point.h"
-
 
 namespace Kratos
 {
@@ -45,6 +43,10 @@ public:
     PointWithId& operator=(const PointWithId& rOther) = delete;
 
     bool operator<(const PointWithId& rOther) const;
+
+    bool operator!=(const PointWithId& rOther) const;
+
+    bool operator==(const PointWithId& rOther) const;
 
     double GetDistance() const { return mDistance; }
 
@@ -125,5 +127,3 @@ private:
 
 ///@} addtogroup block
 }  // namespace Kratos.
-
-#endif // KRATOS_CLOSEST_POINTS_H_INCLUDED  defined

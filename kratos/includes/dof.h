@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_DOF_H_INCLUDED )
-#define  KRATOS_DOF_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -26,7 +25,6 @@
 #include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
-#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -105,7 +103,7 @@ public:
     ///@{
 
     /** Constructor. This constructor takes all necessary
-    informations to construct a degree of freedom. Also default
+    information to construct a degree of freedom. Also default
     values are used to make it easier to define for simple cases.
 
     @param rThisVariable Variable which this degree of freedom
@@ -176,7 +174,7 @@ public:
     }
 
     //This default constructor is needed for serializer
-    Dof()
+    Dof() noexcept
         : mIsFixed(false),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
@@ -186,38 +184,9 @@ public:
     {
     }
 
-    /// Copy constructor.
-    Dof(Dof const& rOther)
-        : mIsFixed(rOther.mIsFixed),
-          mVariableType(rOther.mVariableType),
-          mReactionType(rOther.mReactionType),
-          mIndex(rOther.mIndex),
-          mEquationId(rOther.mEquationId),
-          mpNodalData(rOther.mpNodalData)
-    {
-    }
-
-
-    /// Destructor.
-    ~Dof() {}
-
-
     ///@}
     ///@name Operators
     ///@{
-
-    /// Assignment operator.
-    Dof& operator=(Dof const& rOther)
-    {
-        mIsFixed = rOther.mIsFixed;
-        mEquationId = rOther.mEquationId;
-        mpNodalData = rOther.mpNodalData;
-        mIndex = rOther.mIndex;
-        mVariableType = rOther.mVariableType;
-        mReactionType = rOther.mReactionType;
-
-        return *this;
-    }
 
     template<class TVariableType>
     typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
@@ -291,12 +260,12 @@ public:
     ///@name Access
     ///@{
 
-    IndexType Id() const
+    IndexType Id() const noexcept
     {
         return mpNodalData->GetId();
     }
 
-    IndexType GetId() const
+    IndexType GetId() const noexcept
     {
         return mpNodalData->GetId();
     }
@@ -323,28 +292,28 @@ public:
 
     /** Return the Equation Id related to this degree eof freedom.
      */
-    EquationIdType EquationId() const
+    EquationIdType EquationId() const noexcept
     {
         return mEquationId;
     }
 
     /** Sets the Equation Id to the desired value
      */
-    void SetEquationId(EquationIdType NewEquationId)
+    void SetEquationId(EquationIdType NewEquationId) noexcept
     {
         mEquationId = NewEquationId;
     }
 
     /** Fixes the Dof
      */
-    void FixDof()
+    void FixDof() noexcept
     {
         mIsFixed=true;
     }
 
     /** Frees the degree of freedom
      */
-    void FreeDof()
+    void FreeDof() noexcept
     {
         mIsFixed=false;
     }
@@ -375,13 +344,13 @@ public:
     ///@name Inquiry
     ///@{
 
-    bool IsFixed() const
+    bool IsFixed() const noexcept
     {
         return mIsFixed;
     }
 
 
-    bool IsFree() const
+    bool IsFree() const noexcept
     {
         return !IsFixed();
     }
@@ -448,11 +417,7 @@ private:
     int mIndex : 6;
 
     /** Equation identificator of the degree of freedom */
-#ifdef KRATOS_ENV32BIT // Required to avoid overflow on 32 bit systems
-    EquationIdType mEquationId : 32;
-#else
     EquationIdType mEquationId : 48;
-#endif
 
     /** A pointer to nodal data stored in node which is corresponded to this dof */
     NodalData* mpNodalData;
@@ -630,9 +595,6 @@ inline bool operator == ( Dof<TDataType> const& First,
 
 }  // namespace Kratos.
 
-
 #undef KRATOS_DOF_TRAITS
 #undef KRATOS_MAKE_DOF_TRAIT
 #undef KRATOS_END_DOF_TRAIT
-
-#endif // KRATOS_DOF_H_INCLUDED  defined

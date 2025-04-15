@@ -10,13 +10,11 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
-#define KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
+#pragma once
 
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/model_part.h"
@@ -196,18 +194,18 @@ private:
                      const int MaxNeighs);
 
 
-    bool OrientElement(Geometry< Node<3> >& rGeom);
+    bool OrientElement(Geometry< Node >& rGeom);
 
 
-    void NormalContribution(Geometry< Node<3> >&rGeom);
+    void NormalContribution(Geometry< Node >&rGeom);
 
 
     void FaceNormal2D(array_1d<double,3>& An,
-                      Geometry<Node<3> >& rGeometry);
+                      Geometry<Node >& rGeometry);
 
 
     void FaceNormal3D(array_1d<double,3>& An,
-                      Geometry<Node<3> >& rGeometry);
+                      Geometry<Node >& rGeometry);
 
     void UpdateNodeNormals(ModelPart& rModelPart,
                            const unsigned int Dimension,
@@ -269,5 +267,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H

@@ -34,6 +34,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
@@ -47,6 +48,7 @@ namespace Testing
         model_part.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_diff);
         p_conv_diff_settings->SetUnknownVariable(DISTANCE);
         p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+        p_conv_diff_settings->SetMeshVelocityVariable(MESH_VELOCITY);
 
         // Set the element properties
         Properties::Pointer pElemProp = model_part.CreateNewProperties(0);
@@ -90,9 +92,9 @@ namespace Testing
         p_element->CalculateLocalSystem(lhs, rhs, const_process_info);
 
 
-        KRATOS_CHECK_EQUAL(rhs.size(), 3);
-        KRATOS_CHECK_EQUAL(lhs.size1(), 3);
-        KRATOS_CHECK_EQUAL(lhs.size2(), 3);
+        KRATOS_EXPECT_EQ(rhs.size(), 3);
+        KRATOS_EXPECT_EQ(lhs.size1(), 3);
+        KRATOS_EXPECT_EQ(lhs.size2(), 3);
         rhs_reference[0] = 0.1186006876;
         rhs_reference[1] = 0.4123679368;
         rhs_reference[2] = 0.3265313756;
@@ -105,8 +107,8 @@ namespace Testing
         lhs_reference(2,0) = 0.73444904995;
         lhs_reference(2,1) = 0.864023625302;
         lhs_reference(2,2) = 1.37324670269;
-        KRATOS_CHECK_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
-        KRATOS_CHECK_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
+        KRATOS_EXPECT_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
+        KRATOS_EXPECT_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LevelSetConvectionElement2DImplicit, KratosCoreFastSuite) {
@@ -116,6 +118,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
@@ -130,6 +133,7 @@ namespace Testing
         model_part.GetProcessInfo().SetValue(TIME_INTEGRATION_THETA, 1.0);
         p_conv_diff_settings->SetUnknownVariable(DISTANCE);
         p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+        p_conv_diff_settings->SetMeshVelocityVariable(MESH_VELOCITY);
 
         // Set the element properties
         Properties::Pointer pElemProp = model_part.CreateNewProperties(0);
@@ -172,9 +176,9 @@ namespace Testing
         p_element->Initialize(const_process_info);
         p_element->CalculateLocalSystem(lhs, rhs, const_process_info);
         
-        KRATOS_CHECK_EQUAL(rhs.size(), 3);
-        KRATOS_CHECK_EQUAL(lhs.size1(), 3);
-        KRATOS_CHECK_EQUAL(lhs.size2(), 3);
+        KRATOS_EXPECT_EQ(rhs.size(), 3);
+        KRATOS_EXPECT_EQ(lhs.size1(), 3);
+        KRATOS_EXPECT_EQ(lhs.size2(), 3);
         rhs_reference[0] = 0.1186006876;
         rhs_reference[1] = 0.4123679368;
         rhs_reference[2] = 0.3265313756;
@@ -187,8 +191,8 @@ namespace Testing
         lhs_reference(2,0) = 0.635282383283;
         lhs_reference(2,1) = 0.873919458635;
         lhs_reference(2,2) = 1.46251753603;
-        KRATOS_CHECK_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
-        KRATOS_CHECK_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
+        KRATOS_EXPECT_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
+        KRATOS_EXPECT_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LevelSetConvectionElement3D, KratosCoreFastSuite) {
@@ -198,6 +202,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
@@ -211,6 +216,7 @@ namespace Testing
         model_part.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_diff);
         p_conv_diff_settings->SetUnknownVariable(DISTANCE);
         p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+        p_conv_diff_settings->SetMeshVelocityVariable(MESH_VELOCITY);
 
         // Set the element properties
         Properties::Pointer pElemProp = model_part.CreateNewProperties(0);
@@ -257,9 +263,9 @@ namespace Testing
         p_element->Initialize(const_process_info);
         p_element->CalculateLocalSystem(lhs, rhs, const_process_info);
 
-        KRATOS_CHECK_EQUAL(rhs.size(), 4);
-        KRATOS_CHECK_EQUAL(lhs.size1(), 4);
-        KRATOS_CHECK_EQUAL(lhs.size2(), 4);
+        KRATOS_EXPECT_EQ(rhs.size(), 4);
+        KRATOS_EXPECT_EQ(lhs.size1(), 4);
+        KRATOS_EXPECT_EQ(lhs.size2(), 4);
         rhs_reference[0] = -0.0191355037271;
         rhs_reference[1] = 0.0913265708816;
         rhs_reference[2] = 0.0771336330894;
@@ -280,8 +286,8 @@ namespace Testing
         lhs_reference(3,1) = 0.16361977298;
         lhs_reference(3,2) = 0.167998225674;
         lhs_reference(3,3) = 0.264675745948;
-        KRATOS_CHECK_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
-        KRATOS_CHECK_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
+        KRATOS_EXPECT_VECTOR_NEAR(rhs,rhs_reference, 1e-7);
+        KRATOS_EXPECT_MATRIX_NEAR(lhs,lhs_reference, 1e-7);
     }
     
 

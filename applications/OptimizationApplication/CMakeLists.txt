@@ -14,6 +14,7 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_controls/*.cpp
@@ -25,6 +26,12 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
+
+# Optimization testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosOptimizationCore SOURCES "${KRATOS_OPTIMIZATION_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE})
 target_link_libraries(KratosOptimizationCore PUBLIC KratosCore)

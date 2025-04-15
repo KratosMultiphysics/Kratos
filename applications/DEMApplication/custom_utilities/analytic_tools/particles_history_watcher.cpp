@@ -36,7 +36,7 @@ void ParticlesHistoryWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
 void ParticlesHistoryWatcher::Record(SphericParticle* p_particle, ModelPart& r_model_part)
 {
-    Node<3>& node = p_particle->GetGeometry()[0];
+    Node& node = p_particle->GetGeometry()[0];
     mIds.push_back(node.Id());
     mX0s.push_back(node.X0());
     mY0s.push_back(node.Y0());

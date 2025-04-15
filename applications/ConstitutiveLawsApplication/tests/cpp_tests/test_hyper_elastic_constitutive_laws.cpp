@@ -20,7 +20,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
-#include "testing/testing.h"
 
 // Application includes
 #include "constitutive_laws_application_variables.h"
@@ -29,10 +28,9 @@
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_simo_taylor_neo_hookean_plane_strain_2d.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
 
 namespace
@@ -103,8 +101,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticIsotropicNeoHookeanPlaneStr
     // Check the results
     std::vector<double> pk2_stress_result({85.1366277027,-32.1188648649,19.8178297297});
     std::vector<double> const_mat_row_0_result({13.6816861486,68.767442042,-18.2422481982});
-    KRATOS_CHECK_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-8);
-    KRATOS_CHECK_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-8);
+    KRATOS_EXPECT_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-8);
+    KRATOS_EXPECT_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticIsotropicNeoHookean3D, KratosConstitutiveLawsFastSuite)
@@ -129,8 +127,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticIsotropicNeoHookean3D, Krat
     // Check the results
     std::vector<double> pk2_stress_result({-296.16585060235,-956.44226827292,-3861.6585060235,528.22113413646,-1584.6634024094,1188.497551807});
     std::vector<double> const_mat_row_0_result({1984.6634024094,3883.8460487278,18261.970621684,-2646.2178698792,7938.6536096375,-5953.9902072281});
-    KRATOS_CHECK_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-8);
-    KRATOS_CHECK_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-8);
+    KRATOS_EXPECT_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-8);
+    KRATOS_EXPECT_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticSimoTaylorNeoHookeanPlaneStrain2D, KratosConstitutiveLawsFastSuite)
@@ -152,8 +150,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticSimoTaylorNeoHookeanPlaneSt
     // Check the results
     std::vector<double> pk2_stress_result({130225.260981,1157119.58917,-173559.604765});
     std::vector<double> const_mat_row_0_result({52084.5269495,925908.757144,-69464.5550685});
-    KRATOS_CHECK_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-5);
-    KRATOS_CHECK_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-5);
+    KRATOS_EXPECT_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-5);
+    KRATOS_EXPECT_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticSimoTaylorNeoHookean3D, KratosConstitutiveLawsFastSuite)
@@ -178,9 +176,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticSimoTaylorNeoHookean3D, Kra
     // Check the results
     std::vector<double> pk2_stress_result({-716740.113382,-1911574.06118,-7168843.43147,955867.158235,-2867601.47471,2150701.10603});
     std::vector<double> const_mat_row_0_result({3336930.174379,6349857.4992591,30503623.332614,-4449525.130806,13348575.392418,-10011431.544314});
-    KRATOS_CHECK_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-5);
-    KRATOS_CHECK_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-5);
+    KRATOS_EXPECT_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-5);
+    KRATOS_EXPECT_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-5);
 }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

@@ -49,7 +49,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   ContactDomainLM3DCondition&  ContactDomainLM3DCondition::operator=(ContactDomainLM3DCondition const& rOther)
@@ -101,8 +101,8 @@ namespace Kratos
 
     int slave = -1;
 
-    Geometry< Node<3> >& rMasterGeometry = rMasterElement.GetGeometry();
-    Geometry< Node<3> >& rGeometry       = GetGeometry();
+    Geometry< Node >& rMasterGeometry = rMasterElement.GetGeometry();
+    Geometry< Node >& rGeometry       = GetGeometry();
 
 
     for(unsigned int i=0; i<rMasterGeometry.PointsNumber(); i++)
@@ -842,7 +842,7 @@ namespace Kratos
 
   void ContactDomainLM3DCondition::CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo )
   {
-    //Initilialize Tau for the stabilization
+    //Initialize Tau for the stabilization
     double alpha_stab = 0.1;
     alpha_stab = GetProperties()[TAU_STAB];
 

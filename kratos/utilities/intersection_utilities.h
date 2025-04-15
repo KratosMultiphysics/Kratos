@@ -103,7 +103,9 @@ public:
         const array_1d<double,3>& rLinePoint1,
         const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12) {
+        const double epsilon = 1e-12
+        ) 
+    {
 
         // This is the adaption of the implementation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
@@ -145,7 +147,7 @@ public:
         rIntersectionPoint = rLinePoint1 + r*dir;
 
         // Check if the intersection point is inside the triangle
-        if (PointInTriangle(rTriangleGeometry[0], rTriangleGeometry[1], rTriangleGeometry[2], rIntersectionPoint)) {
+        if (PointInTriangle(rTriangleGeometry[0], rTriangleGeometry[1], rTriangleGeometry[2], rIntersectionPoint, epsilon)) {
             return 1;
         }
         return 0;
@@ -740,9 +742,9 @@ public:
 
         // Compute the intersection point and check if it is inside the bounds of the segment
         const double r = a / b;
-        if (r < 0.0){
+        if (r < 0.0 - epsilon){
             return 0;    // Intersection point lies outside the bounds of the segment
-        } else if (r > 1.0) {
+        } else if (r > 1.0 + epsilon) {
             return 0;    // Intersection point lies outside the bounds of the segment
         }
         rIntersectionPoint = rLinePoint1 + r * line_dir;

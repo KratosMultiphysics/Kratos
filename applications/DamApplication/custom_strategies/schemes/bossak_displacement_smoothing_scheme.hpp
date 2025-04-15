@@ -57,6 +57,15 @@ public:
         r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mRayleighAlpha;
         r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
 
+        // Initialize INITIAL_STRESS_TENSOR
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
+            auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if (r_initial_stress.size1() != 3 || r_initial_stress.size2() != 3) {
+                r_initial_stress.resize(3,3,false);
+            }
+            r_initial_stress.clear();
+        });
+
         mSchemeIsInitialized = true;
 
         KRATOS_CATCH("")
@@ -105,7 +114,7 @@ public:
             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
             {
                 const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if (NodalArea>1.0e-20)
+                if (NodalArea>1.0e-15)
                 {
                     const double InvNodalArea = 1.0/(NodalArea);
                     Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
@@ -119,7 +128,7 @@ public:
                 }
 
                 const double& NodalJointArea = itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (NodalJointArea>1.0e-20)
+                if (NodalJointArea>1.0e-15)
                 {
                     double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
                     NodalJointWidth = NodalJointWidth/NodalJointArea;

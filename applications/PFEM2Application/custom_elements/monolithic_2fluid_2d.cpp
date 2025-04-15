@@ -652,7 +652,7 @@ namespace Kratos
 
             int & number_of_particles_in_elem= this->GetValue(NUMBER_OF_FLUID_PARTICLES);
             ParticlePointerVector&  element_particle_pointers =  (this->GetValue(FLUID_PARTICLE_POINTERS));
-            Geometry<Node<3> >& geom = this->GetGeometry();
+            Geometry<Node >& geom = this->GetGeometry();
 
             for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
             {
@@ -861,7 +861,7 @@ namespace Kratos
 		const unsigned int TDim=2;
 
 		double Area;
-		Geometry<Node<3> >& geom = this->GetGeometry();
+		Geometry<Node >& geom = this->GetGeometry();
 		BoundedMatrix<double, (TDim+1), TDim > DN_DX;
 		array_1d<double, (TDim+1) > N;
 		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);

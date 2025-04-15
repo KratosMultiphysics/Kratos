@@ -545,7 +545,7 @@ public:
 
 
     /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
+    @return SizeType contains number of this geometry edges.
     */
     SizeType EdgesNumber() const override
     {
@@ -864,8 +864,8 @@ const GeometryData Line3DN<TPointType>::msGeometryData(
 
 
 template<class TPointType>
-const GeometryDimension Line3DN<TPointType>::msGeometryDimension(
-    3, 3, 1);
+const GeometryDimension Line3DN<TPointType>::msGeometryDimension(3, 1);
+
 }  // namespace Kratos.
 
 #endif // KRATOS_LINE_3D_3_H_INCLUDED  defined

@@ -16,8 +16,8 @@
 
 /* External includes */
 
-#include <geo_mechanics_application.h>
 #include "includes/kernel.h"
+#include <geo_mechanics_application.h>
 
 /* Utility includes */
 #include "includes/model_part.h"
@@ -33,10 +33,8 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 // The strategies to test
-#include <custom_processes/apply_component_table_process.hpp>
+#include <custom_processes/apply_component_table_process.h>
 #include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
-//#include <ghc/filesystem.hpp>
-#include <includes/gid_io.h>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
 
 #include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
@@ -45,195 +43,131 @@
 
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
-class NodeOperation
-{
-public:
-    virtual ~NodeOperation() = default;
-    virtual void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
-};
-class NodeDISPLACEMENT : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeTOTAL_DISPLACEMENT : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeWATER_PRESSURE : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeNORMAL_FLUID_FLUX : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeVOLUME_ACCELERATION : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeHYDRAULIC_DISCHARGE : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeHYDRAULIC_HEAD : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) override;
-};
-
-class GaussOperation
-{
-public:
-    virtual ~GaussOperation() = default;
-    virtual void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
-};
-
-class GaussFLUID_FLUX_VECTOR : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussHYDRAULIC_HEAD : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussLOCAL_FLUID_FLUX_VECTOR : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussLOCAL_PERMEABILITY_MATRIX : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussPERMEABILITY_MATRIX : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussDEGREE_OF_SATURATION : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussDERIVATIVE_OF_SATURATION : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussRELATIVE_PERMEABILITY : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussPIPE_ACTIVE : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussPIPE_HEIGHT : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-
 namespace Kratos
 {
-    class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
-    {
-    public:
-        KratosExecute();
-        ~KratosExecute(){};
 
-        int execute_flow_analysis(std::string workingDirectory, std::string parameterName,
-                                  double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-                                  std::string criticalHeadBoundaryModelPartName,
-                                  std::function<void(char*)> logCallback,
-                                  std::function<void(double)> reportProgress,
-                                  std::function<void(char*)> reportTextualProgress,
-                                  std::function<bool()> shouldCancel);
+class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
+{
+public:
+    KratosExecute();
 
-        typedef Node<3> NodeType;
-        typedef Geometry<NodeType> GeometryType;
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    using NodeType        = Node;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
-        // The direct solver
-        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-        typedef SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType> SkylineLUFactorizationSolverType;
+    // The direct solver
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+    using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType>;
 
-        // The convergence criteria type
-        typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
-        typedef MixedGenericCriteria<SparseSpaceType, LocalSpaceType> MixedGenericCriteriaType;
-        typedef typename MixedGenericCriteriaType::ConvergenceVariableListType ConvergenceVariableListType;
+    // The convergence criteria type
+    using ConvergenceCriteriaType  = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using MixedGenericCriteriaType = MixedGenericCriteria<SparseSpaceType, LocalSpaceType>;
+    using ConvergenceVariableListType = typename MixedGenericCriteriaType::ConvergenceVariableListType;
 
-        // The builder ans solver type
-        typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
-        typedef ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
+    using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
+        GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
-        // The time scheme
-        typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
-        typedef BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> BackwardEulerQuasistaticPwSchemeType;
+    static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
+    static LinearSolverType::Pointer        setup_solver_dgeoflow();
+    static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart& rModelPart);
+    void ParseProcesses(ModelPart& rModelPart, Parameters projFile);
 
-        // The strategies
-        typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
-            ImplicitSolvingStrategyType;
+    struct CriticalHeadInfo {
+        double minCriticalHead  = 0.0;
+        double maxCriticalHead  = 0.0;
+        double stepCriticalHead = 0.0;
 
-        typedef ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
-            ResidualBasedNewtonRaphsonStrategyType;
-
-        typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
-            GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
-
-        // Dof arrays
-        typedef SetIdentityFunction<Dof<double>> result_type;
-        typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<result_type>,
-                                 std::equal_to<result_type>, Dof<double> *>
-            DofsArrayType;
-
-        ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
-        LinearSolverType::Pointer setup_solver_dgeoflow();
-        GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        void parseMesh(ModelPart &model_part, std::string filepath);
-        void parseMaterial(Model &model, std::string filepath);
-
-        Parameters openProjectParamsFile(std::string filepath);
-        std::vector<std::shared_ptr<Process>> parseProcess(ModelPart &model_part, Parameters projFile);
-        void outputGiD(Model &model, ModelPart &model_part, Parameters parameters, std::string workingDirectory);
-
-    private:
-        // Initial Setup
-        Model current_model;
-        Kernel kernel;
-        KratosGeoMechanicsApplication::Pointer geoApp;
-        
-        void ResetModelParts();
-
-        int echoLevel = 1;
-
-        int GetEchoLevel();
-
-        void SetEchoLevel(int level);
-
-        shared_ptr<Process> FindRiverBoundaryByName(std::string criticalHeadBoundaryModelPartName,
-                                                    std::vector<std::shared_ptr<Process>> processes);
-
-        shared_ptr<Process> FindRiverBoundaryAutomatically(KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-                                                           std::vector<std::shared_ptr<Process>> processes);
-
-        int mainExecution(ModelPart &model_part,
-                          std::vector<std::shared_ptr<Process>> processes,
-                          KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-                          double time, double delta_time, double number_iterations);
-        
-        void calculateNodalHydraulicHead(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
+        CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead)
+            : minCriticalHead(minCriticalHead), maxCriticalHead(maxCriticalHead), stepCriticalHead(stepCriticalHead)
+        {
+        }
     };
-}
+
+    struct CallBackFunctions {
+        std::function<void(const char*)> LogCallback;
+        std::function<void(double)>      ReportProgress;
+        std::function<void(const char*)> ReportTextualProgress;
+        std::function<bool()>            ShouldCancel;
+
+        CallBackFunctions(std::function<void(const char*)> LogCallback,
+                          std::function<void(double)>      ReportProgress,
+                          std::function<void(const char*)> ReportTextualProgress,
+                          std::function<bool()>            ShouldCancel)
+            : LogCallback(std::move(LogCallback)),
+              ReportProgress(std::move(ReportProgress)),
+              ReportTextualProgress(std::move(ReportTextualProgress)),
+              ShouldCancel(std::move(ShouldCancel))
+        {
+        }
+    };
+
+    int ExecuteFlowAnalysis(std::string_view         WorkingDirectory,
+                            const std::string&       rProjectParamsFileName,
+                            const CriticalHeadInfo&  rCriticalHeadInfo,
+                            std::string_view         CriticalHeadBoundaryModelPartName,
+                            const CallBackFunctions& rCallBackFunctions);
+
+    void ExecuteWithoutPiping(ModelPart&                rModelPart,
+                              const Kratos::Parameters& rGidOutputSettings,
+                              const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy) const;
+
+    int ExecuteWithPiping(ModelPart&                rModelPart,
+                          const Kratos::Parameters& rGidOutputSettings,
+                          const CriticalHeadInfo&   rCriticalHeadInfo,
+                          LoggerOutput::Pointer     pOutput,
+                          const std::stringstream&  rKratosLogBuffer,
+                          const CallBackFunctions&  rCallBackFunctions,
+                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy);
+
+    void WriteCriticalHeadResultToFile() const;
+
+    void AddNodalSolutionStepVariables(ModelPart& rModelPart) const;
+
+    int FindCriticalHead(ModelPart&                 rModelPart,
+                         const Kratos::Parameters&  rGidOutputSettings,
+                         const CriticalHeadInfo&    rCriticalHeadInfo,
+                         LoggerOutput::Pointer      pOutput,
+                         const std::stringstream&   rKratosLogBuffer,
+                         const shared_ptr<Process>& pRiverBoundary,
+                         const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
+                         const CallBackFunctions& rCallBackFunctions);
+
+    void HandleCriticalHeadFound(const CriticalHeadInfo& rCriticalHeadInfo);
+
+    void HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
+                       LoggerOutput::Pointer    pOutput,
+                       const std::stringstream& rKratosLogBuffer);
+
+private:
+    // Initial Setup
+    Model                                  mCurrentModel;
+    Kernel                                 mKernel;
+    KratosGeoMechanicsApplication::Pointer mpGeoApp;
+    std::string                            mWorkingDirectory;
+    std::string                            mCriticalHeadBoundaryModelPartName;
+    bool                                   mPipingSuccess = false;
+    double                                 mCriticalHead  = 0.0;
+    double                                 mCurrentHead   = 0.0;
+    std::vector<std::shared_ptr<Process>>  mProcesses;
+    int                                    mEchoLevel = 1;
+
+    void ResetModelParts();
+
+    [[nodiscard]] int GetEchoLevel() const;
+
+    void SetEchoLevel(int level);
+
+    shared_ptr<Process> FindRiverBoundaryByName(const std::string& CriticalHeadBoundaryModelPartName) const;
+
+    shared_ptr<Process> FindRiverBoundaryAutomatically(
+        const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy) const;
+
+    int MainExecution(ModelPart& rModelPart,
+                      const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy,
+                      double       Time,
+                      double       DeltaTime,
+                      unsigned int NumberOfIterations) const;
+
+    bool AreExceedingMaxCriticalHead(double CurrentHead, double MaxCriticalHead) const;
+};
+} // namespace Kratos

@@ -42,8 +42,8 @@ public:
     // Pointer types for BinghamFluid
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BinghamFluid);
 
-    /// Node type (default is: Node<3>)
-    typedef Node <3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -82,7 +82,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -108,7 +108,7 @@ public:
         TBaseElement(NewId, pGeometry)
     {}
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -226,7 +226,7 @@ protected:
     /**
      * @brief EffectiveViscosity Calculate the effective viscosity at given integration point using the Bingham constitutive model.
      *
-     * The Bingham model is implemented here using a regularized formulation, as the viscosity should be infite while the stress is
+     * The Bingham model is implemented here using a regularized formulation, as the viscosity should be infinite while the stress is
      * smaller than the yield stress. The implemented constitutive relation is
      *
      *  stress(i,j) = ( mu +  ( 1 - exp(-m*gamma_dot) )* yield_stress / gamma_dot ) * strain_rate(i,j)

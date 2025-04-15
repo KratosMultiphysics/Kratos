@@ -75,7 +75,7 @@ public:
     /// Pointer definition of MonolithicWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicWallCondition);
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 
@@ -474,7 +474,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Commpute the wall stress and add corresponding terms to the system contributions.
+    /// Compute the wall stress and add corresponding terms to the system contributions.
     /**
       @param rLocalMatrix Local system matrix
       @param rLocalVector Local right hand side

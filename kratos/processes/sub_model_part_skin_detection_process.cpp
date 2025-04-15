@@ -24,7 +24,7 @@ void SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::Pre
 }
 
 template<SizeType TDim>
-bool SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const
+bool SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::IsSelected(const Geometry<Node>::PointsArrayType& rNodes) const
 {
     bool select = true;
     for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node) {
@@ -43,7 +43,7 @@ void SubModelPartSkinDetectionProcess<TDim>::SelectIfOneNodeNotOnSubModelPart::P
 }
 
 template<SizeType TDim>
-bool SubModelPartSkinDetectionProcess<TDim>::SelectIfOneNodeNotOnSubModelPart::IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const
+bool SubModelPartSkinDetectionProcess<TDim>::SelectIfOneNodeNotOnSubModelPart::IsSelected(const Geometry<Node>::PointsArrayType& rNodes) const
 {
     for (const auto& r_node : rNodes) {
         if (r_node.Is(SubModelPartSkinDetectionProcess::NODE_SELECTED)) {
@@ -120,7 +120,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
 
         const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
 
-        Geometry<Node<3>>::PointsArrayType condition_nodes;
+        Geometry<Node>::PointsArrayType condition_nodes;
         for (unsigned int i = 0; i < nodes_face.size(); i++)
         {
             condition_nodes.push_back(rMainModelPart.pGetNode(nodes_face[i]));

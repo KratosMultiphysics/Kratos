@@ -8,10 +8,10 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Mohamed Nabi
-//                   
-//                   
-//  Contributors:    
-//                   
+//
+//
+//  Contributors:
+//
 //
 
 #pragma once
@@ -54,8 +54,8 @@ namespace Kratos
  * @details The node ordering corresponds with:
  *      0-----2----3----1
  * @author Mohamed Nabi
- * @author 
- * @author 
+ * @author
+ * @author
  */
 template<class TPointType>
 class Line2D4 : public Geometry<TPointType>
@@ -121,7 +121,7 @@ public:
     typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
-    continer.
+    container.
     */
     typedef typename BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
 
@@ -142,7 +142,7 @@ public:
     */
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
-    /** Type of the normal vector used for normal to edges in geomety.
+    /** Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -184,7 +184,7 @@ public:
     explicit Line2D4(const IndexType GeometryId, const PointsArrayType& rThisPoints)
         : BaseType(GeometryId, rThisPoints, &msGeometryData)
     {
-        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given " 
+        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given "
                                                    << this->PointsNumber() << std::endl;
     }
 
@@ -210,7 +210,7 @@ public:
     /** Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      * @note This copy constructor don't copy the points and new
      * geometry shares points with given source geometry. It's
@@ -225,14 +225,34 @@ public:
     /// Destructor. Do nothing!!!
     ~Line2D4() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Linear;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Line2D4;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Cubic_Order;
     }
 
     ///@}
@@ -278,7 +298,7 @@ public:
      * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    typename BaseType::Pointer Create(const IndexType NewGeometryId, PointsArrayType const& rThisPoints) 
+    typename BaseType::Pointer Create(const IndexType NewGeometryId, PointsArrayType const& rThisPoints)
         const override
     {
         return typename BaseType::Pointer(new Line2D4(NewGeometryId, rThisPoints));
@@ -306,7 +326,7 @@ public:
      *      - Evaluation of M using a quadrature involving only the nodal points and thus
      *        automatically yielding a diagonal matrix for standard element shape function
      */
-    Vector& LumpingFactors(Vector& rResult, const typename BaseType::LumpingMethods LumpingMethod 
+    Vector& LumpingFactors(Vector& rResult, const typename BaseType::LumpingMethods LumpingMethod
         = BaseType::LumpingMethods::ROW_SUM) const override
     {
         if (rResult.size() != 4) rResult.resize(4, false);
@@ -321,8 +341,8 @@ public:
     ///@name Informations
     ///@{
 
-    /** This method calculate and return Length or charactereistic
-     * length of this geometry depending to it's dimension. For one
+    /** This method calculates and returns Length or charactereistic
+     * length of this geometry depending on its dimension. For one
      * dimensional geometry for example Line it returns length of it
      * and for the other geometries it gives Characteristic length.
      * otherwise.
@@ -345,11 +365,11 @@ public:
         return length;
     }
 
-    /** This method calculate and return area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
+    /** This method calculates and returns area or surface area of
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns length, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     * 
+     *
      * @return double value contains area or surface area.
      * @see Length()
      * @see Volume()
@@ -360,11 +380,11 @@ public:
         return Length();
     }
 
-    /** This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+    /** This method calculates and returns length, area or volume of
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
-     * 
+     *
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
@@ -481,7 +501,7 @@ public:
     JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod) const override
     {
         // Getting derivatives of shape functions
-        const ShapeFunctionsGradientsType shape_functions_gradients 
+        const ShapeFunctionsGradientsType shape_functions_gradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         const std::size_t number_of_integration_points = this->IntegrationPointsNumber(ThisMethod);
         if (rResult.size() != number_of_integration_points) {
@@ -519,11 +539,11 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod, 
+    JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod,
         Matrix& rDeltaPosition) const override
     {
         // Getting derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients 
+        ShapeFunctionsGradientsType shape_functions_gradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         const std::size_t number_of_integration_points = this->IntegrationPointsNumber(ThisMethod);
         // Getting values of shape functions
@@ -547,7 +567,7 @@ public:
     }
 
     /** Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
+     * method. This method calculates jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which jacobians has to
@@ -569,7 +589,7 @@ public:
         rResult.resize(2, 1, false);
         noalias(rResult) = ZeroMatrix(2, 1);
         // Derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients 
+        ShapeFunctionsGradientsType shape_functions_gradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         Matrix shape_function_gradient_in_integration_point = shape_functions_gradients(IntegrationPointIndex);
         // Values of shape functions in integration points
@@ -585,7 +605,7 @@ public:
         return rResult;
     }
 
-    /** Jacobian in given point. This method calculate jacobian
+    /** Jacobian in given point. This method calculates jacobian
      * matrix in given point.
      * @param rPoint point which jacobians has to be calculated in it.
      * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
@@ -612,7 +632,7 @@ public:
 
     /**
      * @brief Determinant of jacobians for given integration method.
-     * @details This method calculate determinant of jacobian in all integrations points of given integration method.
+     * @details This method calculates determinant of jacobian in all integrations points of given integration method.
      * @return Vector of double which is vector of determinants of jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
      * @see Jacobian
      * @see InverseOfJacobian
@@ -631,7 +651,7 @@ public:
     }
 
     /**
-     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculate determinant of jacobian in given integration point of given integration method.
+     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculates determinant of jacobian in given integration point of given integration method.
      * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
      * @param IntegrationPointIndex index of integration point which determinant of jacobians has to be calculated in it.
      * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
@@ -647,7 +667,7 @@ public:
     }
 
     /**
-     * @brief Determinant of jacobian in given point. This method calculate determinant of jacobian matrix in given point.
+     * @brief Determinant of jacobian in given point. This method calculates determinant of jacobian matrix in given point.
      * @param rPoint point which determinant of jacobians has to be calculated in it.
      * @return Determinamt of jacobian matrix \f$ |J| \f$ in given point.
      * @see DeterminantOfJacobian
@@ -661,7 +681,7 @@ public:
     }
 
     /** EdgesNumber
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      */
     SizeType EdgesNumber() const override
     {
@@ -669,7 +689,7 @@ public:
     }
 
     /** FacesNumber
-     * @return SizeType containes number of this geometry edges/faces.
+     * @return SizeType contains number of this geometry edges/faces.
      */
     SizeType FacesNumber() const override
     {
@@ -759,7 +779,7 @@ public:
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
-    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, 
+    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
                       Vector& rDeterminantsOfJacobian, IntegrationMethod ThisMethod) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
@@ -768,6 +788,12 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Line2D4N";
+    }
 
     /** Turn back information as a string.
      * @return String contains information about this geometry.
@@ -795,20 +821,25 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData( std::ostream& rOStream ) const override
     {
-        BaseType::PrintData(rOStream);
+        // Base Geometry class PrintData call
+        BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian(jacobian, PointType());
-        rOStream << "    Jacobian\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian\t : " << jacobian;
+        }
     }
 
     /** Calculates the local gradients for all integration points for given integration method
      */
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(IntegrationMethod& ThisMethod)
     {
-        ShapeFunctionsGradientsType localGradients 
+        ShapeFunctionsGradientsType localGradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
         ShapeFunctionsGradientsType Result(integration_points_number);
@@ -826,7 +857,7 @@ public:
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
-        ShapeFunctionsGradientsType localGradients 
+        ShapeFunctionsGradientsType localGradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
         ShapeFunctionsGradientsType Result(integration_points_number);
@@ -1135,6 +1166,6 @@ const GeometryData Line2D4<TPointType>::msGeometryData(
     AllShapeFunctionsLocalGradients());
 
 template<class TPointType>
-const GeometryDimension Line2D4<TPointType>::msGeometryDimension(2, 2, 1);
+const GeometryDimension Line2D4<TPointType>::msGeometryDimension(2, 1);
 
 }  // namespace Kratos.

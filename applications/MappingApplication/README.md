@@ -27,6 +27,8 @@ The Mapping Application contains the core developments in mapping data between n
   - Nearest Neighbor
   - Nearest Element
   - Barycentric
+- Metamappers
+  - 3D/2D metamapper (metamapper which obtains the solution for the 3D destination model part from the original 2D solution)
 - Mapping operations (see [here](#customizing-the-behavior-of-the-mapping-with-flags))
 
 ### Dependencies
@@ -114,6 +116,17 @@ mapper.InverseMap(KM.TEMPERATURE, KM.AMBIENT_TEMPERATURE)
 # to the nodal quantities of VELOCITY on the origin-ModelPart
 
 mapper.InverseMap(KM.VELOCITY, KM.MESH_VELOCITY)
+```
+
+For the 3D/2D metamapper the settings to consider are the following, where `base_mapper` is the backend mapper to be considered.
+
+```json
+mapper_params = KM.Parameters("""{
+    "mapper_type"     : "projection_3D_2D",
+    "base_mapper"     : "nearest_neighbor",
+    "search_settings" : {},
+    "echo_level"      : 0
+}""")
 ```
 
 ### Advanced Usage
@@ -243,7 +256,7 @@ Internally it constructs the mapping matrix, hence it offers the usage of the tr
 
 The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the inteface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position.
 
-This mapper is best suited for problems where the _NearestNeighborMapper_ cannot be used, i.e. for cases where the discretization on the interfaces is different. Note that it is less robust than the _NearestNeighborMapper_ due to the projections it performs. In case a projection fails it uses an approximation that is similar to the approach of the _NearestNeighborMapper_.
+This mapper is best suited for problems where the _NearestNeighborMapper_ cannot be used, i.e. for cases where the discretization on the interfaces is different. Note that it is less robust than the _NearestNeighborMapper_ due to the projections it performs. In case a projection fails, it uses an approximation that is similar to the approach of the _NearestNeighborMapper_. This can be disabled by setting `use_approximation` to `false` in the mapper-settings.
 
 Internally it constructs the mapping matrix, hence it offers the usage of the transposed mapping matrix. When using this, for very inhomogenous interface discretizations it can come to oscillations in the mapped quantities.
 

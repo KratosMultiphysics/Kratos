@@ -36,7 +36,7 @@ namespace Kratos
             // Check if geometry does have own dofs or require dependency to the geometry dofs.
             auto& r_geometry = (mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]).size() > 0)
                 ? mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i])
-                : mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]).GetGeometryPart(Geometry<Node<3>>::BACKGROUND_GEOMETRY_INDEX);
+                : mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]).GetGeometryPart(Geometry<Node>::BACKGROUND_GEOMETRY_INDEX);
             size_t number_of_control_points = r_geometry.size();
             std::vector<IndexType> eqID(number_of_control_points);
             for (IndexType inodes = 0; inodes < number_of_control_points; ++inodes)
@@ -45,7 +45,7 @@ namespace Kratos
             SparseMatrixType NTN = ZeroMatrix(number_of_control_points, number_of_control_points); //inital guess how much non-zero are there
             Matrix directorAtIntgrationPoints{ ZeroMatrix(number_of_control_points, 3) };
 
-            PointerVector<Geometry<Node<3>>> quad_points;
+            PointerVector<Geometry<Node>> quad_points;
             IntegrationInfo integration_info = r_geometry.GetDefaultIntegrationInfo();
             r_geometry.CreateQuadraturePointGeometries(quad_points, 3, integration_info);
             for (IndexType iP = 0; iP < quad_points.size(); ++iP)

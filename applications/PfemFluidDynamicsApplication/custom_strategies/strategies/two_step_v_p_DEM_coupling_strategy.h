@@ -213,7 +213,7 @@ namespace Kratos
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
       {
-        if ((i)->GetValue(EULERIAN_INLET) == false)
+        if ((i)->IsNot(PFEMFlags::EULERIAN_INLET))
         {
 
           array_1d<double, 3> &CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);

@@ -17,10 +17,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+#include "includes/cfd_variables.h"
 #include "containers/model.h"
+
+// Application includes
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 
 namespace Kratos {
@@ -158,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS2D3N, FluidDynamics
     p_elem_expl->AddExplicitContribution(r_process_info);
 
     // Check obtained RHS values
-    // We check against the RHS obtained with the original implicit element without the intertial terms and the shock capturing
+    // We check against the RHS obtained with the original implicit element without the inertial terms and the shock capturing
     std::vector<double> RHS_ref({1.86834, 4.64527, 4.64847, 15.0445, -0.305882, -0.267386, 0.0227834, 0.766887, -0.303448, -0.0283365, -0.262083, 0.652807});
     std::vector<double> RHS_expl(12);
     for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
@@ -169,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS2D3N, FluidDynamics
         RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
     }
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
 }
 
 
@@ -223,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS3D4N, FluidDynamics
     p_elem_expl->AddExplicitContribution(r_process_info);
 
     // Check obtained RHS values
-    // We check against the RHS obtained with the original implicit element without the intertial terms and the shock capturing
+    // We check against the RHS obtained with the original implicit element without the inertial terms and the shock capturing
     std::vector<double> RHS_ref({0.49832, 1.06309, 1.06273, 1.06334, 4.30383, 0.101635, 0.486624, 0.541983, 0.545296, 3.09881, 0.102517, 0.520625, 0.486602, 0.536257, 3.02144, 0.102607, 0.508728, 0.521208, 0.481085, 2.94876});
     std::vector<double> RHS_expl(20);
     for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
@@ -234,7 +237,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS3D4N, FluidDynamics
         RHS_expl[i_node * 5 + 3] = it_node->FastGetSolutionStepValue(REACTION_Z);
         RHS_expl[i_node * 5 + 4] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
     }
-    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-5);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-5);
 }
 
 } // Namespace Testing

@@ -130,7 +130,7 @@ public:
         {
             for( std::vector<int>::iterator itIndex = itList->begin(); itIndex != itList->end(); ++itIndex)
             {
-                // Note that instering in map already sorts and checks for uniqueness
+                // Note that inserting in map already sorts and checks for uniqueness
                 NewVal.first = *itIndex;
                 NewVal.second = Counter;
                 Result = mPatchIndices.insert(NewVal);
@@ -364,7 +364,7 @@ private:
 
     /// ModelPart of the fluid problem
     ModelPart& mrModelPart;
-    /// Spatial dimenstion
+    /// Spatial dimension
     unsigned int mDomainSize;
     /// Container for the coarse mesh (the fine mesh is stored by the model part)
     ModelPart::ElementsContainerType mCoarseMesh;
@@ -391,8 +391,8 @@ private:
         {
             if( itNode->GetValue(FATHER_NODES).size() == 2 )
             {
-                Node<3>& rParent1 = itNode->GetValue(FATHER_NODES)[0];
-                Node<3>& rParent2 = itNode->GetValue(FATHER_NODES)[1];
+                Node& rParent1 = itNode->GetValue(FATHER_NODES)[0];
+                Node& rParent2 = itNode->GetValue(FATHER_NODES)[1];
 
                 itNode->GetValue(COARSE_VELOCITY) = 0.5 * ( rParent1.FastGetSolutionStepValue(VELOCITY) + rParent2.FastGetSolutionStepValue(VELOCITY) );
             }

@@ -19,6 +19,8 @@
 
 // Application includes
 #include "custom_utilities/response/mass_response_utils.h"
+#include "custom_utilities/response/linear_strain_energy_response_utils.h"
+#include "custom_utilities/response/max_overhang_response_utils.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -30,11 +32,22 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<MassResponseUtils >(m, "MassResponseUtils")
-        .def_static("Check", &MassResponseUtils::Check)
-        .def_static("CalculateValue", &MassResponseUtils::CalculateValue)
-        .def_static("CalculateSensitivity", &MassResponseUtils::CalculateSensitivity)
+    m.def_submodule("MassResponseUtils")
+        .def("Check", &MassResponseUtils::Check)
+        .def("CalculateValue", &MassResponseUtils::CalculateValue)
+        .def("CalculateGradient", &MassResponseUtils::CalculateGradient, py::arg("list_of_gradient_variables"), py::arg("list_of_gradient_required_model_parts"), py::arg("list_of_gradient_computed_model_parts"), py::arg("list_of_container_expressions"), py::arg("perturbation_size"))
         ;
+
+    m.def_submodule("LinearStrainEnergyResponseUtils")
+        .def("CalculateValue", &LinearStrainEnergyResponseUtils::CalculateValue)
+        .def("CalculateGradient", &LinearStrainEnergyResponseUtils::CalculateGradient, py::arg("list_of_gradient_variables"), py::arg("list_of_gradient_required_model_parts"), py::arg("list_of_gradient_computed_model_parts"), py::arg("list_of_container_expressions"), py::arg("perturbation_size"))
+        ;
+
+    m.def_submodule("MaxOverhangAngleResponseUtils")
+        .def("CalculateValue", &MaxOverhangAngleResponseUtils::CalculateValue)
+        .def("CalculateSensitivity", &MaxOverhangAngleResponseUtils::CalculateSensitivity)
+        ;
+
 }
 
 }  // namespace Python.

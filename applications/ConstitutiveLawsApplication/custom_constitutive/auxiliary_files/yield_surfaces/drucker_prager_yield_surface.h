@@ -9,8 +9,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_DRUCKER_PRAGER_YIELD_SURFACE_H_INCLUDED)
-#define KRATOS_DRUCKER_PRAGER_YIELD_SURFACE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -235,7 +234,7 @@ public:
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
 
-        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;;
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
         const double sin_phi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
@@ -385,4 +384,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif

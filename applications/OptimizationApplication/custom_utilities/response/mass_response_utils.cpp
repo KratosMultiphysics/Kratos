@@ -13,17 +13,21 @@
 
 // System includes
 #include <sstream>
+#include <type_traits>
+#include <functional>
 
 // Project includes
+#include "expression/variable_expression_io.h"
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "utilities/element_size_calculator.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "utilities/element_size_calculator.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "response_utils.h"
+#include "custom_utilities/optimization_utils.h"
+#include "custom_utilities/properties_variable_expression_io.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -51,23 +55,7 @@ bool MassResponseUtils::HasVariableInProperties(
     KRATOS_CATCH("");
 }
 
-void MassResponseUtils::Check(const std::vector<ModelPart const*>& rModelParts)
-{
-    for (const auto p_model_part : rModelParts) {
-        CheckModelPart(*p_model_part);
-    }
-}
-
-double MassResponseUtils::CalculateValue(const std::vector<ModelPart const*>& rModelParts)
-{
-    double value = 0.0;
-    for (const auto p_model_part : rModelParts) {
-        value += CalculateModelPartValue(*p_model_part);
-    }
-    return value;
-}
-
-void MassResponseUtils::CheckModelPart(const ModelPart& rModelPart)
+void MassResponseUtils::Check(const ModelPart& rModelPart)
 {
     const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
 
@@ -90,7 +78,7 @@ void MassResponseUtils::CheckModelPart(const ModelPart& rModelPart)
     }
 }
 
-double MassResponseUtils::CalculateModelPartValue(const ModelPart& rModelPart)
+double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -105,13 +93,19 @@ double MassResponseUtils::CalculateModelPartValue(const ModelPart& rModelPart)
         << rModelPart.FullName()
         << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
-    const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_thickness;
+    if (HasVariableInProperties(rModelPart, THICKNESS)) {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[THICKNESS]; };
+    } else {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
-    const auto get_cross_area = HasVariableInProperties(rModelPart, CROSS_AREA)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[CROSS_AREA]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_cross_area;
+    if (HasVariableInProperties(rModelPart, CROSS_AREA)) {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[CROSS_AREA]; };
+    } else {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
     const double local_mass = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](const auto& rElement) {
         return rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY] * get_thickness(rElement) * get_cross_area(rElement);
@@ -122,53 +116,95 @@ double MassResponseUtils::CalculateModelPartValue(const ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-void MassResponseUtils::CalculateSensitivity(
-    const std::vector<ModelPart*>& rEvaluatedModelParts,
-    const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo)
+void MassResponseUtils::CalculateGradient(
+    const PhysicalFieldVariableTypes& rPhysicalVariable,
+    ModelPart& rGradientRequiredModelPart,
+    ModelPart& rGradientComputedModelPart,
+    std::vector<ContainerExpressionType>& rListOfContainerExpressions,
+    const double PerturbationSize)
 {
     KRATOS_TRY
 
-    ResponseUtils::CheckAndPrepareModelPartsForSensitivityComputation(rEvaluatedModelParts, rSensitivityModelPartVariableInfo, SELECTED, {&SHAPE_SENSITIVITY});
+    std::visit([&](auto pVariable) {
+        if (*pVariable == DENSITY) {
+            // clears the existing values
+            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(DENSITY_SENSITIVITY, 0.0); });
 
-    // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (const auto& it : rSensitivityModelPartVariableInfo) {
-        auto& r_sensitivity_model_part = *(it.first);
-        for (auto& r_variable : it.second) {
-            std::visit([&](auto&& r_variable) {
-                if (*r_variable == DENSITY_SENSITIVITY) {
-                    CalculateMassDensitySensitivity(r_sensitivity_model_part, DENSITY_SENSITIVITY);
-                } else if (*r_variable == THICKNESS_SENSITIVITY) {
-                    CalculateMassThicknessSensitivity(r_sensitivity_model_part, THICKNESS_SENSITIVITY);
-                } else if (*r_variable == CROSS_AREA_SENSITIVITY) {
-                    CalculateMassCrossAreaSensitivity(r_sensitivity_model_part, CROSS_AREA_SENSITIVITY);
-                } else if (*r_variable == SHAPE_SENSITIVITY) {
-                    CalculateMassShapeSensitivity(r_sensitivity_model_part, SHAPE_SENSITIVITY);
-                } else {
-                    KRATOS_ERROR
-                        << "Unsupported sensitivity w.r.t. " << r_variable->Name()
-                        << " requested for " << r_sensitivity_model_part.FullName()
-                        << ". Followings are supported sensitivity variables:"
-                        << "\n\t" << DENSITY_SENSITIVITY.Name()
-                        << "\n\t" << THICKNESS_SENSITIVITY.Name()
-                        << "\n\t" << CROSS_AREA_SENSITIVITY.Name()
-                        << "\n\t" << SHAPE_SENSITIVITY.Name();
-                }
-            }, r_variable);
+            // computes density sensitivty and store it within each elements' properties
+            CalculateMassDensityGradient(rGradientComputedModelPart, DENSITY_SENSITIVITY);
+        } else if (*pVariable == THICKNESS) {
+            // clears the existing values
+            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
+
+            // computes density sensitivty and store it within each elements' properties
+            CalculateMassThicknessGradient(rGradientComputedModelPart, THICKNESS_SENSITIVITY);
+        } else if (*pVariable == CROSS_AREA) {
+            // clears the existing values
+            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(CROSS_AREA_SENSITIVITY, 0.0); });
+
+            // computes density sensitivty and store it within each elements' properties
+            CalculateMassCrossAreaGradient(rGradientComputedModelPart, CROSS_AREA_SENSITIVITY);
+        } else if (*pVariable == SHAPE) {
+            // clears the existing values
+            VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rGradientRequiredModelPart.Nodes());
+
+            // computes density sensitivty and store it within each elements' properties
+            CalculateMassShapeGradient(rGradientComputedModelPart, SHAPE_SENSITIVITY, PerturbationSize);
+        } else {
+            KRATOS_ERROR
+                << "Unsupported sensitivity w.r.t. " << pVariable->Name()
+                << " requested. Followings are supported sensitivity variables:"
+                << "\n\t" << DENSITY.Name()
+                << "\n\t" << THICKNESS.Name()
+                << "\n\t" << CROSS_AREA.Name()
+                << "\n\t" << SHAPE.Name();
         }
-    }
+
+        // now fill the container expressions
+        for (auto& p_container_expression : rListOfContainerExpressions) {
+            std::visit([pVariable](auto& pContainerExpression){
+                using container_type = std::decay_t<decltype(*pContainerExpression)>;
+
+                if (*pVariable == SHAPE) {
+                    if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::NodesContainerType>>) {
+                        VariableExpressionIO::Read(*pContainerExpression, &SHAPE_SENSITIVITY, false);
+                    } else {
+                        KRATOS_ERROR << "Requesting sensitivity w.r.t. "
+                                        "SHAPE for a Container expression "
+                                        "which is not a NodalExpression. [ "
+                                        "Requested container expression = "
+                                        << *pContainerExpression << " ].\n";
+                    }
+                } else {
+                    if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::ElementsContainerType>>) {
+                        const auto& sensitivity_variable = KratosComponents<Variable<double>>::Get(pVariable->Name() + "_SENSITIVITY");
+                        PropertiesVariableExpressionIO::Read(*pContainerExpression, &sensitivity_variable);
+                    } else {
+                        KRATOS_ERROR << "Requesting sensitivity w.r.t. "
+                                     << pVariable->Name()
+                                     << " for a Container expression "
+                                        "which is not an ElementExpression. [ "
+                                        "Requested container expression = "
+                                     << *pContainerExpression << " ].\n";
+                    }
+                }
+
+
+            }, p_container_expression);
+        }
+    }, rPhysicalVariable);
 
     KRATOS_CATCH("");
 }
 
-void MassResponseUtils::CalculateMassShapeSensitivity(
+void MassResponseUtils::CalculateMassShapeGradient(
     ModelPart& rModelPart,
-    const Variable<array_1d<double, 3>>& rOutputSensitivityVariable)
+    const Variable<array_1d<double, 3>>& rOutputGradientVariable,
+    const double PerturbationSize)
 {
     KRATOS_TRY
 
-    if (rModelPart.NumberOfElements() == 0) {
-        return;
-    }
+    KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0) << rModelPart.FullName() << " does not contain any elements.\n";
 
     KRATOS_ERROR_IF_NOT(HasVariableInProperties(rModelPart, DENSITY))
         << "DENSITY is not found in element properties of " << rModelPart.FullName() << ".\n";
@@ -177,20 +213,27 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
         << rModelPart.FullName()
         << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
-    const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_thickness;
+    if (HasVariableInProperties(rModelPart, THICKNESS)) {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[THICKNESS]; };
+    } else {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
-    const auto get_cross_area = HasVariableInProperties(rModelPart, CROSS_AREA)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[CROSS_AREA]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_cross_area;
+    if (HasVariableInProperties(rModelPart, CROSS_AREA)) {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[CROSS_AREA]; };
+    } else {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
-    using VolumeDerivativeMethodType = std::function<double(IndexType, IndexType, const GeometryType&)>;
+    using VolumeDerivativeMethodType = std::function<double(IndexType, IndexType, GeometryType&)>;
 
     VolumeDerivativeMethodType volume_derivative_method;
+    bool is_analytical_derivatives_used = true;
     switch (rModelPart.Elements().begin()->GetGeometry().GetGeometryType()) {
         case GeometryData::KratosGeometryType::Kratos_Line2D2:
-            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  const GeometryType& rGeometry) {
+            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  GeometryType& rGeometry) {
                 const double lx = rGeometry[0].X() - rGeometry[1].X();
                 const double lx_derivative = ((NodeIndex == 0) - (NodeIndex == 1)) * (DirectionIndex == 0);
 
@@ -204,7 +247,7 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
             };
             break;
         case GeometryData::KratosGeometryType::Kratos_Line3D2:
-            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  const GeometryType& rGeometry) {
+            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  GeometryType& rGeometry) {
                 const double lx = rGeometry[0].X() - rGeometry[1].X();
                 const double lx_derivative = ((NodeIndex == 0) - (NodeIndex == 1)) * (DirectionIndex == 0);
 
@@ -221,37 +264,39 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
             };
             break;
         case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  const GeometryType& rGeometry) {
+            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  GeometryType& rGeometry) {
                 return 2.0 * ElementSizeCalculator<2, 3>::AverageElementSize(rGeometry) * ElementSizeCalculator<2, 3>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
             };
             break;
         case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
-            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  const GeometryType& rGeometry) {
+            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  GeometryType& rGeometry) {
                 return 2.0 * ElementSizeCalculator<2, 4>::AverageElementSize(rGeometry) * ElementSizeCalculator<2, 4>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
             };
             break;
         case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  const GeometryType& rGeometry) {
+            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  GeometryType& rGeometry) {
                 return 3.0 * std::pow(ElementSizeCalculator<3, 4>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 4>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
             };
             break;
         case GeometryData::KratosGeometryType::Kratos_Prism3D6:
-            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  const GeometryType& rGeometry) {
+            volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  GeometryType& rGeometry) {
                 return 3.0 * std::pow(ElementSizeCalculator<3, 6>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 6>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
             };
             break;
-        // Following is not consistent with the DomainSize calculation, hence commented out for the time being.
-        // case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8:
-        //     volume_derivative_method = [](IndexType NodeIndex, IndexType DirectionIndex,  const GeometryType& rGeometry) {
-        //         return 3.0 * std::pow(ElementSizeCalculator<3, 8>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 8>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
-        //     };
-        //     break;
         default:
-            KRATOS_ERROR << "Non supported geometry type for mass shape sensitivity calculation (CalculateMassShapeSensitivity())." << std::endl;
+            is_analytical_derivatives_used = false;
+            volume_derivative_method = [PerturbationSize](IndexType NodeIndex, IndexType DirectionIndex, GeometryType& rGeometry) {
+                auto& coordinates = rGeometry[NodeIndex].Coordinates();
+                coordinates[DirectionIndex] += PerturbationSize;
+                const double perturbed_domain_size = rGeometry.DomainSize();
+                coordinates[DirectionIndex] -= PerturbationSize;
+                return perturbed_domain_size;
+            };
+            break;
     }
 
-    block_for_each(rModelPart.Elements(), [&](auto& rElement){
-        if (rElement.Is(SELECTED)) {
+    if (is_analytical_derivatives_used) {
+        block_for_each(rModelPart.Elements(), [&](auto& rElement){
             auto& r_geometry = rElement.GetGeometry();
             const IndexType dimension = r_geometry.WorkingSpaceDimension();
 
@@ -260,24 +305,60 @@ void MassResponseUtils::CalculateMassShapeSensitivity(
             const double cross_area = get_cross_area(rElement);
 
             for (IndexType c = 0; c < r_geometry.PointsNumber(); ++c) {
-                auto& r_derivative_value = r_geometry[c].GetValue(rOutputSensitivityVariable);
+                auto& r_derivative_value = r_geometry[c].GetValue(rOutputGradientVariable);
 
                 for (IndexType k = 0; k < dimension; ++k) {
                     const double derivative_value = volume_derivative_method(c, k, r_geometry) * thickness * density * cross_area;
                     AtomicAdd(r_derivative_value[k], derivative_value);
                 }
             }
-        }
-    });
+        });
+    } else {
+        block_for_each(rModelPart.Elements(), Node::Pointer(), [&](auto& rElement, auto& pThreadLocalNode){
+            if (!pThreadLocalNode) {
+                pThreadLocalNode = Kratos::make_intrusive<Node>(1, 0, 0, 0);
+            }
 
-    rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputSensitivityVariable);
+            auto& r_geometry = rElement.GetGeometry();
+            const IndexType dimension = r_geometry.WorkingSpaceDimension();
+
+            const double density = rElement.GetProperties()[DENSITY];
+            const double thickness = get_thickness(rElement);
+            const double cross_area = get_cross_area(rElement);
+            const double initial_domain_size = r_geometry.DomainSize();
+
+            for (IndexType c = 0; c < r_geometry.PointsNumber(); ++c) {
+                auto& r_derivative_value = r_geometry[c].GetValue(rOutputGradientVariable);
+
+                // get the geometry node pointer
+                auto& p_node = r_geometry(c);
+
+                // now copy the node data to thread local node using the operator= in Node
+                (*pThreadLocalNode) = (*p_node);
+
+                // now swap entity node with the thread local node
+                std::swap(p_node, pThreadLocalNode);
+
+                for (IndexType k = 0; k < dimension; ++k) {
+                    const double perturbed_domain_size = volume_derivative_method(c, k, r_geometry);
+                    const double domain_size_derivative = (perturbed_domain_size - initial_domain_size) * thickness * density * cross_area / PerturbationSize;
+                    r_derivative_value[k] += domain_size_derivative;
+                }
+
+                // revert back the node change.
+                std::swap(p_node, pThreadLocalNode);
+            }
+        });
+    }
+
+    rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputGradientVariable);
 
     KRATOS_CATCH("")
 }
 
-void MassResponseUtils::CalculateMassDensitySensitivity(
+void MassResponseUtils::CalculateMassDensityGradient(
     ModelPart& rModelPart,
-    const Variable<double>& rOutputSensitivityVariable)
+    const Variable<double>& rOutputGradientVariable)
 {
     KRATOS_TRY
 
@@ -288,66 +369,64 @@ void MassResponseUtils::CalculateMassDensitySensitivity(
         << rModelPart.FullName()
         << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
-    const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_thickness;
+    if (HasVariableInProperties(rModelPart, THICKNESS)) {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[THICKNESS]; };
+    } else {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
-    const auto get_cross_area = HasVariableInProperties(rModelPart, CROSS_AREA)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[CROSS_AREA]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_cross_area;
+    if (HasVariableInProperties(rModelPart, CROSS_AREA)) {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[CROSS_AREA]; };
+    } else {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
-        if (rElement.Is(SELECTED)) {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
-        } else {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
-        }
+        rElement.GetProperties().SetValue(rOutputGradientVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
     });
 
     KRATOS_CATCH("")
 }
 
-void MassResponseUtils::CalculateMassThicknessSensitivity(
+void MassResponseUtils::CalculateMassThicknessGradient(
     ModelPart& rModelPart,
-    const Variable<double>& rOutputSensitivityVariable)
+    const Variable<double>& rOutputGradientVariable)
 {
-    CalculateMassGeometricalPropertySensitivity(rModelPart, THICKNESS, CROSS_AREA, rOutputSensitivityVariable);
+    CalculateMassGeometricalPropertyGradient(rModelPart, THICKNESS, CROSS_AREA, rOutputGradientVariable);
 }
 
-void MassResponseUtils::CalculateMassCrossAreaSensitivity(
+void MassResponseUtils::CalculateMassCrossAreaGradient(
     ModelPart& rModelPart,
-    const Variable<double>& rOutputSensitivityVariable)
+    const Variable<double>& rOutputGradientVariable)
 {
-    CalculateMassGeometricalPropertySensitivity(rModelPart, CROSS_AREA, THICKNESS, rOutputSensitivityVariable);
+    CalculateMassGeometricalPropertyGradient(rModelPart, CROSS_AREA, THICKNESS, rOutputGradientVariable);
 }
 
-void MassResponseUtils::CalculateMassGeometricalPropertySensitivity(
+void MassResponseUtils::CalculateMassGeometricalPropertyGradient(
     ModelPart& rModelPart,
-    const Variable<double>& rGeometricalPropertySensitivityVariable,
-    const Variable<double>& rGeometricalConflictingPropertySensitivityVariable,
-    const Variable<double>& rOutputSensitivityVariable)
+    const Variable<double>& rGeometricalPropertyGradientVariable,
+    const Variable<double>& rGeometricalConflictingPropertyGradientVariable,
+    const Variable<double>& rOutputGradientVariable)
 {
     KRATOS_TRY
 
     KRATOS_ERROR_IF_NOT(HasVariableInProperties(rModelPart, DENSITY))
         << "DENSITY is not found in element properties of " << rModelPart.FullName() << ".\n";
 
-    KRATOS_ERROR_IF_NOT(HasVariableInProperties(rModelPart, rGeometricalPropertySensitivityVariable))
-        << rGeometricalPropertySensitivityVariable.Name() << " is not found in element properties of "
+    KRATOS_ERROR_IF_NOT(HasVariableInProperties(rModelPart, rGeometricalPropertyGradientVariable))
+        << rGeometricalPropertyGradientVariable.Name() << " is not found in element properties of "
         << rModelPart.FullName() << " which is required to compute sensitivities w.r.t. "
-        << rGeometricalPropertySensitivityVariable.Name() << ".\n";
+        << rGeometricalPropertyGradientVariable.Name() << ".\n";
 
-    KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, rGeometricalConflictingPropertySensitivityVariable))
+    KRATOS_ERROR_IF(HasVariableInProperties(rModelPart, rGeometricalConflictingPropertyGradientVariable))
         << rModelPart.FullName() << " has elements with properties having both "
-        << rGeometricalPropertySensitivityVariable.Name() << " and " << rGeometricalConflictingPropertySensitivityVariable.Name()
+        << rGeometricalPropertyGradientVariable.Name() << " and " << rGeometricalConflictingPropertyGradientVariable.Name()
         << ". Please separate the model part such that either one of them is present in elemental properties.\n";
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
-        if (rElement.Is(SELECTED)) {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
-        } else {
-            rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
-        }
+        rElement.GetProperties().SetValue(rOutputGradientVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
     });
 
     KRATOS_CATCH("")

@@ -36,10 +36,6 @@ int WaveEquationElement<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProces
 	const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
 
-    // verify nodal variables and dofs
-	if ( PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero at element", this->Id() )
-
 	for ( unsigned int i = 0; i < TNumNodes; i++ )
     {
 		if ( Geom[i].SolutionStepsDataHas( PRESSURE ) == false )
@@ -53,17 +49,11 @@ int WaveEquationElement<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProces
             KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable PRESSURE on node ", Geom[i].Id() )
 	}
 
-	    // Verify ProcessInfo variables
-    if ( VELOCITY_PRESSURE_COEFFICIENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY_PRESSURE_COEFFICIENT has Key zero at element", this->Id() )
-    if ( ACCELERATION_PRESSURE_COEFFICIENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION_PRESSURE_COEFFICIENT has Key zero at element", this->Id() )
-
-       // Verify properties
-    if ( BULK_MODULUS_FLUID.Key() == 0 || Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( DENSITY_WATER.Key() == 0 || Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER has Key zero, is not defined or has an invalid value at element", this->Id() )
+    // Verify properties
+    if ( Prop.Has( BULK_MODULUS_LIQUID ) == false || Prop[BULK_MODULUS_LIQUID] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_LIQUID is not defined or has an invalid value at element", this->Id() )
+    if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER is not defined or has an invalid value at element", this->Id() )
 
 
 	return 0;
@@ -266,7 +256,7 @@ void WaveEquationElement<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSid
 		double IntegrationCoefficient;
 
         // Definition of the speed in the fluid
-        const double BulkModulus = Prop[BULK_MODULUS_FLUID];
+        const double BulkModulus = Prop[BULK_MODULUS_LIQUID];
         const double Water_density = Prop[DENSITY_WATER];
         const double inv_c_speed = 1.0 /sqrt(BulkModulus/Water_density);
 
@@ -316,7 +306,7 @@ void WaveEquationElement<TDim,TNumNodes>::CalculateRHS(VectorType& rRightHandSid
 		double IntegrationCoefficient;
 
         // Definition of the speed in the fluid
-        const double BulkModulus = Prop[BULK_MODULUS_FLUID];
+        const double BulkModulus = Prop[BULK_MODULUS_LIQUID];
         const double Water_density = Prop[DENSITY_WATER];
         const double inv_c_speed = 1.0 /sqrt(BulkModulus/Water_density);
 

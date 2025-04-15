@@ -4,6 +4,7 @@
 #include "includes/define.h"
 #include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_smooth_joint_CL.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -92,8 +93,10 @@ namespace Kratos {
                     const double initial_dist = radius_sum - initial_delta;
                     const double indentation = initial_dist - distance;
                     Kratos::DEMContinuumConstitutiveLaw::Pointer ccl = r_sphere.mContinuumConstitutiveLawArray[i];
-                    DEM_parallel_bond* p_parallel_bond_ccl = dynamic_cast<DEM_parallel_bond*>(&*ccl);
-                    p_parallel_bond_ccl->mInitialIndentationForBondedPart = indentation;
+                    if (ccl->GetTypeOfLaw() == "parallel_bond_CL"){
+                        DEM_parallel_bond* p_parallel_bond_ccl = dynamic_cast<DEM_parallel_bond*>(&*ccl);
+                        p_parallel_bond_ccl->mInitialIndentationForBondedPart = indentation;
+                    }
                 }
             });
 

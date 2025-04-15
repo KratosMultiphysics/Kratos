@@ -17,11 +17,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id"            : 0,
             "model_part_name"    : "",
             "variable_name"      : "PRESSURE",
             "constrained"        : true,
-            "value"              : 0.0,
+            "value"              : {},
             "interval"           : [0.0,"End"],
             "hydrostatic_outlet" : false,
             "h_top"              : 0.0,
@@ -31,10 +30,15 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         }
         """)
 
-        # Trick: allows "value" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
+        # Trick: allows "value" to be a double, a string or a table value (otherwise the ValidateAndAssignDefaults might fail)
         if(settings.Has("value")):
             if(settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
+            elif settings["value"].IsNumber():
+                default_settings["value"].SetDouble(0.0)
+        else:
+            err_msg = "Provided settings have no 'value'. This needs to be provided."
+            raise Exception(err_msg)
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -62,10 +66,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             raise Exception("Outlet external pressure settings variable_name is not EXTERNAL_PRESSURE.")
         elif (pres_settings["value"].IsString()):
             if (pres_settings["value"].GetString == ""):
-                raise Exception("Outlet pressure function sting is empty.")
+                raise Exception("Outlet pressure function string is empty.")
         elif (ext_pres_settings["value"].IsString()):
             if (ext_pres_settings["value"].GetString == ""):
-                raise Exception("Outlet external pressure function sting is empty.")
+                raise Exception("Outlet external pressure function string is empty.")
 
         self.hydrostatic_outlet = settings["hydrostatic_outlet"].GetBool()
         self.h_top = settings["h_top"].GetDouble()

@@ -2,6 +2,8 @@ import time as timer
 import os
 import sys
 import pathlib
+import math
+import numpy as np
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -243,11 +245,12 @@ class DEMAnalysisStage(AnalysisStage):
     def Initialize(self):
         self.time = 0.0
         self.time_old_print = 0.0
+        self.time_old_update_contact_element = 0.0
 
         self.ReadModelParts()
 
         self.SetMaterials()
-        
+
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
@@ -299,6 +302,20 @@ class DEMAnalysisStage(AnalysisStage):
 
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
+
+        self.BoundingBoxMinX_update = self.DEM_parameters["BoundingBoxMinX"].GetDouble()
+        self.BoundingBoxMinY_update = self.DEM_parameters["BoundingBoxMinY"].GetDouble()
+        self.BoundingBoxMinZ_update = self.DEM_parameters["BoundingBoxMinZ"].GetDouble()
+        self.BoundingBoxMaxX_update = self.DEM_parameters["BoundingBoxMaxX"].GetDouble()
+        self.BoundingBoxMaxY_update = self.DEM_parameters["BoundingBoxMaxY"].GetDouble()
+        self.BoundingBoxMaxZ_update = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
+
+        self.bounding_box_servo_loading_option = False
+        if "BoundingBoxServoLoadingOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxServoLoadingOption"].GetBool():
+                self.bounding_box_servo_loading_option = True
+        
+        self.bounding_box_move_velocity = [0.0, 0.0, 0.0]
 
     def SetMaterials(self):
 
@@ -489,6 +506,10 @@ class DEMAnalysisStage(AnalysisStage):
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
 
+    def IsTimeToUpdateContactElementForServo(self):
+        return self.bounding_box_servo_loading_option and self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFrequency"].GetInt() * \
+                self._GetSolver().dt - (self.time - self.time_old_update_contact_element) < 1e-2 * self._GetSolver().dt
+
     def PrintResults(self):
         #### GiD IO ##########################################
         if self.IsTimeToPrintPostProcess():
@@ -514,6 +535,8 @@ class DEMAnalysisStage(AnalysisStage):
                 self.FillAnalyticSubModelPartsWithNewParticles()
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+        if self.bounding_box_servo_loading_option:
+            self.UpdateIsTimeToUpdateContactElementForServo(self.IsTimeToUpdateContactElementForServo())
 
         if self.DEM_parameters["Dimension"].GetInt() == 2:
             self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
@@ -521,11 +544,119 @@ class DEMAnalysisStage(AnalysisStage):
                 if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
+        bounding_box_servo_loading_option = False
+        if "BoundingBoxServoLoadingOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxServoLoadingOption"].GetBool():
+                bounding_box_servo_loading_option = True
+
+        if "BoundingBoxMoveOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxMoveOption"].GetBool():
+                time_step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+                if bounding_box_servo_loading_option:
+                    NStepSearch = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFrequency"].GetInt()
+                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                        measured_global_stress = self.MeasureSphereForGettingGlobalStressTensor()
+                        self.CalculateBoundingBoxMoveVelocity(measured_global_stress)
+                        self.UpdateSearchStartegyAndCPlusPlusStrategy(self.bounding_box_move_velocity)
+                        self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, self.bounding_box_move_velocity)
+                else:
+                    NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
+                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                        bounding_box_move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetVector()
+                        self.UpdateSearchStartegyAndCPlusPlusStrategy(bounding_box_move_velocity)
+                        self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, bounding_box_move_velocity)
+
+    def CalculateBoundingBoxMoveVelocity(self, measured_global_stress):
+
+        # note: servo_loading_type = "isotropic" or "anisotropic"
+        servo_loading_type = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingType"].GetString()
+
+        if servo_loading_type == "isotropic":
+            self.CalculateBoundingBoxMoveVelocityIsotropic(measured_global_stress)
+        elif servo_loading_type == "anisotropic":
+            self.CalculateBoundingBoxMoveVelocityAnisotropic(measured_global_stress)
+    
+    def CalculateBoundingBoxMoveVelocityIsotropic(self, measured_global_stress):
+
+        servo_loading_stress = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingStress"].GetVector()
+        servo_loading_factor = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFactor"].GetDouble()
+        d50 = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["MeanParticleDiameterD50"].GetDouble()
+        Youngs_modulus = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["ParticleYoungsModulus"].GetDouble()
+
+        servo_loading_stress_mean = (servo_loading_stress[0] + servo_loading_stress[1] + servo_loading_stress[2]) / 3.0
+        measured_global_stress_mean = (measured_global_stress[0][0] + measured_global_stress[1][1] + measured_global_stress[2][2]) / 3.0
+
+        delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        servo_loading_coefficient = servo_loading_factor * d50 / (delta_time * Youngs_modulus)
+        self.bounding_box_move_velocity[0] = (servo_loading_stress_mean - measured_global_stress_mean) * servo_loading_coefficient
+
+        bonuding_box_serva_loading_velocity_max = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingVelocityMax"].GetDouble()
+        if abs(self.bounding_box_move_velocity[0]) > bonuding_box_serva_loading_velocity_max:
+            self.bounding_box_move_velocity[0] = bonuding_box_serva_loading_velocity_max * np.sign(self.bounding_box_move_velocity[0])
+        
+        self.bounding_box_move_velocity[1] = self.bounding_box_move_velocity[0]
+        self.bounding_box_move_velocity[2] = self.bounding_box_move_velocity[0]
+
+    def CalculateBoundingBoxMoveVelocityAnisotropic(self, measured_global_stress):
+
+        servo_loading_stress = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingStress"].GetVector()
+        servo_loading_factor = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFactor"].GetDouble()
+        d50 = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["MeanParticleDiameterD50"].GetDouble()
+        Youngs_modulus = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["ParticleYoungsModulus"].GetDouble()
+        
+        delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        servo_loading_coefficient = servo_loading_factor * d50 / (delta_time * Youngs_modulus)
+        self.bounding_box_move_velocity[0] = (servo_loading_stress[0] - measured_global_stress[0][0]) * servo_loading_coefficient
+        self.bounding_box_move_velocity[1] = (servo_loading_stress[1] - measured_global_stress[1][1]) * servo_loading_coefficient
+        self.bounding_box_move_velocity[2] = (servo_loading_stress[2] - measured_global_stress[2][2]) * servo_loading_coefficient
+
+        bonuding_box_move_velocity_max = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingVelocityMax"].GetDouble()
+        if abs(self.bounding_box_move_velocity[0]) > bonuding_box_move_velocity_max:
+            self.bounding_box_move_velocity[0] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[0])
+        if abs(self.bounding_box_move_velocity[1]) > bonuding_box_move_velocity_max:
+            self.bounding_box_move_velocity[1] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[1])
+        if abs(self.bounding_box_move_velocity[2]) > bonuding_box_move_velocity_max:
+            self.bounding_box_move_velocity[2] = bonuding_box_move_velocity_max * np.sign(self.bounding_box_move_velocity[2])
+
+    def UpdateSearchStartegyAndCPlusPlusStrategy(self, move_velocity):
+
+        delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+
+        # note: control_bool_vector = [MoveMinX, MoveMinY, MoveMinZ, MoveMaxX, MoveMaxY, MoveMaxZ]
+        control_bool_vector = self.DEM_parameters["BoundingBoxMoveOptionDetail"].GetVector()
+        if control_bool_vector[0]:
+            self.BoundingBoxMinX_update += delta_time * move_velocity[0]
+        if control_bool_vector[1]:
+            self.BoundingBoxMinY_update += delta_time * move_velocity[1]
+        if control_bool_vector[2]:
+            self.BoundingBoxMinZ_update += delta_time * move_velocity[2]
+        if control_bool_vector[3]:
+            self.BoundingBoxMaxX_update -= delta_time * move_velocity[0]
+        if control_bool_vector[4]:
+            self.BoundingBoxMaxY_update -= delta_time * move_velocity[1]
+        if control_bool_vector[5]:
+            self.BoundingBoxMaxZ_update -= delta_time * move_velocity[2]
+
+        self._GetSolver().search_strategy = OMP_DEMSearch(self.BoundingBoxMinX_update,
+                                                        self.BoundingBoxMinY_update,
+                                                        self.BoundingBoxMinZ_update,
+                                                        self.BoundingBoxMaxX_update,
+                                                        self.BoundingBoxMaxY_update,
+                                                        self.BoundingBoxMaxZ_update)
+        self._GetSolver().UpdateCPlusPlusStrategy()
+
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
         self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.cluster_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.dem_inlet_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
+
+    def UpdateIsTimeToUpdateContactElementForServo(self, is_time_to_update_contact_element):
+        self.spheres_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
+        self.cluster_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
+        self.dem_inlet_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
+        self.rigid_face_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
+        self.time_old_update_contact_element = self.time
 
     def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
@@ -630,7 +761,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
             import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
-            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
+            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.contact_model_part, self.rigid_face_model_part, self.DEM_parameters)
 
     def GraphicalOutputInitialize(self):
         if self.do_print_results_option:
@@ -644,16 +775,19 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["PostEulerAngles"].GetBool():
             self.post_utils.PrintEulerAngles(self.spheres_model_part, self.cluster_model_part)
 
-        self.demio.ShowPrintingResultsOnScreen(self.all_model_parts)
-
         self.demio.PrintMultifileLists(time, self.post_path)
         self._GetSolver().PrepareElementsForPrinting()
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self._GetSolver().PrepareContactElementsForPrinting()
 
-        self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
+        if "post_gid_option" in self.DEM_parameters.keys():
+            if self.DEM_parameters["post_gid_option"].GetBool() != False:
+                self.demio.ShowPrintingResultsOnScreen(self.all_model_parts, 'GID')
+                self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
+
         if "post_vtk_option" in self.DEM_parameters.keys():
             if self.DEM_parameters["post_vtk_option"].GetBool():
+                self.demio.ShowPrintingResultsOnScreen(self.all_model_parts, 'VTK')
                 self.vtk_output.WriteResults(self.time)
 
         self.file_msh = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.msh")
@@ -694,6 +828,1056 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self._GetSolver().dt:
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
+
+    def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type, domain_size=[1,1,1]):        
+        '''
+        This is a function to establish a sphere to measure local packing properties
+        The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress_tensor" or "strain" 
+        This funtion is only valid for 3D model now
+        '''
+        if type == "porosity":
+
+            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+            sphere_volume_inside_range = 0.0
+            measured_porosity = 0.0
+
+            for node in self.spheres_model_part.Nodes:
+                
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                if center_to_sphere_distance < (radius - r):
+
+                    sphere_volume_inside_range += 4/3 * math.pi * r * r * r
+
+                elif center_to_sphere_distance <= (radius + r):
+
+                    other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
+
+                    my_part_d = r - (r * r + center_to_sphere_distance * center_to_sphere_distance - radius * radius) / (center_to_sphere_distance * 2)
+                    
+                    cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
+                    
+                    sphere_volume_inside_range += cross_volume
+            
+            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
+
+            return measured_porosity
+        
+        if type == "porosity_periodic":
+
+            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+            sphere_volume_inside_range = 0.0
+            measured_porosity = 0.0
+
+            center_list = []
+            center_list.append([center_x, center_y, center_z])
+            if center_x + 0.5 * domain_size[0] < 2 * radius:
+                center_list.append([center_x + domain_size[0], center_y, center_z])
+                if center_y + 0.5 * domain_size[1] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y + domain_size[1], center_z])
+                if center_y - 0.5 * domain_size[1] > -2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y - domain_size[1], center_z])
+                if center_y + 0.5 * domain_size[2] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y, center_z + domain_size[2]])
+                if center_y - 0.5 * domain_size[2] > -2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y, center_z - domain_size[2]])
+            if center_x - 0.5 * domain_size[0] > -2 * radius:
+                center_list.append([center_x - domain_size[0], center_y, center_z])
+                if center_y + 0.5 * domain_size[1] < 2 * radius: 
+                    center_list.append([center_x - domain_size[0], center_y + domain_size[1], center_z])
+                if center_y - 0.5 * domain_size[1] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y - domain_size[1], center_z])
+                if center_y + 0.5 * domain_size[2] < 2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y, center_z + domain_size[2]])
+                if center_y - 0.5 * domain_size[2] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y, center_z - domain_size[2]])
+            if center_y + 0.5 * domain_size[1] < 2 * radius:
+                center_list.append([center_x, center_y + domain_size[1], center_z])
+                if center_x + 0.5 * domain_size[0] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y + domain_size[1], center_z])
+                if center_x - 0.5 * domain_size[0] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y + domain_size[1], center_z])
+                if center_z + 0.5 * domain_size[2] < 2 * radius:
+                    center_list.append([center_x, center_y + domain_size[1], center_z + domain_size[2]])
+                if center_z - 0.5 * domain_size[2] > -2 * radius:
+                    center_list.append([center_x, center_y + domain_size[1], center_z - domain_size[2]])
+            if center_y - 0.5 * domain_size[1] > -2 * radius:
+                center_list.append([center_x, center_y - domain_size[1], center_z])
+                if center_x + 0.5 * domain_size[0] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y - domain_size[1], center_z])
+                if center_x - 0.5 * domain_size[0] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y - domain_size[1], center_z])
+                if center_z + 0.5 * domain_size[2] < 2 * radius:
+                    center_list.append([center_x, center_y - domain_size[1], center_z + domain_size[2]])
+                if center_z - 0.5 * domain_size[2] > -2 * radius:
+                    center_list.append([center_x, center_y - domain_size[1], center_z - domain_size[2]])
+            if center_z + 0.5 * domain_size[2] < 2 * radius:
+                center_list.append([center_x, center_y, center_z + domain_size[2]])
+                if center_x + 0.5 * domain_size[0] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y, center_z + domain_size[2]])
+                if center_x - 0.5 * domain_size[0] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y, center_z + domain_size[2]])
+                if center_y + 0.5 * domain_size[1] < 2 * radius:
+                    center_list.append([center_x, center_y + domain_size[1], center_z + domain_size[2]])
+                if center_y - 0.5 * domain_size[1] > -2 * radius:
+                    center_list.append([center_x, center_y - domain_size[1], center_z + domain_size[2]])
+            if center_z - 0.5 * domain_size[2] > -2 * radius:
+                center_list.append([center_x, center_y, center_z - domain_size[2]])
+                if center_x + 0.5 * domain_size[0] < 2 * radius:
+                    center_list.append([center_x + domain_size[0], center_y, center_z - domain_size[2]])
+                if center_x - 0.5 * domain_size[0] > -2 * radius:
+                    center_list.append([center_x - domain_size[0], center_y, center_z - domain_size[2]])
+                if center_y + 0.5 * domain_size[1] < 2 * radius:
+                    center_list.append([center_x, center_y + domain_size[1], center_z - domain_size[2]])
+                if center_y - 0.5 * domain_size[1] > -2 * radius:
+                    center_list.append([center_x, center_y - domain_size[1], center_z - domain_size[2]])
+            
+            for center in center_list:
+                for node in self.spheres_model_part.Nodes:
+                    
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    center_to_sphere_distance = ((x - center[0])**2 + (y - center[1])**2 + (z - center[2])**2)**0.5
+
+                    if center_to_sphere_distance < (radius - r):
+
+                        sphere_volume_inside_range += 4/3 * math.pi * r * r * r
+
+                    elif center_to_sphere_distance <= (radius + r):
+
+                        other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
+
+                        my_part_d = r - (r * r + center_to_sphere_distance * center_to_sphere_distance - radius * radius) / (center_to_sphere_distance * 2)
+                        
+                        cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
+                        
+                        sphere_volume_inside_range += cross_volume
+            
+            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
+
+            return measured_porosity
+        
+        if type == "porosity_kdtree":
+
+            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+            sphere_volume_inside_range = 0.0
+            measured_porosity = 0.0
+
+            target_point = (center_x, center_y, center_z)
+            resulted_nodes = []
+
+            resulted_nodes = self.kdtree.SearchKdtree(self.kdtree.Kdtree, target_point, radius, resulted_nodes)
+            
+            for node in resulted_nodes:
+                
+                r = node[1]
+                x = node[0][0]
+                y = node[0][1]
+                z = node[0][2]
+
+                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                if center_to_sphere_distance < (radius - r):
+
+                    sphere_volume_inside_range += 4/3 * math.pi * r * r * r
+
+                elif center_to_sphere_distance <= (radius + r):
+
+                    other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
+
+                    my_part_d = r - (r * r + center_to_sphere_distance * center_to_sphere_distance - radius * radius) / (center_to_sphere_distance * 2)
+                    
+                    cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
+                    
+                    sphere_volume_inside_range += cross_volume
+            
+            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
+
+            return measured_porosity
+        
+        if type == "averaged_coordination_number":
+            
+            measured_coordination_number = 0
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                total_particle_number = 0
+                total_contact_number  = 0
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+
+                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
+                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
+
+                    if center_to_sphere_distance_0 < (radius - r_0):
+                        total_contact_number += 1
+
+                    if center_to_sphere_distance_1 < (radius - r_1):
+                        total_contact_number += 1
+
+                for node in self.spheres_model_part.Nodes:
+
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                    if center_to_sphere_distance < (radius - r):
+                        total_particle_number += 1    
+                
+                if total_particle_number:
+                    measured_coordination_number = total_contact_number / total_particle_number
+                
+                return measured_coordination_number
+
+            else:
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+        
+        if type == "fabric_tensor":
+
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                total_tensor = np.empty((3, 3))
+                total_tensor[:] = 0.0
+                total_contact_number  = 0
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+
+                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
+                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
+
+                    if center_to_sphere_distance_0 < (radius - r_0):
+
+                        vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                        v1_norm = np.linalg.norm(vector1)
+                        if v1_norm:
+                            vector1_unit = vector1 / v1_norm
+                        tensor = np.outer(vector1_unit, vector1_unit)
+                        total_tensor += tensor
+                        total_contact_number += 1
+
+                    elif center_to_sphere_distance_1 < (radius - r_1):
+
+                        vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                        v1_norm = np.linalg.norm(vector1)
+                        if v1_norm:
+                            vector1_unit = vector1 / v1_norm
+                        tensor = np.outer(vector1_unit, vector1_unit)
+                        total_tensor += tensor
+                        total_contact_number += 1
+                
+                if total_contact_number:
+                    measured_fabric_tensor = total_tensor / total_contact_number
+                else:
+                    measured_fabric_tensor = np.empty((3, 3))
+
+                deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
+
+                second_invariant_of_deviatoric_tensor = (0.5 * np.sum(deviatoric_tensor * deviatoric_tensor))**0.5
+
+                eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
+                
+                return eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor
+
+            else:
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+                
+        if type == "voronoi_input_data":
+
+            particle_id_positions_and_radius = np.empty((0, 5))
+            particle_id_positions_and_radius[:] = 0.0
+            particle_number_count = 0
+            for node in self.spheres_model_part.Nodes:
+
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                if center_to_sphere_distance < (radius - r):
+
+                    particle_number_count += 1
+                    this_particle_info = np.array([particle_number_count,x, y, z, r])
+                    particle_id_positions_and_radius = np.vstack((particle_id_positions_and_radius, this_particle_info))
+
+            output_file_name = "voronoi_input_data_of_size_" + str(radius) +".txt"
+            fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
+            np.savetxt(os.path.join(self.graphs_path, output_file_name), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
+        
+        if type == "stress_tensor_modulus":
+            
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+                total_tensor        = np.empty((3, 3))
+                total_tensor[:]     = 0.0
+                stress_tensor_modulus = 0.0
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
+                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
+
+                    if (center_to_sphere_distance_0 < (radius - r)) or (center_to_sphere_distance_1 < (radius - r)):
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
+
+                total_tensor = total_tensor / measure_sphere_volume
+                
+                stress_tensor_modulus = np.linalg.norm(total_tensor)
+                
+                return stress_tensor_modulus
+            
+            else:
+                
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
+        
+        if type == "stress_tensor":
+            
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+                total_tensor        = np.empty((3, 3))
+                total_tensor[:]     = 0.0
+                stress_tensor_modulus = 0.0
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
+                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
+
+                    if (center_to_sphere_distance_0 < (radius - r)) or (center_to_sphere_distance_1 < (radius - r)):
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
+                
+                total_tensor = total_tensor / measure_sphere_volume
+
+                return total_tensor
+            
+            else:
+                
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
+        if type == "unbalanced_force":
+
+            total_particle_force_tensor_modulus_square = 0.0
+            averaged_total_particle_force_tensor_modulus_square = 0.0
+            particle_number_count = 0
+
+            for node in self.spheres_model_part.Nodes:
+
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                if center_to_sphere_distance < (radius - r):
+                    total_force_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    total_force_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    total_force_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+                    total_force_vector = np.array([total_force_x, total_force_y, total_force_z])
+                    total_force_vector_modulus = np.linalg.norm(total_force_vector)
+                    total_particle_force_tensor_modulus_square += total_force_vector_modulus**2
+                    particle_number_count += 1
+            
+            if particle_number_count:
+                averaged_total_particle_force_tensor_modulus_square = total_particle_force_tensor_modulus_square / particle_number_count
+            
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                total_contact_force_tensor_modulus_square = 0.0
+                averaged_contact_force_modulus_square = 0.0
+                total_contact_number  = 0
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
+                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
+
+                    if (center_to_sphere_distance_0 < (radius - r)) or (center_to_sphere_distance_1 < (radius - r)):
+                        
+                        local_contact_force_X = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        contact_force_vector_modulus = np.linalg.norm(contact_force_vector)
+                        total_contact_force_tensor_modulus_square += contact_force_vector_modulus**2
+                        total_contact_number += 1
+                
+                if total_contact_number:
+                    averaged_contact_force_modulus_square = total_contact_force_tensor_modulus_square / total_contact_number
+                                             
+                if averaged_contact_force_modulus_square:
+                    return (averaged_total_particle_force_tensor_modulus_square / averaged_contact_force_modulus_square)**0.5
+                else:
+                    return 0.0
+            else:
+
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+
+        if type == "strain":
+            pass
+    
+    def MeasureSphereForGettingGlobalStressTensor(self):
+
+        if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+            bounding_box_volume = (self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update) * \
+                                (self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update) * \
+                                (self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update)
+            
+            total_tensor        = np.empty((3, 3))
+            total_tensor[:]     = 0.0
+
+            for element in self.contact_model_part.Elements:
+        
+                x_0 = element.GetNode(0).X
+                x_1 = element.GetNode(1).X
+                y_0 = element.GetNode(0).Y
+                y_1 = element.GetNode(1).Y
+                z_0 = element.GetNode(0).Z
+                z_1 = element.GetNode(1).Z
+
+                if abs(x_0 - x_1) > 0.5 * (self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update) or \
+                    abs(y_0 - y_1) > 0.5 * (self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update) or \
+                    abs(z_0 - z_1) > 0.5 * (self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update):
+                    continue
+                    
+                local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                tensor = np.outer(contact_force_vector, vector_l)
+                total_tensor += tensor
+            
+            total_tensor = total_tensor / bounding_box_volume
+
+            return total_tensor
+        
+        else:
+            
+            raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+    
+    def MeasureSphereForGettingRadialDistributionFunction(self, radius, center_x, center_y, center_z, delta_r, d_mean):
+        
+        min_reference_particle_to_center_distance = 1e10
+        particle_positions = np.empty((0, 3))
+        particle_positions[:] = 0.0
+        IsTheFirstParticle = True
+        TotalParticleNumber = 0
+        reference_particle = np.empty((0, 3))
+        reference_particle[:] = 0.0
+        for node in self.spheres_model_part.Nodes:
+
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                if center_to_sphere_distance < radius:
+
+                    this_particle_position = np.array([x, y, z])
+
+                    if center_to_sphere_distance < min_reference_particle_to_center_distance:
+                        min_reference_particle_to_center_distance = center_to_sphere_distance
+                        if not IsTheFirstParticle:
+                            particle_positions = np.vstack((particle_positions, reference_particle))
+                            TotalParticleNumber += 1
+                        reference_particle = this_particle_position
+                        if IsTheFirstParticle:
+                            IsTheFirstParticle = False
+                    else:
+                        particle_positions = np.vstack((particle_positions, this_particle_position))
+                        TotalParticleNumber += 1
+        
+        # Calculation of distances from reference particles to other particles
+        distances = np.linalg.norm(particle_positions - reference_particle, axis=1)
+
+        # Set histogram parameters
+        max_distance = radius
+        num_bins = int(max_distance // delta_r)
+        bin_edges = np.linspace(0, max_distance, num_bins + 1)
+
+        # Calculate histogram
+        hist, _ = np.histogram(distances, bins=bin_edges)
+
+        # Normalized histogram
+        bin_width = bin_edges[1] - bin_edges[0]
+        measure_sphere_volume = 4/3 * math.pi * radius * radius * radius
+        rdf = hist / (4 * np.pi * bin_edges[1:]**2 * bin_width * TotalParticleNumber / measure_sphere_volume)
+
+        data_to_save = np.column_stack((bin_edges[1:] / d_mean, rdf))
+        output_file_name = "rdf_data_of_size_" + str(radius * 2) +".txt"
+        np.savetxt(os.path.join(self.graphs_path, output_file_name), data_to_save, fmt='%.6f', delimiter='\t', comments='')
+
+    def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type):
+        '''
+        This is a function to establish a cubic with 'side_length' to measure local packing properties
+        The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress_tensor" or "strain" 
+        This funtion is only valid for 3D model now
+        '''
+        if type == "porosity":
+            measure_cubic_volume = side_length ** 3
+            sphere_volume_inside = 0.0
+            measured_porosity = 0.0
+
+            for node in self.spheres_model_part.Nodes:
+
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                    if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                        if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                            sphere_volume_inside += 4/3 * math.pi * r * r * r
+
+            if measure_cubic_volume:
+                measured_porosity = 1 - (sphere_volume_inside / measure_cubic_volume)
+
+            return measured_porosity
+        
+        if type == "averaged_coordination_number":
+            
+            measured_coordination_number = 0
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                total_particle_number = 0
+                total_contact_number  = 0
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                total_contact_number += 1
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                total_contact_number += 1
+                
+                for node in self.spheres_model_part.Nodes:
+
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                                total_particle_number += 1
+                
+                
+                if total_particle_number:
+                    measured_coordination_number = total_contact_number / total_particle_number
+                
+                return measured_coordination_number
+
+            else:
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+        
+        if type == "fabric_tensor":
+
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                total_tensor = np.empty((3, 3))
+                total_tensor[:] = 0.0
+                total_contact_number  = 0
+                #number_of_contacts_in_a_direction = np.zeros((18, 36))
+                number_of_contacts_in_a_direction_2D_x_z = np.zeros(36)
+                number_of_contacts_in_a_direction_2D_x_y = np.zeros(36)
+                number_of_contacts_in_a_direction_2D_y_z = np.zeros(36)
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    sphere_0_is_inside = False
+                    sphere_1_is_inside = False
+
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                sphere_0_is_inside = True
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                sphere_1_is_inside = True
+
+                    if sphere_0_is_inside or sphere_1_is_inside:
+                        
+                        #-----------------vector 1 -------------------
+                        vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                        v1_norm = np.linalg.norm(vector1)
+                        if v1_norm:
+                            vector1_unit = vector1 / v1_norm
+                        tensor = np.outer(vector1_unit, vector1_unit)
+                        total_tensor += tensor
+                        total_contact_number += 1
+
+                        #calculate the contact direction
+                        # here, y is the north direction
+                        x, y, z = vector1
+                        vector_length = np.linalg.norm(vector1)
+                        theta = np.arccos(y / vector_length)
+                        phi = np.arctan2(z, x)
+
+                        theta_index = int(theta / np.pi * 18)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if z >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if theta_index == 18:
+                            theta_index -= 1
+
+                        if phi_index == 36:
+                            phi_index -= 1
+                        
+                        #number_of_contacts_in_a_direction[theta_index, phi_index] += 1
+                        number_of_contacts_in_a_direction_2D_x_z[phi_index] += 1
+
+                        phi = np.arctan2(y, x)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_x_y[phi_index] += 1
+
+                        phi = np.arctan2(y, z)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y >= 0.0:
+                                phi_index = 0
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_y_z[phi_index] += 1
+                        
+                        #-----------------vector 2 -------------------
+                        vector2 = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        x, y, z = vector2
+                        vector_length = np.linalg.norm(vector1)
+                        theta = np.arccos(y / vector_length)
+                        phi = np.arctan2(z, x)
+                        
+                        theta_index = int(theta / np.pi * 18)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if z > 0.0:
+                                phi_index = 0
+                            elif z == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if theta_index == 18:
+                            theta_index -= 1
+
+                        if phi_index == 36:
+                            phi_index -= 1
+                        
+                        #number_of_contacts_in_a_direction[theta_index, phi_index] += 1
+                        number_of_contacts_in_a_direction_2D_x_z[phi_index] += 1
+
+                        phi = np.arctan2(y, x)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y > 0.0:
+                                phi_index = 0
+                            elif y == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_x_y[phi_index] += 1
+
+                        phi = np.arctan2(y, z)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+
+                        if phi_index == 0:
+                            if y > 0.0:
+                                phi_index = 0
+                            elif y == 0.0:
+                                phi_index = 18
+                            else:
+                                phi_index = 18
+
+                        if phi_index == 36:
+                            phi_index -= 1
+
+                        number_of_contacts_in_a_direction_2D_y_z[phi_index] += 1
+                
+                if total_contact_number:
+                    measured_fabric_tensor = total_tensor / total_contact_number
+                
+                deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
+
+                second_invariant_of_deviatoric_tensor = (0.5 * np.sum(deviatoric_tensor * deviatoric_tensor))**0.5
+
+                eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
+
+                #output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(side_length) +".txt"
+                #np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_x_z_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_x_z, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_x_y_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_x_y, fmt='%d', delimiter=' ')
+
+                output_file_name = "number_of_contacts_y_z_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_y_z, fmt='%d', delimiter=' ')
+                
+                return eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor
+
+            else:
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
+        if type == "voronoi_input_data":
+
+            particle_id_positions_and_radius = np.empty((0, 5))
+            particle_number_count = 0
+            for node in self.spheres_model_part.Nodes:
+
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                sphere_is_inside = False
+
+                if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                    if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                        if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                            sphere_is_inside = True
+
+                if sphere_is_inside:
+
+                    particle_number_count += 1
+                    this_particle_info = np.array([particle_number_count,x, y, z, r])
+                    particle_id_positions_and_radius = np.vstack((particle_id_positions_and_radius, this_particle_info))
+
+            output_file_name = "voronoi_input_data_of_size_" + str(side_length) +".txt"
+            fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
+            np.savetxt(os.path.join(self.graphs_path, output_file_name), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
+
+        if type == "stress_tensor_modulus":
+            
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                measure_cubic_volume = side_length ** 3
+                total_tensor        = np.empty((3, 3))
+                total_tensor[:]     = 0.0
+                stress_tensor_modulus = 0.0
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    sphere_0_is_inside = False
+                    sphere_1_is_inside = False
+
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                sphere_0_is_inside = True
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                sphere_1_is_inside = True
+
+                    if sphere_0_is_inside or sphere_1_is_inside:
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
+
+                total_tensor = total_tensor / measure_cubic_volume
+
+                stress_tensor_modulus = np.linalg.norm(total_tensor)
+                
+                return stress_tensor_modulus
+            
+            else:
+                
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+        
+        if type == "stress_tensor":
+            
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                measure_cubic_volume = side_length ** 3
+                total_tensor        = np.empty((3, 3))
+                total_tensor[:]     = 0.0
+                stress_tensor_modulus = 0.0
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    sphere_0_is_inside = False
+                    sphere_1_is_inside = False
+
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                sphere_0_is_inside = True
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                sphere_1_is_inside = True
+
+                    if sphere_0_is_inside or sphere_1_is_inside:
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
+
+                total_tensor = total_tensor / measure_cubic_volume
+
+                return total_tensor
+            
+            else:
+                
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
+        if type == "unbalanced_force":
+
+            total_particle_force_tensor_modulus_square = 0.0
+            averaged_total_particle_force_tensor_modulus_square = 0.0
+            particle_number_count = 0
+
+            for node in self.spheres_model_part.Nodes:
+
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                sphere_is_inside = False
+
+                if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                    if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                        if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                            sphere_is_inside = True
+
+                if sphere_is_inside:
+                    total_force_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    total_force_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    total_force_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+                    total_force_vector = np.array([total_force_x, total_force_y, total_force_z])
+                    total_force_vector_modulus = np.linalg.norm(total_force_vector)
+                    total_particle_force_tensor_modulus_square += total_force_vector_modulus**2
+                    particle_number_count += 1
+            
+            if particle_number_count:
+                averaged_total_particle_force_tensor_modulus_square = total_particle_force_tensor_modulus_square / particle_number_count
+            
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                total_contact_force_tensor_modulus_square = 0.0
+                averaged_contact_force_modulus_square = 0.0
+                total_contact_number  = 0
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    sphere_0_is_inside = False
+                    sphere_1_is_inside = False
+
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                sphere_0_is_inside = True
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                sphere_1_is_inside = True
+
+                    if sphere_0_is_inside:
+                        local_contact_force_X = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        contact_force_vector_modulus = np.linalg.norm(contact_force_vector)
+                        total_contact_force_tensor_modulus_square += contact_force_vector_modulus**2
+                        total_contact_number += 1
+
+                    if sphere_1_is_inside:
+                        local_contact_force_X = element.GetValue(LOCAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(LOCAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(LOCAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        contact_force_vector_modulus = np.linalg.norm(contact_force_vector)
+                        total_contact_force_tensor_modulus_square += contact_force_vector_modulus**2
+                        total_contact_number += 1
+                
+                if total_contact_number:
+                    averaged_contact_force_modulus_square = total_contact_force_tensor_modulus_square / total_contact_number
+                
+                if averaged_contact_force_modulus_square:
+                    return (averaged_total_particle_force_tensor_modulus_square / averaged_contact_force_modulus_square)**0.5
+                else:
+                    return 0.0
+            else:
+
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+
+        if type == "strain":
+            pass
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:

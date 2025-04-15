@@ -14,13 +14,13 @@
 #include <iomanip> // for std::setprecision
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "includes/cfd_variables.h"
 
 // Application includes
+#include "includes/cfd_variables.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -84,7 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     reference_velocity(3,0) = 0.3; reference_velocity(3,1) = 0.4;
 
 
-    Geometry<Node<3>>& r_geometry = model_part.ElementsBegin()->GetGeometry();
+    Geometry<Node>& r_geometry = model_part.ElementsBegin()->GetGeometry();
 
 
     for(unsigned int i=0; i<4; i++){
@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
         //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-6);
+            KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-6);
         }
     }
 }

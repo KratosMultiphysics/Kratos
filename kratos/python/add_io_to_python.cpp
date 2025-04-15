@@ -24,6 +24,7 @@
 #include "includes/model_part_io.h"
 #include "includes/reorder_consecutive_model_part_io.h"
 #include "input_output/stl_io.h"
+#include "input_output/obj_io.h"
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
@@ -32,15 +33,13 @@
 #include "input_output/vtk_output.h"
 #include "input_output/unv_output.h"
 #include "input_output/cad_json_input.h"
+#include "input_output/vtu_output.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
 #endif
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void (GidIO<>::*pointer_to_io_read_single_properties)(Properties& rThisProperties ) = &IO::ReadProperties;
@@ -186,9 +185,13 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<StlIO, StlIO::Pointer, IO>(m, "StlIO")
         .def(py::init<std::filesystem::path const& >())
-        .def(py::init<const std::filesystem::path&, const Flags>())
+        .def(py::init<std::filesystem::path const&, Parameters>())
         ;
 
+    py::class_<ObjIO, ObjIO::Pointer, IO>(m, "ObjIO")
+        .def(py::init<std::filesystem::path const& >())
+        .def(py::init<std::filesystem::path const&, Parameters>())
+        ;
 
     // Import of CAD models to the model part
     py::class_<CadJsonInput<>, CadJsonInput<>::Pointer>(m, "CadJsonInput")
@@ -198,9 +201,47 @@ void  AddIOToPython(pybind11::module& m)
         .def(py::init<Parameters, std::size_t>())
         .def("ReadModelPart", &CadJsonInput<>::ReadModelPart)
         ;
-}
-}  // namespace Python.
 
-} // Namespace Kratos
+    auto vtu_output = py::class_<VtuOutput, VtuOutput::Pointer>(m, "VtuOutput");
+
+    py::enum_<VtuOutput::WriterFormat>(vtu_output, "WriterFormat")
+        .value("ASCII", VtuOutput::WriterFormat::ASCII)
+        .value("BINARY", VtuOutput::WriterFormat::BINARY)
+        .export_values();
+
+    vtu_output
+        .def(py::init<ModelPart&, const bool, const VtuOutput::WriterFormat, const std::size_t>(), py::arg("model_part"), py::arg("is_initial_configuration_considered") = true, py::arg("binary_output") = VtuOutput::WriterFormat::BINARY, py::arg("precision") = 9)
+        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<int>, py::arg("int_variable"))
+        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<double>, py::arg("double_variable"))
+        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 3>>, py::arg("array3_variable"))
+        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 4>>, py::arg("array4_variable"))
+        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 6>>, py::arg("array6_variable"))
+        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 9>>, py::arg("array9_variable"))
+        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<int>, py::arg("int_variable"), py::arg("entity_flags"))
+        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<double>, py::arg("double_variable"), py::arg("entity_flags"))
+        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<array_1d<double, 3>>, py::arg("array3_variable"), py::arg("entity_flags"))
+        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<array_1d<double, 4>>, py::arg("array4_variable"), py::arg("entity_flags"))
+        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<array_1d<double, 6>>, py::arg("array6_variable"), py::arg("entity_flags"))
+        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<array_1d<double, 9>>, py::arg("array9_variable"), py::arg("entity_flags"))
+        .def("AddFlagVariable", &VtuOutput::AddFlagVariable, py::arg("flag_variable_name"), py::arg("flag"), py::arg("entity_flags"))
+        .def("AddContainerExpression", &VtuOutput::AddContainerExpression<ModelPart::NodesContainerType>, py::arg("container_expression_name"), py::arg("container_expression"))
+        .def("AddContainerExpression", &VtuOutput::AddContainerExpression<ModelPart::ConditionsContainerType>, py::arg("container_expression_name"), py::arg("container_expression"))
+        .def("AddContainerExpression", &VtuOutput::AddContainerExpression<ModelPart::ElementsContainerType>, py::arg("container_expression_name"), py::arg("container_expression"))
+        .def("ClearHistoricalVariables", &VtuOutput::ClearHistoricalVariables)
+        .def("ClearNodalNonHistoricalVariables", &VtuOutput::ClearNodalNonHistoricalVariables)
+        .def("ClearNodalFlags", &VtuOutput::ClearNodalFlags)
+        .def("ClearCellNonHistoricalVariables", &VtuOutput::ClearCellNonHistoricalVariables)
+        .def("ClearCellFlags", &VtuOutput::ClearCellFlags)
+        .def("ClearNodalContainerExpressions", &VtuOutput::ClearNodalContainerExpressions)
+        .def("ClearCellContainerExpressions", &VtuOutput::ClearCellContainerExpressions)
+        .def("GetModelPart", &VtuOutput::GetModelPart, py::return_value_policy::reference)
+        .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
+        ;
+
+    vtu_output.attr("NODES") = VtuOutput::NODES;
+    vtu_output.attr("CONDITIONS") = VtuOutput::CONDITIONS;
+    vtu_output.attr("ELEMENTS") = VtuOutput::ELEMENTS;
+}
+}  // namespace Kratos::Python.
 
 

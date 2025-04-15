@@ -1,7 +1,7 @@
 param([System.String]$cotire="OFF")
 
-$pythons = "38", "39", "310", "311"
-$env:kratos_version = "9.3"
+$pythons = "38", "39", "310", "311", "312"
+$env:kratos_version = "10.2.1"
 
 $kratosRoot = "c:\kratos\kratos"
 $env:kratos_root = $kratosRoot
@@ -34,7 +34,6 @@ function build_core_wheel ($pythonLocation, $prefixLocation) {
 
     cp $prefixLocation\KratosMultiphysics\*         "$($wheelRoot)\KratosMultiphysics"
     cp $kratosRoot\kratos\KratosMultiphysics.json   "$($wheelRoot)\wheel.json"
-    cp $kratosRoot\scripts\wheels\__init__.py       "$($wheelRoot)\KratosMultiphysics\__init__.py"
 
     cd $wheelRoot
 

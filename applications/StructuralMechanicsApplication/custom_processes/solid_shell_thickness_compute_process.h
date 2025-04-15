@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SOLID_SHELL_THICKNESS_COMPUTE_PROCESS)
-#define KRATOS_SOLID_SHELL_THICKNESS_COMPUTE_PROCESS
+#pragma once
 
 // System includes
 
@@ -55,7 +54,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SolidShellThickComputeProcess);
 
     // General type definitions
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
@@ -259,4 +258,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_SOLID_SHELL_THICKNESS_COMPUTE_PROCESS defined */

@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/define_registry.h"
 
 namespace Kratos
 {
@@ -90,7 +91,7 @@ public:
         Parameters ThisParameters
         )
     {
-        KRATOS_ERROR << "Calling base class create. Please override this method in the corresonding Process" << std::endl;
+        KRATOS_ERROR << "Calling base class create. Please override this method in the corresponding Process" << std::endl;
         return nullptr;
     }
 
@@ -202,7 +203,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Process";
+        rOStream << Info();
     }
 
     /// Print object's data.
@@ -218,6 +219,9 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
+
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", Process, Process)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, Process)
 
     ///@}
     ///@name Un accessible methods

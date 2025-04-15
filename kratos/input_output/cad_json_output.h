@@ -54,7 +54,7 @@ class KRATOS_API(KRATOS_CORE) CadJsonOutput
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Point EmbeddedNodeType;
 
     typedef Geometry<NodeType> GeometryType;
@@ -71,8 +71,8 @@ class KRATOS_API(KRATOS_CORE) CadJsonOutput
     typedef typename NurbsSurfaceType::Pointer NurbsSurfacePointerType;
     typedef typename NurbsTrimmingCurveType::Pointer NurbsTrimmingCurvePointerType;
 
-    typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
-    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    typedef BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepSurfaceType;
+    typedef BrepCurveOnSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;

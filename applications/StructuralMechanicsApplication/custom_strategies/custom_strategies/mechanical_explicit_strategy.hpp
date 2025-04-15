@@ -1,25 +1,22 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license:
-//kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter (based on the work of JMCarbonel)
 //
 //
 
-#if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
-#define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
@@ -75,7 +72,7 @@ public:
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     /// DoF types definition
-    typedef typename Node<3>::DofType DofType;
+    typedef typename Node::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
     /// Counted pointer of MechanicalExplicitStrategy
@@ -517,40 +514,40 @@ private:
             const IndexType rotppos = it_node_begin->GetDofPosition(ROTATION_X);
 
             // Construct loop lambda depending on whether nodes have rot_z
-            std::function<void(Node<3>&)> loop_base, loop;
+            std::function<void(Node&)> loop_base, loop;
 
-            loop_base = [&disppos](Node<3>& rNode){
+            loop_base = [&disppos](Node& rNode){
                 const auto force_residual = rNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
                 if (rNode.GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
                     double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_X);
-                    r_reaction = force_residual[0];
+                    r_reaction = -force_residual[0];
                 }
                 if (rNode.GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed()) {
                     double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_Y);
-                    r_reaction = force_residual[1];
+                    r_reaction = -force_residual[1];
                 }
                 if (rNode.GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed()) {
                     double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_Z);
-                    r_reaction = force_residual[2];
+                    r_reaction = -force_residual[2];
                 }
             };
 
             if (has_dof_for_rot_z) {
-                loop = [&rotppos, &loop_base](Node<3>& rNode){
+                loop = [&rotppos, &loop_base](Node& rNode){
                     loop_base(rNode);
                     const auto moment_residual = rNode.FastGetSolutionStepValue(MOMENT_RESIDUAL);
                     if (rNode.GetDof(ROTATION_X, rotppos).IsFixed()) {
                         double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_X);
-                        r_reaction = moment_residual[0];
+                        r_reaction = -moment_residual[0];
                     }
                     if (rNode.GetDof(ROTATION_Y, rotppos + 1).IsFixed()) {
                         double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_Y);
-                        r_reaction = moment_residual[1];
+                        r_reaction = -moment_residual[1];
                     }
                     if (rNode.GetDof(ROTATION_Z, rotppos + 2).IsFixed()) {
                         double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_Z);
-                        r_reaction = moment_residual[2];
+                        r_reaction = -moment_residual[2];
                     }
                 };
             } else {
@@ -641,5 +638,3 @@ protected:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_STRATEGY  defined */

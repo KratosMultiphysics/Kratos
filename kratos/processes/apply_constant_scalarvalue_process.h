@@ -4,32 +4,22 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_APPLY_CONSTANT_VALUE_PROCESS_H_INCLUDED )
-#define  KRATOS_APPLY_CONSTANT_VALUE_PROCESS_H_INCLUDED
-
-
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -37,16 +27,22 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// The base class for all processes in Kratos.
-/** This function applies a constant value (and fixity) to all of the nodes in a given mesh
-*/
-class ApplyConstantScalarValueProcess : public Process
+/**
+ * @class ApplyConstantScalarValueProcess
+ * @brief A class to apply a constant scalar value to nodes in a model part for a given variable.
+ * @details This function applies a constant value (and fixity) to all of the nodes in a given mesh
+ * @ingroup KratosCore
+ * @author Riccardo Rossi
+ */
+class KRATOS_API(KRATOS_CORE) ApplyConstantScalarValueProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_DEFINE_LOCAL_FLAG(VARIABLE_IS_FIXED);
 
+    /// Definition of the local flags
+    KRATOS_DEFINE_LOCAL_FLAG(VARIABLE_IS_FIXED);
 
     /// Pointer definition of ApplyConstantScalarValueProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantScalarValueProcess);
@@ -54,154 +50,71 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    ApplyConstantScalarValueProcess(ModelPart& model_part,
-                              Parameters rParameters
-                                   ) : Process(Flags()) , mr_model_part(model_part)
-    {
-        KRATOS_TRY
 
-//only include validation with c++11 since raw_literals do not exist in c++03
+    /**
+     * @brief Constructor to apply a constant scalar value to nodes in a model part for a given variable.
+     * @param rModel Reference to the model.
+     * @param rParameters Parameters containing information about the variable, value, mesh ID, and options.
+     */
+    ApplyConstantScalarValueProcess(
+        Model& rModel,
+        Parameters ThisParameters
+        );
 
+    /**
+     * @brief Constructor to apply a constant scalar value to nodes in a model part for a given variable.
+     * @param rModelPart Reference to the model part.
+     * @param ThisParameters Parameters containing information about the variable, value, mesh ID, and options.
+     */
+    ApplyConstantScalarValueProcess(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+    );
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
-        rParameters["value"];
-        rParameters["variable_name"];
-        rParameters["model_part_name"];
+    /**
+     * @brief Constructor to apply a constant scalar value to nodes in a model part for a given double variable.
+     * @param rModelPart Reference to the model part.
+     * @param rVariable Reference to the double variable.
+     * @param DoubleValue The double value to apply.
+     * @param Options Flags specifying additional options.
+     */
+    ApplyConstantScalarValueProcess(
+        ModelPart& rModelPart,
+        const Variable<double>& rVariable,
+        const double DoubleValue,
+        const Flags Options
+        );
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+    /**
+     * @brief Constructor to apply a constant scalar value to nodes in a model part for a given integer variable.
+     * @param rModelPart Reference to the model part.
+     * @param rVariable Reference to the integer variable.
+     * @param IntValue The integer value to apply.
+     * @param options Flags specifying additional options.
+     */
+    ApplyConstantScalarValueProcess(
+        ModelPart& rModelPart,
+        const Variable<int>& rVariable,
+        const int IntValue,
+        const Flags options
+        );
 
-        rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-
-        mmesh_id = rParameters["mesh_id"].GetInt();
-        mvariable_name = rParameters["variable_name"].GetString();
-        this->Set( VARIABLE_IS_FIXED, rParameters["is_fixed"].GetBool());
-
-        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
-        {
-            mdouble_value = rParameters["value"].GetDouble();
-
-            if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
-            }
-        }
-        else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
-        {
-            mint_value = rParameters["value"].GetInt();
-
-            if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<int> >::Get( mvariable_name ) ) == false )
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
-            }
-
-            if(this->Is(VARIABLE_IS_FIXED))
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
-            }
-        }
-        else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
-        {
-            mbool_value = rParameters["value"].GetBool();
-
-            if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<bool> >::Get( mvariable_name ) ) == false )
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
-            }
-
-            if(this->Is(VARIABLE_IS_FIXED))
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"sorry it is not possible to fix variables of type Variable<bool>. Only double variables or vector components can be fixed","");
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    ApplyConstantScalarValueProcess(ModelPart& model_part,
-                              const Variable<double>& rVariable,
-                              const double double_value,
-                              std::size_t mesh_id,
-                              const Flags options
-                                   ) : Process(options) , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
-    {
-        KRATOS_TRY;
-
-        if(this->IsDefined(VARIABLE_IS_FIXED) == false )
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","");
-        }
-
-        if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable ) == false )
-        {
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",rVariable);
-        }
-
-        mvariable_name = rVariable.Name();
-
-        KRATOS_CATCH("");
-    }
-
-    ApplyConstantScalarValueProcess(ModelPart& model_part,
-                              const Variable< int >& rVariable,
-                              const int int_value,
-                              std::size_t mesh_id,
-                              const Flags options
-                                   ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(int_value), mbool_value(false),mmesh_id(mesh_id)
-    {
-        KRATOS_TRY;
-
-        if(this->IsDefined(VARIABLE_IS_FIXED) == false )
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","");
-        }
-        if(this->Is(VARIABLE_IS_FIXED))
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
-        }
-
-        if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable ) == false )
-        {
-                KRATOS_THROW_ERROR(std::runtime_error,"Trying to fix a variable that is not in the model_part - variable name is ",rVariable);
-        }
-
-        mvariable_name = rVariable.Name();
-
-        KRATOS_CATCH("");
-    }
-
-    ApplyConstantScalarValueProcess(ModelPart& model_part,
-                              const Variable< bool >& rVariable,
-                              const bool bool_value,
-                              std::size_t mesh_id,
-                              const Flags options
-                                   ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(0), mbool_value(bool_value),mmesh_id(mesh_id)
-    {
-        KRATOS_TRY;
-
-        if(this->IsDefined(VARIABLE_IS_FIXED) == false )
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","");
-        }
-        if(this->Is(VARIABLE_IS_FIXED))
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
-        }
-
-        if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable ) == false )
-        {
-                KRATOS_THROW_ERROR(std::runtime_error,"Trying to fix a variable that is not in the model_part - variable name is ",rVariable);
-        }
-
-        mvariable_name = rVariable.Name();
-
-        KRATOS_CATCH("");
-    }
-
+    /**
+     * @brief Constructor to apply a constant scalar value to nodes in a model part for a given boolean variable.
+     * @param rModelPart Reference to the model part.
+     * @param rVariable Reference to the boolean variable.
+     * @param BoolValue The boolean value to apply.
+     * @param options Flags specifying additional options.
+     */
+    ApplyConstantScalarValueProcess(
+        ModelPart& rModelPart,
+        const Variable<bool>& rVariable,
+        const bool BoolValue,
+        const Flags options
+        );
 
     /// Destructor.
-    ~ApplyConstantScalarValueProcess() override {}
-
+    ~ApplyConstantScalarValueProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -213,100 +126,28 @@ public:
         Execute();
     }
 
-    const Parameters GetDefaultParameters() const override
-    {
-        const Parameters default_parameters( R"(
-        {
-            "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-            "mesh_id": 0,
-            "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-            "is_fixed": false,
-            "value" : 1.0
-        }  )" );
-        return default_parameters;
-    }
-
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This function is designed for being called at the beginning of the computations
+     * right after reading the model and the groups
+     */
+    void ExecuteInitialize() override;
 
-    /// Execute method is used to execute the ApplyConstantScalarValueProcess algorithms.
-    void Execute() override {}
-
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    void ExecuteInitialize() override
-    {
-        KRATOS_TRY;
-        const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
-
-        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
-        {
-            InternalApplyValue<>(KratosComponents< Variable<double> >::Get(mvariable_name) , is_fixed, mdouble_value);
-        }
-        else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
-        {
-            InternalApplyValueWithoutFixing<>(KratosComponents< Variable<int> >::Get(mvariable_name) , mint_value);
-        }
-        else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
-        {
-            InternalApplyValueWithoutFixing<>(KratosComponents< Variable<bool> >::Get(mvariable_name), mbool_value);
-        }
-        else
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "Not able to fix the variable. Attempting to fix variable:",mvariable_name);
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    void ExecuteBeforeSolutionLoop() override
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
-    {
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() override
-    {
-    }
-
-
-    /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep() override
-    {
-    }
-
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    void ExecuteFinalize() override
-    {
-    }
-
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -329,52 +170,51 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
 protected:
-
-    ModelPart& mr_model_part;
-    std::string mvariable_name;
-    double mdouble_value;
-    int mint_value;
-    bool mbool_value;
-    std::size_t mmesh_id;
-
-private:
-    ///@name Static Member Variables
+    ///@name Protected Member Variables
     ///@{
-    template< class TVarType, class TDataType >
-    void InternalApplyValue(const TVarType& rVar, const bool to_be_fixed, const TDataType value)
-    {
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 
-        if(nnodes != 0)
-        {
-            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
-                if(to_be_fixed)
-                {
-                    rNode.Fix(rVar);
-                }
-                rNode.FastGetSolutionStepValue(rVar) = value;
-            });
-        }
-    }
+    ModelPart& mrModelPart;    /// Reference to the model part.
+    std::string mVariableName; /// Name of the variable.
+    double mDoubleValue = 0.0; /// Double value.
+    int mIntValue = 0;         /// Integer value.
+    bool mBoolValue = false;   /// Boolean value.
 
-    template< class TVarType, class TDataType >
-    void InternalApplyValueWithoutFixing(const TVarType& rVar, const TDataType value)
-    {
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+    ///@}
+private:
+    ///@name Private Operations
+    ///@{
 
-        if(nnodes != 0)
-        {
-            VariableUtils().SetVariable(rVar, value, mr_model_part.GetMesh(mmesh_id).Nodes());
-        }
-    }
+    /**
+    * @brief Apply a value to all nodes of the model part for a given variable, optionally fixing the variable.
+    * @tparam TVarType Type of the variable.
+    * @param rVariable The variable to apply the value to.
+    * @param ToBeFixed Boolean indicating whether the variable should be fixed.
+    * @param Value The value to apply to the variable.
+    */
+    template<class TVarType>
+    void InternalApplyValue(
+        const TVarType& rVariable,
+        const bool ToBeFixed,
+        const typename TVarType::Type Value
+        );
+
+    /**
+    * @brief Apply a value to all nodes of the model part for a given variable without fixing the variable.
+    * @tparam TVarType Type of the variable.
+    * @param rVariable The variable to apply the value to.
+    * @param Value The value to apply to the variable.
+    */
+    template<class TVarType>
+    void InternalApplyValueWithoutFixing(
+        const TVarType& rVariable,
+        const typename TVarType::Type Value
+        );
 
     ///@}
     ///@name Un accessible methods
@@ -386,23 +226,16 @@ private:
     /// Copy constructor.
     //ApplyConstantScalarValueProcess(ApplyConstantScalarValueProcess const& rOther);
 
-
     ///@}
-
 }; // Class ApplyConstantScalarValueProcess
 
-KRATOS_CREATE_LOCAL_FLAG(ApplyConstantScalarValueProcess,VARIABLE_IS_FIXED, 0);
-
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -420,7 +253,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_APPLY_CONSTANT_VALUE_PROCESS_H_INCLUDED  defined

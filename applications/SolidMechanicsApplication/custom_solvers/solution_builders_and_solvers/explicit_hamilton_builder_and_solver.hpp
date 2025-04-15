@@ -510,7 +510,7 @@ public:
     //***************************************************************************
 
     void Build(
-	       Node<3>::Pointer pNode,
+	       Node::Pointer pNode,
 	       typename TSchemeType::Pointer pScheme,
 	       ModelPart& r_model_part,
 	       TSystemMatrixType& A,

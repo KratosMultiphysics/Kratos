@@ -13,7 +13,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 // #include "includes/gid_io.h"
 #include "includes/mesh_moving_variables.h"
 #include "geometries/quadrilateral_2d_4.h"
@@ -32,12 +32,12 @@ namespace Testing {
         Model current_model;
 
         // Generate the origin model part (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
+        Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+        Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+        Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+        Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
 
-        Quadrilateral2D4<Node<3> > geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        Quadrilateral2D4<Node > geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
         Parameters mesher_parameters(R"(
         {
@@ -174,7 +174,7 @@ namespace Testing {
         const auto node_orig_51_u_mesh = origin_model_part.pGetNode(64)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         const auto node_virt_51_u_mesh = virtual_model_part.pGetNode(64)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         for (std::size_t i = 0; i < 3; ++i) {
-            KRATOS_CHECK_NEAR(node_orig_51_u_mesh[i], node_virt_51_u_mesh[i], tol);
+            KRATOS_EXPECT_NEAR(node_orig_51_u_mesh[i], node_virt_51_u_mesh[i], tol);
         }
 
         // Check the obtained displacement values in the virtual mesh
@@ -183,7 +183,7 @@ namespace Testing {
         const std::array<double,6> expected_values_u_mesh{{-0.0292061,0.0299231,0,-0.0163507,0.0340681,0}};
         const std::array<double,6> obtained_values_u_mesh{{u_mesh_29[0], u_mesh_29[1], u_mesh_29[2], u_mesh_53[0], u_mesh_53[1], u_mesh_53[2]}};
         for (std::size_t i = 0; i < 6; ++i) {
-            KRATOS_CHECK_NEAR(obtained_values_u_mesh[i], expected_values_u_mesh[i], tol);
+            KRATOS_EXPECT_NEAR(obtained_values_u_mesh[i], expected_values_u_mesh[i], tol);
         }
 
         // Check the projected mesh velocity in the origin mesh
@@ -192,7 +192,7 @@ namespace Testing {
         const std::array<double,6> expected_values_v_mesh{{-0.30534,0.351295,0,-0.282042,0.311169,0}};
         const std::array<double,6> obtained_values_v_mesh{{v_mesh_29[0], v_mesh_29[1], v_mesh_29[2], v_mesh_53[0], v_mesh_53[1], v_mesh_53[2]}};
         for (std::size_t i = 0; i < 6; ++i) {
-            KRATOS_CHECK_NEAR(obtained_values_v_mesh[i], expected_values_v_mesh[i], tol);
+            KRATOS_EXPECT_NEAR(obtained_values_v_mesh[i], expected_values_v_mesh[i], tol);
         }
 
         // Check the projected values in the origin mesh
@@ -203,7 +203,7 @@ namespace Testing {
         const std::array<double,8> expected_projected_values{{0.857143,0,0, 0.2,1.71429,0,0,0.2}};
         const std::array<double,8> obtained_projected_values{{v_29[0], v_29[1], v_29[2], p_29, v_53[0], v_53[1], v_53[2], p_53}};
         for (std::size_t i = 0; i < 8; ++i) {
-            KRATOS_CHECK_NEAR(obtained_projected_values[i], expected_projected_values[i], tol);
+            KRATOS_EXPECT_NEAR(obtained_projected_values[i], expected_projected_values[i], tol);
         }
 
         const auto v_n_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(VELOCITY, 1);
@@ -213,7 +213,7 @@ namespace Testing {
         const std::array<double,8> expected_projected_values_n{{0.459105,0,0,0.1,0.885347,0,0,0.1}};
         const std::array<double,8> obtained_projected_values_n{{v_n_29[0], v_n_29[1], v_n_29[2], p_n_29, v_n_53[0], v_n_53[1], v_n_53[2], p_n_53}};
         for (std::size_t i = 0; i < 8; ++i) {
-            KRATOS_CHECK_NEAR(obtained_projected_values_n[i], expected_projected_values_n[i], tol);
+            KRATOS_EXPECT_NEAR(obtained_projected_values_n[i], expected_projected_values_n[i], tol);
         }
     }
 }

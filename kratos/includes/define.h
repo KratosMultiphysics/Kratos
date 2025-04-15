@@ -40,12 +40,14 @@
      #define KRATOS_ENV64BIT
    #else
      #define KRATOS_ENV32BIT
+     #error 32 bit system are not supported anymore. Please consider a 64 bits system
   #endif
 #else // It is POSIX (Linux, MacOSX, BSD...)
   #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
     #define KRATOS_ENV64BIT
   #else // This includes __arm__ and __x86__
     #define KRATOS_ENV32BIT
+     #error 32 bit system are not supported anymore. Please consider a 64 bits system
   #endif
 #endif
 
@@ -429,7 +431,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_VARIABLE(name) \
     AddKratosComponent(name.Name(), name); \
-    KratosComponents<VariableData>::Add(name.Name(), name);
+    KratosComponents<VariableData>::Add(name.Name(), name); \
+    name.Register();
 
 #ifdef KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS
@@ -694,43 +697,73 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_REGISTER_GEOMETRY
 #undef KRATOS_REGISTER_GEOMETRY
 #endif
-#define KRATOS_REGISTER_GEOMETRY(name, reference) \
-    KratosComponents<Geometry<Node<3>>>::Add(name, reference); \
+#define KRATOS_REGISTER_GEOMETRY(name, reference)                                                                   \
+    KratosComponents<Geometry<Node>>::Add(name, reference);                                                         \
+    if(!Registry::HasItem("geometries."+Registry::GetCurrentSource()+"."+name) &&                                   \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("geometries."+Registry::GetCurrentSource()+"."+name);                       \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_ELEMENT
 #undef KRATOS_REGISTER_ELEMENT
 #endif
-#define KRATOS_REGISTER_ELEMENT(name, reference) \
-    KratosComponents<Element >::Add(name, reference); \
+#define KRATOS_REGISTER_ELEMENT(name, reference)                                                                    \
+    KratosComponents<Element>::Add(name, reference);                                                                \
+    if(!Registry::HasItem("elements."+Registry::GetCurrentSource()+"."+name) &&                                     \
+       !Registry::HasItem("components."+std::string(name))){                                                                    \
+        Registry::AddItem<RegistryItem>("elements."+Registry::GetCurrentSource()+"."+name);                         \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONDITION
 #undef KRATOS_REGISTER_CONDITION
 #endif
-#define KRATOS_REGISTER_CONDITION(name, reference) \
-    KratosComponents<Condition >::Add(name, reference); \
+#define KRATOS_REGISTER_CONDITION(name, reference)                                                                  \
+    KratosComponents<Condition>::Add(name, reference);                                                              \
+    if(!Registry::HasItem("conditions."+Registry::GetCurrentSource()+"."+name) &&                                   \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("conditions."+Registry::GetCurrentSource()+"."+name);                       \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONSTRAINT
 #undef KRATOS_REGISTER_CONSTRAINT
 #endif
-#define KRATOS_REGISTER_CONSTRAINT(name, reference) \
-    KratosComponents<MasterSlaveConstraint >::Add(name, reference); \
+#define KRATOS_REGISTER_CONSTRAINT(name, reference)                                                                 \
+    KratosComponents<MasterSlaveConstraint>::Add(name, reference);                                                  \
+    if(!Registry::HasItem("constraints."+Registry::GetCurrentSource()+"."+name) &&                                  \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("constraints."+Registry::GetCurrentSource()+"."+name);                      \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_MODELER
 #undef KRATOS_REGISTER_MODELER
 #endif
-#define KRATOS_REGISTER_MODELER(name, reference) \
-    KratosComponents<Modeler>::Add(name, reference); \
+#define KRATOS_REGISTER_MODELER(name, reference)                                                                    \
+    KratosComponents<Modeler>::Add(name, reference);                                                                \
+    if(!Registry::HasItem("modelers."+Registry::GetCurrentSource()+"."+name) &&                                     \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("modelers."+Registry::GetCurrentSource()+"."+name);                         \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #undef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #endif
-#define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference) \
-    KratosComponents<ConstitutiveLaw >::Add(name, reference); \
+#define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference)                                                           \
+    KratosComponents<ConstitutiveLaw>::Add(name, reference);                                                        \
+    if(!Registry::HasItem("constitutive_laws."+Registry::GetCurrentSource()+"."+name) &&                            \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("constitutive_laws."+Registry::GetCurrentSource()+"."+name);                \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #define KRATOS_DEPRECATED [[deprecated]]
@@ -739,7 +772,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
 // The scope ends where KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING is called.
-// NOTE!! this macro is not intented for extensive use, it's just for temporary use in methods exported to Python which
+// NOTE!! this macro is not intended for extensive use, it's just for temporary use in methods exported to Python which
 // are still calling a C++ deprecated function.
 #if defined(__clang__)
 #define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)

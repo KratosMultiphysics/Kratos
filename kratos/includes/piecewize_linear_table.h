@@ -153,7 +153,7 @@ public:
             if(X <= mData[i].first)
                 return Interpolate(X, mData[i-1].first, mData[i-1].second, mData[i].first, mData[i].second, result);
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return Interpolate(X, mData[size-2].first, mData[size-2].second, mData[size-1].first, mData[size-1].second, result);
     }
 
@@ -175,7 +175,7 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second;
     }
 
@@ -197,7 +197,7 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second;
     }
 

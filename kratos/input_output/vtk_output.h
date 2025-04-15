@@ -4,16 +4,16 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala, Philipp Bucher
+//  Main authors:    Aditya Ghantasala
+//                   Philipp Bucher (https://github.com/philbucher)
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
-#if !defined( KRATOS_VTK_OUTPUT_H_INCLUDED )
-#define KRATOS_VTK_OUTPUT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <unordered_map>
@@ -36,10 +36,16 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
 public:
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
+
+    /// Definition of the node type
+    using NodeType = Node;
+
+    /// Definition of the geometry type with given NodeType
+    using GeometryType = Geometry<NodeType>;
 
     /// Pointer definition of VtkOutput
     KRATOS_CLASS_POINTER_DEFINITION(VtkOutput);
@@ -102,6 +108,19 @@ public:
     };
 
 protected:
+    ///@name  Enum's
+    ///@{
+
+    enum class EntityType {
+        ELEMENT,
+        CONDITION,
+        AUTOMATIC,
+        NONE
+        // GEOMETRY // TODO PBucher
+    };
+
+    ///@}
+
     ///@name Member Variables
     ///@{
 
@@ -111,22 +130,25 @@ protected:
     Parameters mOutputSettings;                    /// The configuration parameters
     unsigned int mDefaultPrecision;                /// The default precision
     std::unordered_map<int, int> mKratosIdToVtkId; /// The map storing the relationship between the Kratos ID and VTK ID
-    bool mShouldSwap = false;                      /// If it should swap
+    bool mShouldSwap = false;                      /// If the bytes need to be swapped (endianness)
 
     // pointer to object of the extrapolation from gauss point to nodes process
     IntegrationValuesExtrapolationToNodesProcess::UniquePointer mpGaussToNodesProcess;
-
 
     ///@}
     ///@name Operations
     ///@{
 
     /**
+     * @brief Helper to determine which entities to write
+     * @param rModelPart The ModelPart that is currently outputted (can be a SubModelPart)
+     */
+    EntityType GetEntityType(const ModelPart& rModelPart) const;
+
+    /**
      * @brief Interpolates the gauss point results on to the node using IntegrationValuesExtrapolationToNodesProcess
      */
     void PrepareGaussPointResults();
-
-
 
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results
@@ -173,7 +195,7 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    virtual void WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the elements and conditions in rModelPart.
@@ -181,7 +203,7 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    virtual void WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
@@ -221,7 +243,7 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    virtual void WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results/flags on the elements of rModelPart.
@@ -454,8 +476,19 @@ protected:
     ///@}
 
 private:
+    ///@name Member Variables
+    ///@{
+    VtkOutput::EntityType mEntityType;             /// The entities to be written
+
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Reorders the connectivity of the geometry to match the VTK format if required
+     * @param pGeometry Pointer to the geometry to be reordered
+     * @return Pointer to the reordered geometry
+     */
+    GeometryType::Pointer ReorderConnectivity(GeometryType::Pointer& pGeometry) const;
 
     /**
      * @brief Prints the Properties Id as an integer variable in each element/condition
@@ -492,5 +525,3 @@ private:
 };
 
 } // namespace Kratos
-
-#endif // KRATOS_VTK_OUTPUT_H_INCLUDED

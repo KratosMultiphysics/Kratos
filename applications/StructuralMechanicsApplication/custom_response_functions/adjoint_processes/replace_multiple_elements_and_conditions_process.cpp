@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser
 //
@@ -76,8 +76,8 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
             it->pGetProperties()
         );
 
-        // Deep copy data and flags
-        p_entity->GetData() = it->GetData();
+        // Deep copy flags. Since we use the same geometry for the element and conditions, there is 
+        // no need to deep copy the data.
         p_entity->Set(Flags(*it));
 
         (*it.base()) = p_entity;

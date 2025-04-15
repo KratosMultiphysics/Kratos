@@ -61,14 +61,18 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void TransferInitialStresses (ModelPart& rInitialModelPart, ModelPart& rCurrentModelPart)
+    void TransferInitialStresses (ModelPart& rInitialModelPart, ModelPart& rCurrentModelPart, const bool& constant_discretization)
     {
-        // Define necessary variables
-        UtilityVariables AuxVariables;
+        if (constant_discretization == true) {
+            this->AssignNodalVariables(rInitialModelPart,rCurrentModelPart);
+        } else {
+            // Define necessary variables
+            UtilityVariables AuxVariables;
 
-        this->ComputeCellMatrixDimensions(AuxVariables,rCurrentModelPart);
+            this->ComputeCellMatrixDimensions(AuxVariables,rCurrentModelPart);
 
-        this->NodalVariablesMapping(AuxVariables,rInitialModelPart,rCurrentModelPart);
+            this->NodalVariablesMapping(AuxVariables,rInitialModelPart,rCurrentModelPart);
+        }
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -306,6 +310,30 @@ protected:
             if(rNodalStress.size1() != 3) // Dimension
                 rNodalStress.resize(3,3,false);
             noalias(rNodalStress) = nodal_initial_stress_tensor;
+        }
+    }
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void AssignNodalVariables(
+        ModelPart& rInitialModelPart,
+        ModelPart& rCurrentModelPart) {
+
+        // Here rInitialModelPart and rCurrentModelPart have the same exact discretization 
+        const int NNodes = static_cast<int>(rInitialModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin_old = rInitialModelPart.NodesBegin();
+        ModelPart::NodesContainerType::iterator node_begin = rCurrentModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNodeOld = node_begin_old + i;
+            ModelPart::NodesContainerType::iterator itNodeNew = node_begin + i;
+
+            Matrix& rNodalStress = itNodeNew->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if(rNodalStress.size1() != 3) // Dimension
+                rNodalStress.resize(3,3,false);
+            noalias(rNodalStress) = itNodeOld->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
         }
     }
 

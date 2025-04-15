@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -30,12 +30,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
 ///@}
 ///@name  Enum's
@@ -74,54 +73,79 @@ public:
     /// Counted pointer of PenaltyMethodFrictionalMortarContactCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactCondition );
 
-    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster> BaseType;
+    /// Base type for the mortar contact condition
+    using BaseType = MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster>;
 
-    typedef Condition                                                                                             ConditionBaseType;
+    /// Base type for the condition
+    using ConditionBaseType = Condition;
 
-    typedef PairedCondition                                                                                 PairedConditionBaseType;
+    /// Base type for the paired condition
+    using PairedConditionBaseType = PairedCondition;
 
-    typedef typename BaseType::MortarConditionMatrices                                                      MortarConditionMatrices;
+    /// Type definition for mortar condition matrices
+    using MortarConditionMatrices = typename BaseType::MortarConditionMatrices;
 
-    typedef typename BaseType::GeneralVariables                                                                    GeneralVariables;
+    /// Type definition for general variables
+    using GeneralVariables = typename BaseType::GeneralVariables;
 
-    typedef typename BaseType::IntegrationUtility                                                                IntegrationUtility;
+    /// Type definition for integration utility
+    using IntegrationUtility = typename BaseType::IntegrationUtility;
 
-    typedef typename BaseType::DerivativesUtilitiesType                                                    DerivativesUtilitiesType;
+    /// Type definition for derivatives utilities
+    using DerivativesUtilitiesType = typename BaseType::DerivativesUtilitiesType;
 
-    typedef typename BaseType::BelongType                                                                                BelongType;
+    /// Type definition for belong type
+    using BelongType = typename BaseType::BelongType;
 
-    typedef typename BaseType::ConditionArrayListType                                                        ConditionArrayListType;
+    /// Type definition for an array list of conditions
+    using ConditionArrayListType = typename BaseType::ConditionArrayListType;
 
-    typedef MortarOperator<TNumNodes, TNumNodesMaster>                                                  MortarBaseConditionMatrices;
+    /// Base type for the mortar contact condition matrices
+    using MortarBaseConditionMatrices = MortarOperator<TNumNodes, TNumNodesMaster>;
 
-    typedef typename ConditionBaseType::VectorType                                                                       VectorType;
+    /// Vector type definition
+    using VectorType = typename ConditionBaseType::VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                                       MatrixType;
+    /// Matrix type definition
+    using MatrixType = typename ConditionBaseType::MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                                         IndexType;
+    /// Index type definition
+    using IndexType = typename ConditionBaseType::IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                                   GeometryPointerType;
+    /// Geometry pointer definition
+    using GeometryPointerType = typename ConditionBaseType::GeometryType::Pointer;
 
-    typedef typename ConditionBaseType::NodesArrayType                                                               NodesArrayType;
+    /// Nodes array type definition
+    using NodesArrayType = typename ConditionBaseType::NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType                                                               PropertiesType;
+    /// Properties type definition
+    using PropertiesType = typename ConditionBaseType::PropertiesType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                                               PropertiesPointerType;
+    /// Properties pointer definition
+    using PropertiesPointerType = typename ConditionBaseType::PropertiesType::Pointer;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                                                   EquationIdVectorType;
+    /// Equation ID vector type definition
+    using EquationIdVectorType = typename ConditionBaseType::EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                                                               DofsVectorType;
+    /// Dofs vector type definition
+    using DofsVectorType = typename ConditionBaseType::DofsVectorType;
 
-    typedef Line2D2<Point>                                                                                                 LineType;
+    /// Line type definition
+    using LineType = Line2D2<Point>;
 
-    typedef Triangle3D3<Point>                                                                                         TriangleType;
+    /// Triangle type definition
+    using TriangleType = Triangle3D3<Point>;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                   DecompositionType;
+    /// Decomposition type definition
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                                           DerivativeDataType;
+    /// Type definition for derivative data
+    using DerivativeDataType = DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>;
 
+    /// Constant expression for matrix size
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster);
 
+    /// Constant expression for step slip
     static constexpr IndexType StepSlip = TNormalVariation ? 0 : 1;
 
     ///@}
@@ -184,7 +208,7 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Called at the begining of each solution step
+     * @brief Called at the beginning of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;

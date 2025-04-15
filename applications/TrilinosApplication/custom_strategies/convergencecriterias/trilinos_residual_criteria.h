@@ -10,15 +10,13 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_TRILINOS_RESIDUAL_CRITERIA_H_INCLUDED)
-#define  KRATOS_TRILINOS_RESIDUAL_CRITERIA_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 
 namespace Kratos
@@ -29,38 +27,91 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// MPI version of the ResidualCriteria.
-/** Implements a convergence criteria based on the norm of the (free rows of) the RHS vector.
- *  @see ResidualCriteria
+/**
+ * @class TrilinosResidualCriteria
+ * @ingroup TrilinosApplication
+ * @brief MPI version of the ResidualCriteria.
+ * @details Implements a convergence criteria based on the norm of the (free rows of) the RHS vector.
+ * @see ResidualCriteria
+ * @author Jordi Cotela
  */
-template< class TSparseSpace, class TDenseSpace >
-class TrilinosResidualCriteria : public ResidualCriteria< TSparseSpace, TDenseSpace >
+template<class TSparseSpace,
+         class TDenseSpace
+         >
+class TrilinosResidualCriteria
+    : public ResidualCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of TrilinosResidualCriteria
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosResidualCriteria);
 
-    typedef ResidualCriteria< TSparseSpace, TDenseSpace > BaseType;
+    /// The definition of the base ConvergenceCriteria
+    using BaseConvergenceCriteriaType = ConvergenceCriteria< TSparseSpace, TDenseSpace >;
 
-    typedef typename BaseType::TDataType TDataType;
+    /// The definition of the base ResidualCriteria
+    using BaseType = ResidualCriteria< TSparseSpace, TDenseSpace >;
+
+    /// The definition of the current class
+    using ClassType = TrilinosResidualCriteria< TSparseSpace, TDenseSpace >;
+
+    /// The data type
+    using TDataType = typename BaseType::TDataType;
+
+    /// The dofs array type
+    using DofsArrayType = typename BaseType::DofsArrayType;
+
+    /// The definition of the DoF data type
+    using DofType = typename Node::DofType;
+
+    /// The sparse matrix type
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+
+    /// The dense vector type
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+
+    /// Definition of the IndexType
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
-    explicit TrilinosResidualCriteria(TDataType NewRatioTolerance,TDataType AlwaysConvergedNorm):
-        ResidualCriteria<TSparseSpace,TDenseSpace>(NewRatioTolerance, AlwaysConvergedNorm)
-    {}
+    /// Default constructor.
+    explicit TrilinosResidualCriteria()
+        : BaseType()
+    {
+    }
 
-    /// Copy constructor
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit TrilinosResidualCriteria(Kratos::Parameters ThisParameters)
+        : BaseType(ThisParameters)
+    {
+    }
+
+    /**
+     * @brief Constructor 2 arguments
+     * @param NewRatioTolerance The ratio tolerance for the convergence.
+     * @param AlwaysConvergedNorm The absolute tolerance for the convergence.
+     */
+    explicit TrilinosResidualCriteria(TDataType NewRatioTolerance,TDataType AlwaysConvergedNorm):
+        BaseType(NewRatioTolerance, AlwaysConvergedNorm)
+    {
+    }
+
+    /**
+     * @brief Copy constructor
+     * @param rOther The criteria to be copied
+     */
     explicit TrilinosResidualCriteria(const TrilinosResidualCriteria& rOther):
-        ResidualCriteria<TSparseSpace,TDenseSpace>(rOther)
-    {}
+        BaseType(rOther)
+    {
+    }
 
     /// Destructor.
     ~TrilinosResidualCriteria() override {}
@@ -73,75 +124,130 @@ public:
     TrilinosResidualCriteria& operator=(TrilinosResidualCriteria const& rOther) = delete;
 
     ///@}
+    ///@name Operations
+    ///@{
 
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseConvergenceCriteriaType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
+    /**
+     * @brief This function initializes the solution step
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        // We set the initial Id
+        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+        const int rank = r_data_communicator.Rank();
+        for (auto& r_dof : rDofSet) {
+            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == rank) {
+                BaseType::mInitialDoFId = r_dof.EquationId();
+                break;
+            }
+        }
+
+        // Calling base class
+        BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                        : "trilinos_residual_criteria",
+            "residual_absolute_tolerance" : 1.0e-4,
+            "residual_relative_tolerance" : 1.0e-9
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "trilinos_residual_criteria";
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "TrilionosResidualCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
 protected:
-
     ///@name Protected Operations
     ///@{
 
     /**
-     * @brief This method computes the norm of the residual
-     * @details It checks if the dof is fixed
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @param rResidualSolutionNorm The norm of the residual
-     * @param rDofNum The number of DoFs
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param b RHS vector (residual + reactions)
+     * @brief This method computes the active dofs
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rDofSet The whole set of dofs
      */
-    void CalculateResidualNorm(
+    void ComputeActiveDofs(
         ModelPart& rModelPart,
-        TDataType& rResidualSolutionNorm,
-        typename BaseType::SizeType& rDofNum,
-        typename BaseType::DofsArrayType& rDofSet,
-        const typename BaseType::TSystemVectorType& rB) override
+        const ModelPart::DofsArrayType& rDofSet
+        ) override
     {
-        // Initialize
-        TDataType residual_solution_norm = TDataType();
-        long int local_dof_num = 0;
-
-        const int rank = rB.Comm().MyPID();
-
-        // Loop over Dofs
-        #pragma omp parallel for reduction(+:residual_solution_norm,local_dof_num)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
-
-            typename BaseType::IndexType dof_id;
-            TDataType residual_dof_value;
-
-            if (it_dof->IsFree() && (it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank)) {
-                dof_id = it_dof->EquationId();
-                residual_dof_value = TSparseSpace::GetValue(rB,dof_id);
-                residual_solution_norm += residual_dof_value * residual_dof_value;
-                local_dof_num++;
-            }
-        }
-
-        // Combine local contributions
-        // Note that I'm not merging the two calls because one adds doubles and the other ints (JC)
-        rB.Comm().SumAll(&residual_solution_norm,&rResidualSolutionNorm,1);
-        // SizeType is long unsigned int in linux, but EpetraComm does not support unsigned types
-        long int global_dof_num = 0;
-        rB.Comm().SumAll(&local_dof_num,&global_dof_num,1);
-        rDofNum = static_cast<typename BaseType::SizeType>(global_dof_num);
-
-        rResidualSolutionNorm = std::sqrt(rResidualSolutionNorm);
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::DistributedComputeActiveDofs(rModelPart, BaseType::mActiveDofs, rDofSet, BaseType::mInitialDoFId);
     }
 
     ///@}
-
-private:
-
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-
 }; // Class TrilinosResidualCriteria
 
 ///@}
@@ -149,5 +255,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TRILINOS_RESIDUAL_CRITERIA_H_INCLUDED  defined

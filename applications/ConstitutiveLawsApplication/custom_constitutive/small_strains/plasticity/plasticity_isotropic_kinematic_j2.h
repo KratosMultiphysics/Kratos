@@ -12,8 +12,7 @@
 //  Collaborators:   Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 
-#if !defined(KRATOS_PLASTICITY_ISOTROPIC_KINEMATIC_J2_H_INCLUDED)
-#define KRATOS_PLASTICITY_ISOTROPIC_KINEMATIC_J2_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -431,4 +430,3 @@ private:
 
 }; // Class PlasticityIsotropicKinematicJ2
 } // namespace Kratos.
-#endif

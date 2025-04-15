@@ -5,7 +5,7 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import 
 # Importing other libraries
 import math
 
-class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
+class FluidDynamicsAnalysisRve(FluidDynamicsAnalysis):
     def __init__(self, model, project_parameters):
         # Validate RVE settings
         input_rve_settings = project_parameters["rve_settings"]
@@ -27,7 +27,7 @@ class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
             KratosMultiphysics.Logger.PrintWarning("'averaging_mp_name' is not provided. Taking 'model_part_name' in 'solver_settings'.")
             self.averaging_mp_name = project_parameters["solver_settings"]["model_part_name"].GetString()
 
-        # Dictionary containin the jump data for periodicity
+        # Dictionary containing the jump data for periodicity
         self.strains = {}
 
         self.strains["00"] = project_parameters["rve_settings"]["jump_XX"].GetDouble()
@@ -49,7 +49,7 @@ class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
                 self.strain[i, j] = self.strains[strainIndex]
                 self.strain[j, i] = self.strains[strainIndex]
 
-        self.populate_search_eps = 1e-4 ##tolerance in finding which conditions belong to the surface (will be multiplied by the lenght of the diagonal)
+        self.populate_search_eps = 1e-4 ##tolerance in finding which conditions belong to the surface (will be multiplied by the length of the diagonal)
         self.geometrical_search_tolerance = 1e-4 #tolerance to be used in the search of the condition it falls into
 
         super().__init__(model, project_parameters)
@@ -246,3 +246,8 @@ class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
         for node in self.averaging_mp.Nodes:
             v_new = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) - v_avg
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, v_new)
+
+class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysisRve):
+    def __init__(self, model, project_parameters):
+        KratosMultiphysics.Logger.PrintWarning("'FluidDynamicsAnalysisRVE' is deprecated. Use 'FluidDynamicsAnalysisRve' instead.")
+        super().__init__(model, project_parameters)

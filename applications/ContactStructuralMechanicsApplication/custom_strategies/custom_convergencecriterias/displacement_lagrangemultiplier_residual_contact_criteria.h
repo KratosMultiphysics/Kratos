@@ -75,28 +75,28 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
 
     /// The base class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                                    BaseType;
+    using BaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef DisplacementLagrangeMultiplierResidualContactCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = DisplacementLagrangeMultiplierResidualContactCriteria<TSparseSpace, TDenseSpace>;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType                                               DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType                                       TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType                                       TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The sparse space used
-    typedef TSparseSpace                                                                 SparseSpaceType;
+    using SparseSpaceType = TSparseSpace;
 
     /// The table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                                          TablePrinterPointerType;
+    using TablePrinterPointerType = TableStreamUtility::Pointer;
 
     /// The index type definition
-    typedef std::size_t                                                                        IndexType;
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -479,7 +479,7 @@ public:
     }
 
     ///@}
-    ///@name Acces
+    ///@name Access
     ///@{
 
     ///@}
@@ -509,11 +509,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -558,18 +554,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -597,29 +581,6 @@ private:
 
     std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
     ///@}
 };  // Kratos DisplacementLagrangeMultiplierResidualContactCriteria
 

@@ -40,11 +40,11 @@ namespace Kratos
   ///@{
   typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
 
-  typedef Node<3>::WeakPointer NodeWeakPtrType;
+  typedef Node::WeakPointer NodeWeakPtrType;
   typedef Element::WeakPointer ElementWeakPtrType;
   typedef Condition::WeakPointer ConditionWeakPtrType;
 
-  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}

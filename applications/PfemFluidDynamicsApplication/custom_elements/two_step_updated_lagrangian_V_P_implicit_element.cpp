@@ -118,9 +118,9 @@ namespace Kratos
 
       rElementalVariables.MeanPressure = OldPressure * (1 - theta) + Pressure * theta;
 
-      computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX, g);
+      computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX);
 
-      this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
+      this->CalcElasticPlasticCauchySplitted(rElementalVariables, g, N, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
 
       if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
@@ -140,6 +140,7 @@ namespace Kratos
     }
 
     double lumpedDynamicWeight = totalVolume * Density;
+    //FIXME: This has to be computed with the corresponding shape functions...
     this->ComputeLumpedMassMatrix(MassMatrix, lumpedDynamicWeight, MeanValueMass);
     if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
     {

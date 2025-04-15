@@ -23,7 +23,7 @@
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
 
-#include "custom_utilities/embedded_discontinuous_data.h"
+#include "data_containers/embedded_discontinuous_data.h"
 
 namespace Kratos
 {
@@ -60,8 +60,8 @@ public:
     /// Pointer definition of EmbeddedFluidElementDiscontinuous
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedFluidElementDiscontinuous);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Definition of nodes container type, redefined from GeometryType
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
@@ -106,7 +106,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -126,7 +126,7 @@ public:
      */
     EmbeddedFluidElementDiscontinuous(IndexType NewId, Geometry<NodeType>::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -163,7 +163,7 @@ public:
     /**
      * Returns a pointer to a new FluidElement element, created using given input
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */

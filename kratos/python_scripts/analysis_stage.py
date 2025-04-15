@@ -2,6 +2,7 @@
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -125,6 +126,15 @@ class AnalysisStage(object):
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
+    def GetFinalData(self):
+        """Returns the final data dictionary.
+
+        The main purpose of this function is to retrieve any data (in a key-value format) from outside the stage.
+        Note that even though it can be called at any point, it is intended to be called at the end of the stage run.
+        """
+
+        return {}
+
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
@@ -168,15 +178,29 @@ class AnalysisStage(object):
 
     def Check(self):
         """This function checks the AnalysisStage
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
         """
+        # Checking solver
         self._GetSolver().Check()
+
+        # Checking processes
         for process in self._GetListOfProcesses():
             process.Check()
 
     def Clear(self):
         """This function clears the AnalysisStage
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
         """
+        # Clearing solver
         self._GetSolver().Clear()
+
+        # Clearing processes
+        for process in self._GetListOfProcesses():
+            process.Clear()
 
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """
@@ -202,6 +226,22 @@ class AnalysisStage(object):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
 
+    def Save(self, serializer: KratosMultiphysics.StreamSerializer) -> None:
+        """Serializes current analysis stage instance
+
+        This method is intended to make the class pure Python (pickable). This means serialize all the Kratos objects,
+        that is to say all the objects coming from Pybind, with the provided serializer. After the serialization, it is
+        required to assign None value to all the objects in order to make the class pickable.
+        """
+        pass
+
+    def Load(self, serializer: KratosMultiphysics.StreamSerializer) -> None:
+        """Loads current analysis stage instance
+
+        From the given serializer, this method restores current class from a pure Python status (pickable) to the one in the serializer.
+        """
+        pass
+
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
@@ -211,13 +251,13 @@ class AnalysisStage(object):
         """Create the solver
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
-        
+
     def _AdvanceTime(self):
-        """ Computes the following time 
+        """ Computes the following time
             The default method simply calls the solver
         """
         return self._GetSolver().AdvanceInTime(self.time)
-    
+
     ### Modelers
     def _ModelersSetupGeometryModel(self):
         # Import or generate geometry models from external input.
@@ -257,8 +297,8 @@ class AnalysisStage(object):
     def _CreateModelers(self):
         """ List of modelers in following format:
         "modelers" : [{
-            "modeler_name" : "geometry_import",
-            "Parameters" : {
+            "name" : "geometry_import",
+            "parameters" : {
                 "echo_level" : 0,
                 // settings for this modeler
             }
@@ -267,11 +307,19 @@ class AnalysisStage(object):
         self._list_of_modelers = []
 
         if self.project_parameters.Has("modelers"):
-            from KratosMultiphysics.modeler_factory import KratosModelerFactory
-            factory = KratosModelerFactory()
-
             modelers_list = self.project_parameters["modelers"]
-            self._list_of_modelers = factory.ConstructListOfModelers(self.model, modelers_list)
+            #TODO: Remove this after the deprecation period
+            if self.__BackwardCompatibleModelersCreation(modelers_list):
+                from KratosMultiphysics.modeler_factory import KratosModelerFactory
+                factory = KratosModelerFactory()
+                self._list_of_modelers = factory.ConstructListOfModelers(self.model, modelers_list)
+            else:
+                factory = KratosModelParametersFactory(self.model)
+                self._list_of_modelers = factory.ConstructListOfItems(modelers_list)
+
+    @classmethod
+    def __BackwardCompatibleModelersCreation(self, modelers_list):
+        return any([modeler.Has("modeler_name") for modeler in modelers_list.values()])
 
     ### Processes
     def _GetListOfProcesses(self):

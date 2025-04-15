@@ -22,9 +22,11 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "geometries/line_3d_2.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
 #include "utilities/integration_utilities.h"
+#include "utilities/polynomial_utilities.h"
 
 namespace Kratos
 {
@@ -124,7 +126,7 @@ public:
     typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
-    continer.
+    container.
     */
     typedef typename BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
 
@@ -145,7 +147,7 @@ public:
     */
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
-    /** Type of the normal vector used for normal to edges in geomety.
+    /** Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -207,7 +209,7 @@ public:
     /** Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      * @note This copy constructor don't copy the points and new
      * geometry shares points with given source geometry. It's
@@ -222,14 +224,34 @@ public:
     /// Destructor. Do nothing!!!
     ~Line3D3() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Linear;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Line3D3;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
 
     ///@}
@@ -326,8 +348,8 @@ public:
     ///@name Informations
     ///@{
 
-    /** This method calculate and return Length or charactereistic
-    length of this geometry depending to it's dimension. For one
+    /** This method calculates and returns Length or charactereistic
+    length of this geometry depending on its dimension. For one
     dimensional geometry for example Line it returns length of it
     and for the other geometries it gives Characteristic length
     otherwise.
@@ -344,9 +366,9 @@ public:
         return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
-    /** This method calculate and return area or surface area of
-    this geometry depending to it's dimension. For one dimensional
-    geometry it returns lentgh, for two dimensional it gives area
+    /** This method calculates and returns area or surface area of
+    this geometry depending on its dimension. For one dimensional
+    geometry it returns length, for two dimensional it gives area
     and for three dimensional geometries it gives surface area.
 
     @return double value contains area or surface
@@ -361,8 +383,8 @@ public:
     }
 
 
-    /** This method calculate and return length, area or volume of
-    this geometry depending to it's dimension. For one dimensional
+    /** This method calculates and returns length, area or volume of
+    this geometry depending on its dimension. For one dimensional
     geometry it returns its length, for two dimensional it gives area
     and for three dimensional geometries it gives its volume.
 
@@ -400,7 +422,7 @@ public:
 
     /**
      * @brief Determinant of jacobians for given integration method.
-     * @details This method calculate determinant of jacobian in all integrations points of given integration method.
+     * @details This method calculates determinant of jacobian in all integrations points of given integration method.
      * @return Vector of double which is vector of determinants of jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
      * @see Jacobian
      * @see InverseOfJacobian
@@ -420,7 +442,7 @@ public:
     }
 
     /**
-     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculate determinant of jacobian in given integration point of given integration method.
+     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculates determinant of jacobian in given integration point of given integration method.
      * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
      * @param IntegrationPointIndex index of integration point which determinant of jacobians has to be calculated in it.
      * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
@@ -437,7 +459,7 @@ public:
     }
 
     /**
-     * @brief Determinant of jacobian in given point. This method calculate determinant of jacobian matrix in given point.
+     * @brief Determinant of jacobian in given point. This method calculates determinant of jacobian matrix in given point.
      * @param rPoint point which determinant of jacobians has to be calculated in it.
      * @return Determinamt of jacobian matrix \f$ |J| \f$ in given point.
      * @see DeterminantOfJacobian
@@ -455,7 +477,7 @@ public:
     ///@{
 
     /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
+    @return SizeType contains number of this geometry edges.
     */
     SizeType EdgesNumber() const override
     {
@@ -606,6 +628,91 @@ public:
     }
 
     /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint
+            ) const override
+    {
+        // Define distance_objective as the gradient of ||point - global_coordinate(xi)||**2,
+        // that is (point - local_coordinate(xi))*coordinate_derivative(xi) (times -2, which we ignore)
+        // The zeros of the distance_objective are local extremes of the distance between point and line
+        // We will get the zeros contained in the interval [-1, 1] (if any). If, for any of these zeros,
+        // the point is on the line, the local coordinate is our result.
+        rResult.clear();
+
+        constexpr double TOLERANCE = 1e-12;
+
+        const auto& r_p0 = this->GetPoint(0);
+        const auto& r_p1 = this->GetPoint(1);
+        const auto& r_p2 = this->GetPoint(2);
+
+        // The method is prone to numerical instability close to the ends of the search interval
+        // exit early in that case
+        const array_1d<double,3> d0 = r_p0 - rPoint;
+        if (MathUtils<double>::Dot3(d0, d0) < TOLERANCE) {
+            rResult[0] = -1.0;
+            return rResult;
+        }
+        const array_1d<double,3> d1 = r_p1 - rPoint;
+        if (MathUtils<double>::Dot3(d1, d1) < TOLERANCE) {
+            rResult[0] = 1.0;
+            return rResult;
+        }
+
+        array_1d<double, 3> c1 = r_p0 + r_p1 - 2*r_p2;
+        array_1d<double, 3> c2 = r_p1 - r_p0;
+        array_1d<double, 3> c3 = r_p2 - rPoint;
+
+        const double aux1 = MathUtils<double>::Dot3(c1, c1);
+        if (aux1 < TOLERANCE) {
+            // The geometry is a straight line, fall back to Line3D2.h
+            auto line = Line3D2<TPointType>(
+                this->pGetPoint(0), this->pGetPoint(1));
+            return line.PointLocalCoordinates(rResult, rPoint);
+        }
+
+        const double aux2 = MathUtils<double>::Dot3(c1, c3);
+        if (std::abs(aux2) < TOLERANCE) {
+            // r_p2 == rPoint (we got the center of the line),
+            //the local coordinate is 0
+            return rResult;
+        }
+
+        PolynomialUtilities::PolynomialType distance_objective{
+            0.5 * aux1,
+            0.75 * MathUtils<double>::Dot3(c1, c2),
+            0.25 * MathUtils<double>::Dot3(c2, c2) + aux2,
+            0.5 * MathUtils<double>::Dot3(c2, c3)
+        };
+
+        std::vector<PolynomialUtilities::IntervalType> root_ranges;
+        PolynomialUtilities::IsolateRoots(
+            root_ranges, distance_objective,
+            PolynomialUtilities::IntervalType{-1,1});
+
+        Vector shape;
+        for (const auto& interval: root_ranges) {
+            double root = PolynomialUtilities::FindRoot(distance_objective, interval);
+            // if point == line(root) we found our coordinate;
+            rResult[0] = root;
+            this->ShapeFunctionsValues(shape, rResult);
+            array_1d<double,3> d = (shape[0]*r_p0 + shape[1]*r_p1 + shape[2]*r_p2) - rPoint;
+            if (MathUtils<double>::Dot3(d, d) < TOLERANCE) {
+                return rResult;
+            }
+        }
+
+        // No points in the interval [-1,1] correspond to our local coordinate
+        rResult[0] = 2.0;
+        return rResult;
+    }
+
+    /**
      * returns the shape function gradients in an arbitrary point,
      * given in local coordinates
      * @param rResult the matrix of gradients, will be overwritten
@@ -629,6 +736,12 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Line3D3N";
+    }
 
     /** Turn back information as a string.
 
@@ -662,11 +775,16 @@ public:
     */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian\t : " << jacobian;
+        }
     }
 
     ///@}
@@ -898,7 +1016,6 @@ const GeometryData Line3D3<TPointType>::msGeometryData(
         AllShapeFunctionsLocalGradients() );
 
 template<class TPointType>
-const GeometryDimension Line3D3<TPointType>::msGeometryDimension(
-    3, 3, 1);
+const GeometryDimension Line3D3<TPointType>::msGeometryDimension(3, 1);
 
 }  // namespace Kratos.

@@ -36,7 +36,7 @@ public:
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;
@@ -66,7 +66,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~NurbsGeometryModeler() = default;
+    ~NurbsGeometryModeler() = default;
 
     /// Creates the Modeler Pointer
     Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override
@@ -82,15 +82,10 @@ public:
 
     ///@}
 
-private:
-    ///@name Private Member Variables
-    ///@{
+protected:
+///@{
 
     Model* mpModel;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     /**
      * @brief Creates a regular grid composed out of bivariant B-splines.
@@ -100,8 +95,24 @@ private:
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v.
      * @note The CP'S are defined as nodes and added to the rModelPart.
      **/
-    void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
-        SizeType NumKnotSpansU, SizeType NumKnotSpansV );
+    virtual void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+        SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part = true);
+
+    NurbsSurfaceGeometryPointerType mpSurface;
+
+    Vector mKnotVectorU;
+    Vector mKnotVectorV;
+    std::vector<double> mInsertKnotsU;
+    std::vector<double> mInsertKnotsV;
+    
+
+private:
+    ///@name Private Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    
 
     /**
      * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
@@ -111,8 +122,8 @@ private:
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
      * @note The CP'S are defined as nodes and added to the rModelPart.
      **/
-    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
-        SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
+    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+       SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
 };
 

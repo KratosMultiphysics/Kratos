@@ -3,32 +3,23 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
-#include <pybind11/pybind11.h>
+
 // External includes
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define_python.h"
 
-namespace Kratos
+namespace Kratos::Python
 {
-
-  namespace Python
-  {
-
     void  AddCustomConstitutiveLawsToPython(pybind11::module& m);
-
-  }  // namespace Python.
-
-}  // namespace Kratos.
-
-#endif // KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED  defined
+}  // namespace Kratos::Python.

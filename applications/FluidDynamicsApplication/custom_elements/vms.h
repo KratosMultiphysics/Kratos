@@ -62,7 +62,7 @@ namespace Kratos
 /// A stabilized element for the incompressible Navier-Stokes equations.
 /**
  * This class implements a stabilized formulation based on the
- * Variational Multiscale framework. The the subscales can be modeled
+ * Variational Multiscale framework. The subscales can be modeled
  * using either Algebraic Subgird Scales (ASGS) or Orthogonal Subscales (OSS).
  * In the case of OSS, the projection terms are treated explicitly (computed
  * using the results of the previous iteration) and the subscales are not
@@ -112,8 +112,8 @@ public:
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -150,7 +150,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -176,7 +176,7 @@ public:
         Element(NewId, pGeometry)
     {}
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -247,7 +247,7 @@ public:
         this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
     }
 
-    /// Returns a zero matrix of appropiate size (provided for compatibility with scheme)
+    /// Returns a zero matrix of appropriate size (provided for compatibility with scheme)
     /**
      * @param rLeftHandSideMatrix Local matrix, will be filled with zeros
      * @param rCurrentProcessInfo Process info instance
@@ -1110,13 +1110,13 @@ protected:
     /// Add mass-like stabilization terms to LHS.
     /**
      * This function is only used in ASGS. For OSS, we avoid computing these
-     * terms, as they shoud cancel out with the dynamic part of the projection
+     * terms, as they should cancel out with the dynamic part of the projection
      * (which is not computed either)
      * @param rLHSMatrix Left hand side of the velocity-pressure system
      * @param Density Density on integration point
      * @param rAdvVel Advective velocity on integration point
      * @param TauOne Stabilization parameter for momentum equation
-     * @param rShapeFunc Shape funcitions evaluated on integration point
+     * @param rShapeFunc Shape functions evaluated on integration point
      * @param rShapeDeriv Shape function derivatives evaluated on integration point
      * @param Weight Area (or volume) times integration point weight
      */
@@ -1415,7 +1415,7 @@ protected:
     /**
      * @brief EquivalentStrainRate Calculate the second invariant of the strain rate tensor GammaDot = (2SijSij)^0.5.
      *
-     * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this funcition being
+     * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this function being
      * defined on all fluid elements.
      *
      * @param rDN_DX Shape function derivatives at the integration point.
@@ -1460,7 +1460,7 @@ protected:
             rAdvVel += rShapeFunc[iNode] * (rGeom[iNode].FastGetSolutionStepValue(VELOCITY, Step) - rGeom[iNode].FastGetSolutionStepValue(MESH_VELOCITY, Step));
     }
 
-    /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
+    /// Write the convective operator evaluated at this point (for each nodal function) to an array
     /**
      * Evaluate the convective operator for each node's shape function at an arbitrary point
      * @param rResult Output vector
@@ -1695,7 +1695,7 @@ protected:
     /**
      * Unused, left to support derived classes. @see VMS::AddBTransCB
      * @param rB Strain rate matrix
-     * @param rShapeDeriv Nodal shape funcion derivatives
+     * @param rShapeDeriv Nodal shape function derivatives
      */
     void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
                      const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);

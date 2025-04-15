@@ -53,7 +53,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     mInterfacePoint = rParameters["point_on_interface"].GetVector();
     mInletRadius = rParameters["inlet_transition_radius"].GetDouble();
 
-    // normalization of itnerface normal vector
+    // normalization of interface normal vector
     if ( norm_2( mInterfaceNormal ) > 1.0e-7 ){
         mInterfaceNormal /= norm_2( mInterfaceNormal );
     } else {
@@ -148,7 +148,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         unsigned int pos_counter = 0;
         unsigned int neg_counter = 0;
         for (int i_node = 0; i_node < static_cast<int>(it_cond->GetGeometry().PointsNumber()); i_node++){
-            const Node<3>& rNode = (it_cond->GetGeometry())[i_node];
+            const Node& rNode = (it_cond->GetGeometry())[i_node];
             // const double inlet_dist = ComputeNodalDistanceInInletDistanceField( rNode );
             const double inlet_dist = inner_prod( ( rNode.Coordinates() - mInterfacePoint ), mInterfaceNormal );
 

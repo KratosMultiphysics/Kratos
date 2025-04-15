@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -23,10 +23,10 @@
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 
 // Application includes
-#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
+#include "custom_elements/solid_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 
 namespace Kratos::Testing
 {
@@ -79,8 +79,8 @@ namespace Kratos::Testing
         const double tolerance = 1.0e-7;
         const std::vector<double> expected_RHS({58231.8681319,60197.4358974,-0.00451994047619,-19272.1611722,-40923.8095238,0.00872232142857,-38959.7069597,-19273.6263736,0.00227380952381});
         const std::vector<double> expected_LHS_row_0({974614.212454,158304.761905,-325989.010989,-431198.534799,-525956.043956,-325989.010989,-543415.677656,367651.282051,-325989.010989});
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }
 
     /**
@@ -135,8 +135,8 @@ namespace Kratos::Testing
         const double tolerance = 1.0e-7;
         const std::vector<double> expected_RHS({-9223.89014388,32765.8558739,61472.2259113,-0.0199042607315,9223.89014388,0,0,-0.0121052631599,0,-15913.1975817,-14346.5609408,-0.0104141975643,0,-16852.6582922,-47125.6649705,-0.00559382240399});
         const std::vector<double> expected_LHS_row_0({397802.448164,89460.058478,128948.283247,-63772.4886945,-108460.750823,-130555.762838,-130555.762838,-63772.4886945,-131694.761321,57415.1747145,-19744.1123847,-63732.5294656,-157646.936019,-16319.4703547,21351.591975,-63613.9773907});
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }
 
     /**
@@ -144,6 +144,12 @@ namespace Kratos::Testing
      */
     KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedVolumetricStrainElementBonetPatch, KratosStructuralMechanicsFastSuite)
     {
+        // Skip the test if the constitutive law is not available (i.e. the ConstitutiveLawsApplication is not compiled)
+        const std::string claw_name = "HyperElasticPlaneStrain2DLaw";
+        if (!KratosComponents<ConstitutiveLaw>::Has(claw_name)) {
+            return;
+        }
+
         // Set the test model part
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -158,11 +164,11 @@ namespace Kratos::Testing
         const double max_x = 1.0;
         const double min_y = 0.0;
         const double max_y = 1.0;
-		auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, min_x, min_y, 0.0);
-		auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, min_x, max_y, 0.0);
-		auto p_point_3 = Kratos::make_intrusive<Node<3>>(3, max_x, max_y, 0.0);
-		auto p_point_4 = Kratos::make_intrusive<Node<3>>(4, max_x, min_y, 0.0);
-		Quadrilateral2D4<Node<3>> square_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+		auto p_point_1 = Kratos::make_intrusive<Node>(1, min_x, min_y, 0.0);
+		auto p_point_2 = Kratos::make_intrusive<Node>(2, min_x, max_y, 0.0);
+		auto p_point_3 = Kratos::make_intrusive<Node>(3, max_x, max_y, 0.0);
+		auto p_point_4 = Kratos::make_intrusive<Node>(4, max_x, min_y, 0.0);
+		Quadrilateral2D4<Node> square_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 		Parameters mesher_parameters(R"(
 		{
 			"number_of_divisions" : 2,
@@ -175,7 +181,7 @@ namespace Kratos::Testing
         auto p_elem_prop = r_model_part.CreateNewProperties(1);
         p_elem_prop->SetValue(YOUNG_MODULUS, 250.0);
         p_elem_prop->SetValue(POISSON_RATIO, 0.25);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("HyperElasticPlaneStrain2DLaw");
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get(claw_name);
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
         for (auto& r_elem: r_model_part.Elements()) {
             r_elem.SetProperties(p_elem_prop);
@@ -245,7 +251,7 @@ namespace Kratos::Testing
         const double disp_x = 1.0;
         const double disp_y = 1.0/4.0;
         array_1d<double,3> aux_disp;
-        auto node_bc_func = [&](Node<3>& rNode, double DisplacementFactor){
+        auto node_bc_func = [&](Node& rNode, double DisplacementFactor){
             // Reset auxiliary displacement vector
             aux_disp = ZeroVector(3);
 
@@ -308,7 +314,7 @@ namespace Kratos::Testing
         const std::vector<double> expected_E = {1.5,-0.218750000047,0.0};
         const std::vector<double> expected_PK2 = {85.1366277052,-5.69509189368,0.0};
         for (const auto& r_node : r_model_part.Nodes()) {
-            KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN), expected_vol_strain, tolerance);
+            KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN), expected_vol_strain, tolerance);
         }
         for (auto& r_elem : r_model_part.Elements()) {
             std::vector<Vector> obtained_E;
@@ -316,8 +322,8 @@ namespace Kratos::Testing
             r_elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, obtained_PK2, r_model_part.GetProcessInfo());
             r_elem.CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, obtained_E, r_model_part.GetProcessInfo());
             for (std::size_t i_gauss = 0; i_gauss < obtained_E.size(); ++i_gauss) {
-                KRATOS_CHECK_VECTOR_NEAR(obtained_E[i_gauss], expected_E, tolerance);
-                KRATOS_CHECK_VECTOR_NEAR(obtained_PK2[i_gauss], expected_PK2, tolerance);
+                KRATOS_EXPECT_VECTOR_NEAR(obtained_E[i_gauss], expected_E, tolerance);
+                KRATOS_EXPECT_VECTOR_NEAR(obtained_PK2[i_gauss], expected_PK2, tolerance);
             }
         }
     }

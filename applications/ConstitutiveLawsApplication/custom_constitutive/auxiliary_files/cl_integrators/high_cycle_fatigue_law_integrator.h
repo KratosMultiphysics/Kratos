@@ -11,12 +11,13 @@
 //  Main authors:    Sergio Jimenez/Alejandro Cornejo/Lucia Barbu
 //
 
-#if !defined(KRATOS_HIGH_CYCLE_FATIGUE_LAW_INTEGRATOR_H_INCLUDED)
-#define KRATOS_HIGH_CYCLE_FATIGUE_LAW_INTEGRATOR_H_INCLUDED
+#pragma once
 
 // System includes
 
 // Project includes
+#include "constitutive_laws_application_variables.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -28,7 +29,7 @@ namespace Kratos
 ///@{
 
     // The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -57,9 +58,12 @@ public:
     ///@name Type Definitions
     ///@{
 
-
     /// Counted pointer of HighCycleFatigueLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(HighCycleFatigueLawIntegrator);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /// Initialization constructor
     HighCycleFatigueLawIntegrator()
@@ -357,4 +361,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif

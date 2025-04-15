@@ -668,11 +668,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
             //compute the block diagonal parallel projection
             //defined as the operator which extracts the part of the velocity
             //tangent to the embedded wall
-            #ifdef KRATOS_USE_AMATRIX
-            BoundedMatrix<double, TDim, TDim> block = IdentityMatrix(TDim);
-            #else
             BoundedMatrix<double, TDim, TDim> block = IdentityMatrix(TDim, TDim);
-            #endif
             BoundedMatrix<double, TDim, TDim> nn_matrix = outer_prod(normal, normal);
             noalias(block) -= nn_matrix;
             //KRATOS_WATCH(block)

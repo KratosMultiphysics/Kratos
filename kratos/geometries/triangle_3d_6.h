@@ -23,6 +23,7 @@
 // Project includes
 #include "geometries/line_3d_3.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -192,7 +193,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -277,7 +278,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor does not copy the points and new
@@ -295,14 +296,34 @@ public:
      */
     ~Triangle3D6() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Triangle3D6;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     ///@}
@@ -452,8 +473,8 @@ public:
         return std::sqrt(std::abs(this->DeterminantOfJacobian( PointType() ) ) );
     }
 
-    /** 
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending on its dimension.
      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area
@@ -481,8 +502,8 @@ public:
     //     return 0.0;
     // }
 
-    /** 
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending on its dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -569,8 +590,39 @@ public:
     }
 
     ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), this->GetPoint(3), this->GetPoint(4), this->GetPoint(5), point);
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Triangle3D6N";
+    }
 
     /**
      * Turn back information as a string.
@@ -611,12 +663,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
-        PrintInfo( rOStream );
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     ///@}
@@ -626,7 +682,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -643,7 +699,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -865,6 +921,24 @@ public:
         return rResult;
     }
 
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        if (this->EdgesAreStraight()) {
+            return GeometryUtils::PointLocalCoordinatesStraightEdgesTriangle(*this, rResult, rPoint);
+        } else {
+            return BaseType::PointLocalCoordinates( rResult, rPoint );
+        }
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -1061,6 +1135,61 @@ private:
         return shape_functions_local_gradients;
     }
 
+    /** This method gives all shape functions values
+     * evaluated at the rCoordinates provided
+     * @return Vector of values of shape functions \f$ F_{i} \f$
+     * where i is the shape function index (for NURBS it is the index
+     * of the local enumeration in the element).
+     *
+     * @see ShapeFunctionValue
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+     */
+    Vector& ShapeFunctionsValues (
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        if(rResult.size() != 6) {
+            rResult.resize(6, false);
+        }
+
+        const double xi = rCoordinates[0];
+        const double eta = rCoordinates[1];
+        const double zeta = 1.0 - xi - eta;
+
+        rResult[0] = zeta * (2.0 * zeta - 1.0);
+        rResult[1] = xi * (2.0 * xi - 1.0);
+        rResult[2] = eta * (2.0 * eta - 1.0);
+        rResult[3] = 4.0 * xi * zeta;
+        rResult[4] = 4.0 * xi * eta;
+        rResult[5] = 4.0 * eta * zeta;
+
+        return rResult;
+    }
+
+
+    /**
+     * @brief Checks if edges are straight. We iterate though all edges
+     * and check that the sum of 0-2 and 2-1 segments is no bigger than 0-1.
+     * @return bool edges are straight or not
+     */
+    bool EdgesAreStraight() const
+    {
+        constexpr double tol = 1e-6;
+        constexpr std::array<std::array<size_t, 3>, 3> edges{
+            {{0, 1, 3}, {1, 2, 4}, {2, 0, 5}}};
+        const auto& r_points = this->Points();
+        for (const auto& r_edge : edges) {
+            const double a = MathUtils<double>::Norm3(r_points[r_edge[0]] - r_points[r_edge[1]]);
+            const double b = MathUtils<double>::Norm3(r_points[r_edge[1]] - r_points[r_edge[2]]);
+            const double c = MathUtils<double>::Norm3(r_points[r_edge[2]] - r_points[r_edge[0]]);
+            if (b + c > a*(1.0+tol) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -1123,7 +1252,6 @@ GeometryData Triangle3D6<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(
-    2, 3, 2);
+GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.

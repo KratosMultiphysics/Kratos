@@ -50,7 +50,7 @@ class ConvectionDiffusionSolver(PythonSolver):
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
 
-    The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
+    The convection_diffusion_solution_strategy, builder_and_solver, etc. should always be retrieved
     using the getter functions _GetSolutionStrategy, get_builder_and_solver,
     etc. from this base class.
 
@@ -152,7 +152,8 @@ class ConvectionDiffusionSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "auxiliary_variables_list" : []
+            "auxiliary_variables_list" : [],
+            "assign_neighbour_elements_to_conditions" : true
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -307,6 +308,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                 self.distributed_model_part_importer.ImportModelPart()
 
     def PrepareModelPart(self):
+        assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
         if not self.is_restarted():
             # Import material properties
             materials_imported = self.import_materials()
@@ -315,10 +317,16 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
-
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+
+            tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
+            throw_errors = False
+            flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
+            if assign_neighbour_elements:
+                flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            else:
+                flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
+            tmoc(self.main_model_part,throw_errors, flags).Execute()
 
             self._set_and_fill_buffer()
 
@@ -525,41 +533,37 @@ class ConvectionDiffusionSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
     def _get_element_condition_replace_settings(self):
+        ## Get and check domain size
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size not in [2,3]:
+            raise Exception("DOMAIN_SIZE is not set in ProcessInfo container.")
+
+        ## Validate the replace settings
+        default_replace_settings = self.GetDefaultParameters()["element_replace_settings"]
+        self.settings["element_replace_settings"].ValidateAndAssignDefaults(default_replace_settings)
 
         ## Elements
-        num_nodes_elements = 0
-        if (len(self.main_model_part.Elements) > 0):
-            for elem in self.main_model_part.Elements:
-                num_nodes_elements = len(elem.GetNodes())
-                break
-
-        num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
-
+        ## Note that we check for the elements that require substitution to allow for custom elements
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
+        element_list = ["EulerianConvDiff","LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit","AxisymmetricEulerianConvectionDiffusion"]
+        if element_name in element_list:
+            num_nodes_elements = 0
+            if (len(self.main_model_part.Elements) > 0):
+                for elem in self.main_model_part.Elements:
+                    num_nodes_elements = len(elem.GetNodes())
+                    break
 
-        if domain_size not in (2,3):
-            raise Exception("DOMAIN_SIZE not set")
+            num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
+            if not num_nodes_elements:
+                num_nodes_elements = domain_size + 1
 
-        if element_name == "EulerianConvDiff":
-            if domain_size == 2:
-                if num_nodes_elements == 3:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
-                else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N")
-            else:
-                if num_nodes_elements == 4:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
-                else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-        elif element_name in ("LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
-            name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
+            name_string = f"{element_name}{domain_size}D{num_nodes_elements}N"
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
         ## Conditions
-        num_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().SumAll(len(self.main_model_part.Conditions))
-
-        if num_conditions > 0:
+        condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
+        condition_list = ["FluxCondition","ThermalFace","AxisymmetricThermalFace","LineCondition","SurfaceCondition"]
+        if condition_name in condition_list:
             num_nodes_conditions = 0
             if (len(self.main_model_part.Conditions) > 0):
                 for cond in self.main_model_part.Conditions:
@@ -567,13 +571,11 @@ class ConvectionDiffusionSolver(PythonSolver):
                     break
 
             num_nodes_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+            if not num_nodes_conditions:
+                num_nodes_conditions = domain_size
 
-            condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
-            if condition_name in ("FluxCondition","ThermalFace","Condition"):
-                name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
-                self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
-        else:
-            self.settings["element_replace_settings"]["condition_name"].SetString("")
+            name_string = f"{condition_name}{domain_size}D{num_nodes_conditions}N"
+            self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
 
         return self.settings["element_replace_settings"]
 

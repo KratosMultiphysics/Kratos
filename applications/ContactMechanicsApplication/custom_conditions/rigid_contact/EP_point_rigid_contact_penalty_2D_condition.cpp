@@ -100,7 +100,7 @@ namespace Kratos
      std::vector< double > AreaVector;
      for(auto& i_nelem : nElements)
      {
-        const Geometry< Node < 3 > > & rElemGeom = i_nelem.GetGeometry();
+        const Geometry< Node > & rElemGeom = i_nelem.GetGeometry();
         unsigned int nBoundary = 0;
 
         std::vector< unsigned int > BoundaryNodes;

@@ -3,15 +3,14 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
 
-#if !defined(ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_H_INCLUDED )
-#define  ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_H_INCLUDED
+#pragma once
 
 #include "adjoint_finite_difference_base_element.h"
 
@@ -123,5 +122,3 @@ private:
 
 
 }
-
-#endif
