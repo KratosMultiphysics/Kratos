@@ -14,7 +14,6 @@
 #include "custom_elements/integration_coefficients_calculator.h"
 #include "custom_geometries/line_interface_geometry.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -28,8 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficients_ReturnsCorrectValue, 
 {
     // Set
     const auto interface_integration_coefficients = IntegrationCoefficientsCalculator{};
-    // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
-    const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
+    const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
     Vector                                           detJs(1);
     detJs <<= 2.0;
@@ -43,7 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficients_ReturnsCorrectValue, 
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficients_ClobeReturnsNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceIntegrationCoefficients_CloneReturnsNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
     const auto interface_integration_coefficients = IntegrationCoefficientsCalculator{};

@@ -28,7 +28,6 @@
 #include "geo_mechanics_application_variables.h"
 
 // conditions
-// conditions
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_conditions/Pw_point_flux_condition.hpp"
 #include "custom_conditions/T_microclimate_flux_condition.h"

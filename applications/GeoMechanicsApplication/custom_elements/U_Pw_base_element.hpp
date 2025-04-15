@@ -57,10 +57,11 @@ public:
                    GeometryType::Pointer                           pGeometry,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, pGeometry), mpStressStatePolicy{std::move(pStressStatePolicy)}
+        : Element(NewId, pGeometry),
+          mpStressStatePolicy{std::move(pStressStatePolicy)},
+          mpIntegrationCoefficientsCalculator{
+              std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier))}
     {
-        mpIntegrationCoefficientsCalculator =
-            std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier));
     }
 
     /// Constructor using Properties
@@ -69,12 +70,13 @@ public:
                    PropertiesType::Pointer                         pProperties,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, pGeometry, pProperties), mpStressStatePolicy{std::move(pStressStatePolicy)}
+        : Element(NewId, pGeometry, pProperties),
+          mpStressStatePolicy{std::move(pStressStatePolicy)},
+          mpIntegrationCoefficientsCalculator{
+              std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier))}
     {
         // this is needed for interface elements
         mThisIntegrationMethod = this->GetIntegrationMethod();
-        mpIntegrationCoefficientsCalculator =
-            std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier));
     }
 
     ~UPwBaseElement() override                           = default;

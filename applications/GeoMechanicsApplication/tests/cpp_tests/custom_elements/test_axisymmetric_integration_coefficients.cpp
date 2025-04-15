@@ -15,7 +15,6 @@
 #include "custom_elements/axisymmetric_integration_coefficients.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -47,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficients_ReturnsCorrectValu
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 5.02655, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficients_ClobeReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficients_CloneReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
     const auto axisymmetric_integration_coefficients = IntegrationCoefficientsCalculator{

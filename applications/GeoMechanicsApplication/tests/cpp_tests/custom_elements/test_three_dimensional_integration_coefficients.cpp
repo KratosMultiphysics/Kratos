@@ -43,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalIntegrationCoefficients_ReturnsCorrect
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalIntegrationCoefficients_ClobeReturnsNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalIntegrationCoefficients_CloneReturnsNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
     const auto three_dimensional_integration_coefficients = IntegrationCoefficientsCalculator{};

@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneIntegrationCoefficients_ReturnsCorrectValue, Krat
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneIntegrationCoefficients_ClobeReturnsNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PlaneIntegrationCoefficients_CloneReturnsNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
     const auto plane_integration_coefficients = IntegrationCoefficientsCalculator{};

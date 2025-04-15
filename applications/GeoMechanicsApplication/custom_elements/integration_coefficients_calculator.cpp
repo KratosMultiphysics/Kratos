@@ -33,10 +33,7 @@ void IntegrationCoefficientsCalculator::load(const Serializer&) const
 
 std::unique_ptr<IntegrationCoefficientModifier> IntegrationCoefficientsCalculator::CloneModifier() const
 {
-    if (mCoefficientModifier) {
-        return mCoefficientModifier->Clone();
-    }
-    return nullptr;
+    return mCoefficientModifier ? mCoefficientModifier->Clone() : nullptr;
 };
 
 } // namespace Kratos

@@ -11,9 +11,8 @@
 //
 
 #include "thermal_integration_coefficients.h"
-
-#include <includes/element.h>
-#include <structural_mechanics_application_variables.h>
+#include "includes/element.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {

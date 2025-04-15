@@ -23,6 +23,8 @@ namespace
 
 using namespace Kratos;
 
+// The functions in this anonymous namespace are not specific to interface elements and
+// will be moved to a utility module.
 Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                            const Geometry<Node>& rGeometry)
 {
@@ -233,10 +235,8 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
 {
     const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
         mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
-    auto result = mpIntegrationCoefficientsCalculator->Run<>(
-        mIntegrationScheme->GetIntegrationPoints(), determinants_of_jacobian, this);
-
-    return result;
+    return mpIntegrationCoefficientsCalculator->Run<>(mIntegrationScheme->GetIntegrationPoints(),
+                                                      determinants_of_jacobian, this);
 }
 
 std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()
