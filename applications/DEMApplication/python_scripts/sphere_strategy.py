@@ -85,9 +85,10 @@ class ExplicitStrategy():
         if "BoundingBoxServoLoadingOption" in DEM_parameters.keys():
             self.bounding_box_servo_loading_option = DEM_parameters["BoundingBoxServoLoadingOption"].GetBool()
 
-        self.use_mesh_repair_option = 0
+        self.use_mesh_repair_option = False
         if "UseMeshRepairOption" in self.DEM_parameters.keys():
-            self.use_mesh_repair_option = self.DEM_parameters["UseMeshRepairOption"].GetBool()   
+            if self.DEM_parameters["UseMeshRepairOption"].GetBool():
+                self.use_mesh_repair_option = True 
 
         self.delta_option = DEM_parameters["DeltaOption"].GetString() #TODO: this is not an option (bool) let's change the name to something including 'type'
 
