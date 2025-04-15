@@ -53,7 +53,7 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         }""")
         self.shape_opt = False
         free_thickness_settings = None
-        for design_variable in optimization_settings["design_variables"]:
+        for design_variable in optimization_settings["design_variables"].values():
             if design_variable["type"].GetString() == "vertex_morphing":
                 self.shape_opt = True
                 self.shape_mapper_settings = design_variable["filter"].Clone()
@@ -92,7 +92,7 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         self.variable_utils = None
 
         self.objectives = optimization_settings["objectives"]
-        self.constraints = optimization_settings["constraints"]
+        self.constraints = optimization_settings["constraints"].values()
 
         self.shape_constraint_gradient_variables = {}
         self.constraint_gradient_variables = {}

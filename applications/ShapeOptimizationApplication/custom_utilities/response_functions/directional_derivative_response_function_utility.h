@@ -65,7 +65,7 @@ public:
 
 	typedef array_1d<double, 3> array_3d;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef std::vector<std::vector<NodeType::Pointer>> ConditionConnectionVector;
 
 	/// Pointer definition of DirectionalDerivativeResponseFunctionUtility

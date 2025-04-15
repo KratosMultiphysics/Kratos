@@ -68,7 +68,7 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
             "gradient": 0.0,
             "projected_gradient": 0.0
         }
-        self.constraints = optimization_settings["constraints"]
+        self.constraints = optimization_settings["constraints"].values()
         self.constraint_gradients_dict = {}
         for constraint in self.constraints:
             self.constraint_gradients_dict.update({
