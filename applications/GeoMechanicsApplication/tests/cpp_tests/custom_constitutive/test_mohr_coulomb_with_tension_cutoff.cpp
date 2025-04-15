@@ -355,7 +355,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     parameters.SetStressVector(cauchy_stress_vector);
     const auto dummy_process_info = ProcessInfo{};
     p_law->SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, dummy_process_info);
-    p_law->FinalizeMaterialResponseCauchy(parameters);
+    p_law->InitializeMaterialResponseCauchy(parameters);
     p_law->CalculateMaterialResponseCauchy(parameters);
 
     Vector calculated_cauchy_stress_vector;
@@ -365,6 +365,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     const auto scoped_registration_law =
         ScopedSerializerRegistration{"MohrCoulombWithTensionCutOff"s, MohrCoulombWithTensionCutOff{}};
     auto serializer = StreamSerializer{};
+
+    ConstitutiveLaw::Parameters fake_parameters;
+    Vector                      fake_cauchy_stress_vector = ZeroVector(4);
+    Vector                      fake_strain_vector        = UnitVector(4);
+    fake_parameters.SetStrainVector(fake_cauchy_stress_vector);
+    fake_parameters.SetStressVector(fake_strain_vector);
 
     // Act
     serializer.save("test_tag"s, p_law);
@@ -376,6 +382,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_cauchy_stress_vector);
     KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_cauchy_stress_vector, calculated_cauchy_stress_vector);
 
+    p_loaded_law->InitializeMaterialResponseCauchy(fake_parameters);
     p_loaded_law->CalculateMaterialResponseCauchy(parameters);
     p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_cauchy_stress_vector);
     KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_cauchy_stress_vector, calculated_cauchy_stress_vector);

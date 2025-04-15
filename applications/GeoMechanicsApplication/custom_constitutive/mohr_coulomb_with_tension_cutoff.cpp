@@ -338,6 +338,6 @@ void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
-    rSerializer.save("IsModelInitialized", mIsModelInitialized);
+    rSerializer.load("IsModelInitialized", mIsModelInitialized);
 }
 } // Namespace Kratos
