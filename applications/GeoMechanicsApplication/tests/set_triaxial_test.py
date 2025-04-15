@@ -62,7 +62,7 @@ def run_triaxial_test(output_file_paths):
     # os.chdir(currentWorking)
 
     cauchy_stress_results = []
-    total_displacement_results = []
+    displacement_results = []
 
     for output_file_path in output_file_paths:
         reader = test_helper.GiDOutputFileReader()
@@ -78,11 +78,11 @@ def run_triaxial_test(output_file_paths):
                         "time": time,
                         "values": values
                     })
-            elif result_name == "TOTAL_DISPLACEMENT":
+            elif result_name == "DISPLACEMENT":
                 for result_item in result_items:
                     time = result_item["time"]
                     values = result_item["values"]
-                    total_displacement_results.append({
+                    displacement_results.append({
                         "time": time,
                         "values": values
                     })
@@ -109,9 +109,9 @@ def run_triaxial_test(output_file_paths):
 
         reshaped_values_by_time[time_step] = reshaped_values
 
-    # Process total displacement results
+    # Process displacement results
     node_2_displacements = []
-    for result in total_displacement_results:
+    for result in displacement_results:
         element_values = result["values"]
 
         # Find the entry for node:2
@@ -152,8 +152,8 @@ def plot_sigma(sigma_1, sigma_3):
         ),
         xaxis=dict(
             title='σ₃ (Principal Stress 3) [kN/m²]',
-            range=[0, -400],
             showline=True,
+            autorange='reversed',
             linewidth=2,
             linecolor='black',
             ticks='outside',
@@ -164,8 +164,8 @@ def plot_sigma(sigma_1, sigma_3):
         ),
         yaxis=dict(
             title=' σ₁ (Principal Stress 1) [kN/m²]',
-            range=[0, -400],
             showline=True,
+            autorange='reversed',
             linewidth=2,
             linecolor='black',
             ticks='outside',
@@ -175,6 +175,10 @@ def plot_sigma(sigma_1, sigma_3):
             mirror=True
         ),
         template='plotly_white',
+    )
+    fig.update_layout(
+        xaxis=dict(rangemode='tozero'),
+        yaxis=dict(rangemode='tozero'),
     )
     fig.show()
 
@@ -227,6 +231,10 @@ def plot_delta_sigma(displacement, diff):
             mirror=True
         ),
         template='plotly_white',
+    )
+    fig.update_layout(
+        xaxis=dict(rangemode='tozero'),
+        yaxis=dict(rangemode='tozero'),
     )
     fig.show()
 
@@ -311,7 +319,44 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3):
         template='plotly_white',
         xaxis_scaleanchor="y"
     )
+    # fig.update_layout(
+    #     xaxis=dict(rangemode='tozero'),
+    #     yaxis=dict(rangemode='tozero'),
+    # )
+    fig.show()
 
+def plot_p_q(p_list, q_list):
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=p_list,
+        y=q_list,
+        mode='markers+lines',
+        name='p\' vs q',
+        marker=dict(size=8, color='blue')
+    ))
+
+    fig.update_layout(
+        title=dict(text="Mean Effective Stress vs Deviatoric Stress", x=0.5),
+        xaxis=dict(
+            title="p' (Mean Effective Stress) [kN/m²]",
+            autorange='reversed',
+            showline=True,
+            mirror=True,
+            linecolor='black'
+        ),
+        yaxis=dict(
+            title="q (Deviatoric Stress) [kN/m²]",
+            showline=True,
+            mirror=True,
+            linecolor='black'
+        ),
+        template='plotly_white'
+    )
+    fig.update_layout(
+        xaxis=dict(rangemode='tozero'),
+        yaxis=dict(rangemode='tozero'),
+    )
     fig.show()
 
 
@@ -444,7 +489,6 @@ if __name__ == "__main__":
 
     # List of output files to process
     output_files = [
-        os.path.join('gid_output', "triaxial_Stage_1.post.res"),
         os.path.join('gid_output', "triaxial_Stage_2.post.res")]
 
     reshaped_values_by_time, node_2_displacements = run_triaxial_test(output_files)
@@ -468,6 +512,17 @@ if __name__ == "__main__":
             sigma1_list.append(sigma_min)
             sigma3_list.append(sigma_max)
 
+    p_list = []
+    q_list = []
+
+    for eigenvalues in eigenvalue_list:
+        sigma1, sigma2, sigma3 = np.sort(eigenvalues)
+        p = (sigma1 + sigma2 + sigma3) / 3
+        q = np.sqrt(0.5 * ((sigma1 - sigma2) ** 2 + (sigma2 - sigma3) ** 2 + (sigma3 - sigma1) ** 2))
+
+        p_list.append(p)
+        q_list.append(q)
+
 
     vector_list = eigenvector_list
     value_list = eigenvalue_list
@@ -476,4 +531,5 @@ if __name__ == "__main__":
     diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
     plot_delta_sigma(displacement_list, diff)
     plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1])
+    plot_p_q(p_list, q_list)
 
