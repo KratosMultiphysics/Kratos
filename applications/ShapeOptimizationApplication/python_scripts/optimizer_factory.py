@@ -39,7 +39,7 @@ class Optimizer:
         self.analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, self.model_part_controller, external_analyzer)
         self.communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
-        self.design_variables = optimization_settings["design_variables"]
+        self.design_variables = optimization_settings["design_variables"].values()
         for design_variable in self.design_variables:
             if design_variable["type"].GetString() not in ["vertex_morphing", "free_thickness", "thickness_parameter", "free_thickness_original_vm"]:
                 variable_type = design_variable["type"].GetString()
@@ -124,7 +124,7 @@ class Optimizer:
 
 
     def __AddVariablesToBeUsedByDesignVariables(self):
-        for design_variable in self.optimization_settings["design_variables"]:
+        for design_variable in self.design_variables:
             if design_variable.Has("filter"):
                 if design_variable["filter"].Has("in_plane_morphing") and \
                     design_variable["filter"]["in_plane_morphing"].GetBool():

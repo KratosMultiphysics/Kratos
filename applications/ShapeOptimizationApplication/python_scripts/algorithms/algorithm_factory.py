@@ -14,7 +14,7 @@
 def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, model_part_controller):
     algorithm_name = optimization_settings["optimization_algorithm"]["name"].GetString()
 
-    design_variables = optimization_settings["design_variables"]
+    design_variables = optimization_settings["design_variables"].values()
     for design_variable in design_variables:
         if design_variable["type"].GetString() == "free_thickness":
             if algorithm_name == "gradient_projection":
@@ -35,7 +35,7 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                              is available for Free Thickness optimization.""")
 
         elif design_variable["type"].GetString() in ["thickness_parameter", "free_thickness_original_vm"]:
-            if design_variables.size() > 1:
+            if len(design_variables) > 1:
                 RuntimeError("""Thickness parameter optimization is not available with shape optimization simultaneously!
                              Use Free Thickness optimization instead.""")
             # TODO: remove free_thickness_original_vm after numerical experiments

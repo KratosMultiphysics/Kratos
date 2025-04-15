@@ -207,10 +207,10 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
         self.computing_model_part_name = "porous_computational_model_part"
 
-        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"]]
+        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"].values()]
         self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 
-        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["loads_sub_model_part_list"]]
+        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["loads_sub_model_part_list"].values()]
         self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
@@ -357,7 +357,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_FLUID_FLUX)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
-        
+
         # Add integration \ gauss point values that will likely need extrapolating to node
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_HEAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_TENSOR)
@@ -517,26 +517,6 @@ class GeoMechanicalSolver(PythonSolver):
                                                                      self.linear_solver,
                                                                      self.convergence_criterion,
                                                                      self.strategy_params)
-
-        elif strategy_type.lower() == "arc_length":
-            # Arc-Length strategy
-            self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_LAMBDA,        1.0)
-            self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_RADIUS_FACTOR, 1.0)
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
-            self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
-            self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-            solving_strategy = GeoMechanicsApplication.GeoMechanicsRammArcLengthStrategy(self.computing_model_part,
-                                                                                         self.scheme,
-                                                                                         self.convergence_criterion,
-                                                                                         builder_and_solver,
-                                                                                         self.strategy_params,
-                                                                                         max_iterations,
-                                                                                         compute_reactions,
-                                                                                         reform_step_dofs,
-                                                                                         move_mesh_flag)
 
         elif strategy_type.lower() == "linear":
             solving_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part,

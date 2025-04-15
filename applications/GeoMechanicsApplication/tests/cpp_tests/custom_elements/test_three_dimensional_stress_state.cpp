@@ -12,6 +12,7 @@
 
 #include "containers/model.h"
 #include "custom_elements/three_dimensional_stress_state.h"
+#include "custom_utilities/registration_utilities.h"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -142,7 +143,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CanBeSavedAndLoadedThrough
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistrationOfAllStressStatePolicies{};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"ThreeDimensionalStressState"s, ThreeDimensionalStressState{}};
     const auto p_policy =
         std::unique_ptr<StressStatePolicy>{std::make_unique<ThreeDimensionalStressState>()};
     auto serializer = StreamSerializer{};
