@@ -689,9 +689,10 @@ BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometr
         n[1] = 1.0;
     }
 
-    if (norm_2(t-n) <= 1.0e-8) { // colineal, hence we use another aux vector
+    if (norm_2(t - n) <= 1.0e-8) { // colineal, hence we use another aux vector
         n.clear();
         n[2] = 1.0;
+        KRATOS_WARNING("StructuralElementUtilities") << "The LOCAL_AXIS_2 is colineal with the axis of the beam, being modified to [0,0,1]";
     }
 
     // Gram-Schmidt ortogonalization
@@ -700,17 +701,11 @@ BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometr
 
     noalias(m) = MathUtils<double>::CrossProduct(t, n);
 
-    T(0, 0) = t[0];
-    T(0, 1) = t[1];
-    T(0, 2) = t[2];
-
-    T(1, 0) = n[0];
-    T(1, 1) = n[1];
-    T(1, 2) = n[2];
-
-    T(2, 0) = m[0];
-    T(2, 1) = m[1];
-    T(2, 2) = m[2];
+    for (IndexType i = 0; i < 3; ++i) {
+        T(0, i) = t[i];
+        T(1, i) = n[i];
+        T(2, i) = m[i];
+    }
 
     return T;
 }
