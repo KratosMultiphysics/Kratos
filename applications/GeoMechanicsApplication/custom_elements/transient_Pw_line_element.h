@@ -41,38 +41,39 @@ public:
 
     explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientPwLineElement(IndexType                                   NewId,
-                           const GeometryType::Pointer&                pGeometry,
-                           const std::vector<CalculationContribution>& rContributions)
-        : Element(NewId, pGeometry), mContributions(rContributions)
+    TransientPwLineElement(IndexType                                       NewId,
+                           const GeometryType::Pointer&                    pGeometry,
+                           const std::vector<CalculationContribution>&     rContributions,
+                           std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+        : Element(NewId, pGeometry),
+          mContributions(rContributions),
+          mpIntegrationCoefficientsCalculator{
+              std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier))}
     {
-        std::unique_ptr<IntegrationCoefficientModifier> modifier =
-            std::make_unique<IntegrationCoefficientModifierForPwLineElement>();
-        mpIntegrationCoefficientsCalculator =
-            std::make_unique<IntegrationCoefficientsCalculator>(std::move(modifier));
     }
 
-    TransientPwLineElement(IndexType                                   NewId,
-                           const GeometryType::Pointer&                pGeometry,
-                           const PropertiesType::Pointer&              pProperties,
-                           const std::vector<CalculationContribution>& rContributions)
-        : Element(NewId, pGeometry, pProperties), mContributions(rContributions)
+    TransientPwLineElement(IndexType                                       NewId,
+                           const GeometryType::Pointer&                    pGeometry,
+                           const PropertiesType::Pointer&                  pProperties,
+                           const std::vector<CalculationContribution>&     rContributions,
+                           std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+        : Element(NewId, pGeometry, pProperties),
+          mContributions(rContributions),
+          mpIntegrationCoefficientsCalculator{
+              std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier))}
     {
-        std::unique_ptr<IntegrationCoefficientModifier> modifier =
-            std::make_unique<IntegrationCoefficientModifierForPwLineElement>();
-        mpIntegrationCoefficientsCalculator =
-            std::make_unique<IntegrationCoefficientsCalculator>(std::move(modifier));
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes),
-                                                      pProperties, mContributions);
+        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes), pProperties,
+                                                      mContributions, this->CloneModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, mContributions);
+        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, mContributions,
+                                                      this->CloneModifier());
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
@@ -283,6 +284,11 @@ private:
                                                    body_acceleration.begin(), 0.0)));
         }
         return projected_gravity;
+    }
+
+    std::unique_ptr<IntegrationCoefficientModifier> CloneModifier() const
+    {
+        return mpIntegrationCoefficientsCalculator->CloneModifier();
     }
 
     std::unique_ptr<ContributionCalculator> CreateCalculator(const CalculationContribution& rContribution,

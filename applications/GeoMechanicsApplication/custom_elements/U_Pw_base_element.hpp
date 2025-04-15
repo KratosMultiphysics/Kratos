@@ -46,10 +46,11 @@ public:
                    const NodesArrayType&                           ThisNodes,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, ThisNodes), mpStressStatePolicy{std::move(pStressStatePolicy)}
+        : Element(NewId, ThisNodes),
+          mpStressStatePolicy{std::move(pStressStatePolicy)},
+          mpIntegrationCoefficientsCalculator{
+              std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier))}
     {
-        mpIntegrationCoefficientsCalculator =
-            std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier));
     }
 
     /// Constructor using Geometry
