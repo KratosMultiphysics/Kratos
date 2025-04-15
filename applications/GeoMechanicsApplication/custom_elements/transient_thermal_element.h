@@ -22,7 +22,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "thermal_integration_coefficients.h"
+#include "integration_coefficient_modifier_thermal_element.h"
 
 namespace Kratos
 {

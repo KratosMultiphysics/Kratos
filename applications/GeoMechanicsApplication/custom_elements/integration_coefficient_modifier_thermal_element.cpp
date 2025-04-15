@@ -10,7 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "thermal_integration_coefficients.h"
+#include "integration_coefficient_modifier_thermal_element.h"
 #include "includes/element.h"
 #include "structural_mechanics_application_variables.h"
 
