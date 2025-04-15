@@ -86,7 +86,7 @@
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
+                            "GiDPostMode":           "GiD_PostAscii",
                             "MultiFileFlag":         "SingleFile"
                         },
                         "file_label":          "step",
@@ -97,7 +97,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT"],
-                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
+                        "gauss_point_results": ["PK2_STRESS_VECTOR"]
                     },
                     "point_data_configuration":  []
                 }

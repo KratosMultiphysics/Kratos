@@ -33,7 +33,6 @@ public:
     ResetDisplacementProcess& operator=(const ResetDisplacementProcess&) = delete;
 
     void ExecuteInitialize() override;
-    int  Check() override;
     void ExecuteBeforeSolutionLoop() override;
 
 private:
@@ -44,7 +43,6 @@ private:
                                           IndexType                  ElementId);
 
     std::map<IndexType, std::vector<Vector>> mStressesByElementId;
-
 };
 
 } // namespace Kratos
