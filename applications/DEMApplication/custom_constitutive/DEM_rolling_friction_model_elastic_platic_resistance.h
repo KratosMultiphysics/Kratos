@@ -6,8 +6,8 @@
 //  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
 //
 
-#if !defined(DEM_ROLLING_FRICTION_MODEL_CONSTANT_TORQUE_H_INCLUDED)
-#define DEM_ROLLING_FRICTION_MODEL_CONSTANT_TORQUE_H_INCLUDED
+#if !defined(DEM_ROLLING_FRICTION_MODEL_ELASTIC_PLASTIC_RESISTANCE_H_INCLUDED)
+#define DEM_ROLLING_FRICTION_MODEL_ELASTIC_PLASTIC_RESISTANCE_H_INCLUDED
 
 /* Project includes */
 #include "../custom_elements/spheric_particle.h"
@@ -56,4 +56,4 @@ namespace Kratos{
     
 } /* namespace Kratos.*/
 
-#endif /*DEM_ROLLING_FRICTION_MODEL_CONSTANT_TORQUE_H_INCLUDED defined*/
+#endif /*DEM_ROLLING_FRICTION_MODEL_ELASTIC_PLASTIC_RESISTANCE_H_INCLUDED defined*/

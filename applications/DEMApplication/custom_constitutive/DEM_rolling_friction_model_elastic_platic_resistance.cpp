@@ -10,7 +10,7 @@
 // This model can be found as Model Type A in [Jun Ai, 2011, Assessment of rolling resistance models in discrete element simulations]
 // ATTENTION: Current implementation only works for spherical particles!
 
-#include "DEM_rolling_friction_model_constant_torque.h"
+#include "DEM_rolling_friction_model_elastic_platic_resistance.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos{
