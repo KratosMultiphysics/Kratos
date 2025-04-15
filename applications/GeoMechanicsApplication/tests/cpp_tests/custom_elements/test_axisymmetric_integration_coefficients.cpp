@@ -12,7 +12,7 @@
 //                   Gennady Markelov
 //
 
-#include "custom_elements/axisymmetric_integration_coefficients.h"
+#include "custom_elements/integration_coefficient_modifier_axisymmetric.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 

@@ -25,8 +25,8 @@
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "permeability_calculator.h"
 #include "integration_coefficient_modifier_pw_line_element.h"
+#include "permeability_calculator.h"
 #include <numeric>
 #include <optional>
 

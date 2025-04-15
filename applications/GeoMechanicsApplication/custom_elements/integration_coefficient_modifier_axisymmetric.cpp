@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 
-#include "axisymmetric_integration_coefficients.h"
+#include "integration_coefficient_modifier_axisymmetric.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
