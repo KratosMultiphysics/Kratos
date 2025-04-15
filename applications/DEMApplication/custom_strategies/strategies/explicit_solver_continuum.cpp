@@ -58,6 +58,9 @@ namespace Kratos {
         // Search Neighbors with tolerance (after first repartition process)
         SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);
         SearchNeighbours();
+        if (r_process_info[USE_MESH_REPAIR_OPTION] == 1) {
+            MeshRepairOperations();
+        }
         MeshRepairOperations();
         SearchNeighbours();
 

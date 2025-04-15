@@ -53,6 +53,7 @@ def GetDefaultInputParameters():
             "CleanIndentationsOption"          : false,
             "CleanIndentationsV2Option"        : false,                                       
             "RemoveBallsInEmbeddedOption"      : false,
+            "UseMeshRepairOption"              : false,
             "RadiusExpansionOption"            : false,
             "RadiusExpansionRate"              : 0.0,
             "RadiusMultiplierMax"              : 0.0,

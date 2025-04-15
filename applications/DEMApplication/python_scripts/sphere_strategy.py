@@ -85,6 +85,10 @@ class ExplicitStrategy():
         if "BoundingBoxServoLoadingOption" in DEM_parameters.keys():
             self.bounding_box_servo_loading_option = DEM_parameters["BoundingBoxServoLoadingOption"].GetBool()
 
+        self.use_mesh_repair_option = 0
+        if "UseMeshRepairOption" in self.DEM_parameters.keys():
+            self.use_mesh_repair_option = self.DEM_parameters["UseMeshRepairOption"].GetBool()   
+
         self.delta_option = DEM_parameters["DeltaOption"].GetString() #TODO: this is not an option (bool) let's change the name to something including 'type'
 
         self.search_increment = 0.0
@@ -337,6 +341,11 @@ class ExplicitStrategy():
             self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 1)
         else:
             self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 0)
+
+        if self.use_mesh_repair_option:
+            self.spheres_model_part.ProcessInfo.SetValue(USE_MESH_REPAIR_OPTION, 1)
+        else:
+            self.spheres_model_part.ProcessInfo.SetValue(USE_MESH_REPAIR_OPTION, 0)
 
         # PRINTING VARIABLES
 
