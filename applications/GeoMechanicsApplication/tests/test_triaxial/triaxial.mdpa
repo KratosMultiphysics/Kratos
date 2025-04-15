@@ -1,19 +1,19 @@
 Begin Table 1 TIME NORMAL_CONTACT_STRESS
   0.0 0.0
   1.0 100
-  1000 100
+  100.0 100
 End Table
 
 Begin Table 2 TIME NORMAL_CONTACT_STRESS
   0.0 0.0
   1.0 100
-  1000 100
+  100.0 100
 End Table
 
 Begin Table 3 TIME DISPLACEMENT_Y
   0.0 0.0
   1.0 0.0
-  2.0 -1.0
+  100.0 -0.1
 End Table
 
 Begin ModelPartData
@@ -35,16 +35,16 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainElement2D6N// GUI group identifier: Soil
+Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N// GUI group identifier: Soil
         1          0     1     5     9     3     8     4 
         2          0     9     6     1     7     2     4 
 End Elements
 
-Begin Conditions LineNormalLoadDiffOrderCondition2D3N// GUI group identifier: Lateral_load
+Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N// GUI group identifier: Lateral_load
     1 0 9 6 7
 End Conditions
 
-Begin Conditions LineNormalLoadDiffOrderCondition2D3N// GUI group identifier: Top_load
+Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N// GUI group identifier: Top_load
     2 0 6 1 2
 End Conditions
 
