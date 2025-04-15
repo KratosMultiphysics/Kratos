@@ -737,6 +737,7 @@ int ShellCrossSection::Check(const Properties& rMaterialProperties,
             //		"The Constitutive law of a ShellCrossSection.IntegrationPoint is incompatible with the strain measure required by this cross section ",
             //		"Required strain measure: StrainMeasure_Infinitesimal" );
 
+            iPointLaw->InitializeMaterial(rMaterialProperties, rElementGeometry, Vector());
             iPointLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
         }
     }
@@ -1016,7 +1017,11 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
     rVariables.DeterminantF0 = 1.0;
 
     // calculate the material response
+    Options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    Options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     rPoint.GetConstitutiveLaw()->CalculateMaterialResponse(rMaterialValues, rStressMeasure);
+    Options.Set(ConstitutiveLaw::COMPUTE_STRESS, compute_stress);
+    Options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, compute_constitutive_tensor);
 
     // compute stress resultants and stress couples
 
