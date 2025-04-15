@@ -136,8 +136,8 @@ def plot_sigma(sigma_1, sigma_3):
 
     # Add scatter plot for σ₁ vs σ₃
     fig.add_trace(go.Scatter(
-        x=sigma_1,
-        y=sigma_3,
+        x=sigma_3,
+        y=sigma_1,
         mode='markers',
         marker=dict(size=10, color='blue'),
         name='σ₁ vs σ₃'
@@ -152,7 +152,7 @@ def plot_sigma(sigma_1, sigma_3):
         ),
         xaxis=dict(
             title='σ₃ (Principal Stress 3) [kN/m²]',
-            range=[0, -150],
+            range=[0, -400],
             showline=True,
             linewidth=2,
             linecolor='black',
@@ -217,7 +217,6 @@ def plot_delta_sigma(displacement, diff):
         ),
         yaxis=dict(
             title=' |σ₁ - σ₃| [kN/m²]',
-            range=[0, 300],
             showline=True,
             linewidth=2,
             linecolor='black',
@@ -231,7 +230,7 @@ def plot_delta_sigma(displacement, diff):
     )
     fig.show()
 
-def plot_mohr_coulomb_circle(sigma_1, sigma_3, ):
+def plot_mohr_coulomb_circle(sigma_1, sigma_3):
     """
     Plots the Mohr-Coulomb circle with σ' on the x-axis and mobilized shear stress on the y-axis.
 
@@ -267,7 +266,7 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, ):
         line=dict(color='blue', width=2)
     ))
 
-    # Add the dashed line for failure envelope
+    # Add the dashed line for failure line
     fig.add_trace(go.Scatter(
         x=x_line,
         y=y_line,
@@ -293,7 +292,8 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, ):
             tickwidth=2,
             tickcolor='black',
             ticklen=5,
-            mirror=True
+            mirror=True,
+            autorange='reversed'
         ),
         yaxis=dict(
             title="τ (Mobilized Shear Stress) [kN/m²]",
@@ -305,7 +305,8 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, ):
             tickwidth=2,
             tickcolor='black',
             ticklen=5,
-            mirror=True
+            mirror=True,
+            autorange='reversed'
         ),
         template='plotly_white',
         xaxis_scaleanchor="y"
@@ -455,17 +456,24 @@ if __name__ == "__main__":
 
     sigma1_list = []
     sigma3_list = []
+    eigenvector_list = []
+    eigenvalue_list = []
     for time_step, tensors in reshaped_values_by_time.items():
         for sigma in tensors:
-            principal_stresses = np.linalg.eigvalsh(sigma)
-            sigma_max = np.max(principal_stresses)
-            sigma_min = np.min(principal_stresses)
-            sigma1_list.append(sigma_max)
-            sigma3_list.append(sigma_min)
+            eigenvalues, eigenvectors = np.linalg.eigh(sigma)
+            eigenvector_list.append(eigenvectors)
+            eigenvalue_list.append(eigenvalues)
+            sigma_max = np.max(eigenvalues)
+            sigma_min = np.min(eigenvalues)
+            sigma1_list.append(sigma_min)
+            sigma3_list.append(sigma_max)
 
+
+    vector_list = eigenvector_list
+    value_list = eigenvalue_list
     plot_sigma(sigma1_list, sigma3_list)
 
-    diff = np.array(sigma1_list) - np.array(sigma3_list)
+    diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
     plot_delta_sigma(displacement_list, diff)
     plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1])
 
