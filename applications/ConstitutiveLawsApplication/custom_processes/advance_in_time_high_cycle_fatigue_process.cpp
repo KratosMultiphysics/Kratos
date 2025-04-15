@@ -304,7 +304,9 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
             }
         }
     }
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (NoLinearityIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-2 && fatigue_in_course)) {
+    const double tol = mThisParameters["fatigue"]["damage_jump_stability_tolerance"].GetDouble();
+
+    if ((acumulated_max_stress_rel_error < tol && acumulated_rev_factor_rel_error < tol && fatigue_in_course) || (NoLinearityIndicator && acumulated_max_stress_rel_error < tol && acumulated_rev_factor_rel_error < tol && fatigue_in_course)) {
         rAdvancingStrategy = true;
     }
 }
