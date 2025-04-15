@@ -680,7 +680,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ParticleCreatorDestructor::Pointer& p_creator_destructor = GetParticleCreatorDestructor();
 
-        p_creator_destructor->MarkDistantParticlesForErasing<SphericParticle>(r_model_part);
+        //p_creator_destructor->MarkDistantParticlesForErasing<SphericParticle>(r_model_part);
 
         if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
             p_creator_destructor->MarkContactElementsForErasingContinuum(r_model_part, *mpContact_model_part);
