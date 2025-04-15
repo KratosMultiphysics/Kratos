@@ -240,11 +240,11 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, ):
         sigma_3 (float): Minimum principal stress.
     """
     # Calculate the center and radius of the Mohr-Coulomb circle
-    center = abs((sigma_1 + sigma_3) / 2)
-    radius = abs((sigma_1 - sigma_3) / 2)
+    center = (sigma_1 + sigma_3) / 2
+    radius = (sigma_1 - sigma_3) / 2
 
     # Generate points for the circle
-    theta = np.linspace(0, np.pi, 100)
+    theta = np.linspace(0, np.pi, 200)
     sigma = center + radius * np.cos(theta)
     tau = radius * np.sin(theta)
 
@@ -252,8 +252,9 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, ):
     phi_rad = np.radians(TriaxialTest(os.path.join('MaterialParameters_stage1.json'))
                          .read_umat_parameters()[1])
     cohesion = TriaxialTest(os.path.join('MaterialParameters_stage1.json')).read_umat_parameters()[0]
-    x_line = np.linspace(0, center + 2 * radius)
-    y_line = x_line * np.tan(phi_rad) + cohesion
+
+    x_line = np.linspace(0, sigma_1, 200)
+    y_line = x_line * np.tan(phi_rad) - cohesion
 
     fig = go.Figure()
 
@@ -271,7 +272,7 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, ):
         x=x_line,
         y=y_line,
         mode='lines',
-        name='Mobilized Shear Stress = σ\' * tan(ϕ°)',
+        name='Mobilized Shear Stress = σ\' * tan(ϕ°) + c',
         line=dict(color='red', width=2, dash='dash')
     ))
 
@@ -348,7 +349,7 @@ class MaterialEditorApp:
 
         # Helper frame for UMAT info
         helper_text = (
-            "UMAT_PARAMETERS Mapping:\n"
+            "UMAT_PARAMETERS Mapping for MohrCoulomb64.dll:\n"
             "  1 : E        → Young's modulus\n"
             "  2 : Nu(ν)    → Poisson's ratio (unloading/reloading)\n"
             "  3 : C        → Cohesion\n"
