@@ -74,6 +74,10 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mDConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mDConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
 
+      // Topology Optimization Pde Filter Element
+      mTopologyOptimizationPdeFilterElement2D3N( 0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+      mTopologyOptimizationPdeFilterElement2D4N( 0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+      mTopologyOptimizationPdeFilterElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       // Topology Optimization Fluid Transport Element
       mTransportTopologyOptimizationElement2D3N( 0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mTransportTopologyOptimizationElement2D4N( 0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -107,6 +111,11 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
     // Fluid Transport Topology Optimization Variables
+    KRATOS_REGISTER_VARIABLE( PDE_FILTER_RESULT )
+    KRATOS_REGISTER_VARIABLE( PDE_FILTER_FORCING )
+    KRATOS_REGISTER_VARIABLE( PDE_FILTER_FLUX )
+    KRATOS_REGISTER_VARIABLE( PDE_FILTER_DIFFUSION )
+    KRATOS_REGISTER_VARIABLE( PDE_FILTER_REACTION )
     KRATOS_REGISTER_VARIABLE( TRANSPORT_TOP_OPT_PROBLEM_STAGE )
     KRATOS_REGISTER_VARIABLE( DECAY )
     KRATOS_REGISTER_VARIABLE( OPTIMIZATION_TEMPERATURE )
@@ -161,6 +170,11 @@ void KratosConvectionDiffusionApplication::Register() {
 
     KRATOS_REGISTER_CONDITION("AdjointThermalFace2D2N", mAdjointThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("AdjointThermalFace3D3N", mAdjointThermalFace3D3N);
+
+    // Topology Optimization Pde Filter Element
+    KRATOS_REGISTER_ELEMENT("TopologyOptimizationPdeFilterElement2D3N", mTopologyOptimizationPdeFilterElement2D3N);
+    KRATOS_REGISTER_ELEMENT("TopologyOptimizationPdeFilterElement2D4N", mTopologyOptimizationPdeFilterElement2D4N);
+    KRATOS_REGISTER_ELEMENT("TopologyOptimizationPdeFilterElement3D4N", mTopologyOptimizationPdeFilterElement3D4N);
 
     // Topology Optimization Fluid Transport Element
     KRATOS_REGISTER_ELEMENT("TransportTopologyOptimizationElement2D3N", mTransportTopologyOptimizationElement2D3N);

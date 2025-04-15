@@ -368,7 +368,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         transport_diffusion_functional_derivatives_wrt_design  = self.functional_weights[5] * self.conductivity_derivative_wrt_design_base * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_gradient) * self.nodal_domain_sizes
         transport_convection_functional_derivatives_wrt_design = self.functional_weights[6] * self.convection_coefficient_derivative_wrt_design_base * (transport_scalar*(np.einsum('ij,ij->i', velocity, transport_scalar_gradient))) * self.nodal_domain_sizes
         transport_decay_functional_derivatives_wrt_design      = self.functional_weights[7] * self.decay_derivative_wrt_design_base * (transport_scalar**2) * self.nodal_domain_sizes
-        return transport_diffusion_functional_derivatives_wrt_design+transport_convection_functional_derivatives_wrt_design+transport_decay_functional_derivatives_wrt_design 
+        transport_source_functional_derivatives_wrt_design     = self.functional_weights[8] * self.transport_source_derivative_wrt_design_base * transport_scalar * self.nodal_domain_sizes
+        return transport_diffusion_functional_derivatives_wrt_design+transport_convection_functional_derivatives_wrt_design+transport_decay_functional_derivatives_wrt_design + transport_source_functional_derivatives_wrt_design
     
     def _ComputeFunctionalDerivativesTransportPhysicsContribution(self):
         mp = self._GetComputingModelPart()
@@ -380,6 +381,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         transport_physics_functional_derivatives_wrt_design  = self.conductivity_derivative_wrt_design_base * self.nodal_domain_sizes * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_adj_gradient)
         transport_physics_functional_derivatives_wrt_design += self.decay_derivative_wrt_design_base * (transport_scalar*transport_scalar_adjoint) * self.nodal_domain_sizes
         transport_physics_functional_derivatives_wrt_design += self.convection_coefficient_derivative_wrt_design_base * np.einsum('ij,ij->i', velocity, transport_scalar_gradient) * transport_scalar_adjoint * self.nodal_domain_sizes
+        transport_physics_functional_derivatives_wrt_design += self.transport_source_derivative_wrt_design_base * transport_scalar_adjoint * self.nodal_domain_sizes
         return transport_physics_functional_derivatives_wrt_design
     
     def _UpdateRelevantAdjointVariables(self):
@@ -409,6 +411,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self._InitializeConductivity()
         self._InitializeDecay()
         self._InitializeConvectionCoefficient()
+        self._InitializeTransportSource()
         self._SetConvectiveVelocity()    
     
     def _SetConvectiveVelocity(self, constant_velocity=False, vel=[0,0,0]):
@@ -434,10 +437,17 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self._ResetConvectionCoefficient()
         self._UpdateConvectionCoefficientVariable()
 
+    def _InitializeTransportSource(self):
+        print("--|" + self.topology_optimization_stage_str + "| INITIALIZE TRANSPORT SOURCE")
+        self.transport_source_parameters = self.physics_parameters_settings["transport_source"] 
+        self._ResetTransportSource()
+        self._UpdateTransportSourceVariable()
+
     def ResetPhysicsParameters(self):
         self._ResetConductivity()
         self._ResetDecay()
         self._ResetConvectionCoefficient()
+        self._ResetTransportSource()
 
     def _ResetConductivity(self):
         self.conductivity = np.zeros(self.n_nodes)
@@ -451,10 +461,15 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self.convection_coefficient = np.zeros(self.n_nodes)
         self.convection_coefficient_derivative_wrt_design = np.zeros(self.n_nodes)
 
+    def _ResetTransportSource(self):
+        self.transport_source = np.zeros(self.n_nodes)
+        self.transport_source_derivative_wrt_design = np.zeros(self.n_nodes)
+
     def UpdatePhysicsParametersVariables(self):
         self._UpdateConductivityVariable()
         self._UpdateDecayVariable()
         self._UpdateConvectionCoefficientVariable()
+        self._UpdateTransportSourceVariable()
 
     def _UpdateConductivityVariable(self):
         self._GetSolver()._UpdateConductivityVariable(self.conductivity)
@@ -465,10 +480,14 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     def _UpdateConvectionCoefficientVariable(self):
         self._GetSolver()._UpdateConvectionCoefficientVariable(self.convection_coefficient)
 
+    def _UpdateTransportSourceVariable(self):
+        self._GetSolver()._UpdateTransportSourceVariable(self.transport_source)
+
     def _UpdatePhysicsParameters(self):
         self._UpdateConductivity()
         self._UpdateDecay()
         self._UpdateConvectionCoefficient()
+        self._UpdateTransportSource()
 
     def _UpdateConductivity(self):
         """
@@ -496,6 +515,15 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self.convection_coefficient, self.convection_coefficient_derivative_wrt_design_base = self._ComputeConvectionCoefficient(self.design_parameter)
         self._UpdateConvectionCoefficientDesignDerivative()
         self._UpdateConvectionCoefficientVariable()
+
+    def _UpdateTransportSource(self):
+        """
+        This method handles the convection coefficient update.
+        """
+        print("--|" + self.topology_optimization_stage_str + "| UPDATE TRANSPORT SOURCE")
+        self.transport_source, self.transport_source_derivative_wrt_design_base = self._ComputeTransportSource(self.design_parameter)
+        self._UpdateTransportSourceDesignDerivative()
+        self._UpdateTransportSourceVariable()
     
     def _ComputeConductivity(self, design_parameter):
         return self._ComputePhysicsParameter(self.conductivity_parameters, design_parameter)
@@ -505,24 +533,33 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     
     def _ComputeConvectionCoefficient(self, design_parameter):
         return self._ComputePhysicsParameter(self.convection_coefficient_parameters, design_parameter)
+    
+    def _ComputeTransportSource(self, design_parameter):
+        return self._ComputePhysicsParameter(self.transport_source_parameters, design_parameter)
 
     def _UpdateConductivityDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
         conductivity_derivative_wrt_design_projected = self.conductivity_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.conductivity_derivative_wrt_design = conductivity_derivative_wrt_design_projected
-        self.conductivity_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(conductivity_derivative_wrt_design_projected[mask])
+        # self.conductivity_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(conductivity_derivative_wrt_design_projected[mask])
 
     def _UpdateDecayDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
         decay_derivative_wrt_design_projected = self.decay_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.decay_derivative_wrt_design = decay_derivative_wrt_design_projected
-        self.decay_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(decay_derivative_wrt_design_projected[mask])
+        # self.decay_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(decay_derivative_wrt_design_projected[mask])
 
     def _UpdateConvectionCoefficientDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
         convection_coefficient_derivative_wrt_design_projected = self.convection_coefficient_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.convection_coefficient_derivative_wrt_design = convection_coefficient_derivative_wrt_design_projected
-        self.convection_coefficient_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(convection_coefficient_derivative_wrt_design_projected[mask])
+        # self.convection_coefficient_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(convection_coefficient_derivative_wrt_design_projected[mask])
+
+    def _UpdateTransportSourceDesignDerivative(self):
+        mask = self._GetOptimizationDomainNodesMask()
+        transport_source_derivative_wrt_design_projected = self.transport_source_derivative_wrt_design_base * self.design_parameter_projected_derivatives
+        self.transport_source_derivative_wrt_design = transport_source_derivative_wrt_design_projected
+        # self.transport_source_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(transport_source_derivative_wrt_design_projected[mask])
 
     def _GetTransportModelPart(self):
         return self._GetMainModelPart()
@@ -557,6 +594,17 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                 "interpolation_method": "polynomial",
                 "value_void"        : 1.0,
                 "value_full"        : 1.0,
+                "interpolation_slope": {
+                    "initial_slope": 1.0,
+                    "final_slope"  : 10.0,
+                    "iterations"   : [2,50]
+                },
+                "domain": "all"
+            },
+            "transport_source": {
+                "interpolation_method": "polynomial",
+                "value_void"        : 0.0,
+                "value_full"        : 0.0,
                 "interpolation_slope": {
                     "initial_slope": 1.0,
                     "final_slope"  : 10.0,

@@ -1,0 +1,607 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Gianmarco Boscolo
+//
+
+#ifndef KRATOS_TOP_OPT_PDE_FILTER_ELEMENT_H
+#define KRATOS_TOP_OPT_PDE_FILTER_ELEMENT_H
+
+#include "includes/checks.h"
+#include "includes/define.h"
+#include "includes/element.h"
+#include "includes/serializer.h"
+#include "geometries/geometry.h"
+
+#include "includes/cfd_variables.h"
+#include "convection_diffusion_application_variables.h"
+
+namespace Kratos
+{
+
+///@addtogroup ConvectionDiffusionApplication
+///@{
+
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+template <class TElementData>
+class TopologyOptimizationPdeFilterElement : public Element
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of TopologyOptimizationPdeFilterElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TopologyOptimizationPdeFilterElement);
+
+    /// Node type (default is: Node)
+    typedef Node NodeType;
+
+    /// Geometry type (using with given NodeType)
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Definition of nodes container type, redefined from GeometryType
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
+    /// Vector type for local contributions to the linear system
+    typedef Vector VectorType;
+
+    /// Matrix type for local contributions to the linear system
+    typedef Matrix MatrixType;
+
+    typedef std::size_t IndexType;
+
+    typedef std::size_t SizeType;
+
+    typedef std::vector<std::size_t> EquationIdVectorType;
+
+    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+
+    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+
+    /// Type for shape function values container
+    typedef MatrixRow< Matrix > ShapeFunctionsType;
+
+    /// Type for a matrix containing the shape function gradients
+    typedef Kratos::Matrix ShapeFunctionDerivativesType;
+
+    /// Type for an array of shape function gradient matrices
+    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+
+    using ElementData = TElementData;
+
+    static constexpr unsigned int Dim = TElementData::Dim;
+    static constexpr unsigned int NumNodes = TElementData::NumNodes;
+    static constexpr unsigned int BlockSize = 1;
+    static constexpr unsigned int LocalSize = NumNodes * BlockSize;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    //Constructors.
+
+    /// Default constuctor.
+    /**
+     * @param NewId Index number of the new element (optional)
+     */
+    TopologyOptimizationPdeFilterElement(IndexType NewId = 0);
+
+    /// Constructor using an array of nodes.
+    /**
+     * @param NewId Index of the new element
+     * @param ThisNodes An array containing the nodes of the new element
+     */
+    TopologyOptimizationPdeFilterElement(IndexType NewId, const NodesArrayType& ThisNodes);
+
+    /// Constructor using a geometry object.
+    /**
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     */
+    TopologyOptimizationPdeFilterElement(IndexType NewId, GeometryType::Pointer pGeometry);
+
+    /// Constuctor using geometry and properties.
+    /**
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     * @param pProperties Pointer to the element's properties
+     */
+    TopologyOptimizationPdeFilterElement(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~TopologyOptimizationPdeFilterElement();
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+
+    /// Create a new element of this type
+    /**
+     * Returns a pointer to a new TopologyOptimizationPdeFilterElement element, created using given input
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(IndexType NewId,
+                            NodesArrayType const& ThisNodes,
+                            Properties::Pointer pProperties) const override;
+
+    /// Create a new element of this type using given geometry
+    /**
+     * Returns a pointer to a new TopologyOptimizationPdeFilterElement element, created using given input
+     * @param NewId the ID of the new element
+     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                            Properties::Pointer pProperties) const override;
+
+    /// Set up the element for solution.
+    /** For TopologyOptimizationPdeFilterElement, this initializes the constitutive law using the data in the element's properties.
+     */
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
+
+    /**
+     * @brief CalculateLocalSystem Return empty matrices and vectors of appropriate size.
+     * This element does not have a local contribution in terms of displacements, but the scheme may
+     * require a proper-sized matrix, even if it is empty.
+     * @param rLeftHandSideMatrix Local finite element system matrix (output)
+     * @param rRightHandSideVector Local finite element residual vector (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief CalculateLeftHandSide Return an empty matrix of appropriate size.
+     * This element does not have a local contribution in terms of displacements, but the scheme may
+     * require a proper-sized matrix, even if it is empty.
+     * @param rLeftHandSideMatrix Local finite element system matrix (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief CalculateRightHandSide Return an empty matrix of appropriate size.
+     * This element does not have a local contribution in terms of displacements, but the scheme may
+     * require a proper-sized matrix, even if it is empty.
+     * @param rRightHandSideVector Local finite element residual vector (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief CalculateLocalVelocityContribution Calculate the local contribution in terms of velocity and pressure.
+     * @param rDampMatrix Local finite element system matrix (output)
+     * @param rRightHandSideVector Local finite element residual vector (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void CalculateLocalVelocityContribution(
+        MatrixType &rDampMatrix,
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    /**
+     * @brief MassMatrix Calculate the local mass matrix.
+     * @param rMassMatrix Local mass matrix (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void CalculateMassMatrix(
+        MatrixType &rMassMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+
+    /**
+     * @brief EquationIdVector Returns the global system rows corresponding to each local row.
+     * @param rResult rResult[i] is the global index of local row i (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
+     * @brief GetDofList Returns a list of the element's Dofs.
+     * @param rElementalDofList List of DOFs. (output)
+     * @param rCurrentProcessInfo Current ProcessInfo instance. (input)
+     */
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+
+    /**
+     * @brief GetIntegrationMethod Return the integration order to be used.
+     * @return Gauss Order
+     */
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 3>> const& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<double> const& rVariable,
+        std::vector<double>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 6>> const& rVariable,
+        std::vector<array_1d<double, 6>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override;
+
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override;
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual double GetAtCoordinate(
+        const typename TElementData::NodalScalarData& rValues,
+        const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual array_1d<double, 3> GetAtCoordinate(
+        const typename TElementData::NodalVectorData& rValues,
+        const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual BoundedMatrix<double, TElementData::Dim, TElementData::Dim> GetAtCoordinate(
+        const typename TElementData::NodalTensorData &rValues,
+        const typename TElementData::ShapeFunctionsType &rN) const;
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual double GetAtCoordinate(
+        const double Value,
+        const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Set up the element's data and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     */
+    virtual void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX) const;
+
+    /// Determine integration point weights and shape funcition derivatives from the element's geometry.
+    virtual void CalculateGeometryData(Vector& rGaussWeights,
+                                       Matrix& rNContainer,
+                                       ShapeFunctionDerivativesArrayType& rDN_DX) const;
+
+    /**
+     * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
+     * Evaluate the convective operator for each node's shape function at an arbitrary point
+     * @param rResult Output vector
+     * @param rConvVel Convective velocity evaluated at the integration point
+     * @param DN_DX Derivatives of shape functions evaluated at the integration point
+     */
+    void ConvectionOperator(Vector& rResult,
+                            const array_1d<double,3>& rConvVel,
+                            const ShapeFunctionDerivativesType& DN_DX) const;
+
+    void AddTimeIntegratedSystem(
+        TElementData& rData,
+        MatrixType& rLHS,
+        VectorType& rRHS);
+
+    void AddTimeIntegratedLHS(
+        TElementData& rData,
+        MatrixType& rLHS);
+
+    void AddTimeIntegratedRHS(
+        TElementData& rData,
+        VectorType& rRHS);
+
+    void ComputeGaussPointLHSContribution(
+        TElementData& rData,
+        MatrixType& rLHS);
+
+    void ComputeGaussPointRHSContribution(
+        TElementData& rData,
+        VectorType& rRHS);
+
+    virtual void AddVelocitySystem(
+        TElementData& rData,
+        MatrixType& rLocalLHS,
+        VectorType& rLocalRHS);
+
+    virtual void AddMassLHS(
+        TElementData& rData,
+        MatrixType& rMassMatrix);
+
+    void GetCurrentValuesVector(
+        const TElementData& rData,
+        array_1d<double,LocalSize>& rValues) const;
+
+    void Calculate(
+        const Variable<double> &rVariable,
+        double &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<array_1d<double, 3>> &rVariable,
+        array_1d<double, 3> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<Vector> &rVariable,
+        Vector &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<Matrix> &rVariable,
+        Matrix &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    //// Constitutive relation for the element
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    TopologyOptimizationPdeFilterElement& operator=(TopologyOptimizationPdeFilterElement const& rOther);
+
+    /// Copy constructor.
+    TopologyOptimizationPdeFilterElement(TopologyOptimizationPdeFilterElement const& rOther);
+
+    ///@}
+
+
+}; // Class TopologyOptimizationPdeFilterElement
+
+namespace Internals {
+
+// template< class TElementData, std::size_t TDim >
+// struct StrainRateSpecialization {
+// /// Compute the strain rate vector in Voigt notation, to use as input for the fluid constitutive law.
+// /*  @param[out] rStrainRate The strain rate tensor (symmetric gradient of velocity) in Voigt notation.
+//  *  @param[in] rVelocities Matrix of nodal velocities, as provided by TElementData.
+//  *  @param[in] rDNDX Matrix of shape function gradients on the integration point, as provided by TElementData.
+//  *  @see ConstitutiveLaw.
+//  */
+// static void Calculate(
+//     Vector& rStrainRate,
+//     const typename TElementData::NodalVectorData& rVelocities,
+//     const typename TElementData::ShapeDerivativesType& rDNDX);
+// };
+
+// template< class TElementData >
+// struct StrainRateSpecialization<TElementData,2> {
+// static void Calculate(
+//     Vector& rStrainRate,
+//     const typename TElementData::NodalVectorData& rVelocities,
+//     const typename TElementData::ShapeDerivativesType& rDNDX);
+// };
+
+// template< class TElementData >
+// struct StrainRateSpecialization<TElementData,3> {
+// static void Calculate(
+//     Vector& rStrainRate,
+//     const typename TElementData::NodalVectorData& rVelocities,
+//     const typename TElementData::ShapeDerivativesType& rDNDX);
+// };
+
+}
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+template< class TElementData >
+inline std::istream& operator >>(std::istream& rIStream,
+                                 TopologyOptimizationPdeFilterElement<TElementData>& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+template< class TElementData >
+inline std::ostream& operator <<(std::ostream& rOStream,
+                                 const TopologyOptimizationPdeFilterElement<TElementData>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} // Convection Diffusion Application group
+
+} // namespace Kratos.
+
+#endif // KRATOS_TOP_OPT_PDE_FILTER_ELEMENT_H

@@ -93,6 +93,12 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        # EVENTUAL PDE FILTER VARIABLES
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_RESULT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_FORCING)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_DIFFUSION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_REACTION)
         # SETTINGS
         self._DefineSettings()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Transport Topology Optimization T and T_ADJ solver variables added correctly.")
@@ -108,14 +114,11 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
     def _SetTimeSchemeBufferSize(self):
         self.settings["time_scheme"].SetString("bdf2")
         self.min_buffer_size = 1
-        # self._SetUpSteadySimulation()
 
     def PrepareModelPart(self):
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY, 10.0, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY, 0.0, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.DECAY, 0.0, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONVECTION_COEFFICIENT, 0.0, self.main_model_part.Nodes)
-        # super().PrepareModelPart()
-        # assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
         if not self.is_restarted():
             # Import material properties
             materials_imported = self.import_materials()
@@ -125,24 +128,10 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
-
-            # tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
-            # throw_errors = False
-            # flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
-            # if assign_neighbour_elements:
-            #     flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-            # else:
-            #     flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
-            # tmoc(self.main_model_part,throw_errors, flags).Execute()
             self._set_and_fill_buffer()
-
-        # Create the MPI communicators
-        # if super()._CheckIsDistributed():
-        #     self.distributed_model_part_importer.CreateCommunicators()
 
         if (self.settings["echo_level"].GetInt() > 0):
             KratosMultiphysics.Logger.PrintInfo(self.model)
-
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
     def _UpdateConductivityVariable(self, conductivity):
@@ -180,6 +169,18 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
                 node.SetValue(KratosMultiphysics.CONVECTION_COEFFICIENT, convection_coefficient[node.Id-1])
         else:
             raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(convection_coefficient)}")
+        
+    def _UpdateTransportSourceVariable(self, transport_source):
+        self.is_transport_source_updated = True
+        mp = self.GetComputingModelPart()
+        if isinstance(transport_source, (int, float)): 
+            for node in mp.Nodes:
+             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, transport_source)
+        elif isinstance(transport_source, (np.ndarray, list)): 
+            for node in mp.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, transport_source[node.Id-1])
+        else:
+            raise TypeError(f"Unsupported input type in '_UpdateDecayVariable' : {type(transport_source)}")
 
     def _SetConvectiveVelocity(self, is_constant_velocity, vel):
         self.is_constant_velocity = is_constant_velocity
@@ -279,6 +280,7 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.is_conductivity_updated = False
         self.is_decay_updated = False
         self.is_convection_coefficient_updated = False
+        self.is_transport_source_updated = True
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def PrintPhysicsParametersUpdateStatus(self, problem_phase_str):
@@ -288,6 +290,5 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
             print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating DECAY variable")
         if (not self.is_convection_coefficient_updated):
             print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating CONVECTION_COEFFICIENT variable")
-
-        
-
+        if (not self.is_transport_source_updated):
+            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating TRANSPORT SOURCE variable")

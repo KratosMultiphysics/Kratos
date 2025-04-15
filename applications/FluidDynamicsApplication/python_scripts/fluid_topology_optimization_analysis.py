@@ -12,10 +12,12 @@ import time
 import KratosMultiphysics as KratosMultiphysics
 # Import Kratos Applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 import KratosMultiphysics.MeshingApplication as KratosMMG
 # Import Kratos Analysis and Solvers
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver
+from KratosMultiphysics.ConvectionDiffusionApplication.apply_topology_optimization_pde_filter_process import ApplyTopologyOptimizationPdeFilterProcess
 # Import Kratos Processes
 from KratosMultiphysics import ComputeNodalGradientProcess
 
@@ -761,7 +763,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         mask = self._GetOptimizationDomainNodesMask()
         resistance_derivative_wrt_design_projected = self.resistance_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.resistance_derivative_wrt_design = resistance_derivative_wrt_design_projected
-        self.resistance_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(resistance_derivative_wrt_design_projected[mask])
+        # self.resistance_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(resistance_derivative_wrt_design_projected)
     
     def _UpdateResistanceVariable(self):
         self._GetSolver()._UpdateResistanceVariable(self.resistance)
@@ -1021,7 +1023,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         temp_functional_derivatives_wrt_design = self._ComputeFunctionalDerivativesFunctionalContribution()
         temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesPhysicsContribution()
         temp_functional_derivatives_wrt_design_projected = temp_functional_derivatives_wrt_design * self.design_parameter_projected_derivatives
-        temp_functional_derivatives_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(temp_functional_derivatives_wrt_design_projected[mask])
+        temp_functional_derivatives_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(temp_functional_derivatives_wrt_design_projected)
         return temp_functional_derivatives_wrt_design
         
     def _UpdateFunctionalDerivativesVariable(self):
@@ -1057,7 +1059,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.volume_constraint = self.volume_fraction - self.max_volume_fraction
         volume_constraint_derivatives_wrt_design_projected = volume_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
         self.constraints[0] = self.volume_constraint
-        self.constraints_derivatives_wrt_design[0,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected[mask])
+        self.constraints_derivatives_wrt_design[0,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected)
 
     def _EvaluateWSSConstraintAndDerivative(self):
         dumb = 0
@@ -1274,8 +1276,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.apply_diffusive_filter = self.diffusive_filter_settings["use_filter"].GetBool()
         self.diffusive_filter_type = self.diffusive_filter_settings["filter_type"].GetString()
         self.diffusive_filter_radius = self.diffusive_filter_settings["radius"].GetDouble()
+        self.diffusive_filter_type_settings = self.diffusive_filter_settings["type_settings"]
         if (self.apply_diffusive_filter):
-            self._BuildNodesConnectivity()
+            if self.diffusive_filter_type == "pde":
+                self._InitializePdeDiffusiveFilter()
+            else:
+                self._InitializeDiscreteDiffusiveFilter()
 
     def _ComputeDesignParameterProjectiveFilterUtilities(self):
         self._InitializeProjectiveFilter()
@@ -1292,10 +1298,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.projective_filter_activation_change = self.projective_filter_settings["activation_change"].GetDouble()
         self.projective_filter_slope = self.projective_filter_min_projection_slope
 
-    def _BuildNodesConnectivity(self):
+    def _InitializeDiscreteDiffusiveFilter(self):
         if (self.diffusive_filter_radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
             self.diffusive_filter_radius = 1e-10
-        print("--|" + self.topology_optimization_stage_str + "| ---> Build Nodes Connectivity")
+        print("--|" + self.topology_optimization_stage_str + "| ---> Initialize Discrete Diffusive Filter")
         mp = self._GetComputingModelPart()
         mask = self._GetOptimizationDomainNodesMask()
         only_opt_mp_nodes = self._GetModelPartNodesSubset(mp, mask+1)
@@ -1311,6 +1317,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.nodes_connectivity_matrix.data /= self.nodes_connectivity_weights_sum[row_indices]
         self.nodes_connectivity_matrix_for_derivatives = self.nodes_connectivity_matrix.copy()
         self._CorrectNodesConnectivityMatrixForDerivativesWithSymmetryAndTranspose()
+
+    def _InitializePdeDiffusiveFilter(self):
+        print("--|" + self.topology_optimization_stage_str + "| ---> Initialize PDE Diffusive Filter")
+        self.pde_diffusive_filter_process = ApplyTopologyOptimizationPdeFilterProcess(self.model, self.diffusive_filter_type_settings, self.diffusive_filter_radius, self._GetMainModelPart(),  self._GetOptimizationDomain(), self._GetOptimizationDomainNodesMask())
 
     def _CorrectNodesConnectivityMatrixWithSymmetry(self):
         """
@@ -1365,7 +1375,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         print("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter:", self.apply_diffusive_filter)
         self.design_parameter_filtered = design_parameter
         mask = self._GetOptimizationDomainNodesMask()
-        self.design_parameter_filtered[mask] = self._ApplyDiffusiveFilter(design_parameter[mask])
+        self.design_parameter_filtered[mask] = self._ApplyDiffusiveFilter(design_parameter)
 
     def _ApplyDesignParameterProjectiveFilter(self, design_parameter):
         print("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter:", self.apply_projective_filter)
@@ -1390,18 +1400,42 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             projection_argument = self.projective_filter_slope*(design_parameter-design_parameter_mean)
             self.design_parameter_projected[mask] = ((constant + np.tanh(projection_argument)) / factor)[mask]
             self.design_parameter_projected_derivatives[mask] = ((self.projective_filter_slope / factor) / (np.cosh(projection_argument)**2))[mask]
+        else:
+            self.design_parameter_projected = np.clip(self.design_parameter_projected, a_min=0.0, a_max=1.0)
                 
     def _ApplyDiffusiveFilter(self, scalar_variable):
+        scalar_variable_in_opt_domain = scalar_variable[self._GetOptimizationDomainNodesMask()]
         if (self.apply_diffusive_filter):
-            return (self.nodes_connectivity_matrix @ scalar_variable)
+            if (self.diffusive_filter_type == "pde"):
+                print("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Design Parameter")
+                self._InitializePdeDiffusiveFilterExecution(scalar_variable)
+                self.pde_diffusive_filter_process.Execute()
+                return self._FinalizePdeDiffusiveFilterExecution()
+            else:
+                print("--|" + self.topology_optimization_stage_str + "| ----> Discrete Filter for Design Parameter")
+                return (self.nodes_connectivity_matrix @ scalar_variable_in_opt_domain)
         else:
-            return scalar_variable
+            return scalar_variable_in_opt_domain
+        
+    def _InitializePdeDiffusiveFilterExecution(self, pde_filter_source):
+        self.pde_diffusive_filter_process._UpdatePdeFilterSourceTerm(pde_filter_source)
+
+    def _FinalizePdeDiffusiveFilterExecution(self):
+        return self.pde_diffusive_filter_process._GetLastFilteredValue()
     
     def _ApplyDiffusiveFilterDerivative(self, scalar_variable_derivative):
+        scalar_variable_derivative_in_opt_domain = scalar_variable_derivative[self._GetOptimizationDomainNodesMask()]
         if (self.apply_diffusive_filter):
-            return self.nodes_connectivity_matrix_for_derivatives @ scalar_variable_derivative
+            if (self.diffusive_filter_type == "pde"):
+                print("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Functional Derivative")
+                self._InitializePdeDiffusiveFilterExecution(scalar_variable_derivative)
+                self.pde_diffusive_filter_process.Execute()
+                return self._FinalizePdeDiffusiveFilterExecution()
+            else:
+                print("--|" + self.topology_optimization_stage_str + "| ----> Discrete Filter for Functional Derivative")
+                return self.nodes_connectivity_matrix_for_derivatives @ scalar_variable_derivative_in_opt_domain
         else:
-            return scalar_variable_derivative
+            return scalar_variable_derivative_in_opt_domain
         
 
     def _UpdateOptimizationProblemPhysics(self, optimization_domain_design_parameter):
@@ -1546,7 +1580,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "resistance": {},                                                                
             "conductivity": {},
             "decay": {},
-            "convection_coefficient": {}                                                     
+            "convection_coefficient": {},
+            "transport_source": {}                                                     
         }""")
         return base_physics_parameters_settings
     
@@ -1565,7 +1600,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "diffusive_filter_settings": {
                 "use_filter" : false,
                 "filter_type": "discrete" ,
-                "radius"     : 0.01
+                "radius"     : 0.01,
+                "filter_settings": {}
             },
             "projective_filter_settings": {
                 "use_filter"              : false,

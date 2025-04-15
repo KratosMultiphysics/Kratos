@@ -479,24 +479,28 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         self._InitializeConductivity()
         self._InitializeDecay()
         self._InitializeConvectionCoefficient()
+        self._InitializeTransportSource()
 
     def ResetPhysicsParameters(self):
         self._ResetResistance()
         self._ResetConductivity()
         self._ResetDecay()
         self._ResetConvectionCoefficient()
+        self._ResetTransportSource()
 
     def UpdatePhysicsParametersVariables(self):
         self._UpdateResistanceVariable()
         self._UpdateConductivityVariable()
         self._UpdateDecayVariable()
         self._UpdateConvectionCoefficientVariable()
+        self._UpdateTransportSourceVariable()
 
     def _UpdatePhysicsParameters(self):
         self._UpdateResistance()
         self._UpdateConductivity()
         self._UpdateDecay()
         self._UpdateConvectionCoefficient()
+        self._UpdateTransportSource()
     
     def GetDefaultOptimizationSettings(self):
         ##settings string in json format

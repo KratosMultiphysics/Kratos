@@ -37,6 +37,7 @@
 #include "custom_elements/adjoint_diffusion_element.h"
 #include "custom_elements/qs_convection_diffusion_explicit.h"
 #include "custom_elements/d_convection_diffusion_explicit.h"
+#include "custom_elements/topology_optimization_pde_filter_element.h"
 #include "custom_elements/transport_topology_optimization_element.h"
 
 #include "custom_conditions/axisymmetric_thermal_face.h"
@@ -46,6 +47,7 @@
 #include "custom_conditions/laplacian_shifted_boundary_condition.h"
 #include "custom_conditions/mixed_laplacian_shifted_boundary_condition.h"
 
+#include "custom_utilities/topology_optimization_pde_filter_element_data.h"
 #include "custom_utilities/transport_topology_optimization_element_data.h"
 
 #include "includes/variables.h"
@@ -287,6 +289,10 @@ private:
     const DConvectionDiffusionExplicit<2,3> mDConvectionDiffusionExplicit2D3N;
     const DConvectionDiffusionExplicit<3,4> mDConvectionDiffusionExplicit3D4N;
 
+    // Topology Optimization Pde Filter Element
+    const TopologyOptimizationPdeFilterElement<TopologyOptimizationPdeFilterElementData<2,3,true>> mTopologyOptimizationPdeFilterElement2D3N;
+    const TopologyOptimizationPdeFilterElement<TopologyOptimizationPdeFilterElementData<2,4,true>> mTopologyOptimizationPdeFilterElement2D4N;
+    const TopologyOptimizationPdeFilterElement<TopologyOptimizationPdeFilterElementData<3,4,true>> mTopologyOptimizationPdeFilterElement3D4N;
     // Topology Optimization Fluid Transport Element
     const TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,3,true>> mTransportTopologyOptimizationElement2D3N;
     const TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,4,true>> mTransportTopologyOptimizationElement2D4N;
