@@ -93,12 +93,13 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStra
     KRATOS_CHECK_VECTOR_NEAR(calculated_strain, expected_vector, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CannotBeCopiedButItCanBeMoved,
-                          KratosGeoMechanicsFastSuiteWithoutKernel){
-    KRATOS_EXPECT_FALSE(std::is_copy_constructible_v<PlaneStrainStressState>)
-        KRATOS_EXPECT_FALSE(std::is_copy_assignable_v<PlaneStrainStressState>)
-            KRATOS_EXPECT_TRUE(std::is_move_constructible_v<PlaneStrainStressState>)
-                KRATOS_EXPECT_TRUE(std::is_move_assignable_v<PlaneStrainStressState>)}
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<PlaneStrainStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<PlaneStrainStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<PlaneStrainStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<PlaneStrainStressState>);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {

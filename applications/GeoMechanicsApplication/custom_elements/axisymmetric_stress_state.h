@@ -18,25 +18,25 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricStressState : public StressStatePolicy
+class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricStressState final : public StressStatePolicy
 {
 public:
     [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                          double DetJ,
-                                                         const Geometry<Node>& rGeometry) const final;
+                                                         const Geometry<Node>& rGeometry) const override;
     [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rDN_DX,
                                           const Vector&         rN,
-                                          const Geometry<Node>& rGeometry) const final;
-    [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const final;
-    [[nodiscard]] std::unique_ptr<StressStatePolicy> Clone() const final;
-    [[nodiscard]] const Vector&                      GetVoigtVector() const final;
-    [[nodiscard]] SizeType                           GetVoigtSize() const final;
-    [[nodiscard]] SizeType                           GetStressTensorSize() const final;
+                                          const Geometry<Node>& rGeometry) const override;
+    [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const override;
+    [[nodiscard]] std::unique_ptr<StressStatePolicy> Clone() const override;
+    [[nodiscard]] const Vector&                      GetVoigtVector() const override;
+    [[nodiscard]] SizeType                           GetVoigtSize() const override;
+    [[nodiscard]] SizeType                           GetStressTensorSize() const override;
 
 private:
     friend class Serializer;
-    void save(Serializer&) const final;
-    void load(Serializer&) final;
+    void save(Serializer&) const override;
+    void load(Serializer&) override;
 };
 
 } // namespace Kratos

@@ -78,12 +78,13 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
     KRATOS_EXPECT_NEAR(calculated_coefficient, 5.02655, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CannotBeCopiedButItCanBeMoved,
-                          KratosGeoMechanicsFastSuiteWithoutKernel){
-    KRATOS_EXPECT_FALSE(std::is_copy_constructible_v<AxisymmetricStressState>)
-        KRATOS_EXPECT_FALSE(std::is_copy_assignable_v<AxisymmetricStressState>)
-            KRATOS_EXPECT_TRUE(std::is_move_constructible_v<AxisymmetricStressState>)
-                KRATOS_EXPECT_TRUE(std::is_move_assignable_v<AxisymmetricStressState>)}
+KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<AxisymmetricStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<AxisymmetricStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<AxisymmetricStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<AxisymmetricStressState>);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
 {

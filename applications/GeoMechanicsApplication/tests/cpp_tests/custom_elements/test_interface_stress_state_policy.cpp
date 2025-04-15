@@ -44,12 +44,13 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CannotBeCopiedButItCanBeMoved,
-                          KratosGeoMechanicsFastSuiteWithoutKernel){
-    KRATOS_EXPECT_FALSE(std::is_copy_constructible_v<InterfaceStressState>)
-        KRATOS_EXPECT_FALSE(std::is_copy_assignable_v<InterfaceStressState>)
-            KRATOS_EXPECT_TRUE(std::is_move_constructible_v<InterfaceStressState>)
-                KRATOS_EXPECT_TRUE(std::is_move_assignable_v<InterfaceStressState>)}
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<InterfaceStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<InterfaceStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<InterfaceStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<InterfaceStressState>);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {

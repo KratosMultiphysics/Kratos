@@ -84,12 +84,13 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_ReturnsCorrectIntegrationC
     KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CannotBeCopiedButItCanBeMoved,
-                          KratosGeoMechanicsFastSuiteWithoutKernel){
-    KRATOS_EXPECT_FALSE(std::is_copy_constructible_v<ThreeDimensionalStressState>)
-        KRATOS_EXPECT_FALSE(std::is_copy_assignable_v<ThreeDimensionalStressState>)
-            KRATOS_EXPECT_TRUE(std::is_move_constructible_v<ThreeDimensionalStressState>)
-                KRATOS_EXPECT_TRUE(std::is_move_assignable_v<ThreeDimensionalStressState>)}
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<ThreeDimensionalStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<ThreeDimensionalStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<ThreeDimensionalStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<ThreeDimensionalStressState>);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectClone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
