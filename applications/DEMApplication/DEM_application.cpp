@@ -1072,6 +1072,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_parallel_bond_bilinear_damage", DEM_parallel_bond_bilinear_damage());
     Serializer::Register("DEM_parallel_bond_bilinear_damage_mixed", DEM_parallel_bond_bilinear_damage_mixed());
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
+    Serializer::Register("DEMRollingFrictionModelElasticPlasticResistance", DEMRollingFrictionModelElasticPlasticResistance());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());
     Serializer::Register("DEMRollingFrictionModelBounded", DEMRollingFrictionModelBounded());
     Serializer::Register("DEMGlobalDampingNonViscousCstForceDir", DEMGlobalDampingNonViscousCstForceDir());

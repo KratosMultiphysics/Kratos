@@ -366,6 +366,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
+    py::class_<DEMRollingFrictionModelElasticPlasticResistance, DEMRollingFrictionModelElasticPlasticResistance::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelElasticPlasticResistance")
+        .def(py::init<>())
+        ;
+
     py::class_<DEMRollingFrictionModelViscousTorque, DEMRollingFrictionModelViscousTorque::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelViscousTorque")
         .def(py::init<>())
         ;
