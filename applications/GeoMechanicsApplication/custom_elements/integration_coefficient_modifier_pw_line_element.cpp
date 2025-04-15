@@ -11,9 +11,8 @@
 //
 
 #include "integration_coefficient_modifier_pw_line_element.h"
-
-#include <includes/element.h>
-#include <structural_mechanics_application_variables.h>
+#include "includes/element.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
