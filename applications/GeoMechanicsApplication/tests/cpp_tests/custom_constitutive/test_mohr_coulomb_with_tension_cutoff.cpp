@@ -370,10 +370,13 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     serializer.save("test_tag"s, p_law);
     auto p_loaded_law = std::unique_ptr<ConstitutiveLaw>();
     serializer.load("test_tag"s, p_loaded_law);
-    p_loaded_law->CalculateMaterialResponseCauchy(parameters);
 
     // Assert
     Vector loaded_calculated_cauchy_stress_vector;
+    p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_cauchy_stress_vector);
+    KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_cauchy_stress_vector, calculated_cauchy_stress_vector);
+
+    p_loaded_law->CalculateMaterialResponseCauchy(parameters);
     p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_cauchy_stress_vector);
     KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_cauchy_stress_vector, calculated_cauchy_stress_vector);
 }
