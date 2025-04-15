@@ -626,7 +626,7 @@ double CalculatePhi(const Properties& rProperties, const double L)
     const double A_s = rProperties[AREA_EFFECTIVE_Y];
     const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
 
-    if (A_s == 0.0) // If effective area is null -> Euler Bernouilli case
+    if (A_s == 0.0) // If effective area is null -> Euler Bernoulli case
         return 0.0;
     else
         return 12.0 * E * I / (G * A_s * std::pow(L, 2));
@@ -642,7 +642,7 @@ double CalculatePhiY(const Properties& rProperties, const double L)
     const double A_s = rProperties[AREA_EFFECTIVE_Z];
     const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
 
-    if (A_s == 0.0) // If effective area is null -> Euler Bernouilli case
+    if (A_s == 0.0) // If effective area is null -> Euler Bernoulli case
         return 0.0;
     else
         return 12.0 * E * I / (G * A_s * std::pow(L, 2));
