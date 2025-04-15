@@ -4,13 +4,7 @@ Begin Table 1 TIME NORMAL_CONTACT_STRESS
   100.0 100
 End Table
 
-Begin Table 2 TIME NORMAL_CONTACT_STRESS
-  0.0 0.0
-  1.0 100
-  100.0 100
-End Table
-
-Begin Table 3 TIME DISPLACEMENT_Y
+Begin Table 2 TIME DISPLACEMENT_Y
   0.0 0.0
   1.0 0.0
   100.0 -0.1
@@ -81,7 +75,7 @@ Begin SubModelPart Soil // Group Soil // Subtree Parts_Soil
 End SubModelPart
 Begin SubModelPart Lateral_load // Group Lateral_load // Subtree Lateral_load
     Begin SubModelPartTables
-    1
+            1
     End SubModelPartTables
     Begin SubModelPartNodes
             6
@@ -94,7 +88,7 @@ Begin SubModelPart Lateral_load // Group Lateral_load // Subtree Lateral_load
 End SubModelPart
 Begin SubModelPart Top_load // Group Top_load // Subtree Top_load
     Begin SubModelPartTables
-    2
+    1
     End SubModelPartTables
     Begin SubModelPartNodes
             1
@@ -114,7 +108,7 @@ Begin SubModelPart Water_pressure // Group Water_pressure // Subtree Water_press
 End SubModelPart
 Begin SubModelPart Top_displacement // Group Top_displacement // Subtree DISPLACEMENT
     Begin SubModelPartTables
-    3
+            2
     End SubModelPartTables
     Begin SubModelPartNodes
             1

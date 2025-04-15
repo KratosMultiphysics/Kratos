@@ -129,7 +129,7 @@
                 "active"          : [false,true,false],
                 "is_fixed"        : [false,true,false],
                 "value"           : [0.0,0.0,0.0],
-                "table"           : [0,3,0]
+                "table"           : [0,2,0]
             }
         }]
     },
