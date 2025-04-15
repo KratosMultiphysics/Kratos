@@ -23,10 +23,10 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficientsCalculator_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto pw_line_integration_coefficients = IntegrationCoefficientsCalculator{
+    const auto pw_line_integration_coefficient_calculator = IntegrationCoefficientsCalculator{
         std::make_unique<IntegrationCoefficientModifierForPwLineElement>()};
     const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, Kra
 
     // Act
     const auto calculated_coefficients =
-        pw_line_integration_coefficients.Run<>(integration_points, detJs, &element);
+        pw_line_integration_coefficient_calculator.Run<>(integration_points, detJs, &element);
 
     // Assert
     // The expected number is calculated as follows:
@@ -50,14 +50,15 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_ReturnsCorrectValue, Kra
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficients_CloneReturnsNotNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficientsCalculator_CloneReturnsNotNullptr,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto pw_line_integration_coefficients = IntegrationCoefficientsCalculator{
+    const auto pw_line_integration_coefficient_calculator = IntegrationCoefficientsCalculator{
         std::make_unique<IntegrationCoefficientModifierForPwLineElement>()};
 
     // Act
-    const auto clone_modifier = pw_line_integration_coefficients.CloneModifier();
+    const auto clone_modifier = pw_line_integration_coefficient_calculator.CloneModifier();
 
     // Assert
     KRATOS_EXPECT_NE(clone_modifier, nullptr);

@@ -7,13 +7,12 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Marjan Fathian
+//  Main authors:    Richard Faasse
 //                   Gennady Markelov
 //
 
 #include "custom_elements/integration_coefficients_calculator.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -23,19 +22,17 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalIntegrationCoefficients_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(IntegrationCoefficientsCalculator_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto three_dimenasional_integration_coefficients = IntegrationCoefficientsCalculator{};
-    // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
-    const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
+    const auto integration_coefficient_calculator = IntegrationCoefficientsCalculator{};
+    const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
     Vector                                           detJs(1);
     detJs <<= 2.0;
 
     // Act
-    const auto calculated_coefficients =
-        three_dimenasional_integration_coefficients.Run<>(integration_points, detJs);
+    const auto calculated_coefficients = integration_coefficient_calculator.Run<>(integration_points, detJs);
 
     // Assert
     // The expected number is calculated as follows:
@@ -43,13 +40,13 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalIntegrationCoefficients_ReturnsCorrect
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalIntegrationCoefficients_CloneReturnsNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(IntegrationCoefficientsCalculator_CloneReturnsNullptr, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Set
-    const auto three_dimensional_integration_coefficients = IntegrationCoefficientsCalculator{};
+    const auto integration_coefficient_calculator = IntegrationCoefficientsCalculator{};
 
     // Act
-    const auto clone_modifier = three_dimensional_integration_coefficients.CloneModifier();
+    const auto clone_modifier = integration_coefficient_calculator.CloneModifier();
 
     // Assert
     KRATOS_EXPECT_EQ(clone_modifier, nullptr);
