@@ -73,6 +73,8 @@ public:
 
     int Check() override;
 
+    void ExecuteInitialize() override;
+
     void ExecuteInitializeSolutionStep() override;
 
     void ExecuteFinalizeSolutionStep() override;
@@ -105,6 +107,7 @@ private:
     bool mIsOutputStoredInElements;
     bool mIsCalculatedEveryTimeStep;
     int mEchoLevel;
+    Vector mNodeIds;
 
     bool mIsNormalsCalculated;
 

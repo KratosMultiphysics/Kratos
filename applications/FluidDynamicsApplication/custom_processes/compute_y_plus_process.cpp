@@ -37,7 +37,8 @@ const Parameters ComputeYPlusProcess::GetDefaultParameters() const
             "output_variable_name"             : "Y_PLUS",
             "output_to_elements"               : false,
             "calculate_normals_every_time_step": false,
-            "echo_level"                       : 0
+            "echo_level"                       : 0,
+            "list_of_corner_node_ids"          : []
         })");
 
     return default_parameters;
@@ -57,6 +58,7 @@ ComputeYPlusProcess::ComputeYPlusProcess(
     mIsOutputStoredInElements = rParameters["output_to_elements"].GetBool();
     mIsCalculatedEveryTimeStep = rParameters["calculate_normals_every_time_step"].GetBool();
     mEchoLevel = rParameters["echo_level"].GetInt();
+    mNodeIds = rParameters["list_of_corner_node_ids"].GetVector();
 
     mIsNormalsCalculated = false;
 
@@ -64,6 +66,18 @@ ComputeYPlusProcess::ComputeYPlusProcess(
             << mOutputVariableName << " is not found in scalar variables list.\n";
 
     KRATOS_CATCH("");
+}
+
+void ComputeYPlusProcess::ExecuteInitialize()
+{
+    KRATOS_TRY
+
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    block_for_each(r_model_part.Nodes(), [this](auto& rNode) {
+        rNode.Set(ISOLATED, std::find(mNodeIds.begin(), mNodeIds.end(), rNode.Id()) != mNodeIds.end());
+    });
+
+    KRATOS_CATCH("")
 }
 
 void ComputeYPlusProcess::ExecuteInitializeSolutionStep()
@@ -110,13 +124,16 @@ void ComputeYPlusProcess::ExecuteFinalizeSolutionStep()
 
         // calculate condition reaction
         array_1d<double, 3> reaction{0.0, 0.0, 0.0};
+        IndexType number_of_valid_reactions = 0;
         for (const auto& r_node : r_condition_geometry) {
-            const double nodal_area = norm_2(r_node.FastGetSolutionStepValue(NORMAL));
-            noalias(reaction) += r_node.FastGetSolutionStepValue(REACTION) / nodal_area;
+            if (!r_node.Is(ISOLATED)) {
+                const double nodal_area = norm_2(r_node.FastGetSolutionStepValue(NORMAL));
+                noalias(reaction) += r_node.FastGetSolutionStepValue(REACTION) / nodal_area;
+                ++number_of_valid_reactions;
+            }
         }
         const double condition_area = r_condition_geometry.Area();
-        reaction *= (condition_area / r_condition_geometry.PointsNumber());
-
+        reaction *= (condition_area / number_of_valid_reactions);
 
 
         // get fluid properties from parent element
