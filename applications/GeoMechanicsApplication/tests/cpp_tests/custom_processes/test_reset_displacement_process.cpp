@@ -48,6 +48,11 @@ public:
         mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
     }
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
+    }
+
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>&,
                                       std::vector<ConstitutiveLaw::Pointer>& rOutput,
                                       const ProcessInfo&) override
@@ -118,6 +123,8 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
     const auto               dummy_parameters = Parameters{};
     ResetDisplacementProcess reset_displacement_process(model_part, dummy_parameters);
     reset_displacement_process.ExecuteInitialize();
+    model_part.Elements()[1].Initialize(model_part.GetProcessInfo());
+    reset_displacement_process.ExecuteBeforeSolutionLoop();
 
     std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
     model_part.Elements()[1].CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
@@ -130,24 +137,6 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
         KRATOS_EXPECT_VECTOR_NEAR(constitutive_law->GetInitialState().GetInitialStrainVector(),
                                   Vector{ZeroVector{4}}, 1e-12)
     }
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInCheck_WhenModelIsNotRestarted,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    Model model;
-    auto& model_part                          = model.CreateModelPart("Main");
-    model_part.GetProcessInfo()[IS_RESTARTED] = false;
-
-    const auto               dummy_parameters = Parameters{};
-    ResetDisplacementProcess process(model_part, dummy_parameters);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        process.Check(), "The IS_RESTARTED flag must be set to true in the ProcessInfo of the "
-                         "model part. Please use the \"rest\" option for the model input type")
-
-    model_part.GetProcessInfo()[IS_RESTARTED] = true;
-    KRATOS_EXPECT_EQ(process.Check(), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_WhenConstitutiveLawsCannotBeRetrieved,

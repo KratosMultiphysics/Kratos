@@ -43,13 +43,6 @@ void ResetDisplacementProcess::ExecuteInitialize()
 
         CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, rElement.GetId());
         mStressesByElementId[rElement.GetId()] = stresses_on_integration_points;
-
-        for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
-            auto p_initial_state = make_intrusive<InitialState>();
-            p_initial_state->SetInitialStressVector(stresses_on_integration_points[i]);
-            p_initial_state->SetInitialStrainVector(ZeroVector{constitutive_laws[i]->GetStrainSize()});
-            constitutive_laws[i]->SetInitialState(p_initial_state);
-        }
     });
 }
 
