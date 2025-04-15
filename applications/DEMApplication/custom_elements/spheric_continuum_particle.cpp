@@ -230,6 +230,10 @@ namespace Kratos {
 
             unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
 
+            if (data_buffer.mDomainIsPeriodic){
+                TransformNeighbourCoorsToClosestInPeriodicDomain(data_buffer);
+            }
+            
             noalias(data_buffer.mOtherToMeVector) = this->GetGeometry()[0].Coordinates() - data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
 
             const double& other_radius = data_buffer.mpOtherParticle->GetRadius();

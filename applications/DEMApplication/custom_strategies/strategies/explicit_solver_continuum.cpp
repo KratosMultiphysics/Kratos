@@ -687,7 +687,6 @@ namespace Kratos {
                 p_creator_destructor->DestroyParticles<SphericParticle>(r_model_part);
             }
         } else if (is_time_to_mark_and_remove) {
-            p_creator_destructor->DestroyParticlesOutsideBoundingBox<Cluster3D>(*mpCluster_model_part);
             p_creator_destructor->DestroyParticlesOutsideBoundingBox<SphericParticle>(r_model_part);
         }
 
