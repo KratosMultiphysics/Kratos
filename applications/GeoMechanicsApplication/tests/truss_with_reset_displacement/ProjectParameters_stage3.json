@@ -144,7 +144,7 @@
             "model_part_name": "PorousDomain.Point_Load-auto-1",
             "variable_name":   "POINT_LOAD",
             "active":          [true,false,false],
-            "value":           [-1e10,0.0,0.0],
+            "value":           [-2e10,0.0,0.0],
             "table":           [0,0,0]
         }
     }]

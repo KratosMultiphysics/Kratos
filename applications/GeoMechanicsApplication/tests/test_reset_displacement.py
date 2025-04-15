@@ -22,10 +22,10 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
     def test_reset_displacement_truss(self):
         """
         Tests reset displacement in a truss in 4 stages
-        stage 1: load is applied / reset displacement is false
-        stage 2: load is applied / reset displacement is true
-        stage 3: load is applied / reset displacement is false
-        stage 4: load is removed / reset displacement is false
+        stage 1: load is applied
+        stage 2: load is applied
+        stage 3: double load is applied
+        stage 4: load is removed
 
         :return:
         """
@@ -76,11 +76,11 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
 
         stage_nr = 2
         for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0, msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
+            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
 
         stage_nr = 3
         for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
+            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -2 * eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
 
 
     def test_reset_displacement_beam(self):
