@@ -12,12 +12,14 @@
 
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/line_interface_geometry.h"
+#include "custom_utilities/registration_utilities.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
+#include <type_traits>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -41,6 +43,14 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
 
 namespace Kratos::Testing
 {
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<InterfaceStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<InterfaceStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<InterfaceStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<InterfaceStressState>);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -153,7 +163,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorS
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistrationOfAllStressStatePolicies{};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"InterfaceStressState"s, InterfaceStressState{}};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<InterfaceStressState>()};
     auto serializer = StreamSerializer{};
 

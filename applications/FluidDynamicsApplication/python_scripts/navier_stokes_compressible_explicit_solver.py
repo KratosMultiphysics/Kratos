@@ -97,17 +97,11 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             KratosFluid.REACTION_ENERGY)  # Total energy DOF reaction
 
         # Required variables
-        self.main_model_part.AddNodalSolutionStepVariable(
-            KratosMultiphysics.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(
-            KratosFluid.MASS_SOURCE)
-        self.main_model_part.AddNodalSolutionStepVariable(
-            KratosFluid.HEAT_SOURCE)
-        self.main_model_part.AddNodalSolutionStepVariable(
-            KratosMultiphysics.NORMAL)
-        # TODO: This is only necessary whith shock capturing entropy_based
-        self.main_model_part.AddNodalSolutionStepVariable(
-            KratosFluid.NUMERICAL_ENTROPY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MASS_SOURCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.NUMERICAL_ENTROPY) # TODO: This is only necessary with shock capturing entropy_based
 
         # Post-process variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)
@@ -186,8 +180,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
     @classmethod
     def _OverrideBoolParameterWithWarning(cls, parent, child, value):
         if parent.Has(child) and parent[child].GetBool() != value:
-            KratosMultiphysics.Logger.PrintWarning(
-                "", "User-specifed {} will be overriden with {}".format(child, value))
+            KratosMultiphysics.Logger.PrintWarning("", "User-specifed {} will be overriden with {}".format(child, value))
         else:
             parent.AddEmptyValue(child)
         parent[child].SetBool(True)
@@ -230,7 +223,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
                            ]))
 
             custom_settings.RemoveValue("shock_capturing")
-            # Not adding new syntax -> Using defauts
+            # Not adding new syntax -> Using defaults
 
     def _ReadShockCapturingSettings(self):
         "Determines if shock capturing will be enabled and sets up SHOCK_CAPTURING_SWITCH"

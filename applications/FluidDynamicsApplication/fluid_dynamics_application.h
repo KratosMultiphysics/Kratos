@@ -97,6 +97,7 @@
 #include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_convection_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
+#include "custom_constitutive/bingham_2d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/euler_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
@@ -483,9 +484,18 @@ namespace Kratos
         const FluidAdjointElement<3, 4, QSVMSAdjointElementData<3, 4>> mQSVMSAdjoint3D4N;
         const FluidAdjointElement<3, 8, QSVMSAdjointElementData<3, 8>> mQSVMSAdjoint3D8N;
 
-        /// Adjoint fluid conditions
-        const AdjointMonolithicWallCondition<2, 2> mAdjointMonolithicWallCondition2D2N;
-        const AdjointMonolithicWallCondition<3, 3> mAdjointMonolithicWallCondition3D3N;
+    /// Fluid constitutive laws
+    const Bingham3DLaw mBingham3DLaw;
+    const Bingham2DLaw mBingham2DLaw;
+    const Euler2DLaw mEuler2DLaw;
+    const Euler3DLaw mEuler3DLaw;
+    const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
+    const Newtonian2DLaw mNewtonian2DLaw;
+    const Newtonian3DLaw mNewtonian3DLaw;
+    const NewtonianTwoFluid2DLaw mNewtonianTwoFluid2DLaw;
+    const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
+    const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
+    const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
 
         ///@}
         ///@name Private Operators
