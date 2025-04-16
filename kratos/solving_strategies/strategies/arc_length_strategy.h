@@ -182,35 +182,17 @@ class ArcLengthStrategy
      */
     void InitializeSolutionStep() override
     {
-        KRATOS_TRY;
+        // Perform an initial linear iteration to compute the first radius.
+        KRATOS_TRY
+            BaseType::InitializeSolutionStep();
 
-        if (!mInitializeArcLengthWasPerformed) {
-            ModelPart& r_model_part = BaseType::GetModelPart();
-            //set up the system
-            if (!this->mpBuilderAndSolver->GetDofSetIsInitializedFlag()) {
-                // Setting up the list of the DOFs to be solved
-                this->mpBuilderAndSolver->SetUpDofSet(this->mpScheme, r_model_part);
-
-                // Shaping correctly the system
-                this->mpBuilderAndSolver->SetUpSystem(r_model_part);
-
-                this->mpBuilderAndSolver->ResizeAndInitializeVectors(this->mpScheme, this->mpA, this->mpDx, this->mpb, r_model_part);
-            }
-
-            // Compute initial radius (mRadius_0)
-            TSystemMatrixType& rA  = *(this->mpA);
-            TSystemVectorType& rDx = *(this->mpDx);
-            TSystemVectorType& rb  = *(this->mpb);
-            TSparseSpace::SetToZero(rA);
-            TSparseSpace::SetToZero(rDx);
-            TSparseSpace::SetToZero(rb);
-
-            this->mpBuilderAndSolver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
-            this->mpScheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
-
-            this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, rA, rDx, rb);
-
-            mRadius_0 = TSparseSpace::TwoNorm(rDx);
+            // Compute the initial radius.
+            this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme,
+                                                    BaseType::GetModelPart(),
+                                                    *this->mpA,
+                                                    *this->mpDx,
+                                                    *this->mpb);
+            mRadius_0 = TSparseSpace::TwoNorm(*this->mpDx);
             mRadius = mRadius_0;
 
             // Compute vector of reference external force (mf)
@@ -219,27 +201,28 @@ class ArcLengthStrategy
             TSparseSpace::SetToZero(rf);
 
             // We build it now to only include external loads
-            this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, rf);
+            this->mpBuilderAndSolver->BuildRHS(this->mpScheme, BaseType::GetModelPart(), rf);
 
-            //Initialize the loading factor Lambda
+            // Reset other members.
             mLambda = 0.0;
             mLambda_old = 1.0;
-
-            // Initialize Norm of solution
             mNormxEquilibrium = 0.0;
-
             mInitializeArcLengthWasPerformed = true;
 
+            // Issue status report if requested.
             KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "Strategy Initialized" << std::endl;
-        }
 
-        BaseType::InitializeSolutionStep();
-        SaveInitializeSystemVector(mpf);
-        InitializeSystemVector(mpDxf);
-        InitializeSystemVector(mpDxb);
-        InitializeSystemVector(mpDxPred);
-        InitializeSystemVector(mpDxStep);
+            BaseType::FinalizeSolutionStep();
+        KRATOS_CATCH("")
 
+        // Do another round of initialization; this time for the nonlinear iterations.
+        KRATOS_TRY
+            BaseType::InitializeSolutionStep();
+            SaveInitializeSystemVector(mpf);
+            InitializeSystemVector(mpDxf);
+            InitializeSystemVector(mpDxb);
+            InitializeSystemVector(mpDxPred);
+            InitializeSystemVector(mpDxStep);
         KRATOS_CATCH("");
     }
 
@@ -419,9 +402,10 @@ class ArcLengthStrategy
                     the load processes reset the loads to its initial values
                     when the InitSolStep is called */
                     if (mInsideIterationLoop)
-                        r_condition.GetValue(r_var) *= mLambda / mLambda_old;
+                        r_condition.GetValue(r_var) *= mLambda;
                     else
                         r_condition.GetValue(r_var) *= mLambda;
+                    std::cout << r_condition.GetValue(r_var) << "\n";
                 });
 
                 // TODO-> add for node loads

@@ -103,6 +103,17 @@ public:
                           EquationIdVectorType& rMasterDoFs,
                           const ProcessInfo& rProcessInfo) const override;
 
+    /// @brief copydoc MasterSlaveConstraint::GetSlaveDofsVector
+    const DofPointerVectorType& GetSlaveDofsVector() const override
+    {return mDummy;}
+
+    const DofPointerVectorType& GetMasterDofsVector() const override
+    {return mDofs;}
+
+    void SetMasterDofsVector(const DofPointerVectorType& rDofs) override
+    {mDofs = rDofs;}
+
+
     /// This function is NoOp.
     void ResetSlaveDofs(const ProcessInfo&) override {}
 
@@ -145,7 +156,7 @@ private:
 
     void load(Serializer& rDeserializer) override;
 
-    DofArray mDofs;
+    DofArray mDofs, mDummy;
 }; // class MultifreedomConstraint
 
 
