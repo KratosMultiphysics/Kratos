@@ -80,6 +80,10 @@ public:
 
     void FinalizeNonLinearIteration(const ProcessInfo& rProcessInfo) override;
 
+    void FinalizeSolutionStep(const ProcessInfo& rProcessInfo) override;
+
+    void Finalize(const ProcessInfo& rProcessInfo) override;
+
     void CalculateLocalSystem(MatrixType& rRelationMatrix,
                               VectorType& rConstraintGaps,
                               const ProcessInfo& rProcessInfo) const override;

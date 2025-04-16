@@ -16,6 +16,7 @@
 #include "includes/process_info.h"
 #include "includes/variables.h" // DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z
 #include "includes/serializer.h" // Serializer
+#include "includes/variables.h" // CONSTITUTIVE_MATRIX, INTERNAL_FORCES_VECTOR
 
 // STL includes
 #include <algorithm> // std::max_element, std::equal, std::transform
@@ -133,10 +134,6 @@ struct LinkConstraint::Impl
     std::array<ValueType,6> mLastPositions;
 
     std::array<ValueType,6> mLastDisplacements;
-
-    LinkConstraint::MatrixType mRelationMatrix;
-
-    LinkConstraint::VectorType mConstraintGaps;
 }; // struct LinkConstraint::Impl
 
 
@@ -152,9 +149,7 @@ LinkConstraint::LinkConstraint(const IndexType Id,
                       /*mIsMeshMoved        : */IsMeshMoved,
                       /*mNodePair           : */{&rFirst, &rSecond},
                       /*mLastPositions      : */{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                      /*mLastDisplacements  : */{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                      /*mRelationMatrix     : */ZeroMatrix(1, 2 * Dimensions),
-                      /*mConstraintGaps     : */ZeroVector(1)})
+                      /*mLastDisplacements  : */{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}})
 {
 }
 
@@ -203,12 +198,12 @@ MasterSlaveConstraint::Pointer LinkConstraint::Clone(IndexType NewId) const
 }
 
 
-void LinkConstraint::Initialize([[maybe_unused]] const ProcessInfo& rProcessInfo)
+void LinkConstraint::Initialize([[maybe_unused]] const ProcessInfo&)
 {
 }
 
 
-void LinkConstraint::InitializeSolutionStep(const ProcessInfo& rProcessInfo)
+void LinkConstraint::InitializeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
     // Store displacements before nonlinear iterations begin.
@@ -221,8 +216,8 @@ void LinkConstraint::InitializeSolutionStep(const ProcessInfo& rProcessInfo)
         for (std::size_t i_component=0ul; i_component<mpImpl->mLastPositions.size(); ++i_component)
             mpImpl->mLastPositions[i_component] += mpImpl->mLastDisplacements[i_component];
 
-    Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
-                                mpImpl->mConstraintGaps,
+    Impl::ComputeRelationMatrix(this->Data().GetValue(CONSTITUTIVE_MATRIX),
+                                this->Data().GetValue(INTERNAL_FORCES_VECTOR),
                                 mpImpl->mLastPositions,
                                 mpImpl->mLastDisplacements,
                                 mpImpl->mDimensions);
@@ -230,14 +225,14 @@ void LinkConstraint::InitializeSolutionStep(const ProcessInfo& rProcessInfo)
 }
 
 
-void LinkConstraint::InitializeNonLinearIteration([[maybe_unused]] const ProcessInfo&)
+void LinkConstraint::InitializeNonLinearIteration(const ProcessInfo&)
 {
     KRATOS_TRY
     [[maybe_unused]] std::array<Impl::ValueType,6> dummy;
     mpImpl->FetchNodePositions(dummy,  mpImpl->mLastDisplacements);
 
-    Impl::ComputeRelationMatrix(mpImpl->mRelationMatrix,
-                                mpImpl->mConstraintGaps,
+    Impl::ComputeRelationMatrix(this->Data().GetValue(CONSTITUTIVE_MATRIX),
+                                this->Data().GetValue(INTERNAL_FORCES_VECTOR),
                                 mpImpl->mLastPositions,
                                 mpImpl->mLastDisplacements,
                                 mpImpl->mDimensions);
@@ -245,7 +240,20 @@ void LinkConstraint::InitializeNonLinearIteration([[maybe_unused]] const Process
 }
 
 
+void LinkConstraint::FinalizeNonLinearIteration(const ProcessInfo&)
+{
 void LinkConstraint::FinalizeNonLinearIteration([[maybe_unused]] const ProcessInfo&)
+}
+
+
+void LinkConstraint::FinalizeSolutionStep(const ProcessInfo&)
+{
+    this->Data().GetValue(CONSTITUTIVE_MATRIX).clear();
+    this->Data().GetValue(INTERNAL_FORCES_VECTOR).clear();
+}
+
+
+void LinkConstraint::Finalize(const ProcessInfo&)
 {
 }
 
@@ -254,8 +262,8 @@ void LinkConstraint::CalculateLocalSystem(MatrixType& rRelationMatrix,
                                           VectorType& rConstraintGaps,
                                           [[maybe_unused]] const ProcessInfo& rProcessInfo) const
 {
-    rRelationMatrix = mpImpl->mRelationMatrix;
-    rConstraintGaps = mpImpl->mConstraintGaps;
+    rRelationMatrix = this->GetData().GetValue(CONSTITUTIVE_MATRIX);
+    rConstraintGaps = this->GetData().GetValue(INTERNAL_FORCES_VECTOR);
 }
 
 
