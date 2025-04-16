@@ -98,7 +98,6 @@ public:
     {
     }
 
-    /// Destructor
     ~UpdatedLagrangianUPwDiffOrderElement() override = default;
 
     /**
