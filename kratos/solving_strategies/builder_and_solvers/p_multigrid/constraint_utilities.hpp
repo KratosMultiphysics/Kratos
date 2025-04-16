@@ -246,6 +246,21 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                                      rConstraintIdMap);
             } // not r_tls.slave_ids.empty()
 
+            KRATOS_ERROR_IF_NOT(r_tls.constraint_indices.size() == r_tls.relation_matrix.size1())
+                << "constraint " << r_constraint.Id() << " is ill-formed: "
+                << "has " << r_tls.constraint_indices.size() << " constraint equations, but its relation matrix is "
+                << r_tls.relation_matrix.size1() << "x" << r_tls.relation_matrix.size2();
+
+            KRATOS_ERROR_IF_NOT(r_tls.dof_equation_ids.size() == r_tls.relation_matrix.size2())
+                << "constraint " << r_constraint.Id() << " is ill-formed: "
+                << "defined on " << r_tls.dof_equation_ids.size() << " DoFs, but its relation matrix is "
+                << r_tls.relation_matrix.size1() << "x" << r_tls.relation_matrix.size2();
+
+            KRATOS_ERROR_IF_NOT(r_tls.constraint_gaps.size() == r_tls.relation_matrix.size1())
+                << "constraint " << r_constraint.Id() << " is ill formed: "
+                << "relation matrix is " << r_tls.relation_matrix.size1() << "x" << r_tls.relation_matrix.size2()
+                << " but the constraint gap vector is of size " << r_tls.constraint_gaps.size();
+
             r_tls.relation_matrix_row.resize(r_tls.relation_matrix.size2());
 
             // Assemble local rows into the global relation matrix.
@@ -273,7 +288,7 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                    r_tls.dof_index_array.end(),
                                    r_tls.relation_matrix_row.begin(),
                                    [&r_tls, i_row](const std::size_t i_column){
-                                   return r_tls.relation_matrix(i_row, i_column);
+                                        return r_tls.relation_matrix(i_row, i_column);
                                    });
                     std::copy(r_tls.relation_matrix_row.begin(),
                               r_tls.relation_matrix_row.end(),
@@ -285,7 +300,7 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                    r_tls.dof_index_array.end(),
                                    r_tls.reordered_dof_equation_ids.begin(),
                                    [&r_tls](const auto i_column){
-                                   return r_tls.dof_equation_ids[i_column];
+                                        return r_tls.dof_equation_ids[i_column];
                                    });
                 }
 
