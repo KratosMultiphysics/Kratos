@@ -75,12 +75,17 @@ namespace Kratos{
             noalias(delta_theta) = my_delta_rotation - other_delta_rotation;
 
             // Calculate delta_theta for bending
-            array_1d<double, 3> delta_theta_t;
-            array_1d<double, 3> delta_theta_n;
             array_1d<double, 3> normal_contact_vector;
             noalias(normal_contact_vector) = p_element->GetGeometry()[0].Coordinates() - p_neighbor->GetGeometry()[0].Coordinates();
             GeometryFunctions::normalize(normal_contact_vector);
-            GeometryFunctions::CrossProduct(delta_theta, normal_contact_vector, delta_theta_n);
+
+            // Project delta_theta onto the normal vector
+            array_1d<double, 3> delta_theta_n;
+            double normal_component = DEM_INNER_PRODUCT_3(delta_theta, normal_contact_vector);
+            noalias(delta_theta_n) = normal_component * normal_contact_vector;
+
+            // Get the tangential (bending-like) component
+            array_1d<double, 3> delta_theta_t;
             noalias(delta_theta_t) = delta_theta - delta_theta_n;
 
             // Get rolling friction coefficient
