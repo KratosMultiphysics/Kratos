@@ -90,9 +90,9 @@ void FixModelPartAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
             KRATOS_INFO("Fixing Node:")
                 << rNode.Id() << " Distance: " << distance
                 << " TOTAL_DISPLACEMENT: " << rNode.GetSolutionStepValue(TOTAL_DISPLACEMENT)
-                << " DISPLACEMENT: " << rNode.GetSolutionStepValue(DISPLACEMENT) << " MOVE_MESH_FLAG: " << mMoveMeshFlag << std::endl;
-        }
-        else {
+                << " DISPLACEMENT: " << rNode.GetSolutionStepValue(DISPLACEMENT)
+                << " MOVE_MESH_FLAG: " << mMoveMeshFlag << std::endl;
+        } else {
             rNode.Free(var);
         }
     });

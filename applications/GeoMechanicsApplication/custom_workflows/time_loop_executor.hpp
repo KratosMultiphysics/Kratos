@@ -88,7 +88,6 @@ private:
         mStrategyWrapper->SetTimeIncrement(time_increment);
         const auto end_time = PreviousTime + time_increment;
         mStrategyWrapper->SetEndTime(end_time);
-
         auto end_state = mTimeStepExecutor->Run(end_time);
         mTimeIncrementor->PostTimeStepExecution(end_state);
         UpdateProgress(end_time);

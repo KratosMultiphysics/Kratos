@@ -18,6 +18,7 @@
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
+#include "custom_processes/fix_model_part_above_phreatic_line_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
 
 #include "adaptive_time_incrementor.h"
@@ -149,6 +150,8 @@ void KratosGeoSettlement::InitializeProcessFactory()
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorFor<ApplyK0ProcedureProcess>());
     mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
                                 MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
+    mProcessFactory->AddCreator("FixModelPartAbovePhreaticLineProcess",
+                                MakeCreatorFor<FixModelPartAbovePhreaticLineProcess>());
 
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {
         KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";
@@ -367,6 +370,8 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
 {
     auto& main_model_part = GetMainModelPart();
+    main_model_part.GetProcessInfo().SetValue(TIME_UNIT_CONVERTER, 1.0);
+
     if (!main_model_part.HasSubModelPart(mComputationalSubModelPartName)) {
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
     }
