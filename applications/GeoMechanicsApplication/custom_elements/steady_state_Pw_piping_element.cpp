@@ -290,29 +290,20 @@ template <unsigned int TDim, unsigned int TNumNodes>
 double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeight(
     const PropertiesType& rProperties, const GeometryType& rGeometry, double PipeLength)
 {
-    const double modelFactor  = rProperties[PIPE_MODEL_FACTOR];
-    const double eta          = rProperties[PIPE_ETA];
-    const double theta        = rProperties[PIPE_THETA];
-    const double SolidDensity = rProperties[DENSITY_SOLID];
-    const double FluidDensity = rProperties[DENSITY_WATER];
-
     // calculate head gradient over element
-    double dhdx = CalculateHeadGradient(rProperties, rGeometry, PipeLength);
-
-    // calculate particle diameter
-    double particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(rProperties);
-
-    // todo calculate slope of pipe, currently pipe is assumed to be horizontal
-    const double pipeSlope = 0;
+    const auto dhdx = CalculateHeadGradient(rProperties, rGeometry, PipeLength);
 
     // return infinite when dhdx is 0
-    if (dhdx < std::numeric_limits<double>::epsilon()) {
-        return 1e10;
-    }
+    if (dhdx < std::numeric_limits<double>::epsilon()) return 1e10;
 
-    return modelFactor * Globals::Pi / 3.0 * particle_d * (SolidDensity / FluidDensity - 1) * eta *
-           std::sin(MathUtils<>::DegreesToRadians(theta + pipeSlope)) /
-           std::cos(MathUtils<>::DegreesToRadians(theta)) / dhdx;
+    // todo calculate slope of pipe, currently pipe is assumed to be horizontal
+    constexpr auto pipe_slope = 0.0;
+
+    return rProperties[PIPE_MODEL_FACTOR] * Globals::Pi / 3.0 *
+           GeoTransportEquationUtilities::CalculateParticleDiameter(rProperties) *
+           (rProperties[DENSITY_SOLID] / rProperties[DENSITY_WATER] - 1) * rProperties[PIPE_ETA] *
+           std::sin(MathUtils<>::DegreesToRadians(rProperties[PIPE_THETA] + pipe_slope)) /
+           std::cos(MathUtils<>::DegreesToRadians(rProperties[PIPE_THETA])) / dhdx;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

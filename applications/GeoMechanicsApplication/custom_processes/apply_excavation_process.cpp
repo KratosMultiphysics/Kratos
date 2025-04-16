@@ -22,10 +22,10 @@
 namespace Kratos
 {
 
-ApplyExcavationProcess::ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rSettings)
+ApplyExcavationProcess::ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rProcessSettings)
     : Process(Flags()),
       mrModelPart{rModelPart},
-      mDeactivateSoilPart{rSettings["deactivate_soil_part"].GetBool()}
+      mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
 {
 }
 

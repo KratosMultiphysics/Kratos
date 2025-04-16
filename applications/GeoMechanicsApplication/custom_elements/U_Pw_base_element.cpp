@@ -415,14 +415,13 @@ void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
 {
     KRATOS_TRY
 
-    const GeometryType&                             rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_geometry           = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
-    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[IntegrationPointIndex], rJ0);
-    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
-    MathUtils<double>::InvertMatrix(rJ0, rInvJ0, rDetJ);
-    GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ0, rDNu_DX0);
+    GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[IntegrationPointIndex], rJ0);
+    const auto& r_dn_de = r_geometry.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
+    MathUtils<>::InvertMatrix(rJ0, rInvJ0, rDetJ);
+    GeometryUtils::ShapeFunctionsGradients(r_dn_de, rInvJ0, rDNu_DX0);
 
     KRATOS_CATCH("")
 }

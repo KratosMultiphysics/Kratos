@@ -22,10 +22,10 @@ namespace Kratos
 {
 
 Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
-                                                              NodesArrayType const& ThisNodes,
+                                                              const NodesArrayType& rNodes,
                                                               PropertiesType::Pointer pProperties) const
 {
-    return Create(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Create(NewId, this->GetGeometry().Create(rNodes), pProperties);
 }
 
 Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
