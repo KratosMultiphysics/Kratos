@@ -16,6 +16,9 @@ class TriaxialTest:
         self.json_file_path = json_file_path
         self.data = self._read_json()
 
+
+
+
     def _read_json(self):
         with open(self.json_file_path, 'r') as file:
             return json.load(file)
@@ -459,101 +462,28 @@ def plot_volumetric_strain(vertical_strain, volumetric_strain):
     fig.show()
 
 
-class MaterialEditorApp:
-    def __init__(self, master, json_path):
-        self.master = master
-        self.master.title("Material Parameters Editor")
-        self.master.geometry("800x900")  # Bigger window
+class MaterialEditor:
+    def __init__(self, json_path):
         self.json_path = json_path
-        self.entries = {}
-
         self._load_json()
-        self._build_gui()
 
     def _load_json(self):
         with open(self.json_path, 'r') as f:
             self.data = json.load(f)
         self.variables = self.data["properties"][0]["Material"]["Variables"]
 
-    def _build_gui(self):
-        canvas = tk.Canvas(self.master)
-        scrollbar = tk.Scrollbar(self.master, orient="vertical", command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas)
-
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-        row = 0
-
-        # Helper frame for UMAT info
-        helper_text = (
-            "UMAT_PARAMETERS Mapping for MohrCoulomb64.dll:\n"
-            "  1 : E        → Young's modulus\n"
-            "  2 : Nu(ν)    → Poisson's ratio (unloading/reloading)\n"
-            "  3 : C        → Cohesion\n"
-            "  4 : Phi      → Friction angle (°)\n"
-            "  5 : Psi      → Dilation angle (°)\n"
-            "  6 : Tens     → Allowable tensile stress\n"
-            "  7 : Yield    → Yield function index (1 = Mohr Coulomb)\n"
-            "  8 : Nu_undr  → Undrained Poisson's ratio"
-        )
-
-        help_frame = tk.LabelFrame(scrollable_frame, text="UMAT_PARAMETERS Help", padx=10, pady=5)
-        help_label = tk.Label(help_frame, text=helper_text, justify="left", font=("Courier", 10))
-        help_label.pack(anchor="w")
-        help_frame.grid(row=row, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
-        row += 1
-
-        tk.Label(scrollable_frame, text="Edit Parameters Below", font=("Arial", 14, "bold")).grid(
-            row=row, column=0, columnspan=2, pady=5)
-        row += 1
-
-        for key, value in self.variables.items():
-            tk.Label(scrollable_frame, text=key).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-
-            entry = tk.Entry(scrollable_frame, width=80 if isinstance(value, list) else 30)
-            entry.insert(0, ', '.join(map(str, value)) if isinstance(value, list) else str(value))
-            entry.grid(row=row, column=1, padx=10, pady=5)
-            self.entries[key] = entry
-            row += 1
-
-        tk.Button(scrollable_frame, text="Save Changes", command=self._save_changes,
-                  bg="green", fg="white", padx=10, pady=5).grid(row=row, column=0, columnspan=2, pady=20)
-
-    def _save_changes(self):
-        for key, entry in self.entries.items():
-            value_str = entry.get().strip()
-            if value_str.lower() == "true":
-                value = True
-            elif value_str.lower() == "false":
-                value = False
-            elif "," in value_str:
-                try:
-                    value = [self._convert_type(v) for v in value_str.split(",")]
-                except ValueError:
-                    messagebox.showerror("Error", f"Invalid list for {key}")
-                    return
-            else:
-                try:
-                    value = self._convert_type(value_str)
-                except ValueError:
-                    messagebox.showerror("Error", f"Invalid value for {key}")
-                    return
-
+    def _update_material_and_save(self, entries: dict):
+        for key, entry in entries.items():
+            # is entry a list
+            value = entry
+            if isinstance(entry, list):
+                value_str = [str(x).strip() for x in entry]
+                value = [self._convert_type(x) for x in value_str]
             self.variables[key] = value
 
         with open(self.json_path, 'w') as f:
             json.dump(self.data, f, indent=4)
-
         messagebox.showinfo("Success", "Material parameters updated successfully!")
-        self.master.destroy()
 
     def _convert_type(self, value):
         try:
@@ -563,29 +493,11 @@ class MaterialEditorApp:
                 return int(value)
         except ValueError:
             return value
-
-
-def launch_material_editor(json_path=None):
-    root = tk.Tk()
-
-    if not json_path:
-        json_path = filedialog.askopenfilename(
-            title="Select MaterialParameters JSON",
-            filetypes=[("JSON files", "*.json")]
-        )
-
-    if json_path:
-        app = MaterialEditorApp(root, json_path)
-        root.mainloop()
-    else:
-        print("No file selected. Exiting.")
-        exit()
-
-if __name__ == "__main__":
+def lab_test(dll_path, umat_parameters):
     json_file_path = 'test_triaxial/MaterialParameters_stage1.json'
-
-    launch_material_editor(json_file_path)
-
+    material_editor = MaterialEditor(json_file_path)
+    material_editor._update_material_and_save({"UMAT_PARAMETERS": ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"],
+                                               "UDSM_NAME": "../MohrCoulomb64.dll"})
     # List of output files to process
     output_files = [
         os.path.join('gid_output', "triaxial_Stage_2.post.res")]
@@ -630,7 +542,6 @@ if __name__ == "__main__":
         p_list.append(p)
         q_list.append(q)
 
-
     vector_list = eigenvector_list
     value_list = eigenvalue_list
     plot_sigma(sigma1_list, sigma3_list)
@@ -640,3 +551,7 @@ if __name__ == "__main__":
     plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1])
     plot_p_q(p_list, q_list)
     plot_volumetric_strain(vertical_strain, volumetric_strain)
+
+if __name__ == "__main__":
+    lab_test("../MohrCoulomb64.dll", ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"])
+
