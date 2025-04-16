@@ -63,6 +63,9 @@ class ConvergenceAcceleratorWrapper:
         self.conv_acc.FinalizeNonLinearIteration()
 
     def ComputeLastAcceleratorDataPoint(self):
+        # Call the accelerator without performing an update afterwards. 
+        # This is important if previous time steps are reused, such as within the IQN-ILS method, 
+        # as otherwise the last data point will not be used.
         if not self.interface_data.IsDefinedOnThisRank(): return
 
         residual = self.residual_computation.ComputeResidual(self.input_data)

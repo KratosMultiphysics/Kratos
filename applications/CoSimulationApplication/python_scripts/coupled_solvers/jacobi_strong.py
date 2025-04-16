@@ -102,7 +102,6 @@ class JacobiStrongCoupledSolver(CoSimulationCoupledSolver):
             is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
 
             if is_converged:
-                # Call the accelerator without performing an update afterwards. This is important if previous time steps are reused in the MVQN or the IQN-ILS method, as otherwise the last data point is not used.
                 for conv_acc in self.convergence_accelerators_list:
                     conv_acc.ComputeLastAcceleratorDataPoint()
 
