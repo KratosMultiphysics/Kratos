@@ -50,7 +50,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         this->NoLinearitiesInitiationAndAccumulation(maximum_damage_increment, maximum_plastic_dissipation_increment);  //This method computes the no-linearities accumulation cycle by cycle.
                                                                                                                         //It also updates the reference no-linearities if a new load block is applied.
     }
-    if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
+    bool advancing_strategy_allowed = mThisParameters["fatigue"]["advancing_strategy"].GetBool();
+    if (cycle_found && advancing_strategy_allowed) {  //If a cycle has finished then it is possible to apply the advancing strategy
         bool advancing_strategy = false;
         this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[NO_LINEARITY_ACTIVATION]); //Checks if the conditions are optimal to apply the advancing strategy in
                                                                         //terms of max stress and reversion factor variation.
