@@ -60,7 +60,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                 this->TimeIncrementBlock1(increment);
                 this->TimeIncrementBlock2(increment);
                 if (increment > 0.0) {
-                    std::cout << "AITS :: Applying the first big jump of " << increment + mThisParameters["fatigue"]["time_overshoot"].GetDouble() << " s." << std::endl;
+                    std::cout << "\n\nAITS :: Applying the first big jump of " << increment + mThisParameters["fatigue"]["time_overshoot"].GetDouble() << " s.\n\n" << std::endl;
                     this->TimeAndCyclesUpdate(increment + mThisParameters["fatigue"]["time_overshoot"].GetDouble());
                 }
                 process_info[ADVANCE_STRATEGY_APPLIED] = true;
@@ -77,7 +77,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                     this->TimeIncrementBlock1(increment);
                     increment = std::min(increment, mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble());
                     this->TimeAndCyclesUpdate(increment);
-                    std::cout << "AITS :: Applying a small jump during damage phase of " << increment  << " s." << std::endl;
+                    std::cout << "\n\nAITS :: Applying a small jump during damage phase of " << increment  << " s.\n\n" << std::endl;
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 // }
             }
