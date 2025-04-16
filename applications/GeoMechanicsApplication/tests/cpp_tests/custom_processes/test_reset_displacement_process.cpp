@@ -43,7 +43,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementForResetDisplacementTest);
 
     StubElementForResetDisplacementTest(IndexType NewId, const GeometryType::Pointer& pGeometry)
-        : Element(NewId, pGeometry)
+        : Element(NewId, pGeometry, std::make_shared<Properties>())
     {
         mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
     }

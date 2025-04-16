@@ -58,6 +58,7 @@ void ResetDisplacementProcess::ExecuteBeforeSolutionLoop()
             p_initial_state->SetInitialStressVector(stresses_on_integration_points[i]);
             p_initial_state->SetInitialStrainVector(ZeroVector{constitutive_laws[i]->GetStrainSize()});
             constitutive_laws[i]->SetInitialState(p_initial_state);
+            constitutive_laws[i]->InitializeMaterial(rElement.GetProperties(), rElement.GetGeometry(), {});
         }
     });
     mStressesByElementId.clear();
