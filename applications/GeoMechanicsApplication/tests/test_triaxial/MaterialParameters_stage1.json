@@ -23,19 +23,10 @@
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 1e-10,
                     "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
-                    "UDSM_NAME": "../MohrCoulomb64.dll",
-                    "UDSM_NUMBER": 1,
+                    "UDSM_NAME": "",
+                    "UDSM_NUMBER": -2,
                     "IS_FORTRAN_UDSM": true,
-                    "UMAT_PARAMETERS": [
-                        10000,
-                        0.3,
-                        0.0,
-                        30.0,
-                        0.0,
-                        0.0,
-                        1.0,
-                        0.3
-                    ]
+                    "UMAT_PARAMETERS": []
                 }
             }
         }

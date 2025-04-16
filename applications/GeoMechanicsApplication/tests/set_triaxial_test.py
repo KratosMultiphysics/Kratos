@@ -465,21 +465,22 @@ def plot_volumetric_strain(vertical_strain, volumetric_strain):
 class MaterialEditor:
     def __init__(self, json_path):
         self.json_path = json_path
-        self._load_json()
+        self.data = self._load_json()
 
     def _load_json(self):
         with open(self.json_path, 'r') as f:
-            self.data = json.load(f)
-        self.variables = self.data["properties"][0]["Material"]["Variables"]
+            data = json.load(f)
+        return data
 
     def _update_material_and_save(self, entries: dict):
+        variables = self.data["properties"][0]["Material"]["Variables"]
         for key, entry in entries.items():
             # is entry a list
             value = entry
             if isinstance(entry, list):
                 value_str = [str(x).strip() for x in entry]
                 value = [self._convert_type(x) for x in value_str]
-            self.variables[key] = value
+            variables[key] = value
 
         with open(self.json_path, 'w') as f:
             json.dump(self.data, f, indent=4)
@@ -493,11 +494,12 @@ class MaterialEditor:
                 return int(value)
         except ValueError:
             return value
-def lab_test(dll_path, umat_parameters):
+def lab_test(dll_path, index, umat_parameters):
     json_file_path = 'test_triaxial/MaterialParameters_stage1.json'
     material_editor = MaterialEditor(json_file_path)
-    material_editor._update_material_and_save({"UMAT_PARAMETERS": ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"],
-                                               "UDSM_NAME": "../MohrCoulomb64.dll"})
+    material_editor._update_material_and_save({"UMAT_PARAMETERS": umat_parameters,
+                                               "UDSM_NAME": dll_path,
+                                               "UDSM_NUMBER": index})
     # List of output files to process
     output_files = [
         os.path.join('gid_output', "triaxial_Stage_2.post.res")]

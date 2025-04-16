@@ -118,6 +118,8 @@ def create_menu():
     root = tk.Tk()
     root.withdraw()  # Hide the root window
 
+    umat_entry_parameters = []
+
     # Prompt user to select a DLL file
     dll_path = filedialog.askopenfilename(title="Select DLL File", filetypes=[("DLL files", "*.dll")])
     if not dll_path:
@@ -147,10 +149,17 @@ def create_menu():
     param_frame = ttk.Frame(dropdown_frame, padding="10")
     param_frame.pack(fill="both", expand=True, pady=10)
 
+    button_frame = ttk.Frame(menu_window, padding="10")
+    button_frame.pack(side="bottom", fill="x", padx=10, pady=10)
+
     def update_parameters(*args):
         # Clear the parameter frame
         for widget in param_frame.winfo_children():
             widget.destroy()
+
+        # Dictionary to store entry widgets
+        entry_widgets = {}
+        triaxial_entry_widgets = {}
 
         # Get the selected model and its parameters
         selected_model = model_var.get()
@@ -163,7 +172,9 @@ def create_menu():
             param_row.pack(fill="x", padx=10, pady=2)
 
             ttk.Label(param_row, text=param, font=("Arial", 10)).pack(side="left", padx=5)
-            ttk.Entry(param_row).pack(side="left", fill="x", expand=True)
+            entry = ttk.Entry(param_row)
+            entry.pack(side="left", fill="x", expand=True)
+            entry_widgets[param] = entry  # Store the entry widget
 
         # Add a label for "Triaxial Input Data"
         triaxial_frame = ttk.Frame(param_frame, padding="10")
@@ -182,16 +193,23 @@ def create_menu():
             input_row.pack(fill="x", padx=10, pady=2)
 
             ttk.Label(input_row, text=label_text, font=("Arial", 10)).pack(side="left", padx=5)
-            ttk.Entry(input_row).pack(side="left", fill="x", expand=True, padx=5)
+            entry = ttk.Entry(input_row)
+            entry.pack(side="left", fill="x", expand=True, padx=5)
             ttk.Label(input_row, text=unit, font=("Arial", 10)).pack(side="left", padx=5)
+            triaxial_entry_widgets[label_text] = entry  # Store the entry widget
 
-    # Add a frame for the Run Calculation button
-    button_frame = ttk.Frame(dropdown_frame, padding="10")
-    button_frame.pack(fill="x", pady=10)
+        # Save the entry widgets globally for access in run_calculation
+        global parameter_entries, input_entries, model_index
+        parameter_entries = entry_widgets
+        input_entries = triaxial_entry_widgets
+        model_index = index+1
 
     def run_calculation():
-        # Update the plots with new data
-        lab_test("../MohrCoulomb64.dll", ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"])
+        # Retrieve values from the entry widgets
+        parameters = [entry.get() for key, entry in parameter_entries.items()]
+
+        # Pass the parameters to the lab_test function
+        lab_test(dll_path, model_index, parameters)
 
         for i, ax in enumerate(axes.flatten()):
             ax.clear()
