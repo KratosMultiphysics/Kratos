@@ -58,11 +58,14 @@ class LaserDrillingTransientSolverAblationPlusThermal(
             y1 = y0 - l * np.sin(theta_1 - theta_2)
 
             incident_angle = theta_1
+
             delta_temp = self.TemperatureVariationDueToLaser(y1, l, incident_angle)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             new_temp = old_temp + delta_temp
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
+            node.SetSolutionStepValue(
+                KratosMultiphysics.TEMPERATURE, 1, new_temp
+            )  # TODO: why override the previous time step?
 
             if y0 < 1e-8:
                 self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
@@ -118,7 +121,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(
             delta_temp = self.TemperatureVariationDueToLaser(radius, z)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             # TODO: this feels a bit wrong, adding up temperatures is not trivial. Maybe it would be better to
-            # add up energies and then calculate temperatures?
+            # add up energies and then calculate temperatures? Answer: should be fine since it is an temperature
+            # difference what is being added.
             new_temp = old_temp + delta_temp
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
@@ -178,7 +182,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(
 
     def RemoveElementsByAblation(self):
         """
-        Removes elements by ablation. (this comment is WIP)
+        Removes elements by ablation. (this comment is a WIP)
 
         Overrides LaserDrillingTransientSolver.RemoveElementsByAblation
 
@@ -205,6 +209,9 @@ class LaserDrillingTransientSolverAblationPlusThermal(
             print("Relative error in volume (%):", relative_error, "\n\n")
 
     def ResidualHeatStage(self):
+        """
+        Overrides LaserDrillingTransientSolver.ResidualHeatStage
+        """
         pass
 
     def RemoveElementsUsingEnergyPerVolumeThreshold(self):
@@ -215,11 +222,11 @@ class LaserDrillingTransientSolverAblationPlusThermal(
                     LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME
                 )
                 if self.use_enthalpy_and_ionization:
-                    ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold
+                    ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold  # TODO: there's a typo on "ionizaRion" I think, but it never crashes, so it must be unused
                     energy_threshold = min(enthalpy_energy_per_volume, ionization_energy_per_volume_threshold)
                 else:
                     energy_threshold = elem.GetValue(
-                        LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME
+                        LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME  # TODO: What is this variable?
                     )  # self.q_ast
                 if q_energy_per_volume >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)

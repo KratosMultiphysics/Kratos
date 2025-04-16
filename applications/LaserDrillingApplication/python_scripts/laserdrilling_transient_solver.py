@@ -294,7 +294,9 @@ class LaserDrillingTransientSolver(
         if self.material_settings[
             "compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization"
         ].GetBool():
-            self.ionizarion_energy_per_volume_threshold = self.ComputeIonizationEnergyPerUnitVolumeThreshold()
+            self.ionizarion_energy_per_volume_threshold = (
+                self.ComputeIonizationEnergyPerUnitVolumeThreshold()
+            )  # TODO: typo "ionizaRion"?
             self.use_enthalpy_and_ionization = True
         else:
             self.use_enthalpy_and_ionization = False
@@ -448,6 +450,10 @@ class LaserDrillingTransientSolver(
     def AdjustTemperatureFieldAfterAblation(self):
         if not self.adjust_T_field_after_ablation:
             return
+        # TODO: check if self.T0 - self.reference_T_after_laser = 0.
+        # In that case, new_temperature = old_temperature and this loop can be skipped
+        # I don't know if it's worth doing this modification, but right now,
+        # self.T0 - self.reference_T_after_laser = 0 (15-04-2025)
         for node in self.main_model_part.Nodes:
             old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             new_temperature = old_temperature + self.T0 - self.reference_T_after_laser
@@ -1031,7 +1037,9 @@ class LaserDrillingTransientSolver(
                             number_of_boundary_elements += 1
                             list_of_decomposed_elements_ids.append(elem.Id)
                             first_decomposed_node_found = True
-        self.list_of_decomposed_nodes_ids = np.array(list(set(list_of_decomposed_nodes_ids)))
+        self.list_of_decomposed_nodes_ids = np.array(
+            list(set(list_of_decomposed_nodes_ids))
+        )  # TODO: why do list(set(x))? To remove duplicates?
         self.list_of_decomposed_elements_ids = np.array(list_of_decomposed_elements_ids)
 
         if not self.main_model_part.HasSubModelPart("BoundaryPart"):
