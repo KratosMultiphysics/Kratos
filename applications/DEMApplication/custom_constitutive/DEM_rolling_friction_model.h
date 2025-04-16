@@ -52,6 +52,8 @@ namespace Kratos{
 
         virtual void InitializeSolutionStep() {}
 
+        virtual void InitializeContact(SphericParticle* const p_element, SphericParticle* const p_neighbor, const double indentation) {}
+
         virtual void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) {}
         
         virtual void ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) {}

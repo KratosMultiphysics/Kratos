@@ -33,6 +33,32 @@ namespace Kratos{
         
     }
 
+    void DEMRollingFrictionModelElasticPlasticResistance::InitializeContact(SphericParticle* const p_element, SphericParticle* const p_neighbor, const double indentation) {
+        
+        //Get equivalent Radius
+        const double my_radius       = p_element->GetRadius();
+        const double other_radius    = p_neighbor->GetRadius();
+        const double radius_sum      = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
+
+        //Get equivalent Young's Modulus
+        const double my_young        = p_element->GetYoung();
+        const double other_young     = p_neighbor->GetYoung();
+        const double my_poisson      = p_element->GetPoisson();
+        const double other_poisson   = p_neighbor->GetPoisson();
+        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+        //Get equivalent Shear Modulus
+        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
+        const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
+        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
+
+        //Normal and Tangent elastic constants
+        const double sqrt_equiv_radius_and_indentation = sqrt(equiv_radius * indentation);
+        double Kn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
+        mKt = 4.0 * equiv_shear * Kn / equiv_young;
+    }
+
     void DEMRollingFrictionModelElasticPlasticResistance::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment)
     {
         array_1d<double, 3> elementRelAngularVelocity;
@@ -68,10 +94,10 @@ namespace Kratos{
             const double force = std::abs(LocalContactForce[2]);
             double max_rolling_friction_moment = rolling_friction_coefficient * force * arm_length;
 
-            const double k_r = 371.8 * equivalent_radius * equivalent_radius; //TODO: This must be improved
-            m_rolling_friction_moment[0] -= k_r * delta_theta[0];
-            m_rolling_friction_moment[1] -= k_r * delta_theta[1];
-            m_rolling_friction_moment[2] -= k_r * delta_theta[2];
+            const double Kr = mKt * equivalent_radius * equivalent_radius; //TODO: This must be improved
+            m_rolling_friction_moment[0] -= Kr * delta_theta[0];
+            m_rolling_friction_moment[1] -= Kr * delta_theta[1];
+            m_rolling_friction_moment[2] -= Kr * delta_theta[2];
 
             // Check if the rolling friction moment exceeds the maximum value
             double m_rolling_friction_moment_modlule = GeometryFunctions::module(m_rolling_friction_moment);

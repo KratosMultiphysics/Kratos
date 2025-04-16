@@ -31,6 +31,8 @@ namespace Kratos{
 
         std::unique_ptr<DEMRollingFrictionModel> CloneUnique() override;
 
+        void InitializeContact(SphericParticle* const p_element, SphericParticle* const p_neighbor, const double indentation) override;
+
         void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) override;
         
         void ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) override;
@@ -40,6 +42,7 @@ namespace Kratos{
         void CalculateInelasticRollingResistanceEnergyWithWall(double& inelastic_rollingresistance_energy, const array_1d<double, 3>& rolling_friction_moment, const array_1d<double, 3>& relative_angular_velocity, double dt) override;
     
         double m_rolling_friction_moment[3] = {0.0};
+        double mKt = 0.0;
     
     private:
 
