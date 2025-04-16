@@ -879,12 +879,13 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 ComputeMoments(LocalContactForce[2], GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
                     
               if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-                if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
-                  mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                  mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, data_buffer.mIndentation, mContactMoment);
+                if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){ 
+                    mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+                    mRollingFrictionModel->InitializeContact(this, data_buffer.mpOtherParticle, data_buffer.mIndentation);
+                    mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, data_buffer.mIndentation, mContactMoment);
                 }
                 else {
-                  mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
+                    mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
                 }      
               }
             }
