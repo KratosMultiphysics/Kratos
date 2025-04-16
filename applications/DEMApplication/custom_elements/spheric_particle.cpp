@@ -881,7 +881,6 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
               if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                 if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){ 
                     mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle); //TODO: This is not ready for Rigid faces yet.
-                    mRollingFrictionModel->InitializeContact(this, data_buffer.mpOtherParticle, data_buffer.mIndentation);
                     mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, data_buffer.mIndentation, mContactMoment);
                 }
                 else {
