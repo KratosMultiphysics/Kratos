@@ -18,6 +18,14 @@ class FormulationParameters:
         lamb = 'data.lambda_' if output_lang == 'python' else 'data.lambda'
         self.lamb    = sympy.Symbol(lamb, positive = True)   # Thermal Conductivity of the fluid
 
+        # JWL Equation of State parameters
+        self.rho_0 = sympy.Symbol('data.rho_0', positive=True)
+        self.A_JWL     = sympy.Symbol('data.A_JWL', positive=True)
+        self.B_JWL     = sympy.Symbol('data.B_JWL', positive=True)
+        self.R1    = sympy.Symbol('data.R1', positive=True)
+        self.R2    = sympy.Symbol('data.R2', positive=True)
+        self.omega = sympy.Symbol('data.omega', positive=True)
+
 class ShockCapturingParameters:
     def __init__(self):
         self.alpha = sympy.Symbol('data.alpha_sc', positive = True) # Artificial density diffusivity for shock capturing

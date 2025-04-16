@@ -106,6 +106,12 @@ namespace Kratos
             double lambda_sc; // Heat conductivity (shock capturing)
             double c_v;       // Heat capacity at constant volume
             double gamma;     // Heat capacity ratio
+            double A_JWL;     // Parameter A in JWL EOS
+            double B_JWL;     // Parameter B in JWL EOS
+            double R1;        // Parameter R1 in JWL EOS
+            double R2;        // Parameter R2 in JWL EOS
+            double omega;     // Parameter omega in JWL EOS
+            double rho_0;     // Parameter rho_0 in JWL EOS
 
             bool UseOSS;         // Use orthogonal subscales
             bool ShockCapturing; // Activate shock capturing

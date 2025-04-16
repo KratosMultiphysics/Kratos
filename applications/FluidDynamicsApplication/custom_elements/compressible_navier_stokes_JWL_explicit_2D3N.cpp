@@ -569,6 +569,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        // KRATOS_WATCH("THIS IS MY NEW ELEMENT")
+
         // Struct to pass around the data
         ElementDataStruct data;
         this->FillElementData(data, rCurrentProcessInfo);

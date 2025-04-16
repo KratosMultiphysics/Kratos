@@ -3,16 +3,18 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
     .src.defines import CompressibleNavierStokesDefines as defs
 
 
-def NimaFlux():
-    pass
-
-
 def ComputeEulerJacobianMatrix(dofs, params):
     """This function calculates the Euler Jacobian matrix for convection"""
 
     # Auxiliary variables
     dim = params.dim
     gamma = params.gamma
+    rho_0 = params.rho_0
+    A_JWL = params.A_JWL
+    B_JWL = params.B_JWL
+    omega = params.omega
+    R1 = params.R1
+    R2 = params.R2
     rho = dofs[0]
     mom = []
     vel = []
@@ -22,7 +24,13 @@ def ComputeEulerJacobianMatrix(dofs, params):
         vel.append(dofs[i + 1] / rho)
         mom_prod += dofs[i + 1]**2
     e_tot = dofs[dim + 1]
-    p = (gamma - 1) * (e_tot - 0.5 * mom_prod / rho)
+    V = rho_0 / rho  # Relative volume
+    e_internal = e_tot - 0.5 * mom_prod / rho # Interna Energy
+
+    p = A_JWL * (1 - omega / (R1 * V)) * sympy.exp(-R1 * V) + \
+    B_JWL * (1 - omega / (R2 * V)) * sympy.exp(-R2 * V) + \
+    (omega * e_internal) / V
+
 
     # Define and fill the convective flux matrix
     E = defs.Matrix('E', dim + 2, dim, real=True)
