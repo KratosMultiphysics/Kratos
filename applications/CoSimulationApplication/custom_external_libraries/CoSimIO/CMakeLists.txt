@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.6)
+cmake_minimum_required (VERSION 3.12)
 
 if(CMAKE_MAJOR_VERSION LESS 3)
     project(CoSimIO CXX C)
