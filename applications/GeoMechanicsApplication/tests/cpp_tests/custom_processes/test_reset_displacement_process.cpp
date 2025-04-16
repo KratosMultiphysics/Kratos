@@ -122,6 +122,9 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
 
     const auto               dummy_parameters = Parameters{};
     ResetDisplacementProcess reset_displacement_process(model_part, dummy_parameters);
+
+    // This is also the order in which these functions are called in an analysis
+    // which is why we emulate exactly this order here.
     reset_displacement_process.ExecuteInitialize();
     model_part.Elements()[1].Initialize(model_part.GetProcessInfo());
     reset_displacement_process.ExecuteBeforeSolutionLoop();
