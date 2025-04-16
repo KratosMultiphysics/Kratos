@@ -60,6 +60,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                 this->TimeIncrementBlock1(increment);
                 this->TimeIncrementBlock2(increment);
                 if (increment > 0.0) {
+                    std::cout << "AITS :: Applying the first big jump of " << increment + mThisParameters["fatigue"]["time_overshoot"].GetDouble() << " s." << std::endl;
                     this->TimeAndCyclesUpdate(increment + mThisParameters["fatigue"]["time_overshoot"].GetDouble());
                 }
                 process_info[ADVANCE_STRATEGY_APPLIED] = true;
@@ -76,6 +77,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                     this->TimeIncrementBlock1(increment);
                     increment = std::min(increment, mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble());
                     this->TimeAndCyclesUpdate(increment);
+                    std::cout << "AITS :: Applying a small jump during damage phase of " << increment  << " s." << std::endl;
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 // }
             }
@@ -284,6 +286,7 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
     double acumulated_max_stress_rel_error = 0.0;
     double acumulated_rev_factor_rel_error = 0.0;
     bool fatigue_in_course = false;
+    IndexType IP_counter = 0;
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
@@ -297,6 +300,7 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
 
         for (unsigned int i = 0; i < number_of_ip; i++) {
+            IP_counter++;
             if (max_stress[i] > s_th[i]) {
                 fatigue_in_course = true;
                 acumulated_max_stress_rel_error += max_stress_rel_error[i];
@@ -306,7 +310,7 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
     }
     const double tol = mThisParameters["fatigue"]["damage_jump_stability_tolerance"].GetDouble();
 
-    if ((acumulated_max_stress_rel_error < tol && acumulated_rev_factor_rel_error < tol && fatigue_in_course) || (NoLinearityIndicator && acumulated_max_stress_rel_error < tol && acumulated_rev_factor_rel_error < tol && fatigue_in_course)) {
+    if ((acumulated_max_stress_rel_error / IP_counter < tol && acumulated_rev_factor_rel_error / IP_counter < tol && fatigue_in_course) || (NoLinearityIndicator && acumulated_max_stress_rel_error / IP_counter < tol && acumulated_rev_factor_rel_error / IP_counter < tol && fatigue_in_course)) {
         rAdvancingStrategy = true;
     }
 }
