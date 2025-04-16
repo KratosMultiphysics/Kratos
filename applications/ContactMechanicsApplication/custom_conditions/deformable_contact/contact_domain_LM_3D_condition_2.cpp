@@ -49,7 +49,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   ContactDomainLM3DCondition&  ContactDomainLM3DCondition::operator=(ContactDomainLM3DCondition const& rOther)
@@ -764,7 +764,7 @@ namespace Kratos
 
   void ContactDomainLM3DCondition::CalculateContactFactor( ProcessInfo& rCurrentProcessInfo )
   {
-    //Initilialize Tau for the stabilization
+    //Initialize Tau for the stabilization
     double alpha_stab = 0.1;
     alpha_stab = GetProperties()[TAU_STAB];
 

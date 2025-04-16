@@ -17,6 +17,7 @@
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
@@ -98,37 +99,15 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        if (GetGeometry().LocalSpaceDimension() == 1) {
-            switch (TNumNodes) {
-            case 2:
-            case 3:
-                return GeometryData::IntegrationMethod::GI_GAUSS_2;
-            case 4:
-                return GeometryData::IntegrationMethod::GI_GAUSS_3;
-            case 5:
-                return GeometryData::IntegrationMethod::GI_GAUSS_5;
-            default:
-                KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                             << std::endl;
-            }
-        }
-
-        switch (TNumNodes) {
-        case 3:
-        case 4:
-        case 6:
-        case 8:
-        case 9:
-        case 20:
-        case 27:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
-        case 10:
-            return GeometryData::IntegrationMethod::GI_GAUSS_4;
-        case 15:
+        switch (this->GetGeometry().GetGeometryOrderType()) {
+        case GeometryData::Kratos_Cubic_Order:
+            return this->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D10
+                       ? GeometryData::IntegrationMethod::GI_GAUSS_4
+                       : GeometryData::IntegrationMethod::GI_GAUSS_3;
+        case GeometryData::Kratos_Quartic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                         << std::endl;
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
     }
 
@@ -136,7 +115,7 @@ public:
     {
         KRATOS_TRY
 
-        CheckDomainSize();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckHasSolutionStepsDataFor(TEMPERATURE);
         CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
         CheckHasDofsFor(TEMPERATURE);
@@ -149,13 +128,6 @@ public:
     }
 
 private:
-    void CheckDomainSize() const
-    {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
-    }
-
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
         for (const auto& node : GetGeometry()) {

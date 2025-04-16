@@ -12,6 +12,7 @@
 
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
+#include "custom_utilities/registration_utilities.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -27,9 +28,9 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto       friction_angle  = MathUtils<>::DegreesToRadians(45.0);
-    constexpr double cohesion        = 2.0;
-    const auto       dilatancy_angle = MathUtils<>::DegreesToRadians(0.0);
+    constexpr auto friction_angle  = MathUtils<>::DegreesToRadians(45.0);
+    constexpr auto cohesion        = 2.0;
+    constexpr auto dilatancy_angle = MathUtils<>::DegreesToRadians(0.0);
 
     CoulombYieldSurface coulomb_yield_surface(friction_angle, cohesion, dilatancy_angle);
 
@@ -47,10 +48,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWi
 KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto     scoped_registration     = ScopedSerializerRegistrationOfAllYieldSurfaces{};
-    const auto     friction_angle          = MathUtils<>::DegreesToRadians(60.0);
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"CoulombYieldSurface"s, CoulombYieldSurface{}};
+    constexpr auto friction_angle          = MathUtils<>::DegreesToRadians(60.0);
     constexpr auto cohesion                = 2.0;
-    const auto     dilatancy_angle         = MathUtils<>::DegreesToRadians(30.0);
+    constexpr auto dilatancy_angle         = MathUtils<>::DegreesToRadians(30.0);
     auto           p_coulomb_yield_surface = std::unique_ptr<YieldSurface>(
         std::make_unique<CoulombYieldSurface>(friction_angle, cohesion, dilatancy_angle));
     auto serializer = StreamSerializer{};
@@ -92,8 +94,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
 KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto     scoped_registration = ScopedSerializerRegistrationOfAllYieldSurfaces{};
-    constexpr auto tensile_strength    = 2.0;
+    const auto scoped_registration = ScopedSerializerRegistration{"TensionCutoff"s, TensionCutoff{}};
+    constexpr auto tensile_strength = 2.0;
     auto p_tension_cut_off = std::unique_ptr<YieldSurface>(std::make_unique<TensionCutoff>(tensile_strength));
     auto serializer = StreamSerializer{};
 

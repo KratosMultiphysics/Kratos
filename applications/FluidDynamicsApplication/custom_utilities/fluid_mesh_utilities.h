@@ -64,7 +64,7 @@ public:
     static bool AllElementsAreSimplex(const ModelPart& rModelPart);
 
     /**
-     * @brief Assigns the conditions' neigbour (parent) elements
+     * @brief Assigns the conditions' neighbour (parent) elements
      * This function loops the fluid mesh conditions to assign their neighbour (parent) element
      * Note that it also checks for repeated conditions, which are not allowed in fluid meshes
      * Also note that this function assumes that elements' face geometries match the conditions' ones

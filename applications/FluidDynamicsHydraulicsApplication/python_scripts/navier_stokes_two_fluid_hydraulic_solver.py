@@ -466,7 +466,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # Create and read an auxiliary materials file for each one of the fields (only on one rank)
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials = KratosMultiphysics.Parameters()
                     aux_materials.AddEmptyArray("properties")
                     aux_materials["properties"].Append(i_material)
@@ -478,7 +478,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             data_comm.Barrier()
 
             # read the files on all ranks
-            for i_material in materials["properties"]:
+            for i_material in materials["properties"].values():
                 aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                 aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
@@ -488,7 +488,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # remove aux files after every rank read them
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                     KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
 

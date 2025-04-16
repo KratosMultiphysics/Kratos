@@ -1,0 +1,49 @@
+Begin Properties 1
+End Properties
+
+Begin Nodes
+  1  0.0000000000 0.0000000000 0.0000000000
+  2  1.0000000000 0.0000000000 0.0000000000
+  3  1.0000000000 1.0000000000 0.0000000000
+  4  0.0000000000 1.0000000000 0.0000000000
+End Nodes
+
+Begin Elements UPwSmallStrainElement2D4N
+  1  1  1 2 3 4
+End Elements
+
+Begin SubModelPart all
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart bottom_left
+  Begin SubModelPartNodes
+    1
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart bottom_right
+  Begin SubModelPartNodes
+    2
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart top_right
+  Begin SubModelPartNodes
+    3
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart top_left
+  Begin SubModelPartNodes
+    4
+  End SubModelPartNodes
+End SubModelPart

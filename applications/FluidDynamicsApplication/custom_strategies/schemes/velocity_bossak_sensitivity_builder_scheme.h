@@ -191,7 +191,7 @@ private:
         const Matrix& rDampingMatrix,
         const Matrix& rMassMatrix) const
     {
-        // multipling time scheme factor
+        // multiplying time scheme factor
         rLHS *= ma1;
 
         // adding mass contribution to the dynamic stiffness

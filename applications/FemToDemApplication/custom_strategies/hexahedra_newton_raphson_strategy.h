@@ -265,7 +265,7 @@ class HexahedraNewtonRaphsonStrategy
         ModelPart& rModelPart = BaseType::GetModelPart();
         Parameters extrapolation_parameters(R"(
         {
-        	"list_of_variables": ["STRESS_VECTOR","STRAIN_VECTOR"]
+        	"list_of_variables": ["FEMDEM_STRESS_VECTOR","FEMDEM_STRAIN_VECTOR"]
         })");
         auto extrapolation_process = IntegrationValuesExtrapolationToNodesProcess(rModelPart, extrapolation_parameters);
         extrapolation_process.Execute();

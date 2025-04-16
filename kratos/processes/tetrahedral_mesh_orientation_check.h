@@ -174,6 +174,53 @@ public:
 
     ///@}
 
+protected:
+
+/**
+     * @brief tells if the element is linear or higher order
+     * @param rGeometry The element geometry
+     * @return true if linear, false if not
+     */
+    bool LinearElement(const GeometryType& rGeometry);
+
+    /**
+     * @brief tells if the element is supported for the process
+     * @param rGeometry The element geometry
+     * @return true if supported, false if not
+     */
+    bool SupportedElement(const GeometryType& rGeometry);
+
+    /**
+     * @brief tells if the condition is supported for the process
+     * @param rGeometry The condition geometry
+     * @return true if supported, false if not
+     */
+    bool SupportedCondition(const GeometryType& rGeometry);
+
+    /**
+     * @brief Finds how many boundaries an element has
+     * @param rGeometry The element geometry
+     * @return the number of boundaries
+     */
+    SizeType BoundariesEntitiesNumber(const GeometryType& rGeometry);
+
+    /**
+     * @brief how many nodes each of the boundaries of the element contains
+     * @param rGeometry The element geometry
+     * @return number of nodes per boundary
+     */
+    SizeType NumberOfNodesInEachBoundary(const GeometryType& rGeometry);
+
+
+
+
+    /**
+     * @brief Finds the nodes of each of the boundaries of the element
+     * @param rGeometry The element geometry
+     * @param rNodesIds the retured matrix with the IDs
+     */
+    void NodesOfBoundaries(const GeometryType& rGeometry, DenseMatrix<int>& rNodesIds);
+
 
 private:
     ///@name Static Member Variables

@@ -416,7 +416,7 @@ class CompressibleNavierStokesSymbolicGenerator:
             Un = defs.Matrix('data.Un', n_nodes, block_size, real=True)
             Unn = defs.Matrix('data.Unn', n_nodes, block_size, real=True)
 
-        # Test functions defintion
+        # Test functions definition
         w = defs.Matrix('w', n_nodes, block_size, real=True)
 
         # External terms definition
@@ -429,7 +429,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         # Nodal artificial magnitudes
         sc_nodes = ShockCapturingNodalParameters(self.geometry)
 
-        # Backward differantiation coefficients
+        # Backward differentiation coefficients
         if self.is_explicit:
             bdf = None
         else:
