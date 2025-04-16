@@ -71,7 +71,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "set_initial_state_process",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.GENERIC_Layer1",
                     "dimension"       : 3,
                     "imposed_stress"  : [0.0,0.0,0.0,0.0,0.0,0.0],
@@ -113,7 +112,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "set_initial_state_process",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.GENERIC_Layer2",
                     "dimension"       : 3,
                     "imposed_stress"  : [0.0,0.0,0.0,0.0,0.0,0.0],

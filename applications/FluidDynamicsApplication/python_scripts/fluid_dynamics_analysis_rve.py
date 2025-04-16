@@ -27,7 +27,7 @@ class FluidDynamicsAnalysisRve(FluidDynamicsAnalysis):
             KratosMultiphysics.Logger.PrintWarning("'averaging_mp_name' is not provided. Taking 'model_part_name' in 'solver_settings'.")
             self.averaging_mp_name = project_parameters["solver_settings"]["model_part_name"].GetString()
 
-        # Dictionary containin the jump data for periodicity
+        # Dictionary containing the jump data for periodicity
         self.strains = {}
 
         self.strains["00"] = project_parameters["rve_settings"]["jump_XX"].GetDouble()
@@ -49,7 +49,7 @@ class FluidDynamicsAnalysisRve(FluidDynamicsAnalysis):
                 self.strain[i, j] = self.strains[strainIndex]
                 self.strain[j, i] = self.strains[strainIndex]
 
-        self.populate_search_eps = 1e-4 ##tolerance in finding which conditions belong to the surface (will be multiplied by the lenght of the diagonal)
+        self.populate_search_eps = 1e-4 ##tolerance in finding which conditions belong to the surface (will be multiplied by the length of the diagonal)
         self.geometrical_search_tolerance = 1e-4 #tolerance to be used in the search of the condition it falls into
 
         super().__init__(model, project_parameters)

@@ -17,17 +17,18 @@ file(GLOB_RECURSE KRATOS_WIND_ENGINEERING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-## WindEngineering testing sources
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_WIND_ENGINEERING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-
 ## WindEngineering python interface sources
 file(GLOB_RECURSE KRATOS_WIND_ENGINEERING_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-add_library(KratosWindEngineeringCore SHARED ${KRATOS_WIND_ENGINEERING_APPLICATION_CORE} ${KRATOS_WIND_ENGINEERING_APPLICATION_TESTING_SOURCES})
+add_library(KratosWindEngineeringCore SHARED ${KRATOS_WIND_ENGINEERING_APPLICATION_CORE})
 target_link_libraries(KratosWindEngineeringCore PUBLIC KratosCore)
 set_target_properties(KratosWindEngineeringCore PROPERTIES COMPILE_DEFINITIONS "WIND_ENGINEERING_APPLICATION=EXPORT,API")
+
+## WindEngineering testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_WIND_ENGINEERING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    kratos_add_gtests(TARGET KratosWindEngineeringCore SOURCES "${KRATOS_WIND_ENGINEERING_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

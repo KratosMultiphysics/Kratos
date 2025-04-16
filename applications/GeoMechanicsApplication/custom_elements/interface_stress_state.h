@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceStressState : public StressStatePolicy
+class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceStressState final : public StressStatePolicy
 {
 public:
     [[nodiscard]] Matrix CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const override;
