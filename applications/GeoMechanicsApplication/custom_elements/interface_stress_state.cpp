@@ -47,7 +47,7 @@ double InterfaceStressState::CalculateIntegrationCoefficient(const Geometry<Node
     return rIntegrationPoint.Weight() * DetJ;
 }
 
-[[noreturn]] Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
+Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
 {
     KRATOS_ERROR << "For interfaces, it is not possible to calculate the Green-Lagrange "
                     "strain based on a deformation gradient.\n";
@@ -62,7 +62,7 @@ const Vector& InterfaceStressState::GetVoigtVector() const { return VoigtVectorI
 
 SizeType InterfaceStressState::GetVoigtSize() const { return VOIGT_SIZE_2D_INTERFACE; }
 
-[[noreturn]] SizeType InterfaceStressState::GetStressTensorSize() const
+SizeType InterfaceStressState::GetStressTensorSize() const
 {
     KRATOS_ERROR << "For interfaces, the stress tensor size is not implemented.\n";
 }
