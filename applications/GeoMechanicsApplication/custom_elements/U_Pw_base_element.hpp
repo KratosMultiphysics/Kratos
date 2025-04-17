@@ -166,8 +166,11 @@ protected:
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const;
 
-    void CalculateDerivativesOnInitialConfiguration(
-        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int IntegrationPointIndex) const;
+    void CalculateDerivativesOnInitialConfiguration(double&      rDetJ,
+                                                    Matrix&      rJ0,
+                                                    Matrix&      rInvJ0,
+                                                    Matrix&      rDNu_DX0,
+                                                    unsigned int IntegrationPointIndex) const;
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
