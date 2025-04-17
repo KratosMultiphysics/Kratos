@@ -14,7 +14,6 @@
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_elements/integration_coefficients_calculator.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"

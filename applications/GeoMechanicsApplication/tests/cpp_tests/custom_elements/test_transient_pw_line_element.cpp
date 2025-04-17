@@ -11,6 +11,7 @@
 //
 
 #include "containers/model.h"
+#include "custom_elements/integration_coefficient_modifier_for_pw_line_element.h"
 #include "custom_elements/transient_Pw_line_element.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/line_2d_5.h"
