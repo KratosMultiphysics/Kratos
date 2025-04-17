@@ -47,7 +47,7 @@ namespace Kratos
                                         double indentation, 
                                         array_1d<double, 3>& mContactMoment, 
                                         double LocalCoordSystem2[3],
-                                        double OldRollingFrictionMoment[3]) override;
+                                        double& OldRollingFrictionMoment[3]) override;
     void CalculateInelasticRollingResistanceEnergy(double& inelastic_rollingresistance_energy, 
                                                   const array_1d<double, 3>& rolling_friction_moment, 
                                                   const array_1d<double, 3>& relative_angular_velocity, 
