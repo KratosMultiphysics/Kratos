@@ -20,24 +20,18 @@
 
 namespace Kratos::Testing
 {
-
 class MockElement : public UPwBaseElement
 {
 public:
-    MockElement() : UPwBaseElement() {}
-
-    MockElement(IndexType NewId, const GeometryType::Pointer& rGeometry, const PropertiesType::Pointer& rProperties)
-        : UPwBaseElement(NewId, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>())
-    {
-    }
+    using UPwBaseElement::CalculateOnIntegrationPoints;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override
     {
-        unsigned int       number_of_integration_points = 0;
-        const unsigned int n_nodes                      = this->GetGeometry().size();
-        const unsigned int n_dim = this->GetGeometry().WorkingSpaceDimension();
+        unsigned int number_of_integration_points = 0;
+        const auto   n_nodes                      = this->GetGeometry().size();
+        const auto   n_dim                        = this->GetGeometry().WorkingSpaceDimension();
 
         // Get number of integration points based on the element type
 
@@ -74,7 +68,7 @@ public:
 /* Copies upper triangle to bottom. This is used to make a symmetric matrix */
 static void SymmetrizeMatrix(Matrix& rMatrix)
 {
-    const unsigned int matrix_size = rMatrix.size1();
+    const auto matrix_size = rMatrix.size1();
 
     // Copy the upper triangle to the lower triangle.
     for (unsigned int i = 0; i < matrix_size; ++i) {
@@ -772,8 +766,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
     // compare results
     KRATOS_EXPECT_MATRIX_NEAR(rLeftHandSideMatrix, expected_matrix, 1.0e-6);
     KRATOS_EXPECT_VECTOR_NEAR(right_hand_side_vector, expected_rhs, 1.0e-6);
-
-    std::cout << "calculated rhs (2): " << right_hand_side_vector(2) << std::endl;
 }
 
 /// <summary>
