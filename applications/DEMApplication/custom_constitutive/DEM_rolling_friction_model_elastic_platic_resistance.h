@@ -35,7 +35,7 @@ namespace Kratos{
 
         virtual void InitializeContactWall(SphericParticle* const element, Condition* const wall, const double indentation);
 
-        void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) override;
+        void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment, double LocalCoordSystem2[3]) override;
         
         void ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment, double LocalCoordSystem2[3]) override;
 

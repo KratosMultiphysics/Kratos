@@ -30,7 +30,7 @@ namespace Kratos {
     }
   }
 
-  void DEMRollingFrictionModelViscousTorque::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment)
+  void DEMRollingFrictionModelViscousTorque::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment, double LocalCoordSystem2[3])
   {
     // Get rolling friction coefficient
     Properties& r_properties = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
