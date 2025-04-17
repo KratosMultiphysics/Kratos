@@ -104,7 +104,7 @@ namespace Kratos{
             mContactMoment[0] += rolling_friction_moment[0];
             mContactMoment[1] += rolling_friction_moment[1];
             mContactMoment[2] += rolling_friction_moment[2];
-
+            
             // Compute energy dissipation from rolling friction
             double& inelastic_rollingresistance_energy = p_element->GetInelasticRollingResistanceEnergy();
             CalculateInelasticRollingResistanceEnergyWithWall(inelastic_rollingresistance_energy, rolling_friction_moment, element1AngularVelocity, r_process_info[DELTA_TIME]);
