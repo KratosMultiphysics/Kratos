@@ -14,8 +14,6 @@
 #include "custom_elements/integration_coefficients_calculator.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 using namespace Kratos;
 
 namespace Kratos::Testing
@@ -27,8 +25,7 @@ KRATOS_TEST_CASE_IN_SUITE(IntegrationCoefficientsCalculator_ReturnsCorrectValue,
     const auto integration_coefficient_calculator = IntegrationCoefficientsCalculator{};
     const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
-    Vector                                           detJs(1);
-    detJs <<= 2.0;
+    auto                                             detJs = Vector{ScalarVector{1, 2.0}};
 
     // Act
     const auto calculated_coefficients = integration_coefficient_calculator.Run<>(integration_points, detJs);

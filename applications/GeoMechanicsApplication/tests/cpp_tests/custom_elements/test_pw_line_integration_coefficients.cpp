@@ -12,10 +12,8 @@
 //
 
 #include "custom_elements/integration_coefficient_modifier_for_pw_line_element.h"
+#include "structural_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
-#include <structural_mechanics_application_variables.h>
 
 using namespace Kratos;
 
@@ -29,9 +27,8 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficientsCalculator_ReturnsCorrect
         std::make_unique<IntegrationCoefficientModifierForPwLineElement>()};
     const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
-    Vector                                           detJs(1);
-    detJs <<= 2.0;
-    auto p_properties = std::make_shared<Properties>();
+    auto                                             detJs        = Vector{ScalarVector{1, 2.0}};
+    auto                                             p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CROSS_AREA, 0.5);
     PointerVector<Node> nodes;
     nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));

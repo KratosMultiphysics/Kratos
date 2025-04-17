@@ -16,8 +16,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 using namespace Kratos;
 
 namespace Kratos::Testing
@@ -32,8 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_ReturnsC
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
-    Vector                                           detJs(1);
-    detJs <<= 2.0;
+    auto                                             detJs = Vector{ScalarVector{1, 2.0}};
     const auto p_element = ElementSetupUtilities::Create2D3NElement();
 
     // Act

@@ -16,8 +16,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 using namespace Kratos;
 
 namespace Kratos::Testing
@@ -31,9 +29,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficientsCalculator_ReturnsCorrec
         std::make_unique<IntegrationCoefficientModifierForThermalElement>()};
     const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
-    Vector                                           detJs(1);
-    detJs <<= 2.0;
-    auto p_properties = std::make_shared<Properties>();
+    auto                                             detJs        = Vector{ScalarVector{1, 2.0}};
+    auto                                             p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CROSS_AREA, 0.5);
     PointerVector<Node> nodes;
     nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));
