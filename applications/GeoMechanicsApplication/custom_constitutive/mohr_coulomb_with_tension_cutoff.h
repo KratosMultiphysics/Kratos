@@ -88,6 +88,10 @@ private:
     [[nodiscard]] static bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
                                                          double        DilatancyAngle,
                                                          const Vector& rCornerPoint);
+
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // Class MohrCoulombWithTensionCutOff
 
 } // namespace Kratos
