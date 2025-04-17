@@ -22,21 +22,19 @@ namespace Kratos
 {
 
 Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
-                                                              NodesArrayType const& ThisNodes,
+                                                              const NodesArrayType& rNodes,
                                                               PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UpdatedLagrangianUPwDiffOrderElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
-        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
+    return Create(NewId, this->GetGeometry().Create(rNodes), pProperties);
 }
 
 Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
                                                               GeometryType::Pointer pGeom,
                                                               PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UpdatedLagrangianUPwDiffOrderElement(
+    return make_intrusive<UpdatedLagrangianUPwDiffOrderElement>(
         NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
-        this->CloneIntegrationCoefficientModifier()));
+        this->CloneIntegrationCoefficientModifier());
 }
 
 void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,

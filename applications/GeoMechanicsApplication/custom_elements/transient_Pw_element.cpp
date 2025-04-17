@@ -500,7 +500,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
                                                              ElementVariables& rVariables,
-                                                             unsigned int      integration_point)
+                                                             unsigned int)
 {
     KRATOS_TRY
 

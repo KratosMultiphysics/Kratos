@@ -886,7 +886,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
+    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -895,7 +895,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
     const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     // calculated on Lobatto points
-    if (rValues.size() != NumGPoints) rValues.resize(NumGPoints);
+    rOutput.resize(NumGPoints);
 
     if (rVariable == TOTAL_STRESS_VECTOR) {
         // Defining necessary variables
@@ -965,11 +965,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
             noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
                                           Variables.BishopCoefficient * Variables.FluidPressure * VoigtVector;
 
-            // calculate on Lobatto integration points
-            if (rValues[GPoint].size() != TotalStressVector.size())
-                rValues[GPoint].resize(TotalStressVector.size(), false);
-
-            rValues[GPoint] = TotalStressVector;
+            rOutput[GPoint] = TotalStressVector;
         }
     }
     KRATOS_CATCH("")

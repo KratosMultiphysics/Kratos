@@ -142,7 +142,7 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int) override;
 
     void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex) override;
 
