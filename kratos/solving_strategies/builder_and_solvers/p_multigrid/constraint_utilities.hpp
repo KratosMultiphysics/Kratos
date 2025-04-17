@@ -185,13 +185,15 @@ template <class TSparse, class TDense>
 void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::ConstraintArray& rConstraints,
                             const ProcessInfo& rProcessInfo,
                             typename TSparse::MatrixType& rRelationMatrix,
+                            typename TSparse::MatrixType& rHessian,
                             typename TSparse::VectorType& rConstraintGaps,
                             std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     KRATOS_TRY
 
     // Function-wide variables.
-    std::vector<LockObject> mutexes(rConstraintIdMap.size());
+    std::vector<LockObject> constraint_mutexes(rConstraintIdMap.size());
+    std::vector<LockObject> dof_mutexes(rHessian.size1());
 
     // Init.
     TSparse::SetToZero(rRelationMatrix);
@@ -200,15 +202,22 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
     struct TLS {
         MasterSlaveConstraint::EquationIdVectorType slave_ids, master_ids;
         std::vector<std::size_t> constraint_indices, dof_equation_ids, dof_index_array, reordered_dof_equation_ids;
-        std::vector<MasterSlaveConstraint::MatrixType::value_type> relation_matrix_row;
-        MasterSlaveConstraint::MatrixType relation_matrix;
+        std::vector<MasterSlaveConstraint::MatrixType::value_type> matrix_row;
+        MasterSlaveConstraint::MatrixType relation_matrix, hessian;
         MasterSlaveConstraint::VectorType constraint_gaps;
     };
 
     // Constraint assembly.
     block_for_each(rConstraints,
                    TLS(),
-                   [&mutexes, &rProcessInfo, &rConstraintIdMap, &rRelationMatrix, &rConstraintGaps](const MasterSlaveConstraint& r_constraint, TLS& r_tls){
+                   [&constraint_mutexes,
+                    &dof_mutexes,
+                    &rProcessInfo,
+                    &rConstraintIdMap,
+                    &rRelationMatrix,
+                    &rHessian,
+                    &rConstraintGaps](const MasterSlaveConstraint& r_constraint,
+                                                                                                               TLS& r_tls){
         if (r_constraint.IsActive()) {
             r_constraint.EquationIdVector(r_tls.slave_ids,
                                           r_tls.master_ids,
@@ -234,6 +243,11 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                                       r_constraint,
                                                       r_tls.master_ids,
                                                       rConstraintIdMap);
+                const auto& r_hessian = r_constraint.GetData().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
+                r_tls.hessian.resize(r_hessian.size1(), r_hessian.size2());
+                std::copy(r_hessian.data().begin(),
+                          r_hessian.data().end(),
+                          r_tls.hessian.data().begin());
             } /*if r_tls.slave_ids.empty()*/ else {
                 // The constraint is a MasterSlaveConstraint.
                 detail::ProcessMasterSlaveConstraint(r_tls.constraint_indices,
@@ -244,6 +258,10 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                                      r_tls.slave_ids,
                                                      r_tls.master_ids,
                                                      rConstraintIdMap);
+                r_tls.hessian.resize(r_tls.constraint_indices.size(), r_tls.constraint_indices.size());
+                std::fill(r_tls.hessian.data().begin(),
+                          r_tls.hessian.data().end(),
+                          static_cast<typename TDense::DataType>(0));
             } // not r_tls.slave_ids.empty()
 
             KRATOS_ERROR_IF_NOT(r_tls.constraint_indices.size() == r_tls.relation_matrix.size1())
@@ -261,7 +279,24 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                 << "relation matrix is " << r_tls.relation_matrix.size1() << "x" << r_tls.relation_matrix.size2()
                 << " but the constraint gap vector is of size " << r_tls.constraint_gaps.size();
 
-            r_tls.relation_matrix_row.resize(r_tls.relation_matrix.size2());
+            r_tls.matrix_row.resize(r_tls.relation_matrix.size2());
+
+            // Sort DoFs based on their equation IDs because the CSR format expects rows to be sorted.
+            r_tls.dof_index_array.resize(r_tls.dof_equation_ids.size());
+            std::iota(r_tls.dof_index_array.begin(), r_tls.dof_index_array.end(), 0ul);
+            std::sort(r_tls.dof_index_array.begin(),
+                      r_tls.dof_index_array.end(),
+                      [&r_tls](const std::size_t i_left, const std::size_t i_right) -> bool {
+                          return r_tls.dof_equation_ids[i_left] < r_tls.dof_equation_ids[i_right];
+                      });
+
+            r_tls.reordered_dof_equation_ids.resize(r_tls.dof_equation_ids.size());
+            std::transform(r_tls.dof_index_array.begin(),
+                           r_tls.dof_index_array.end(),
+                           r_tls.reordered_dof_equation_ids.begin(),
+                           [&r_tls](const auto i_column){
+                               return r_tls.dof_equation_ids[i_column];
+                           });
 
             // Assemble local rows into the global relation matrix.
             for (std::size_t i_row=0ul; i_row<r_tls.constraint_indices.size(); ++i_row) {
@@ -275,37 +310,20 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                 // This step is required because the global relation matrix is in CSR format,
                 // and Impl::MapRowContribution expects the column indices to be sorted.
                 {
-                    r_tls.dof_index_array.resize(r_tls.dof_equation_ids.size());
-                    std::iota(r_tls.dof_index_array.begin(), r_tls.dof_index_array.end(), 0ul);
-                    std::sort(r_tls.dof_index_array.begin(),
-                              r_tls.dof_index_array.end(),
-                              [&r_tls](const std::size_t i_left, const std::size_t i_right) -> bool {
-                                  return r_tls.dof_equation_ids[i_left] < r_tls.dof_equation_ids[i_right];
-                              });
-
                     // Reorder the current row in the local relation matrix.
                     std::transform(r_tls.dof_index_array.begin(),
                                    r_tls.dof_index_array.end(),
-                                   r_tls.relation_matrix_row.begin(),
+                                   r_tls.matrix_row.begin(),
                                    [&r_tls, i_row](const std::size_t i_column){
                                         return r_tls.relation_matrix(i_row, i_column);
                                    });
-                    std::copy(r_tls.relation_matrix_row.begin(),
-                              r_tls.relation_matrix_row.end(),
-                              r_tls.relation_matrix.data().begin() + i_row * r_tls.relation_matrix.size2());
-
-                    // Reorder DoF indices.
-                    r_tls.reordered_dof_equation_ids.resize(r_tls.dof_equation_ids.size());
-                    std::transform(r_tls.dof_index_array.begin(),
-                                   r_tls.dof_index_array.end(),
-                                   r_tls.reordered_dof_equation_ids.begin(),
-                                   [&r_tls](const auto i_column){
-                                        return r_tls.dof_equation_ids[i_column];
-                                   });
+                    std::copy(r_tls.matrix_row.begin(),
+                              r_tls.matrix_row.end(),
+                              (r_tls.relation_matrix.begin1() + i_row).begin());
                 }
 
                 {
-                    std::scoped_lock<LockObject> lock(mutexes[i_constraint]);
+                    std::scoped_lock<LockObject> lock(constraint_mutexes[i_constraint]);
                     MapRowContribution<TSparse,TDense>(rRelationMatrix,
                                                        r_tls.relation_matrix,
                                                        i_constraint,
@@ -316,8 +334,31 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                 AtomicAdd(rConstraintGaps[i_constraint],
                           static_cast<typename TSparse::DataType>(r_tls.constraint_gaps[i_row]));
             } // for i_row in range(r_tls.slave_ids.size)
+
+            // Map contributions to the Hessian.
+            for (std::size_t i_row=0ul; i_row<r_tls.hessian.size1(); ++i_row) {
+                const auto i_reordered_row = r_tls.dof_index_array[i_row];
+                const auto i_row_dof = r_tls.reordered_dof_equation_ids[i_reordered_row];
+
+                // Reorder the current row in the local hessian.
+                std::transform(r_tls.dof_index_array.begin(),
+                               r_tls.dof_index_array.end(),
+                               r_tls.matrix_row.begin(),
+                               [&r_tls, i_reordered_row](const std::size_t i_column){
+                                   return r_tls.hessian(i_reordered_row, i_column);
+                               });
+                std::copy(r_tls.matrix_row.begin(),
+                          r_tls.matrix_row.end(),
+                          (r_tls.hessian.begin1() + i_reordered_row).begin());
+                std::scoped_lock<LockObject> lock(dof_mutexes[i_row_dof]);
+                MapRowContribution<TSparse,TDense>(rHessian,
+                                                   r_tls.hessian,
+                                                   i_row_dof,
+                                                   i_reordered_row,
+                                                   r_tls.reordered_dof_equation_ids);
+            } // for i_row in range(r_tls.hessian.size1())
         } // if r_constraint.IsActive
-    }); // for r_constraint in rModelPart.MasterSlaveCosntraints
+    }); // for r_constraint in rModelPart.MasterSlaveConstraints
 
     KRATOS_CATCH("")
 }

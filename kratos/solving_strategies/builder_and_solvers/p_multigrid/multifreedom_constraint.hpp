@@ -15,6 +15,7 @@
 // Project includes
 #include "includes/master_slave_constraint.h" // MasterSlaveConstraint
 #include "includes/code_location.h" // KRATOS_CODE_LOCATION
+#include "includes/variables.h" // GEOMETRIC_STIFFNESS_MATRIX
 
 // System includes
 #include <vector> // std::vector
@@ -147,6 +148,16 @@ protected:
     const DofArray& GetDofs() const noexcept
     {
         return mDofs;
+    }
+
+    const MatrixType& GetHessian() const
+    {
+        return this->GetData().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
+    }
+
+    MatrixType& GetHessian()
+    {
+        return this->Data().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
     }
 
 private:

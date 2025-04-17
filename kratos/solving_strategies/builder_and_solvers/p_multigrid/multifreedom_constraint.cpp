@@ -12,7 +12,7 @@
 
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/multifreedom_constraint.hpp" // MultifreedomConstraint
-#include "includes/variables.h" // CONSTRAINT_LABELS
+#include "includes/variables.h" // CONSTRAINT_LABELS, GEOMETRIC_STIFFNESS_MATRIX
 
 // System includes
 #include <algorithm> // std::copy, std::transform
@@ -30,6 +30,7 @@ MultifreedomConstraint::MultifreedomConstraint(const IndexType Id,
     Vector constraint_labels(rConstraintLabels.size());
     std::copy(rConstraintLabels.begin(), rConstraintLabels.end(), constraint_labels.begin());
     this->SetValue(CONSTRAINT_LABELS, constraint_labels);
+    this->SetValue(GEOMETRIC_STIFFNESS_MATRIX, ZeroMatrix(rConstraintLabels.size()));
 }
 
 
