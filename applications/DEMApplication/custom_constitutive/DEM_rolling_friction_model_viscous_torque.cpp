@@ -37,7 +37,7 @@ namespace Kratos {
                                                                   double indentation, 
                                                                   array_1d<double, 3>& mContactMoment, 
                                                                   double LocalCoordSystem2[3],
-                                                                  double OldRollingFrictionMoment[3])
+                                                                  double& OldRollingFrictionMoment[3])
   {
     // Get rolling friction coefficient
     Properties& r_properties = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());

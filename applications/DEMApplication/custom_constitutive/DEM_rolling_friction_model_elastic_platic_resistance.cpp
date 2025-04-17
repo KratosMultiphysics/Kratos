@@ -91,7 +91,7 @@ namespace Kratos{
                                                                                 double indentation, 
                                                                                 array_1d<double, 3>& mContactMoment, 
                                                                                 double LocalCoordSystem2[3],
-                                                                                double OldRollingFrictionMoment[3])
+                                                                                double& OldRollingFrictionMoment[3])
     {
         
         array_1d<double, 3> elementRelAngularVelocity;
