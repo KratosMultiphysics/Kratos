@@ -74,7 +74,7 @@ namespace Kratos {
     CalculateInelasticRollingResistanceEnergy(inelastic_rollingresistance_energy, rolling_friction_moment, elementRelAngularVelocity, r_process_info[DELTA_TIME]);
   }
 
-  void DEMRollingFrictionModelViscousTorque::ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment)
+  void DEMRollingFrictionModelViscousTorque::ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment, double LocalCoordSystem2[3])
   {
     // ATTENTION: It considers only the motion of the particle!
 

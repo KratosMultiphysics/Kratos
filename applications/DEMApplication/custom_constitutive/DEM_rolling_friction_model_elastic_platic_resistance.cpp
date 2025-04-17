@@ -59,18 +59,40 @@ namespace Kratos{
         mKt = 4.0 * equiv_shear * Kn / equiv_young;
     }
 
+    void DEMRollingFrictionModelElasticPlasticResistance::InitializeContactWall(SphericParticle* const element, Condition* const wall, const double indentation) {
+        
+        //Get effective Radius
+        const double my_radius           = element->GetRadius(); //Get equivalent Radius
+        const double effective_radius    = my_radius;
+
+        //Get equivalent Young's Modulus
+        const double my_young            = element->GetYoung();
+        const double walls_young         = wall->GetProperties()[YOUNG_MODULUS];
+        const double my_poisson          = element->GetPoisson();
+        const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
+        const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
+
+        //Get equivalent Shear Modulus
+        const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
+        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
+        const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
+
+        //Normal and Tangent elastic constants
+        const double sqrt_equiv_radius_and_indentation = sqrt(effective_radius * indentation);
+        double Kn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
+        mKt = 4.0 * equiv_shear * Kn / equiv_young;
+
+    }
+
     void DEMRollingFrictionModelElasticPlasticResistance::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment)
     {
-        InitializeContact(p_element, p_neighbor, indentation);
         
         array_1d<double, 3> elementRelAngularVelocity;
         noalias(elementRelAngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) - p_neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         if (elementRelAngularVelocity[0] || elementRelAngularVelocity[1] || elementRelAngularVelocity[2]){
 
-            // Normalize relative angular velocity
-            array_1d<double, 3> elementRelAngularVelocity_normalise = elementRelAngularVelocity;
-            GeometryFunctions::normalize(elementRelAngularVelocity_normalise);
-
+            InitializeContact(p_element, p_neighbor, indentation);
+            
             const array_1d<double, 3>& my_delta_rotation = p_element->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
             const array_1d<double, 3>& other_delta_rotation = p_neighbor->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
             array_1d<double, 3> delta_theta = ZeroVector(3);
@@ -102,9 +124,9 @@ namespace Kratos{
             double max_rolling_friction_moment = rolling_friction_coefficient * force * arm_length;
 
             const double Kr = mKt * equivalent_radius * equivalent_radius; //TODO: This must be improved
-            m_rolling_friction_moment[0] -= Kr * delta_theta[0];
-            m_rolling_friction_moment[1] -= Kr * delta_theta[1];
-            m_rolling_friction_moment[2] -= Kr * delta_theta[2];
+            m_rolling_friction_moment[0] -= Kr * delta_theta_t[0];
+            m_rolling_friction_moment[1] -= Kr * delta_theta_t[1];
+            m_rolling_friction_moment[2] -= Kr * delta_theta_t[2];
 
             // Check if the rolling friction moment exceeds the maximum value
             double m_rolling_friction_moment_modlule = GeometryFunctions::module(m_rolling_friction_moment);
@@ -131,39 +153,70 @@ namespace Kratos{
         }
     }
 
-    void DEMRollingFrictionModelElasticPlasticResistance::ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment)
+    void DEMRollingFrictionModelElasticPlasticResistance::ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment, double LocalCoordSystem2[3])
     {
         array_1d<double, 3> element1AngularVelocity;
         noalias(element1AngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
+
+            InitializeContactWall(p_element, wall, indentation);
             
-            // Normalize angular velocity
-            array_1d<double, 3> element1AngularVelocity_normalise = element1AngularVelocity;
-            GeometryFunctions::normalize(element1AngularVelocity_normalise);
+            const array_1d<double, 3>& my_delta_rotation = p_element->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
+            const array_1d<double, 3>& other_delta_rotation = wall->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
+            array_1d<double, 3> delta_theta = ZeroVector(3);
+            noalias(delta_theta) = my_delta_rotation - other_delta_rotation;
+
+            // Calculate delta_theta for bending
+            array_1d<double, 3> normal_contact_vector;
+            noalias(normal_contact_vector) = p_element->GetGeometry()[0].Coordinates() - p_neighbor->GetGeometry()[0].Coordinates();
+            GeometryFunctions::normalize(normal_contact_vector);
+
+            // Project delta_theta onto the normal vector
+            array_1d<double, 3> delta_theta_n;
+            double normal_component = DEM_INNER_PRODUCT_3(delta_theta, normal_contact_vector);
+            noalias(delta_theta_n) = normal_component * normal_contact_vector;
+
+            // Get the tangential (bending-like) component
+            array_1d<double, 3> delta_theta_t;
+            noalias(delta_theta_t) = delta_theta - delta_theta_n;
 
             // Get rolling friction coefficient
             Properties& r_properties = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
             const double rolling_friction_coefficient = r_properties[ROLLING_FRICTION];
 
+            const double equivalent_radius = p_element->GetRadius();
+            const double arm_length  = equivalent_radius;
+
             // Get normal contact force
             const double force = std::abs(LocalContactForce[2]);
+            double max_rolling_friction_moment = rolling_friction_coefficient * force * arm_length;
 
-            // Calculate arm length (particle radius discounted by identation)
-            const double arm_length = p_element->GetRadius() - indentation;
+            const double Kr = mKt * equivalent_radius * equivalent_radius; //TODO: This must be improved
+            m_rolling_friction_moment[0] -= Kr * delta_theta_t[0];
+            m_rolling_friction_moment[1] -= Kr * delta_theta_t[1];
+            m_rolling_friction_moment[2] -= Kr * delta_theta_t[2];
 
-            // Calculate rolling friction moment
-            array_1d<double, 3> rolling_friction_moment;
-            rolling_friction_moment[0] = -element1AngularVelocity_normalise[0] * rolling_friction_coefficient * force * arm_length;
-            rolling_friction_moment[1] = -element1AngularVelocity_normalise[1] * rolling_friction_coefficient * force * arm_length;
-            rolling_friction_moment[2] = -element1AngularVelocity_normalise[2] * rolling_friction_coefficient * force * arm_length;
+            // Check if the rolling friction moment exceeds the maximum value
+            double m_rolling_friction_moment_modlule = GeometryFunctions::module(m_rolling_friction_moment);
+
+            if (m_rolling_friction_moment_modlule > max_rolling_friction_moment) {
+                // Normalize the rolling friction moment to the maximum value
+                m_rolling_friction_moment[0] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
+                m_rolling_friction_moment[1] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
+                m_rolling_friction_moment[2] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
+            }
 
             // Discount rolling friction moment from contact moment
-            mContactMoment[0] += rolling_friction_moment[0];
-            mContactMoment[1] += rolling_friction_moment[1];
-            mContactMoment[2] += rolling_friction_moment[2];
+            mContactMoment[0] += m_rolling_friction_moment[0];
+            mContactMoment[1] += m_rolling_friction_moment[1];
+            mContactMoment[2] += m_rolling_friction_moment[2];
 
             // Compute energy dissipation from rolling friction
             double& inelastic_rollingresistance_energy = p_element->GetInelasticRollingResistanceEnergy();
+            array_1d<double, 3> rolling_friction_moment = ZeroVector(3);
+            rolling_friction_moment[0] = m_rolling_friction_moment[0];
+            rolling_friction_moment[1] = m_rolling_friction_moment[1];
+            rolling_friction_moment[2] = m_rolling_friction_moment[2];
             CalculateInelasticRollingResistanceEnergyWithWall(inelastic_rollingresistance_energy, rolling_friction_moment, element1AngularVelocity, r_process_info[DELTA_TIME]);
         }
     }
