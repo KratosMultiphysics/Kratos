@@ -881,7 +881,13 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
               if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                 if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){ 
                     //mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                    mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, data_buffer.mIndentation, mContactMoment, data_buffer.mLocalCoordSystem[2]);
+                    mRollingFrictionModel->ComputeRollingFriction(this, 
+                                                                data_buffer.mpOtherParticle, 
+                                                                r_process_info, 
+                                                                LocalContactForce, 
+                                                                data_buffer.mIndentation, 
+                                                                mContactMoment, 
+                                                                data_buffer.mLocalCoordSystem[2]);
                 }
                 else {
                     mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
@@ -1116,7 +1122,13 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                 if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                   //mRollingFrictionModel = pCloneRollingFrictionModelWithFEMNeighbour(wall);                
-                  mRollingFrictionModel->ComputeRollingFrictionWithWall(this, wall, r_process_info, LocalContactForce, indentation, mContactMoment, data_buffer.mLocalCoordSystem[2]);
+                  mRollingFrictionModel->ComputeRollingFrictionWithWall(this, 
+                                                                        wall, 
+                                                                        r_process_info, 
+                                                                        LocalContactForce, 
+                                                                        indentation, 
+                                                                        mContactMoment, 
+                                                                        data_buffer.mLocalCoordSystem[2]);
                 }
                 else {
                   mRollingFrictionModel->ComputeRollingResistanceWithWall(this, wall, LocalContactForce);
