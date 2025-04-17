@@ -395,7 +395,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geom       = GetGeometry();
+    const auto& r_geom       = GetGeometry();
     const auto&         r_properties = this->GetProperties();
     const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
@@ -501,27 +501,15 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                                    nodal_hydraulic_head.begin(), 0.0);
         }
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
+        KRATOS_ERROR_IF(r_geom.WorkingSpaceDimension() != 2 && r_geom.WorkingSpaceDimension() != 3)
+            << rVariable.Name() << " can not be retrieved for dim "
+            << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
         size_t variable_index = 0;
         if (rVariable == CONFINED_STIFFNESS) {
-            if (r_geom.WorkingSpaceDimension() == 2) {
-                variable_index = INDEX_2D_PLANE_STRAIN_XX;
-            } else if (r_geom.WorkingSpaceDimension() == 3) {
-                variable_index = INDEX_3D_XX;
-            } else {
-                KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim "
-                             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id()
-                             << std::endl;
-            }
-        } else if (rVariable == SHEAR_STIFFNESS) {
-            if (r_geom.WorkingSpaceDimension() == 2) {
-                variable_index = INDEX_2D_PLANE_STRAIN_XY;
-            } else if (r_geom.WorkingSpaceDimension() == 3) {
-                variable_index = INDEX_3D_XZ;
-            } else {
-                KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim "
-                             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id()
-                             << std::endl;
-            }
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? INDEX_2D_PLANE_STRAIN_XX : INDEX_3D_XX;
+        } else {
+            // rVariable == SHEAR_STIFFNESS
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? INDEX_2D_PLANE_STRAIN_XY : INDEX_3D_XZ;
         }
 
         ElementVariables Variables;

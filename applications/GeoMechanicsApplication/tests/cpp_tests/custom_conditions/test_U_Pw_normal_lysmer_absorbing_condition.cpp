@@ -40,19 +40,19 @@ public:
         const unsigned int n_dim = this->GetGeometry().WorkingSpaceDimension();
 
         // Get number of integration points based on the element type
-        if (n_dim == 2) {
-            if (n_nodes == 3 || n_nodes == 6) {
-                number_of_integration_points = 3;
-            } else if (n_nodes == 4 || n_nodes == 8) {
-                number_of_integration_points = 4;
-            }
-        } else if (n_dim == 3) {
-            if (n_nodes == 4 || n_nodes == 10) {
-                number_of_integration_points = 4;
-            } else if (n_nodes == 8 || n_nodes == 20) {
-                number_of_integration_points = 8;
-            }
+
+        auto geometry_family = this->GetGeometry().GetGeometryFamily();
+
+        if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Triangle) {
+            number_of_integration_points = 3;
+        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral) {
+            number_of_integration_points = 4;
+        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) {
+            number_of_integration_points = 4;
+        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Hexahedra) {
+            number_of_integration_points = 8;
         }
+
         rOutput.resize(number_of_integration_points);
 
         // Set some dummy values for the variables
@@ -228,8 +228,8 @@ static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D2NCon
     // Set the element properties
     auto cond_prop = rModelPart.CreateNewProperties(0);
 
-    auto node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
 
     // Create the test Lysmer condition
     std::vector<ModelPart::IndexType> cond_nodes{1, 2};
@@ -262,9 +262,9 @@ static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition2D3NCon
     // Set the element properties
     auto cond_prop = rModelPart.CreateNewProperties(0);
 
-    auto node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = rModelPart.CreateNewNode(3, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 0.5, 0.0, 0.0);
 
     // Create the test Lysmer condition
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3};
@@ -297,12 +297,12 @@ static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D6NCon
     // Set the element properties
     auto cond_prop = rModelPart.CreateNewProperties(0);
 
-    auto node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
-    auto node_4 = rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
-    auto node_5 = rModelPart.CreateNewNode(5, 0.5, 0.5, 0.0);
-    auto node_6 = rModelPart.CreateNewNode(6, 0.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(5, 0.5, 0.5, 0.0);
+    rModelPart.CreateNewNode(6, 0.0, 0.5, 0.0);
 
     // Create the test Lysmer condition
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5, 6};
@@ -334,14 +334,14 @@ static ModelPart::ConditionType::Pointer SetUpUPwLysmerAbsorbingCondition3D8NCon
     // Set the element properties
     auto cond_prop = rModelPart.CreateNewProperties(0);
 
-    auto node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4 = rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
-    auto node_5 = rModelPart.CreateNewNode(5, 0.5, 0.0, 0.0);
-    auto node_6 = rModelPart.CreateNewNode(6, 1.0, 0.5, 0.0);
-    auto node_7 = rModelPart.CreateNewNode(7, 0.5, 1.0, 0.0);
-    auto node_8 = rModelPart.CreateNewNode(8, 0.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
+    rModelPart.CreateNewNode(5, 0.5, 0.0, 0.0);
+    rModelPart.CreateNewNode(6, 1.0, 0.5, 0.0);
+    rModelPart.CreateNewNode(7, 0.5, 1.0, 0.0);
+    rModelPart.CreateNewNode(8, 0.0, 0.5, 0.0);
 
     // Create the test Lysmer condition
     std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4, 5, 6, 7, 8};
@@ -895,8 +895,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingConditio
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3D8N, KratosGeoMechanicsFastSuite)
 {
-    GTEST_SKIP() << "This test is skipped as it depends on #13269" << std::endl;
-
     // initialize modelpart
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
@@ -1190,8 +1188,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
 /// </summary>
 KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingCondition3D8N, KratosGeoMechanicsFastSuite)
 {
-    GTEST_SKIP() << "This test is skipped as it depends on #13269" << std::endl;
-
     // initialize modelpart
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
@@ -1349,6 +1345,24 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixUPwNormalLysmerAbsorbingConditio
 
     // compare results
     KRATOS_EXPECT_MATRIX_NEAR(rLeftHandSideMatrix, expected_matrix, 1.0e-6);
+}
+
+/// <summary>
+/// Checks if no error is thrown when calling the CalculateLeftHandSideMatrix function of a higher order Lysmer condition
+/// </summary>
+KRATOS_TEST_CASE_IN_SUITE(CalculateLhsHigerOrderUPwNormalLysmerAbsorbingCondition, KratosGeoMechanicsFastSuite)
+{
+    // initialize modelpart
+    Model current_model;
+    auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
+
+    ModelPart::ConditionType::Pointer p_cond = SetUpUPwLysmerAbsorbingCondition3D6NCondition(r_model_part);
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+
+    constexpr size_t condition_size = 24;
+    Matrix           dummy_matrix   = ZeroMatrix(condition_size, condition_size);
+
+    EXPECT_NO_THROW(p_cond->CalculateLeftHandSide(dummy_matrix, r_process_info));
 }
 
 } // namespace Kratos::Testing

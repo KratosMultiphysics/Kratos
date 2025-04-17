@@ -259,55 +259,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateNodalStiffnessMatrix
 template <unsigned int TDim, unsigned int TNumNodes>
 Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement)
 {
-    const GeometryData::IntegrationMethod integration_method_neighbour =
-        rNeighbourElement.GetIntegrationMethod();
-    const GeometryType& r_neighbour_geom    = rNeighbourElement.GetGeometry();
-    const IndexType     num_nodes_neighbour = r_neighbour_geom.size();
-    const IndexType     num_g_points_neighbour =
-        r_neighbour_geom.IntegrationPointsNumber(integration_method_neighbour);
-
-    Matrix extrapolation_matrix = ZeroMatrix(num_nodes_neighbour, num_g_points_neighbour);
-
-    // Calculate extrapolation matrix for 2d elements
-    if constexpr (TDim == 2) {
-        if (num_nodes_neighbour == 3) {
-            GeoElementUtilities::CalculateExtrapolationMatrixTriangle(extrapolation_matrix,
-                                                                      integration_method_neighbour);
-            return extrapolation_matrix;
-        } else if (num_nodes_neighbour == 4) {
-            GeoElementUtilities::CalculateExtrapolationMatrixQuad(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
-        }
-        // tri6 or quad8 neighbour
-        else if (num_nodes_neighbour == 6 || num_nodes_neighbour == 8) {
-            LinearNodalExtrapolator extrapolator;
-            return extrapolator.CalculateElementExtrapolationMatrix(r_neighbour_geom, integration_method_neighbour);
-        }
-    }
-    // Calculate extrapolation matrix for 3d elements
-    if constexpr (TDim == 3) {
-        if (num_nodes_neighbour == 4) {
-            GeoElementUtilities::CalculateExtrapolationMatrixTetra(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
-        } else if (num_nodes_neighbour == 8) {
-            GeoElementUtilities::CalculateExtrapolationMatrixHexa(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
-        }
-        // tetra10 or hexa20 neighbour
-        else if (num_nodes_neighbour == 10 || num_nodes_neighbour == 20) {
-            LinearNodalExtrapolator extrapolator;
-            return extrapolator.CalculateElementExtrapolationMatrix(r_neighbour_geom, integration_method_neighbour);
-        }
-    }
-
-    // if no extrapolation matrix is implemented, take average values at gauss points
-    const double averaging_factor = 1.0 / num_g_points_neighbour;
-    for (unsigned int node = 0; node < num_nodes_neighbour; ++node) {
-        for (unsigned int g_point = 0; g_point < num_g_points_neighbour; ++g_point) {
-            extrapolation_matrix(node, g_point) = averaging_factor;
-        }
-    }
-    return extrapolation_matrix;
+    LinearNodalExtrapolator extrapolator;
+    return extrapolator.CalculateElementExtrapolationMatrix(
+        rNeighbourElement.GetGeometry(), rNeighbourElement.GetIntegrationMethod());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -468,7 +422,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix3DTriangle(
     DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom)
 {
-    ////triangle_3d_3
+    // triangle_3d_3
     array_1d<double, 3> p_mid_0;
     array_1d<double, 3> p_mid_1;
     noalias(p_mid_0) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(1));
