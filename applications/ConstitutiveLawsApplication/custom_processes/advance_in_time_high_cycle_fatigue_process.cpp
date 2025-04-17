@@ -122,7 +122,6 @@ void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
                 if (monotonic_constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time && !break_condition) {
                     break_condition = true;
                     //Checking if this is the first step of a new model part
-                    double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
                     }
@@ -145,10 +144,7 @@ void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
                 if (cyclic_constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time && !current_load_type) {
                     current_load_type = true;
                     new_model_part = false; //This is done just in case a new monotonic load coexists with a cyclic load.
-                                            //Then the thresholds used as reference should not be updated. This needs to be checked.
-
                     //Checking if this is the first step of a new model part
-                    double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
                     }
