@@ -35,8 +35,6 @@ public:
                                       const ProcessInfo&      rCurrentProcessInfo) override
     {
         unsigned int number_of_integration_points = 0;
-        const auto   n_nodes                      = this->GetGeometry().size();
-        const auto   n_dim                        = this->GetGeometry().WorkingSpaceDimension();
 
         // Get number of integration points based on the element type
 
