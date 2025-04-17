@@ -25,6 +25,11 @@ class MockElement : public UPwBaseElement
 public:
     using UPwBaseElement::CalculateOnIntegrationPoints;
 
+    MockElement(IndexType NewId, const GeometryType::Pointer& rGeometry, const PropertiesType::Pointer& rProperties)
+        : UPwBaseElement(NewId, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>())
+    {
+    }
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override
@@ -35,7 +40,7 @@ public:
 
         // Get number of integration points based on the element type
 
-        auto geometry_family = this->GetGeometry().GetGeometryFamily();
+        const auto geometry_family = this->GetGeometry().GetGeometryFamily();
 
         if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Triangle) {
             number_of_integration_points = 3;

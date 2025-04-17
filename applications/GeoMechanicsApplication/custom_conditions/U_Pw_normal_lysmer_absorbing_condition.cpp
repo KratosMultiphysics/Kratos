@@ -469,15 +469,22 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix(
     BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& rGeom)
 {
+    const auto geometry_family = this->GetGeometry().GetGeometryFamily();
+
     if constexpr (TDim == 2) {
-        CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
+        if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Linear) {
+            CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
+        } else {
+            KRATOS_ERROR << "Rotation matrix for geometry type: " << rGeom.Name()
+                         << " is not implemented." << std::endl;
+        }
     } else {
-        if constexpr (TNumNodes == 3 || TNumNodes == 6) {
+        if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Triangle) {
             CalculateRotationMatrix3DTriangle(rRotationMatrix, rGeom);
-        } else if constexpr (TNumNodes == 4 || TNumNodes == 8) {
+        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral) {
             CalculateRotationMatrix3DQuad(rRotationMatrix, rGeom);
         } else {
-            KRATOS_ERROR << "Rotation matrix for TDim: " << TDim << "; and TNumNodes: " << TNumNodes
+            KRATOS_ERROR << "Rotation matrix for geometry type: " << rGeom.Name()
                          << " is not implemented." << std::endl;
         }
     }
