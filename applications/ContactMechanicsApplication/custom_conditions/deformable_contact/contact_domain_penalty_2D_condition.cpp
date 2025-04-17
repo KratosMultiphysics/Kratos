@@ -50,7 +50,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   ContactDomainPenalty2DCondition&  ContactDomainPenalty2DCondition::operator=(ContactDomainPenalty2DCondition const& rOther)
@@ -96,7 +96,7 @@ namespace Kratos
 
   void ContactDomainPenalty2DCondition::CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo )
   {
-    //Initilialize penalty parameter
+    //Initialize penalty parameter
     double penalty_parameter = 1000;
     penalty_parameter = GetProperties()[PENALTY_PARAMETER];
 

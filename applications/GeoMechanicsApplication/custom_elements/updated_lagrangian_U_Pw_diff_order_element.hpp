@@ -13,10 +13,6 @@
 #if !defined(KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
 #define KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -113,13 +109,11 @@ public:
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
-     * @param ThisNodes The array containing nodes
+     * @param rNodes The array containing nodes
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law

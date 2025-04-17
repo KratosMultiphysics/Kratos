@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
@@ -151,8 +152,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geom       = this->GetGeometry();
 
-    if (r_geom.DomainSize() < 1.0e-15)
-        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (r_geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
@@ -498,7 +498,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
                                                              ElementVariables& rVariables,
-                                                             unsigned int      integration_point)
+                                                             unsigned int)
 {
     KRATOS_TRY
 
