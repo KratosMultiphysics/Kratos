@@ -435,6 +435,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
                                                          std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces)
 {
     std::vector<array_1d<double, 3> > temp_neighbour_elastic_extra_contact_forces;
+    std::vector<array_1d<double, 3> > temp_neighbour_rolling_friction_moments;
     unsigned int new_size = mNeighbourElements.size();
     array_1d<double, 3> vector_of_zeros = ZeroVector(3);
     temp_neighbours_ids.resize(new_size, false);

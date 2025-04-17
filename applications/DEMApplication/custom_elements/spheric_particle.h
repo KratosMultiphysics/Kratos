@@ -267,6 +267,7 @@ std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
 std::vector<array_1d<double, 3> > mNeighbourRollingFrictionMoments;
+std::vector<array_1d<double, 3> > mNeighbourRigidFacesRollingFrictionMoments;
 std::vector<int> mFemOldNeighbourIds;
 array_1d<double, 3> mContactMoment; //SLS
 
