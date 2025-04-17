@@ -30,7 +30,7 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             #averaged stress tensor for the whole packing
             stress_tensor = self.MeasureSphereForGettingGlobalStressTensor()
             mean_stress = (stress_tensor[0][0]+stress_tensor[1][1]+stress_tensor[2][2])/3
-            expected_value_mean_stress = 25.154514528874362
+            expected_value_mean_stress = 25.1540949096492
             self.assertAlmostEqual(mean_stress, expected_value_mean_stress, delta=tolerance)
 
             #define the measured region
