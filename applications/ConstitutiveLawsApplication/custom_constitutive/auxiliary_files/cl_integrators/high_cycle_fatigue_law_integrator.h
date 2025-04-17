@@ -58,6 +58,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The machine precision tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     /// Counted pointer of HighCycleFatigueLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(HighCycleFatigueLawIntegrator);
 
@@ -115,10 +118,10 @@ public:
         const double stress_2 = PreviousStresses[0];
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
-        if (stress_increment_1 > 1.0e-3 && stress_increment_2 < -1.0e-3) {
+        if (stress_increment_1 > tolerance && stress_increment_2 < -tolerance) {
             rMaximumStress = stress_1;
             rMaxIndicator = true;
-        } else if (stress_increment_1 < -1.0e-3 && stress_increment_2 > 1.0e-3) {
+        } else if (stress_increment_1 < -tolerance && stress_increment_2 > tolerance) {
             rMinimumStress = stress_1;
             rMinIndicator = true;
         }
@@ -205,7 +208,8 @@ public:
             rNf = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth))/rAlphat,(1.0/BETAF)));
             rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rNf)), FatigueReductionFactorSmoothness * square_betaf));
         } else {
-            rNf = 1.0e20; // No fatigue at this IP, i.e., proposing infinite jump.
+            rNf = std::numeric_limits<double>::infinity(); // No fatigue at this IP, i.e., proposing infinite jump.
+
         }
     }
 
@@ -231,7 +235,7 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double number_of_cycles_to_failure = Nf;
         const double BETAF = r_fatigue_coefficients[4];
-        if (UltimateStress - MaxStress > 1.0e-4) {
+        if (UltimateStress - MaxStress > tolerance) {
             if (MaxStress > Sth) {
                 const double square_betaf = std::pow(BETAF, 2.0);
                 number_of_cycles_to_failure = std::pow(Nf, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / UltimateStress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));
