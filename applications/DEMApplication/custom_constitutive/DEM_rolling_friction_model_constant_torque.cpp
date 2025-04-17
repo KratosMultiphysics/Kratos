@@ -33,7 +33,13 @@ namespace Kratos{
         
     }
 
-    void DEMRollingFrictionModelConstantTorque::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment, double LocalCoordSystem2[3])
+    void DEMRollingFrictionModelConstantTorque::ComputeRollingFriction(SphericParticle* p_element, 
+                                                                        SphericParticle* p_neighbor, 
+                                                                        const ProcessInfo& r_process_info, 
+                                                                        double LocalContactForce[3], 
+                                                                        double indentation, 
+                                                                        array_1d<double, 3>& mContactMoment, 
+                                                                        double LocalCoordSystem2[3])
     {
         array_1d<double, 3> elementRelAngularVelocity;
         noalias(elementRelAngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) - p_neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -74,7 +80,13 @@ namespace Kratos{
         }
     }
 
-    void DEMRollingFrictionModelConstantTorque::ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, const ProcessInfo& r_process_info, double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment, double LocalCoordSystem2[3])
+    void DEMRollingFrictionModelConstantTorque::ComputeRollingFrictionWithWall(SphericParticle* p_element, 
+                                                                                Condition* const wall, 
+                                                                                const ProcessInfo& r_process_info, 
+                                                                                double LocalContactForce[3], 
+                                                                                double indentation, 
+                                                                                array_1d<double, 3>& mContactMoment, 
+                                                                                double LocalCoordSystem2[3])
     {
         array_1d<double, 3> element1AngularVelocity;
         noalias(element1AngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
