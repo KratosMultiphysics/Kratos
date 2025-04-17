@@ -94,7 +94,6 @@ class prob_analysis:
                     continue
                 model_part = self.model.GetModelPart(output_parameter[3])
                 values = output_parameter[2](model_part, *output_parameter[4:])
-                print(values)
                 if output_parameter[1] is not None:
                     output_values.append(output_parameter[1](values))
                 else:
