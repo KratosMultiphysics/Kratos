@@ -104,7 +104,7 @@
 
 // Element policies
 #include "custom_elements/axisymmetric_stress_state.h"
-#include "custom_elements/integration_coefficient_modifier_axisymmetric.h"
+#include "custom_elements/integration_coefficient_modifier_for_axisymmetric_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 

@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 
-#include "integration_coefficient_modifier_axisymmetric.h"
+#include "integration_coefficient_modifier_for_axisymmetric_element.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
@@ -22,7 +22,7 @@ double IntegrationCoefficientModifierForAxisymmetricElement::operator()(double I
                                                                         const Element& rElement) const
 {
     auto shape_function_values = Vector{};
-    shape_function_values      = rElement.GetGeometry().ShapeFunctionsValues(
+    rElement.GetGeometry().ShapeFunctionsValues(
         shape_function_values, rIntegrationPoint.Coordinates());
     return IntegrationCoefficient * GeoElementUtilities::CalculateAxisymmetricCircumference(
                                         shape_function_values, rElement.GetGeometry());

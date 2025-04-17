@@ -11,7 +11,7 @@
 //                   Gennady Markelov
 //
 
-#include "custom_elements/integration_coefficient_modifier_thermal_element.h"
+#include "custom_elements/integration_coefficient_modifier_for_thermal_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
