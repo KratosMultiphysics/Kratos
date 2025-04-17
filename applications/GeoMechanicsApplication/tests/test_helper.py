@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, overload, Union
 import sys,os
 import math
 
@@ -164,17 +164,30 @@ def get_hydraulic_discharge(simulation):
     return get_nodal_variable(simulation, KratosGeo.HYDRAULIC_DISCHARGE)
 
 
-def get_nodal_variable(simulation, variable, node_ids=None):
+def get_nodal_variable(model_obj, variable, node_ids: Union[list, int]=None) -> Union[list, Any, list]:
     """
     Gets values of a give nodal variable from kratos simulation
-    :param simulation:
+    :param model_obj: simulation object or model part
     :return values of a variable:
     """
+    # if model_obj is a simulation object get model part from output_process else if its its a model part do nothing
+    if hasattr(model_obj, "_list_of_output_processes"):
+        model_part = model_obj._list_of_output_processes[0].model_part
+    else:
+        model_part = model_obj
 
-    nodes = simulation._list_of_output_processes[0].model_part.Nodes
-    if node_ids:
+    if isinstance(node_ids, list) :
+        nodes = model_part.Nodes
         nodes = [node for node in nodes if node.Id in node_ids]
-    return [node.GetSolutionStepValue(variable) for node in nodes]
+        return [node.GetSolutionStepValue(variable) for node in nodes]
+    elif isinstance(node_ids, int):
+        node = model_part.GetNode(node_ids)
+        return node.GetSolutionStepValue(variable)
+    elif node_ids is None:
+        nodes = model_part.Nodes
+        return [node.GetSolutionStepValue(variable) for node in nodes]
+    else:
+        raise TypeError("node_ids should be either a list or an int, but got {type(node_ids)} instead.".format(type(node_ids)))
 
 def get_nodal_variable_from_ascii(filename: str, variable: str):
     """
