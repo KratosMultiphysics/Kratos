@@ -42,7 +42,7 @@ namespace Kratos{
                                     double indentation, 
                                     array_1d<double, 3>& mContactMoment, 
                                     double LocalCoordSystem2[3],
-                                    array_1d<double, 3>& OldRollingFrictionMoment[3]) override;
+                                    array_1d<double, 3>& OldRollingFrictionMoment) override;
         
         void ComputeRollingFrictionWithWall(SphericParticle* p_element, 
                                             Condition* const wall, 
@@ -51,7 +51,7 @@ namespace Kratos{
                                             double indentation, 
                                             array_1d<double, 3>& mContactMoment, 
                                             double LocalCoordSystem2[3],
-                                            array_1d<double, 3>& OldRollingFrictionMoment[3]) override;
+                                            array_1d<double, 3>& OldRollingFrictionMoment) override;
 
         void CalculateInelasticRollingResistanceEnergy(double& inelastic_rollingresistance_energy, 
                                                     const array_1d<double, 3>& rolling_friction_moment, 
