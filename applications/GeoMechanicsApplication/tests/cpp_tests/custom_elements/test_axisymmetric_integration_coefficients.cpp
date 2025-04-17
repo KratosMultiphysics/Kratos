@@ -14,6 +14,7 @@
 
 #include "custom_elements/integration_coefficient_modifier_for_axisymmetric_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 
 using namespace Kratos;
@@ -40,7 +41,8 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_ReturnsC
     // Assert
     // The expected number is calculated as follows:
     // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
-    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 5.02655, 1e-5);
+    KRATOS_EXPECT_EQ(calculated_coefficients.size(), 1);
+    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 5.026548245743669, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_CloneReturnsNotNullptr,

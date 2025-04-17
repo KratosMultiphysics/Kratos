@@ -14,6 +14,7 @@
 #include "custom_elements/integration_coefficient_modifier_for_pw_line_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
 
@@ -43,7 +44,8 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficientsCalculator_ReturnsCorrect
     // Assert
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) * 0.5 (cross area) = 0.5
-    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, 1e-5);
+    KRATOS_EXPECT_EQ(calculated_coefficients.size(), 1);
+    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficientsCalculator_CloneReturnsNotNullptr,

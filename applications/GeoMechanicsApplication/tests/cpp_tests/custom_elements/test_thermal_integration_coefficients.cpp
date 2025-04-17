@@ -14,6 +14,7 @@
 #include "custom_elements/integration_coefficient_modifier_for_thermal_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 
 using namespace Kratos;
@@ -44,7 +45,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficientsCalculator_ReturnsCorrec
 
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) * 0.5 (cross area) = 0.5
-    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, 1e-5);
+    KRATOS_EXPECT_EQ(calculated_coefficients.size(), 1);
+    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, Defaults::absolute_tolerance);
 
     nodes.push_back(make_intrusive<Node>(2, 1.0, 1.0, 0.0));
     const auto plane_element = ElementSetupUtilities::Create2D3NElement(nodes, p_properties);
@@ -54,8 +56,9 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficientsCalculator_ReturnsCorrec
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) = 1.0
     // cross area is not taken into account
-    KRATOS_EXPECT_NEAR(plane_element.get()->GetProperties()[CROSS_AREA], 0.5, 1e-5);
-    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, 1e-5);
+    KRATOS_EXPECT_EQ(calculated_coefficients.size(), 1);
+    KRATOS_EXPECT_NEAR(plane_element.get()->GetProperties()[CROSS_AREA], 0.5, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficientsCalculator_CloneReturnsNotNullptr,
