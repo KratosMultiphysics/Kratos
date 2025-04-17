@@ -38,14 +38,14 @@ public:
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry),
           mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(
-              std::move(std::make_unique<IntegrationCoefficientModifierForThermalElement>()))}
+              std::make_unique<IntegrationCoefficientModifierForThermalElement>())}
     {
     }
 
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties),
           mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(
-              std::move(std::make_unique<IntegrationCoefficientModifierForThermalElement>()))}
+              std::make_unique<IntegrationCoefficientModifierForThermalElement>())}
     {
     }
 
