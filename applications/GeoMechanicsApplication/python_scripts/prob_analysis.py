@@ -1,6 +1,7 @@
 import os
 import tempfile
 import shutil
+import numpy as np
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as kratos_geo
@@ -91,9 +92,13 @@ class prob_analysis:
             for output_parameter in self.output_parameters:
                 if stage_no != output_parameter[0]:
                     continue
-                model_part = self.model.GetModelPart(output_parameter[2])
-                output_values.append(output_parameter[1](model_part, *output_parameter[3:]))
-
+                model_part = self.model.GetModelPart(output_parameter[3])
+                values = output_parameter[2](model_part, *output_parameter[4:])
+                print(values)
+                if output_parameter[1] is not None:
+                    output_values.append(output_parameter[1](values))
+                else:
+                    output_values.append(values)
         return output_values
 
     def finalize(self):
@@ -112,9 +117,8 @@ if __name__ == "__main__":
     input_parameters = [[1, "PorousDomain.Soil", kratos_geo.UMAT_PARAMETERS, 0],
                         [1, "PorousDomain.Soil", kratos_geo.UMAT_PARAMETERS, 1]]
     input_values = [5000000.0, 0.2]
-    output_parameters = [[0, test_helper.get_nodal_variable, "PorousDomain.Soil", Kratos.DISPLACEMENT_Y, 1],
-                         [1, test_helper.get_nodal_variable, "PorousDomain.Soil", Kratos.DISPLACEMENT_Y, 1]]
-
+    output_parameters = [[0, np.max, test_helper.get_nodal_variable, "PorousDomain.Soil", Kratos.DISPLACEMENT_Y, None],
+                         [1, None, test_helper.get_nodal_variable, "PorousDomain.Soil", Kratos.DISPLACEMENT_Y, 2]]
 
     try:
         prob_analysis_instance = prob_analysis(template_project_path, input_parameters, output_parameters)
