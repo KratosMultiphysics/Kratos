@@ -209,9 +209,9 @@ namespace Kratos{
             double max_rolling_friction_moment = rolling_friction_coefficient * force * arm_length;
 
             const double Kr = mKt * equivalent_radius * equivalent_radius; //TODO: This must be improved
-            m_rolling_friction_moment[0] -= Kr * delta_theta_t[0];
-            m_rolling_friction_moment[1] -= Kr * delta_theta_t[1];
-            m_rolling_friction_moment[2] -= Kr * delta_theta_t[2];
+            m_rolling_friction_moment[0] = OldRollingFrictionMoment[0] - Kr * delta_theta_t[0];
+            m_rolling_friction_moment[1] = OldRollingFrictionMoment[1] - Kr * delta_theta_t[1];
+            m_rolling_friction_moment[2] = OldRollingFrictionMoment[2] - Kr * delta_theta_t[2];
 
             // Check if the rolling friction moment exceeds the maximum value
             double m_rolling_friction_moment_modlule = GeometryFunctions::module(m_rolling_friction_moment);
@@ -227,6 +227,10 @@ namespace Kratos{
             mContactMoment[0] += m_rolling_friction_moment[0];
             mContactMoment[1] += m_rolling_friction_moment[1];
             mContactMoment[2] += m_rolling_friction_moment[2];
+
+            OldRollingFrictionMoment[0] = m_rolling_friction_moment[0];
+            OldRollingFrictionMoment[1] = m_rolling_friction_moment[1];
+            OldRollingFrictionMoment[2] = m_rolling_friction_moment[2];
 
             // Compute energy dissipation from rolling friction
             double& inelastic_rollingresistance_energy = p_element->GetInelasticRollingResistanceEnergy();
