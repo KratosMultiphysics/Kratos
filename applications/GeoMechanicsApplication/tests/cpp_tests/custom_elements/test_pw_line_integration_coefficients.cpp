@@ -18,7 +18,6 @@
 #include <structural_mechanics_application_variables.h>
 
 using namespace Kratos;
-using namespace std::string_literals;
 
 namespace Kratos::Testing
 {

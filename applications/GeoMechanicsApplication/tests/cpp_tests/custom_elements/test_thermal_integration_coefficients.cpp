@@ -19,7 +19,6 @@
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
-using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
