@@ -91,7 +91,7 @@ namespace Kratos{
                                                                                 double indentation, 
                                                                                 array_1d<double, 3>& mContactMoment, 
                                                                                 double LocalCoordSystem2[3],
-                                                                                double& OldRollingFrictionMoment[3])
+                                                                                array_1d<double, 3>& OldRollingFrictionMoment[3])
     {
         
         array_1d<double, 3> elementRelAngularVelocity;
@@ -172,7 +172,7 @@ namespace Kratos{
                                                                                         double indentation, 
                                                                                         array_1d<double, 3>& mContactMoment, 
                                                                                         double LocalCoordSystem2[3],
-                                                                                        double& OldRollingFrictionMoment[3])
+                                                                                        array_1d<double, 3>& OldRollingFrictionMoment[3])
     {
         array_1d<double, 3> element1AngularVelocity;
         noalias(element1AngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);

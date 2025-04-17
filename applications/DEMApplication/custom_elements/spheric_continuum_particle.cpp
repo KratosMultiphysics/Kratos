@@ -434,7 +434,8 @@ namespace Kratos {
                                                                         LocalContactForce, 
                                                                         indentation_particle, 
                                                                         mContactMoment, 
-                                                                        data_buffer.mLocalCoordSystem[2]);
+                                                                        data_buffer.mLocalCoordSystem[2],
+                                                                        mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
@@ -456,7 +457,8 @@ namespace Kratos {
                                                                         LocalContactForce, 
                                                                         indentation_particle, 
                                                                         mContactMoment, 
-                                                                        data_buffer.mLocalCoordSystem[2]);
+                                                                        data_buffer.mLocalCoordSystem[2],
+                                                                        mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
