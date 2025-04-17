@@ -36,19 +36,17 @@ public:
     explicit TransientThermalElement(IndexType NewId = 0) : Element(NewId) {}
 
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+        : Element(NewId, pGeometry),
+          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(
+              std::move(std::make_unique<IntegrationCoefficientModifierForThermalElement>()))}
     {
-        std::unique_ptr<IntegrationCoefficientModifier> modifier =
-            std::make_unique<IntegrationCoefficientModifierForThermalElement>();
-        mIntegrationCoefficientsCalculator = IntegrationCoefficientsCalculator(std::move(modifier));
     }
 
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+        : Element(NewId, pGeometry, pProperties),
+          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(
+              std::move(std::make_unique<IntegrationCoefficientModifierForThermalElement>()))}
     {
-        std::unique_ptr<IntegrationCoefficientModifier> modifier =
-            std::make_unique<IntegrationCoefficientModifierForThermalElement>();
-        mIntegrationCoefficientsCalculator = IntegrationCoefficientsCalculator(std::move(modifier));
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
