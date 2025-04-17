@@ -47,8 +47,7 @@ public:
                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
         : Element(NewId, pGeometry),
           mContributions(rContributions),
-          mpIntegrationCoefficientsCalculator{
-              std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier))}
+          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(std::move(pCoefficientModifier))}
     {
     }
 
@@ -59,8 +58,7 @@ public:
                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
         : Element(NewId, pGeometry, pProperties),
           mContributions(rContributions),
-          mpIntegrationCoefficientsCalculator{
-              std::make_unique<IntegrationCoefficientsCalculator>(std::move(pCoefficientModifier))}
+          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(std::move(pCoefficientModifier))}
     {
     }
 
@@ -164,9 +162,9 @@ public:
     }
 
 private:
-    std::vector<RetentionLaw::Pointer>                 mRetentionLawVector;
-    std::vector<CalculationContribution>               mContributions;
-    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator;
+    std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
+    std::vector<CalculationContribution> mContributions;
+    IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
 
     void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
     {
@@ -288,7 +286,7 @@ private:
 
     std::unique_ptr<IntegrationCoefficientModifier> CloneModifier() const
     {
-        return mpIntegrationCoefficientsCalculator->CloneModifier();
+        return mIntegrationCoefficientsCalculator.CloneModifier();
     }
 
     std::unique_ptr<ContributionCalculator> CreateCalculator(const CalculationContribution& rContribution,
@@ -363,7 +361,7 @@ private:
         return [this]() -> Vector {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            return mpIntegrationCoefficientsCalculator->Run<vector<double>>(
+            return mIntegrationCoefficientsCalculator.Run<vector<double>>(
                 GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
         };
     }

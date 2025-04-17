@@ -73,10 +73,10 @@ private:
     std::vector<Vector> CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const;
     std::vector<Vector> CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements);
 
-    std::unique_ptr<IntegrationScheme>                 mIntegrationScheme;
-    std::unique_ptr<StressStatePolicy>                 mStressStatePolicy;
-    std::vector<ConstitutiveLaw::Pointer>              mConstitutiveLaws;
-    std::unique_ptr<IntegrationCoefficientsCalculator> mpIntegrationCoefficientsCalculator;
+    std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
+    std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
+    IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
 };
 
 } // namespace Kratos

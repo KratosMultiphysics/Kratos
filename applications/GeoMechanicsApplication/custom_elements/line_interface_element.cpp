@@ -65,16 +65,14 @@ LineInterfaceElement::LineInterfaceElement(IndexType NewId,
                                            const Properties::Pointer& rProperties)
     : Element(NewId, rGeometry, rProperties),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<InterfaceStressState>()),
-      mpIntegrationCoefficientsCalculator(std::make_unique<IntegrationCoefficientsCalculator>())
+      mStressStatePolicy(std::make_unique<InterfaceStressState>())
 {
 }
 
 LineInterfaceElement::LineInterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
     : Element(NewId, rGeometry),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<InterfaceStressState>()),
-      mpIntegrationCoefficientsCalculator(std::make_unique<IntegrationCoefficientsCalculator>())
+      mStressStatePolicy(std::make_unique<InterfaceStressState>())
 {
 }
 
@@ -235,8 +233,8 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
 {
     const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
         mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
-    return mpIntegrationCoefficientsCalculator->Run<>(mIntegrationScheme->GetIntegrationPoints(),
-                                                      determinants_of_jacobian, this);
+    return mIntegrationCoefficientsCalculator.Run<>(mIntegrationScheme->GetIntegrationPoints(),
+                                                    determinants_of_jacobian, this);
 }
 
 std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()
