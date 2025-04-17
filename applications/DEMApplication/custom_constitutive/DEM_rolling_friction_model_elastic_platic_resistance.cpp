@@ -168,7 +168,9 @@ namespace Kratos{
 
             // Calculate delta_theta for bending
             array_1d<double, 3> normal_contact_vector;
-            noalias(normal_contact_vector) = p_element->GetGeometry()[0].Coordinates() - p_neighbor->GetGeometry()[0].Coordinates();
+            normal_contact_vector[0] = LocalCoordSystem2[0];
+            normal_contact_vector[1] = LocalCoordSystem2[1];
+            normal_contact_vector[2] = LocalCoordSystem2[2];
             GeometryFunctions::normalize(normal_contact_vector);
 
             // Project delta_theta onto the normal vector
