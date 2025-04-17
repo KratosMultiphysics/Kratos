@@ -5,7 +5,7 @@ This folder contains the custom processes that are used in the GeoMechanicsAppli
 Documented processes:
 - [$c-\phi$ reduction process](#c-phi-reduction-process)
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
-- [ResetDisplacementProcess](#reset-displacement-process)
+- [ApplyFinalStressesOfPreviousStageToInitialState](#apply-final-stresses-of-previous-stage-to-initial-state-process)
 - [$K_0$ procedure process](#K_0-procedure-process)
 
 ## $c-\phi$ reduction process
@@ -64,8 +64,8 @@ Where the `model_part_name` should contain the name of the model part where the 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
-## Reset displacement process
-The `ResetDisplacementProcess` can be used to change the reference point of the displacements to the displacement at the start of that stage.
+## Apply Final Stresses Of Previous Stage To Initial State Process
+The `ApplyFinalStressesOfPreviousStageToInitialState` process can be used to change the reference point of the displacements to the displacement at the start of that stage. This process only needs to be applied to structural and interface elements, to convert the displacements from a total displacement to a staged displacement.
 
 ### Requirements
 For this process to work, the following requirements have to be met:

@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "reset_displacement_process.h"
+#include "apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "includes/initial_state.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -22,12 +22,13 @@
 namespace Kratos
 {
 
-ResetDisplacementProcess::ResetDisplacementProcess(ModelPart& rModelPart, const Parameters&)
+ApplyFinalStressesOfPreviousStageToInitialState::ApplyFinalStressesOfPreviousStageToInitialState(ModelPart& rModelPart,
+                                                                                                 const Parameters&)
     : mrModelPart(rModelPart)
 {
 }
 
-void ResetDisplacementProcess::ExecuteInitialize()
+void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteInitialize()
 {
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
         std::vector<Vector> stresses_on_integration_points;
@@ -37,8 +38,6 @@ void ResetDisplacementProcess::ExecuteInitialize()
             rElement.CalculateOnIntegrationPoints(
                 CAUCHY_STRESS_VECTOR, stresses_on_integration_points, mrModelPart.GetProcessInfo());
         }
-        KRATOS_INFO("stresses on integration points")
-            << stresses_on_integration_points << " for element " << rElement.GetId() << std::endl;
         std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
         rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
 
@@ -47,7 +46,7 @@ void ResetDisplacementProcess::ExecuteInitialize()
     });
 }
 
-void ResetDisplacementProcess::ExecuteBeforeSolutionLoop()
+void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteBeforeSolutionLoop()
 {
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
         std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
@@ -64,9 +63,10 @@ void ResetDisplacementProcess::ExecuteBeforeSolutionLoop()
     mStressesByElementId.clear();
 }
 
-void ResetDisplacementProcess::CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
-                                                         const std::vector<Vector>& rStressesOnIntegrationPoints,
-                                                         IndexType ElementId)
+void ApplyFinalStressesOfPreviousStageToInitialState::CheckRetrievedElementData(
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
+    const std::vector<Vector>&                   rStressesOnIntegrationPoints,
+    IndexType                                    ElementId)
 {
     KRATOS_ERROR_IF(rConstitutiveLaws.empty())
         << "The constitutive laws on the integration points could not be retrieved for element "

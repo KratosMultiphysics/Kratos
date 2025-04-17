@@ -12,7 +12,7 @@
 
 #include "containers/model.h"
 #include "containers/variable.h"
-#include "custom_processes/reset_displacement_process.h"
+#include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "geometries/triangle_2d_3.h"
 #include "includes/constitutive_law.h"
 #include "includes/element.h"
@@ -106,7 +106,7 @@ ModelPart& CreateModelPartWithAStubElement(Model& rModel)
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstitutiveLaws,
+KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsInitialStressOfConstitutiveLaws,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model  model;
@@ -120,14 +120,15 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
         PK2_STRESS_VECTOR, std::vector<Vector>(number_of_integration_points, initial_stress_vector),
         dummy_process_info);
 
-    const auto               dummy_parameters = Parameters{};
-    ResetDisplacementProcess reset_displacement_process(model_part, dummy_parameters);
+    const auto dummy_parameters = Parameters{};
+    ApplyFinalStressesOfPreviousStageToInitialState apply_final_stresses_of_previous_stage_to_initial_state(
+        model_part, dummy_parameters);
 
     // This is also the order in which these functions are called in an analysis
     // which is why we emulate exactly this order here.
-    reset_displacement_process.ExecuteInitialize();
+    apply_final_stresses_of_previous_stage_to_initial_state.ExecuteInitialize();
     model_part.Elements()[1].Initialize(model_part.GetProcessInfo());
-    reset_displacement_process.ExecuteBeforeSolutionLoop();
+    apply_final_stresses_of_previous_stage_to_initial_state.ExecuteBeforeSolutionLoop();
 
     std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
     model_part.Elements()[1].CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
@@ -142,14 +143,14 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_SetsInitialStressOfConstituti
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_WhenConstitutiveLawsCannotBeRetrieved,
+KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenConstitutiveLawsCannotBeRetrieved,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& model_part = CreateModelPartWithAStubElement(model);
 
-    const auto               dummy_parameters = Parameters{};
-    ResetDisplacementProcess process(model_part, dummy_parameters);
+    const auto                                      dummy_parameters = Parameters{};
+    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
 
     const auto dummy_process_info          = ProcessInfo{};
     const auto empty_constitutive_law_list = std::vector<ConstitutiveLaw::Pointer>{};
@@ -160,21 +161,21 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_Whe
         "The constitutive laws on the integration points could not be retrieved for element 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_WhenStressVectorsCannotBeRetrieved,
+KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenStressVectorsCannotBeRetrieved,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& model_part = CreateModelPartWithAStubElement(model);
 
-    const auto               dummy_parameters = Parameters{};
-    ResetDisplacementProcess process(model_part, dummy_parameters);
+    const auto                                      dummy_parameters = Parameters{};
+    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.ExecuteInitialize(),
         "The stress vectors on the integration points could not be retrieved for element 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_WhenStressVectorsAndConstitutiveLawsAreNotTheSameSize,
+KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenStressVectorsAndConstitutiveLawsAreNotTheSameSize,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model      model;
@@ -183,8 +184,8 @@ KRATOS_TEST_CASE_IN_SUITE(ResetDisplacementProcess_ThrowsInExecuteInitialize_Whe
     model_part.Elements()[1].SetValuesOnIntegrationPoints(
         PK2_STRESS_VECTOR, std::vector<Vector>(2, ScalarVector(4, 1.0)), dummy_process_info);
 
-    const auto               dummy_parameters = Parameters{};
-    ResetDisplacementProcess process(model_part, dummy_parameters);
+    const auto                                      dummy_parameters = Parameters{};
+    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitialize(),
                                       "Number of retrieved stress vectors (2) does not match the "

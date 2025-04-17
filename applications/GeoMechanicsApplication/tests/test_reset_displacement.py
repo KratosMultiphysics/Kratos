@@ -23,9 +23,9 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         """
         Tests reset displacement in a truss in 4 stages
         stage 1: load is applied
-        stage 2: load is applied
-        stage 3: double load is applied
-        stage 4: load is removed
+        stage 2: load is kept constant
+        stage 3: load is doubled
+        stage 4: load is completely removed
 
         :return:
         """
@@ -66,21 +66,21 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         os.chdir(cwd)
 
         # Assert
-        stage_nr = 0
-        for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
-
         stage_nr = 1
-        for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], 0, msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
+        for idx,node in enumerate(nodal_coordinates_stages[stage_nr-1]):
+            self.assertAlmostEqual(displacement_stages[stage_nr-1][idx][0], eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr}")
 
         stage_nr = 2
-        for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
+        for idx,node in enumerate(nodal_coordinates_stages[stage_nr-1]):
+            self.assertAlmostEqual(displacement_stages[stage_nr-1][idx][0], 0, msg = f"u_x at node {idx + 1} in stage {stage_nr}")
 
         stage_nr = 3
-        for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
-            self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -2 * eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr + 1}")
+        for idx,node in enumerate(nodal_coordinates_stages[stage_nr-1]):
+            self.assertAlmostEqual(displacement_stages[stage_nr-1][idx][0], eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr}")
+
+        stage_nr = 4
+        for idx,node in enumerate(nodal_coordinates_stages[stage_nr-1]):
+            self.assertAlmostEqual(displacement_stages[stage_nr-1][idx][0], -2 * eps*node[0], msg = f"u_x at node {idx + 1} in stage {stage_nr}")
 
 
     def test_reset_displacement_beam(self):
