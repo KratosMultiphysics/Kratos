@@ -77,24 +77,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void InitializeElements(ModelPart& rModelPart) override
-    {
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](auto& rElement) {
-            rElement.Initialize(r_current_process_info);
-        });
-        this->SetElementsAreInitialized();
-    }
-
-    void InitializeConditions(ModelPart& rModelPart) override
-    {
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        block_for_each(rModelPart.Conditions(), [r_current_process_info](auto& rCondition) {
-            rCondition.Initialize(r_current_process_info);
-        });
-        this->SetConditionsAreInitialized();
-    }
-
     void Predict(ModelPart& rModelPart, DofsArrayType&, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
     {
         this->UpdateVariablesDerivatives(rModelPart);

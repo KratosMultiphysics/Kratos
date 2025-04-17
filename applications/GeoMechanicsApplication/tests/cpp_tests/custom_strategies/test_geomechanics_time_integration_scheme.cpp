@@ -194,21 +194,16 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveCon
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions,
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElementsAndConditions,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>(
-        [](auto& rModelPart, auto& rCondition) { rModelPart.AddCondition(rCondition); },
-        [](auto& rScheme, auto& rModelPart) { rScheme.InitializeConditions(rModelPart); });
-}
-
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>(
         [](auto& rModelPart, auto& rElement) { rModelPart.AddElement(rElement); },
         [](auto& rScheme, auto& rModelPart) { rScheme.InitializeElements(rModelPart); });
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>(
+        [](auto& rModelPart, auto& rCondition) { rModelPart.AddCondition(rCondition); },
+        [](auto& rScheme, auto& rModelPart) { rScheme.InitializeConditions(rModelPart); });
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
