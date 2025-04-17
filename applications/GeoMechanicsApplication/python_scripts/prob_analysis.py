@@ -79,13 +79,9 @@ class prob_analysis:
             stage_obj.Initialize()
 
             for i, input_parameter in enumerate(self.input_material_parameters):
-                print(type(input_parameter[0]), type(stage_no))
-                print(stage_no, "<", input_parameter[0], "=", stage_no < input_parameter[0])
-                input()
                 if stage_no < input_parameter[0]:
                     print("Skipping input parameter for stage", stage_no)
                     continue
-                input(f"Stage {stage_no} > {input_parameter[0]} ..... Press Enter to continue")
                 value = input_values[i]
                 self.update_material_parameters(input_parameter, value)
 
