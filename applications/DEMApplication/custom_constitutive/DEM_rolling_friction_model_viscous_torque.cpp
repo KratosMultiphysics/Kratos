@@ -36,7 +36,8 @@ namespace Kratos {
                                                                   double LocalContactForce[3], 
                                                                   double indentation, 
                                                                   array_1d<double, 3>& mContactMoment, 
-                                                                  double LocalCoordSystem2[3])
+                                                                  double LocalCoordSystem2[3],
+                                                                  double OldRollingFrictionMoment[3])
   {
     // Get rolling friction coefficient
     Properties& r_properties = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
@@ -86,7 +87,8 @@ namespace Kratos {
                                                                           double LocalContactForce[3], 
                                                                           double indentation, 
                                                                           array_1d<double, 3>& mContactMoment, 
-                                                                          double LocalCoordSystem2[3])
+                                                                          double LocalCoordSystem2[3],
+                                                                          double OldRollingFrictionMoment[3])
   {
     // ATTENTION: It considers only the motion of the particle!
 

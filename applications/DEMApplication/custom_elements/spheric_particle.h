@@ -266,6 +266,7 @@ std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
+std::vector<array_1d<double, 3> > mNeighbourRollingFrictionMoments;
 std::vector<int> mFemOldNeighbourIds;
 array_1d<double, 3> mContactMoment; //SLS
 
@@ -445,6 +446,7 @@ virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& tot
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
 std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;
+std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModelNeighbour;
 std::unique_ptr<DEMGlobalDampingModel> mGlobalDampingModel;
 
 double mInitializationTime;
@@ -492,6 +494,7 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mNeighbourRigidFacesElasticContactForce", mNeighbourRigidFacesElasticContactForce);
     rSerializer.save("mNeighbourElasticContactForces", mNeighbourElasticContactForces);
     rSerializer.save("mNeighbourElasticExtraContactForces", mNeighbourElasticExtraContactForces);
+    rSerializer.save("mNeighbourRollingFrictionMoments", mNeighbourRollingFrictionMoments);
     rSerializer.save("mFemOldNeighbourIds", mFemOldNeighbourIds);
     rSerializer.save("mContactMoment", mContactMoment);
 
@@ -535,6 +538,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mNeighbourRigidFacesElasticContactForce", mNeighbourRigidFacesElasticContactForce);
     rSerializer.load("mNeighbourElasticContactForces", mNeighbourElasticContactForces);
     rSerializer.load("mNeighbourElasticExtraContactForces", mNeighbourElasticExtraContactForces);
+    rSerializer.load("mNeighbourRollingFrictionMoments", mNeighbourRollingFrictionMoments);
     rSerializer.load("mFemOldNeighbourIds", mFemOldNeighbourIds);
     rSerializer.load("mContactMoment", mContactMoment);
 

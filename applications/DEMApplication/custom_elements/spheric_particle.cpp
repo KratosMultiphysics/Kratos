@@ -135,6 +135,8 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mNeighbourRigidFacesElasticContactForce = rOther.mNeighbourRigidFacesElasticContactForce;
     mNeighbourElasticContactForces = rOther.mNeighbourElasticContactForces;
     mNeighbourElasticExtraContactForces = rOther.mNeighbourElasticExtraContactForces;
+    mNeighbourRollingFrictionMoments = rOther.mNeighbourRollingFrictionMoments;
+    mNeighbourRigidFacesRollingFrictionMoments = rOther.mNeighbourRigidFacesRollingFrictionMoments;
     mContactMoment = rOther.mContactMoment;
     mPartialRepresentativeVolume = rOther.mPartialRepresentativeVolume; //TODO: to continuum!
     mFemOldNeighbourIds = rOther.mFemOldNeighbourIds;
@@ -438,12 +440,14 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
     temp_neighbours_ids.resize(new_size, false);
     temp_neighbour_elastic_contact_forces.resize(new_size);
     temp_neighbour_elastic_extra_contact_forces.resize(new_size);
+    temp_neighbour_rolling_friction_moments.resize(new_size);
 
     DenseVector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
 
     for (unsigned int i = 0; i < new_size; i++) {
         noalias(temp_neighbour_elastic_contact_forces[i]) = vector_of_zeros;
         noalias(temp_neighbour_elastic_extra_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbour_rolling_friction_moments[i]) = vector_of_zeros;
 
         if (mNeighbourElements[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
             temp_neighbours_ids[i] = -1;
@@ -456,6 +460,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
             if (int(temp_neighbours_ids[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
                 noalias(temp_neighbour_elastic_contact_forces[i]) = mNeighbourElasticContactForces[j];
                 noalias(temp_neighbour_elastic_extra_contact_forces[i]) = mNeighbourElasticExtraContactForces[j]; //TODO: remove this from discontinuum!!
+                noalias(temp_neighbour_rolling_friction_moments[i]) = mNeighbourRollingFrictionMoments[j];
                 break;
             }
         }
@@ -464,6 +469,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
     vector_of_ids_of_neighbours.swap(temp_neighbours_ids);
     mNeighbourElasticContactForces.swap(temp_neighbour_elastic_contact_forces);
     mNeighbourElasticExtraContactForces.swap(temp_neighbour_elastic_extra_contact_forces);
+    mNeighbourRollingFrictionMoments.swap(temp_neighbour_rolling_friction_moments);
 }
 
 void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
@@ -474,11 +480,13 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
     std::vector<array_1d<double, 3> > temp_neighbours_elastic_contact_forces(new_size);
     std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
+    std::vector<array_1d<double, 3> > temp_neighbours_rigid_faces_rolling_friction_moments(new_size);
 
     for (unsigned int i = 0; i<rNeighbours.size(); i++){
 
         noalias(temp_neighbours_elastic_contact_forces[i]) = vector_of_zeros;
         noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbours_rigid_faces_rolling_friction_moments[i]) = vector_of_zeros;
 
         if (rNeighbours[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
             temp_neighbours_ids[i] = -1;
@@ -491,6 +499,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
             if (static_cast<int>(temp_neighbours_ids[i]) == mFemOldNeighbourIds[j] && mFemOldNeighbourIds[j] != -1) {
                 noalias(temp_neighbours_elastic_contact_forces[i]) = mNeighbourRigidFacesElasticContactForce[j];
                 noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesTotalContactForce[j];
+                noalias(temp_neighbours_rigid_faces_rolling_friction_moments[i]) = mNeighbourRigidFacesRollingFrictionMoments[j];
                 break;
             }
         }
@@ -499,6 +508,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     mFemOldNeighbourIds.swap(temp_neighbours_ids);
     mNeighbourRigidFacesElasticContactForce.swap(temp_neighbours_elastic_contact_forces);
     mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
+    mNeighbourRigidFacesRollingFrictionMoments.swap(temp_neighbours_rigid_faces_rolling_friction_moments);
 }
 
 void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& r_process_info) const {}
@@ -880,14 +890,15 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                     
               if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                 if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){ 
-                    //mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                    mRollingFrictionModel->ComputeRollingFriction(this, 
+                    mRollingFrictionModelNeighbour = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+                    mRollingFrictionModelNeighbour->ComputeRollingFriction(this, 
                                                                 data_buffer.mpOtherParticle, 
                                                                 r_process_info, 
                                                                 LocalContactForce, 
                                                                 data_buffer.mIndentation, 
                                                                 mContactMoment, 
-                                                                data_buffer.mLocalCoordSystem[2]);
+                                                                data_buffer.mLocalCoordSystem[2],
+                                                                mNeighbourRollingFrictionMoments[i]);
                 }
                 else {
                     mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
@@ -1121,14 +1132,15 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               
               if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                 if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
-                  //mRollingFrictionModel = pCloneRollingFrictionModelWithFEMNeighbour(wall);                
-                  mRollingFrictionModel->ComputeRollingFrictionWithWall(this, 
-                                                                        wall, 
-                                                                        r_process_info, 
-                                                                        LocalContactForce, 
-                                                                        indentation, 
-                                                                        mContactMoment, 
-                                                                        data_buffer.mLocalCoordSystem[2]);
+                    mRollingFrictionModelNeighbour = pCloneRollingFrictionModelWithFEMNeighbour(wall);                
+                    mRollingFrictionModelNeighbour->ComputeRollingFrictionWithWall(this, 
+                                                                                    wall, 
+                                                                                    r_process_info, 
+                                                                                    LocalContactForce, 
+                                                                                    indentation, 
+                                                                                    mContactMoment, 
+                                                                                    data_buffer.mLocalCoordSystem[2],
+                                                                                    mNeighbourRigidFacesRollingFrictionMoments[i]);
                 }
                 else {
                   mRollingFrictionModel->ComputeRollingResistanceWithWall(this, wall, LocalContactForce);
