@@ -28,7 +28,7 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
 {
     return Element::Pointer(new UPwUpdatedLagrangianElement(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties,
-        this->GetStressStatePolicy().Clone(), this->CloneModifier()));
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -37,7 +37,8 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
                                                                       PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->CloneModifier()));
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+        this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

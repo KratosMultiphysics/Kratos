@@ -22,8 +22,7 @@ double IntegrationCoefficientModifierForAxisymmetricElement::operator()(double I
                                                                         const Element& rElement) const
 {
     auto shape_function_values = Vector{};
-    rElement.GetGeometry().ShapeFunctionsValues(
-        shape_function_values, rIntegrationPoint.Coordinates());
+    rElement.GetGeometry().ShapeFunctionsValues(shape_function_values, rIntegrationPoint.Coordinates());
     return IntegrationCoefficient * GeoElementUtilities::CalculateAxisymmetricCircumference(
                                         shape_function_values, rElement.GetGeometry());
 }

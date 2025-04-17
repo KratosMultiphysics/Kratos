@@ -25,7 +25,7 @@ Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::Create(
 {
     return Element::Pointer(new UPwSmallStrainLinkInterfaceElement(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties,
-        this->GetStressStatePolicy().Clone(), this->CloneModifier()));
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

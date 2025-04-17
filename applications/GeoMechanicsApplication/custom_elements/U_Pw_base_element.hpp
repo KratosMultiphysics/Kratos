@@ -188,7 +188,7 @@ protected:
 
     StressStatePolicy& GetStressStatePolicy() const;
 
-    std::unique_ptr<IntegrationCoefficientModifier> CloneModifier() const;
+    std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const;
 
 private:
     [[nodiscard]] virtual DofsVectorType GetDofs() const;

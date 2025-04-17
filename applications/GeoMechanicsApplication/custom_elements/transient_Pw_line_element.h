@@ -64,14 +64,15 @@ public:
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes), pProperties,
-                                                      mContributions, this->CloneModifier());
+        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes),
+                                                      pProperties, mContributions,
+                                                      this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, mContributions,
-                                                      this->CloneModifier());
+                                                      this->CloneIntegrationCoefficientModifier());
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
@@ -284,7 +285,7 @@ private:
         return projected_gravity;
     }
 
-    std::unique_ptr<IntegrationCoefficientModifier> CloneModifier() const
+    std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const
     {
         return mIntegrationCoefficientsCalculator.CloneModifier();
     }

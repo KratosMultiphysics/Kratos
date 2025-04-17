@@ -444,7 +444,7 @@ Element::DofsVectorType UPwBaseElement::GetDofs() const
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }
 
-std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneModifier() const
+std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegrationCoefficientModifier() const
 {
     return mIntegrationCoefficientsCalculator.CloneModifier();
 }

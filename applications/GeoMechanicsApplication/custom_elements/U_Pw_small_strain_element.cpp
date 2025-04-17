@@ -35,7 +35,7 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
 {
     return Element::Pointer(new UPwSmallStrainElement(NewId, this->GetGeometry().Create(ThisNodes),
                                                       pProperties, this->GetStressStatePolicy().Clone(),
-                                                      this->CloneModifier()));
+                                                      this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -43,8 +43,9 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 GeometryType::Pointer pGeom,
                                                                 PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->CloneModifier()));
+    return Element::Pointer(new UPwSmallStrainElement(NewId, pGeom, pProperties,
+                                                      this->GetStressStatePolicy().Clone(),
+                                                      this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
