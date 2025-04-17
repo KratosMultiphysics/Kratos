@@ -212,7 +212,7 @@ namespace Kratos{
             const double force = std::abs(LocalContactForce[2]);
             double max_rolling_friction_moment = rolling_friction_coefficient * force * arm_length;
 
-            const double Kr = mKt * equivalent_radius * equivalent_radius; //TODO: This must be improved
+            const double Kr = mKt * equivalent_radius * equivalent_radius;
             m_rolling_friction_moment[0] = OldRollingFrictionMoment[0] - Kr * delta_theta_t[0];
             m_rolling_friction_moment[1] = OldRollingFrictionMoment[1] - Kr * delta_theta_t[1];
             m_rolling_friction_moment[2] = OldRollingFrictionMoment[2] - Kr * delta_theta_t[2];
