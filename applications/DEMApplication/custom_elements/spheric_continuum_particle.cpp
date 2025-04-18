@@ -428,6 +428,7 @@ namespace Kratos {
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+                            //TODO: seperate the unbonded forces for calculating the rolling friction moment
                             mRollingFrictionModel->ComputeRollingFriction(this, 
                                                                         data_buffer.mpOtherParticle, 
                                                                         r_process_info, 

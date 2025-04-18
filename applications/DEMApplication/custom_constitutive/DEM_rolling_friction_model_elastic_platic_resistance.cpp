@@ -206,7 +206,8 @@ namespace Kratos{
             Properties& r_properties = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
             const double rolling_friction_coefficient = r_properties[ROLLING_FRICTION];
 
-            const double arm_length  = p_element->GetRadius();
+            const double equivalent_radius  = p_element->GetRadius();
+            const double arm_length  = equivalent_radius;
 
             // Get normal contact force
             const double force = std::abs(LocalContactForce[2]);
