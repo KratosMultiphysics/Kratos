@@ -50,11 +50,14 @@ class GeoMechanicsAnalysis(AnalysisStage):
     def Initialize(self):
         super().Initialize()
 
+        # Displacement and rotation variables are defined as stage displacement and rotation
+        # so they need to be reset at the start of a stage.
+        self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
         if self.reset_displacements:
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_DISPLACEMENT)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
@@ -170,7 +173,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
             if not converged:
                 raise RuntimeError('The maximum number of cycles is reached without convergence!')
 
-           #if self._GetSolver().settings["reset_displacements"].GetBool():
             for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
                 self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 
