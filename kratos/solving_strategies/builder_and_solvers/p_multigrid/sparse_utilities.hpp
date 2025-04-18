@@ -49,7 +49,7 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
 {
     // Sanity checks.
     KRATOS_ERROR_IF_NOT(rLeft.size1() == rRight.size1() && rLeft.size2() == rRight.size2())
-        << "cannot add matrices off different shapes "
+        << "cannot add matrices of different shapes "
         << "(" << rLeft.size1() << "x" << rLeft.size2() << ") + "
         << "(" << rRight.size1() << "x" << rRight.size2() << ")";
 
