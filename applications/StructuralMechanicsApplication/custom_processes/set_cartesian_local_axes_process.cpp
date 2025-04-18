@@ -36,6 +36,7 @@ void SetCartesianLocalAxesProcess::ExecuteInitialize()
     KRATOS_TRY
 
     array_1d<double, 3> local_axis_1;
+    const SizeType set_axis_component = mThisParameters["set_local_axes_direction"].GetInt();
 
     if (mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
         array_1d<double, 3> local_axis_2;
@@ -49,10 +50,21 @@ void SetCartesianLocalAxesProcess::ExecuteInitialize()
         ConstitutiveLawUtilities<3>::CheckAndNormalizeVector<array_1d<double,3>>(local_axis_1);
         ConstitutiveLawUtilities<3>::CheckAndNormalizeVector<array_1d<double,3>>(local_axis_2);
 
-        block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
-            rElement.SetValue(LOCAL_AXIS_1, local_axis_1);
-            rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
-        });
+        if (set_axis_component == -1) {
+            block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
+                rElement.SetValue(LOCAL_AXIS_1, local_axis_1);
+                rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
+            });
+        } else if (set_axis_component == 0) {
+            block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
+                rElement.SetValue(LOCAL_AXIS_1, local_axis_1);
+            });
+        } else if (set_axis_component == 1) {
+            block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
+                rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
+            });
+        }
+
     } else if (mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2) {
         const Vector& cartesian_local_axes_matrix = mThisParameters["cartesian_local_axis"].GetVector();
         local_axis_1[0] = cartesian_local_axes_matrix[0];
@@ -84,7 +96,8 @@ const Parameters SetCartesianLocalAxesProcess::GetDefaultParameters() const
     const Parameters default_parameters = Parameters(R"(
     {
         "cartesian_local_axis"          : [[1.0,0.0,0.0],[0.0,1.0,0.0]],
-        "update_at_each_step"           : false
+        "update_at_each_step"           : false,
+        "set_local_axes_direction"      : -1
     })" );
 
     return default_parameters;
