@@ -7,7 +7,20 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from set_triaxial_test import lab_test
-from set_triaxial_test import ProjectParameterEditor
+
+import re
+
+def clean_c_buffer(char_buffer):
+    try:
+        raw = char_buffer.raw.split(b'\x00')[0]
+        decoded = raw.decode("utf-8", errors="ignore")
+        # Remove leading numbers and spaces (like "0    ")
+        decoded = re.sub(r"^\s*\d+\s+", "", decoded)
+        # Strip non-display chars
+        decoded_clean = re.sub(r"[^\w\s\-\(\)\[\]\.,':=+/]", "", decoded)
+        return decoded_clean.strip()
+    except Exception:
+        return "<?>"  # fallback
 
 def find_symbol_in_dll(dll_path, dll_lib, symbol_name):
     try:
@@ -41,7 +54,7 @@ def get_model_name(getmodelname, model_no):
     getmodelname.argtypes = (ctypes.POINTER(ctypes.c_int), ctypes.c_char_p, ctypes.c_long)
     getmodelname.restype = None
     getmodelname(ctypes.byref(ctypes.c_int(model_no)), char_buffer, ctypes.c_long(256))
-    return ''.join(filter(lambda x: x in set(string.printable), char_buffer.value.decode("utf-8","strict"))).strip()
+    return clean_c_buffer(char_buffer)
 
 def get_param_count(getparamcount, model_no):
     getparamcount.argtypes = (ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
@@ -58,7 +71,7 @@ def get_param_name(getparamname, model_no, param_no):
     getparamname.restype = None
     getparamname(ctypes.byref(ctypes.c_int(model_no)), ctypes.byref(ctypes.c_int(param_no)),
                  char_buffer, ctypes.c_long(256))
-    return ''.join(filter(lambda x: x in set(string.printable), char_buffer.value.decode("utf-8","strict"))).strip()
+    return clean_c_buffer(char_buffer)
 
 def get_state_var_count(getstatevarcount, model_no):
     getstatevarcount.argtypes = (ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
@@ -75,7 +88,7 @@ def get_state_var_name(getstatevarname, model_no, state_var_no):
     getstatevarname.restype = None
     getstatevarname(ctypes.byref(ctypes.c_int(model_no)), ctypes.byref(ctypes.c_int(state_var_no)),
                     char_buffer, ctypes.c_long(256))
-    return ''.join(filter(lambda x: x in set(string.printable), char_buffer.value.decode("utf-8","strict"))).strip()
+    return clean_c_buffer(char_buffer)
 
 def get_material_files(material_directory):
     # Get the list of files in the material directory
