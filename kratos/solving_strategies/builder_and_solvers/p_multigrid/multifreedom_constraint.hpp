@@ -15,6 +15,7 @@
 // Project includes
 #include "includes/master_slave_constraint.h" // MasterSlaveConstraint
 #include "includes/code_location.h" // KRATOS_CODE_LOCATION
+#include "includes/variables.h" // GEOMETRIC_STIFFNESS_MATRIX
 
 // System includes
 #include <vector> // std::vector
@@ -103,6 +104,17 @@ public:
                           EquationIdVectorType& rMasterDoFs,
                           const ProcessInfo& rProcessInfo) const override;
 
+    /// @brief copydoc MasterSlaveConstraint::GetSlaveDofsVector
+    const DofPointerVectorType& GetSlaveDofsVector() const override
+    {return mDummy;}
+
+    const DofPointerVectorType& GetMasterDofsVector() const override
+    {return mDofs;}
+
+    void SetMasterDofsVector(const DofPointerVectorType& rDofs) override
+    {mDofs = rDofs;}
+
+
     /// This function is NoOp.
     void ResetSlaveDofs(const ProcessInfo&) override {}
 
@@ -138,6 +150,16 @@ protected:
         return mDofs;
     }
 
+    const MatrixType& GetHessian() const
+    {
+        return this->GetData().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
+    }
+
+    MatrixType& GetHessian()
+    {
+        return this->Data().GetValue(GEOMETRIC_STIFFNESS_MATRIX);
+    }
+
 private:
     friend class Serializer;
 
@@ -145,7 +167,7 @@ private:
 
     void load(Serializer& rDeserializer) override;
 
-    DofArray mDofs;
+    DofArray mDofs, mDummy;
 }; // class MultifreedomConstraint
 
 

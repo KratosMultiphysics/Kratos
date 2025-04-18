@@ -213,6 +213,11 @@ public:
         return mRelationMatrix;
     }
 
+    const typename TSparse::MatrixType& GetHessian() const noexcept
+    {
+        return mHessian;
+    }
+
     const typename TSparse::VectorType& GetConstraintGapVector() const noexcept
     {
         return mConstraintGapVector;
@@ -238,6 +243,11 @@ protected:
         return mRelationMatrix;
     }
 
+    typename TSparse::MatrixType& GetHessian() noexcept
+    {
+        return mHessian;
+    }
+
     typename TSparse::VectorType& GetConstraintGapVector() noexcept
     {
         return mConstraintGapVector;
@@ -258,6 +268,8 @@ private:
     }
 
     typename TSparse::MatrixType mRelationMatrix;
+
+    typename TSparse::MatrixType mHessian;
 
     typename TSparse::VectorType mConstraintGapVector;
 
