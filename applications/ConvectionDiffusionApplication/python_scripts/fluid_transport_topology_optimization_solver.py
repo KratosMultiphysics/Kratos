@@ -102,9 +102,6 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
                 self.transport_solver.main_model_part,
                 element_name,
                 condition_name)
-            
-            print("TRNAPSORT", self.transport_solver.main_model_part)
-            input()
 
             # Set the saved convection diffusion settings to the new transport model part
             self.transport_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
