@@ -244,6 +244,3 @@ class UPwSolver(GeoSolver):
 
     def _CheckConvergence(self):
         return self.strategy.IsConverged()
-
-    def _UpdateLoads(self):
-        self.strategy.UpdateLoads()
