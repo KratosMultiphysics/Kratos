@@ -245,9 +245,8 @@ class GeoMechanicalSolver(PythonSolver):
         # Get the convergence criterion
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
-        # Solver creation
-        self.solver = self._ConstructSolver(self.builder_and_solver,
-                                            self.settings["strategy_type"].GetString())
+        self.solver = self._construct_strategy(self.builder_and_solver,
+                                               self.settings["strategy_type"].GetString())
 
         # Set echo_level
         self.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -460,8 +459,7 @@ class GeoMechanicalSolver(PythonSolver):
 
         return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
-    def _ConstructSolver(self, builder_and_solver, strategy_type):
-
+    def _construct_strategy(self, builder_and_solver, strategy_type):
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.IS_CONVERGED, True)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, 1)
 
