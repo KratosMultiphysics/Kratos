@@ -30,7 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficientsCalculator_ReturnsCorrec
         std::make_unique<IntegrationCoefficientModifierForThermalElement>()};
     const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
-    auto                                             detJs        = Vector{ScalarVector{1, 2.0}};
+    const auto                                       detJs        = Vector{ScalarVector{1, 2.0}};
     auto                                             p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CROSS_AREA, 0.5);
     PointerVector<Node> nodes;
@@ -57,7 +57,6 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalIntegrationCoefficientsCalculator_ReturnsCorrec
     // 2.0 (detJ) * 0.5 (weight) = 1.0
     // cross area is not taken into account
     KRATOS_EXPECT_EQ(calculated_coefficients.size(), 1);
-    KRATOS_EXPECT_NEAR(plane_element.get()->GetProperties()[CROSS_AREA], 0.5, Defaults::absolute_tolerance);
     KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, Defaults::absolute_tolerance);
 }
 

@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(PwLineIntegrationCoefficientsCalculator_ReturnsCorrect
         std::make_unique<IntegrationCoefficientModifierForPwLineElement>()};
     const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
-    auto                                             detJs        = Vector{ScalarVector{1, 2.0}};
+    const auto                                       detJs        = Vector{ScalarVector{1, 2.0}};
     auto                                             p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CROSS_AREA, 0.5);
     PointerVector<Node> nodes;

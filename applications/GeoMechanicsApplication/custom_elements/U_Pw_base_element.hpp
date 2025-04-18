@@ -48,7 +48,7 @@ public:
                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : Element(NewId, ThisNodes),
           mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(std::move(pCoefficientModifier))}
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
@@ -59,7 +59,7 @@ public:
                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : Element(NewId, pGeometry),
           mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(std::move(pCoefficientModifier))}
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
@@ -71,7 +71,7 @@ public:
                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : Element(NewId, pGeometry, pProperties),
           mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(std::move(pCoefficientModifier))}
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
         // this is needed for interface elements
         mThisIntegrationMethod = this->GetIntegrationMethod();

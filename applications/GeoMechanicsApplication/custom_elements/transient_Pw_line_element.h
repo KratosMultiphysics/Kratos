@@ -47,7 +47,7 @@ public:
                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
         : Element(NewId, pGeometry),
           mContributions(rContributions),
-          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(std::move(pCoefficientModifier))}
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
@@ -58,7 +58,7 @@ public:
                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
         : Element(NewId, pGeometry, pProperties),
           mContributions(rContributions),
-          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(std::move(pCoefficientModifier))}
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
@@ -362,7 +362,7 @@ private:
         return [this]() -> Vector {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            return mIntegrationCoefficientsCalculator.Run<vector<double>>(
+            return mIntegrationCoefficientsCalculator.Run<Vector>(
                 GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
         };
     }

@@ -27,7 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(IntegrationCoefficientsCalculatorWithoutModifier_Retur
     const auto integration_coefficient_calculator = IntegrationCoefficientsCalculator{};
     const Geometry<Node>::IntegrationPointType       integration_point(0.0, 0.0, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
-    auto                                             detJs = Vector{ScalarVector{1, 2.0}};
+    const auto                                       detJs = Vector{ScalarVector{1, 2.0}};
 
     // Act
     const auto calculated_coefficients = integration_coefficient_calculator.Run<>(integration_points, detJs);

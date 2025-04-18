@@ -37,15 +37,13 @@ public:
 
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry),
-          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(
-              std::make_unique<IntegrationCoefficientModifierForThermalElement>())}
+          mIntegrationCoefficientsCalculator{std::make_unique<IntegrationCoefficientModifierForThermalElement>()}
     {
     }
 
     TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties),
-          mIntegrationCoefficientsCalculator{IntegrationCoefficientsCalculator(
-              std::make_unique<IntegrationCoefficientModifierForThermalElement>())}
+          mIntegrationCoefficientsCalculator{std::make_unique<IntegrationCoefficientModifierForThermalElement>()}
     {
     }
 
@@ -91,7 +89,7 @@ public:
                                                                    GetIntegrationMethod());
         }
 
-        const auto integration_coefficients = mIntegrationCoefficientsCalculator.Run<vector<double>>(
+        const auto integration_coefficients = mIntegrationCoefficientsCalculator.Run<Vector>(
             GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
         const auto conductivity_matrix = CalculateConductivityMatrix(dN_dX_container, integration_coefficients);
         const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);

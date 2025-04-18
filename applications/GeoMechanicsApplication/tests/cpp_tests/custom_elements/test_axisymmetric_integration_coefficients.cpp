@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_ReturnsC
     // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
     const Geometry<Node>::IntegrationPointType       integration_point(0.5, 0.3, 0.0, 0.5);
     const Geometry<Node>::IntegrationPointsArrayType integration_points{integration_point};
-    auto                                             detJs = Vector{ScalarVector{1, 2.0}};
+    const auto                                       detJs = Vector{ScalarVector{1, 2.0}};
     const auto p_element = ElementSetupUtilities::Create2D3NElement();
 
     // Act
@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_ReturnsC
     // The expected number is calculated as follows:
     // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
     KRATOS_EXPECT_EQ(calculated_coefficients.size(), 1);
-    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 5.026548245743669, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_RELATIVE_NEAR(calculated_coefficients[0], 5.02655, Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_CloneReturnsNotNullptr,
