@@ -64,7 +64,7 @@ public:
     {
     }
 
-    [[nodiscard]] int Check(const ModelPart& rModelPart) const final
+    int Check(const ModelPart& rModelPart) const final
     {
         KRATOS_TRY
 
