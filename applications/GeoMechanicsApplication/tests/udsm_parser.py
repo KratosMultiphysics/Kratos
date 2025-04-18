@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from set_triaxial_test import lab_test
+from set_triaxial_test import ProjectParameterEditor
 
 def find_symbol_in_dll(dll_path, dll_lib, symbol_name):
     try:
@@ -202,14 +203,20 @@ def create_menu():
         global parameter_entries, input_entries, model_index
         parameter_entries = entry_widgets
         input_entries = triaxial_entry_widgets
-        model_index = index+1
+        model_index = index + 1
 
     def run_calculation():
         # Retrieve values from the entry widgets
         parameters = [entry.get() for key, entry in parameter_entries.items()]
+        try:
+            initial_effective_stress = float(input_entries["Initial effective cell pressure |σ'\u2093\u2093|"].get())
+            maximum_strain = float(input_entries["Maximum Strain |ε\u1d67\u1d67|"].get())
+            time_step = float(input_entries["Number of steps"].get())
+        except ValueError:
+            messagebox.showerror("Error", "Invalid input for 'Triaxial Input Data'. Please enter numeric values.")
+            return
 
-        # Pass the parameters to the lab_test function
-        lab_test(dll_path, model_index, parameters)
+        lab_test(dll_path, model_index, parameters, time_step, maximum_strain, initial_effective_stress)
 
         for i, ax in enumerate(axes.flatten()):
             ax.clear()

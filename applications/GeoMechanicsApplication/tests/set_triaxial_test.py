@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 import plotly.graph_objects as go
+import re
 import tkinter as tk
 from tkinter import messagebox, filedialog
 
@@ -15,9 +16,6 @@ class TriaxialTest:
     def __init__(self, json_file_path):
         self.json_file_path = json_file_path
         self.data = self._read_json()
-
-
-
 
     def _read_json(self):
         with open(self.json_file_path, 'r') as file:
@@ -494,30 +492,104 @@ class MaterialEditor:
                 return int(value)
         except ValueError:
             return value
-def lab_test(dll_path, index, umat_parameters):
+
+class ProjectParameterEditor:
+    def __init__(self, json_path):
+        self.json_path = json_path
+        with open(self.json_path, 'r') as f:
+            self.raw_text = f.read()
+
+    def _write_back(self):
+        with open(self.json_path, 'w') as f:
+            f.write(self.raw_text)
+
+    def update_time_step_properties(self, new_time_step):
+        pattern = r'("time_step"\s*:\s*)([0-9eE+.\-]+)'
+        replacement = r'\g<1>' + str(new_time_step)
+        self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
+        else:
+            self._write_back()
+            messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
+
+class MdpaEditor:
+    def __init__(self, mdpa_path):
+        self.mdpa_path = mdpa_path
+        with open(self.mdpa_path, 'r') as f:
+            self.raw_text = f.read()
+
+    # def update_displacement_y(self, maximum_strain):
+    #     # Pattern to match the line in Table 2 with the highest time (assumed to be the last entry)
+    #     pattern = r'(Begin Table 2 TIME DISPLACEMENT_Y.*?)(\d+\.?\d*\s+)([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)(\s*?\nEnd Table)'
+    #     replacement = r'\1\2' + str(maximum_strain) + r'\4'
+    #
+    #     new_text, count = re.subn(pattern, replacement, self.raw_text, flags=re.DOTALL)
+    #     if count == 0:
+    #         messagebox.showwarning("Warning", "Could not find Table 2 DISPLACEMENT_Y to update.")
+    #     else:
+    #         with open(self.mdpa_path, 'w') as f:
+    #             f.write(new_text)
+    #         messagebox.showinfo("Success", f"DISPLACEMENT_Y final value updated to {maximum_strain}")
+
+    def update_maximum_strain(self, maximum_strain):
+        pattern = r'(\s*)\$maximum_strain(\s*)'
+
+        def replacer(match):
+            leading_ws = match.group(1)
+            trailing_ws = match.group(2)
+            return f"{leading_ws}{maximum_strain}{trailing_ws}"
+
+        new_text, count = re.subn(pattern, replacer, self.raw_text)
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find '$maximum_strain' to update.")
+        else:
+            self.raw_text = new_text
+        with open(self.mdpa_path, 'w') as f:
+            f.write(self.raw_text)
+        messagebox.showinfo("Success", f"'$maximum_strain' replaced with {maximum_strain}")
+
+
+    def update_initial_effective_cell_pressure(self, initial_effective_cell_pressure):
+        pattern = r'(\s*)\$initial_effective_cell_pressure(\s*)'
+
+        def replacer(match):
+            leading_ws = match.group(1)
+            trailing_ws = match.group(2)
+            return f"{leading_ws}{initial_effective_cell_pressure}{trailing_ws}"
+
+        new_text, count = re.subn(pattern, replacer, self.raw_text)
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find '$initial_effective_cell_pressure' to update.")
+        else:
+            with open(self.mdpa_path, 'w') as f:
+                f.write(new_text)
+            messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
+
+
+def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initial_effective_cell_pressure):
     json_file_path = 'test_triaxial/MaterialParameters_stage1.json'
     material_editor = MaterialEditor(json_file_path)
     material_editor._update_material_and_save({"UMAT_PARAMETERS": umat_parameters,
                                                "UDSM_NAME": dll_path,
                                                "UDSM_NUMBER": index})
-    # List of output files to process
+
+    project_param_path = 'test_triaxial/ProjectParameters_stage2.json'
+    project_editor = ProjectParameterEditor(project_param_path)
+    project_editor.update_time_step_properties(time_step)
+
+    mdpa_path = 'test_triaxial/triaxial.mdpa'
+    mdpa_editor = MdpaEditor(mdpa_path)
+    # convert percentage to absolute value
+    mdpa_editor.update_maximum_strain(-maximum_strain / 100)
+    mdpa_editor.update_initial_effective_cell_pressure(initial_effective_cell_pressure)
+
+
+# List of output files to process
     output_files = [
         os.path.join('gid_output', "triaxial_Stage_2.post.res")]
 
     reshaped_values_by_time, vertical_strain, volumetric_strain = run_triaxial_test(output_files)
-
-    # y_displacement_list=[]
-    # for i in range (len(node_2_y_displacements)):
-    #     displacement = node_2_y_displacements[i]
-    #     y_displacement_list.append(displacement)
-
-    # volumetric_strains = []
-    # for disp_vector in node_2_displacements:
-    #     epsilon_xx = disp_vector[0] / 1.0  # ∆u_x / ∆x
-    #     epsilon_yy = disp_vector[1] / 1.0  # ∆u_y / ∆y
-    #     epsilon_zz = disp_vector[2] / 1.0  # ∆u_z / ∆z
-    #     epsilon_v = epsilon_xx + epsilon_yy + epsilon_zz
-    #     volumetric_strains.append(epsilon_v)
 
     sigma1_list = []
     sigma3_list = []
@@ -555,5 +627,6 @@ def lab_test(dll_path, index, umat_parameters):
     plot_volumetric_strain(vertical_strain, volumetric_strain)
 
 if __name__ == "__main__":
-    lab_test("../MohrCoulomb64.dll", ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"])
+    lab_test("../MohrCoulomb64.dll", ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"],
+             1, 0.01, 20, 100)
 

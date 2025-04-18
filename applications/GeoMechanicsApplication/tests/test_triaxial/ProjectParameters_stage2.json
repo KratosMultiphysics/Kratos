@@ -4,11 +4,11 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 1.0,
-        "end_time"      : 100
+        "end_time"      : 2.0
     },
     "solver_settings"  : {
         "time_stepping"                      : {
-            "time_step"             : 0.1,
+            "time_step"             : 0.05,
             "max_delta_time_factor" : 1
         },
         "solver_type"                        : "U_Pw",
