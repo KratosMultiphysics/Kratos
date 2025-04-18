@@ -1,0 +1,30 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1 0 0 0
+    2 1 0 0
+    3 0 1 0
+    4 0 0 1
+End Nodes
+
+Begin Elements SmallDisplacementElement3D4N
+    1 0 1 2 3 4
+End Elements
+
+Begin Conditions PointLoadCondition3D1N
+    1 0 2
+End Conditions
+
+Begin SubModelPart neumann
+    Begin SubModelPartConditions
+        1
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart dirichlet
+    Begin SubModelPartNodes
+        1
+        4
+    End SubModelPartNodes
+End SubModelPart
