@@ -54,15 +54,15 @@ struct LinkConstraint::Impl
                   static_cast<ValueType>(0));
 
         // Compute constraint violation.
-        double initial_norm = 0.0, current_norm = 0.0;
+        double current_norm = 0.0;
         for (std::size_t i_component=0ul; i_component<Dimensions; ++i_component) {
-            const auto initial_diff = rLastPositions[i_component] - rLastPositions[i_component + Dimensions];
-            const auto current_diff = initial_diff + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
-            initial_norm += initial_diff * initial_diff;
+            const auto current_diff = rLastPositions[i_component] - rLastPositions[i_component + Dimensions]
+                                    + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
             current_norm += current_diff * current_diff;
         } // for i_component in range(Dimensions)
-        const auto constraint_loss = current_norm - initial_norm;
-        const auto hessian_scale = 2.0 * constraint_loss;
+
+        KRATOS_ERROR_IF_NOT(current_norm) << "degenerate link constraint";
+        const auto current_norm_root = std::sqrt(current_norm);
 
         // Dof order:
         // {u^0_x, ..., u^0_w, u^1_x, ..., u^1_w}
@@ -70,15 +70,18 @@ struct LinkConstraint::Impl
         // (e.g.: z-axis in 3 dimensions).
 
         for (std::size_t i_component=0u; i_component<Dimensions; ++i_component) {
-            const auto value = rLastPositions[i_component] - rLastPositions[i_component + Dimensions]
-                             + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
-            rRelationMatrix(0, i_component) = 2 * value;
-            rRelationMatrix(0, i_component + Dimensions) = -2 * value;
+            const auto current_diff = rLastPositions[i_component] - rLastPositions[i_component + Dimensions]
+                                    + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
 
-            rHessian(i_component, i_component) = hessian_scale;
-            rHessian(i_component, i_component + Dimensions) = -hessian_scale;
-            rHessian(i_component + Dimensions, i_component) = -hessian_scale;
-            rHessian(i_component + Dimensions, i_component + Dimensions) = hessian_scale;
+            rRelationMatrix(0, i_component) = current_diff / current_norm_root;
+            rRelationMatrix(0, i_component + Dimensions) = -rRelationMatrix(0, i_component);
+
+            const auto hessian_entry = (current_norm_root - current_diff * current_diff / current_norm_root) / current_norm;
+
+            rHessian(i_component, i_component) = hessian_entry;
+            rHessian(i_component, i_component + Dimensions) = -hessian_entry;
+            rHessian(i_component + Dimensions, i_component) = -hessian_entry;
+            rHessian(i_component + Dimensions, i_component + Dimensions) = hessian_entry;
         } // for i_component in range(mDimensions)
     }
 
@@ -146,19 +149,6 @@ struct LinkConstraint::Impl
         } // for i_component in range(mDimensions)
 
         KRATOS_CATCH("")
-    }
-
-
-    double GetSquareDistance() const {
-        double output = 0.0;
-        std::array<Impl::ValueType,6> positions, displacements;
-        this->FetchNodePositions(positions, displacements);
-        std::transform(positions.begin(), positions.end(), displacements.begin(), positions.begin(), std::plus<double>());
-        for (std::size_t i_component=0ul; i_component<mDimensions; ++i_component) {
-            const auto diff = positions[i_component] - positions[i_component + mDimensions];
-            output += diff * diff;
-        }
-        return output;
     }
 
 
