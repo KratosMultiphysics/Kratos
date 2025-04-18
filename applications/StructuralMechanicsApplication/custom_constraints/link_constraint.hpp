@@ -27,17 +27,13 @@ namespace Kratos {
  *           @f$ n^0 @f$ and @f$ n^1 @f$ that get displaced by @f$ u^0_i @f$ and @f$ u^1_i @f$ respectively.
  *           @p LinkConstraint then represents the following constraint equation:
  *           @f[
- *              \sum_i \left( (n^0_i + u^0_i) - (n^1_i + u^1_i) \right)^2
+ *              \sqrt{
+ *                  \sum_i \left( (n^0_i + u^0_i) - (n^1_i + u^1_i) \right)^2
+ *              }
  *              -
- *              \sum_i \left( n^0_i - n^1_i \right)^2
- *              = 0
- *           @f]
- *
- *           The constraint equation above is linearized in each nonlinear iteration @f$ k @f$
- *           to the following form:
- *           @f[
- *              \sum_i \left( (2 n^0_i + u^0_{i,k-1}) -  (2 n^1_i + u^1_{i,k-1}) \right)
- *              \left( u^0_{i,k} - u^1_{i,k} \right)
+ *              \sqrt{
+ *                  \sum_i \left( n^0_i - n^1_i \right)^2
+ *              }
  *              = 0
  *           @f]
  *
