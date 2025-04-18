@@ -223,6 +223,11 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 {
     const auto& r_prop = rParameters.GetMaterialProperties();
 
+    if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        rParameters.GetConstitutiveMatrix() =
+            mpConstitutiveDimension->CalculateElasticMatrix(r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
+    }
+
     const auto trail_stress_vector = CalculateTrialStressVector(
         rParameters.GetStrainVector(), r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
 
