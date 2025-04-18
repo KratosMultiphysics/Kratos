@@ -23,7 +23,7 @@ namespace Kratos
 
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVector)
 {
-    const Matrix LocalStressTensor =
+    const auto LocalStressTensor =
         MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
 
     Matrix StressTensor(3, 3); // 3D stress tensor
@@ -34,7 +34,7 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVecto
         }
     }
 
-    const double SigmaEquivalent =
+    const auto SigmaEquivalent =
         0.5 * ((StressTensor(0, 0) - StressTensor(1, 1)) * (StressTensor(0, 0) - StressTensor(1, 1)) +
                (StressTensor(1, 1) - StressTensor(2, 2)) * (StressTensor(1, 1) - StressTensor(2, 2)) +
                (StressTensor(2, 2) - StressTensor(0, 0)) * (StressTensor(2, 2) - StressTensor(0, 0)) +
@@ -81,38 +81,38 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
     return std::asin(arg_to_asin) / 3.0;
 }
 
-double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double Phi)
+double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
 
-    const double q_mc = CalculateQMohrCoulomb(rStressVector, C, Phi);
-    const double q    = CalculateVonMisesStress(rStressVector);
+    const auto q_mc = CalculateQMohrCoulomb(rStressVector, C, PhiInRadians);
+    const auto q = CalculateVonMisesStress(rStressVector);
 
     return q / q_mc;
 }
 
-double StressStrainUtilities::CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi)
+double StressStrainUtilities::CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians)
 {
-    const double denominator = CalculateDenominator(rStressVector, Phi);
-    const double p           = -CalculateMeanStress(rStressVector);
-    return 3. * (p * std::sin(Phi) + C * std::cos(Phi)) / denominator;
+    const auto denominator = CalculateDenominator(rStressVector, PhiInRadians);
+    const auto p           = -CalculateMeanStress(rStressVector);
+    return 3. * (p * std::sin(PhiInRadians) + C * std::cos(PhiInRadians)) / denominator;
 }
 
-double StressStrainUtilities::CalculateDenominator(const Vector& rStressVector, double Phi)
+double StressStrainUtilities::CalculateDenominator(const Vector& rStressVector, double PhiInRadians)
 {
-    const double lode_angle = CalculateLodeAngle(rStressVector);
-    return std::sqrt(3.) * std::cos(lode_angle) - std::sin(lode_angle) * std::sin(Phi);
+    const auto lode_angle = CalculateLodeAngle(rStressVector);
+    return std::sqrt(3.) * std::cos(lode_angle) - std::sin(lode_angle) * std::sin(PhiInRadians);
 }
 
-double StressStrainUtilities::CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double Phi)
+double StressStrainUtilities::CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double PhiInRadians)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
 
-    const double denominator = CalculateDenominator(rStressVector, Phi);
-    const double q_mc        = CalculateQMohrCoulomb(rStressVector, C, Phi);
-    const double q           = CalculateVonMisesStress(rStressVector);
+    const auto denominator = CalculateDenominator(rStressVector, PhiInRadians);
+    const auto q_mc        = CalculateQMohrCoulomb(rStressVector, C, PhiInRadians);
+    const auto q           = CalculateVonMisesStress(rStressVector);
 
-    return 3. * std::sin(Phi) * (q_mc - q) / denominator;
+    return 3. * std::sin(PhiInRadians) * (q_mc - q) / denominator;
 }
 
 double StressStrainUtilities::CalculateVonMisesStrain(const Vector& rStrainVector)
