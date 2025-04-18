@@ -104,7 +104,7 @@ def run_triaxial_test(output_file_paths):
         time_step = result["time"]
         element_values = result["values"]
 
-        if not element_values:  # Skip empty lists
+        if not element_values:
             continue
 
         reshaped_values = []
@@ -140,33 +140,102 @@ def run_triaxial_test(output_file_paths):
         volumetric_strains.append(epsilon_v)
         yy_strains.append(epsilon_yy)
 
-
-    # # Process displacement results
-    # node_2_y_displacements = []
-    # for result in displacement_results:
-    #     element_values = result["values"]
-    #
-    #     # Find the entry for node:2
-    #     for element in element_values:
-    #         if element["node"] == 2:
-    #             # Extract the second array (index 1) from the value
-    #             if len(element["value"]) > 1:  # Ensure there is a second array
-    #                 node_2_y_displacements.append(element["value"][1])
-    #             break  # Exit loop once node:2 is found
-    #
-    #
-    # # Build the volumetric strain tensor
-    # node_2_displacements = []
-    # for result in displacement_results:
-    #     element_values = result["values"]
-    #     for element in element_values:
-    #         if element["node"] == 2:
-    #             # Extract all the arrays from the value
-    #             if len(element["value"]) > 1:  # Ensure there is a second array
-    #                 node_2_displacements.append(element["value"])
-    #             break  # Exit loop once node:2 is found
-
     return reshaped_values_by_time, yy_strains, volumetric_strains
+
+class MaterialEditor:
+    def __init__(self, json_path):
+        self.json_path = json_path
+        self.data = self._load_json()
+
+    def _load_json(self):
+        with open(self.json_path, 'r') as f:
+            data = json.load(f)
+        return data
+
+    def _update_material_and_save(self, entries: dict):
+        variables = self.data["properties"][0]["Material"]["Variables"]
+        for key, entry in entries.items():
+            # is entry a list
+            value = entry
+            if isinstance(entry, list):
+                value_str = [str(x).strip() for x in entry]
+                value = [self._convert_type(x) for x in value_str]
+            variables[key] = value
+
+        with open(self.json_path, 'w') as f:
+            json.dump(self.data, f, indent=4)
+        messagebox.showinfo("Success", "Material parameters updated successfully!")
+
+    def _convert_type(self, value):
+        try:
+            if '.' in value or 'e' in value.lower():
+                return float(value)
+            else:
+                return int(value)
+        except ValueError:
+            return value
+
+class ProjectParameterEditor:
+    def __init__(self, json_path):
+        self.json_path = json_path
+        with open(self.json_path, 'r') as f:
+            self.raw_text = f.read()
+
+    def _write_back(self):
+        with open(self.json_path, 'w') as f:
+            f.write(self.raw_text)
+
+    def update_time_step_properties(self, number_of_step):
+        new_time_step = 1.0 / number_of_step # (end_time - start_time) / number_of_steps
+        pattern = r'("time_step"\s*:\s*)([0-9eE+.\-]+)'
+        replacement = r'\g<1>' + str(new_time_step)
+        self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
+        else:
+            self._write_back()
+            messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
+
+class MdpaEditor:
+    def __init__(self, mdpa_path):
+        self.mdpa_path = mdpa_path
+        with open(self.mdpa_path, 'r') as f:
+            self.raw_text = f.read()
+
+    def update_maximum_strain(self, maximum_strain):
+        pattern = r'(\s*)\$maximum_strain(\s*)'
+        prescribed_displacement = -maximum_strain / 100
+
+        def replacer(match):
+            leading_ws = match.group(1)
+            trailing_ws = match.group(2)
+            return f"{leading_ws}{prescribed_displacement}{trailing_ws}"
+
+        new_text, count = re.subn(pattern, replacer, self.raw_text)
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find '$maximum_strain' to update.")
+        else:
+            self.raw_text = new_text
+        with open(self.mdpa_path, 'w') as f:
+            f.write(self.raw_text)
+        messagebox.showinfo("Success", f"'$maximum_strain' replaced with {prescribed_displacement}")
+
+
+    def update_initial_effective_cell_pressure(self, initial_effective_cell_pressure):
+        pattern = r'(\s*)\$initial_effective_cell_pressure(\s*)'
+
+        def replacer(match):
+            leading_ws = match.group(1)
+            trailing_ws = match.group(2)
+            return f"{leading_ws}{initial_effective_cell_pressure}{trailing_ws}"
+
+        new_text, count = re.subn(pattern, replacer, self.raw_text)
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find '$initial_effective_cell_pressure' to update.")
+        else:
+            with open(self.mdpa_path, 'w') as f:
+                f.write(new_text)
+            messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
 
 def plot_sigma(sigma_1, sigma_3):
     """
@@ -404,11 +473,11 @@ def plot_p_q(p_list, q_list):
 
 def plot_volumetric_strain(vertical_strain, volumetric_strain):
     """
-    Plots volumetric strain against axial displacement.
+    Plots volumetric strain against vertical strain.
 
     Args:
-        displacement (list): List of axial displacements.
-        vol_strains (list): List of volumetric strains.
+        vertical_strain (list): List of vertical strains.
+        volumetric_strain (list): List of volumetric strains.
     """
     fig = go.Figure()
 
@@ -459,114 +528,6 @@ def plot_volumetric_strain(vertical_strain, volumetric_strain):
     )
     fig.show()
 
-
-class MaterialEditor:
-    def __init__(self, json_path):
-        self.json_path = json_path
-        self.data = self._load_json()
-
-    def _load_json(self):
-        with open(self.json_path, 'r') as f:
-            data = json.load(f)
-        return data
-
-    def _update_material_and_save(self, entries: dict):
-        variables = self.data["properties"][0]["Material"]["Variables"]
-        for key, entry in entries.items():
-            # is entry a list
-            value = entry
-            if isinstance(entry, list):
-                value_str = [str(x).strip() for x in entry]
-                value = [self._convert_type(x) for x in value_str]
-            variables[key] = value
-
-        with open(self.json_path, 'w') as f:
-            json.dump(self.data, f, indent=4)
-        messagebox.showinfo("Success", "Material parameters updated successfully!")
-
-    def _convert_type(self, value):
-        try:
-            if '.' in value or 'e' in value.lower():
-                return float(value)
-            else:
-                return int(value)
-        except ValueError:
-            return value
-
-class ProjectParameterEditor:
-    def __init__(self, json_path):
-        self.json_path = json_path
-        with open(self.json_path, 'r') as f:
-            self.raw_text = f.read()
-
-    def _write_back(self):
-        with open(self.json_path, 'w') as f:
-            f.write(self.raw_text)
-
-    def update_time_step_properties(self, new_time_step):
-        pattern = r'("time_step"\s*:\s*)([0-9eE+.\-]+)'
-        replacement = r'\g<1>' + str(new_time_step)
-        self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
-        if count == 0:
-            messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
-        else:
-            self._write_back()
-            messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
-
-class MdpaEditor:
-    def __init__(self, mdpa_path):
-        self.mdpa_path = mdpa_path
-        with open(self.mdpa_path, 'r') as f:
-            self.raw_text = f.read()
-
-    # def update_displacement_y(self, maximum_strain):
-    #     # Pattern to match the line in Table 2 with the highest time (assumed to be the last entry)
-    #     pattern = r'(Begin Table 2 TIME DISPLACEMENT_Y.*?)(\d+\.?\d*\s+)([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)(\s*?\nEnd Table)'
-    #     replacement = r'\1\2' + str(maximum_strain) + r'\4'
-    #
-    #     new_text, count = re.subn(pattern, replacement, self.raw_text, flags=re.DOTALL)
-    #     if count == 0:
-    #         messagebox.showwarning("Warning", "Could not find Table 2 DISPLACEMENT_Y to update.")
-    #     else:
-    #         with open(self.mdpa_path, 'w') as f:
-    #             f.write(new_text)
-    #         messagebox.showinfo("Success", f"DISPLACEMENT_Y final value updated to {maximum_strain}")
-
-    def update_maximum_strain(self, maximum_strain):
-        pattern = r'(\s*)\$maximum_strain(\s*)'
-
-        def replacer(match):
-            leading_ws = match.group(1)
-            trailing_ws = match.group(2)
-            return f"{leading_ws}{maximum_strain}{trailing_ws}"
-
-        new_text, count = re.subn(pattern, replacer, self.raw_text)
-        if count == 0:
-            messagebox.showwarning("Warning", "Could not find '$maximum_strain' to update.")
-        else:
-            self.raw_text = new_text
-        with open(self.mdpa_path, 'w') as f:
-            f.write(self.raw_text)
-        messagebox.showinfo("Success", f"'$maximum_strain' replaced with {maximum_strain}")
-
-
-    def update_initial_effective_cell_pressure(self, initial_effective_cell_pressure):
-        pattern = r'(\s*)\$initial_effective_cell_pressure(\s*)'
-
-        def replacer(match):
-            leading_ws = match.group(1)
-            trailing_ws = match.group(2)
-            return f"{leading_ws}{initial_effective_cell_pressure}{trailing_ws}"
-
-        new_text, count = re.subn(pattern, replacer, self.raw_text)
-        if count == 0:
-            messagebox.showwarning("Warning", "Could not find '$initial_effective_cell_pressure' to update.")
-        else:
-            with open(self.mdpa_path, 'w') as f:
-                f.write(new_text)
-            messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
-
-
 def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initial_effective_cell_pressure):
     json_file_path = 'test_triaxial/MaterialParameters_stage1.json'
     material_editor = MaterialEditor(json_file_path)
@@ -580,8 +541,7 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
 
     mdpa_path = 'test_triaxial/triaxial.mdpa'
     mdpa_editor = MdpaEditor(mdpa_path)
-    # convert percentage to absolute value
-    mdpa_editor.update_maximum_strain(-maximum_strain / 100)
+    mdpa_editor.update_maximum_strain(maximum_strain)
     mdpa_editor.update_initial_effective_cell_pressure(initial_effective_cell_pressure)
 
 
@@ -616,8 +576,6 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
         p_list.append(p)
         q_list.append(q)
 
-    vector_list = eigenvector_list
-    value_list = eigenvalue_list
     plot_sigma(sigma1_list, sigma3_list)
 
     sigma_diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
