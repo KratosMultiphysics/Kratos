@@ -86,6 +86,7 @@ double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rS
     KRATOS_ERROR_IF(rStressVector.size() < 4);
 
     const auto q_mc = CalculateQMohrCoulomb(rStressVector, C, PhiInRadians);
+    if (q_mc < 1e-10) return 1.0;
     const auto q = CalculateVonMisesStress(rStressVector);
 
     return q / q_mc;

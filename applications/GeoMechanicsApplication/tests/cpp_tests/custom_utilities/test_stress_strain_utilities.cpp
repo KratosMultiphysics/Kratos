@@ -89,6 +89,15 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityZeroStress, Krat
                                      stress_vector, cohesion, friction_angle));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityZeroQMCResultsIn1, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const Vector   stress_vector  = ZeroVector(4);
+    constexpr auto cohesion       = 0.0;
+    constexpr auto friction_angle = 0.0;
+    KRATOS_EXPECT_DOUBLE_EQ(1.0, StressStrainUtilities::CalculateMohrCoulombShearCapacity(
+                                     stress_vector, cohesion, friction_angle));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityHydrostatic, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Vector stress_vector(4);
