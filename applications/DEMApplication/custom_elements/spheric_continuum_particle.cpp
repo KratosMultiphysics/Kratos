@@ -428,14 +428,14 @@ namespace Kratos {
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                            /*mRollingFrictionModel->ComputeRollingFriction(this, 
+                            mRollingFrictionModel->ComputeRollingFriction(this, 
                                                                         data_buffer.mpOtherParticle, 
                                                                         r_process_info, 
                                                                         LocalContactForce, 
                                                                         indentation_particle, 
                                                                         mContactMoment, 
                                                                         data_buffer.mLocalCoordSystem[2],
-                                                                        mNeighbourRollingFrictionMoments[i]);*/
+                                                                        mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
@@ -451,14 +451,14 @@ namespace Kratos {
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                            /*mRollingFrictionModel->ComputeRollingFriction(this, 
+                            mRollingFrictionModel->ComputeRollingFriction(this, 
                                                                         data_buffer.mpOtherParticle, 
                                                                         r_process_info, 
                                                                         LocalContactForce, 
                                                                         indentation_particle, 
                                                                         mContactMoment, 
                                                                         data_buffer.mLocalCoordSystem[2],
-                                                                        mNeighbourRollingFrictionMoments[i]);*/
+                                                                        mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
