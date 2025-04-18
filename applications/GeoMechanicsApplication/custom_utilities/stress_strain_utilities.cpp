@@ -84,7 +84,7 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
 double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
-
+    KRATOS_ERROR_IF(PhiInRadians < 0.0 || PhiInRadians > Globals::Pi / 2.0) << "Friction angle must be in the range [0, Pi/2]\n";
     const auto q_mc = CalculateQMohrCoulomb(rStressVector, C, PhiInRadians);
     if (q_mc < 1e-10) return 1.0;
     const auto q = CalculateVonMisesStress(rStressVector);

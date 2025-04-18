@@ -118,6 +118,17 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityShearOnly, Krato
                                      stress_vector, cohesion, friction_angle));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CalculateMohrCoulombShearCapacityThrowsWhenPhiIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Vector stress_vector(4);
+    stress_vector <<= -2.0, 0.0, 2.0, 0.0;
+    constexpr auto cohesion                     = 2.0;
+    constexpr auto out_of_bounds_friction_angle = -2.0;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(StressStrainUtilities::CalculateMohrCoulombShearCapacity(
+                                          stress_vector, cohesion, out_of_bounds_friction_angle),
+                                      "Friction angle must be in the range [0, Pi/2]");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombPressureCapacityZeroStress, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Vector         stress_vector  = ZeroVector(4);
