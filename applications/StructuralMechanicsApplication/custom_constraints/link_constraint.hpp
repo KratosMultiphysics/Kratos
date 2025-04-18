@@ -55,14 +55,6 @@ public:
                    const std::size_t Dimensions,
                    bool IsMeshMoved);
 
-    LinkConstraint(LinkConstraint&& rRhs) noexcept;
-
-    LinkConstraint(const LinkConstraint& rRhs);
-
-    LinkConstraint& operator=(LinkConstraint&& rRhs) noexcept;
-
-    LinkConstraint& operator=(const LinkConstraint& rRhs);
-
     /// @internal
     ~LinkConstraint();
 
@@ -126,6 +118,14 @@ public:
     /// @}
 
 private:
+    LinkConstraint(LinkConstraint&& rRhs) = delete;
+
+    LinkConstraint(const LinkConstraint& rRhs) = delete;
+
+    LinkConstraint& operator=(LinkConstraint&& rRhs) = delete;
+
+    LinkConstraint& operator=(const LinkConstraint& rRhs) = delete;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;

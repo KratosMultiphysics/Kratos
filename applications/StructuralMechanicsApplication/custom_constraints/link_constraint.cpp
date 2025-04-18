@@ -184,32 +184,6 @@ LinkConstraint::LinkConstraint(const IndexType Id,
 }
 
 
-LinkConstraint::LinkConstraint(LinkConstraint&& rRhs) noexcept
-    : mpImpl(std::move(rRhs.mpImpl))
-{
-}
-
-
-LinkConstraint::LinkConstraint(const LinkConstraint& rRhs)
-    : mpImpl(new Impl(*rRhs.mpImpl))
-{
-}
-
-
-LinkConstraint& LinkConstraint::operator=(LinkConstraint&& rRhs) noexcept
-{
-    mpImpl = std::move(rRhs.mpImpl);
-    return *this;
-}
-
-
-LinkConstraint& LinkConstraint::operator=(const LinkConstraint& rRhs)
-{
-    mpImpl.reset(new Impl(*rRhs.mpImpl));
-    return *this;
-}
-
-
 LinkConstraint::~LinkConstraint() = default;
 
 
