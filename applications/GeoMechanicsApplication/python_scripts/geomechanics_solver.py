@@ -245,8 +245,8 @@ class GeoMechanicalSolver(PythonSolver):
         # Get the convergence criterion
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
-        self.solver = self._construct_strategy(self.builder_and_solver,
-                                               self.settings["strategy_type"].GetString())
+        self.strategy = self._construct_strategy(self.builder_and_solver,
+                                                 self.settings["strategy_type"].GetString())
 
         # Set echo_level
         self.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -255,7 +255,7 @@ class GeoMechanicalSolver(PythonSolver):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        self.solver.Initialize()
+        self.strategy.Initialize()
 
         self.find_neighbour_elements_of_conditions_process = GeoMechanicsApplication.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
         self.find_neighbour_elements_of_conditions_process.Execute()
@@ -264,16 +264,16 @@ class GeoMechanicalSolver(PythonSolver):
         self.deactivate_conditions_on_inactive_elements_process.Execute()
 
     def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
+        self.strategy.InitializeSolutionStep()
 
     def Predict(self):
-        self.solver.Predict()
+        self.strategy.Predict()
 
     def SolveSolutionStep(self):
-        return self.solver.SolveSolutionStep()
+        return self.strategy.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.solver.FinalizeSolutionStep()
+        self.strategy.FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         new_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] + self.ComputeDeltaTime()
@@ -295,13 +295,13 @@ class GeoMechanicalSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.solver.SetEchoLevel(level)
+        self.strategy.SetEchoLevel(level)
 
     def Clear(self):
-        self.solver.Clear()
+        self.strategy.Clear()
 
     def Check(self):
-        self.solver.Check()
+        self.strategy.Check()
 
     #### Specific internal functions ####
 
