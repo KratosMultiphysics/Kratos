@@ -49,7 +49,7 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
 {
     // Sanity checks.
     KRATOS_ERROR_IF_NOT(rLeft.size1() == rRight.size1() && rLeft.size2() == rRight.size2())
-        << "cannot add matrices off different shapes "
+        << "cannot add matrices of different shapes "
         << "(" << rLeft.size1() << "x" << rLeft.size2() << ") + "
         << "(" << rRight.size1() << "x" << rRight.size2() << ")";
 
@@ -59,7 +59,7 @@ InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
     KRATOS_ERROR_IF_NOT(rRight.nnz() <= rLeft.nnz());
 
     #define KRATOS_MATRIX_SUM(sum_operator)                                                                                         \
-        IndexPartition<std::size_t>(rLeft.size1()).for_each([&rLeft, &rRight, Coefficient](const std::size_t i_row) {               \
+        IndexPartition<IndexType>(rLeft.size1()).for_each([&rLeft, &rRight, Coefficient](const IndexType i_row) {                   \
             (void)Coefficient; /*<== suppress unused capture warnings.*/                                                            \
             const auto i_right_entry_begin = rRight.index1_data()[i_row];                                                           \
             const auto i_right_entry_end   = rRight.index1_data()[i_row + 1];                                                       \
@@ -181,20 +181,20 @@ template <bool SortedRows,
           class TValue,
           class TRowMapContainer>
 void MakeSparseTopology(TRowMapContainer& rRows,
-                        const std::size_t ColumnCount,
+                        const IndexType ColumnCount,
                         typename TUblasSparseSpace<TValue>::MatrixType& rMatrix,
                         bool EnsureDiagonal)
 {
     KRATOS_TRY
 
     if (EnsureDiagonal) {
-        IndexPartition<std::size_t>(rRows.size()).for_each([&rRows](std::size_t i_row){
+        IndexPartition<IndexType>(rRows.size()).for_each([&rRows](IndexType i_row){
             rRows[i_row].emplace(i_row);
         });
     }
 
-    const std::size_t row_count = rRows.size();
-    std::size_t entry_count = 0ul;
+    const IndexType row_count = rRows.size();
+    IndexType entry_count = 0ul;
 
     {
         auto row_extents = rMatrix.index1_data();
@@ -218,9 +218,9 @@ void MakeSparseTopology(TRowMapContainer& rRows,
     auto& r_column_indices = rMatrix.index2_data();
 
     // Copy column indices.
-    IndexPartition<std::size_t>(row_count).for_each([&r_row_extents, &r_column_indices, &rRows](const std::size_t i_row){
-        const unsigned i_entry_begin = r_row_extents[i_row];
-        const unsigned i_entry_end = r_row_extents[i_row + 1];
+    IndexPartition<IndexType>(row_count).for_each([&r_row_extents, &r_column_indices, &rRows](const IndexType i_row){
+        const IndexType i_entry_begin = r_row_extents[i_row];
+        const IndexType i_entry_end = r_row_extents[i_row + 1];
         KRATOS_DEBUG_ERROR_IF(r_column_indices.size() < i_entry_end);
         std::copy(rRows[i_row].begin(),
                   rRows[i_row].end(),
@@ -245,8 +245,8 @@ void MakeSparseTopology(TRowMapContainer& rRows,
 template <class TSparse, class TDense>
 void MapRowContribution(typename TSparse::MatrixType& rLhs,
                         const typename TDense::MatrixType& rLocalLhs,
-                        const unsigned iRow,
-                        const unsigned iLocalRow,
+                        const IndexType iRow,
+                        const IndexType iLocalRow,
                         const Element::EquationIdVectorType& rEquationIds) noexcept
 {
     auto& r_entries = rLhs.value_data();
@@ -258,10 +258,10 @@ void MapRowContribution(typename TSparse::MatrixType& rLhs,
     const typename TDense::IndexType row_size = rEquationIds.size();
 
     for (typename TDense::IndexType i_local_column=0; i_local_column<row_size; ++i_local_column) {
-        const typename TSparse::IndexType iColumn = rEquationIds[i_local_column];
+        const typename TSparse::IndexType i_column = rEquationIds[i_local_column];
         const auto it = std::lower_bound(r_column_indices.begin() + i_row_begin,
                                          r_column_indices.begin() + i_row_end,
-                                         iColumn);
+                                         i_column);
         r_entries[std::distance(r_column_indices.begin(), it)] += rLocalLhs(iLocalRow, i_local_column);
     }
 }
@@ -409,7 +409,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
     block_for_each(itRowDofBegin,
                    itRowDofEnd,
                    [&rLhs, &rRhs, itColumnDofBegin, DiagonalScaleFactor](const Dof<double>& r_dof){
-        const std::size_t i_dof = r_dof.EquationId();
+        const IndexType i_dof = r_dof.EquationId();
         const typename TSparse::IndexType i_entry_begin = rLhs.index1_data()[i_dof];
         const typename TSparse::IndexType i_entry_end = rLhs.index1_data()[i_dof + 1];
         bool found_diagonal = false;
@@ -509,7 +509,7 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
             << "the input matrix' columns are not sorted";
     }
 
-    for (std::size_t i_row=0ul; i_row<rMatrix.size1(); ++i_row) {
+    for (IndexType i_row=0ul; i_row<rMatrix.size1(); ++i_row) {
         const auto i_entry_begin = rMatrix.index1_data()[i_row];
         const auto i_entry_end = rMatrix.index1_data()[i_row + 1];
 
@@ -523,7 +523,7 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
                                 | MatrixChecks::DiagonalIsNonNegative
                                 | MatrixChecks::DiagonalIsPositive
                                 | MatrixChecks::IsDiagonallyDominant)) {
-            std::optional<std::size_t> maybe_diagonal;
+            std::optional<IndexType> maybe_diagonal;
 
             for (auto i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 const auto i_column = rMatrix.index2_data()[i_entry];

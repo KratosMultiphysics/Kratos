@@ -217,15 +217,18 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
                                                  this->GetConstraintGapVector(),
                                                  mpImpl->mConstraintIdMap);
 
+    // At this point, the sparsity pattern of the unconstrained LHS matrix (K), as well
+    // as the relation matrix (A) are constructed. The current policy in Kratos is that
+    // constraint imposition happens on K in-place, meaning K will have the union of both
+    // matrices' sparsity patterns (K and A^TA) after imposition.
+    // In the case of nonlinear constraints, the constraints' Hessian (H) also comes into
+    // play, which is a subset of A^TA so no new entries need to be added.
     {
-            typename TSparse::MatrixType product;
-        {
-            typename TSparse::MatrixType transpose;
-            SparseMatrixMultiplicationUtility::TransposeMatrix(transpose, this->GetRelationMatrix());
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose, this->GetRelationMatrix(), product);
-        }
-        MergeMatrices<typename TSparse::DataType>(rLhs, product);
+        typename TSparse::MatrixType transpose;
+        SparseMatrixMultiplicationUtility::TransposeMatrix(transpose, this->GetRelationMatrix());
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose, this->GetRelationMatrix(), this->GetHessian());
     }
+    MergeMatrices<typename TSparse::DataType>(rLhs, this->GetHessian());
 
     KRATOS_CATCH("")
 }
@@ -246,6 +249,7 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
     detail::AssembleRelationMatrix<TSparse,TDense>(rConstraints,
                                                    rProcessInfo,
                                                    this->GetRelationMatrix(),
+                                                   this->GetHessian(),
                                                    this->GetConstraintGapVector(),
                                                    mpImpl->mConstraintIdMap);
 
@@ -277,11 +281,17 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
             << "\n";
         TSparse::WriteMatrixMarketMatrix("relation_matrix.mm", this->GetRelationMatrix(), false);
 
-    KRATOS_INFO(this->GetName() + ": ")
-        << "write constraint gaps to "
-        << (std::filesystem::current_path() / "constraint_gaps.mm")
-        << "\n";
-    TSparse::WriteMatrixMarketVector("constraint_gaps.mm", this->GetConstraintGapVector());
+        KRATOS_INFO(this->GetName() + ": ")
+            << "write constraint gaps to "
+            << (std::filesystem::current_path() / "constraint_gaps.mm")
+            << "\n";
+        TSparse::WriteMatrixMarketVector("constraint_gaps.mm", this->GetConstraintGapVector());
+
+        KRATOS_INFO(this->GetName() + ": ")
+            << "write constraint hessian to "
+            << (std::filesystem::current_path() / "hessian.mm")
+            << "\n";
+        TSparse::WriteMatrixMarketMatrix("hessian.mm", this->GetHessian(), false);
     } // if 4 <= verbosity
 
     // Reset the relation matrix' transpose to make sure that propagated dirichlet
@@ -312,6 +322,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
         // Add terms to the LHS matrix.
         InPlaceMatrixAdd(rLhs,
                          relation_product,
+                         penalty_factor);
+
+        InPlaceMatrixAdd(rLhs,
+                         this->GetHessian(),
                          penalty_factor);
 
         // Add terms to the RHS vector.
@@ -385,6 +399,7 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
             return true;
         }
     } /*if not converged*/
+
     KRATOS_CATCH("")
 }
 

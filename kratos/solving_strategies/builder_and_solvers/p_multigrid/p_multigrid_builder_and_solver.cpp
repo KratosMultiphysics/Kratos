@@ -40,16 +40,18 @@ namespace Kratos {
 // --------------------------------------------------------- //
 
 
-template <class TSparse, class TDense, class TSolver>
-struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
+template <class TSparse, class TDense>
+struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 {
-    using Interface = PMultigridBuilderAndSolver<TSparse,TDense,TSolver>;
+    using Interface = PMultigridBuilderAndSolver<TSparse,TDense>;
 
     // --------------------------------------------------------- //
     // Member Variables
     // --------------------------------------------------------- //
 
     Interface* mpInterface;
+
+    ModelPart* mpModelPart;
 
     std::shared_ptr<ConstraintAssembler<TSparse,TDense>> mpConstraintAssembler;
 
@@ -477,21 +479,21 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 // --------------------------------------------------------- //
 
 
-template <class TSparse, class TDense, class TSolver>
-PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::~PMultigridBuilderAndSolver() = default;
+template <class TSparse, class TDense>
+PMultigridBuilderAndSolver<TSparse,TDense>::~PMultigridBuilderAndSolver() = default;
 
 
-template <class TSparse, class TDense, class TSolver>
-PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver()
+template <class TSparse, class TDense>
+PMultigridBuilderAndSolver<TSparse,TDense>::PMultigridBuilderAndSolver()
     : Interface(),
       mpImpl(new Impl(this))
 {
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver(const typename TSolver::Pointer& pSolver,
-                                                                               Parameters Settings)
+template <class TSparse, class TDense>
+PMultigridBuilderAndSolver<TSparse,TDense>::PMultigridBuilderAndSolver(const typename LinearSolverType::Pointer& pSolver,
+                                                                       Parameters Settings)
     : Interface(pSolver),
       mpImpl(new Impl(this))
 {
@@ -499,10 +501,10 @@ PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver(c
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-typename BuilderAndSolver<TSparse,TDense,TSolver>::Pointer
-PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Create(typename TSolver::Pointer pSolver,
-                                                           Parameters Settings) const
+template <class TSparse, class TDense>
+typename BuilderAndSolver<TSparse,TDense,LinearSolver<TSparse,TDense>>::Pointer
+PMultigridBuilderAndSolver<TSparse,TDense>::Create(typename LinearSolverType::Pointer pSolver,
+                                                   Parameters Settings) const
 {
     KRATOS_TRY
     return typename Interface::Pointer(new PMultigridBuilderAndSolver(pSolver, Settings));
@@ -533,9 +535,9 @@ std::optional<std::size_t> FindNodeIndex(std::size_t NodeId,
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename Interface::TSchemeType::Pointer pScheme,
-                                                                     ModelPart& rModelPart)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::SetUpDofSet(typename Interface::TSchemeType::Pointer pScheme,
+                                                             ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
@@ -633,8 +635,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpDofSet(typename In
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpSystem(ModelPart& rModelPart)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::SetUpSystem(ModelPart& rModelPart)
 {
     KRATOS_TRY
     this->mEquationSystemSize = this->GetDofSet().size();
@@ -647,18 +649,19 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::SetUpSystem(ModelPart& 
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ResizeAndInitializeVectors(typename Interface::TSchemeType::Pointer pScheme,
-                                                                                    typename Interface::TSystemMatrixPointerType& rpLhs,
-                                                                                    typename Interface::TSystemVectorPointerType& rpSolution,
-                                                                                    typename Interface::TSystemVectorPointerType& rpRhs,
-                                                                                    ModelPart& rModelPart)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::ResizeAndInitializeVectors(typename Interface::TSchemeType::Pointer pScheme,
+                                                                            typename Interface::TSystemMatrixPointerType& rpLhs,
+                                                                            typename Interface::TSystemVectorPointerType& rpSolution,
+                                                                            typename Interface::TSystemVectorPointerType& rpRhs,
+                                                                            ModelPart& rModelPart)
 {
     KRATOS_TRY
 
     // Construct empty containers if necessary.
     if (!rpLhs)
         rpLhs.reset(new typename Interface::TSystemMatrixType);
+    TSparse::SetToZero(*rpLhs);
 
     if (!rpSolution)
         rpSolution.reset(new typename Interface::TSystemVectorType);
@@ -674,7 +677,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ResizeAndInitializeVect
 
     // Construct LHS topology if necessary or requested.
     if (rpLhs->size1() == 0 || this->GetReshapeMatrixFlag() == true) {
-        rpLhs->resize(this->mEquationSystemSize, this->mEquationSystemSize, false);
         mpImpl->MakeLhsTopology(pScheme, *rpLhs, rModelPart);
 
         // Make constraint topology.
@@ -690,6 +692,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ResizeAndInitializeVect
         }
     }
 
+    this->SetDofSetIsInitializedFlag(true);
+
     KRATOS_CATCH("")
 }
 
@@ -699,15 +703,12 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ResizeAndInitializeVect
 // --------------------------------------------------------- //
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse, TDense, TSolver>::InitializeSolutionStep(ModelPart& rModelPart,
-                                                                                  typename Interface::TSystemMatrixType& rLhs,
-                                                                                  typename Interface::TSystemVectorType& rSolution,
-                                                                                  typename Interface::TSystemVectorType& rRhs)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::InitializeSolutionStep(ModelPart& rModelPart,
+                                                                        typename Interface::TSystemMatrixType& rLhs,
+                                                                        typename Interface::TSystemVectorType& rSolution,
+                                                                        typename Interface::TSystemVectorType& rRhs)
 {
-    KRATOS_TRY
-    //
-    KRATOS_CATCH("")
 }
 
 
@@ -716,15 +717,16 @@ void PMultigridBuilderAndSolver<TSparse, TDense, TSolver>::InitializeSolutionSte
 // --------------------------------------------------------- //
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Build(typename Interface::TSchemeType::Pointer pScheme,
-                                                               ModelPart& rModelPart,
-                                                               typename Interface::TSystemMatrixType& rLhs,
-                                                               typename Interface::TSystemVectorType& rRhs)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::Build(typename Interface::TSchemeType::Pointer pScheme,
+                                                       ModelPart& rModelPart,
+                                                       typename Interface::TSystemMatrixType& rLhs,
+                                                       typename Interface::TSystemVectorType& rRhs)
 {
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_ERROR_IF(!pScheme) << "missing scheme" << std::endl;
     KRATOS_TRY
+    mpImpl->mpModelPart = &rModelPart;
     mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/true>(rModelPart,
                                                                          *pScheme,
                                                                          &rLhs,
@@ -733,14 +735,14 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Build(typename Interfac
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildLHS(typename Interface::TSchemeType::Pointer pScheme,
-                                                                  ModelPart& rModelPart,
-                                                                  typename Interface::TSystemMatrixType& rLhs)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::BuildLHS(typename Interface::TSchemeType::Pointer pScheme,
+                                                          ModelPart& rModelPart,
+                                                          typename Interface::TSystemMatrixType& rLhs)
 {
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
-    KRATOS_TRY
     KRATOS_ERROR_IF(!pScheme) << "missing scheme";
+    KRATOS_TRY
     mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/false>(rModelPart,
                                                                           *pScheme,
                                                                           &rLhs,
@@ -749,12 +751,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildLHS(typename Inter
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHS(typename Interface::TSchemeType::Pointer pScheme,
-                                                                  ModelPart& rModelPart,
-                                                                  typename Interface::TSystemVectorType& rRhs)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::BuildRHS(typename Interface::TSchemeType::Pointer pScheme,
+                                                          ModelPart& rModelPart,
+                                                          typename Interface::TSystemVectorType& rRhs)
 {
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
+    KRATOS_ERROR_IF(!pScheme) << "missing scheme";
     KRATOS_TRY
     mpImpl->template Assemble</*AssembleLHS=*/false,/*AssembleRHS=*/true>(rModelPart,
                                                                           *pScheme,
@@ -773,12 +776,12 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildRHS(typename Inter
 // --------------------------------------------------------- //
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletConditions(typename Interface::TSchemeType::Pointer pScheme,
-                                                                                  ModelPart& rModelPart,
-                                                                                  typename Interface::TSystemMatrixType& rLhs,
-                                                                                  [[maybe_unused]] typename Interface::TSystemVectorType& rSolution,
-                                                                                  typename Interface::TSystemVectorType& rRhs)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::ApplyDirichletConditions(typename Interface::TSchemeType::Pointer pScheme,
+                                                                          ModelPart& rModelPart,
+                                                                          typename Interface::TSystemMatrixType& rLhs,
+                                                                          [[maybe_unused]] typename Interface::TSystemVectorType& rSolution,
+                                                                          typename Interface::TSystemVectorType& rRhs)
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
@@ -808,11 +811,11 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyDirichletCondition
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typename Interface::TSchemeType::Pointer pScheme,
-                                                                          ModelPart& rModelPart,
-                                                                          typename Interface::TSystemMatrixType& rLhs,
-                                                                          typename Interface::TSystemVectorType& rRhs)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::ApplyConstraints(typename Interface::TSchemeType::Pointer pScheme,
+                                                                  ModelPart& rModelPart,
+                                                                  typename Interface::TSystemMatrixType& rLhs,
+                                                                  typename Interface::TSystemVectorType& rRhs)
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
@@ -833,12 +836,12 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ApplyConstraints(typena
 // --------------------------------------------------------- //
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename Interface::TSchemeType::Pointer pScheme,
-                                                                       ModelPart& rModelPart,
-                                                                       typename Interface::TSystemMatrixType& rLhs,
-                                                                       typename Interface::TSystemVectorType& rSolution,
-                                                                       typename Interface::TSystemVectorType& rRhs)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::BuildAndSolve(typename Interface::TSchemeType::Pointer pScheme,
+                                                               ModelPart& rModelPart,
+                                                               typename Interface::TSystemMatrixType& rLhs,
+                                                               typename Interface::TSystemVectorType& rSolution,
+                                                               typename Interface::TSystemVectorType& rRhs)
 {
     KRATOS_TRY
 
@@ -851,9 +854,20 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
     // Apply Dirichlet conditions.
     ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
 
+    this->SystemSolve(rLhs, rSolution, rRhs);
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::SystemSolve(typename Interface::TSystemMatrixType& rLhs,
+                                                             typename Interface::TSystemVectorType& rSolution,
+                                                             typename Interface::TSystemVectorType& rRhs)
+{
+    KRATOS_TRY
     // Solve constrained assembled system.
     BuiltinTimer timer;
-    if (!mpImpl->Solve(rLhs, rSolution, rRhs, rModelPart) && 1 <= mpImpl->mVerbosity) {
+    if (!mpImpl->Solve(rLhs, rSolution, rRhs, *mpImpl->mpModelPart) && 1 <= mpImpl->mVerbosity) {
         std::cerr << this->Info() << "Grid 0: failed to solve the assembled system\n";
     }
     KRATOS_INFO_IF(this->Info(), 2 <= mpImpl->mVerbosity)
@@ -868,12 +882,12 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::BuildAndSolve(typename 
 
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(typename Interface::TSchemeType::Pointer pScheme,
-                                                                            ModelPart& rModelPart,
-                                                                            typename Interface::TSystemMatrixType& rLhs,
-                                                                            typename Interface::TSystemVectorType& rSolution,
-                                                                            typename Interface::TSystemVectorType& rRhs)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::CalculateReactions(typename Interface::TSchemeType::Pointer pScheme,
+                                                                    ModelPart& rModelPart,
+                                                                    typename Interface::TSystemMatrixType& rLhs,
+                                                                    typename Interface::TSystemVectorType& rSolution,
+                                                                    typename Interface::TSystemVectorType& rRhs)
 {
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
 
@@ -900,8 +914,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::CalculateReactions(type
 // --------------------------------------------------------- //
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Parameters Settings)
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters Settings)
 {
     // Mutable parameters.
     Parameters settings = Settings;
@@ -997,8 +1011,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::AssignSettings(const Pa
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Clear()
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::Clear()
 {
     Interface::Clear();
     mpImpl->mpConstraintAssembler->Clear();
@@ -1007,11 +1021,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Clear()
         std::visit([](auto& r_grid) {r_grid.Clear();},
                    mpImpl->mMaybeHierarchy.value());
     } // if mMaybeHierarchy
+
+    this->SetDofSetIsInitializedFlag(false);
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParameters() const
+template <class TSparse, class TDense>
+Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() const
 {
     Parameters parameters = Parameters(R"({
 "name"              : "p_multigrid",
@@ -1036,21 +1052,21 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParamet
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-std::string PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Info() const
+template <class TSparse, class TDense>
+std::string PMultigridBuilderAndSolver<TSparse,TDense>::Info() const
 {
     return "PMultigridBuilderAndSolver";
 }
 
 
-template <class TSparse, class TDense, class TSolver>
-std::size_t PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetEquationSystemSize() const noexcept
+template <class TSparse, class TDense>
+std::size_t PMultigridBuilderAndSolver<TSparse,TDense>::GetEquationSystemSize() const noexcept
 {
     return Interface::mEquationSystemSize;
 }
 
-template <class TSparse, class TDense, class TSolver>
-TSolver& PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetLinearSolver() noexcept
+template <class TSparse, class TDense>
+LinearSolver<TSparse,TDense>& PMultigridBuilderAndSolver<TSparse,TDense>::GetLinearSolver() noexcept
 {
     return *Interface::mpLinearSystemSolver;
 }
@@ -1060,17 +1076,11 @@ TSolver& PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetLinearSolver() n
 // Template Instantiations
 // --------------------------------------------------------- //
 
-// https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGIM6SuADJ4DJgAcj4ARpjEEtIADqgKhE4MHt6%2B/qRJKY4CIWGRLDFxUraY9vkMQgRMxAQZPn4BdpgOabX1BIUR0bHxtnUNTVmtwz2hfSUDUgCUtqhexMjsHASYLAkGGyYAzG4EAJ4JjKyYANQAKpvbTBvK9az72CYaAIIKBMReDhfKxFQUXoLBMAHYrB8LhcNlsdph9ocTmc2BcAGJeBgdAQ3OH3FRPUF7V5Qi4AN1QeHQ6MxyAgoQIFwShIu%2BwAIhcxHhgAxUFQIBisdVcXcHoS5nN9pD3uC2VK3jKPrDRZdES8Fcr4YjjqdmKjBdiGCL4Y9iM9iQqKVT/oDgZtEQyXiAQAb6YImeLWRDZQqFQyLiwmKEIJLvaToQCgSCHYIXkzWXsOeCrGC5XtpdDoQkAHQGxHIBD1F4h%2BUfWUcBa0TgAVl4fg4WlIqE4bms1guCiWK1VZj2PFIBE0FYWAGsQNWNPpOJI60Om5xeAoQJPBw2K6Q4LAYIgQJhVO0vEQyBQIPVgApHmFaEIEKgAO71/toLZ0e5pS%2BVG/3%2BuN58JOgDMgBhGFwAAcXCTn%2BAHEOE5wLqQUH0MQADyh5fg%2Bc57u07zEOe8FYcgtT4PWvD8IIIhiOw5RkfIShqHOuhcPohjGG2lj6HgURLpACyoAk1RLhwvCoGSsTEFSmDcSGpA/IIeBsFcqCeFJCydssqx6F8xEftet4YdwvB3maCScDwlY1rOa7zhw2D7sgh4kBcqigQAbAAtC5kgXEBLEXGB2ZcNmGgXBAraWNYpAXLghCOeYfZzLwq5aBKpBjhOU4cDOpAsOOk4/sJ8FLiuQ4LJuO4EQ5x6UGeF6GJ%2BemPrwiFvgIOnoflCGoC%2BSEoMBwBmBoEGdd1sSwWw8GIbEqHCA1mF2TheFCYEdlEaE8E0RR4jUbIigqOoVm6AEfUoGxNi0JxKlNvxaSCcJonEOJWCXbJjgKUptCXWp3aaQQ2l1bp36mYZxlA%2BZHC1qQHXNjZdmVU5rkeV5PlGBcA0BUFIVhVY7FRfgR6sr2XAJQOJULAgmBMFgcTSVWmW8Dl6VQ4Vy4k2uKVpZOtN7JZjbQ4lpMZWYPMFUtSXDqQ90pM4khAA
-
 template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
-                                                                  TUblasDenseSpace<double>,
-                                                                  LinearSolver<TUblasSparseSpace<double>,
-                                                                               TUblasDenseSpace<double>>>;
+                                                                  TUblasDenseSpace<double>>;
 
 template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
-                                                                  TUblasDenseSpace<double>,
-                                                                  LinearSolver<TUblasSparseSpace<float>,
-                                                                               TUblasDenseSpace<double>>>;
+                                                                  TUblasDenseSpace<double>>;
 
 
 } // namespace Kratos

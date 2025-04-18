@@ -513,7 +513,7 @@ namespace Kratos:: Python
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
         ;
 
-        typedef PMultigridBuilderAndSolver<SparseSpaceType,LocalSpaceType,LinearSolverType> PMultigridBuilderAndSolverType;
+        typedef PMultigridBuilderAndSolver<SparseSpaceType,LocalSpaceType> PMultigridBuilderAndSolverType;
         py::class_<PMultigridBuilderAndSolverType,PMultigridBuilderAndSolverType::Pointer,BuilderAndSolverType>(m, "PMultigridBuilderAndSolver")
             .def(py::init<>())
             .def(py::init<const LinearSolverType::Pointer&,Parameters>())

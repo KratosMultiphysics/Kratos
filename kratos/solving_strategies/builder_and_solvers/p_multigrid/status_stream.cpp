@@ -17,7 +17,6 @@
 #include <iostream> // std::cout
 #include <sstream> // std::stringstream
 #include <iomanip> // std::setw, std::setprecision, std::scientific
-#include <limits> // std::numeric_limits
 
 
 namespace Kratos {
@@ -26,13 +25,13 @@ namespace Kratos {
 struct PMGStatusStream::Impl {
     void PrintHeader() {
         this->PrintHorizontalLine();
-        if (1 <= mVerbosity)
+        if (2 <= mVerbosity)
             (*mpStream) << "| Grid | Const It |  Const Res  |  It  |     Res     |\n";
         this->PrintHorizontalLine();
     }
 
     void PrintHorizontalLine() {
-        if (1 <= mVerbosity)
+        if (2 <= mVerbosity)
             //             "| Grid | Const It |  Const Res  |  It  |     Res     |\n";
             (*mpStream) << "+ ---- + -------- + ----------- + ---- + ----------- +\n";
     }
