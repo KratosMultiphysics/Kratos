@@ -16,9 +16,11 @@
 #include "calculation_contribution.h"
 #include "compressibility_calculator.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "filter_compressibility_calculator.h"
+#include "fluid_body_flow_calculator.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
@@ -89,13 +91,13 @@ public:
     {
         KRATOS_TRY
 
-        rRightHandSideVector = CalculateFluidBodyVector();
+        rRightHandSideVector = ZeroVector{TNumNodes};
         rLeftHandSideMatrix  = ZeroMatrix{TNumNodes, TNumNodes};
 
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             const auto [LHSContribution, RHSContribution] = calculator->LocalSystemContribution();
-            rLeftHandSideMatrix += LHSContribution;
+            if (LHSContribution) rLeftHandSideMatrix += *LHSContribution;
             rRightHandSideVector += RHSContribution;
         }
 
@@ -104,10 +106,10 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
-        rRightHandSideVector = CalculateFluidBodyVector();
+        rRightHandSideVector = ZeroVector{TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
-            rRightHandSideVector += calculator->RHSContribution();
+            noalias(rRightHandSideVector) += calculator->RHSContribution();
         }
     }
 
@@ -116,23 +118,20 @@ public:
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
-            rLeftHandSideMatrix += calculator->LHSContribution();
+            if (const auto LHSContribution = calculator->LHSContribution())
+                rLeftHandSideMatrix += *LHSContribution;
         }
     }
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        switch (TNumNodes) {
-        case 2:
-        case 3:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
-        case 4:
+        switch (this->GetGeometry().GetGeometryOrderType()) {
+        case GeometryData::Kratos_Cubic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_3;
-        case 5:
+        case GeometryData::Kratos_Quartic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
-                         << std::endl;
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
     }
 
@@ -140,7 +139,7 @@ public:
     {
         KRATOS_TRY
 
-        CheckElementLength();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
@@ -157,13 +156,6 @@ public:
 private:
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     std::vector<CalculationContribution> mContributions;
-
-    void CheckElementLength() const
-    {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "Length smaller than " << min_domain_size << " for element " << Id() << std::endl;
-    }
 
     void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
     {
@@ -266,43 +258,7 @@ private:
         return result;
     }
 
-    array_1d<double, TNumNodes> CalculateFluidBodyVector() const
-    {
-        Vector det_J_container;
-        GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-        GeometryType::ShapeFunctionsGradientsType shape_function_gradients =
-            GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        std::transform(shape_function_gradients.begin(), shape_function_gradients.end(),
-                       det_J_container.begin(), shape_function_gradients.begin(), std::divides<>());
-        const Matrix& N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
-
-        const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
-
-        const auto&                 r_properties = GetProperties();
-        BoundedMatrix<double, 1, 1> constitutive_matrix;
-        GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
-
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
-
-        const auto projected_gravity = CalculateProjectedGravityAtIntegrationPoints(N_container);
-
-        array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index) {
-            const auto N = Vector{row(N_container, integration_point_index)};
-            double     RelativePermeability =
-                mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            fluid_body_vector +=
-                r_properties[DENSITY_WATER] * RelativePermeability *
-                prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix),
-                     ScalarVector(1, projected_gravity[integration_point_index])) *
-                integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
-        }
-        return fluid_body_vector;
-    }
-
-    Vector CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
+    std::vector<Vector> CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
     {
         const auto number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container{number_integration_points};
@@ -316,7 +272,8 @@ private:
             volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
         array_1d<double, TDim> body_acceleration;
 
-        Vector projected_gravity = ZeroVector(number_integration_points);
+        std::vector<Vector> projected_gravity;
+        projected_gravity.reserve(number_integration_points);
 
         for (unsigned int integration_point_index = 0;
              integration_point_index < number_integration_points; ++integration_point_index) {
@@ -324,8 +281,9 @@ private:
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
-            projected_gravity(integration_point_index) = std::inner_product(
-                tangent_vector.begin(), tangent_vector.end(), body_acceleration.begin(), 0.0);
+            projected_gravity.emplace_back(
+                ScalarVector(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
+                                                   body_acceleration.begin(), 0.0)));
         }
         return projected_gravity;
     }
@@ -342,6 +300,8 @@ private:
                     CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
             }
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
+        case CalculationContribution::FluidBodyFlow:
+            return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider());
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;
         }
@@ -368,6 +328,14 @@ private:
         return PermeabilityCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeIntegrationCoefficientsGetter(),
             MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter());
+    }
+
+    FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider()
+    {
+        return FluidBodyFlowCalculator::InputProvider(
+            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeIntegrationCoefficientsGetter(),
+            MakeProjectedGravityForIntegrationPointsGetter(),
+            MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter());
     }
 
     auto MakePropertiesGetter()
@@ -398,7 +366,7 @@ private:
 
     auto MakeProjectedGravityForIntegrationPointsGetter()
     {
-        return [this]() -> Vector {
+        return [this]() -> std::vector<Vector> {
             return CalculateProjectedGravityAtIntegrationPoints(
                 GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()));
         };
@@ -427,6 +395,11 @@ private:
 
             return dN_dX_container;
         };
+    }
+
+    auto MakeLocalSpaceDimensionGetter() const
+    {
+        return [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
     }
 
     [[nodiscard]] DofsVectorType GetDofs() const

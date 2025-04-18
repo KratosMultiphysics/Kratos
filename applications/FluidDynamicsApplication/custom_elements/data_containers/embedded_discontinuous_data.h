@@ -83,7 +83,7 @@ std::size_t NumIntersectedEdgesExtrapolated;
 
 /**
  * @brief Discontinuous embedded formulation data container initialization
- * This method initializes the discontinuous embedded formulation data container. This implies to intialize
+ * This method initializes the discontinuous embedded formulation data container. This implies to initialize
  * the base formulation data container as well as to get the elemental distances from the elemental variable
  * ELEMENTAL_DISTANCES (note that this requires the ELEMENTAL_DISTANCES to be set before this operation) and
  * the elemental edge distances from ELEMENTAL_EDGE_DISTANCES and ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.
@@ -116,7 +116,7 @@ void InitializeBoundaryConditionData(const ProcessInfo& rProcessInfo)
 }
 
 /**
- * @brief Discontinous embedded formulation data container check
+ * @brief Discontinuous embedded formulation data container check
  * Simple discontinuous embedded formulation data container check. The base formulation data container is
  * checked as well. Returns 0 if the check process succeeds.
  * @param rElement reference to the element that owns the data container

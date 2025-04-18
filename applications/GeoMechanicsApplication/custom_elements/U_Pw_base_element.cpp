@@ -51,7 +51,7 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << rGeom[i].Id() << std::endl;
 
         if (!rGeom[i].HasDofFor(DISPLACEMENT_X) || !rGeom[i].HasDofFor(DISPLACEMENT_Y) ||
-            !rGeom[i].HasDofFor(DISPLACEMENT_Z))
+            (this->GetGeometry().WorkingSpaceDimension() > 2 && !rGeom[i].HasDofFor(DISPLACEMENT_Z)))
             KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
                          << rGeom[i].Id() << std::endl;
 
@@ -162,27 +162,14 @@ void UPwBaseElement::GetDofList(DofsVectorType& rElementalDofList, const Process
 
 GeometryData::IntegrationMethod UPwBaseElement::GetIntegrationMethod() const
 {
-    GeometryData::IntegrationMethod GI_GAUSS;
-
-    switch (this->GetGeometry().PointsNumber()) {
-    case 3:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
-    case 6:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
-    case 10:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
-        break;
-    case 15:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
-        break;
+    switch (this->GetGeometry().GetGeometryOrderType()) {
+    case GeometryData::Kratos_Cubic_Order:
+        return GeometryData::IntegrationMethod::GI_GAUSS_4;
+    case GeometryData::Kratos_Quartic_Order:
+        return GeometryData::IntegrationMethod::GI_GAUSS_5;
     default:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
-
-    return GI_GAUSS;
 }
 
 void UPwBaseElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -424,18 +411,17 @@ std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
 }
 
 void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
-    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int IntegrationPointIndex) const
+    double& rDetJ, Matrix& rJ0, Matrix& rInvJ0, Matrix& rDNu_DX0, unsigned int IntegrationPointIndex) const
 {
     KRATOS_TRY
 
-    const GeometryType&                             rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_geometry           = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
-    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[IntegrationPointIndex], J0);
-    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
-    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ);
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
+    GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[IntegrationPointIndex], rJ0);
+    const auto& r_dn_de = r_geometry.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
+    MathUtils<>::InvertMatrix(rJ0, rInvJ0, rDetJ);
+    GeometryUtils::ShapeFunctionsGradients(r_dn_de, rInvJ0, rDNu_DX0);
 
     KRATOS_CATCH("")
 }

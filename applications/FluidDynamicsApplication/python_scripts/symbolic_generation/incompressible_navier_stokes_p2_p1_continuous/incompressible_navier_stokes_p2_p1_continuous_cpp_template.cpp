@@ -161,7 +161,7 @@ void IncompressibleNavierStokesP2P1Continuous<TDim>::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize) {
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }

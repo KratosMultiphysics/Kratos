@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
 
@@ -44,8 +45,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType&   Geom = this->GetGeometry();
 
-    if (Geom.DomainSize() < 1.0e-15)
-        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(Geom.DomainSize(), this->Id());
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
@@ -200,13 +200,7 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
                                                                unsigned int      GPoint)
 {
     KRATOS_TRY;
-
-    noalias(rRightHandSideVector) +=
-        -prod(GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-                  rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-                  rVariables.RelativePermeability, rVariables.IntegrationCoefficient),
-              rVariables.PressureVector);
-
+    this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("")

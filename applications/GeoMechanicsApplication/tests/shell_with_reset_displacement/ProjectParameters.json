@@ -141,8 +141,6 @@
             "value":           [0.0,0.0,-20.0],
             "table":           [0,0,0]
         }
-    }],
-    "loads_process_list":    [],
-    "auxiliar_process_list": []
+    }]
     }
 }

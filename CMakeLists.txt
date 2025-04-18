@@ -43,6 +43,11 @@ if(POLICY CMP0177)
   cmake_policy(SET CMP0177 NEW)
 endif(POLICY CMP0177)
 
+# Boost config
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif(POLICY CMP0167)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
 set (KratosMultiphysics_MINOR_VERSION 2)
@@ -113,6 +118,7 @@ SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -D_DEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+set( CMAKE_MAP_IMPORTED_CONFIG_FULLDEBUG Debug)
 
 # Define internal CMake flags needed
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
@@ -283,6 +289,10 @@ if(${MSVC})
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+  # CMake does not select the correct runtime library for FullDebug now, no idea why
+  if( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebugDLL" CACHE STRING "" FORCE)
+  endif( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
@@ -453,7 +463,7 @@ elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
   message(STATUS "Shared memory parallelization is disabled!")
 
 else()
-  message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
+  message(FATAL_ERROR "Invalid option chosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
 
 OPTION(KRATOS_NO_TRY_CATCH "Disabled the use of try/catch through the code" OFF)
@@ -551,7 +561,7 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
-  # supress anoying warnings from trilinos due to not having the same package name as the lib name.
+  # suppress annoying warnings from trilinos due to not having the same package name as the lib name.
   if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
   endif()
@@ -580,7 +590,7 @@ if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
     endif( ZLIB_FOUND )
 endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
-# We local compilate ZLIB
+# We compile ZLIB locally
 if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
@@ -613,7 +623,7 @@ if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
 endif()
 
 # Build exclusions and linking dirs.
-# The intended usage of this flags is to allow a defered/incremental compilation of core/applications.
+# The intended usage of this flags is to allow a deferred/incremental compilation of core/applications.
 # Please do not use this options for regular development and never use this with REMOVE_INSTALL_DIRECTORIES=ON
 OPTION ( EXCLUDE_KRATOS_CORE "Force exclusion of the core" OFF )
 OPTION ( EXCLUDE_AUTOMATIC_DEPENDENCIES "Force exclusion of automatically added app dependencies" OFF )
