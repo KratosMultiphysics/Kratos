@@ -30,7 +30,7 @@ MultifreedomConstraint::MultifreedomConstraint(const IndexType Id,
     Vector constraint_labels(rConstraintLabels.size());
     std::copy(rConstraintLabels.begin(), rConstraintLabels.end(), constraint_labels.begin());
     this->SetValue(CONSTRAINT_LABELS, constraint_labels);
-    this->SetValue(GEOMETRIC_STIFFNESS_MATRIX, ZeroMatrix(rConstraintLabels.size()));
+    this->SetValue(GEOMETRIC_STIFFNESS_MATRIX, ZeroMatrix(0));
 }
 
 
