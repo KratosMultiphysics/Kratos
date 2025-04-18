@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "reset_displacement_process.h"
+#include "apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "includes/initial_state.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -22,12 +22,13 @@
 namespace Kratos
 {
 
-ResetDisplacementProcess::ResetDisplacementProcess(ModelPart& rModelPart, const Parameters&)
+ApplyFinalStressesOfPreviousStageToInitialState::ApplyFinalStressesOfPreviousStageToInitialState(ModelPart& rModelPart,
+                                                                                                 const Parameters&)
     : mrModelPart(rModelPart)
 {
 }
 
-void ResetDisplacementProcess::ExecuteInitialize()
+void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteInitialize()
 {
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
         std::vector<Vector> stresses_on_integration_points;
@@ -41,28 +42,31 @@ void ResetDisplacementProcess::ExecuteInitialize()
         rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
 
         CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, rElement.GetId());
+        mStressesByElementId[rElement.GetId()] = stresses_on_integration_points;
+    });
+}
 
+void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteBeforeSolutionLoop()
+{
+    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
+        std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+        rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
+        const auto stresses_on_integration_points = mStressesByElementId.at(rElement.GetId());
         for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
             auto p_initial_state = make_intrusive<InitialState>();
             p_initial_state->SetInitialStressVector(stresses_on_integration_points[i]);
             p_initial_state->SetInitialStrainVector(ZeroVector{constitutive_laws[i]->GetStrainSize()});
             constitutive_laws[i]->SetInitialState(p_initial_state);
+            constitutive_laws[i]->InitializeMaterial(rElement.GetProperties(), rElement.GetGeometry(), {});
         }
     });
+    mStressesByElementId.clear();
 }
 
-int ResetDisplacementProcess::Check()
-{
-    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo()[IS_RESTARTED])
-        << "The IS_RESTARTED flag must be set to true in the ProcessInfo of the "
-           "model part. Please use the \"rest\" option for the model input type";
-
-    return 0;
-}
-
-void ResetDisplacementProcess::CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
-                                                         const std::vector<Vector>& rStressesOnIntegrationPoints,
-                                                         IndexType ElementId)
+void ApplyFinalStressesOfPreviousStageToInitialState::CheckRetrievedElementData(
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
+    const std::vector<Vector>&                   rStressesOnIntegrationPoints,
+    IndexType                                    ElementId)
 {
     KRATOS_ERROR_IF(rConstitutiveLaws.empty())
         << "The constitutive laws on the integration points could not be retrieved for element "
