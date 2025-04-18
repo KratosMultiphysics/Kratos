@@ -898,26 +898,22 @@ double& SmallStrainUDSM3DLaw::GetValue(const Variable<double>& rThisVariable, do
     return rValue;
 }
 
-void SmallStrainUDSM3DLaw::SetValue(const Variable<double>& rThisVariable,
-                                    const double&           rValue,
-                                    const ProcessInfo&      rCurrentProcessInfo)
+void SmallStrainUDSM3DLaw::SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rThisVariable);
+    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
-        << "GetValue: Variable: " << rThisVariable
+        << "GetValue: Variable: " << rVariable
         << " does not exist in UDSM. Requested index: " << index << std::endl;
 
     mStateVariablesFinalized[index] = rValue;
 }
 
-void SmallStrainUDSM3DLaw::SetValue(const Variable<Vector>& rThisVariable,
-                                    const Vector&           rValue,
-                                    const ProcessInfo&      rCurrentProcessInfo)
+void SmallStrainUDSM3DLaw::SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    if ((rThisVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
+    if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == mStressVectorFinalized.size())) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == mStressVectorFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStressVectorFinalized.begin());
     }
 }
