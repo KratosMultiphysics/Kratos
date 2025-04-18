@@ -172,7 +172,6 @@ void MakeRelationTopology(std::size_t SystemSize,
                                                              rRelationMatrix,
                                                              /*EnsureDiagonal=*/false);
         TSparse::SetToZero(rRelationMatrix);
-
         rConstraintGaps.resize(rRelationMatrix.size1(), false);
         //TSparse::SetToZero(rConstraintGaps); //< unnecessary
     }
@@ -197,6 +196,7 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
 
     // Init.
     TSparse::SetToZero(rRelationMatrix);
+    TSparse::SetToZero(rHessian);
     TSparse::SetToZero(rConstraintGaps);
 
     struct TLS {
@@ -258,10 +258,11 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                                                      r_tls.slave_ids,
                                                      r_tls.master_ids,
                                                      rConstraintIdMap);
-                r_tls.hessian.resize(r_tls.constraint_indices.size(), r_tls.constraint_indices.size());
-                std::fill(r_tls.hessian.data().begin(),
-                          r_tls.hessian.data().end(),
-                          static_cast<typename TDense::DataType>(0));
+
+                // The standard MasterSlaveConstraint can only represent linear constraints,
+                // whose Hessian vanish, so there's no need assemble them into the global
+                // constraint Hessian.
+                r_tls.hessian.resize(0, 0);
             } // not r_tls.slave_ids.empty()
 
             KRATOS_ERROR_IF_NOT(r_tls.constraint_indices.size() == r_tls.relation_matrix.size1())
@@ -336,27 +337,31 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
             } // for i_row in range(r_tls.slave_ids.size)
 
             // Map contributions to the Hessian.
-            for (std::size_t i_row=0ul; i_row<r_tls.hessian.size1(); ++i_row) {
-                const auto i_reordered_row = r_tls.dof_index_array[i_row];
-                const auto i_row_dof = r_tls.reordered_dof_equation_ids[i_reordered_row];
+            if (r_tls.hessian.size1() && r_tls.hessian.size2()) {
+                for (std::size_t i_row=0ul; i_row<r_tls.hessian.size1(); ++i_row) {
+                    const auto i_reordered_row = r_tls.dof_index_array[i_row];
+                    const auto i_row_dof = r_tls.reordered_dof_equation_ids[i_reordered_row];
 
-                // Reorder the current row in the local hessian.
-                std::transform(r_tls.dof_index_array.begin(),
-                               r_tls.dof_index_array.end(),
-                               r_tls.matrix_row.begin(),
-                               [&r_tls, i_reordered_row](const std::size_t i_column){
-                                   return r_tls.hessian(i_reordered_row, i_column);
-                               });
-                std::copy(r_tls.matrix_row.begin(),
-                          r_tls.matrix_row.end(),
-                          (r_tls.hessian.begin1() + i_reordered_row).begin());
-                std::scoped_lock<LockObject> lock(dof_mutexes[i_row_dof]);
-                MapRowContribution<TSparse,TDense>(rHessian,
-                                                   r_tls.hessian,
-                                                   i_row_dof,
-                                                   i_reordered_row,
-                                                   r_tls.reordered_dof_equation_ids);
-            } // for i_row in range(r_tls.hessian.size1())
+                    // Reorder the current row in the local hessian.
+                    std::transform(r_tls.dof_index_array.begin(),
+                                   r_tls.dof_index_array.end(),
+                                   r_tls.matrix_row.begin(),
+                                   [&r_tls, i_reordered_row](const std::size_t i_column){
+                                       return r_tls.hessian(i_reordered_row, i_column);
+                                   });
+
+                    std::copy(r_tls.matrix_row.begin(),
+                              r_tls.matrix_row.end(),
+                              (r_tls.hessian.begin1() + i_reordered_row).begin());
+
+                    std::scoped_lock<LockObject> lock(dof_mutexes[i_row_dof]);
+                    MapRowContribution<TSparse,TDense>(rHessian,
+                                                       r_tls.hessian,
+                                                       i_row_dof,
+                                                       i_reordered_row,
+                                                       r_tls.reordered_dof_equation_ids);
+                } // for i_row in range(r_tls.hessian.size1())
+            } // if the hessian does not vanish
         } // if r_constraint.IsActive
     }); // for r_constraint in rModelPart.MasterSlaveConstraints
 

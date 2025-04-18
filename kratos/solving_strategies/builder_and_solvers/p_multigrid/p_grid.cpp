@@ -264,6 +264,14 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
                 SparseUtils::MatrixMultiplication(rParentConstraintAssembler.GetRelationMatrix(),
                                                   mProlongationOperator,
                                                   mpConstraintAssembler->GetRelationMatrix());
+
+                typename TSparse::MatrixType tmp;
+                SparseUtils::MatrixMultiplication(mRestrictionOperator,
+                                                  rParentConstraintAssembler.GetHessian(),
+                                                  tmp);
+                SparseUtils::MatrixMultiplication(tmp,
+                                                  mProlongationOperator,
+                                                  mpConstraintAssembler->GetHessian());
             }
 
             if (AssembleRHS) {
