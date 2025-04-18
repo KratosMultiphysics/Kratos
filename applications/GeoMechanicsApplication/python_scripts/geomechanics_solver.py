@@ -245,8 +245,8 @@ class GeoMechanicalSolver(PythonSolver):
         # Get the convergence criterion
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
-        self.strategy = self._construct_strategy(self.builder_and_solver,
-                                                 self.settings["strategy_type"].GetString())
+        self.solving_strategy = self._construct_strategy(self.builder_and_solver,
+                                                         self.settings["strategy_type"].GetString())
 
         # Set echo_level
         self.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -255,7 +255,7 @@ class GeoMechanicalSolver(PythonSolver):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        self.strategy.Initialize()
+        self.solving_strategy.Initialize()
 
         self.find_neighbour_elements_of_conditions_process = GeoMechanicsApplication.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
         self.find_neighbour_elements_of_conditions_process.Execute()
@@ -264,16 +264,16 @@ class GeoMechanicalSolver(PythonSolver):
         self.deactivate_conditions_on_inactive_elements_process.Execute()
 
     def InitializeSolutionStep(self):
-        self.strategy.InitializeSolutionStep()
+        self.solving_strategy.InitializeSolutionStep()
 
     def Predict(self):
-        self.strategy.Predict()
+        self.solving_strategy.Predict()
 
     def SolveSolutionStep(self):
-        return self.strategy.SolveSolutionStep()
+        return self.solving_strategy.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.strategy.FinalizeSolutionStep()
+        self.solving_strategy.FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         new_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] + self.ComputeDeltaTime()
@@ -295,13 +295,13 @@ class GeoMechanicalSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.strategy.SetEchoLevel(level)
+        self.solving_strategy.SetEchoLevel(level)
 
     def Clear(self):
-        self.strategy.Clear()
+        self.solving_strategy.Clear()
 
     def Check(self):
-        self.strategy.Check()
+        self.solving_strategy.Check()
 
     #### Specific internal functions ####
 

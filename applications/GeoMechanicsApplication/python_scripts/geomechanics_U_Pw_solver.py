@@ -243,4 +243,4 @@ class UPwSolver(GeoSolver):
         return super()._CreateBuilderAndSolver()
 
     def _CheckConvergence(self):
-        return self.strategy.IsConverged()
+        return self.solving_strategy.IsConverged()
