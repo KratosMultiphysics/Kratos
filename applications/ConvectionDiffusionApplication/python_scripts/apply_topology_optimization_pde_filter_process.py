@@ -62,10 +62,13 @@ class ApplyTopologyOptimizationPdeFilterProcess(KratosMultiphysics.Process):
         self._SetFilterDiffusionAndReactionCoefficients()
     
     def _PreparePdeFilterConvectionDiffusionSettings(self):
-        convention_diffusion_settings = self._GetSolver().GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
-        convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable("PDE_FILTER_RESULT"))
-        convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("PDE_FILTER_FORCING"))
-        convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("PDE_FILTER_FLUX"))
+        if ((not KratosMultiphysics.KratosGlobals.HasVariable("CONVECTION_DIFFUSION_SETTINGS")) or (self._GetSolver().GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS) is None)):
+            init_convection_diffusion_settings = KratosMultiphysics.ConvectionDiffusionSettings()
+            self._GetSolver().GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, init_convection_diffusion_settings)
+        convection_diffusion_settings = self._GetSolver().GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
+        convection_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable("PDE_FILTER_RESULT"))
+        convection_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("PDE_FILTER_FORCING"))
+        convection_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("PDE_FILTER_FLUX"))
 
     def _FinalizePdeFilterExecution(self):
         self.filtered_value_in_opt_nodes = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self.main_model_part.Nodes, KratosCD.PDE_FILTER_RESULT, 0))[self.optimization_domain_nodes_mask]
