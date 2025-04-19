@@ -20,8 +20,9 @@
 // Project includes
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
-#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "includes/master_slave_constraint.h"
+#include "includes/model_part.h"
 #include "spaces/kratos_space.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/dof_array_utilities.h"
@@ -67,13 +68,19 @@ template<class DataType = double >
 struct ImplicitThreadLocalStorage
 {
     // Local LHS contribution
-    DenseMatrix<DataType> LocalLhs;
+    DenseMatrix<DataType> LocalMatrix;
 
     // Local RHS constribution
-    DenseVector<DataType> LocalRhs;
+    DenseVector<DataType> LocalVector;
 
     // Vector containing the localization in the system of the different terms
     Element::EquationIdVectorType LocalEqIds;
+
+    // Vector containing the slave equation ids
+    MasterSlaveConstraint::EquationIdVectorType SlaveEqIds;
+
+    // Vector containing the master equation ids
+    MasterSlaveConstraint::EquationIdVectorType MasterEqIds;
 };
 
 /**
@@ -365,28 +372,28 @@ public:
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
             if (ItElem->Is(ACTIVE)) {
                 // Calculate local LHS and RHS contributions
-                ItElem->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
+                ItElem->CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
 
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalLhs.resize(0,0);
                 rTLS.LocalEqIds.resize(0);
+                rTLS.LocalVector.resize(0);
+                rTLS.LocalMatrix.resize(0,0);
             }
         };
 
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
             if (ItCond->Is(ACTIVE)) {
                 // Calculate local LHS and RHS contributions
-                ItCond->CalculateLocalSystem(rTLS.LocalLhs, rTLS.LocalRhs, rProcessInfo);
+                ItCond->CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
 
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalLhs.resize(0,0);
                 rTLS.LocalEqIds.resize(0);
+                rTLS.LocalVector.resize(0);
+                rTLS.LocalMatrix.resize(0,0);
             }
         };
 
@@ -411,12 +418,12 @@ public:
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
             if (ItElem->Is(ACTIVE)) {
                 // Calculate the RHS contributions
-                ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+                ItElem->CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
 
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalRhs.resize(0);
+                rTLS.LocalVector.resize(0);
                 rTLS.LocalEqIds.resize(0);
             }
         };
@@ -424,13 +431,13 @@ public:
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
             if (ItCond->Is(ACTIVE)) {
                 // Calculate the RHS contributions
-                ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+                ItCond->CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
 
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalLhs.resize(0,0);
+                rTLS.LocalVector.resize(0);
+                rTLS.LocalMatrix.resize(0,0);
                 rTLS.LocalEqIds.resize(0);
             }
         };
@@ -462,6 +469,55 @@ public:
         //TODO: IMPLEMENTATION
     }
 
+    virtual void ApplyConstraints(
+        typename TSparseMatrixType::Pointer& rpLhs,
+        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
+        typename TSparseVectorType::Pointer& rpRhs,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs)
+    {
+        if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
+            Timer::Start("ApplyConstraints");
+
+            const auto timer_constraints = BuiltinTimer();
+
+            const auto const_func = [](ModelPart::MasterSlaveConstraintConstantIteratorType ItConst, const ProcessInfo& rProcessInfo, TLSType& rTLS){
+                // Get the positions in the global system
+                // Note that we always do this in order to treat inactive constraints as standard DOFs while assembling
+                ItConst->EquationIdVector(rTLS.SlaveEqIds, rTLS.MasterEqIds, rProcessInfo);
+
+                if (ItConst->Is(ACTIVE)) {
+                    // Calculate local relation matrix and constant vector contributions
+                    ItConst->CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
+
+                    // The constraint is active and is to be assembled
+                    return true;
+                } else {
+                    // Reset the local relation matrix and constant vector contributions
+                    rTLS.LocalVector.resize(0);
+                    rTLS.LocalMatrix.resize(0,0);
+
+                    // The constraint is active and is not to be assembled
+                    return false;
+                }
+            };
+
+            TLSType aux_tls;
+            auto& r_assembly_helper = GetAssemblyHelper();
+            r_assembly_helper.SetConstraintAssemblyFunction(const_func);
+            r_assembly_helper.AssembleMasterSlaveConstraints(aux_tls);
+            r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, aux_tls);
+
+            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints build time: " << timer_constraints << std::endl;
+
+            Timer::Stop("ApplyConstraints");
+        } else {
+            // If there are no constraints the effective arrays are the same as the input ones
+            // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
+            rpEffectiveLhs = rpLhs;
+            rpEffectiveRhs = rpRhs;
+        }
+    }
+
     //TODO: Think about the dynamic case and the mass and damping matrices!!
     virtual void ApplyDirichletConditions(
         const DofsArrayType& rDofSet,
@@ -486,12 +542,12 @@ public:
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
             if (ItElem->Is(ACTIVE)) {
                 // Calculate the RHS contributions
-                ItElem->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+                ItElem->CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
 
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalRhs.resize(0);
+                rTLS.LocalVector.resize(0);
                 rTLS.LocalEqIds.resize(0);
             }
         };
@@ -499,13 +555,13 @@ public:
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
             if (ItCond->Is(ACTIVE)) {
                 // Calculate the RHS contributions
-                ItCond->CalculateRightHandSide(rTLS.LocalRhs, rProcessInfo);
+                ItCond->CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
 
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalRhs.resize(0);
-                rTLS.LocalLhs.resize(0,0);
+                rTLS.LocalVector.resize(0);
+                rTLS.LocalMatrix.resize(0,0);
                 rTLS.LocalEqIds.resize(0);
             }
         };

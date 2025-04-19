@@ -23,6 +23,8 @@
 #include "containers/sparse_contiguous_row_graph.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/amgcl_csr_conversion_utilities.h"
+#include "utilities/amgcl_csr_spmm_utilities.h"
 
 namespace Kratos::Future
 {
@@ -89,7 +91,7 @@ public:
     using ConditionAssemblyFunctionType = std::function<void(ModelPart::ConditionConstantIterator, const ProcessInfo&, TThreadLocalStorage&)>;
 
     /// Function type for constraints assembly
-    using ConstraintAssemblyFunctionType = std::function<void(ModelPart::MasterSlaveConstraintConstantIteratorType, const ProcessInfo&, TThreadLocalStorage&)>;
+    using ConstraintAssemblyFunctionType = std::function<bool(ModelPart::MasterSlaveConstraintConstantIteratorType, const ProcessInfo&, TThreadLocalStorage&)>;
 
     ///@}
     ///@name Life Cycle
@@ -190,9 +192,9 @@ public:
         const ModelPart& rModelPart)
     {
         if (mBuildType == BuildType::Block) {
-            BlockBuildConstructMasterSlaveConstraintsStructure(rModelPart);
+            BlockConstructMasterSlaveConstraintsStructure(rModelPart);
         } else if (mBuildType == BuildType::Elimination) {
-            EliminationBuildConstructMasterSlaveConstraintsStructure(rDofSet, rModelPart);
+            EliminationConstructMasterSlaveConstraintsStructure(rDofSet, rModelPart);
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -301,6 +303,35 @@ public:
             }
         } else {
             KRATOS_ERROR << "Not implemented build type." << std::endl;
+        }
+    }
+
+    virtual void AssembleMasterSlaveConstraints(TThreadLocalStorage& rTLS)
+    {
+        //TODO: Do it as the other assembly functions
+        if (mBuildType == BuildType::Block) {
+            AssembleMasterSlaveConstraintsImplementation<BuildType::Block>(rTLS);
+        } else if (mBuildType == BuildType::Elimination) {
+            AssembleMasterSlaveConstraintsImplementation<BuildType::Elimination>(rTLS);
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
+    }
+
+    virtual void ApplyMasterSlaveConstraints(
+        typename TSparseMatrixType::Pointer& rpLhs,
+        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
+        typename TSparseVectorType::Pointer& rpRhs,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
+        TThreadLocalStorage& rTLS)
+    {
+        //TODO: Do it as the other assembly functions
+        if (mBuildType == BuildType::Block) {
+            ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rTLS);
+        } else if (mBuildType == BuildType::Elimination) {
+            ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rTLS);
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
         }
     }
 
@@ -474,11 +505,13 @@ private:
 
     typename TSparseMatrixType::Pointer mpConstraintsRelationMatrix = nullptr; // Constraints relation matrix (only used in the block build)
 
-    typename TSparseVectorType::Pointer mpConstraintsConstantVector = nullptr; // Constratins constant vector (only used in the block build)
+    typename TSparseVectorType::Pointer mpConstraintsConstantVector = nullptr; // Constraints constant vector (only used in the block build)
 
     std::vector<IndexType> mSlaveIds; /// Vector containing the equation ids of the slaves
 
     std::vector<IndexType> mMasterIds; /// Vector containing the equation ids of the master
+
+    std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave DOFs (only used in the block build)
 
     ///@}
     ///@name Private Operations
@@ -762,9 +795,9 @@ private:
         const TThreadLocalStorage& rTLS)
     {
         if constexpr (std::is_same_v<TContainerType, TSparseMatrixType>) {
-            return rTLS.LocalLhs; // We can eventually do a get method in the TLS and call it in here
+            return rTLS.LocalMatrix; // We can eventually do a get method in the TLS and call it in here
         } else if (std::is_same_v<TContainerType, TSparseVectorType>) {
-            return rTLS.LocalRhs; // We can eventually do a get method in the TLS and call it in here
+            return rTLS.LocalVector; // We can eventually do a get method in the TLS and call it in here
         } else {
             static_assert(std::is_same_v<TContainerType, TSparseMatrixType> || std::is_same_v<TContainerType, TSparseVectorType>, "Unssupported container type.");
         }
@@ -778,6 +811,26 @@ private:
     auto& GetThreadLocalStorageEqIds(const TThreadLocalStorage& rTLS)
     {
         return rTLS.LocalEqIds; // We can eventually do a get method in the TLS and call it in here
+    }
+
+    auto& GetThreadLocalStorageSlaveEqIds(TThreadLocalStorage& rTLS)
+    {
+        return rTLS.SlaveEqIds; // We can eventually do a get method in the TLS and call it in here
+    }
+
+    auto& GetThreadLocalStorageSlaveEqIds(const TThreadLocalStorage& rTLS)
+    {
+        return rTLS.SlaveEqIds; // We can eventually do a get method in the TLS and call it in here
+    }
+
+    auto& GetThreadLocalStorageMasterEqIds(TThreadLocalStorage& rTLS)
+    {
+        return rTLS.MasterEqIds; // We can eventually do a get method in the TLS and call it in here
+    }
+
+    auto& GetThreadLocalStorageMasterEqIds(const TThreadLocalStorage& rTLS)
+    {
+        return rTLS.MasterEqIds; // We can eventually do a get method in the TLS and call it in here
     }
 
     void ApplyBlockBuildDirichletConditions(
@@ -828,7 +881,7 @@ private:
     }
 
     //FIXME: This only works in serial!!!
-    void BlockBuildConstructMasterSlaveConstraintsStructure(const ModelPart& rModelPart)
+    void BlockConstructMasterSlaveConstraintsStructure(const ModelPart& rModelPart)
     {
         const SizeType n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
         if (n_constraints) {
@@ -901,11 +954,153 @@ private:
         }
     }
 
-    void EliminationBuildConstructMasterSlaveConstraintsStructure(
+    void EliminationConstructMasterSlaveConstraintsStructure(
         const DofsArrayType& rDofSet,
         const ModelPart& rModelPart)
     {
         KRATOS_ERROR << "Not implemented yet." << std::endl;
+    }
+
+    template<BuildType TBuildType>
+    void AssembleMasterSlaveConstraintsImplementation(TThreadLocalStorage& rTLS)
+    {
+        // Getting constraints to be assembled
+        const auto& r_consts = mpModelPart->MasterSlaveConstraints();
+        const auto& r_process_info = mpModelPart->GetProcessInfo();
+
+        // Getting constraints container data
+        auto consts_begin = r_consts.begin();
+        const SizeType n_consts = r_consts.size();
+
+        // Initialize constraints arrays
+        mpConstraintsRelationMatrix->SetValue(0.0);
+        mpConstraintsConstantVector->SetValue(0.0);
+
+        if constexpr (TBuildType == BuildType::Block) {
+            // We clear the inactive DOFs set
+            mInactiveSlaveDofs.clear();
+        }
+
+        mpConstraintsRelationMatrix->BeginAssemble();
+        mpConstraintsConstantVector->BeginAssemble();
+
+        #pragma omp parallel firstprivate(consts_begin, r_process_info)
+        {
+            // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
+            std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+
+            // Assemble constraints
+            if (mpConstraintAssemblyFunction != nullptr) {
+                # pragma omp for schedule(guided, 512) nowait
+                for (int k = 0; k < n_consts; ++k) {
+                    // Calculate local LHS contributions
+                    auto it_const = consts_begin + k;
+                    const bool assemble_const = (*mpConstraintAssemblyFunction)(it_const, r_process_info, rTLS);
+
+                    // Assemble the constraints local contributions to the global system
+                    const auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
+                    const auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
+                    if (assemble_const) {
+                        if constexpr (TBuildType == BuildType::Block) {
+                            // Assemble relation matrix contribution
+                            const auto& r_loc_T = GetThreadLocalStorageContainer(*mpConstraintsRelationMatrix, rTLS);
+                            mpConstraintsRelationMatrix->Assemble(r_loc_T, r_slave_eq_ids, r_master_eq_ids);
+
+                            // Assemble constant vector contribution
+                            const auto& r_loc_v = GetThreadLocalStorageContainer(*mpConstraintsConstantVector, rTLS);
+                            mpConstraintsConstantVector->Assemble(r_loc_v, r_slave_eq_ids);
+                        } else if (TBuildType == BuildType::Elimination) {
+
+                        } else {
+                            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+                        }
+                    } else {
+                        if constexpr (TBuildType == BuildType::Block) {
+                            auxiliar_inactive_slave_dofs.insert(r_slave_eq_ids.begin(), r_slave_eq_ids.end());
+                        } else if (TBuildType == BuildType::Elimination) {
+
+                        } else {
+                            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+                        }
+                    }
+                }
+
+                // We merge all the sets in one thread
+                if constexpr (TBuildType == BuildType::Block) {
+                    #pragma omp critical
+                    {
+                        mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
+                    }
+                }
+            }
+        }
+
+        mpConstraintsRelationMatrix->FinalizeAssemble();
+        mpConstraintsConstantVector->FinalizeAssemble();
+
+        if constexpr (TBuildType == BuildType::Block) {
+            // Setting the master dofs into the T and C system
+            //TODO: Can't this be parallel?
+            for (auto eq_id : mMasterIds) {
+                (*mpConstraintsConstantVector)[eq_id] = 0.0;
+                (*mpConstraintsRelationMatrix)(eq_id, eq_id) = 1.0;
+            }
+
+            // Setting inactive slave dofs in the T and C system
+            //TODO: Can't this be parallel?
+            for (auto eq_id : mInactiveSlaveDofs) {
+                (*mpConstraintsConstantVector)[eq_id] = 0.0;
+                (*mpConstraintsRelationMatrix)(eq_id, eq_id) = 1.0;
+            }
+        } else if (TBuildType == BuildType::Elimination) {
+
+        } else {
+            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+        }
+    }
+
+    template <BuildType TBuildType>
+    void ApplyMasterSlaveConstraintsImplementation(
+        typename TSparseMatrixType::Pointer& rpLhs,
+        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
+        typename TSparseVectorType::Pointer& rpRhs,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
+        TThreadLocalStorage& rTLS)
+    {
+        if constexpr (TBuildType == BuildType::Block) {
+            // Initialize the effective RHS
+            const SizeType n_master = mpConstraintsRelationMatrix->size2();
+            rpEffectiveRhs = Kratos::make_shared<TSparseVectorType>(n_master);
+            rpEffectiveRhs->SetValue(0.0);
+
+            // Apply constraints to RHS
+            TSparseVectorType aux(*rpRhs);
+            rpLhs->SpMV(-1.0, *mpConstraintsConstantVector, 1.0, aux);
+            mpConstraintsRelationMatrix->TransposeSpMV(aux, *rpEffectiveRhs);
+
+            // Apply constraints to LHS
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*rpLhs, *mpConstraintsRelationMatrix);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*mpConstraintsRelationMatrix);
+            rpEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+
+            // Compute the scale factor value
+            //TODO: think on how to make this user-definable
+            const double scale_factor = rpEffectiveLhs->NormDiagonal();
+
+            // Apply diagonal values on slave DOFs
+            IndexPartition<IndexType>(mSlaveIds.size()).for_each([&](IndexType Index){
+                const IndexType slave_eq_id = mSlaveIds[Index];
+                if (mInactiveSlaveDofs.find(slave_eq_id) == mInactiveSlaveDofs.end()) {
+                    (*rpEffectiveLhs)(slave_eq_id, slave_eq_id) = scale_factor;
+                    (*rpEffectiveRhs)[slave_eq_id] = 0.0;
+                }
+            });
+        } else if (TBuildType == BuildType::Elimination) {
+
+        } else {
+            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+        }
+
     }
 
     ///@}

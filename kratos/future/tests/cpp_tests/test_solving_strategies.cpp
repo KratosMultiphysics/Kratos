@@ -240,8 +240,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
+    p_node_1->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
     p_node_1->Fix(DISTANCE);
-    p_node_1->FastGetSolutionStepValue(DISTANCE, 0, 1.0);
 
     // Solve the problem
     p_strategy->Initialize();
@@ -253,9 +253,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     p_strategy->Clear();
 
     // Check results
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 1.5, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 2.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
 #else
     true;
 #endif
@@ -270,9 +270,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithConstraints, KratosCoreFastSuite)
     SetUpTestSchemesModelPart(r_test_model_part);
 
     // Create a periodicity constraint with jump
-    const double jump = 2.0;
-    r_test_model_part.CreateNewMasterSlaveConstraint(
-        "LinearMasterSlaveConstraint", 1, r_test_model_part.GetNode(1), DISTANCE, r_test_model_part.GetNode(3), DISTANCE, 1.0, jump);
+    const double jump = 1.0;
+    const double weight = 1.0;
+    auto& r_master_node = r_test_model_part.GetNode(1);
+    auto& r_slave_node = r_test_model_part.GetNode(3);
+    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+        "LinearMasterSlaveConstraint", 1, r_master_node, DISTANCE, r_slave_node, DISTANCE, weight, jump);
+    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -296,8 +300,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithConstraints, KratosCoreFastSuite)
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
+    p_node_1->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
     p_node_1->Fix(DISTANCE);
-    p_node_1->FastGetSolutionStepValue(DISTANCE, 0, 1.0);
 
     // Solve the problem
     p_strategy->Initialize();
@@ -309,9 +313,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithConstraints, KratosCoreFastSuite)
     p_strategy->Clear();
 
     // Check results
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 1.5, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 2.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
 #else
     true;
 #endif

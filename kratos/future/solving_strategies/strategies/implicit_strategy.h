@@ -422,12 +422,48 @@ public:
     }
 
     /**
+     * @brief This method returns the LHS matrix
+     * @return The LHS matrix
+     */
+    typename SystemMatrixType::Pointer pGetSystemMatrix()
+    {
+        return mpA;
+    }
+
+    /**
+     * @brief This method returns the effective LHS matrix
+     * @return The effective LHS matrix
+     */
+    typename SystemMatrixType::Pointer pGetEffectiveSystemMatrix()
+    {
+        return mpEffectiveLhs;
+    }
+
+    /**
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
     SystemVectorType& GetSystemVector()
     {
         return *mpb;
+    }
+
+    /**
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
+     */
+    typename SystemVectorType::Pointer pGetSystemVector()
+    {
+        return mpb;
+    }
+
+    /**
+     * @brief This method returns the effective RHS vector
+     * @return The effective RHS vector
+     */
+    typename SystemVectorType::Pointer pGetEffectiveSystemVector()
+    {
+        return mpEffectiveRhs;
     }
 
     /**
@@ -638,7 +674,13 @@ private:
     SystemVectorPointerType mpb; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
 
     //TODO: Should these be unique_ptr?
+    SystemVectorPointerType mpEffectiveRhs; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
+
+    //TODO: Should these be unique_ptr?
     SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
+
+    //TODO: Should these be unique_ptr?
+    SystemMatrixPointerType mpEffectiveLhs; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
 
     int mEchoLevel;
 
