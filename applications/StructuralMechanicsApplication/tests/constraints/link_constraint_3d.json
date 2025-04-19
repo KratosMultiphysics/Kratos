@@ -33,7 +33,7 @@
             "advanced_settings" : {
                 "max_iterations" : 1,
                 "verbosity" : 1,
-                "smoother_settings" : {"solver_type" : "skyline_lu_factorization"},
+                "linear_solver_settings" : {"solver_type" : "skyline_lu_factorization"},
                 "constraint_imposition_settings" : {
                     "method" : "augmented_lagrange",
                     "penalty_factor" : "1e6 * max",
