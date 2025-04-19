@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_constraints_to_python.hpp"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos::Python {
@@ -41,6 +42,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
+    AddCustomConstraintsToPython(m);
     AddCustomResponseFunctionUtilitiesToPython(m);
 
     py::class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
