@@ -60,6 +60,7 @@ public:
 
     /// The machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    static constexpr double stress_tolerance = 1.0e-3;
 
     /// Counted pointer of HighCycleFatigueLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(HighCycleFatigueLawIntegrator);
@@ -118,10 +119,10 @@ public:
         const double stress_2 = PreviousStresses[0];
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
-        if (stress_increment_1 > tolerance && stress_increment_2 < -tolerance) {
+        if (stress_increment_1 > stress_tolerance && stress_increment_2 < -stress_tolerance) {
             rMaximumStress = stress_1;
             rMaxIndicator = true;
-        } else if (stress_increment_1 < -tolerance && stress_increment_2 > tolerance) {
+        } else if (stress_increment_1 < -stress_tolerance && stress_increment_2 > stress_tolerance) {
             rMinimumStress = stress_1;
             rMinIndicator = true;
         }
@@ -138,7 +139,7 @@ public:
 
 
         double abs_component = 0.0, average_component = 0.0, sum_abs = 0.0, sum_average = 0.0;
-        for (unsigned int i = 0; i < principal_stresses.size(); ++i) {
+        for (IndexType i = 0; i < principal_stresses.size(); ++i) {
             abs_component = std::abs(principal_stresses[i]);
             average_component = 0.5 * (principal_stresses[i] + abs_component);
             sum_average += average_component;
