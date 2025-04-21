@@ -158,12 +158,14 @@ public:
     /// @param rSolution Converged solution vector.
     /// @param rRhs Constrained right hand side vector.
     /// @param rReport Status information on the solution loop.
+    /// @param rStream Output stream to report status to.
     /// @warning The solution loop will continue indefinitely unless this function eventually
     ///          returns @p true.
     virtual bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                       typename TSparse::VectorType& rSolution,
                                       typename TSparse::VectorType& rRhs,
-                                      PMGStatusStream::Report& rReport) = 0;
+                                      PMGStatusStream::Report& rReport,
+                                      PMGStatusStream& rStream) = 0;
 
     /// @brief Perform tasks related to constraint imposition after constraints converged.
     /// @param rLhs Constrained left hand side matrix.

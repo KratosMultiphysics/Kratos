@@ -292,10 +292,12 @@ bool
 MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                      typename TSparse::VectorType& rSolution,
                                                                      typename TSparse::VectorType& rRhs,
-                                                                     PMGStatusStream::Report& rReport)
+                                                                     PMGStatusStream::Report& rReport,
+                                                                     PMGStatusStream& rStream)
 {
     rReport.maybe_constraint_residual = 0;
     rReport.constraints_converged = true;
+    rStream.Submit(rReport.Tag(2), mpImpl->mVerbosity);
     return true;
 }
 

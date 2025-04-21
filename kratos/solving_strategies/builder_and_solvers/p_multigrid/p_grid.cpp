@@ -398,8 +398,7 @@ template <class TSparse, class TDense>
 void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
                                                   PMGStatusStream::Report& rReport)
 {
-    bool constraint_status = false;
-
+    bool constraints_finished = false;
     auto initial_residual = TSparse::TwoNorm(mRhs);
     initial_residual = initial_residual ? initial_residual : 1;
 
@@ -412,15 +411,19 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
         // Get an update on the solution with respect to the current right hand side.
         this->ExecuteMultigridLoop(rStream, rReport);
 
-        // Check for constraint convergence.
-        constraint_status = mpConstraintAssembler->FinalizeSolutionStep(mLhs, mSolution, mRhs, rReport);
-        ++rReport.constraint_iteration;
-    } while (!constraint_status);
+        constraints_finished = mpConstraintAssembler->FinalizeSolutionStep(mLhs, mSolution, mRhs, rReport, rStream);
+
+        // Update state log.
+        if (!constraints_finished)
+            rStream.Submit(rReport.Tag(3), mVerbosity);
+    } while (!constraints_finished);
 
     // Update the residual.
     BalancedProduct<TSparse,TSparse,TSparse>(mLhs, mSolution, mRhs, static_cast<typename TSparse::DataType>(-1));
+
+    // Update state log.
     rReport.multigrid_residual = TSparse::TwoNorm(mRhs) / initial_residual;
-    rStream.FinalReport(rReport);
+    rStream.Submit(rReport.Tag(2), mVerbosity);
 
     mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
     KRATOS_CATCH("")
@@ -444,16 +447,8 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     KRATOS_CATCH("")
     #endif
 
-    // Restrict the residual from the fine grid to the coarse one (this grid).
-    KRATOS_TRY
-    TSparse::SetToZero(mRhs);
-    TSparse::SetToZero(mSolution);
-    BalancedProduct<TSparse,TParentSparse,TSparse>(mRestrictionOperator, rParentRhs, mRhs);
-    KRATOS_CATCH("")
-
     PMGStatusStream::Report status_report {
         /*grid_level=*/                 static_cast<std::size_t>(mDepth),
-        /*verbosity=*/                  mVerbosity,
         /*multigrid_converged=*/        false,
         /*multigrid_iteration=*/        0ul,
         /*multigrid_residual=*/         1.0,
@@ -461,13 +456,11 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
         /*constraint_iteration=*/       0ul,
         /*maybe_constraint_residual=*/  {}
     };
-    this->ExecuteConstraintLoop(rStream, status_report);
 
-    // Prolong the coarse solution to the fine grid.
-    KRATOS_TRY
-    TParentSparse::SetToZero(rParentSolution);
-    BalancedProduct<TSparse,TSparse,TParentSparse>(mProlongationOperator, mSolution, rParentSolution);
-    KRATOS_CATCH("")
+    TSparse::SetToZero(mSolution);
+    this->Restrict<TParentSparse>(rParentRhs, mRhs);
+    this->ExecuteConstraintLoop(rStream, status_report);
+    this->Prolong<TParentSparse>(mSolution, rParentSolution);
 
     return status_report.multigrid_converged && status_report.constraints_converged;
 }
@@ -481,6 +474,36 @@ void PGrid<TSparse,TDense>::Finalize(ModelPart& rModelPart,
                                      const typename TParentSparse::VectorType&)
 {
     mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
+}
+
+
+template <class TSparse, class TDense>
+template <class TParentSparse>
+void PGrid<TSparse,TDense>::Restrict(const typename TParentSparse::VectorType& rParentVector,
+                                     typename TSparse::VectorType& rOutput) const
+{
+    KRATOS_TRY
+    rOutput.resize(mRestrictionOperator.size1(), false),
+    TSparse::SetToZero(rOutput);
+    BalancedProduct<TSparse,TParentSparse,TSparse>(mRestrictionOperator,
+                                                   rParentVector,
+                                                   rOutput);
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+template <class TParentSparse>
+void PGrid<TSparse,TDense>::Prolong(const typename TSparse::VectorType& rInput,
+                                    typename TParentSparse::VectorType& rParentVector) const
+{
+    KRATOS_TRY
+    rParentVector.resize(mProlongationOperator.size1(), false);
+    TParentSparse::SetToZero(rParentVector);
+    BalancedProduct<TSparse,TSparse,TParentSparse>(mProlongationOperator,
+                                                   rInput,
+                                                   rParentVector);
+    KRATOS_CATCH("")
 }
 
 
@@ -565,7 +588,11 @@ Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
     template void PGrid<TSparse,TDense>::Finalize<TParentSparse>(ModelPart&,                                                    \
                                                                  const TParentSparse::MatrixType&,                              \
                                                                  const TParentSparse::VectorType&,                              \
-                                                                 const TParentSparse::VectorType&)
+                                                                 const TParentSparse::VectorType&);                             \
+    template void PGrid<TSparse,TDense>::Restrict<TParentSparse>(const typename TParentSparse::VectorType&,                     \
+                                                                 typename TSparse::VectorType&) const;                          \
+    template void PGrid<TSparse,TDense>::Prolong<TParentSparse>(const typename TSparse::VectorType&,                            \
+                                                                 typename TParentSparse::VectorType&) const
 
 #define KRATOS_INSTANTIATE_PGRID(TSparse, TDense)                                   \
     template class PGrid<TSparse,TDense>;                                           \

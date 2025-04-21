@@ -116,9 +116,27 @@ public:
                   const typename TParentSparse::VectorType& rParentSolution,
                   const typename TParentSparse::VectorType& rParentRhs);
 
+    template <class TParentSparse>
+    void Restrict(const typename TParentSparse::VectorType& rParentVector,
+                  typename TSparse::VectorType& rOutput) const;
+
+    template <class TParentSparse>
+    void Prolong(const typename TSparse::VectorType& rInput,
+                 typename TParentSparse::VectorType& rParentVector) const;
+
     void Clear();
 
     static Parameters GetDefaultParameters();
+
+    std::optional<const PGrid*> GetChild() const
+    {
+        return mMaybeChild.has_value() ? mMaybeChild.value().get() : std::optional<const PGrid*>();
+    }
+
+    const typename TSparse::VectorType& GetSolution() const
+    {
+        return mSolution;
+    }
 
 private:
     PGrid(Parameters Settings,
