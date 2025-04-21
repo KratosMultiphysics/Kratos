@@ -192,10 +192,9 @@ struct PMGStatusStream::Impl {
     void WriteIntermediateState(const PMGStatusStream::Report& rReport)
     {
         if (!mpMaybeVtuOutput.has_value()) {
-            const auto& r_dof_set = std::visit([](const auto* p_builder_and_solver) -> const PointerVectorSet<Dof<double>>& {
-                return p_builder_and_solver->GetDofSet();
+            std::visit([this](const auto* p_builder_and_solver) {
+                mpMaybeVtuOutput = MakeVtuOutput(*mpModelPart, p_builder_and_solver->GetDofSet());
             }, mpBuilderAndSolver);
-            mpMaybeVtuOutput = MakeVtuOutput(*mpModelPart, r_dof_set);
         }
 
         // PMultigridBuilderAndSolver::ProjectGrid stores the state and residual values
