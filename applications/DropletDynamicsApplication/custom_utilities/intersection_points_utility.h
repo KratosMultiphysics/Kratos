@@ -152,6 +152,39 @@ private:
         const std::string& filename);
 };
 
+
+/// Utility for computing interface averages
+class InterfaceAveragesUtility
+{
+public:
+    typedef Matrix MatrixType;
+    
+    /// Compute interface averages for a given element
+    static void CollectElementInterfaceAverages(Element::Pointer pElement);
+    
+    /// Compute interface averages for all elements in a model part
+    static void ComputeModelPartInterfaceAverages(const ModelPart& rModelPart);
+    
+    /// Clear all stored interface average data
+    static void ClearInterfaceAverages();
+    
+    /// Get the global container of interface average data
+    static const std::vector<InterfaceAverageData>& GetInterfaceAverages();
+    
+    /// Save the interface average data to a file
+    static void SaveInterfaceAveragesToFile(const std::string& filename);
+    
+    /// Print diagnostic information about the interface averages
+    static void DiagnosticOutput(const ModelPart& rModelPart);
+    
+    /// Apply interface averages to model part elements as element variables
+    static void ApplyInterfaceAveragesToModelPart(ModelPart& rModelPart, const std::string& variable_name);
+
+private:
+    /// Global container for interface average data
+    static std::vector<InterfaceAverageData> mInterfaceAverageContainer;
+};
+
 }
 }
 #endif // KRATOS_INTERSECTION_POINTS_UTILITY_H_INCLUDED

@@ -156,18 +156,6 @@ void IntersectionPointsUtility::SaveIntersectionPointsToFile(const std::string& 
     std::cout << "Successfully wrote " << g_IntersectionPointsContainer.size() << " points to " << filename << std::endl;
 }
 
-//     void IntersectionPointsUtility::AddIntersectionPoint(int elementId, int pointId, const array_1d<double, 3>& coordinates)
-// {
-//     IntersectionPointData point;
-//     point.elementId = elementId;
-//     point.pointId = pointId;
-    
-//     point.coordinates[0] = coordinates[0];
-//     point.coordinates[1] = coordinates[1];
-//     point.coordinates[2] = coordinates[2];
-    
-//     g_IntersectionPointsContainer.push_back(point);
-// }
 
 void IntersectionPointsUtility::DiagnosticOutput(const ModelPart& rModelPart)
 {
@@ -241,567 +229,15 @@ void IntersectionPointsUtility::ExtractIntersectionPointsFromSplitter(DivideGeom
         } else {
             std::cout << "No interface points found for element " << elementId << std::endl;
             
-    //         // Fallback to test points if no interface points were found
-    //         for (int i = 0; i < 2; i++) {
-    //             IntersectionPointData point;
-    //             point.elementId = elementId;
-    //             point.pointId = i;
-                
-    //             // Sample coordinates
-    //             point.coordinates[0] = 0.5 + 0.1*i;  // X
-    //             point.coordinates[1] = 0.5 - 0.1*i;  // Y
-    //             point.coordinates[2] = 0.0;          // Z (0 for 2D)
-                
-    //             g_IntersectionPointsContainer.push_back(point);
-    //         }
-            
-    //         std::cout << "Used test points for element " << elementId << " (no interface points found)" << std::endl;
+
                }
         } catch (std::exception& e) {
         std::cerr << "Error extracting interface points: " << e.what() << std::endl;
         
-        // // Fallback to test points if there's an error
-        // for (int i = 0; i < 2; i++) {
-        //     IntersectionPointData point;
-        //     point.elementId = elementId;
-        //     point.pointId = i;
-            
-        //     // Sample coordinates
-        //     point.coordinates[0] = 0.5 + 0.1*i;  // X
-        //     point.coordinates[1] = 0.5 - 0.1*i;  // Y
-        //     point.coordinates[2] = 0.0;          // Z (0 for 2D)
-            
-        //     g_IntersectionPointsContainer.push_back(point);
-        // }
-        
-        // std::cout << "Fell back to test points for element " << elementId << " due to error: " << e.what() << std::endl;
+       
         }
 }
-////////////////////////////////////////////////
-// void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std::string& output_file)
-// {
-//     // Get all intersection points
-//     const auto& points = g_IntersectionPointsContainer;
-    
-//     if (points.empty()) {
-//         std::cout << "No intersection points available for curve fitting." << std::endl;
-//         return;
-//     }
-    
-//     std::cout << "Starting circle fitting with " << points.size() << " intersection points." << std::endl;
-    
-//     // First, create a map of points by their coordinates
-//     // This will help us identify which points are shared between elements
-//     std::map<std::pair<double, double>, std::vector<int>> point_to_elements;
-//     std::map<int, std::vector<IntersectionPointData>> element_points;
-    
-//     // Group points by element and build point->elements mapping
-//     for (const auto& point : points) {
-//         int elemId = point.elementId;
-        
-//         // Round coordinates to handle floating point precision
-//         double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
-//         double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
-//         std::pair<double, double> coord_key(x, y);
-        
-//         // Add this element to the list for this point
-//         point_to_elements[coord_key].push_back(elemId);
-        
-//         // Add this point to the element's list
-//         element_points[elemId].push_back(point);
-//     }
-    
-//     // Find connected element pairs (elements that share intersection points)
-//     std::map<int, std::set<int>> element_neighbors;
-    
-//     for (const auto& [coord, elements] : point_to_elements) {
-//         // If this point belongs to multiple elements, they are neighbors
-//         for (size_t i = 0; i < elements.size(); ++i) {
-//             for (size_t j = i+1; j < elements.size(); ++j) {
-//                 int elem1 = elements[i];
-//                 int elem2 = elements[j];
-                
-//                 // Mark as neighbors
-//                 element_neighbors[elem1].insert(elem2);
-//                 element_neighbors[elem2].insert(elem1);
-//             }
-//         }
-//     }
-    
-//     // Now, for each element, fit a circle using its points and its neighbors' points
-//     struct CircleCoefficients {
-//         double a;  // x-center
-//         double b;  // y-center
-//         double c;  // radius squared
-//     };
-    
-//     std::map<int, CircleCoefficients> elementFits;
-    
-//     for (const auto& [elemId, neighbors] : element_neighbors) {
-//         // Collect all points from this element and its neighbors
-//         std::vector<IntersectionPointData> combined_points = element_points[elemId];
-        
-//         for (int neighborId : neighbors) {
-//             // Add neighbor's points
-//             combined_points.insert(combined_points.end(), 
-//                                  element_points[neighborId].begin(), 
-//                                  element_points[neighborId].end());
-//         }
-        
-//         // Remove duplicate points
-//         std::map<std::pair<double, double>, IntersectionPointData> unique_points;
-//         for (const auto& point : combined_points) {
-//             double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
-//             double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
-//             std::pair<double, double> key(x, y);
-//             unique_points[key] = point;
-//         }
-        
-//         // Convert back to vector
-//         combined_points.clear();
-//         for (const auto& [_, point] : unique_points) {
-//             combined_points.push_back(point);
-//         }
-        
-//         // We need at least 3 points to fit a circle
-//         if (combined_points.size() >= 3) {
-//             // Circle fitting using algebraic approach
-//             // For a circle (x-a)^2 + (y-b)^2 = c, we can expand to:
-//             // x^2 - 2ax + a^2 + y^2 - 2by + b^2 = c
-//             // x^2 + y^2 = 2ax + 2by - a^2 - b^2 + c
-//             // x^2 + y^2 = 2ax + 2by + d, where d = -a^2 - b^2 + c
-            
-//             // Set up matrices for least squares fitting
-//             double sum_x = 0.0, sum_y = 0.0;
-//             double sum_x2 = 0.0, sum_y2 = 0.0;
-//             double sum_xy = 0.0;  // sum of x*y
-//             double sum_x2y2 = 0.0;  // sum of (x^2 + y^2)
-//             double sum_x3 = 0.0, sum_xy2 = 0.0;
-//             double sum_x2y = 0.0, sum_y3 = 0.0;
-            
-//             for (const auto& point : combined_points) {
-//                 double x = point.coordinates[0];
-//                 double y = point.coordinates[1];
-                
-//                 double x2 = x * x;
-//                 double y2 = y * y;
-                
-//                 sum_x += x;
-//                 sum_y += y;
-//                 sum_x2 += x2;
-//                 sum_y2 += y2;
-//                 sum_xy += x * y;
-//                 sum_x2y2 += (x2 + y2);
-//                 sum_x3 += x * x2;
-//                 sum_xy2 += x * y2;
-//                 sum_x2y += x2 * y;
-//                 sum_y3 += y * y2;
-//             }
-            
-//             int n = combined_points.size();
-            
-//             // Create the system of equations
-//             Matrix A(3, 3);
-//             Vector b(3);
-            
-//             A(0, 0) = sum_x2;    A(0, 1) = sum_xy;    A(0, 2) = sum_x;
-//             A(1, 0) = sum_xy;    A(1, 1) = sum_y2;    A(1, 2) = sum_y;
-//             A(2, 0) = sum_x;     A(2, 1) = sum_y;     A(2, 2) = n;
-            
-//             // For equation: x^2 + y^2 = 2ax + 2by + d
-//             // The right side is x^2 + y^2
-//             b[0] = sum_x3 + sum_xy2;  // sum of x * (x^2 + y^2)
-//             b[1] = sum_x2y + sum_y3;  // sum of y * (x^2 + y^2)
-//             b[2] = sum_x2y2;          // sum of (x^2 + y^2)
-            
-//             // Solve using Cramer's rule
-//             double det = A(0, 0) * (A(1, 1) * A(2, 2) - A(2, 1) * A(1, 2)) -
-//                          A(0, 1) * (A(1, 0) * A(2, 2) - A(1, 2) * A(2, 0)) +
-//                          A(0, 2) * (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0));
 
-//             // No early termination for small determinants
-            
-//             Matrix A1 = A, A2 = A, A3 = A;
-            
-//             for (int i = 0; i < 3; i++) {
-//                 A1(i, 0) = b[i];
-//                 A2(i, 1) = b[i];
-//                 A3(i, 2) = b[i];
-//             }
-            
-//             double det1 = A1(0, 0) * (A1(1, 1) * A1(2, 2) - A1(2, 1) * A1(1, 2)) -
-//                           A1(0, 1) * (A1(1, 0) * A1(2, 2) - A1(1, 2) * A1(2, 0)) +
-//                           A1(0, 2) * (A1(1, 0) * A1(2, 1) - A1(1, 1) * A1(2, 0));
-                          
-//             double det2 = A2(0, 0) * (A2(1, 1) * A2(2, 2) - A2(2, 1) * A2(1, 2)) -
-//                           A2(0, 1) * (A2(1, 0) * A2(2, 2) - A2(1, 2) * A2(2, 0)) +
-//                           A2(0, 2) * (A2(1, 0) * A2(2, 1) - A2(1, 1) * A2(2, 0));
-                          
-//             double det3 = A3(0, 0) * (A3(1, 1) * A3(2, 2) - A3(2, 1) * A3(1, 2)) -
-//                           A3(0, 1) * (A3(1, 0) * A3(2, 2) - A3(1, 2) * A3(2, 0)) +
-//                           A3(0, 2) * (A3(1, 0) * A3(2, 1) - A3(1, 1) * A3(2, 0));
-            
-//             // Solve for parameters in the form 2ax + 2by + d = x^2 + y^2
-//             double twoA = det1 / det;
-//             double twoB = det2 / det;
-//             double d = det3 / det;
-            
-//             CircleCoefficients fit;
-//             fit.a = twoA / 2.0;  // center x-coordinate
-//             fit.b = twoB / 2.0;  // center y-coordinate
-            
-//             // Calculate radius squared (c)
-//             // From d = -a^2 - b^2 + c, we get:
-//             // c = d + a^2 + b^2
-//             fit.c = d + fit.a * fit.a + fit.b * fit.b;
-            
-//             // Store the fit
-//             elementFits[elemId] = fit;
-            
-//             // Calculate the actual radius for display
-//             double radius = std::sqrt(fit.c);
-            
-//             std::cout << "Element " << elemId 
-//                       << " with " << combined_points.size() 
-//                       << " points (including neighbors): (x-" << fit.a 
-//                       << ")² + (y-" << fit.b << ")² = " << fit.c 
-//                       << " (radius = " << radius << ")" << std::endl;
-//         } else {
-//             std::cout << "Element " << elemId 
-//                       << " still has only " << combined_points.size() 
-//                       << " unique points (less than 3) - cannot fit circle." << std::endl;
-//         }
-//     }
-    
-//     // Save results to file
-//     std::ofstream outFile(output_file);
-    
-//     if (!outFile.is_open()) {
-//         std::cerr << "Error: Could not open file " << output_file << " for writing." << std::endl;
-//         return;
-//     }
-    
-//     outFile << "Element_ID\tNum_Points\ta(center_x)\tb(center_y)\tc(radius_squared)\tradius\n";
-    
-//     for (const auto& fit_pair : elementFits) {
-//         int elemId = fit_pair.first;
-//         const auto& fit = fit_pair.second;
-//         int numPoints = element_points[elemId].size();
-//         double radius = std::sqrt(fit.c);
-        
-//         outFile << elemId << "\t" 
-//                 << numPoints << "\t"
-//                 << fit.a << "\t" 
-//                 << fit.b << "\t" 
-//                 << fit.c << "\t"
-//                 << radius << "\n";
-//     }
-    
-//     outFile.close();
-    
-//     std::cout << "Saved " << elementFits.size() << " element circle fits to " << output_file << std::endl;
-// }
-/////////////////////////////////////////////////
-// void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std::string& output_file)
-// {
-//     // Get all intersection points
-//     const auto& points = g_IntersectionPointsContainer;
-    
-//     if (points.empty()) {
-//         std::cout << "No intersection points available for circle fitting." << std::endl;
-//         return;
-//     }
-    
-//     // Configuration parameters
-//     const int MIN_POINTS_FOR_CIRCLE_FIT = 3;  // Absolute minimum needed for circle
-//     const int TARGET_POINTS = 6;              // Target number of points for each element
-//     const int NEIGHBOR_EXPANSION_LEVEL = 3;   // Expand to n-hop neighbors
-    
-//     std::cout << "Starting circle fitting with " << points.size() << " intersection points." << std::endl;
-//     std::cout << "Using exactly " << TARGET_POINTS << " points per element where possible." << std::endl;
-    
-//     // Group points by element
-//     std::map<int, std::vector<IntersectionPointData>> element_points;
-//     // Create a map of points by their coordinates
-//     std::map<std::pair<double, double>, std::vector<int>> point_to_elements;
-    
-//     for (const auto& point : points) {
-//         int elemId = point.elementId;
-        
-//         // Round coordinates to handle floating point precision
-//         double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
-//         double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
-//         std::pair<double, double> coord_key(x, y);
-        
-//         // Add this element to the list for this point
-//         point_to_elements[coord_key].push_back(elemId);
-        
-//         // Add this point to the element's list
-//         element_points[elemId].push_back(point);
-//     }
-    
-//     // Find element neighbors (elements that share intersection points)
-//     std::map<int, std::set<int>> element_neighbors;
-    
-//     for (const auto& [coord, elements] : point_to_elements) {
-//         // If this point belongs to multiple elements, they are neighbors
-//         for (size_t i = 0; i < elements.size(); ++i) {
-//             for (size_t j = i+1; j < elements.size(); ++j) {
-//                 element_neighbors[elements[i]].insert(elements[j]);
-//                 element_neighbors[elements[j]].insert(elements[i]);
-//             }
-//         }
-//     }
-    
-//     // Expand the neighborhood to n-hop neighbors
-//     std::cout << "Expanding neighborhood with " << NEIGHBOR_EXPANSION_LEVEL << " hops..." << std::endl;
-//     std::map<int, std::set<int>> expanded_neighbors = element_neighbors;
-    
-//     for (int hop = 2; hop <= NEIGHBOR_EXPANSION_LEVEL; hop++) {
-//         std::map<int, std::set<int>> next_level_neighbors = expanded_neighbors;
-        
-//         for (const auto& [elemId, current_neighbors] : expanded_neighbors) {
-//             for (int neighbor : current_neighbors) {
-//                 for (int next_hop : expanded_neighbors[neighbor]) {
-//                     if (next_hop != elemId && !expanded_neighbors[elemId].count(next_hop)) {
-//                         next_level_neighbors[elemId].insert(next_hop);
-//                     }
-//                 }
-//             }
-//         }
-        
-//         expanded_neighbors = next_level_neighbors;
-//         std::cout << "Completed " << hop << "-hop neighborhood expansion." << std::endl;
-//     }
-    
-//     // Structure to hold circle fit coefficients
-//     struct CircleCoefficients {
-//         double a;  // x-center
-//         double b;  // y-center
-//         double c;  // radius squared
-//     };
-    
-//     // Maps to store results
-//     std::map<int, CircleCoefficients> elementFits;
-//     std::map<int, int> elementTotalPoints;
-    
-//     // Process each element
-//     for (const auto& [elemId, neighbors] : expanded_neighbors) {
-//         // Get original points for this element
-//         std::vector<IntersectionPointData> original_points = element_points[elemId];
-//         int original_point_count = original_points.size();
-        
-//         // Create a pool of neighbor points
-//         std::vector<IntersectionPointData> neighbor_points;
-//         for (int neighborId : neighbors) {
-//             neighbor_points.insert(neighbor_points.end(), 
-//                                  element_points[neighborId].begin(), 
-//                                  element_points[neighborId].end());
-//         }
-        
-//         // Remove duplicates and points shared with original set
-//         std::map<std::pair<double, double>, IntersectionPointData> unique_neighbor_points;
-//         for (const auto& point : neighbor_points) {
-//             double x = std::round(point.coordinates[0] * 10000000.0) / 10000000.0;
-//             double y = std::round(point.coordinates[1] * 10000000.0) / 10000000.0;
-//             std::pair<double, double> key(x, y);
-            
-//             // Skip points that are in the original set
-//             bool is_in_original = false;
-//             for (const auto& orig_point : original_points) {
-//                 double ox = std::round(orig_point.coordinates[0] * 10000000.0) / 10000000.0;
-//                 double oy = std::round(orig_point.coordinates[1] * 10000000.0) / 10000000.0;
-//                 if (ox == x && oy == y) {
-//                     is_in_original = true;
-//                     break;
-//                 }
-//             }
-            
-//             if (!is_in_original) {
-//                 unique_neighbor_points[key] = point;
-//             }
-//         }
-        
-//         // Create a vector of unique neighbor points
-//         neighbor_points.clear();
-//         for (const auto& [_, point] : unique_neighbor_points) {
-//             neighbor_points.push_back(point);
-//         }
-        
-//         // Build the set of points for circle fitting
-//         std::vector<IntersectionPointData> combined_points = original_points;
-        
-//         // Add only enough points to reach the target
-//         int points_to_take = std::min((int)neighbor_points.size(), 
-//                                      TARGET_POINTS - original_point_count);
-        
-//         for (int i = 0; i < points_to_take; i++) {
-//             combined_points.push_back(neighbor_points[i]);
-//         }
-        
-//         int points_from_neighbors = points_to_take;
-        
-//         // Only fit if we have enough points
-//         if (combined_points.size() >= MIN_POINTS_FOR_CIRCLE_FIT) {
-//             std::cout << "Element " << elemId 
-//                       << " has exactly " << combined_points.size() 
-//                       << " points for circle fitting (" 
-//                       << original_point_count << " original + " 
-//                       << points_from_neighbors << " from neighbors)." << std::endl;
-            
-//             // Prepare matrices for least squares fitting
-//             double sum_x = 0.0, sum_y = 0.0;
-//             double sum_x2 = 0.0, sum_y2 = 0.0;
-//             double sum_xy = 0.0;
-//             double sum_x2y2 = 0.0;  // sum of (x^2 + y^2)
-//             double sum_x3 = 0.0, sum_xy2 = 0.0;
-//             double sum_x2y = 0.0, sum_y3 = 0.0;
-            
-//             for (const auto& point : combined_points) {
-//                 double x = point.coordinates[0];
-//                 double y = point.coordinates[1];
-                
-//                 double x2 = x * x;
-//                 double y2 = y * y;
-                
-//                 sum_x += x;
-//                 sum_y += y;
-//                 sum_x2 += x2;
-//                 sum_y2 += y2;
-//                 sum_xy += x * y;
-//                 sum_x2y2 += (x2 + y2);
-//                 sum_x3 += x * x2;
-//                 sum_xy2 += x * y2;
-//                 sum_x2y += x2 * y;
-//                 sum_y3 += y * y2;
-//             }
-            
-//             int n = combined_points.size();
-            
-//             // Set up the system of equations: x^2 + y^2 = 2ax + 2by + d
-//             Matrix A(3, 3);
-//             Vector b(3);
-            
-//             A(0, 0) = sum_x2;    A(0, 1) = sum_xy;    A(0, 2) = sum_x;
-//             A(1, 0) = sum_xy;    A(1, 1) = sum_y2;    A(1, 2) = sum_y;
-//             A(2, 0) = sum_x;     A(2, 1) = sum_y;     A(2, 2) = n;
-            
-//             b[0] = sum_x3 + sum_xy2;  // sum of x * (x^2 + y^2)
-//             b[1] = sum_x2y + sum_y3;  // sum of y * (x^2 + y^2)
-//             b[2] = sum_x2y2;          // sum of (x^2 + y^2)
-            
-//             // Solve using Cramer's rule
-//             double det = A(0, 0) * (A(1, 1) * A(2, 2) - A(2, 1) * A(1, 2)) -
-//                          A(0, 1) * (A(1, 0) * A(2, 2) - A(1, 2) * A(2, 0)) +
-//                          A(0, 2) * (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0));
-            
-//             Matrix A1 = A, A2 = A, A3 = A;
-            
-//             for (int i = 0; i < 3; i++) {
-//                 A1(i, 0) = b[i];
-//                 A2(i, 1) = b[i];
-//                 A3(i, 2) = b[i];
-//             }
-            
-//             double det1 = A1(0, 0) * (A1(1, 1) * A1(2, 2) - A1(2, 1) * A1(1, 2)) -
-//                           A1(0, 1) * (A1(1, 0) * A1(2, 2) - A1(1, 2) * A1(2, 0)) +
-//                           A1(0, 2) * (A1(1, 0) * A1(2, 1) - A1(1, 1) * A1(2, 0));
-                          
-//             double det2 = A2(0, 0) * (A2(1, 1) * A2(2, 2) - A2(2, 1) * A2(1, 2)) -
-//                           A2(0, 1) * (A2(1, 0) * A2(2, 2) - A2(1, 2) * A2(2, 0)) +
-//                           A2(0, 2) * (A2(1, 0) * A2(2, 1) - A2(1, 1) * A2(2, 0));
-                          
-//             double det3 = A3(0, 0) * (A3(1, 1) * A3(2, 2) - A3(2, 1) * A3(1, 2)) -
-//                           A3(0, 1) * (A3(1, 0) * A3(2, 2) - A3(1, 2) * A3(2, 0)) +
-//                           A3(0, 2) * (A3(1, 0) * A3(2, 1) - A3(1, 1) * A3(2, 0));
-            
-//             // Solve for parameters
-//             double twoA = det1 / det;
-//             double twoB = det2 / det;
-//             double d = det3 / det;
-            
-//             CircleCoefficients fit;
-//             fit.a = twoA / 2.0;  // x-center
-//             fit.b = twoB / 2.0;  // y-center
-//             fit.c = d + fit.a * fit.a + fit.b * fit.b;  // radius squared
-            
-//             // Store results
-//             elementFits[elemId] = fit;
-//             elementTotalPoints[elemId] = combined_points.size();
-            
-//             // Calculate error on original points
-//             double radius = std::sqrt(fit.c);
-//             double total_error = 0.0;
-            
-//             for (const auto& point : original_points) {
-//                 double x = point.coordinates[0];
-//                 double y = point.coordinates[1];
-//                 double dist_squared = (x - fit.a) * (x - fit.a) + (y - fit.b) * (y - fit.b);
-//                 total_error += std::abs(dist_squared - fit.c);
-//             }
-            
-//             double avg_error = total_error / (original_points.empty() ? 1.0 : original_points.size());
-//             double reliability = std::min(1.0, (double)combined_points.size() / 6.0);
-            
-//             std::cout << "Element " << elemId 
-//                       << " fitted with " << combined_points.size() 
-//                       << " points: (x-" << fit.a 
-//                       << ")² + (y-" << fit.b << ")² = " << fit.c 
-//                       << " (radius = " << radius 
-//                       << ", reliability = " << std::fixed << std::setprecision(2) << reliability * 100.0 << "%)" 
-//                       << std::endl;
-//             std::cout << "    Average fit error on original points: " << avg_error << std::endl;
-//         } else {
-//             std::cout << "Element " << elemId 
-//                       << " has only " << combined_points.size() 
-//                       << " unique points (less than " << MIN_POINTS_FOR_CIRCLE_FIT 
-//                       << " required) - cannot perform circle fitting." << std::endl;
-//         }
-//     }
-    
-//     // Write results to file
-//     std::ofstream outFile(output_file);
-    
-//     if (!outFile.is_open()) {
-//         std::cerr << "Error: Could not open file " << output_file << " for writing." << std::endl;
-//         return;
-//     }
-    
-//     outFile << "Element_ID\tNum_Original_Points\tTotal_Points\ta(center_x)\tb(center_y)\tc(radius_squared)\tradius\tavg_error\treliability\n";
-    
-//     for (const auto& [elemId, fit] : elementFits) {
-//         int numPoints = element_points[elemId].size();
-//         int totalPoints = elementTotalPoints[elemId];
-//         double radius = std::sqrt(fit.c);
-        
-//         // Calculate error
-//         double total_error = 0.0;
-//         for (const auto& point : element_points[elemId]) {
-//             double x = point.coordinates[0];
-//             double y = point.coordinates[1];
-//             double dist_squared = (x - fit.a) * (x - fit.a) + (y - fit.b) * (y - fit.b);
-//             total_error += std::abs(dist_squared - fit.c);
-//         }
-        
-//         double avg_error = total_error / (numPoints > 0 ? numPoints : 1.0);
-//         double reliability = std::min(1.0, (double)totalPoints / 6.0);
-        
-//         outFile << elemId << "\t" 
-//                 << numPoints << "\t"
-//                 << totalPoints << "\t"
-//                 << fit.a << "\t" 
-//                 << fit.b << "\t" 
-//                 << fit.c << "\t"
-//                 << radius << "\t"
-//                 << avg_error << "\t"
-//                 << reliability << "\n";
-//     }
-    
-//     outFile.close();
-    
-//     std::cout << "Saved " << elementFits.size() << " element circle fits to " << output_file << std::endl;
-//     std::cout << "Each element used exactly " << TARGET_POINTS << " points where possible." << std::endl;
-// }
 #include <iomanip>  // For std::setprecision
 
 void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std::string& output_file)
@@ -816,7 +252,7 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std:
     
     // Configuration parameters
     const int MIN_POINTS_FOR_CIRCLE_FIT = 3;  // Absolute minimum needed for circle
-    const int NEIGHBOR_EXPANSION_LEVEL = 2;   // Expand to n-hop neighbors
+    const int NEIGHBOR_EXPANSION_LEVEL = 4;   // Expand to n-hop neighbors
     
     std::cout << "Starting circle fitting with " << points.size() << " intersection points." << std::endl;
     std::cout << "Using all available points from 2-hop neighborhoods." << std::endl;
@@ -830,8 +266,8 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std:
         int elemId = point.elementId;
         
         // Round coordinates to handle floating point precision
-        double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
-        double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
+        double x = std::round(point.coordinates[0] * 1.0E15) / 1.0E15;
+        double y = std::round(point.coordinates[1] * 1.0E15) / 1.0E15;
         std::pair<double, double> coord_key(x, y);
         
         // Add this element to the list for this point
@@ -904,15 +340,15 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std:
         // Remove duplicates and points shared with original set
         std::map<std::pair<double, double>, IntersectionPointData> unique_neighbor_points;
         for (const auto& point : neighbor_points) {
-            double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
-            double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
+            double x = std::round(point.coordinates[0] * 1.0E15) / 1.0E15;
+            double y = std::round(point.coordinates[1] * 1.0E15) / 1.0E15;
             std::pair<double, double> key(x, y);
             
             // Skip points that are in the original set
             bool is_in_original = false;
             for (const auto& orig_point : original_points) {
-                double ox = std::round(orig_point.coordinates[0] * 1.0E14) / 1.0E14;
-                double oy = std::round(orig_point.coordinates[1] * 1.0E14) / 1.0E14;
+                double ox = std::round(orig_point.coordinates[0] * 1.0E15) / 1.0E15;
+                double oy = std::round(orig_point.coordinates[1] * 1.0E15) / 1.0E15;
                 if (ox == x && oy == y) {
                     is_in_original = true;
                     break;
@@ -991,6 +427,7 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurves(const std:
             double det = A(0, 0) * (A(1, 1) * A(2, 2) - A(2, 1) * A(1, 2)) -
                          A(0, 1) * (A(1, 0) * A(2, 2) - A(1, 2) * A(2, 0)) +
                          A(0, 2) * (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0));
+
             
             Matrix A1 = A, A2 = A, A3 = A;
             
@@ -1108,7 +545,7 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(co
     
     // Configuration parameters
     const int MIN_POINTS_FOR_CURVE_FIT = 3;  // Absolute minimum needed for quadratic
-    const int NEIGHBOR_EXPANSION_LEVEL = 2;   // Expand to n-hop neighbors
+    const int NEIGHBOR_EXPANSION_LEVEL = 4;   // Expand to n-hop neighbors
     
     std::cout << "Starting quadratic curve fitting with " << points.size() << " intersection points." << std::endl;
     std::cout << "Using all available points from 2-hop neighborhoods." << std::endl;
@@ -1122,8 +559,8 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(co
         int elemId = point.elementId;
         
         // Round coordinates to handle floating point precision
-        double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
-        double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
+        double x = std::round(point.coordinates[0] * 1.0E15) / 1.0E15;
+        double y = std::round(point.coordinates[1] * 1.0E15) / 1.0E15;
         std::pair<double, double> coord_key(x, y);
         
         // Add this element to the list for this point
@@ -1196,15 +633,15 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(co
         // Remove duplicates and points shared with original set
         std::map<std::pair<double, double>, IntersectionPointData> unique_neighbor_points;
         for (const auto& point : neighbor_points) {
-            double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
-            double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
+            double x = std::round(point.coordinates[0] * 1.0E15) / 1.0E15;
+            double y = std::round(point.coordinates[1] * 1.0E15) / 1.0E15;
             std::pair<double, double> key(x, y);
             
             // Skip points that are in the original set
             bool is_in_original = false;
             for (const auto& orig_point : original_points) {
-                double ox = std::round(orig_point.coordinates[0] * 1.0E14) / 1.0E14;
-                double oy = std::round(orig_point.coordinates[1] * 1.0E14) / 1.0E14;
+                double ox = std::round(orig_point.coordinates[0] * 1.0E15) / 1.0E15;
+                double oy = std::round(orig_point.coordinates[1] * 1.0E15) / 1.0E15;
                 if (ox == x && oy == y) {
                     is_in_original = true;
                     break;
@@ -1275,8 +712,7 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitCurvesparabola(co
             // Solve using Cramer's rule
             double det = A(0, 0) * (A(1, 1) * A(2, 2) - A(2, 1) * A(1, 2)) -
                          A(0, 1) * (A(1, 0) * A(2, 2) - A(1, 2) * A(2, 0)) +
-                         A(0, 2) * (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0));
-            
+                         A(0, 2) * (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0));         
             Matrix A1 = A, A2 = A, A3 = A;
             
             for (int i = 0; i < 3; i++) {
@@ -1395,7 +831,7 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitGeneralConic(cons
     
     // Configuration parameters
     const int MIN_POINTS_FOR_CURVE_FIT = 5;  // Minimum needed for general conic section
-    const int NEIGHBOR_EXPANSION_LEVEL = 3;   // Expand to n-hop neighbors
+    const int NEIGHBOR_EXPANSION_LEVEL = 6;   // Expand to n-hop neighbors
     
     std::cout << "Starting general conic section fitting with " << points.size() << " intersection points." << std::endl;
     std::cout << "Using all available points from 2-hop neighborhoods." << std::endl;
@@ -1409,8 +845,8 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitGeneralConic(cons
         int elemId = point.elementId;
         
         // Round coordinates to handle floating point precision
-        double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
-        double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
+        double x = std::round(point.coordinates[0] * 1.0E15) / 1.0E15;
+        double y = std::round(point.coordinates[1] * 1.0E15) / 1.0E15;
         std::pair<double, double> coord_key(x, y);
         
         // Add this element to the list for this point
@@ -1485,15 +921,15 @@ void IntersectionPointsUtility::ProcessIntersectionPointsAndFitGeneralConic(cons
         // Remove duplicates and points shared with original set
         std::map<std::pair<double, double>, IntersectionPointData> unique_neighbor_points;
         for (const auto& point : neighbor_points) {
-            double x = std::round(point.coordinates[0] * 1.0E14) / 1.0E14;
-            double y = std::round(point.coordinates[1] * 1.0E14) / 1.0E14;
+            double x = std::round(point.coordinates[0] * 1.0E15) / 1.0E15;
+            double y = std::round(point.coordinates[1] * 1.0E15) / 1.0E15;
             std::pair<double, double> key(x, y);
             
             // Skip points that are in the original set
             bool is_in_original = false;
             for (const auto& orig_point : original_points) {
-                double ox = std::round(orig_point.coordinates[0] * 1.0E14) / 1.0E14;
-                double oy = std::round(orig_point.coordinates[1] * 1.0E14) / 1.0E14;
+                double ox = std::round(orig_point.coordinates[0] * 1.0E15) / 1.0E15;
+                double oy = std::round(orig_point.coordinates[1] * 1.0E15) / 1.0E15;
                 if (ox == x && oy == y) {
                     is_in_original = true;
                     break;
@@ -1782,5 +1218,929 @@ double IntersectionPointsUtility::determinant3x3(const Matrix& A) {
            A(0, 2) * (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0));
 }
 /////////////////////////////////////////////////////////
+    // Initialize the static container
+    std::vector<InterfaceAverageData> InterfaceAveragesUtility::mInterfaceAverageContainer;
+
+    void InterfaceAveragesUtility::ClearInterfaceAverages()
+    {
+        mInterfaceAverageContainer.clear();
+    }
+    
+    const std::vector<InterfaceAverageData>& InterfaceAveragesUtility::GetInterfaceAverages()
+    {
+        return mInterfaceAverageContainer;
+    }
+
+    void InterfaceAveragesUtility::CollectElementInterfaceAverages(Element::Pointer pElement)
+    {
+        // Get the geometry and distance values from the element
+        auto p_geom = pElement->pGetGeometry();
+        
+        // Only proceed if the element is properly initialized
+        if (!p_geom) return;
+        
+        // Get the distance values from the element's nodes
+        Vector nodal_distances;
+        nodal_distances.resize(p_geom->size());
+        
+        for (unsigned int i = 0; i < p_geom->size(); ++i) {
+            nodal_distances[i] = (*p_geom)[i].FastGetSolutionStepValue(DISTANCE);
+        }
+
+        // Check if the element is actually split by the interface
+        bool is_split = false;
+        const double sign_threshold = 1e-14;
+        int pos_count = 0, neg_count = 0;
+        for (unsigned int i = 0; i < p_geom->size(); ++i) {
+            if (nodal_distances[i] > sign_threshold) {
+                pos_count++;
+            } else if (nodal_distances[i] < -sign_threshold) {
+                neg_count++;
+            }
+        }
+        
+        // Element is split only if it has both positive and negative distance values
+        is_split = (pos_count > 0 && neg_count > 0);
+        
+        // Only proceed with calculations if the element is actually split
+        if (!is_split) {
+            return; // Skip this element as it's not split by the interface
+        }
+        
+        // Structure nodes info (if needed)
+        Vector structure_node_id = ZeroVector(p_geom->size());
+        
+        // Create the modified shape functions utility
+        ModifiedShapeFunctions::Pointer p_modified_sh_func;
+        
+        // Create the appropriate modified shape functions based on geometry type
+        if (p_geom->GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
+            p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, nodal_distances, structure_node_id);
+        } 
+        else if (p_geom->GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) {
+            p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, nodal_distances, structure_node_id);
+        }
+        
+        if (p_modified_sh_func) {
+            // Prepare variables to store interface data
+            Matrix interface_shape_function_neg;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType interface_shape_derivatives_neg;
+            Vector interface_weights_neg;
+            std::vector<array_1d<double,3>> interface_normals_neg;
+            
+            try {
+                // Calculate interface shape functions, weights, and normals
+                p_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+                    interface_shape_function_neg,
+                    interface_shape_derivatives_neg,
+                    interface_weights_neg,
+                    GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    
+                p_modified_sh_func->ComputeNegativeSideInterfaceAreaNormals(
+                    interface_normals_neg,
+                    GeometryData::IntegrationMethod::GI_GAUSS_2);
+            }
+            catch (std::exception& e) {
+                std::cerr << "Error in element " << pElement->Id() << " computing interface: " << e.what() << std::endl;
+                return;
+            }
+                
+            // Normalize interface normals
+            for (unsigned int gp = 0; gp < interface_normals_neg.size(); ++gp) {
+                const double normal_norm = norm_2(interface_normals_neg[gp]);
+                if (normal_norm > 1e-10) {
+                    interface_normals_neg[gp] /= normal_norm;
+                }
+            }
+            
+            // Only proceed if we have interface points
+            if (interface_weights_neg.size() > 0) {
+                // Create and compute the average interface data
+                InterfaceAverageData avg_data;
+                avg_data.elementId = pElement->Id();
+                avg_data.numberOfPoints = interface_weights_neg.size();
+                avg_data.interfaceArea = 0.0;
+                
+                // Initialize average coordinates and normal to zero
+                avg_data.averageCoordinates = ZeroVector(3);
+                avg_data.averageNormal = ZeroVector(3);
+                
+                // Calculate the global coordinates of each interface Gauss point
+                std::vector<array_1d<double,3>> interface_global_coords;
+                interface_global_coords.resize(interface_weights_neg.size());
+                
+                // Initialize to zero
+                for (unsigned int gp = 0; gp < interface_weights_neg.size(); ++gp) {
+                    interface_global_coords[gp] = ZeroVector(3);
+                }
+                
+                // Calculate global coordinates using shape functions
+                for (unsigned int gp = 0; gp < interface_weights_neg.size(); ++gp) {
+                    for (unsigned int i_node = 0; i_node < p_geom->size(); ++i_node) {
+                        const array_1d<double, 3>& r_node_coords = (*p_geom)[i_node].Coordinates();
+                        for (unsigned int d = 0; d < 3; ++d) {
+                            interface_global_coords[gp][d] += interface_shape_function_neg(gp, i_node) * r_node_coords[d];
+                        }
+                    }
+                }
+                
+                // Compute total interface area
+                for (unsigned int gp = 0; gp < interface_weights_neg.size(); ++gp) {
+                    avg_data.interfaceArea += interface_weights_neg[gp];
+                }
+                
+                // Compute weighted average coordinates and normal in a simpler way
+                for (unsigned int gp = 0; gp < interface_weights_neg.size(); ++gp) {
+                    avg_data.averageCoordinates += interface_weights_neg[gp] * interface_global_coords[gp];
+                    avg_data.averageNormal += interface_weights_neg[gp] * interface_normals_neg[gp];
+                }
+                
+                // Finalize the averages by dividing by the total interface area
+                if (avg_data.interfaceArea > 1e-10) {
+                    avg_data.averageCoordinates /= avg_data.interfaceArea;
+                    
+                    // Normalize the average normal
+                    const double avg_normal_norm = norm_2(avg_data.averageNormal);
+                    if (avg_normal_norm > 1e-10) {
+                        avg_data.averageNormal /= avg_normal_norm;
+                    }
+                }
+                
+                // Add the data to the container
+                mInterfaceAverageContainer.push_back(avg_data);
+                
+                std::cout << "Processed interface averages for element " << pElement->Id() 
+                          << " with " << interface_weights_neg.size() << " interface points" << std::endl;
+            }
+        }
+    }
+    
+    void InterfaceAveragesUtility::ComputeModelPartInterfaceAverages(const ModelPart& rModelPart)
+    {
+        // Clear previous data
+        ClearInterfaceAverages();
+        
+        // Process each element in the model part
+        for (ModelPart::ElementsContainerType::const_iterator it = rModelPart.ElementsBegin(); 
+             it != rModelPart.ElementsEnd(); ++it) {
+            Element::Pointer p_element = *(it.base());
+            CollectElementInterfaceAverages(p_element);
+        }
+        
+        std::cout << "Computed interface averages for " << mInterfaceAverageContainer.size() 
+                  << " elements in model part " << rModelPart.Name() << std::endl;
+    }
+    
+    void InterfaceAveragesUtility::SaveInterfaceAveragesToFile(const std::string& filename)
+    {
+        std::cout << "Saving " << mInterfaceAverageContainer.size() << " interface averages to file: " << filename << std::endl;
+        
+        std::ofstream outFile(filename);
+        
+        if (!outFile.is_open()) {
+            std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
+            return;
+        }
+
+        outFile << std::fixed << std::setprecision(15);  
+        outFile << "Element_ID\tX_avg\tY_avg\tZ_avg\tNormal_X\tNormal_Y\tNormal_Z\tInterface_Area\tNum_Points" << std::endl;
+        
+        for (const auto& avg : mInterfaceAverageContainer) {
+            outFile << avg.elementId << "\t" 
+                   << avg.averageCoordinates[0] << "\t" 
+                   << avg.averageCoordinates[1] << "\t" 
+                   << avg.averageCoordinates[2] << "\t"
+                   << avg.averageNormal[0] << "\t"
+                   << avg.averageNormal[1] << "\t"
+                   << avg.averageNormal[2] << "\t"
+                   << avg.interfaceArea << "\t"
+                   << avg.numberOfPoints << std::endl;
+        }
+        
+        outFile.close();
+        std::cout << "Successfully wrote " << mInterfaceAverageContainer.size() << " interface averages to " << filename << std::endl;
+    }
+    
+    void InterfaceAveragesUtility::DiagnosticOutput(const ModelPart& rModelPart)
+    {
+        int total_elements = rModelPart.NumberOfElements();
+        int split_elements = 0;
+        int elements_with_interface = mInterfaceAverageContainer.size();
+        double total_interface_area = 0.0;
+        
+        for (const auto& avg : mInterfaceAverageContainer) {
+            total_interface_area += avg.interfaceArea;
+        }
+        
+        for (ModelPart::ElementsContainerType::const_iterator it = rModelPart.ElementsBegin(); 
+             it != rModelPart.ElementsEnd(); ++it) {
+            auto p_geom = it->pGetGeometry();
+            if (!p_geom) continue;
+            
+            // Get the distance values
+            Vector nodal_distances;
+            nodal_distances.resize(p_geom->size());
+            for (unsigned int i = 0; i < p_geom->size(); ++i) {
+                nodal_distances[i] = (*p_geom)[i].FastGetSolutionStepValue(DISTANCE);
+            }
+            
+            // Check if element is split
+            const double sign_threshold = 1e-14;
+            int pos_count = 0, neg_count = 0;
+            for (unsigned int i = 0; i < p_geom->size(); ++i) {
+                if (nodal_distances[i] > sign_threshold) {
+                    pos_count++;
+                } else if (nodal_distances[i] < -sign_threshold) {
+                    neg_count++;
+                }
+            }
+            
+            bool is_split = (pos_count > 0 && neg_count > 0);
+            
+            if (is_split) {
+                split_elements++;
+            }
+        }
+        
+        std::cout << "Interface Averages Diagnostic Output:" << std::endl;
+        std::cout << "Total Elements: " << total_elements << std::endl;
+        std::cout << "Split Elements: " << split_elements << std::endl;
+        std::cout << "Elements with Interface Data: " << elements_with_interface << std::endl;
+        std::cout << "Total Interface Area: " << total_interface_area << std::endl;
+        
+        if (elements_with_interface > 0) {
+            std::cout << "Average Interface Area per Element: " << total_interface_area / elements_with_interface << std::endl;
+        }
+    }
+    
+    // void InterfaceAveragesUtility::ApplyInterfaceAveragesToModelPart(ModelPart& rModelPart, const std::string& variable_name)
+    // {
+    //     // This is an example of how you might use the interface averages
+    //     // to set a variable on the elements
+        
+    //     // For example, set the average interface coordinates or normals as element variables
+    //     for (const auto& avg_data : mInterfaceAverageContainer) {
+    //         // Find the element
+    //         auto elem_iterator = rModelPart.Elements().find(avg_data.elementId);
+    //         if (elem_iterator != rModelPart.Elements().end()) {
+    //             Element& r_element = *elem_iterator;
+                
+    //             // Example: Store the average normal as an element variable
+    //             if (variable_name == "INTERFACE_NORMAL") {
+    //                 r_element.SetValue(INTERFACE_NORMAL, avg_data.averageNormal);
+    //             }
+    //             // Example: Store the average coordinate as an element variable
+    //             else if (variable_name == "INTERFACE_POINT") {
+    //                 r_element.SetValue(INTERFACE_POINT, avg_data.averageCoordinates);
+    //             }
+    //             // Example: Store the interface area as an element variable
+    //             else if (variable_name == "INTERFACE_AREA") {
+    //                 r_element.SetValue(INTERFACE_AREA, avg_data.interfaceArea);
+    //             }
+    //         }
+    //     }
+    // }
+
+/**
+ * @brief Find an element in the interface averages container by ID
+ * @param rInterfaceAverages Container of interface average data
+ * @param ElementId ID of the element to find
+ * @return Pointer to the interface average data, or nullptr if not found
+ */
+inline const InterfaceAverageData* FindElementInInterfaceAverages(
+    const std::vector<InterfaceAverageData>& rInterfaceAverages,
+    int ElementId)
+{
+    for (const auto& avg : rInterfaceAverages) {
+        if (avg.elementId == ElementId) {
+            return &avg;
+        }
+    }
+    return nullptr;
+}
+
+/**
+ * @brief Get neighbors of an element through node connectivity
+ * @param rModelPart The model part containing elements
+ * @param ElementId ID of the element to get neighbors for
+ * @return Vector of neighbor element IDs
+ */
+inline std::vector<int> GetElementNeighbors(const ModelPart& rModelPart, int ElementId)
+{
+    std::vector<int> neighbors;
+    
+    // Try to find the element
+    auto elem_it = rModelPart.Elements().find(ElementId);
+    if (elem_it == rModelPart.Elements().end()) {
+        return neighbors;
+    }
+    
+    Element& r_element = *elem_it;
+    
+    // Get element neighbors through nodes
+    for (auto& node : r_element.GetGeometry()) {
+        GlobalPointersVector<Element>& r_neighbor_elements = node.GetValue(NEIGHBOUR_ELEMENTS);
+        for (auto& neighbor_elem : r_neighbor_elements) {
+            if (neighbor_elem.Id() != ElementId && 
+                std::find(neighbors.begin(), neighbors.end(), neighbor_elem.Id()) == neighbors.end()) {
+                neighbors.push_back(neighbor_elem.Id());
+            }
+        }
+    }
+    
+    return neighbors;
+}
+
+/**
+ * @brief Get three points (target element and two neighbors) for normal fitting
+ * @param rModelPart The model part containing elements
+ * @param rInterfaceAverages Container of interface average data
+ * @param ElementId ID of the target element
+ * @param rPoints Output vector to hold the three points (target + 2 neighbors)
+ * @return True if three points were found, false otherwise
+ */
+inline bool GetThreePointsForFitting(
+    const ModelPart& rModelPart,
+    const std::vector<InterfaceAverageData>& rInterfaceAverages,
+    int ElementId,
+    std::vector<const InterfaceAverageData*>& rPoints)
+{
+    // Clear the vector
+    rPoints.clear();
+    
+    // Find the target element data
+    const InterfaceAverageData* target_data = FindElementInInterfaceAverages(rInterfaceAverages, ElementId);
+    if (!target_data) {
+        std::cout << "Element " << ElementId << " not found in interface averages" << std::endl;
+        return false;
+    }
+    
+    // Add the target element to the points
+    rPoints.push_back(target_data);
+    
+    // Get immediate neighbors with interface data
+    std::vector<int> neighbors = GetElementNeighbors(rModelPart, ElementId);
+    std::vector<const InterfaceAverageData*> interface_neighbors;
+    
+    for (int neighbor_id : neighbors) {
+        const InterfaceAverageData* neighbor_data = FindElementInInterfaceAverages(rInterfaceAverages, neighbor_id);
+        if (neighbor_data) {
+            interface_neighbors.push_back(neighbor_data);
+            if (interface_neighbors.size() >= 2) {
+                // We found two neighbors with interface data, add them to points
+                rPoints.push_back(interface_neighbors[0]);
+                rPoints.push_back(interface_neighbors[1]);
+                return true;
+            }
+        }
+    }
+    
+    // If we don't have enough immediate neighbors, try neighbors of neighbors
+    if (interface_neighbors.size() < 2) {
+        std::set<int> processed_neighbors;
+        for (int id : neighbors) {
+            processed_neighbors.insert(id);
+        }
+        processed_neighbors.insert(ElementId);
+        
+        for (int neighbor_id : neighbors) {
+            std::vector<int> second_level_neighbors = GetElementNeighbors(rModelPart, neighbor_id);
+            
+            for (int nn_id : second_level_neighbors) {
+                // Skip already processed elements
+                if (processed_neighbors.find(nn_id) != processed_neighbors.end()) {
+                    continue;
+                }
+                
+                const InterfaceAverageData* nn_data = FindElementInInterfaceAverages(rInterfaceAverages, nn_id);
+                if (nn_data) {
+                    interface_neighbors.push_back(nn_data);
+                    processed_neighbors.insert(nn_id);
+                    
+                    if (interface_neighbors.size() >= 2) {
+                        // We found two neighbors with interface data (including second level), add them to points
+                        rPoints.push_back(interface_neighbors[0]);
+                        rPoints.push_back(interface_neighbors[1]);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    
+    // If we still don't have enough points, add what we have
+   if (interface_neighbors.size() == 1) {
+        rPoints.push_back(interface_neighbors[0]);
+        std::cout << "Warning: Only two points available for element " << ElementId << std::endl;
+        return false;
+    }
+    
+    std::cout << "Warning: Only one point available for element " << ElementId << std::endl;
+    return false;
+}
+
+// /**
+//  * @brief Fit a normal vector using exactly three points (target element and two neighbors)
+//  * @param rModelPart The model part containing elements
+//  * @param rInterfaceAverages Container of interface average data
+//  * @param ElementId ID of the target element
+//  * @return The fitted normal vector, or the original normal if fitting fails
+//  */
+// inline array_1d<double, 3> FitLinearNormal(
+//     const ModelPart& rModelPart,
+//     const std::vector<InterfaceAverageData>& rInterfaceAverages,
+//     int ElementId,
+//     double& a0, double& a1, double& a2,   // Coefficients for nx = a0 + a1*x + a2*y
+//     double& b0, double& b1, double& b2)   // Coefficients for ny = b0 + b1*x + b2*y
+// {
+//     // Get three points for fitting
+//     std::vector<const InterfaceAverageData*> points;
+//     bool success = GetThreePointsForFitting(rModelPart, rInterfaceAverages, ElementId, points);
+    
+//     // If we don't have enough points or fitting failed, return the original normal
+//     if (!success || points.size() < 3) {
+//         const InterfaceAverageData* target_data = points[0]; // This should be the target element
+//         return target_data->averageNormal;
+//     }
+    
+//     // Extract coordinates and normal components from the three points
+//     const double x1 = points[0]->averageCoordinates[0];
+//     const double y1 = points[0]->averageCoordinates[1];
+//     const double nx1 = points[0]->averageNormal[0];
+//     const double ny1 = points[0]->averageNormal[1];
+    
+//     const double x2 = points[1]->averageCoordinates[0];
+//     const double y2 = points[1]->averageCoordinates[1];
+//     const double nx2 = points[1]->averageNormal[0];
+//     const double ny2 = points[1]->averageNormal[1];
+    
+//     const double x3 = points[2]->averageCoordinates[0];
+//     const double y3 = points[2]->averageCoordinates[1];
+//     const double nx3 = points[2]->averageNormal[0];
+//     const double ny3 = points[2]->averageNormal[1];
+    
+//     // Determine the linear equations for nx and ny components:
+//     // nx = a0 + a1*x + a2*y
+//     // ny = b0 + b1*x + b2*y
+    
+//     // Set up matrices for the nx component
+//     Matrix A_nx(3, 3);
+//     Vector b_nx(3);
+    
+//     A_nx(0, 0) = 1.0; A_nx(0, 1) = x1; A_nx(0, 2) = y1;
+//     A_nx(1, 0) = 1.0; A_nx(1, 1) = x2; A_nx(1, 2) = y2;
+//     A_nx(2, 0) = 1.0; A_nx(2, 1) = x3; A_nx(2, 2) = y3;
+    
+//     b_nx[0] = nx1;
+//     b_nx[1] = nx2;
+//     b_nx[2] = nx3;
+    
+//     // Set up matrices for the ny component
+//     Matrix A_ny(3, 3);
+//     Vector b_ny(3);
+    
+//     A_ny(0, 0) = 1.0; A_ny(0, 1) = x1; A_ny(0, 2) = y1;
+//     A_ny(1, 0) = 1.0; A_ny(1, 1) = x2; A_ny(1, 2) = y2;
+//     A_ny(2, 0) = 1.0; A_ny(2, 1) = x3; A_ny(2, 2) = y3;
+    
+//     b_ny[0] = ny1;
+//     b_ny[1] = ny2;
+//     b_ny[2] = ny3;
+    
+//     // Solve the linear systems using Cramer's rule
+//     double det = A_nx(0, 0) * (A_nx(1, 1) * A_nx(2, 2) - A_nx(1, 2) * A_nx(2, 1)) -
+//                  A_nx(0, 1) * (A_nx(1, 0) * A_nx(2, 2) - A_nx(1, 2) * A_nx(2, 0)) +
+//                  A_nx(0, 2) * (A_nx(1, 0) * A_nx(2, 1) - A_nx(1, 1) * A_nx(2, 0));
+    
+//     // Check if determinant is near zero (singular matrix)
+//     if (std::abs(det) < 1.0e-14) {
+//         std::cout << "Error: Singular matrix when fitting normal for element " << ElementId << std::endl;
+//         return points[0]->averageNormal;  // Return original normal
+//     }
+    
+//     // Create matrices with replaced columns for Cramer's rule
+//     Matrix A_nx1 = A_nx;
+//     Matrix A_nx2 = A_nx;
+//     Matrix A_nx3 = A_nx;
+    
+//     for (int i = 0; i < 3; i++) {
+//         A_nx1(i, 0) = b_nx[i];
+//         A_nx2(i, 1) = b_nx[i];
+//         A_nx3(i, 2) = b_nx[i];
+//     }
+    
+//     double det_nx1 = A_nx1(0, 0) * (A_nx1(1, 1) * A_nx1(2, 2) - A_nx1(1, 2) * A_nx1(2, 1)) -
+//                       A_nx1(0, 1) * (A_nx1(1, 0) * A_nx1(2, 2) - A_nx1(1, 2) * A_nx1(2, 0)) +
+//                       A_nx1(0, 2) * (A_nx1(1, 0) * A_nx1(2, 1) - A_nx1(1, 1) * A_nx1(2, 0));
+                      
+//     double det_nx2 = A_nx2(0, 0) * (A_nx2(1, 1) * A_nx2(2, 2) - A_nx2(1, 2) * A_nx2(2, 1)) -
+//                       A_nx2(0, 1) * (A_nx2(1, 0) * A_nx2(2, 2) - A_nx2(1, 2) * A_nx2(2, 0)) +
+//                       A_nx2(0, 2) * (A_nx2(1, 0) * A_nx2(2, 1) - A_nx2(1, 1) * A_nx2(2, 0));
+                      
+//     double det_nx3 = A_nx3(0, 0) * (A_nx3(1, 1) * A_nx3(2, 2) - A_nx3(1, 2) * A_nx3(2, 1)) -
+//                       A_nx3(0, 1) * (A_nx3(1, 0) * A_nx3(2, 2) - A_nx3(1, 2) * A_nx3(2, 0)) +
+//                       A_nx3(0, 2) * (A_nx3(1, 0) * A_nx3(2, 1) - A_nx3(1, 1) * A_nx3(2, 0));
+    
+//     // Compute coefficients for nx: nx = a0 + a1*x + a2*y
+// a0 = det_nx1 / det;
+// a1 = det_nx2 / det;
+// a2 = det_nx3 / det;
+    
+//     // Repeat for ny coefficients
+//     Matrix A_ny1 = A_ny;
+//     Matrix A_ny2 = A_ny;
+//     Matrix A_ny3 = A_ny;
+    
+//     for (int i = 0; i < 3; i++) {
+//         A_ny1(i, 0) = b_ny[i];
+//         A_ny2(i, 1) = b_ny[i];
+//         A_ny3(i, 2) = b_ny[i];
+//     }
+    
+//     double det_ny1 = A_ny1(0, 0) * (A_ny1(1, 1) * A_ny1(2, 2) - A_ny1(1, 2) * A_ny1(2, 1)) -
+//                       A_ny1(0, 1) * (A_ny1(1, 0) * A_ny1(2, 2) - A_ny1(1, 2) * A_ny1(2, 0)) +
+//                       A_ny1(0, 2) * (A_ny1(1, 0) * A_ny1(2, 1) - A_ny1(1, 1) * A_ny1(2, 0));
+                      
+//     double det_ny2 = A_ny2(0, 0) * (A_ny2(1, 1) * A_ny2(2, 2) - A_ny2(1, 2) * A_ny2(2, 1)) -
+//                       A_ny2(0, 1) * (A_ny2(1, 0) * A_ny2(2, 2) - A_ny2(1, 2) * A_ny2(2, 0)) +
+//                       A_ny2(0, 2) * (A_ny2(1, 0) * A_ny2(2, 1) - A_ny2(1, 1) * A_ny2(2, 0));
+                      
+//     double det_ny3 = A_ny3(0, 0) * (A_ny3(1, 1) * A_ny3(2, 2) - A_ny3(1, 2) * A_ny3(2, 1)) -
+//                       A_ny3(0, 1) * (A_ny3(1, 0) * A_ny3(2, 2) - A_ny3(1, 2) * A_ny3(2, 0)) +
+//                       A_ny3(0, 2) * (A_ny3(1, 0) * A_ny3(2, 1) - A_ny3(1, 1) * A_ny3(2, 0));
+    
+//     // Compute coefficients for ny: ny = b0 + b1*x + b2*y
+// b0 = det_ny1 / det;
+// b1 = det_ny2 / det;
+// b2 = det_ny3 / det;
+    
+//     // Compute the fitted normal at the target element position
+//     double x0 = points[0]->averageCoordinates[0];
+//     double y0 = points[0]->averageCoordinates[1];
+    
+//     double nx = a0 + a1 * x0 + a2 * y0;
+//     double ny = b0 + b1 * x0 + b2 * y0;
+
+//     // Print the coefficients
+//     std::cout << "Normal fitting coefficients for element " << ElementId << ":" << std::endl;
+//     std::cout << "  nx = " << a0 << " + " << a1 << "*x + " << a2 << "*y" << std::endl;
+//     std::cout << "  ny = " << b0 << " + " << b1 << "*x + " << b2 << "*y" << std::endl;
+    
+//     // Compute nz to ensure unit normal
+//     // Choose sign to match original normal
+//     double nz_sign = (points[0]->averageNormal[2] >= 0) ? 1.0 : -1.0;
+//     double nz = nz_sign * std::sqrt(std::max(0.0, 1.0 - nx*nx - ny*ny));
+    
+//     // Create the final normal vector
+//     array_1d<double, 3> normal = ZeroVector(3);
+//     normal[0] = nx;
+//     normal[1] = ny;
+//     normal[2] = nz;
+    
+//     // Normalize to ensure unit length
+//     double norm = std::sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+//     if (norm > 1.0e-10) {
+//         normal[0] /= norm;
+//         normal[1] /= norm;
+//         normal[2] /= norm;
+//     }
+    
+//     return normal;
+// }
+
+/**
+ * @brief Fit a normal vector using exactly three points with focus on stability
+ * @param rModelPart The model part containing elements
+ * @param rInterfaceAverages Container of interface average data
+ * @param ElementId ID of the target element
+ * @return The fitted normal vector, or the original normal if fitting fails
+ */
+inline array_1d<double, 3> FitLinearNormal(
+    const ModelPart& rModelPart,
+    const std::vector<InterfaceAverageData>& rInterfaceAverages,
+    int ElementId,
+    double& a0, double& a1, double& a2,   // Coefficients for nx = a0 + a1*x + a2*y
+    double& b0, double& b1, double& b2)   // Coefficients for ny = b0 + b1*x + b2*y
+{
+    // Find target element data
+    const InterfaceAverageData* target_data = nullptr;
+    for (const auto& avg : rInterfaceAverages) {
+        if (avg.elementId == ElementId) {
+            target_data = &avg;
+            break;
+        }
+    }
+    
+    // If target element not found, return a default normal
+    if (!target_data) {
+        std::cout << "Error: Element " << ElementId << " not found in interface averages" << std::endl;
+        array_1d<double, 3> default_normal = ZeroVector(3);
+        default_normal[0] = 1.0;  // Default to x-direction
+        
+        // Set coefficients to zero
+        a0 = 1.0; a1 = 0.0; a2 = 0.0;
+        b0 = 0.0; b1 = 0.0; b2 = 0.0;
+        
+        return default_normal;
+    }
+    
+    // Store the target element coordinates and normal
+    const double target_x = target_data->averageCoordinates[0];
+    const double target_y = target_data->averageCoordinates[1];
+    const double target_nx = target_data->averageNormal[0];
+    const double target_ny = target_data->averageNormal[1];
+    const double target_nz = target_data->averageNormal[2];
+    
+    // Get neighbors without using the GetThreePointsForFitting function
+    std::vector<const InterfaceAverageData*> neighbors;
+    
+    // Get direct neighbors from ModelPart
+    std::vector<int> neighbor_ids = GetElementNeighbors(rModelPart, ElementId);
+    
+    // Find matching neighbors in interface averages
+    for (int id : neighbor_ids) {
+        for (const auto& avg : rInterfaceAverages) {
+            if (avg.elementId == id) {
+                neighbors.push_back(&avg);
+                break;
+            }
+        }
+        
+        // Break if we found enough neighbors
+        if (neighbors.size() >= 2) {
+            break;
+        }
+    }
+    
+    // If we don't have enough neighbors, search for neighbors of neighbors
+    if (neighbors.size() < 2) {
+        for (int id : neighbor_ids) {
+            std::vector<int> second_level = GetElementNeighbors(rModelPart, id);
+            
+            for (int id2 : second_level) {
+                // Skip if it's the target or already processed
+                if (id2 == ElementId || std::find(neighbor_ids.begin(), neighbor_ids.end(), id2) != neighbor_ids.end()) {
+                    continue;
+                }
+                
+                for (const auto& avg : rInterfaceAverages) {
+                    if (avg.elementId == id2) {
+                        neighbors.push_back(&avg);
+                        break;
+                    }
+                }
+                
+                // Break if we found enough neighbors
+                if (neighbors.size() >= 2) {
+                    break;
+                }
+            }
+            
+            if (neighbors.size() >= 2) {
+                break;
+            }
+        }
+    }
+    
+    // If we still don't have enough neighbors, just return the original normal
+    if (neighbors.size() < 2) {
+        std::cout << "Warning: Not enough neighbors for element " << ElementId << ". Using original normal." << std::endl;
+        
+        array_1d<double, 3> original_normal = ZeroVector(3);
+        original_normal[0] = target_nx;
+        original_normal[1] = target_ny;
+        original_normal[2] = target_nz;
+        
+        // Set coefficients (constants only, no derivatives)
+        a0 = target_nx; a1 = 0.0; a2 = 0.0;
+        b0 = target_ny; b1 = 0.0; b2 = 0.0;
+        
+        return original_normal;
+    }
+    
+    // We now have the target and two neighbors
+    const double x1 = target_x;
+    const double y1 = target_y;
+    const double nx1 = target_nx;
+    const double ny1 = target_ny;
+    
+    const double x2 = neighbors[0]->averageCoordinates[0];
+    const double y2 = neighbors[0]->averageCoordinates[1];
+    const double nx2 = neighbors[0]->averageNormal[0];
+    const double ny2 = neighbors[0]->averageNormal[1];
+    
+    const double x3 = neighbors[1]->averageCoordinates[0];
+    const double y3 = neighbors[1]->averageCoordinates[1];
+    const double nx3 = neighbors[1]->averageNormal[0];
+    const double ny3 = neighbors[1]->averageNormal[1];
+    
+    // Calculate coefficients directly using determinants
+    // This avoids potential issues with Gaussian elimination
+    
+    // Compute the determinant of the coefficient matrix
+    double det = (x2*y3 - x3*y2) - x1*(y3 - y2) + y1*(x3 - x2);
+    
+    if (std::abs(det) < 1.0e-10) {
+        std::cout << "Warning: Singular matrix for element " << ElementId << ". Using original normal." << std::endl;
+        
+        array_1d<double, 3> original_normal = ZeroVector(3);
+        original_normal[0] = target_nx;
+        original_normal[1] = target_ny;
+        original_normal[2] = target_nz;
+        
+        // Set coefficients (constants only, no derivatives)
+        a0 = target_nx; a1 = 0.0; a2 = 0.0;
+        b0 = target_ny; b1 = 0.0; b2 = 0.0;
+        
+        return original_normal;
+    }
+    
+    // Compute coefficients for nx
+    a0 = ((nx1*(x2*y3 - x3*y2)) + (nx2*(x3*y1 - x1*y3)) + (nx3*(x1*y2 - x2*y1))) / det;
+    a1 = ((nx1*(y2 - y3)) + (nx2*(y3 - y1)) + (nx3*(y1 - y2))) / det;
+    a2 = ((nx1*(x3 - x2)) + (nx2*(x1 - x3)) + (nx3*(x2 - x1))) / det;
+    
+    // Compute coefficients for ny
+    b0 = ((ny1*(x2*y3 - x3*y2)) + (ny2*(x3*y1 - x1*y3)) + (ny3*(x1*y2 - x2*y1))) / det;
+    b1 = ((ny1*(y2 - y3)) + (ny2*(y3 - y1)) + (ny3*(y1 - y2))) / det;
+    b2 = ((ny1*(x3 - x2)) + (ny2*(x1 - x3)) + (ny3*(x2 - x1))) / det;
+    
+    // Evaluate the fitted normal at the target point (which should match the original normal)
+    double fitted_nx = a0 + a1*x1 + a2*y1;
+    double fitted_ny = b0 + b1*x1 + b2*y1;
+    
+    // Create the fitted normal vector
+    array_1d<double, 3> fitted_normal = ZeroVector(3);
+    fitted_normal[0] = fitted_nx;
+    fitted_normal[1] = fitted_ny;
+    fitted_normal[2] = target_nz; // Preserve the original z-component
+    
+    // Normalize the vector
+    double norm = std::sqrt(fitted_normal[0]*fitted_normal[0] + 
+                           fitted_normal[1]*fitted_normal[1] + 
+                           fitted_normal[2]*fitted_normal[2]);
+    
+    if (norm > 1.0e-10) {
+        fitted_normal[0] /= norm;
+        fitted_normal[1] /= norm;
+        fitted_normal[2] /= norm;
+    }
+    
+    // Calculate curvature
+    double curvature = a1 + b2;
+    
+    // Output information
+    std::cout << "Normal fitting for element " << ElementId << ":" << std::endl;
+    std::cout << "  nx = " << a0 << " + " << a1 << "*x + " << a2 << "*y" << std::endl;
+    std::cout << "  ny = " << b0 << " + " << b1 << "*x + " << b2 << "*y" << std::endl;
+    std::cout << "  nz = " << target_nz << " (preserved from original)" << std::endl;
+    std::cout << "  Curvature (a1 + b2): " << curvature << std::endl;
+    
+    // Verify fit at target element
+    double nx_error = std::abs(fitted_nx - target_nx);
+    double ny_error = std::abs(fitted_ny - target_ny);
+    
+    if (nx_error > 1.0e-10 || ny_error > 1.0e-10) {
+        std::cout << "Warning: Target element " << ElementId << " normal not exactly fitted:" << std::endl;
+        std::cout << "  Original: [" << target_nx << ", " << target_ny << "]" << std::endl;
+        std::cout << "  Fitted:   [" << fitted_nx << ", " << fitted_ny << "]" << std::endl;
+        std::cout << "  Error:    [" << nx_error << ", " << ny_error << "]" << std::endl;
+    }
+    
+    return fitted_normal;
+}
+
+/**
+ * @brief Save fitted normals to a file with robust error handling
+ * @param rModelPart The model part containing elements
+ * @param rInterfaceAverages Container of interface average data
+ * @param Filename Filename to save the results
+ */
+inline void SaveFittedNormalsToFile(
+    const ModelPart& rModelPart,
+    const std::vector<InterfaceAverageData>& rInterfaceAverages,
+    const std::string& Filename)
+{
+    try {
+        // Open output file
+        std::ofstream outFile(Filename);
+        
+        if (!outFile.is_open()) {
+            std::cerr << "Error: Could not open file " << Filename << " for writing." << std::endl;
+            return;
+        }
+        
+        // Write header
+        outFile << std::fixed << std::setprecision(15);
+        outFile << "Element_ID\tX\tY\tZ\tOrig_NX\tOrig_NY\tOrig_NZ\tFit_NX\tFit_NY\tFit_NZ\tDiff\t"
+                << "a0\ta1\ta2\tb0\tb1\tb2\tCurvature" << std::endl;
+        
+        // Process each element one by one
+        int successful_elements = 0;
+        
+        for (const auto& avg : rInterfaceAverages) {
+            int element_id = avg.elementId;
+            double a0 = 0.0, a1 = 0.0, a2 = 0.0;
+            double b0 = 0.0, b1 = 0.0, b2 = 0.0;
+            array_1d<double, 3> fitted_normal;
+            double curvature = 0.0;
+            double diff_magnitude = 0.0;
+            
+            try {
+                // Calculate a linearly fitted normal
+                fitted_normal = FitLinearNormal(rModelPart, rInterfaceAverages, element_id, 
+                                             a0, a1, a2, b0, b1, b2);
+                
+                // Calculate difference between fitted and original normal
+                array_1d<double, 3> normal_diff = fitted_normal - avg.averageNormal;
+                diff_magnitude = std::sqrt(normal_diff[0]*normal_diff[0] + 
+                                        normal_diff[1]*normal_diff[1] + 
+                                        normal_diff[2]*normal_diff[2]);
+                
+                // Calculate curvature
+                curvature = a1 + b2;
+                successful_elements++;
+            }
+            catch (const std::exception& e) {
+                std::cerr << "Error processing element " << element_id << ": " << e.what() << std::endl;
+                
+                // Use original normal as fallback
+                fitted_normal = avg.averageNormal;
+                a0 = avg.averageNormal[0];
+                b0 = avg.averageNormal[1];
+                curvature = 0.0;
+                diff_magnitude = 0.0;
+            }
+            
+            // Write to file
+            outFile << element_id << "\t"
+                    << avg.averageCoordinates[0] << "\t"
+                    << avg.averageCoordinates[1] << "\t"
+                    << avg.averageCoordinates[2] << "\t"
+                    << avg.averageNormal[0] << "\t"
+                    << avg.averageNormal[1] << "\t"
+                    << avg.averageNormal[2] << "\t"
+                    << fitted_normal[0] << "\t"
+                    << fitted_normal[1] << "\t"
+                    << fitted_normal[2] << "\t"
+                    << diff_magnitude << "\t"
+                    << a0 << "\t" << a1 << "\t" << a2 << "\t"
+                    << b0 << "\t" << b1 << "\t" << b2 << "\t"
+                    << curvature << std::endl;
+        }
+        
+        outFile.close();
+        std::cout << "Saved " << rInterfaceAverages.size() << " fitted normals with curvature to " << Filename 
+                  << " (" << successful_elements << " successfully fitted)" << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Fatal error in SaveFittedNormalsToFile: " << e.what() << std::endl;
+    }
+}
+
+/**
+ * @brief Apply fitted normals to all interface elements in the model part
+ * @param rModelPart The model part containing elements
+ * @param rInterfaceAverages Container of interface average data
+ * @param StoreOriginalNormal Whether to store the original normal for comparison
+ */
+// inline void ApplyFittedNormalsToModelPart(
+//     ModelPart& rModelPart,
+//     const std::vector<InterfaceAverageData>& rInterfaceAverages,
+//     bool StoreOriginalNormal = true)
+// {
+//     for (const auto& avg : rInterfaceAverages) {
+//         int element_id = avg.elementId;
+        
+//         // Calculate a linearly fitted normal
+//         array_1d<double, 3> fitted_normal = FitLinearNormal(rModelPart, rInterfaceAverages, element_id);
+        
+        // // Find the element
+        // auto elem_it = rModelPart.Elements().find(element_id);
+        // if (elem_it != rModelPart.Elements().end()) {
+        //     Element& r_element = *elem_it;
+            
+        //     // Store the fitted normal on the element
+        //     r_element.SetValue(NORMAL, fitted_normal);
+            
+        //     // Store the original normal for comparison if needed
+        //     if (StoreOriginalNormal) {
+        //         r_element.SetValue(ORIGINAL_NORMAL, avg.averageNormal);
+        //     }
+            
+        //     // Calculate and store the difference for analysis
+        //     array_1d<double, 3> normal_diff = fitted_normal - avg.averageNormal;
+        //     double diff_magnitude = std::sqrt(normal_diff[0]*normal_diff[0] + 
+        //                                     normal_diff[1]*normal_diff[1] + 
+        //                                     normal_diff[2]*normal_diff[2]);
+            
+        //     r_element.SetValue(NORMAL_SMOOTHING_DIFF, diff_magnitude);
+        // }
+    // }
+    
+//     std::cout << "Applied fitted normals to " << rInterfaceAverages.size() 
+//                 << " interface elements" << std::endl;
+// }
+
 }
 }

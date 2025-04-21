@@ -367,7 +367,27 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         KratosDroplet.IntersectionPointsUtility.ProcessIntersectionPointsAndFitCurves("element_curves.txt")
         KratosDroplet.IntersectionPointsUtility.ProcessIntersectionPointsAndFitCurvesparabola("element_curves_parabola.txt")  
         KratosDroplet.IntersectionPointsUtility.ProcessIntersectionPointsAndFitGeneralConic("element_curves_conic.txt")
-    
+
+             
+        # Clear any previous data
+        KratosMultiphysics.DropletDynamicsApplication.InterfaceAveragesUtility.ClearInterfaceAverages()
+        
+        # Compute interface averages for all elements in the model part
+        KratosMultiphysics.DropletDynamicsApplication.InterfaceAveragesUtility.ComputeModelPartInterfaceAverages(self.main_model_part)
+        
+        # Output diagnostic information
+        KratosMultiphysics.DropletDynamicsApplication.InterfaceAveragesUtility.DiagnosticOutput(self.main_model_part)
+        
+        # Get the interface average data for further use if needed
+        interface_averages = KratosMultiphysics.DropletDynamicsApplication.InterfaceAveragesUtility.GetInterfaceAverages()
+        
+        # Save the interface averages to a file
+        KratosMultiphysics.DropletDynamicsApplication.InterfaceAveragesUtility.SaveInterfaceAveragesToFile("interface_averages_.csv")
+
+        # KratosMultiphysics.DropletDynamicsApplication.ApplyFittedNormalsToModelPart(self.main_model_part, interface_averages, True)
+      
+        KratosMultiphysics.DropletDynamicsApplication.SaveFittedNormalsToFile(self.main_model_part, interface_averages, "fitted_normals.csv")
+            
 
         # filtering noises is necessary for curvature calculation
         # distance gradient is used as a boundary condition for smoothing process
@@ -389,6 +409,15 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz)
+        
+        # for node in self.main_model_part.Nodes:
+        #     if node.Y==0:
+        #         if node.X > 0.015:
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,1)#0.9998621293358174)
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,0)#0.016604888438203402)
+        #         elif node.X < 0.015:
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,-1)#-0.9998621293358178)
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,0)#0.016604888438184442)
 
         # self.ExtrapolateBoundaryValues(KratosMultiphysics.DISTANCE_GRADIENT_Y)
         # self.ExtrapolateBoundaryValues(KratosMultiphysics.DISTANCE_GRADIENT_X)
