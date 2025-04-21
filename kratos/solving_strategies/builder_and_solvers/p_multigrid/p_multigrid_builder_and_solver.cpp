@@ -490,13 +490,16 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
 
 template <class TSparse, class TDense, class TSolver>
-PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::~PMultigridBuilderAndSolver() = default;
+PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::~PMultigridBuilderAndSolver()
+{
+    delete mpImpl;
+}
 
 
 template <class TSparse, class TDense, class TSolver>
 PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver()
     : Interface(),
-      mpImpl(new Impl(this), [](Impl* p){delete p;})
+      mpImpl(new Impl(this))
 {
 }
 
@@ -505,7 +508,7 @@ template <class TSparse, class TDense, class TSolver>
 PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver(const typename TSolver::Pointer& pSolver,
                                                                                Parameters Settings)
     : Interface(pSolver),
-      mpImpl(new Impl(this), [](Impl* p){delete p;})
+      mpImpl(new Impl(this))
 {
     this->AssignSettings(Settings);
 }
@@ -1088,7 +1091,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ProjectGrid(int GridLev
 
     // Project residuals.
     if (0 < GridLevel) {
-        KRATOS_ERROR_IF_NOT(mpImpl->mMaybeHierarchy.has_value());
+        KRATOS_ERROR_IF_NOT(mpImpl->mMaybeHierarchy.has_value())
+            << "grid level " << GridLevel << " does not exist";
         const auto i_grid_level = GridLevel - 1;
 
         // Construct a flat vector of coarse grids.
@@ -1121,7 +1125,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ProjectGrid(int GridLev
 
         // Initialize projected solution vector.
         std::visit([&projected, i_grid_level](const auto& r_vector){
-            KRATOS_ERROR_IF_NOT(i_grid_level < r_vector.size());
+            KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(i_grid_level) < r_vector.size())
+                << "grid level " << i_grid_level + 1 << " does not exist";
             const auto& r_solution = r_vector[i_grid_level]->GetSolution();
             projected.resize(r_solution.size(), false);
             std::fill(projected.begin(), projected.end(), static_cast<typename TSparse::DataType>(0));
