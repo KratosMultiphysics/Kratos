@@ -98,7 +98,8 @@ public:
     bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                               typename TSparse::VectorType& rSolution,
                               typename TSparse::VectorType& rRhs,
-                              PMGStatusStream::Report& rReport) override;
+                              PMGStatusStream::Report& rReport,
+                              PMGStatusStream& rStream) override;
 
     /// @copydoc Base::Finalize
     void Finalize(typename TSparse::MatrixType& rLhs,

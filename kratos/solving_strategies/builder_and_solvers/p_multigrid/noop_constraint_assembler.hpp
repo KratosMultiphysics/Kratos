@@ -31,22 +31,29 @@ public:
     {}
 
     NoOpConstraintAssembler(Parameters Settings)
-        : NoOpConstraintAssembler(Settings, "unnamed")
-    {}
+        : NoOpConstraintAssembler(Settings, "unnamed"),
+          mVerbosity(Settings.Has("verbosity") ? Settings["verbosity"].Get<int>() : 1)
+    {
+    }
 
     NoOpConstraintAssembler(Parameters, std::string&& rInstanceName) noexcept
         : Base(ConstraintImposition::None, std::move(rInstanceName))
     {}
 
     bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
-                                typename TSparse::VectorType& rSolution,
-                                typename TSparse::VectorType& rRhs,
-                                PMGStatusStream::Report& rReport) override
+                              typename TSparse::VectorType& rSolution,
+                              typename TSparse::VectorType& rRhs,
+                              PMGStatusStream::Report& rReport,
+                              PMGStatusStream& rStream) override
     {
         rReport.maybe_constraint_residual = 0;
         rReport.constraints_converged = true;
+        rStream.Submit(rReport.Tag(2), mVerbosity);
         return true;
     }
+
+private:
+    int mVerbosity;
 }; // class NoOpConstraintAssembler
 
 
