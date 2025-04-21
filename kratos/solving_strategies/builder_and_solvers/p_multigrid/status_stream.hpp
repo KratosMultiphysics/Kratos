@@ -16,29 +16,48 @@
 #include <iosfwd> // std::ostream
 #include <memory> // std::unique_ptr
 #include <optional> // std::optional
+#include <utility> // std::pair
 
 
 namespace Kratos {
 
 
+class ModelPart;
+
+template <class TSparse, class TDense>
+class PMultigridBuilderAndSolver;
+
+
 /// @internal
-class PMGStatusStream {
+class PMGStatusStream final {
 public:
     struct Report {
         std::size_t grid_level;
-        int verbosity;
         bool multigrid_converged;
         std::size_t multigrid_iteration;
         double multigrid_residual;
         bool constraints_converged;
         std::size_t constraint_iteration;
         std::optional<double> maybe_constraint_residual;
+
+        std::pair<Report,int> Tag(int ReportVerbosity)
+        {
+            return std::make_pair(*this, ReportVerbosity);
+        }
     }; // struct Report
 
-    PMGStatusStream();
+    using TaggedReport = std::pair<Report,int>;
 
-    PMGStatusStream(int Verbosity,
-                    std::ostream& rStream,
+    template <class TMatrix,
+              class TVector,
+              class TSparse,
+              class TDense>
+    PMGStatusStream(std::ostream& rStream,
+                    PMultigridBuilderAndSolver<TSparse,TDense>& rBuilderAndSolver,
+                    ModelPart& rModelPart,
+                    const TMatrix& rRootLhs,
+                    const TVector& rRootSolution,
+                    const TVector& rRootRhs,
                     bool UseAnsiColors = true);
 
     PMGStatusStream(PMGStatusStream&&) noexcept;
@@ -47,9 +66,10 @@ public:
 
     PMGStatusStream& operator=(PMGStatusStream&&) noexcept;
 
-    void IterationReport(const Report& rReport);
-
-    void FinalReport(const Report& rReport);
+    /// @brief Submit a @ref Report to log.
+    /// @param rReport Report to submit.
+    /// @param SubmitterVerbosity Verbosity of the class that submitted the report.
+    void Submit(const TaggedReport& rReport, int SubmitterVerbosity);
 
 private:
     PMGStatusStream& operator<<(const Report& rReport);

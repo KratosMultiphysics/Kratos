@@ -376,7 +376,8 @@ bool
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
                                                                            typename TSparse::VectorType& rSolution,
                                                                            typename TSparse::VectorType& rRhs,
-                                                                           PMGStatusStream::Report& rReport)
+                                                                           PMGStatusStream::Report& rReport,
+                                                                           PMGStatusStream& rStream)
 {
     KRATOS_TRY
 
@@ -386,16 +387,20 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
 
     // Update status.
     rReport.maybe_constraint_residual = TSparse::TwoNorm(constraint_residual);
-    rReport.constraints_converged  = rReport.maybe_constraint_residual.value() <= this->GetTolerance();
+    rReport.constraints_converged = rReport.maybe_constraint_residual.value() <= this->GetTolerance();
 
-    // Decide on whether to keep looping.
+    // Decide on whether to keep looping and log state.
     if (rReport.constraints_converged) {
+        rStream.Submit(rReport.Tag(2), mpImpl->mVerbosity);
         return true;
     } /*if converged*/ else {
         const int max_iterations = this->GetValue(NL_ITERATION_NUMBER);
         if (static_cast<int>(rReport.constraint_iteration) < max_iterations) {
+            rStream.Submit(rReport.Tag(3), mpImpl->mVerbosity);
+            ++rReport.constraint_iteration;
             return false;
         } /*if iIteration < max_iterations*/ else {
+            rStream.Submit(rReport.Tag(2), mpImpl->mVerbosity);
             return true;
         }
     } /*if not converged*/

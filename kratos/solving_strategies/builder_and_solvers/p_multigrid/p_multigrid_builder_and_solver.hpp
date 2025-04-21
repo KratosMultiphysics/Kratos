@@ -265,6 +265,11 @@ public:
                                 typename Interface::TSystemVectorType& rSolution,
                                 typename Interface::TSystemVectorType& rRhs) override;
 
+    void FinalizeSolutionStep(ModelPart& rModelPart,
+                              typename Interface::TSystemMatrixType& rLhs,
+                              typename Interface::TSystemVectorType& rSolution,
+                              typename Interface::TSystemVectorType& rRhs) override;
+
     /// @name Assembly
     /// @{
 
@@ -359,6 +364,20 @@ public:
 
     /// @copydoc BuilderAndSolver::Info
     std::string Info() const override;
+
+    /// @}
+    /// @name Debug and Analysis
+    /// @{
+
+    /// @brief Project state variables and residuals from a coarse grid to the root grid.
+    /// @param GridLevel Grid to project.
+    /// @param rRootLhs LHS matrix of the root grid.
+    /// @param rRootSolution Current state vector of the root grid.
+    /// @param rRootRhs RHS vector of the root grid.
+    void ProjectGrid(int GridLevel,
+                     const typename TSparseSpace::MatrixType& rRootLhs,
+                     const typename TSparseSpace::VectorType& rRootSolution,
+                     const typename TSparseSpace::VectorType& rRootRhs);
 
     /// @}
     /// @name Unsupported Interface
