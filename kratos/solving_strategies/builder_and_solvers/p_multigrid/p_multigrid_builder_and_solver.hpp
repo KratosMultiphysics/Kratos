@@ -367,6 +367,10 @@ public:
     /// @param rRootLhs LHS matrix of the root grid.
     /// @param rRootSolution Current state vector of the root grid.
     /// @param rRootRhs RHS vector of the root grid.
+    /// @details State variables are stored in the corresponding @ref Dof "DoFs"' values,
+    ///          while residuals are written to reactions.
+    /// @warning This function changes DoFs' values and reactions, so they should be copied
+    ///          before invoking this function and restored afterwards.
     void ProjectGrid(int GridLevel,
                      const typename TSparseSpace::MatrixType& rRootLhs,
                      const typename TSparseSpace::VectorType& rRootSolution,
