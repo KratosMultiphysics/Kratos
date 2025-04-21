@@ -496,7 +496,7 @@ PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::~PMultigridBuilderAndSolver(
 template <class TSparse, class TDense, class TSolver>
 PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver()
     : Interface(),
-      mpImpl(new Impl(this))
+      mpImpl(new Impl(this), [](Impl* p){delete p;})
 {
 }
 
@@ -505,7 +505,7 @@ template <class TSparse, class TDense, class TSolver>
 PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::PMultigridBuilderAndSolver(const typename TSolver::Pointer& pSolver,
                                                                                Parameters Settings)
     : Interface(pSolver),
-      mpImpl(new Impl(this))
+      mpImpl(new Impl(this), [](Impl* p){delete p;})
 {
     this->AssignSettings(Settings);
 }

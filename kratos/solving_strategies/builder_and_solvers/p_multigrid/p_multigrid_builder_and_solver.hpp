@@ -426,7 +426,7 @@ private:
     PMultigridBuilderAndSolver& operator=(const PMultigridBuilderAndSolver& rRhs) = delete;
 
     struct Impl;
-    std::unique_ptr<Impl> mpImpl;
+    std::unique_ptr<Impl,std::function<void(Impl*)>> mpImpl;
 }; // class PMultigridBuilderAndSolver
 
 
