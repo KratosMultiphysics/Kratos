@@ -31,13 +31,13 @@ public:
     {}
 
     NoOpConstraintAssembler(Parameters Settings)
-        : NoOpConstraintAssembler(Settings, "unnamed"),
-          mVerbosity(Settings.Has("verbosity") ? Settings["verbosity"].Get<int>() : 1)
+        : NoOpConstraintAssembler(Settings, "unnamed")
     {
     }
 
-    NoOpConstraintAssembler(Parameters, std::string&& rInstanceName) noexcept
-        : Base(ConstraintImposition::None, std::move(rInstanceName))
+    NoOpConstraintAssembler(Parameters Settings, std::string&& rInstanceName) noexcept
+        : Base(ConstraintImposition::None, std::move(rInstanceName)),
+          mVerbosity(Settings.Has("verbosity") ? Settings["verbosity"].Get<int>() : 1)
     {}
 
     bool FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
