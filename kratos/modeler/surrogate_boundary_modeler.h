@@ -104,6 +104,7 @@ public:
     {
         bool mIsActive = false; 
         double mSignedDistance = 0;
+        bool mIsInside = false;
         array_1d<double,3> mDistanceToSkin{0,0,0};
         Node::Pointer node_pointer = nullptr;
 
@@ -112,7 +113,8 @@ public:
         void SetActive(bool active) { mIsActive = active; }
         double GetSignedDistance() { return mSignedDistance; }
         void SetSignedDistance(double new_distance) { mSignedDistance = new_distance; }
-        bool IsInside() { return mSignedDistance >= 0; }
+        bool IsInside() { return mIsInside; }
+        void SetInside(bool inside) { mIsInside = inside; }
         array_1d<double,3>& GetVectorDistance() { return mDistanceToSkin; }
         Node::Pointer GetNodePtr(){ return node_pointer; }
         void SetNodePointer(Node::Pointer pNode) { node_pointer = pNode; }
@@ -128,6 +130,7 @@ public:
         int outside_color = 1;
 
         GeometricalObjectsBins triangle_bin(mpInputModelPart->ElementsBegin(),mpInputModelPart->ElementsEnd());
+        GeometricalObjectsBins conditions_bin(mpInputModelPart->ConditionsBegin(),mpInputModelPart->ConditionsEnd());
 
         array_1d<std::size_t, 3> number_of_divisions = mMeshingData.GetNumberOfDivisions();
         mSurrogateBoundaryData.resize(number_of_divisions[0]*number_of_divisions[1]*number_of_divisions[2]);
@@ -138,6 +141,11 @@ public:
             Element::GeometryType& r_geometry = r_element.GetGeometry();
             mColors.AddGeometry(r_geometry, false);
         }
+        for(auto& r_condition : mpInputModelPart->Conditions()) {
+            Element::GeometryType& r_geometry = r_condition.GetGeometry();
+            mColors.AddGeometry(r_geometry, false);
+        }
+
         mColors.CalculateNodalRayColors(min_ray_position, number_of_divisions, inside_color, outside_color);
 
         for (std::size_t i = 0; i < number_of_divisions[0]; i++) 
@@ -146,17 +154,24 @@ public:
             {
                 for (std::size_t k = 0; k < number_of_divisions[2]; k++) 
                 {
+                    int node_index = mMeshingData.GetNodeIndex(i,j,k);
+                    if (mColors.GetNodalColor(i,j,k) == inside_color) 
+                    {
+                        mSurrogateBoundaryData[node_index].SetInside(true);
+                    }
                     CartesianNodalData& nodal_data = mMeshingData.GetNodalData(i,j,k);
                     Node::Pointer node_pointer = nodal_data.pGetNode();
                     if (node_pointer) 
                     {
-                        int node_index = mMeshingData.GetNodeIndex(i,j,k);
                         mSurrogateBoundaryData[node_index].SetActive(true);
                         mSurrogateBoundaryData[node_index].SetNodePointer(node_pointer);
 
                         Point point = *node_pointer;
-                        const auto& search_result = triangle_bin.SearchNearest(point);
-
+                        GeometricalObjectsBins::ResultType search_result = triangle_bin.SearchNearest(point);
+                        if (!search_result.IsObjectFound()) 
+                        {
+                            search_result = conditions_bin.SearchNearest(point);
+                        }
                         if(search_result.IsObjectFound()) // It should always be found
                         {
                             auto p_result = search_result.Get().get();
