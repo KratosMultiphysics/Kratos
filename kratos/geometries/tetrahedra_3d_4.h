@@ -1864,6 +1864,18 @@ private:
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TetrahedronGaussLegendreIntegrationPoints5,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+
+                Quadrature<TetrahedronGaussLegendreIntegrationPoints1,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TetrahedronGaussLegendreIntegrationPoints2,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TetrahedronGaussLegendreIntegrationPoints3,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TetrahedronGaussLegendreIntegrationPoints4,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TetrahedronGaussLegendreIntegrationPoints5,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+
                 Quadrature<TetrahedronGaussLobattoIntegrationPoints1,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
@@ -1886,6 +1898,17 @@ private:
                     GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_5),
+
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_LOBATTO_1)
             }
@@ -1909,6 +1932,18 @@ private:
                     GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::IntegrationMethod::GI_GAUSS_5),
+
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4),
+                Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5),
+
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::IntegrationMethod::GI_LOBATTO_1)
             }
