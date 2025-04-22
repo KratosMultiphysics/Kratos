@@ -13,6 +13,7 @@
 
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "utilities/math_utils.h"
 
 namespace
 {
