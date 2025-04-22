@@ -23,6 +23,10 @@
 #include "geometries/quadrature_point_curve_on_surface_geometry.h"
 #include "utilities/parallel_utilities.h"
 
+#include "custom_utilities/iga_flags.h"
+#include "utilities/variable_utils.h"
+
+
 namespace Kratos
 {
 
