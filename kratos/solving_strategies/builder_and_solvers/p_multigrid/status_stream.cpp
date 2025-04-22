@@ -104,7 +104,7 @@ struct PMGStatusStream::Impl {
                     tmp_stream << unconverged_color;
                 }
             }
-            tmp_stream << std::setw(11) << std::setprecision(3) << std::scientific << rReport.maybe_constraint_residual.value();
+            tmp_stream << std::setw(11) << std::setprecision(4) << std::scientific << rReport.maybe_constraint_residual.value();
             if (mUseAnsiColors) tmp_stream << "\033[0m";
             r_stream << "| " << tmp_stream.str() << " ";
         } else {
@@ -125,7 +125,12 @@ struct PMGStatusStream::Impl {
                 tmp_stream << unconverged_color;
             }
         }
-        tmp_stream << std::setw(11) << std::setprecision(3) << std::scientific << rReport.multigrid_residual;
+
+        if (rReport.maybe_multigrid_residual.has_value())
+            tmp_stream << std::setw(11) << std::setprecision(4) << std::scientific << rReport.maybe_multigrid_residual.value();
+        else
+            tmp_stream << "           ";
+
         if (mUseAnsiColors) tmp_stream << "\033[0m";
         r_stream << "| " << tmp_stream.str() << " ";
 
@@ -165,8 +170,13 @@ struct PMGStatusStream::Impl {
                           && rReport.constraints_converged == r_last.constraints_converged
                           && rReport.grid_level == r_last.grid_level
                           && rReport.multigrid_converged == r_last.multigrid_converged
-                          && rReport.multigrid_iteration == r_last.multigrid_iteration
-                          && rReport.multigrid_residual == r_last.multigrid_residual;
+                          && rReport.multigrid_iteration == r_last.multigrid_iteration;
+
+        if (rReport.maybe_multigrid_residual.has_value()) {
+            if (r_last.maybe_multigrid_residual.has_value()) {
+                is_duplicate = is_duplicate && rReport.maybe_multigrid_residual.value() == r_last.maybe_multigrid_residual.value();
+            } else is_duplicate = false;
+        } else if (r_last.maybe_multigrid_residual.has_value()) is_duplicate = false;
 
         if (rReport.maybe_constraint_residual.has_value()) {
             if (r_last.maybe_constraint_residual.has_value()) {
@@ -188,10 +198,9 @@ struct PMGStatusStream::Impl {
     void WriteIntermediateState(const PMGStatusStream::Report& rReport)
     {
         if (!mpMaybeVtuOutput.has_value()) {
-            const auto& r_dof_set = std::visit([](const auto* p_builder_and_solver) -> const PointerVectorSet<Dof<double>>& {
-                return p_builder_and_solver->GetDofSet();
+            std::visit([this](const auto* p_builder_and_solver) {
+                mpMaybeVtuOutput = MakeVtuOutput(*mpModelPart, p_builder_and_solver->GetDofSet());
             }, mpBuilderAndSolver);
-            mpMaybeVtuOutput = MakeVtuOutput(*mpModelPart, r_dof_set);
         }
 
         // PMultigridBuilderAndSolver::ProjectGrid stores the state and residual values

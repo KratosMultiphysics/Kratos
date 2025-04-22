@@ -374,6 +374,10 @@ public:
     /// @param rRootLhs LHS matrix of the root grid.
     /// @param rRootSolution Current state vector of the root grid.
     /// @param rRootRhs RHS vector of the root grid.
+    /// @details State variables are stored in the corresponding @ref Dof "DoFs"' values,
+    ///          while residuals are written to reactions.
+    /// @warning This function changes DoFs' values and reactions, so they should be copied
+    ///          before invoking this function and restored afterwards.
     void ProjectGrid(int GridLevel,
                      const typename TSparseSpace::MatrixType& rRootLhs,
                      const typename TSparseSpace::VectorType& rRootSolution,
@@ -426,8 +430,14 @@ private:
 
     PMultigridBuilderAndSolver& operator=(const PMultigridBuilderAndSolver& rRhs) = delete;
 
+    /// @details MSVC desperately wants to know about the destructor of Impl when trying to
+    ///          use PIMPL with an std::unique_ptr, up to the point that it ICE-s if I try
+    ///          dodging it with a lambda. Hopefully a raw pointer will get the message
+    ///          across its thick skull that it does not need to know what the destructor
+    ///          does if it only ever sees a bloody pointer.
+    /// @todo Change Impl* to std::unique_ptr<Impl> when (if) MSVC sorts its shit out.
     struct Impl;
-    std::unique_ptr<Impl> mpImpl;
+    Impl* mpImpl;
 }; // class PMultigridBuilderAndSolver
 
 

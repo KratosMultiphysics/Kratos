@@ -395,9 +395,8 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
         return true;
     } /*if converged*/ else {
         const int max_iterations = this->GetValue(NL_ITERATION_NUMBER);
-        if (static_cast<int>(rReport.constraint_iteration) < max_iterations) {
+        if (static_cast<int>(rReport.constraint_iteration) + 1 < max_iterations) {
             rStream.Submit(rReport.Tag(3), mpImpl->mVerbosity);
-            ++rReport.constraint_iteration;
             return false;
         } /*if iIteration < max_iterations*/ else {
             rStream.Submit(rReport.Tag(2), mpImpl->mVerbosity);
