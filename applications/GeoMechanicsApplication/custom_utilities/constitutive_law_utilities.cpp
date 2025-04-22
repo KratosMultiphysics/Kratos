@@ -36,8 +36,6 @@ double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int
     return rProperties[UMAT_PARAMETERS][index - 1];
 }
 
-
-
 Vector TransformPrincipalStressesToSigmaAndTau(const Vector& rPrincipalStresses)
 {
     auto result = Vector(2);
@@ -67,8 +65,8 @@ Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double Tensil
 Vector ReturnStressAtTensionApexReturnZone(const Vector& rSigmaTau, double TensileStrength)
 {
     Vector result(2);
-    result[0]   = TensileStrength;
-    result[1]   = 0.0;
+    result[0] = TensileStrength;
+    result[1] = 0.0;
     return result;
 }
 
@@ -76,15 +74,16 @@ Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau,
                                              const Vector& rDerivativeOfFlowFunction,
                                              double        TensileStrength)
 {
-    const auto lambda = (TensileStrength - rSigmaTau[0] - rSigmaTau[1]) / (rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1]);
+    const auto lambda = (TensileStrength - rSigmaTau[0] - rSigmaTau[1]) /
+                        (rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1]);
     return rSigmaTau + lambda * rDerivativeOfFlowFunction;
 }
 
 Vector ReturnStressAtCornerReturnZone(const Vector& rSigmaTau, const Vector& rCornerPoint)
 {
     Vector result(2);
-    result[0]   = rCornerPoint[0];
-    result[1]   = rCornerPoint[1];
+    result[0] = rCornerPoint[0];
+    result[1] = rCornerPoint[1];
     return result;
 }
 
@@ -93,32 +92,25 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
                                         double        FrictionAngle,
                                         double        Cohesion)
 {
-    const auto cof1 = std::sin(FrictionAngle);
-    const auto cof2 = Cohesion * std::cos(FrictionAngle);
+    const auto cof1      = std::sin(FrictionAngle);
+    const auto cof2      = Cohesion * std::cos(FrictionAngle);
     const auto numerator = cof1 * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
-    const auto lambda = (cof2 - rSigmaTau[0] * cof1 - rSigmaTau[1]) / numerator;
+    const auto lambda    = (cof2 - rSigmaTau[0] * cof1 - rSigmaTau[1]) / numerator;
     return rSigmaTau + lambda * rDerivativeOfFlowFunction;
 }
 
-bool IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau,
-                                                                   double        TensileStrength,
-                                                                   double        Apex)
+bool IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex)
 {
     return TensileStrength < Apex && rTrialSigmaTau[0] - rTrialSigmaTau[1] - TensileStrength > 0.0;
 }
 
-bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau,
-                                                                     double        TensileStrength,
-                                                                     double        Apex,
-                                                                     const Vector& rCornerPoint)
+bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex, const Vector& rCornerPoint)
 {
     return TensileStrength < Apex &&
            rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
 }
 
-bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
-                                                              double        DilatancyAngle,
-                                                              const Vector& rCornerPoint)
+bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau, double DilatancyAngle, const Vector& rCornerPoint)
 {
     return rTrialSigmaTau[0] - rCornerPoint[0] - (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
 }
@@ -167,58 +159,43 @@ double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rPr
                : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
 }
 
-
 Vector ConstitutiveLawUtilities::MapStressesInMorhCoulomb(const Properties& r_prop,
-                                                          Vector& principal_trial_stress_vector,
+                                                          Vector&           rSigmaTau,
                                                           const CoulombYieldSurface& rCoulombYieldSurface,
                                                           const TensionCutoff& rTensionCutOff)
 {
-        auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
-        const auto apex = CalculateApex(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]),
-                                        r_prop[GEO_COHESION]);
-        const auto corner_point =
-            CalculateCornerPoint(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]),
-                                 r_prop[GEO_COHESION], r_prop[GEO_TENSILE_STRENGTH]);
+    Vector     mapped_sigma_tau;
+    const auto apex =
+        CalculateApex(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]), r_prop[GEO_COHESION]);
+    const auto corner_point = CalculateCornerPoint(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]),
+                                                   r_prop[GEO_COHESION], r_prop[GEO_TENSILE_STRENGTH]);
 
-        if (IsStressAtTensionApexReturnZone(trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH], apex)) {
-             trial_sigma_tau = ReturnStressAtTensionApexReturnZone(
-                trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH]);
-            principal_trial_stress_vector[0] = trial_sigma_tau[0] + trial_sigma_tau[1];
-            principal_trial_stress_vector[2] = trial_sigma_tau[0] - trial_sigma_tau[1];
-        } else if (IsStressAtTensionCutoffReturnZone(trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH],
-                                                     apex, corner_point)) {
-            trial_sigma_tau = ReturnStressAtTensionCutoffReturnZone(
-                trial_sigma_tau,
-                rTensionCutOff.DerivativeOfFlowFunction(trial_sigma_tau),
-                r_prop[GEO_TENSILE_STRENGTH]);
-            principal_trial_stress_vector[0] = trial_sigma_tau[0] + trial_sigma_tau[1];
-            principal_trial_stress_vector[2] = trial_sigma_tau[0] - trial_sigma_tau[1];
-        } else if (IsStressAtCornerReturnZone(trial_sigma_tau, MathUtils<>::DegreesToRadians(r_prop[GEO_DILATANCY_ANGLE]), corner_point)) {
-            trial_sigma_tau = ReturnStressAtCornerReturnZone(trial_sigma_tau, corner_point);
-            principal_trial_stress_vector[0] = trial_sigma_tau[0] + trial_sigma_tau[1];
-            principal_trial_stress_vector[2] = trial_sigma_tau[0] - trial_sigma_tau[1];
-        } else {
-            // Regular failure region
-            trial_sigma_tau = ReturnStressAtRegularFailureZone(
-                trial_sigma_tau,
-                rCoulombYieldSurface.DerivativeOfFlowFunction(trial_sigma_tau),
-                MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]), r_prop[GEO_COHESION]);
-            principal_trial_stress_vector[0] = trial_sigma_tau[0] + trial_sigma_tau[1];
-            principal_trial_stress_vector[2] = trial_sigma_tau[0] - trial_sigma_tau[1];
-        }
-    return principal_trial_stress_vector;
+    if (IsStressAtTensionApexReturnZone(rSigmaTau, r_prop[GEO_TENSILE_STRENGTH], apex)) {
+        mapped_sigma_tau = ReturnStressAtTensionApexReturnZone(rSigmaTau, r_prop[GEO_TENSILE_STRENGTH]);
+    } else if (IsStressAtTensionCutoffReturnZone(rSigmaTau, r_prop[GEO_TENSILE_STRENGTH], apex, corner_point)) {
+        mapped_sigma_tau = ReturnStressAtTensionCutoffReturnZone(
+            rSigmaTau, rTensionCutOff.DerivativeOfFlowFunction(rSigmaTau), r_prop[GEO_TENSILE_STRENGTH]);
+    } else if (IsStressAtCornerReturnZone(
+                   rSigmaTau, MathUtils<>::DegreesToRadians(r_prop[GEO_DILATANCY_ANGLE]), corner_point)) {
+        mapped_sigma_tau = ReturnStressAtCornerReturnZone(rSigmaTau, corner_point);
+    } else {
+        // Regular failure region
+        mapped_sigma_tau = ReturnStressAtRegularFailureZone(
+            rSigmaTau, rCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau),
+            MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]), r_prop[GEO_COHESION]);
+    }
+    return mapped_sigma_tau;
 }
-
 
 bool ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(const Vector& rSigmaTau,
                                                                 const CoulombYieldSurface& rCoulombYieldSurface,
                                                                 const TensionCutoff& rTensionCutOff)
 {
-    constexpr auto tolerance          = 1.0e-10;
-    const auto coulomb_yield_function = rCoulombYieldSurface.YieldFunctionValue(rSigmaTau);
-    const auto tension_yield_function = rTensionCutOff.YieldFunctionValue(rSigmaTau);
-    const auto coulomb_tolerance      = tolerance * (1.0 + std::abs(coulomb_yield_function));
-    const auto tension_tolerance      = tolerance * (1.0 + std::abs(tension_yield_function));
+    constexpr auto tolerance              = 1.0e-10;
+    const auto     coulomb_yield_function = rCoulombYieldSurface.YieldFunctionValue(rSigmaTau);
+    const auto     tension_yield_function = rTensionCutOff.YieldFunctionValue(rSigmaTau);
+    const auto     coulomb_tolerance      = tolerance * (1.0 + std::abs(coulomb_yield_function));
+    const auto     tension_tolerance      = tolerance * (1.0 + std::abs(tension_yield_function));
     return coulomb_yield_function < coulomb_tolerance && tension_yield_function < tension_tolerance;
 }
 

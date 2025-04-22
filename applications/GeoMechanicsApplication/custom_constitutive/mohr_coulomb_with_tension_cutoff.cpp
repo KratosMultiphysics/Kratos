@@ -15,10 +15,10 @@
 // Application includes
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "custom_utilities/constitutive_law_utilities.h"
 
 #include <cmath>
 
@@ -46,6 +46,12 @@ Vector TransformPrincipalStressesToSigmaAndTau(const Vector& rPrincipalStresses)
     result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
     result[1]   = 0.5 * (rPrincipalStresses[0] - rPrincipalStresses[2]);
     return result;
+}
+
+void TransformSigmaAndTauToPrincipalStresses(const Vector& rSigmaTau, Vector& rPrincipalStresses)
+{
+    rPrincipalStresses[0] = rSigmaTau[0] + rSigmaTau[1];
+    rPrincipalStresses[2] = rSigmaTau[0] - rSigmaTau[1];
 }
 
 } // namespace
@@ -181,36 +187,9 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
     while (!ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(
         trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
-
-        principal_trial_stress_vector = ConstitutiveLawUtilities::MapStressesInMorhCoulomb(
-            r_prop, principal_trial_stress_vector, mCoulombYieldSurface, mTensionCutOff);
-    //    const auto apex = CalculateApex(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]),
-    //                                    r_prop[GEO_COHESION]);
-    //    const auto corner_point =
-    //        CalculateCornerPoint(MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]),
-    //                             r_prop[GEO_COHESION], r_prop[GEO_TENSILE_STRENGTH]);
-    //
-    //    if (const auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
-    //        IsStressAtTensionApexReturnZone(trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH], apex)) {
-    //        principal_trial_stress_vector = ReturnStressAtTensionApexReturnZone(
-    //            principal_trial_stress_vector, r_prop[GEO_TENSILE_STRENGTH]);
-    //    } else if (IsStressAtTensionCutoffReturnZone(trial_sigma_tau, r_prop[GEO_TENSILE_STRENGTH],
-    //                                                 apex, corner_point)) {
-    //        principal_trial_stress_vector = ReturnStressAtTensionCutoffReturnZone(
-    //            principal_trial_stress_vector,
-    //            mTensionCutOff.DerivativeOfFlowFunction(principal_trial_stress_vector),
-    //            r_prop[GEO_TENSILE_STRENGTH]);
-    //    } else if (IsStressAtCornerReturnZone(
-    //                   trial_sigma_tau, MathUtils<>::DegreesToRadians(r_prop[GEO_DILATANCY_ANGLE]), corner_point)) {
-    //        principal_trial_stress_vector =
-    //            ReturnStressAtCornerReturnZone(principal_trial_stress_vector, corner_point);
-    //    } else {
-    //        // Regular failure region
-    //        principal_trial_stress_vector = ReturnStressAtRegularFailureZone(
-    //            principal_trial_stress_vector,
-    //            mCoulombYieldSurface.DerivativeOfFlowFunction(principal_trial_stress_vector),
-    //            MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]), r_prop[GEO_COHESION]);
-    //    }
+        trial_sigma_tau = ConstitutiveLawUtilities::MapStressesInMorhCoulomb(
+            r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
+        TransformSigmaAndTauToPrincipalStresses(trial_sigma_tau, principal_trial_stress_vector);
 
         StressStrainUtilities::ReorderEigenValuesAndVectors(principal_trial_stress_vector, rotation_matrix);
         trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
@@ -218,8 +197,6 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
     mStressVector = StressStrainUtilities::RotatePrincipalStresses(
         principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
-
-
 
     rParameters.GetStressVector() = mStressVector;
 }
