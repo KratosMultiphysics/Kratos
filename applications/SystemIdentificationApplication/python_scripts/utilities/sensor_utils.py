@@ -76,6 +76,15 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             sensor = KratosSI.Sensors.StrainSensor(name, loc, strain_variable, strain_type_value, model_part.GetElement(elem_id), weight)
             AddSensorVariableData(sensor, parameters["variable_data"])
             list_of_sensors.append(sensor)
+        if sensor_type_name == "temperature_sensor":
+            name = parameters["name"].GetString()
+            loc = parameters["location"].GetVector()
+            loc = Kratos.Point(loc[0], loc[1], loc[2])
+            weight = parameters["weight"].GetDouble()
+            elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
+            sensor = KratosSI.Sensors.TemperatureSensor(name, loc, model_part.GetElement(elem_id), weight)
+            AddSensorVariableData(sensor, parameters["variable_data"])
+            list_of_sensors.append(sensor)
     return list_of_sensors
 
 def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosSI.Sensors.Sensor]', list_of_sensor_properties: 'list[str]') -> None:

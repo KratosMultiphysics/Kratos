@@ -23,6 +23,7 @@
 #include "custom_sensors/measurement_residual_response_function.h"
 #include "custom_sensors/displacement_sensor.h"
 #include "custom_sensors/strain_sensor.h"
+#include "custom_sensors/temperature_sensor.h"
 
 // Include base h
 #include "custom_python/add_custom_sensors_to_python.h"
@@ -134,6 +135,15 @@ void  AddCustomSensorsToPython(pybind11::module& m)
             py::arg("element"),
             py::arg("weight"))
         .def_static("GetDefaultParameters", &StrainSensor::GetDefaultParameters)
+        ;
+
+    py::class_<TemperatureSensor, TemperatureSensor::Pointer, Sensor>(sensor_module, "TemperatureSensor")
+        .def(py::init<const std::string&,const Point&,const Element&,const double>(),
+            py::arg("name"),
+            py::arg("location"),
+            py::arg("element"),
+            py::arg("weight"))
+        .def_static("GetDefaultParameters", &TemperatureSensor::GetDefaultParameters)
         ;
 }
 

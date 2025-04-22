@@ -148,10 +148,45 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
 
     double sum = 0.0;
 
+    double u_max = 0.0;
+    double T_max = 0.0;
+    for (auto& p_sensor : mpSensorsList) {
+        if (p_sensor->GetName().find("disp") != std::string::npos){
+            double u_m = std::abs(p_sensor->GetValue(SENSOR_MEASURED_VALUE));
+            //KRATOS_WATCH(u_m)
+            if ( u_m > u_max){
+                u_max = u_m;
+            }
+        }
+        else if (p_sensor->GetName().find("temp") != std::string::npos){
+            double T_m = std::abs(p_sensor->GetValue(SENSOR_MEASURED_VALUE));
+            //KRATOS_WATCH(T_m)
+            if ( T_m > T_max){
+                T_max = T_m;
+                
+            }
+        }
+        else{
+            std::cout << "Using unknown sensors" << std::endl;
+        }
+    }
+    KRATOS_WATCH(u_max)
+    KRATOS_WATCH(T_max)
+
     for (auto& p_sensor : mpSensorsList) {
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
-        const double current_sensor_error = sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE);
+        double current_sensor_error = sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE);
 
+        KRATOS_WATCH(sensor_value)
+        KRATOS_WATCH(p_sensor->GetValue(SENSOR_MEASURED_VALUE))
+        if (p_sensor->GetName().find("disp") != std::string::npos){
+            current_sensor_error = current_sensor_error / u_max;
+        }
+        else if (p_sensor->GetName().find("temp") != std::string::npos){
+            current_sensor_error = current_sensor_error / (T_max * 10.0);
+        }
+        KRATOS_WATCH(current_sensor_error)
+        
         p_sensor->SetSensorValue(sensor_value);
         p_sensor->SetValue(SENSOR_ERROR, current_sensor_error);
 
