@@ -183,7 +183,7 @@ public:
         }
     }
 
-    std::vector<SurrogateBoundaryNode>& GetSurrogateBoundaryData() 
+    std::vector<SurrogateBoundaryNode>& GetSurrogateBoundaryNodes() 
     {
         return mSurrogateBoundaryData;
     }

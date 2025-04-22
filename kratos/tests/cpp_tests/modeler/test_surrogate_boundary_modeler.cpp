@@ -167,7 +167,7 @@ End SubModelPart
 
 		std::cout << "Distances and colors computed" << std::endl;
 		
-		auto& nodalSBdata = voxel_mesher.GetSurrogateBoundaryData();
+		auto& nodalSBdata = voxel_mesher.GetSurrogateBoundaryNodes();
 
 		for (SurrogateBoundaryModeler::SurrogateBoundaryNode& node : nodalSBdata) 
 		{

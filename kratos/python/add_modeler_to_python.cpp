@@ -123,9 +123,18 @@ void  AddModelerToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters>())
     ;
 
+    py::class_<SurrogateBoundaryModeler::SurrogateBoundaryNode>(m, "SurrogateBoundaryNode")
+    .def("IsActive", &SurrogateBoundaryModeler::SurrogateBoundaryNode::IsActive)
+    .def("GetSignedDistance", &SurrogateBoundaryModeler::SurrogateBoundaryNode::GetSignedDistance)
+    .def("IsInside", &SurrogateBoundaryModeler::SurrogateBoundaryNode::IsInside)
+    .def("GetVectorDistance", &SurrogateBoundaryModeler::SurrogateBoundaryNode::GetVectorDistance, py::return_value_policy::reference_internal)
+    .def("GetNodePtr", &SurrogateBoundaryModeler::SurrogateBoundaryNode::GetNodePtr, py::return_value_policy::reference_internal);
+
     py::class_<SurrogateBoundaryModeler, SurrogateBoundaryModeler::Pointer, Modeler>(m, "SurrogateBoundaryModeler")
     .def(py::init<Model &, Parameters>())
-;
+    .def("ComputeSurrogateBoundary", &SurrogateBoundaryModeler::ComputeSurrogateBoundary)
+    .def("GetSurrogateBoundaryNodes", &SurrogateBoundaryModeler::GetSurrogateBoundaryNodes)
+    .def("GetSurrogateBoundaryNode", &SurrogateBoundaryModeler::GetSurrogateBoundaryNode, py::return_value_policy::reference_internal);
 }
 
 }  // namespace Kratos::Python.
