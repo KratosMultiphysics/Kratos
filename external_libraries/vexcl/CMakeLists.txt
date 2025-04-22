@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.12...4.0)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to RelWithDebInfo")
@@ -165,26 +165,30 @@ if (${CMAKE_VERSION} VERSION_LESS 3.17)
     # CUDA availability.
     cmake_policy(SET CMP0146 NEW)
     find_package(CUDA)
-    set(VEXCL_CUDA_FOUND ${CUDA_FOUND})
+    if (CUDA_FOUND)
+        add_library(CUDA INTERFACE)
+        add_library(VexCL::CUDA ALIAS CUDA)
+
+        target_include_directories(CUDA INTERFACE "${CUDA_INCLUDE_DIRS}")
+        target_link_libraries(CUDA INTERFACE Common "${CUDA_CUDA_LIBRARY}")
+        target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
+
+        message(STATUS "Found VexCL::CUDA")
+    endif()
 else()
     # Check for CUDA availability using FindCUDAToolkit and add
     # support for the CUDA language if it is successful.
     find_package(CUDAToolkit)
     if (CUDAToolkit_FOUND)
         enable_language(CUDA)
+        add_library(CUDA INTERFACE)
+        add_library(VexCL::CUDA ALIAS CUDA)
+
+        target_link_libraries(CUDA INTERFACE Common CUDA::toolkit CUDA::cuda_driver)
+        target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
+
+        message(STATUS "Found VexCL::CUDA")
     endif()
-    set(VEXCL_CUDA_FOUND ${CUDAToolkit_FOUND})
-endif()
-
-if(VEXCL_CUDA_FOUND)
-    add_library(CUDA INTERFACE)
-    add_library(VexCL::CUDA ALIAS CUDA)
-
-    target_include_directories(CUDA INTERFACE "${CUDA_INCLUDE_DIRS}")
-    target_link_libraries(CUDA INTERFACE Common "${CUDA_CUDA_LIBRARY}")
-    target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
-
-    message(STATUS "Found VexCL::CUDA")
 endif()
 
 find_path(Boost_DLL NAMES boost/dll PATHS ${Boost_INCLUDE_DIRS})
