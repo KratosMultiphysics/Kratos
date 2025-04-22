@@ -229,7 +229,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                                                                  Variable<array_1d<double, 3> >& vector_rate_container,
                                                                  Variable<array_1d<double, 3> >& material_derivative_container)
 {
-    KRATOS_INFO("SwimmingDEM") << "Constructing the material derivative by computing the L2 projection parallel..." << std::endl;
+    KRATOS_INFO("SwimmingDEM") << "Constructing the material derivative by computing the L2 projection..." << std::endl;
 
     // System size
     const unsigned number_of_elements = r_model_part.NumberOfElements();
@@ -287,12 +287,10 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                 local_lhs = ZeroMatrix(local_lhs.size1(), local_lhs.size2());
             }
         }
-        std::cout << "Mass matrix computed." << std::endl;
         mMassMatrixAlreadyComputed = true;
     }
 
     // Compute the projection of grad(u_j) for each j (RHS)
-    std::cout << "Computing RHS..." << std::endl;
     SparseSpaceType::VectorType ProjectionRHS = ZeroVector(system_size);
     for(unsigned j = 0; j < TDim; j++)
     {
@@ -331,17 +329,12 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                 }
             }
         }
-        std::cout << "RHS computed" << std::endl;
         SparseSpaceType::VectorType ProjectionCoefficients = ZeroVector(system_size);
         // AMGCLSolver<TSparseSpace, TDenseSpace > LinearSolver;
-        std::cout << "Solving linear system..." << std::endl;
         AMGCLSolver<SparseSpaceType, DenseSpaceType> LinearSolver;
         LinearSolver.Solve(m_global_mass_matrix, ProjectionCoefficients, ProjectionRHS);
-        std::cout << "System solved." << std::endl;
-        
 
         // Add values of material derivatives
-        std::cout << "Adding values to the nodes..." << std::endl;
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
@@ -376,7 +369,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         ProjectionRHS = ZeroVector(system_size);
         ProjectionCoefficients = ZeroVector(system_size);
     }
-    std::cout << "Derivative recovery computed." << std::endl;
+    KRATOS_INFO("SwimmingDEM") << "Finished constructing the material derivative by computing the L2 projection." << std::endl;
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -386,7 +379,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2(ModelPar
                                                                  Variable<array_1d<double, 3> >& vector_rate_container,
                                                                  Variable<array_1d<double, 3> >& material_derivative_container)
 {
-    KRATOS_INFO("SwimmingDEM") << "Constructing the material derivative by computing the L2 projection..." << std::endl;
+    KRATOS_INFO("SwimmingDEM") << "Constructing the material derivative by computing the L2 projection (old)..." << std::endl;
     std::map <std::size_t, unsigned int> id_to_position;
     unsigned int entry = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
@@ -682,8 +675,6 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeComponent(ModelP
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container)
 {
-    std::cout << "Entering RecoverSuperconvergentMatDeriv" << std::endl;
-
     mCalculatingTheGradient = true;
     if (mFirstGradientRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for material derivative..." << std::endl;
@@ -724,7 +715,6 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model
     }
     AddTimeDerivative(r_model_part, material_derivative_container);
     mCalculatingTheGradient = false;
-    std::cout << "Exiting RecoverSuperconvergentMatDeriv" << std::endl;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -868,8 +858,6 @@ template <std::size_t TDim>
 template <class TScalarVariable>
 void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
 {
-    std::cout << "Entering RecoverSuperconvergentGradient" << std::endl;
-
     mCalculatingTheGradient = true;
     if (mFirstGradientRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for gradient recovery..." << std::endl;
@@ -882,7 +870,6 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
     }
 
     // Solving least squares problem (Zhang, 2006)
-    std::cout << "Let us start to compute the recovered gradient..." << std::endl;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
@@ -906,8 +893,6 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
 
     }
     mCalculatingTheGradient = false;
-
-    std::cout << "Exiting RecoverSuperconvergentGradient" << std::endl;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

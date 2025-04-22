@@ -86,6 +86,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/stationarity_check.h"
 #include "custom_utilities/error_norm_calculator_utility.h"
 #include "custom_utilities/error_norm_torus.h"
+#include "custom_utilities/error_norm_ethier_field.h"
 #include "custom_utilities/averaging_variables_utility.h"
 
 namespace Kratos{
@@ -580,6 +581,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues", &ErrorNormTorusCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues)
         .def("getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues", &ErrorNormTorusCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues)
         .def("getL2NormFluidAccelWithRecoveryUsingGaussExactValues", &ErrorNormTorusCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues)
+        ;
+
+    py::class_<ErrorNormEthierFieldCalculator> (m, "ErrorNormEthierFieldCalculator")
+        .def(py::init<const double, const double>())
+        .def(py::init<const double, const double, const bool>())
+        .def("getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues", &ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues)
+        .def("getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues", &ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues)
+        .def("getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues", &ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues)
+        .def("getL2NormFluidAccelWithRecoveryUsingGaussExactValues", &ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues)
         ;
 
     py::class_<MeshRotationUtility> (m, "MeshRotationUtility")

@@ -136,6 +136,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/stationarity_check.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/error_norm_calculator_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/error_norm_torus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/error_norm_ethier_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/averaging_variables_utility.cpp
 )
 
