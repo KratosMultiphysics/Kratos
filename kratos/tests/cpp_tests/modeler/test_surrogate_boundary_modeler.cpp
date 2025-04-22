@@ -25,7 +25,7 @@
 namespace Kratos::Testing {
 
 namespace {
-void WriteCubeSkinMeshMdpaFileForVoxelModelerTest()
+void WriteCubeSkinMeshMdpaFileForSBModelerTest()
 {
     Kratos::shared_ptr<std::iostream> p_input(new std::stringstream(
         R"input(
@@ -111,7 +111,7 @@ End SubModelPart
 	{
 		using namespace Kratos;
 
-		WriteCubeSkinMeshMdpaFileForVoxelModelerTest();
+		WriteCubeSkinMeshMdpaFileForSBModelerTest();
 		std::cout << "Cube writen" << std::endl;
 
 		Parameters mesher_parameters(R"(
