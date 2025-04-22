@@ -81,6 +81,8 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
                 
                 self.assertAlmostEqual(distance, signed_distance, delta=4e-2)
 
+        surrogate_boundary.PrintSBData()
+
 
 
 if __name__ == '__main__':

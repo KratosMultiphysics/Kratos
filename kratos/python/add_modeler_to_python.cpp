@@ -134,7 +134,8 @@ void  AddModelerToPython(pybind11::module& m)
     .def(py::init<Model &, Parameters>())
     .def("ComputeSurrogateBoundary", &SurrogateBoundaryModeler::ComputeSurrogateBoundary)
     .def("GetSurrogateBoundaryNodes", &SurrogateBoundaryModeler::GetSurrogateBoundaryNodes)
-    .def("GetSurrogateBoundaryNode", &SurrogateBoundaryModeler::GetSurrogateBoundaryNode, py::return_value_policy::reference_internal);
+    .def("GetSurrogateBoundaryNode", &SurrogateBoundaryModeler::GetSurrogateBoundaryNode, py::return_value_policy::reference_internal)
+    .def("PrintSBData", &SurrogateBoundaryModeler::PrintSBData);
 }
 
 }  // namespace Kratos::Python.
