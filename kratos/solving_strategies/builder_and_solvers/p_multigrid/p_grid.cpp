@@ -381,7 +381,7 @@ void PGrid<TSparse,TDense>::ExecuteMultigridLoop(PMGStatusStream& rStream,
 
     rReport.multigrid_converged = false;
     rReport.multigrid_iteration = 0ul;
-    rReport.multigrid_residual = std::numeric_limits<typename TSparse::DataType>::max();
+    rReport.maybe_multigrid_residual.reset();
 
     // The multigrid hierarchy depth is currently capped at 1,
     // so the linear solver is used here instead of invoking
@@ -405,6 +405,9 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
     // Impose constraints and solve the coarse system.
     KRATOS_TRY
     do {
+        rReport.constraints_converged = false;
+        rReport.maybe_constraint_residual.reset();
+
         // Initialize the constraint assembler.
         mpConstraintAssembler->InitializeSolutionStep(mLhs, mSolution, mRhs);
 
@@ -414,15 +417,17 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
         constraints_finished = mpConstraintAssembler->FinalizeSolutionStep(mLhs, mSolution, mRhs, rReport, rStream);
 
         // Update state log.
-        if (!constraints_finished)
+        if (!constraints_finished) {
             rStream.Submit(rReport.Tag(3), mVerbosity);
+            ++rReport.constraint_iteration;
+        }
     } while (!constraints_finished);
 
     // Update the residual.
     BalancedProduct<TSparse,TSparse,TSparse>(mLhs, mSolution, mRhs, static_cast<typename TSparse::DataType>(-1));
 
     // Update state log.
-    rReport.multigrid_residual = TSparse::TwoNorm(mRhs) / initial_residual;
+    rReport.maybe_multigrid_residual = TSparse::TwoNorm(mRhs) / initial_residual;
     rStream.Submit(rReport.Tag(2), mVerbosity);
 
     mpConstraintAssembler->Finalize(mLhs, mSolution, mRhs, mIndirectDofSet);
@@ -451,7 +456,7 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
         /*grid_level=*/                 static_cast<std::size_t>(mDepth),
         /*multigrid_converged=*/        false,
         /*multigrid_iteration=*/        0ul,
-        /*multigrid_residual=*/         1.0,
+        /*multigrid_residual=*/         {},
         /*constraints_converged=*/      false,
         /*constraint_iteration=*/       0ul,
         /*maybe_constraint_residual=*/  {}

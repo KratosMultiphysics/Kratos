@@ -35,7 +35,7 @@ public:
         std::size_t grid_level;
         bool multigrid_converged;
         std::size_t multigrid_iteration;
-        double multigrid_residual;
+        std::optional<double> maybe_multigrid_residual;
         bool constraints_converged;
         std::size_t constraint_iteration;
         std::optional<double> maybe_constraint_residual;

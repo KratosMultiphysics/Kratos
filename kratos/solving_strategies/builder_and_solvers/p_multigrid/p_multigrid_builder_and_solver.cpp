@@ -104,10 +104,11 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
         // Inner loop for multigrid.
         rReport.multigrid_converged = false;
         rReport.multigrid_iteration = 0ul;
-        rReport.multigrid_residual = std::numeric_limits<typename TSparse::DataType>::max();
 
         while (   rReport.multigrid_iteration < static_cast<std::size_t>(mMaxIterations)
                && !rReport.multigrid_converged) {
+            rReport.maybe_multigrid_residual.reset();
+
             // Solve the coarse grid and apply its correction.
             if (mMaybeHierarchy.has_value()) {
                 std::visit([&rSolutionUpdate, &rResidual, &rStream, this](auto& r_hierarchy){
@@ -138,8 +139,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolutionUpdate, rResidual, static_cast<typename TSparse::DataType>(-1));
 
             // Emit status and check for convergence.
-            rReport.multigrid_residual = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
-            rReport.multigrid_converged = rReport.multigrid_residual < mTolerance;
+            rReport.maybe_multigrid_residual = TSparse::TwoNorm(rResidual) / InitialResidualNorm;
+            rReport.multigrid_converged = rReport.maybe_multigrid_residual.value() < mTolerance;
             if (   rReport.multigrid_iteration + 1 < static_cast<std::size_t>(mMaxIterations)
                 && !rReport.multigrid_converged)
                 rStream.Submit(rReport.Tag(3), mVerbosity);
@@ -164,7 +165,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
             /*grid_level=*/                 0ul,
             /*multigrid_converged=*/        false,
             /*multigrid_iteration=*/        0ul,
-            /*multigrid_residual=*/         1.0,
+            /*maybe_multigrid_residual=*/   {},
             /*constraints_converged=*/      false,
             /*constraint_iteration=*/       0ul,
             /*maybe_constraint_residual=*/  {}
@@ -183,6 +184,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::Impl
 
         // Outer loop for constraints.
         do {
+            status_report.maybe_multigrid_residual.reset();
+
             // Initialize the constraint assembler and update residuals.
             mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs);
             TSparse::Copy(rRhs, residual);
