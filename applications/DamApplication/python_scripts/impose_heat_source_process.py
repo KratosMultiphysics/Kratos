@@ -1,7 +1,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
 
-## This proces sets the value of water loads.
+## This process sets the value of water loads.
 
 def Factory(settings, Model):
     if not isinstance(settings, Parameters):
