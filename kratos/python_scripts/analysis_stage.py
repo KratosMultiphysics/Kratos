@@ -333,7 +333,7 @@ class AnalysisStage(object):
 
     @classmethod
     def __BackwardCompatibleModelersCreation(self, modelers_list):
-        return any([modeler.Has("modeler_name") for modeler in modelers_list])
+        return any([modeler.Has("modeler_name") for modeler in modelers_list.values()])
 
     ### Processes
     def _GetListOfProcesses(self):

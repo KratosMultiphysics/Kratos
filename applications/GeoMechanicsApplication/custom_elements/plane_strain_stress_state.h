@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrainStressState : public StressStatePolicy
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrainStressState final : public StressStatePolicy
 {
 public:
     [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rDN_DX,
