@@ -89,16 +89,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
 void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
 {
     auto& process_info = mrModelPart.GetProcessInfo();
-    double time = process_info[TIME];
-    double delta_time;
-    if (mThisParameters["solver_settings"]["time_stepping"].Has("time_step")) {
-        delta_time = mThisParameters["solver_settings"]["time_stepping"]["time_step"].GetDouble();
-    } else if (mThisParameters["solver_settings"]["time_stepping"].Has("time_step_table")) {
-        const Matrix time_step_table = mThisParameters["solver_settings"]["time_stepping"]["time_step_table"].GetMatrix();
-        KRATOS_ERROR << "Advance in time process not prepared yet for time_step_table!" << std::endl;
-    } else {
-        KRATOS_ERROR << "Time stepping not defined!" << std::endl;
-    }
+    const double time = process_info[TIME];
+    const double delta_time = process_info[DELTA_TIME];
 
     //Monotonic (false) or cyclic (true) load. If a monotonic and a cyclic load coexist, cyclic type will be considered
     bool current_load_type = false;
@@ -111,19 +103,39 @@ void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
         KRATOS_ERROR << "Using the advance in time strategy without using the cyclic_constraints_process_list neither monotonic_constraints_process_list" << std::endl;
     }
 
+    const auto& constraints_process_list = mThisParameters["processes"]["constraints_process_list"];
+
     if (has_monotonic_constraints_list) {
         std::vector<std::string> monotonic_constraints_list = mThisParameters["fatigue"]["monotonic_constraints_process_list"].GetStringArray();
         //Loop on the monotonic constraints list
         for (IndexType i = 0; i < monotonic_constraints_list.size(); i++) {
-            for (IndexType j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++) {
-                std::string model_part_name = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["model_part_name"].GetString();
-                double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
-                double model_part_end_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][1].GetDouble();
+            for (IndexType j = 0; j < constraints_process_list.size(); j++) {
+                const auto& parameters = constraints_process_list[j]["Parameters"];
+                const auto& interval = parameters["interval"];
+                const std::string model_part_name = parameters["model_part_name"].GetString();
+                const double model_part_start_time = interval[0].GetDouble();
+                double model_part_end_time;
+                const auto& interval_end = interval[1];
+
+                if (interval_end.IsString()) {
+                    const std::string interval_value = interval_end.GetString();
+                    if (interval_value == "End") {
+                        model_part_end_time = mThisParameters["problem_data"]["end_time"].GetDouble();
+                    } else {
+                        KRATOS_ERROR << "Unexpected string in interval end: " << interval_value << std::endl;
+                    }
+                } else if (interval_end.IsDouble()) {
+                    model_part_end_time = interval_end.GetDouble();
+                } else {
+                    KRATOS_ERROR << "Interval end is neither a double nor a string!" << std::endl;
+                }
+
                 if (monotonic_constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time && !break_condition) {
                     break_condition = true;
                     //Checking if this is the first step of a new model part
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
+                        KRATOS_WATCH("YESS")
                     }
                 }
             }
@@ -137,16 +149,34 @@ void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
         std::vector<std::string> cyclic_constraints_list = mThisParameters["fatigue"]["cyclic_constraints_process_list"].GetStringArray();
         //Loop on the cyclic constraints list
         for (IndexType i = 0; i < cyclic_constraints_list.size(); i++) {
-            for (IndexType j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++) {
-                std::string model_part_name = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["model_part_name"].GetString();
-                double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
-                double model_part_end_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][1].GetDouble();
+            for (IndexType j = 0; j < constraints_process_list.size(); j++) {
+                const auto& parameters = constraints_process_list[j]["Parameters"];
+                const auto& interval = parameters["interval"];
+                const std::string model_part_name = parameters["model_part_name"].GetString();
+                const double model_part_start_time = interval[0].GetDouble();
+                double model_part_end_time;
+                const auto& interval_end = interval[1];
+
+                if (interval_end.IsString()) {
+                    const std::string interval_value = interval_end.GetString();
+                    if (interval_value == "End") {
+                        model_part_end_time = mThisParameters["problem_data"]["end_time"].GetDouble();
+                    } else {
+                        KRATOS_ERROR << "Unexpected string in interval end: " << interval_value << std::endl;
+                    }
+                } else if (interval_end.IsDouble()) {
+                    model_part_end_time = interval_end.GetDouble();
+                } else {
+                    KRATOS_ERROR << "Interval end is neither a double nor a string!" << std::endl;
+                }
+
                 if (cyclic_constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time && !current_load_type) {
                     current_load_type = true;
                     new_model_part = false; //This is done just in case a new monotonic load coexists with a cyclic load.
                     //Checking if this is the first step of a new model part
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
+                        KRATOS_WATCH("SIII")
                     }
                 }
             }
@@ -319,12 +349,31 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrementBlock1(double& rIncremen
     const bool has_cyclic_constraints_list = mThisParameters["fatigue"].Has("cyclic_constraints_process_list");
     std::vector<std::string> constraints_list = has_cyclic_constraints_list ? mThisParameters["fatigue"]["cyclic_constraints_process_list"].GetStringArray() : mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
 
+    const auto& constraints_process_list = mThisParameters["processes"]["constraints_process_list"];
+
     double model_part_final_time = mThisParameters["problem_data"]["end_time"].GetDouble();
     for (IndexType i = 0; i < constraints_list.size(); i++) {
-        for (IndexType j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++) {
-            std::string model_part_name = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["model_part_name"].GetString();
-            double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
-            double model_part_end_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][1].GetDouble();
+        for (IndexType j = 0; j < constraints_process_list.size(); j++) {
+            const auto& parameters = constraints_process_list[j]["Parameters"];
+            const auto& interval = parameters["interval"];
+            const std::string model_part_name = parameters["model_part_name"].GetString();
+            const double model_part_start_time = interval[0].GetDouble();
+            double model_part_end_time;
+            const auto& interval_end = interval[1];
+
+            if (interval_end.IsString()) {
+                const std::string interval_value = interval_end.GetString();
+                if (interval_value == "End") {
+                    model_part_end_time = mThisParameters["problem_data"]["end_time"].GetDouble();
+                } else {
+                    KRATOS_ERROR << "Unexpected string in interval end: " << interval_value << std::endl;
+                }
+            } else if (interval_end.IsDouble()) {
+                model_part_end_time = interval_end.GetDouble();
+            } else {
+                KRATOS_ERROR << "Interval end is neither a double nor a string!" << std::endl;
+            }
+
             if (constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time && !current_constraints_process_list_detected) {
                 model_part_final_time = model_part_end_time;
                 current_constraints_process_list_detected = true;
@@ -384,8 +433,6 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrementBlock2(double& rIncremen
 void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Increment)
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
-
-    // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
     for (auto& r_elem : mrModelPart.Elements()) {
         std::vector<bool> cycle_identifier;
