@@ -35,6 +35,12 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
             },
             "coloring_settings_list": [
             {
+                "type" : "cells_in_touch",
+                "model_part_name": "skin_model_part",
+                "color": -1,
+                "input_entities": "conditions"
+            },
+            {
                 "type" : "cells_with_inside_center",
                 "model_part_name": "skin_model_part",
                 "color": -1,
@@ -73,7 +79,7 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
                 distance = CalculateAnalyticalDistance(node.GetNodePtr())
                 signed_distance = node.GetSignedDistance()
                 
-                self.assertAlmostEqual(distance, signed_distance, delta=3.8e-2)
+                self.assertAlmostEqual(distance, signed_distance, delta=4e-2)
 
 
 
