@@ -16,6 +16,8 @@
 // Project includes
 #include "containers/variable.h"
 #include "includes/constitutive_law.h"
+#include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/tension_cutoff.h"
 
 namespace Kratos
 {
@@ -35,6 +37,13 @@ public:
 
     static double GetCohesion(const Properties& rProperties);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
+    static Vector MapStressesInMorhCoulomb(const Properties&          rProperties,
+                                           Vector&              rSigmaTau,
+                                           const CoulombYieldSurface& rCoulombYieldSurface,
+                                           const TensionCutoff&       rTensionCutOff);
+    static bool   IsAdmissiblePrincipalStressState(const Vector&              rPrincipalStresses,
+                                                   const CoulombYieldSurface& rCoulombYieldSurface,
+                                                   const TensionCutoff&       rTensionCutOff);
 
 }; /* Class ConstitutiveLawUtilities*/
 
