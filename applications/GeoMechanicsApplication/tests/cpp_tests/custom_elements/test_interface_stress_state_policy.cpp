@@ -19,6 +19,7 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
+#include <type_traits>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -42,6 +43,14 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
 
 namespace Kratos::Testing
 {
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<InterfaceStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<InterfaceStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<InterfaceStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<InterfaceStressState>);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -129,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectIntegrationCoeffici
 
     // The expected number is calculated as follows:
     // weight * detJ = 0.5 * 2.0 = 1.0
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
+    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)

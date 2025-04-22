@@ -21,6 +21,7 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
+#include <type_traits>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -80,7 +81,15 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_ReturnsCorrectIntegrationC
 
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) = 1.0
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
+    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<ThreeDimensionalStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<ThreeDimensionalStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<ThreeDimensionalStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<ThreeDimensionalStressState>);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectClone, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -90,6 +99,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectClone, KratosG
     const auto p_clone = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<ThreeDimensionalStressState*>(p_clone.get()), nullptr);
+    KRATOS_EXPECT_NE(p_clone.get(), p_stress_state_policy.get());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStrainReturnsCorrectResults,
