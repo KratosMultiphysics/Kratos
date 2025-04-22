@@ -98,7 +98,7 @@ namespace Kratos
 
 		_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("NurbsMesh").RemoveSubModelPart("Neumann_BC");
 		//_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").RemoveSubModelPart("Load_3");
-
+		
 		// assign each coupling geometry to the coupling condition
 		ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("CouplingInterface");
 		std::string name = "CouplingPenaltyCondition";
@@ -133,7 +133,17 @@ namespace Kratos
 			[&p_prop](Condition& rCondition)
 			{ rCondition.SetProperties(p_prop); }
 		);
-		
+
+		// Set Flags
+		const auto flagX = IgaFlags::FIX_DISPLACEMENT_X;
+		const auto flagY = IgaFlags::FIX_DISPLACEMENT_Y;
+		const auto flagZ = IgaFlags::FIX_DISPLACEMENT_Z;
+		const bool thisbool = true;
+		VariableUtils varUtility;
+		varUtility.SetFlag(flagX, thisbool, interface_model_part.Conditions());
+		varUtility.SetFlag(flagY, thisbool, interface_model_part.Conditions());
+		varUtility.SetFlag(flagZ, thisbool, interface_model_part.Conditions());
+				
 		// Write points to VTK
 		std::string filename = "data/Intergration_Points_on_Solid1_Coupling_Surface.vtk";
 		size_t selectpart = 0;
