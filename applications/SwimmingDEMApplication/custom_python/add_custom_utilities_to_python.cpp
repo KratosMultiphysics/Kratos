@@ -223,6 +223,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
+    typedef void (VelocityField::*Evaluate)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
+    Evaluate EvaluateFieldVector = &VelocityField::Evaluate;
 
     py::class_<VelocityField, VelocityField::Pointer, VectorField<3>> (m, "VelocityField")
         .def(py::init<>())
@@ -232,6 +234,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateRotational", CalculateRotationalVector)
         .def("CalculateLaplacian", CalculateLaplacianVector)
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
+        .def("Evaluate", EvaluateFieldVector)
         ;
 
     py::class_<ConstantVelocityField, ConstantVelocityField::Pointer, VelocityField > (m, "ConstantVelocityField")

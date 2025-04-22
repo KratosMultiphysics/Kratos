@@ -284,33 +284,12 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                 // Node id to global index map
                 CalculateLocalMassMatrix(number_of_dofs, it_elem, local_lhs);
                 AssembleMassMatrix(m_global_mass_matrix, local_lhs, elements_id_map[e]);
-
-                // Print local mass matrix result
-                // if(e == 89)
-                // {
-                //     for(unsigned i = 0; i < local_lhs.size1(); i++)
-                //     {
-                //         for(unsigned j = 0; j < local_lhs.size2(); j++)
-                //         {
-                //             unsigned global_i = elements_id_map[e][i];
-                //             unsigned global_j = elements_id_map[e][j];
-                //             std::cout << "local_mass_matrix[" << i << ", "<< j << "] = " << local_lhs(i, j) << " will be send to (a_global, b_global) = (" << global_i << ", " << global_j << ")" << std::endl;
-                //         }
-                //     }
-                //     exit(0);
-                // }
                 local_lhs = ZeroMatrix(local_lhs.size1(), local_lhs.size2());
             }
         }
         std::cout << "Mass matrix computed." << std::endl;
         mMassMatrixAlreadyComputed = true;
     }
-    // Print the diagonal of the mass matrix
-    // for(unsigned i = 0; i < system_size; i++)
-    // {
-    //     std::cout << "m_global_mass_matrix[" << i << ", "<< i << "] = " << m_global_mass_matrix(i, i) << std::endl;
-    // }
-    // exit(0);
 
     // Compute the projection of grad(u_j) for each j (RHS)
     std::cout << "Computing RHS..." << std::endl;
@@ -352,12 +331,17 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                 }
             }
         }
+        std::cout << "RHS computed" << std::endl;
         SparseSpaceType::VectorType ProjectionCoefficients = ZeroVector(system_size);
         // AMGCLSolver<TSparseSpace, TDenseSpace > LinearSolver;
+        std::cout << "Solving linear system..." << std::endl;
         AMGCLSolver<SparseSpaceType, DenseSpaceType> LinearSolver;
         LinearSolver.Solve(m_global_mass_matrix, ProjectionCoefficients, ProjectionRHS);
+        std::cout << "System solved." << std::endl;
+        
 
         // Add values of material derivatives
+        std::cout << "Adding values to the nodes..." << std::endl;
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
@@ -392,6 +376,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         ProjectionRHS = ZeroVector(system_size);
         ProjectionCoefficients = ZeroVector(system_size);
     }
+    std::cout << "Derivative recovery computed." << std::endl;
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
