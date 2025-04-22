@@ -41,7 +41,7 @@ public:
                                            Vector&              rSigmaTau,
                                            const CoulombYieldSurface& rCoulombYieldSurface,
                                            const TensionCutoff&       rTensionCutOff);
-    static bool   IsAdmissiblePrincipalStressState(const Vector&              rPrincipalStresses,
+    static bool   IsAdmissiblePrincipalStressState(const Vector&              rSigmaTau,
                                                    const CoulombYieldSurface& rCoulombYieldSurface,
                                                    const TensionCutoff&       rTensionCutOff);
 

@@ -25,11 +25,9 @@ CoulombYieldSurface::CoulombYieldSurface(double FrictionAngleInRad, double Cohes
 {
 }
 
-double CoulombYieldSurface::YieldFunctionValue(const Vector& rPrincipalStress) const
+double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
-    return 0.5 * (rPrincipalStress(0) - rPrincipalStress(2)) +
-           0.5 * (rPrincipalStress(0) + rPrincipalStress(2)) * std::sin(mFrictionAngle) -
-           mCohesion * std::cos(mFrictionAngle);
+    return rSigmaTau[1] + rSigmaTau[0] * std::sin(mFrictionAngle) - mCohesion * std::cos(mFrictionAngle);
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rPrincipalStress) const

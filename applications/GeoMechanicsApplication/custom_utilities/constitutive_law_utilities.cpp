@@ -205,13 +205,13 @@ Vector ConstitutiveLawUtilities::MapStressesInMorhCoulomb(const Properties& r_pr
 }
 
 
-bool ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses,
+bool ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(const Vector& rSigmaTau,
                                                                 const CoulombYieldSurface& rCoulombYieldSurface,
                                                                 const TensionCutoff& rTensionCutOff)
 {
     constexpr auto tolerance          = 1.0e-10;
-    const auto coulomb_yield_function = rCoulombYieldSurface.YieldFunctionValue(rPrincipalStresses);
-    const auto tension_yield_function = rTensionCutOff.YieldFunctionValue(rPrincipalStresses);
+    const auto coulomb_yield_function = rCoulombYieldSurface.YieldFunctionValue(rSigmaTau);
+    const auto tension_yield_function = rTensionCutOff.YieldFunctionValue(rSigmaTau);
     const auto coulomb_tolerance      = tolerance * (1.0 + std::abs(coulomb_yield_function));
     const auto tension_tolerance      = tolerance * (1.0 + std::abs(tension_yield_function));
     return coulomb_yield_function < coulomb_tolerance && tension_yield_function < tension_tolerance;

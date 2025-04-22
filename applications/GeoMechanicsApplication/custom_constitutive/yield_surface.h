@@ -25,7 +25,7 @@ class YieldSurface
 public:
     virtual ~YieldSurface() = default;
 
-    [[nodiscard]] virtual double YieldFunctionValue(const Vector& rPrincipalStress) const       = 0;
+    [[nodiscard]] virtual double YieldFunctionValue(const Vector& rSigmaTau) const       = 0;
     [[nodiscard]] virtual Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const = 0;
 
 private:

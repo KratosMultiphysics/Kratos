@@ -28,7 +28,7 @@ public:
 
     CoulombYieldSurface(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad);
 
-    [[nodiscard]] double YieldFunctionValue(const Vector& rPrincipalStress) const override;
+    [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const override;
 
 private:

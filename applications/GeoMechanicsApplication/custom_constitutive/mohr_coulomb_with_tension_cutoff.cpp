@@ -177,10 +177,10 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     StressStrainUtilities::CalculatePrincipalStresses(
         trail_stress_vector, principal_trial_stress_vector, rotation_matrix);
 
-    
+    auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
 
     while (!ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(
-        principal_trial_stress_vector, mCoulombYieldSurface, mTensionCutOff)) {
+        trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
 
         principal_trial_stress_vector = ConstitutiveLawUtilities::MapStressesInMorhCoulomb(
             r_prop, principal_trial_stress_vector, mCoulombYieldSurface, mTensionCutOff);
@@ -211,12 +211,15 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     //            mCoulombYieldSurface.DerivativeOfFlowFunction(principal_trial_stress_vector),
     //            MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]), r_prop[GEO_COHESION]);
     //    }
-    //
+
         StressStrainUtilities::ReorderEigenValuesAndVectors(principal_trial_stress_vector, rotation_matrix);
+        trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
     }
 
     mStressVector = StressStrainUtilities::RotatePrincipalStresses(
         principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
+
+
 
     rParameters.GetStressVector() = mStressVector;
 }

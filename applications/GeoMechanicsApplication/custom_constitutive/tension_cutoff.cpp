@@ -20,9 +20,9 @@ namespace Kratos
 {
 TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileStrength} {}
 
-double TensionCutoff::YieldFunctionValue(const Vector& rPrincipalStress) const
+double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
 {
-    return rPrincipalStress(0) - mTensileStrength;
+    return rSigmaTau[0] + rSigmaTau[1] - mTensileStrength;
 }
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Vector& rPrincipalStress) const

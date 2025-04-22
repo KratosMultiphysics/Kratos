@@ -36,13 +36,20 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWi
 
     Vector principal_stress(3);
     principal_stress <<= 3.0, 2.0, 1.0;
-    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(principal_stress), 1.0, Defaults::absolute_tolerance);
+    Vector sigma_tau(2);
+    sigma_tau(0) = 0.5 * (principal_stress(0) + principal_stress(2));
+    sigma_tau(1) = 0.5 * (principal_stress(0) - principal_stress(2));
+    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
 
     principal_stress <<= 1.7071067811865475, 1.0, 0.2928932188134525;
-    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(principal_stress), 0.0, Defaults::absolute_tolerance);
+    sigma_tau(0) = 0.5 * (principal_stress(0) + principal_stress(2));
+    sigma_tau(1) = 0.5 * (principal_stress(0) - principal_stress(2));
+    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
 
     principal_stress <<= 0.1715728752538099, -1.0, -1.8284271247461901;
-    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(principal_stress), -1.0, Defaults::absolute_tolerance);
+    sigma_tau(0) = 0.5 * (principal_stress(0) + principal_stress(2));
+    sigma_tau(1) = 0.5 * (principal_stress(0) - principal_stress(2));
+    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -66,7 +73,10 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterfac
     ASSERT_NE(p_loaded_coulomb_yield_surface, nullptr);
     auto principal_stresses = Vector(3);
     principal_stresses <<= 1.0, 1.0, 1.0;
-    KRATOS_EXPECT_NEAR(p_loaded_coulomb_yield_surface->YieldFunctionValue(principal_stresses),
+    Vector sigma_tau(2);
+    sigma_tau(0) = 0.5 * (principal_stresses(0) + principal_stresses(2));
+    sigma_tau(1) = 0.5 * (principal_stresses(0) - principal_stresses(2));
+    KRATOS_EXPECT_NEAR(p_loaded_coulomb_yield_surface->YieldFunctionValue(sigma_tau),
                        0.5 * std::sqrt(3.0) - 1, Defaults::absolute_tolerance);
     auto expected_derivative = Vector(3);
     expected_derivative <<= 0.75, 0.0, -0.25;
@@ -80,15 +90,21 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
 
     Vector principal_stress(3);
     principal_stress <<= 3.0, 2.0, 1.0;
-
+    Vector sigma_tau(2);
+    sigma_tau(0) = 0.5 * (principal_stress(0) + principal_stress(2));
+    sigma_tau(1) = 0.5 * (principal_stress(0) - principal_stress(2));
     TensionCutoff tensionCutoff(tension_cutoff);
-    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(principal_stress), 1.0, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
 
     principal_stress <<= 2.0, 1.5, 1.0;
-    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(principal_stress), 0.0, Defaults::absolute_tolerance);
+    sigma_tau(0) = 0.5 * (principal_stress(0) + principal_stress(2));
+    sigma_tau(1) = 0.5 * (principal_stress(0) - principal_stress(2));
+    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
 
     principal_stress <<= 1.0, 0.5, 0.1;
-    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(principal_stress), -1.0, Defaults::absolute_tolerance);
+    sigma_tau(0) = 0.5 * (principal_stress(0) + principal_stress(2));
+    sigma_tau(1) = 0.5 * (principal_stress(0) - principal_stress(2));
+    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -108,7 +124,10 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, Kra
     ASSERT_NE(p_loaded_tension_cut_off, nullptr);
     auto principal_stresses = Vector(3);
     principal_stresses <<= tensile_strength, 0.0, 0.0;
-    KRATOS_EXPECT_NEAR(p_loaded_tension_cut_off->YieldFunctionValue(principal_stresses), 0.0,
+    Vector sigma_tau(2);
+    sigma_tau(0) = 0.5 * (principal_stresses(0) + principal_stresses(2));
+    sigma_tau(1) = 0.5 * (principal_stresses(0) - principal_stresses(2));
+    KRATOS_EXPECT_NEAR(p_loaded_tension_cut_off->YieldFunctionValue(sigma_tau), 0.0,
                        Defaults::absolute_tolerance);
     auto expected_derivative = Vector(3);
     expected_derivative <<= 1.0, 0.0, 0.0;
