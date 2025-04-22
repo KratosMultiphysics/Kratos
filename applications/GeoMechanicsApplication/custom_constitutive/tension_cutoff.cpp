@@ -25,10 +25,10 @@ double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
     return rSigmaTau[0] + rSigmaTau[1] - mTensileStrength;
 }
 
-Vector TensionCutoff::DerivativeOfFlowFunction(const Vector& rPrincipalStress) const
+Vector TensionCutoff::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
-    Vector result(3);
-    result <<= 1.0, 0.0, 0.0;
+    Vector result(2);
+    result <<= 1.0, 1.0;
     return result;
 }
 
