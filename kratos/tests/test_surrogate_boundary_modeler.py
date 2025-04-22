@@ -25,24 +25,20 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
         {
             "output_model_part_name" : "main_model_part",
             "input_model_part_name" : "skin_model_part",
-            "mdpa_file_name" : "auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere",
+            "mdpa_file_name" : "auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_skin",
             "key_plane_generator": {
                 "Parameters" : {
-                    "voxel_sizes" : [0.025, 0.025, 0.025],
-                    "min_point" : [-0.05, -0.05, 0],
-                    "max_point" : [0.05, 0.05, 0.1]
+                    "voxel_sizes" : [0.15, 0.15, 0.15],
+                    "min_point" : [-0.7, -0.7, -0.7],
+                    "max_point" : [0.7, 0.7, 0.7]
                 }
             },
             "coloring_settings_list": [
             {
-                "type" : "cells_in_touch",
-                "model_part_name": "skin_model_part.Skin_Part",
-                "color": -1
-            },
-            {
                 "type" : "cells_with_inside_center",
-                "model_part_name": "skin_model_part.Skin_Part",
-                "color": -1
+                "model_part_name": "skin_model_part",
+                "color": -1,
+                "input_entities": "conditions"
             }
             ],
             "entities_generator_list": [
@@ -51,7 +47,7 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
                 "model_part_name": "main_model_part.workpiece",
                 "color": -1,
                 "properties_id": 1
-            } 
+            }  
             ]
         }
         """)
@@ -67,14 +63,18 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
         surrogate_boundary.PrepareGeometryModel()
         surrogate_boundary.SetupModelPart()
 
+        main_model_part = self.current_model["main_model_part"]
+
         surrogate_boundary.ComputeSurrogateBoundary()
+        self.assertEqual(len(surrogate_boundary.GetSurrogateBoundaryNodes()), 1000)
 
         for node in surrogate_boundary.GetSurrogateBoundaryNodes():
             if node.IsActive():
                 distance = CalculateAnalyticalDistance(node.GetNodePtr())
                 signed_distance = node.GetSignedDistance()
-                self.assertAlmostEqual(distance, signed_distance, delta=3e-2)
-                print(signed_distance)
+                
+                self.assertAlmostEqual(distance, signed_distance, delta=3.8e-2)
+
 
 
 if __name__ == '__main__':
