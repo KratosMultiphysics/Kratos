@@ -20,7 +20,6 @@
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "voxel_mesh_generator_modeler.h"
-
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "utilities/geometry_utilities/nearest_point_utilities.h"
 
@@ -62,7 +61,6 @@ public:
     typedef Node::Pointer NodePtrType;
     typedef Geometry<NodeType> GeometryType;
     typedef GeometryType::Pointer GeometryPtrType;
-    typedef GeometryType::GeometriesArrayType GeometryArrayType;
     typedef GeometryType::PointsArrayType PointsArrayType;
 
     /// Pointer definition of SurrogateBoundaryModeler
@@ -72,9 +70,7 @@ public:
     ///@name Life Cycle
     ///@{
     
-    /**
-     * @brief Default constructor
-     */
+    ///Default constructor
     SurrogateBoundaryModeler(){}
 
     //Constructor
@@ -95,10 +91,11 @@ public:
     ///@{
     
     /**
-     * Data stored for every voxel in the mesh. Nodes that are not created by the Modeler
+     * @class SurrogateBoundaryNode
+     * @brief Data for every voxel in the mesh. Nodes that are not created by the Modeler
      * are marked as non active and pointer to node will be null. Active nodes will have 
      * a vector distance to skin and a signed distance (magnitude of vector distance with
-     * positive sign if inside the volume and negative sign otherwise)
+     * positive sign if inside the volume and negative sign otherwise).
      */
     class SurrogateBoundaryNode 
     {
@@ -114,6 +111,7 @@ public:
         double& GetSignedDistance() { return mSignedDistance; }
         array_1d<double,3>& GetVectorDistance() { return mDistanceToSkin; }
         
+        // Pointer to original node in VoxelMesher
         Node::Pointer GetNodePtr(){ return node_pointer; }
         void SetNodePointer(Node::Pointer pNode) { node_pointer = pNode; }
     };
@@ -124,7 +122,7 @@ public:
      */
     void ComputeSurrogateBoundary() 
     {
-        int inside_color = -1;
+        int inside_color = -1; 
         int outside_color = 1;
 
         GeometricalObjectsBins elements_bin(mpInputModelPart->ElementsBegin(),mpInputModelPart->ElementsEnd());
@@ -133,6 +131,7 @@ public:
         array_1d<std::size_t, 3> number_of_divisions = mMeshingData.GetNumberOfDivisions();
         mSurrogateBoundaryData.resize(number_of_divisions[0]*number_of_divisions[1]*number_of_divisions[2]);
 
+        // Compute colors for every node. 
         array_1d< std::size_t, 3 > min_ray_position{0,0,0};
         mColors.InitializeRays(min_ray_position, number_of_divisions, "nodes");
         for(auto& r_element : mpInputModelPart->Elements()) {
@@ -143,9 +142,9 @@ public:
             Element::GeometryType& r_geometry = r_condition.GetGeometry();
             mColors.AddGeometry(r_geometry, false);
         }
-
         mColors.CalculateNodalRayColors(min_ray_position, number_of_divisions, inside_color, outside_color);
 
+        // Compute distance vector and signed distance for every node.
         for (std::size_t i = 0; i < number_of_divisions[0]; i++) 
         {
             for (std::size_t j = 0; j < number_of_divisions[1]; j++) 
@@ -157,6 +156,7 @@ public:
                     {
                         mSurrogateBoundaryData[node_index].IsInside() = true;
                     }
+
                     CartesianNodalData& nodal_data = mMeshingData.GetNodalData(i,j,k);
                     Node::Pointer node_pointer = nodal_data.pGetNode();
                     if (node_pointer) 
@@ -181,7 +181,9 @@ public:
                             {
                                 mSurrogateBoundaryData[node_index].GetVectorDistance()[ii] = point[ii] - closest_point[ii];
                             }
-                        }   
+                        } else {
+                            KRATOS_WARNING("SurrogateBoundaryModeler") << "Input geometry has no elements or conditions. Unable to compute distance to skin." << std::endl;
+                        } 
                         
                         double d = norm_2(mSurrogateBoundaryData[node_index].GetVectorDistance());
                         if (mColors.GetNodalColor(i,j,k) == inside_color) 
@@ -204,6 +206,44 @@ public:
     SurrogateBoundaryNode& GetSurrogateBoundaryNode(std::size_t I, std::size_t J, std::size_t K) 
     {
         return mSurrogateBoundaryData[mMeshingData.GetNodeIndex(I,J,K)];
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "SurrogateBoundaryModeler";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream & rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintSBData() //std::ostream & rOStream
+    {
+        std::ostream& rOStream = std::cout;
+        array_1d<std::size_t, 3> n = mMeshingData.GetNumberOfDivisions();
+        rOStream << "NumberOfDivisions (x,y,z): " << n << std::endl;
+        rOStream << "BoundingBox [(x,y,z), (x,y,z)]: [(" << this->GetKeyPlanes(0)[0] << ", " << this->GetKeyPlanes(1)[0] << ", " << this->GetKeyPlanes(2)[0] << 
+                    "), (" << this->GetKeyPlanes(0)[n[0]-1] << ", " << this->GetKeyPlanes(1)[n[1]-1] << ", " << this->GetKeyPlanes(2)[n[2]-1] << ")]" << std::endl;
+        
+        for (std::size_t i = 0; i < n[0]; i++) 
+        {
+            for (std::size_t j = 0; j < n[1]; j++) 
+            {
+                for (std::size_t k = 0; k < n[2]; k++) 
+                {
+                    SurrogateBoundaryNode& node = GetSurrogateBoundaryNode(i,j,k);
+                    rOStream << node.IsActive() << " " << node.IsInside() << " " << node.GetVectorDistance() << std::endl;
+                }
+            }
+        }
     }
 
 private:
