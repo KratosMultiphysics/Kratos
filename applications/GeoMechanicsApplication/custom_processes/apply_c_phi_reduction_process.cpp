@@ -16,7 +16,6 @@
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/model_part.h"
-#include "utilities/math_utils.h"
 
 namespace Kratos
 {

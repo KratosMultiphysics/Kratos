@@ -80,4 +80,9 @@ double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rPr
                : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
 }
 
+double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rProperties)
+{
+    return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
+}
+
 } // namespace Kratos
