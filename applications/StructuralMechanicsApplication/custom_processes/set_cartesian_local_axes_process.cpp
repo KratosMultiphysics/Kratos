@@ -36,7 +36,7 @@ void SetCartesianLocalAxesProcess::ExecuteInitialize()
     KRATOS_TRY
 
     array_1d<double, 3> local_axis_1;
-    const SizeType set_axis_component = mThisParameters["set_local_axes_direction"].GetInt();
+    const int set_axis_component = mThisParameters["set_local_axes_direction"].GetInt();
 
     if (mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
         array_1d<double, 3> local_axis_2;
