@@ -135,7 +135,6 @@ void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
                     //Checking if this is the first step of a new model part
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
-                        KRATOS_WATCH("YESS")
                     }
                 }
             }
@@ -176,7 +175,6 @@ void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
                     //Checking if this is the first step of a new model part
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
-                        KRATOS_WATCH("SIII")
                     }
                 }
             }
