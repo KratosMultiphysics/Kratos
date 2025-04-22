@@ -139,13 +139,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Friction angle Phi out of range: -0.0001")
+        "Friction angle Phi out of range [0;90] (degrees): -0.0001")
 
     umat_parameters(3) = 90.00001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Friction angle Phi out of range: 90")
+        "Friction angle Phi out of range [0;90] (degrees): 90")
 
     umat_parameters(3) = 25.0;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
