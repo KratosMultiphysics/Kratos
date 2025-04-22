@@ -711,7 +711,7 @@ private:
                 }
 
             } else {
-                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
             }
         }
     }
@@ -744,7 +744,7 @@ private:
                 }
 
             } else {
-                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
             }
         }
     }
@@ -784,7 +784,7 @@ private:
                 }
 
             } else {
-                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+                static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
             }
         }
     }
@@ -799,7 +799,7 @@ private:
         } else if (std::is_same_v<TContainerType, TSparseVectorType>) {
             return rTLS.LocalVector; // We can eventually do a get method in the TLS and call it in here
         } else {
-            static_assert(std::is_same_v<TContainerType, TSparseMatrixType> || std::is_same_v<TContainerType, TSparseVectorType>, "Unssupported container type.");
+            static_assert(std::is_same_v<TContainerType, TSparseMatrixType> || std::is_same_v<TContainerType, TSparseVectorType>, "Unsupported container type.");
         }
     }
 
@@ -1012,7 +1012,7 @@ private:
                         } else if (TBuildType == BuildType::Elimination) {
 
                         } else {
-                            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+                            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
                         }
                     } else {
                         if constexpr (TBuildType == BuildType::Block) {
@@ -1020,7 +1020,7 @@ private:
                         } else if (TBuildType == BuildType::Elimination) {
 
                         } else {
-                            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+                            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
                         }
                     }
                 }
@@ -1055,7 +1055,7 @@ private:
         } else if (TBuildType == BuildType::Elimination) {
 
         } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
         }
     }
 
@@ -1098,7 +1098,7 @@ private:
         } else if (TBuildType == BuildType::Elimination) {
 
         } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unssupported build type.");
+            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
         }
 
     }

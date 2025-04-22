@@ -493,8 +493,8 @@ public:
                     return true;
                 } else {
                     // Reset the local relation matrix and constant vector contributions
-                    rTLS.LocalVector.resize(0);
-                    rTLS.LocalMatrix.resize(0,0);
+                    rTLS.LocalVector.resize(0, false);
+                    rTLS.LocalMatrix.resize(0, 0, false);
 
                     // The constraint is active and is not to be assembled
                     return false;
