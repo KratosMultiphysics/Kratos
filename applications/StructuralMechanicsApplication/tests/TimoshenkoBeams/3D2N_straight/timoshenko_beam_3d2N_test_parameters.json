@@ -101,10 +101,10 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
 				"check_variables"              : ["DISPLACEMENT", "ROTATION"],
-                "gauss_points_check_variables" : ["BENDING_MOMENT","SHEAR_FORCE", "AXIAL_FORCE"],
+                "gauss_points_check_variables" : ["AXIAL_FORCE", "SHEAR_FORCE_Y", "SHEAR_FORCE_Z", "BENDING_MOMENT_X", "BENDING_MOMENT_Y", "BENDING_MOMENT_Z"],
                 "input_file_name"              : "TimoshenkoBeams/3D2N_straight/timoshenko_beam_3d2N_test_results.json",
                 "model_part_name"              : "Structure.testing",
-                "time_frequency"               : 1.0
+                "time_frequency"               : 1.0e-2
             }
         }]
 		//"_json_output_process" : [
