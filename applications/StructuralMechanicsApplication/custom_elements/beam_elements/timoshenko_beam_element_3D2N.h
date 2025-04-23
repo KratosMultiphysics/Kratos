@@ -69,6 +69,8 @@ public:
     /// The base element type
     using BaseType = LinearTimoshenkoBeamElement2D2N;
 
+    using BaseType::CalculateOnIntegrationPoints;
+
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoBeamElement3D2N);
 
@@ -357,10 +359,10 @@ public:
      * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
-     void CalculateOnIntegrationPoints(
-         const Variable<double>& rVariable,
-         std::vector<double>& rOutput,
-         const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
