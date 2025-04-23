@@ -444,7 +444,7 @@ public:
         }
     }
 
-    //y = alpha*y + beta*A*x
+    // y = alpha*A*x + beta*y
     template<class TInputVectorType, class TOutputVectorType>
     void SpMV(const TDataType alpha,
               const TInputVectorType& x,
@@ -485,7 +485,7 @@ public:
         });
     }
 
-    //y = alpha*y + beta*A^t*x
+    // y = alpha*A^t*x + beta*y
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TDataType alpha,
                        const TInputVectorType& x,
