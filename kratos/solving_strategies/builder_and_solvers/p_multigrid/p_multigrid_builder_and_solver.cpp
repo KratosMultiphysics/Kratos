@@ -1180,8 +1180,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::ProjectGrid(int GridLev
 // Template Instantiations
 // --------------------------------------------------------- //
 
-// https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGIM6SuADJ4DJgAcj4ARpjEEtIADqgKhE4MHt6%2B/qRJKY4CIWGRLDFxUraY9vkMQgRMxAQZPn4BdpgOabX1BIUR0bHxtnUNTVmtwz2hfSUDUgCUtqhexMjsHASYLAkGGyYAzG4EAJ4JjKyYANQAKpvbTBvK9az72CYaAIIKBMReDhfKxFQUXoLBMAHYrB8LhcNlsdph9ocTmc2BcAGJeBgdAQ3OH3FRPUF7V5Qi4AN1QeHQ6MxyAgoQIFwShIu%2BwAIhcxHhgAxUFQIBisdVcXcHoS5nN9pD3uC2VK3jKPrDRZdES8Fcr4YjjqdmKjBdiGCL4Y9iM9iQqKVT/oDgZtEQyXiAQAb6YImeLWRDZQqFQyLiwmKEIJLvaToQCgSCHYIXkzWXsOeCrGC5XtpdDoQkAHQGxHIBD1F4h%2BUfWUcBa0TgAVl4fg4WlIqE4bms1guCiWK1VZj2PFIBE0FYWAGsQNWNPpOJI60Om5xeAoQJPBw2K6Q4LAYIgQJhVO0vEQyBQIPVgApHmFaEIEKgAO71/toLZ0e5pS%2BVG/3%2BuN58JOgDMgBhGFwAAcXCTn%2BAHEOE5wLqQUH0MQADyh5fg%2Bc57u07zEOe8FYcgtT4PWvD8IIIhiOw5RkfIShqHOuhcPohjGG2lj6HgURLpACyoAk1RLhwvCoGSsTEFSmDcSGpA/IIeBsFcqCeFJCydssqx6F8xEftet4YdwvB3maCScDwlY1rOa7zhw2D7sgh4kBcqigQAbAAtC5kgXEBLEXGB2ZcNmGgXBAraWNYpAXLghCOeYfZzLwq5aBKpBjhOU4cDOpAsOOk4/sJ8FLiuQ4LJuO4EQ5x6UGeF6GJ%2BemPrwiFvgIOnoflCGoC%2BSEoMBwBmBoEGdd1sSwWw8GIbEqHCA1mF2TheFCYEdlEaE8E0RR4jUbIigqOoVm6AEfUoGxNi0JxKlNvxaSCcJonEOJWCXbJjgKUptCXWp3aaQQ2l1bp36mYZxlA%2BZHC1qQHXNjZdmVU5rkeV5PlGBcA0BUFIVhVY7FRfgR6sr2XAJQOJULAgmBMFgcTSVWmW8Dl6VQ4Vy4k2uKVpZOtN7JZjbQ4lpMZWYPMFUtSXDqQ90pM4khAA
-
 template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
                                                                   TUblasDenseSpace<double>,
                                                                   LinearSolver<TUblasSparseSpace<double>,
@@ -1191,6 +1189,5 @@ template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSp
                                                                   TUblasDenseSpace<double>,
                                                                   LinearSolver<TUblasSparseSpace<float>,
                                                                                TUblasDenseSpace<double>>>;
-
 
 } // namespace Kratos
