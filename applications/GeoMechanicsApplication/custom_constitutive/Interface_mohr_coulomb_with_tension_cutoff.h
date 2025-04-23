@@ -53,12 +53,12 @@ public:
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
 private:
-    Vector                                    mStressVector;
-    Vector                                    mStressVectorFinalized;
-    Vector                                    mStrainVectorFinalized;
-    CoulombYieldSurface                       mCoulombYieldSurface;
-    TensionCutoff                             mTensionCutOff;
-    bool                                      mIsModelInitialized = false;
+    Vector              mStressVector;
+    Vector              mStressVectorFinalized;
+    Vector              mStrainVectorFinalized;
+    CoulombYieldSurface mCoulombYieldSurface;
+    TensionCutoff       mTensionCutOff;
+    bool                mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
                                                     double        YoungsModulus,

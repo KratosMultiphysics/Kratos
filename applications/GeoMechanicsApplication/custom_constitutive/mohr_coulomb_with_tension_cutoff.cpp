@@ -164,9 +164,7 @@ void MohrCoulombWithTensionCutOff::GetLawFeatures(Features& rFeatures)
     rFeatures.SetOptions(mpConstitutiveDimension->GetSpatialType());
     rFeatures.SetOptions(INFINITESIMAL_STRAINS);
     rFeatures.SetOptions(ISOTROPIC);
-
     rFeatures.SetStrainMeasure(StrainMeasure_Infinitesimal);
-
     rFeatures.SetStrainSize(GetStrainSize());
     rFeatures.SetSpaceDimension(WorkingSpaceDimension());
 }

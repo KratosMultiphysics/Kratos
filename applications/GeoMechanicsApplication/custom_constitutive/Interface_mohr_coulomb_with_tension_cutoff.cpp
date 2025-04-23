@@ -46,8 +46,8 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer InterfaceMohrCoulombWithTensionCutOff::Clone() const
 {
-    auto p_result = std::make_shared<InterfaceMohrCoulombWithTensionCutOff>(*this);
-    p_result->mStressVector          = mStressVector;
+    auto p_result           = std::make_shared<InterfaceMohrCoulombWithTensionCutOff>(*this);
+    p_result->mStressVector = mStressVector;
     p_result->mStressVectorFinalized = mStressVectorFinalized;
     p_result->mStrainVectorFinalized = mStrainVectorFinalized;
     p_result->mCoulombYieldSurface   = mCoulombYieldSurface;
@@ -66,8 +66,8 @@ Vector& InterfaceMohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& 
 }
 
 void InterfaceMohrCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVariable,
-                                            const Vector&           rValue,
-                                            const ProcessInfo&      rCurrentProcessInfo)
+                                                     const Vector&           rValue,
+                                                     const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == CAUCHY_STRESS_VECTOR) {
         mStressVector = rValue;
@@ -76,14 +76,11 @@ void InterfaceMohrCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVa
     }
 }
 
-SizeType InterfaceMohrCoulombWithTensionCutOff::WorkingSpaceDimension()
-{
-    return 2;
-}
+SizeType InterfaceMohrCoulombWithTensionCutOff::WorkingSpaceDimension() { return 2; }
 
 int InterfaceMohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
-                                        const GeometryType& rElementGeometry,
-                                        const ProcessInfo&  rCurrentProcessInfo) const
+                                                 const GeometryType& rElementGeometry,
+                                                 const ProcessInfo&  rCurrentProcessInfo) const
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
@@ -149,8 +146,10 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
     auto trial_sigma_tau = CalculateTrialStressVector(
         rParameters.GetStrainVector(), r_prop[INTERFACE_NORMAL_STIFFNESS], r_prop[INTERFACE_SHEAR_STIFFNESS]);
 
-    if (!ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
-        trial_sigma_tau = ConstitutiveLawUtilities::MapStressesInMorhCoulomb(r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
+    if (!ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(
+            trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
+        trial_sigma_tau = ConstitutiveLawUtilities::MapStressesInMorhCoulomb(
+            r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
     }
 
     mStressVector = trial_sigma_tau;
@@ -159,8 +158,8 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
 }
 
 Vector InterfaceMohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
-                                                                double        rNormalStiffness,
-                                                                double        rShearStiffness) const
+                                                                         double rNormalStiffness,
+                                                                         double rShearStiffness) const
 {
     auto constitutive_matrix  = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
     constitutive_matrix(0, 0) = rNormalStiffness;
