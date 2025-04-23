@@ -179,7 +179,7 @@ public:
     {
         KRATOS_TRY
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         Parameters default_parameters = GetDefaultParameters();
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
@@ -264,7 +264,7 @@ public:
             mpSolverDispBlock->Initialize(mKDispModified, mDisp, mResidualDisp);
             mOptions.Set(IS_INITIALIZED, true);
         } else
-            KRATOS_DETAIL("MixedULM Initialize") << "Linear solver intialization is deferred to the moment at which blocks are available" << std::endl;
+            KRATOS_DETAIL("MixedULM Initialize") << "Linear solver initialization is deferred to the moment at which blocks are available" << std::endl;
     }
 
     /**

@@ -99,7 +99,7 @@ jobs:
           export CC=/usr/bin/clang-14
           export CXX=/usr/bin/clang++-14
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/" 
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
@@ -311,7 +311,7 @@ jobs:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-rockylinux-8:latest
+      image: kratosmultiphysics/kratos-image-ci-rocky8:latest
       options: --user 1001
 
     steps:
@@ -326,18 +326,21 @@ jobs:
 
     - name: Build
       run: |
+        if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         cp .github/workflows/rocky_configure.sh rocky_configure.sh
         bash rocky_configure.sh
 
     - name: Running C++ tests
       run: |
+        if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.8 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
       run: |
+        if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.8 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3.8
