@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
 
     // The expected number is calculated as follows:
     // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 5.02655, 1e-5);
+    KRATOS_EXPECT_RELATIVE_NEAR(calculated_coefficient, 5.02655, Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
