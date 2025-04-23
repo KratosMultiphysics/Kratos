@@ -204,7 +204,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
+                        raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             pass # Already added
         else:
