@@ -415,13 +415,13 @@ template <class TSparse, class TDense>
 Parameters AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetDefaultParameters()
 {
     return Parameters(R"({
-"method" : "augmented_lagrange",
-"penalty_factor" : "norm",
-"initial_lagrange_multiplier" : 0.0,
-"tolerance" : 1e-6,
-"max_iterations" : 1e1,
-"verbosity" : 1
-})");
+        "method" : "augmented_lagrange",
+        "penalty_factor" : "norm",
+        "initial_lagrange_multiplier" : 0.0,
+        "tolerance" : 1e-6,
+        "max_iterations" : 1e1,
+        "verbosity" : 1
+    })");
 }
 
 

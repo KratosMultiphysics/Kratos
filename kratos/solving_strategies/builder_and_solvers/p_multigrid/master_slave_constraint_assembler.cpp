@@ -330,10 +330,10 @@ template <class TSparse, class TDense>
 Parameters MasterSlaveConstraintAssembler<TSparse,TDense>::GetDefaultParameters()
 {
     return Parameters(R"({
-"method" : "master_slave",
-"diagonal_scaling" : "norm",
-"verbosity" : 1
-})");
+        "method" : "master_slave",
+        "diagonal_scaling" : "norm",
+        "verbosity" : 1
+    })");
 }
 
 

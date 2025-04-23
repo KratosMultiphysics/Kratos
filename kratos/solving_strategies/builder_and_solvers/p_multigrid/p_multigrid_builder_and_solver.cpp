@@ -1040,22 +1040,22 @@ template <class TSparse, class TDense, class TSolver>
 Parameters PMultigridBuilderAndSolver<TSparse,TDense,TSolver>::GetDefaultParameters() const
 {
     Parameters parameters = Parameters(R"({
-"name"              : "p_multigrid",
-"diagonal_scaling"  : "max",
-"max_iterations"    : 1e2,
-"tolerance"         : 1e-8,
-"verbosity"         : 1,
-"smoother_settings" : {
-    "solver_type" : ""
-},
-"linear_solver_settings" : {
-    "solver_type" : "amgcl"
-},
-"constraint_imposition_settings" : {
-    "method" : "master_slave_elimination"
-},
-"coarse_hierarchy_settings" : {}
-})");
+        "name"              : "p_multigrid",
+        "diagonal_scaling"  : "max",
+        "max_iterations"    : 1e2,
+        "tolerance"         : 1e-8,
+        "verbosity"         : 1,
+        "smoother_settings" : {
+            "solver_type" : ""
+        },
+        "linear_solver_settings" : {
+            "solver_type" : "amgcl"
+        },
+        "constraint_imposition_settings" : {
+            "method" : "master_slave_elimination"
+        },
+        "coarse_hierarchy_settings" : {}
+    })");
     parameters.SetValue("coarse_hierarchy_settings", PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>().GetDefaultParameters());
     parameters.RecursivelyAddMissingParameters(Interface::GetDefaultParameters());
     return parameters;

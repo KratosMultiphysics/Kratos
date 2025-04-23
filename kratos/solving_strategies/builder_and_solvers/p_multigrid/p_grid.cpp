@@ -535,14 +535,14 @@ template <class TSparse, class TDense>
 Parameters PGrid<TSparse,TDense>::GetDefaultParameters()
 {
     Parameters output = Parameters(R"({
-"max_depth" : 0,
-"verbosity" : 1,
-"precision" : "",
-"constraint_imposition_settings" : {
-    "method" : "augmented_lagrange",
-    "max_iterations" : 1
-}
-})");
+        "max_depth" : 0,
+        "verbosity" : 1,
+        "precision" : "",
+        "constraint_imposition_settings" : {
+            "method" : "augmented_lagrange",
+            "max_iterations" : 1
+        }
+    })");
 
     using value_type = typename TSparse::DataType;
     if constexpr (std::is_same_v<value_type, double>) {
