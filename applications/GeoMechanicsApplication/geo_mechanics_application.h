@@ -123,6 +123,7 @@
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/interface_mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
@@ -973,6 +974,9 @@ private:
 
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
+
+    const InterfaceMohrCoulombWithTensionCutOff mInterfaceMohrCoulombWithTensionCutOff;
+
     ///@}
 
 }; // Class KratosGeoMechanicsApplication

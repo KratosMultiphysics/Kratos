@@ -369,6 +369,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombWithTensionCutOff2D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombWithTensionCutOff3D)
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceMohrCoulombWithTensionCutOff", mInterfaceMohrCoulombWithTensionCutOff)
+
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(DT_PRESSURE_COEFFICIENT)
