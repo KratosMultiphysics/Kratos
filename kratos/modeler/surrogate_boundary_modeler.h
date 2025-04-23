@@ -49,7 +49,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief Generates the voxel mesh plus stores the vector and signed distance from every node to the skin of the model.
  */
-class KRATOS_API(KRATOS_CORE) SurrogateBoundaryModeler 
+class SurrogateBoundaryModeler 
     : public VoxelMeshGeneratorModeler
 {
 public:
