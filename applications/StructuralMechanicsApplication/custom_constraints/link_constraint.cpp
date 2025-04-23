@@ -181,6 +181,8 @@ LinkConstraint::LinkConstraint(const IndexType Id,
                       /*mLastPositions      : */{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                       /*mLastDisplacements  : */{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}})
 {
+    this->Data().GetValue(CONSTITUTIVE_MATRIX) = ZeroMatrix(0);
+    this->Data().GetValue(INTERNAL_FORCES_VECTOR) = ZeroVector(0);
 }
 
 
