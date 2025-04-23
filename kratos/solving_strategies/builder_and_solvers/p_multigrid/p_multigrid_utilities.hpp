@@ -63,29 +63,30 @@ struct UnionReduction
 } // namespace detail
 
 
-/// @brief Compute the p-restriction operator of a single geometry.
-/// @tparam OrderReduction Defines how many polynomial order to reduce the incoming
-///         geometry, at the maximum. If 0, the function returns a correctly sized
-///         identity matrix. Reduction to linear geometries will always happen if
-///         @p OrderReduction is greater or equal than the geometry's order.
-/// @tparam TValue Value type of entries.
-/// @tparam TIndex
-/// @tparam TNode Node type (usually @ref Node).
-/// @tparam TOutputIterator Output iterator of triplets. Nonzero entries in the restriction operator
-///         are provided as @p std::tuple<unsigned,unsigned,TValue> triplets of {coarse node index, fine node index, value}.
-/// @param rGeometry Geometry to construct a restriction operator for.
-/// @param itOutput Output iterator where nonzero entries in the restriction operator are written to. Entries are
-///                 represented as {coarse node index, fine node index, value} triplets (COO matrix).
-/// @details This function computes the (local) restriction operator @f$ R @f$ for a geometry that
-///          transforms the input (higher order @f$ q @f$) geometry's shape functions to an equivalent
-///          lower order (@f$ p @f$). Due to the linear relationship between shape functions and
-///          degrees-of-freedom, this mapping holds for DoFs as well:
-///          @f[
-///             u^p_i = R_{ij} u^q_j
-///          @f]
-///          The reduction of the input geometry's order is defined by `OrderReduction` and is limited
-///          to reducing to a linear geometry. Any `OrderReduction` greater than that will only reduce
-///          to linear geometries as well.
+/** @brief Compute the p-restriction operator of a single geometry.
+ *  @tparam OrderReduction Defines how many polynomial order to reduce the incoming
+ *          geometry, at the maximum. If 0, the function returns a correctly sized
+ *          identity matrix. Reduction to linear geometries will always happen if
+ *          @p OrderReduction is greater or equal than the geometry's order.
+ *  @tparam TValue Value type of entries.
+ *  @tparam TIndex
+ *  @tparam TNode Node type (usually @ref Node).
+ *  @tparam TOutputIterator Output iterator of triplets. Nonzero entries in the restriction operator
+ *          are provided as @p std::tuple<unsigned,unsigned,TValue> triplets of {coarse node index, fine node index, value}.
+ *  @param rGeometry Geometry to construct a restriction operator for.
+ *  @param itOutput Output iterator where nonzero entries in the restriction operator are written to. Entries are
+ *                  represented as {coarse node index, fine node index, value} triplets (COO matrix).
+ *  @details This function computes the (local) restriction operator @f$ R @f$ for a geometry that
+ *           transforms the input (higher order @f$ q @f$) geometry's shape functions to an equivalent
+ *           lower order (@f$ p @f$). Due to the linear relationship between shape functions and
+ *           degrees-of-freedom, this mapping holds for DoFs as well:
+ *           @f[
+ *              u^p_i = R_{ij} u^q_j
+ *           @f]
+ *           The reduction of the input geometry's order is defined by `OrderReduction` and is limited
+ *           to reducing to a linear geometry. Any `OrderReduction` greater than that will only reduce
+ *           to linear geometries as well.
+ */
 template <unsigned OrderReduction,
           class TValue,
           class TIndex,

@@ -36,11 +36,12 @@ namespace Kratos {
 #endif
 
 
-/// @brief Computes \f$A += c * B\f$.
-/// @tparam TValue Value type of the operand matrices.
-/// @param rLeft Left hand side matrix to add the scaled right hand matrix to.
-/// @param rRight Right hand matrix to scale and add to the left hand side.
-/// @param Coefficient Coefficient to scale the right hand side matrix by.
+/** @brief Computes \f$A += c * B\f$.
+ *  @tparam TValue Value type of the operand matrices.
+ *  @param rLeft Left hand side matrix to add the scaled right hand matrix to.
+ *  @param rRight Right hand matrix to scale and add to the left hand side.
+ *  @param Coefficient Coefficient to scale the right hand side matrix by.
+ */
 template <class TValue>
 static void
 InPlaceMatrixAdd(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
@@ -565,20 +566,21 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
 }
 
 
-/// @brief Compute a scaled matrix-vector product and add it to the provided output vector.
-/// @details Computes @f[
-///             r += a * A b
-///          @f]
-///          where @p A is the input matrix, @p b the input vector, @p r the output vector and @p a the scaling coefficient.
-///          This function parallelizes on equal sized nonzero chunks instead of rows, which may lead to better
-///          performance when the matrix' rows have very different number of nonzeros.
-/// @tparam TLHSSparse Sparse space of the input matrix.
-/// @tparam TRHSSparse Sparse space of the input vector.
-/// @tparam TOutputSparse Sparse space of the output vector.
-/// @param rLhs Input matrix.
-/// @param rRhs Input vector.
-/// @param rOutput Output vector.
-/// @param Coefficient Coefficient to scale each output component by.
+/** @brief Compute a scaled matrix-vector product and add it to the provided output vector.
+ *  @details Computes @f[
+ *              r += a * A b
+ *           @f]
+ *           where @p A is the input matrix, @p b the input vector, @p r the output vector and @p a the scaling coefficient.
+ *           This function parallelizes on equal sized nonzero chunks instead of rows, which may lead to better
+ *           performance when the matrix' rows have very different number of nonzeros.
+ *  @tparam TLHSSparse Sparse space of the input matrix.
+ *  @tparam TRHSSparse Sparse space of the input vector.
+ *  @tparam TOutputSparse Sparse space of the output vector.
+ *  @param rLhs Input matrix.
+ *  @param rRhs Input vector.
+ *  @param rOutput Output vector.
+ *  @param Coefficient Coefficient to scale each output component by.
+ */
 template <class TLHSSparse, class TRHSSparse, class TOutputSparse>
 void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                      const typename TRHSSparse::VectorType& rRhs,

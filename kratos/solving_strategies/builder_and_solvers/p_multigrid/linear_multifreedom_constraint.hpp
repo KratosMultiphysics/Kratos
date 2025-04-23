@@ -24,10 +24,11 @@
 namespace Kratos {
 
 
-/// @brief Class representing (part of) a linear constraint equation.
-/// @details The relation matrix is stored in the GEOMETRIC_STIFFNESS_MATRIX
-///          while the constraint gap in the INTERNAL_FORCES_VECTOR variable
-///          of the instance's @ref DataValueContainer.
+/** @brief Class representing (part of) a linear constraint equation.
+ *  @details The relation matrix is stored in the GEOMETRIC_STIFFNESS_MATRIX
+ *           while the constraint gap in the INTERNAL_FORCES_VECTOR variable
+ *           of the instance's @ref DataValueContainer.
+ */
 class KRATOS_API(KRATOS_CORE) LinearMultifreedomConstraint final
     : public MultifreedomConstraint
 {

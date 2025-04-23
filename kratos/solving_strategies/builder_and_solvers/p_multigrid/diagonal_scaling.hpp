@@ -24,21 +24,22 @@
 namespace Kratos {
 
 
-/// @brief Class handling expressions involving the diagonal of a sparse matrix.
-/// @details
-/// @subsection Configuration
-///             This class can either be configured with a numeric literal that does not
-///             depend on the matrix's diagonal, or a string that is a function of:
-///             - @p "max" The infinitiy norm (abs max) of the matrix' diagonal.
-///             - @p "norm" 2-norm of the matrix' diagonal.
-///
-/// @subsection Usage
-///             Invoke @ref Scaling::Cache "Cache" with a matrix to evaluate the stored
-///             expression for later use. The computed value can be retrived from
-///             @ref Scaling::Evaluate "Evaluate". You should call
-///             @ref Scaling::ClearCache "ClearCache" whenever the input matrix changes.
-///
-/// @note The input expression is parsed and evaluated with @p tinyexpr.
+/** @brief Class handling expressions involving the diagonal of a sparse matrix.
+ *  @details
+ *  @subsection Configuration
+ *              This class can either be configured with a numeric literal that does not
+ *              depend on the matrix's diagonal, or a string that is a function of:
+ *              - @p "max" The infinitiy norm (abs max) of the matrix' diagonal.
+ *              - @p "norm" 2-norm of the matrix' diagonal.
+ *
+ *  @subsection Usage
+ *              Invoke @ref Scaling::Cache "Cache" with a matrix to evaluate the stored
+ *              expression for later use. The computed value can be retrived from
+ *              @ref Scaling::Evaluate "Evaluate". You should call
+ *              @ref Scaling::ClearCache "ClearCache" whenever the input matrix changes.
+ *
+ *  @note The input expression is parsed and evaluated with @p tinyexpr.
+ */
 class KRATOS_API(KRATOS_CORE) Scaling final
 {
 public:
