@@ -62,6 +62,7 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
         """Setup tasks before each test method."""
         pass
 
+    @KratosUnittest.skipIf(kratos.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_ComputeDistanceToSkin(self):
         surrogate_boundary = kratos.SurrogateBoundaryModeler(self.current_model, self.settings)
 
@@ -81,7 +82,7 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
                 
                 self.assertAlmostEqual(distance, signed_distance, delta=4e-2)
 
-        surrogate_boundary.PrintSBData()
+        #surrogate_boundary.PrintSBData()
 
 
 

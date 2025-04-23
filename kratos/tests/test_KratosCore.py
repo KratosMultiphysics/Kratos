@@ -94,6 +94,7 @@ import test_find_conditions_neighbours_process
 import test_calculate_nodal_distance_to_skin_process
 import test_compute_nodal_gradient_process
 import test_voxel_modeler
+import test_surrogate_boundary_modeler
 import test_model_part_utils_connectivity_generations
 import test_duplicate_mesh_modeler
 import test_obj_io
