@@ -339,35 +339,6 @@ void UpdatedLagrangian::CalculateKinematicVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double UpdatedLagrangian::CalculateDerivativesOnReferenceConfiguration(
-    Matrix& J0,
-    Matrix& InvJ0,
-    Matrix& DN_DX,
-    const IndexType PointNumber,
-    IntegrationMethod ThisIntegrationMethod
-    ) const
-{
-    J0.clear();
-
-    double detJ0;
-
-    Matrix delta_displacement;
-    delta_displacement = this->CalculateDeltaDisplacement(delta_displacement);
-
-    J0 = this->GetGeometry().Jacobian( J0, PointNumber, ThisIntegrationMethod, delta_displacement);
-
-    const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-
-    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-
-    noalias( DN_DX ) = prod( DN_De, InvJ0);
-
-    return detJ0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void UpdatedLagrangian::CalculateB(
     Matrix& rB,
     const Matrix& rDN_DX,

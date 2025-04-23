@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
@@ -36,10 +35,10 @@ namespace Kratos
 ///@{
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -139,26 +138,24 @@ public:
     ///@{
 
     ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    using ConstitutiveLawType = ConstitutiveLaw;
 
     ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    using ConstitutiveLawPointerType = ConstitutiveLawType::Pointer;
 
     ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+    using StressMeasureType = ConstitutiveLawType::StressMeasure;
 
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /// This is the definition of the node.
-    typedef Node NodeType;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /// The base element type
-    typedef Element BaseType;
+    using BaseType = Element;
 
-    // Counted pointer of BaseSolidElement
+    /// Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
+    /// The definition of the rotation flag
     KRATOS_DEFINE_LOCAL_FLAG(ROTATED);
 
     ///@}
@@ -779,10 +776,10 @@ protected:
 
     /**
      * @brief This methods gives us a matrix with the increment of displacement
-     * @param DeltaDisplacement The matrix containing the increment of displacements
-     * @return DeltaDisplacement: The matrix containing the increment of displacements
+     * @param rDeltaDisplacement The matrix containing the increment of displacements
+     * @return rDeltaDisplacement: The matrix containing the increment of displacements
      */
-    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
+    Matrix& CalculateDeltaDisplacement(Matrix& rDeltaDisplacement) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -793,7 +790,7 @@ protected:
      * @param ThisIntegrationMethod The integration method considered
      * @return The determinant of the jacobian in the reference configuration
      */
-    virtual double CalculateDerivativesOnReferenceConfiguration(
+    double CalculateDerivativesOnReferenceConfiguration(
         Matrix& rJ0,
         Matrix& rInvJ0,
         Matrix& rDN_DX,

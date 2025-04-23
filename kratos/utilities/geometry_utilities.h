@@ -18,8 +18,9 @@
 // External includes
 
 // Project includes
-#include "geometries/geometry.h"
 #include "includes/node.h"
+#include "geometries/geometry.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -712,11 +713,35 @@ public:
         )
     {
         Matrix delta_position(rGeom.PointsNumber(), rGeom.WorkingSpaceDimension());
-        for (std::size_t i = 0; i < rGeom.PointsNumber(); ++i)
-            for (std::size_t j = 0; j < rGeom.WorkingSpaceDimension(); ++j)
-                delta_position(i, j) = rGeom[i].Coordinates()[j] -
-                                       rGeom[i].GetInitialPosition().Coordinates()[j];
+        CalculateDeltaDisplacement(rGeom, delta_position);
         rGeom.Jacobian(rJ0, rCoords, delta_position);
+    }
+
+    /**
+     * @brief This function computes the delta displacement of the element nodes.
+     * @details The delta displacement is defined as the difference between the current and previous displacements of the nodes.
+     * @param rGeom element geometry.
+     * @param rDeltaDisplacement delta displacement matrix.
+     */
+     static void CalculateDeltaDisplacement(
+        const GeometryType& rGeom,
+        Matrix& rDeltaDisplacement
+        )
+    {
+        const SizeType number_of_nodes = rGeom.PointsNumber();
+        const SizeType dimension = rGeom.WorkingSpaceDimension();
+        rDeltaDisplacement.resize(number_of_nodes , dimension, false);
+
+        for ( IndexType i_node = 0; i_node < number_of_nodes; i_node++ ) {
+            auto& r_node = rGeom[i_node];
+            const array_1d<double, 3>& r_current_displacement  = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& r_previous_displacement = r_node.FastGetSolutionStepValue(DISPLACEMENT,1);
+
+            for ( IndexType j_dim = 0; j_dim < dimension; ++j_dim ) {
+                rDeltaDisplacement(i_node, j_dim) = r_current_displacement[j_dim] - r_previous_displacement[j_dim];
+                // rDeltaDisplacement(i_node, j_dim) = r_node.Coordinates()[j_dim] - r_node.GetInitialPosition().Coordinates()[j_dim]; // NOTE: This is problematic when mesh is not moved, for example during NL iterations. Mesh is moved usually at the end of a step.
+            }
+        }
     }
 
     /**

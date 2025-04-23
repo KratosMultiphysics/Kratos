@@ -384,23 +384,6 @@ protected:
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
 
-    /**
-     * @brief This functions calculate the derivatives in the reference frame
-     * @param J0 The jacobian in the reference configuration
-     * @param InvJ0 The inverse of the jacobian in the reference configuration
-     * @param DN_DX The gradient derivative of the shape function
-     * @param PointNumber The id of the integration point considered
-     * @param ThisIntegrationMethod The integration method considered
-     * @return The determinant of the jacobian in the reference configuration
-     */
-    double CalculateDerivativesOnReferenceConfiguration(
-        Matrix& J0,
-        Matrix& InvJ0,
-        Matrix& DN_DX,
-        const IndexType PointNumber,
-        IntegrationMethod ThisIntegrationMethod
-        ) const override;
-
     ///@}
     ///@name Protected Operations
     ///@{

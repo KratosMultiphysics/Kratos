@@ -1695,24 +1695,13 @@ void BaseSolidElement::SetConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const
+Matrix& BaseSolidElement::CalculateDeltaDisplacement(Matrix& rDeltaDisplacement) const
 {
     KRATOS_TRY
 
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    GeometryUtils::CalculateDeltaDisplacement(this->GetGeometry(), rDeltaDisplacement);
 
-    DeltaDisplacement.resize(number_of_nodes , dimension, false);
-
-    for ( IndexType i_node = 0; i_node < number_of_nodes; i_node++ ) {
-        const array_1d<double, 3 >& current_displacement  = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3 >& previous_displacement = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( IndexType j_dim = 0; j_dim < dimension; ++j_dim )
-            DeltaDisplacement(i_node, j_dim) = current_displacement[j_dim] - previous_displacement[j_dim];
-    }
-
-    return DeltaDisplacement;
+    return rDeltaDisplacement;
 
     KRATOS_CATCH( "" )
 }
