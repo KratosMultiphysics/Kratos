@@ -585,8 +585,10 @@ template <class TLHSSparse, class TRHSSparse, class TOutputSparse>
 void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                      const typename TRHSSparse::VectorType& rRhs,
                      typename TOutputSparse::VectorType& rOutput,
-                     const typename TOutputSparse::DataType Coefficient = static_cast<typename TOutputSparse::DataType>(1)) noexcept
+                     const typename TOutputSparse::DataType Coefficient = static_cast<typename TOutputSparse::DataType>(1))
 {
+    KRATOS_TRY
+
     // Create partition for entries in the matrix.
     const auto thread_count = ParallelUtilities::GetNumThreads();
     std::vector<typename TLHSSparse::IndexType> partition(thread_count + 1);
@@ -612,7 +614,7 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                                                          rLhs.index1_data().end(),                                                          \
                                                          static_cast<typename TLHSSparse::IndexType>(i_chunk_begin));                       \
             typename TLHSSparse::IndexType i_row = std::distance(rLhs.index1_data().begin(), it_initial_row);                               \
-            if (i_row != i_chunk_begin) --i_row;                                                                                            \
+            if (rLhs.index1_data()[i_row] != i_chunk_begin) --i_row;                                                                        \
                                                                                                                                             \
             do {                                                                                                                            \
                 const auto i_row_begin = rLhs.index1_data()[i_row];                                                                         \
@@ -620,13 +622,13 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                                                                                                                                             \
                 const auto i_begin = std::max(i_row_begin, i_chunk_begin);                                                                  \
                 const auto i_end = std::min(i_row_end, i_chunk_end);                                                                        \
+                const typename TLHSSparse::IndexType chunk_size = i_end - i_begin;                                                          \
                                                                                                                                             \
                 auto contribution = static_cast<typename TOutputSparse::DataType>(0);                                                       \
                                                                                                                                             \
                 KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TLHSSparse::IndexType*, it_column, &*(rLhs.index2_data().begin() + i_begin)); \
                 KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TLHSSparse::DataType*, it_entry, &*(rLhs.value_data().begin() + i_begin));    \
                 KRATOS_GET_ALIGNED_INDEX_ARRAY(const typename TRHSSparse::DataType*, it_rhs, &*rRhs.begin());                               \
-                const typename TLHSSparse::IndexType chunk_size = i_end - i_begin;                                                          \
                                                                                                                                             \
                 for (typename TLHSSparse::IndexType i=0; i<chunk_size; ++i) {                                                               \
                     const auto i_column = it_column[i];                                                                                     \
@@ -659,6 +661,7 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
     }
 
     #undef KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT
+    KRATOS_CATCH("")
 }
 
 
