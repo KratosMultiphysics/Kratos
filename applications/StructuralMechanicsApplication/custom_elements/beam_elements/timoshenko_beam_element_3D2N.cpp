@@ -685,25 +685,7 @@ void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
         rVariable == BENDING_MOMENT_Z )
     {
         std::vector<Vector> pk2_stress;
-        pk2_stress.resize(r_integration_points.size());
-
-        const auto &r_props = GetProperties();
-        ConstitutiveLaw::Parameters cl_values(GetGeometry(), r_props, rCurrentProcessInfo);
-        const double length = CalculateLength();
-        const double phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-
-        VectorType strain_vector(strain_size), stress_vector(strain_size);
-        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
-
-        VectorType nodal_values(mat_size);
-        GetNodalValuesVector(nodal_values);
-
-        // Loop over the integration points
-        for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
-            CalculateGeneralizedStrainsVector(strain_vector, length, phi, r_integration_points[integration_point].X(), nodal_values);
-            mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
-            pk2_stress[integration_point] = cl_values.GetStressVector();
-        }
+        BaseType::CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, pk2_stress, rCurrentProcessInfo);
 
         IndexType component = 0;
         if (rVariable == AXIAL_FORCE) {
@@ -721,8 +703,8 @@ void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
         }
 
         // Loop over the integration points
-        for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
-            rOutput[integration_point] = pk2_stress[integration_point][component];
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            rOutput[IP] = pk2_stress[IP][component];
         }
     }
 }

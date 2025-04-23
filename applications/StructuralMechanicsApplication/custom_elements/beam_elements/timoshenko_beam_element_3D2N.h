@@ -357,11 +357,10 @@ public:
      * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+     void CalculateOnIntegrationPoints(
+         const Variable<double>& rVariable,
+         std::vector<double>& rOutput,
+         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
@@ -372,8 +371,7 @@ public:
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3>>& rVariable,
         std::vector<array_1d<double, 3>>& rOutput,
-        const ProcessInfo& rProcessInfo
-        ) override;
+        const ProcessInfo& rProcessInfo) override;
 
     ///@}
     ///@name Access
