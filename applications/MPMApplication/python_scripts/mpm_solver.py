@@ -230,13 +230,15 @@ class MPMSolver(PythonSolver):
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
 
         if not self.is_restarted():
-            self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
+            _SetProcessInfo(self.material_point_model_part, self.grid_model_part.ProcessInfo)
+            # self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
 
             # Generate MP Element and Condition
             KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
             KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
         else:
-            self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
+            _SetProcessInfo(self.grid_model_part, self.material_point_model_part.ProcessInfo)
+            # self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
 
     def _SearchElement(self):
         searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()
@@ -516,3 +518,12 @@ class MPMSolver(PythonSolver):
         # this function avoids the long call to ProcessInfo and is also safer
         # in case the detection of a restart is changed later
         return self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
+
+def _SetProcessInfo(target_model_part: KratosMultiphysics.ModelPart,
+                    process_info: KratosMultiphysics.ProcessInfo) -> None:
+    # This is a temporary function until the PR #(insert pr number here later) is approved/denied
+    # the function recursively apply process info to all sub model part, not just the root model part.
+    target_model_part.ProcessInfo = process_info
+    sub_model_part: KratosMultiphysics.ModelPart
+    for sub_model_part in target_model_part.SubModelParts:
+        _SetProcessInfo(sub_model_part, process_info)
