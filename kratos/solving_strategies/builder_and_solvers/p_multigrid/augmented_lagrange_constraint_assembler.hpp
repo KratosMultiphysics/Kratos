@@ -53,6 +53,7 @@ namespace Kratos {
  *              - @p 2 Aggregated status reports.
  *              - @p 3 Per-iteration status reports.
  *              - @p 4 Output system matrices and vectors.
+ *              - @p 5 Write a VTU output with the solution and residuals at each iteration.
  */
 template <class TSparse, class TDense>
 class AugmentedLagrangeConstraintAssembler : public ConstraintAssembler<TSparse,TDense>
