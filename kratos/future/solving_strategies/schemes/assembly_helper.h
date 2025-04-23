@@ -189,12 +189,14 @@ public:
 
     virtual void ConstructMasterSlaveConstraintsStructure(
         const DofsArrayType& rDofSet, //TODO: Confirm once we do the elimination if this is needed
-        const ModelPart& rModelPart)
+        const ModelPart& rModelPart,
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector)
     {
         if (mBuildType == BuildType::Block) {
-            BlockConstructMasterSlaveConstraintsStructure(rModelPart);
+            BlockConstructMasterSlaveConstraintsStructure(rModelPart, rConstraintsRelationMatrix, rConstraintsConstantVector);
         } else if (mBuildType == BuildType::Elimination) {
-            EliminationConstructMasterSlaveConstraintsStructure(rDofSet, rModelPart);
+            EliminationConstructMasterSlaveConstraintsStructure(rDofSet, rModelPart, rConstraintsRelationMatrix, rConstraintsConstantVector);
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -306,13 +308,16 @@ public:
         }
     }
 
-    virtual void AssembleMasterSlaveConstraints(TThreadLocalStorage& rTLS)
+    virtual void AssembleMasterSlaveConstraints(
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector,
+        TThreadLocalStorage& rTLS)
     {
         //TODO: Do it as the other assembly functions
         if (mBuildType == BuildType::Block) {
-            AssembleMasterSlaveConstraintsImplementation<BuildType::Block>(rTLS);
+            AssembleMasterSlaveConstraintsImplementation<BuildType::Block>(rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
         } else if (mBuildType == BuildType::Elimination) {
-            AssembleMasterSlaveConstraintsImplementation<BuildType::Elimination>(rTLS);
+            AssembleMasterSlaveConstraintsImplementation<BuildType::Elimination>(rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -322,13 +327,15 @@ public:
         typename TSparseMatrixType::Pointer& rpLhs,
         typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs)
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
+        const TSparseMatrixType& rConstraintsRelationMatrix,
+        const TSparseVectorType& rConstraintsConstantVector)
     {
         //TODO: Do it as the other assembly functions
         if (mBuildType == BuildType::Block) {
-            ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs);
+            ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rConstraintsRelationMatrix, rConstraintsConstantVector);
         } else if (mBuildType == BuildType::Elimination) {
-            ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs);
+            ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rConstraintsRelationMatrix, rConstraintsConstantVector);
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -436,14 +443,6 @@ public:
         mpElementAssemblyFunction = nullptr;
         mpConditionAssemblyFunction = nullptr;
         mpConstraintAssemblyFunction = nullptr;
-
-        // If set, clear the constraint arrays
-        if (mpConstraintsRelationMatrix != nullptr) {
-            mpConstraintsRelationMatrix->Clear();
-        }
-        if (mpConstraintsConstantVector != nullptr) {
-            mpConstraintsConstantVector->Clear();
-        }
     }
 
     ///@}
@@ -492,7 +491,7 @@ private:
 
     SizeType mEchoLevel;
 
-    SizeType mEquationSystemSize = 0; /// Number of degrees of freedom of the problem to be solve
+    SizeType mEquationSystemSize = 0; /// Number of degrees of freedom of the problem to be solved
 
     std::unique_ptr<ElementAssemblyFunctionType> mpElementAssemblyFunction = nullptr; // Pointer to the function to be called in the elements assembly
 
@@ -501,10 +500,6 @@ private:
     std::unique_ptr<ConstraintAssemblyFunctionType> mpConstraintAssemblyFunction = nullptr; // Pointer to the function to be called in the constraints assembly
 
     typename TSparseVectorType::Pointer mpReactionsVector = nullptr; // Auxiliary vector to calculate the reactions in the elimination build
-
-    typename TSparseMatrixType::Pointer mpConstraintsRelationMatrix = nullptr; // Constraints relation matrix (only used in the block build)
-
-    typename TSparseVectorType::Pointer mpConstraintsConstantVector = nullptr; // Constraints constant vector (only used in the block build)
 
     std::vector<IndexType> mSlaveIds; /// Vector containing the equation ids of the slaves
 
@@ -880,7 +875,10 @@ private:
     }
 
     //FIXME: This only works in serial!!!
-    void BlockConstructMasterSlaveConstraintsStructure(const ModelPart& rModelPart)
+    void BlockConstructMasterSlaveConstraintsStructure(
+        const ModelPart& rModelPart,
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector)
     {
         const SizeType n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
         if (n_constraints) {
@@ -944,24 +942,26 @@ private:
                 constraints_sparse_graph.AddEntry(i_dof_eq_id, i_dof_eq_id); // Add diagonal contribution for master DOFs
             }
 
-            // Allocate the constraints arrays
-            auto p_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
-            mpConstraintsRelationMatrix.swap(p_T);
-
-            auto p_b = Kratos::make_shared<TSparseVectorType>(mEquationSystemSize);
-            mpConstraintsConstantVector.swap(p_b);
+            // Allocate the constraints arrays (note that we are using the move assignment operator in here)
+            rConstraintsConstantVector = std::move(TSparseVectorType(mEquationSystemSize));
+            rConstraintsRelationMatrix = std::move(TSparseMatrixType(constraints_sparse_graph));
         }
     }
 
     void EliminationConstructMasterSlaveConstraintsStructure(
         const DofsArrayType& rDofSet,
-        const ModelPart& rModelPart)
+        const ModelPart& rModelPart,
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector)
     {
         KRATOS_ERROR << "Not implemented yet." << std::endl;
     }
 
     template<BuildType TBuildType>
-    void AssembleMasterSlaveConstraintsImplementation(TThreadLocalStorage& rTLS)
+    void AssembleMasterSlaveConstraintsImplementation(
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector,
+        TThreadLocalStorage& rTLS)
     {
         // Getting constraints to be assembled
         const auto& r_consts = mpModelPart->MasterSlaveConstraints();
@@ -972,16 +972,16 @@ private:
         const SizeType n_consts = r_consts.size();
 
         // Initialize constraints arrays
-        mpConstraintsRelationMatrix->SetValue(0.0);
-        mpConstraintsConstantVector->SetValue(0.0);
+        rConstraintsRelationMatrix.SetValue(0.0);
+        rConstraintsConstantVector.SetValue(0.0);
 
         if constexpr (TBuildType == BuildType::Block) {
             // We clear the inactive DOFs set
             mInactiveSlaveDofs.clear();
         }
 
-        mpConstraintsRelationMatrix->BeginAssemble();
-        mpConstraintsConstantVector->BeginAssemble();
+        rConstraintsRelationMatrix.BeginAssemble();
+        rConstraintsConstantVector.BeginAssemble();
 
         #pragma omp parallel firstprivate(consts_begin, r_process_info)
         {
@@ -1002,12 +1002,12 @@ private:
                     if (assemble_const) {
                         if constexpr (TBuildType == BuildType::Block) {
                             // Assemble relation matrix contribution
-                            const auto& r_loc_T = GetThreadLocalStorageContainer(*mpConstraintsRelationMatrix, rTLS);
-                            mpConstraintsRelationMatrix->Assemble(r_loc_T, r_slave_eq_ids, r_master_eq_ids);
+                            const auto& r_loc_T = GetThreadLocalStorageContainer(rConstraintsRelationMatrix, rTLS);
+                            rConstraintsRelationMatrix.Assemble(r_loc_T, r_slave_eq_ids, r_master_eq_ids);
 
                             // Assemble constant vector contribution
-                            const auto& r_loc_v = GetThreadLocalStorageContainer(*mpConstraintsConstantVector, rTLS);
-                            mpConstraintsConstantVector->Assemble(r_loc_v, r_slave_eq_ids);
+                            const auto& r_loc_v = GetThreadLocalStorageContainer(rConstraintsConstantVector, rTLS);
+                            rConstraintsConstantVector.Assemble(r_loc_v, r_slave_eq_ids);
                         } else if (TBuildType == BuildType::Elimination) {
 
                         } else {
@@ -1034,22 +1034,22 @@ private:
             }
         }
 
-        mpConstraintsRelationMatrix->FinalizeAssemble();
-        mpConstraintsConstantVector->FinalizeAssemble();
+        rConstraintsRelationMatrix.FinalizeAssemble();
+        rConstraintsConstantVector.FinalizeAssemble();
 
         if constexpr (TBuildType == BuildType::Block) {
             // Setting the master dofs into the T and C system
             //TODO: Can't this be parallel?
             for (auto eq_id : mMasterIds) {
-                (*mpConstraintsConstantVector)[eq_id] = 0.0;
-                (*mpConstraintsRelationMatrix)(eq_id, eq_id) = 1.0;
+                rConstraintsConstantVector[eq_id] = 0.0;
+                rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
             }
 
             // Setting inactive slave dofs in the T and C system
             //TODO: Can't this be parallel?
             for (auto eq_id : mInactiveSlaveDofs) {
-                (*mpConstraintsConstantVector)[eq_id] = 0.0;
-                (*mpConstraintsRelationMatrix)(eq_id, eq_id) = 1.0;
+                rConstraintsConstantVector[eq_id] = 0.0;
+                rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
             }
         } else if (TBuildType == BuildType::Elimination) {
 
@@ -1063,22 +1063,24 @@ private:
         typename TSparseMatrixType::Pointer& rpLhs,
         typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs)
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
+        const TSparseMatrixType& rConstraintsRelationMatrix,
+        const TSparseVectorType& rConstraintsConstantVector)
     {
         if constexpr (TBuildType == BuildType::Block) {
             // Initialize the effective RHS
-            const SizeType n_master = mpConstraintsRelationMatrix->size2();
+            const SizeType n_master = rConstraintsRelationMatrix.size2();
             rpEffectiveRhs = Kratos::make_shared<TSparseVectorType>(n_master);
             rpEffectiveRhs->SetValue(0.0);
 
             // Apply constraints to RHS
             TSparseVectorType aux(*rpRhs);
-            rpLhs->SpMV(-1.0, *mpConstraintsConstantVector, 1.0, aux);
-            mpConstraintsRelationMatrix->TransposeSpMV(aux, *rpEffectiveRhs);
+            rpLhs->SpMV(-1.0, rConstraintsConstantVector, 1.0, aux);
+            rConstraintsRelationMatrix.TransposeSpMV(aux, *rpEffectiveRhs);
 
             // Apply constraints to LHS
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*rpLhs, *mpConstraintsRelationMatrix);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*mpConstraintsRelationMatrix);
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*rpLhs, rConstraintsRelationMatrix);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(rConstraintsRelationMatrix);
             rpEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
 
             // Compute the scale factor value

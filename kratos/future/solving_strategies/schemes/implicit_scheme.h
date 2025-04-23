@@ -233,6 +233,8 @@ public:
         typename TSparseMatrixType::Pointer& rpA,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpB,
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector,
         const bool ReformDofSet = true)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'InitializeSolutionStep\' method. Call derived class one." << std::endl;
@@ -349,12 +351,15 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void ConstructMasterSlaveConstraintsStructure(const DofsArrayType& rDofSet)
+    virtual void ConstructMasterSlaveConstraintsStructure(
+        const DofsArrayType& rDofSet,
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector)
     {
         KRATOS_TRY
 
         // Call the assembly helper to set the master-slave constraints
-        (this->GetAssemblyHelper()).ConstructMasterSlaveConstraintsStructure(rDofSet, *mpModelPart);
+        (this->GetAssemblyHelper()).ConstructMasterSlaveConstraintsStructure(rDofSet, *mpModelPart, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
@@ -469,7 +474,9 @@ public:
         //TODO: IMPLEMENTATION
     }
 
-    virtual void BuildConstraints()
+    virtual void BuildConstraints(
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
             Timer::Start("BuildConstraints");
@@ -500,7 +507,7 @@ public:
             TLSType aux_tls;
             auto& r_assembly_helper = GetAssemblyHelper();
             r_assembly_helper.SetConstraintAssemblyFunction(const_func);
-            r_assembly_helper.AssembleMasterSlaveConstraints(aux_tls);
+            r_assembly_helper.AssembleMasterSlaveConstraints(rConstraintsRelationMatrix, rConstraintsConstantVector, aux_tls);
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints build time: " << timer_constraints << std::endl;
 
@@ -514,7 +521,9 @@ public:
         typename TSparseMatrixType::Pointer& rpLhs,
         typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs)
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
+        const TSparseMatrixType& rConstraintsRelationMatrix,
+        const TSparseVectorType& rConstraintsConstantVector)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
             Timer::Start("ApplyConstraints");
@@ -522,7 +531,7 @@ public:
             const auto timer_constraints = BuiltinTimer();
 
             auto& r_assembly_helper = GetAssemblyHelper();
-            r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs);
+            r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints apply time: " << timer_constraints << std::endl;
 

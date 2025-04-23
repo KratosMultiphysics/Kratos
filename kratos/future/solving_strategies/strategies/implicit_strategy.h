@@ -188,7 +188,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mDofSet, mpA, mpdx, mpb, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mDofSet, mpA, mpdx, mpb, mConstraintsRelationMatrix, mConstraintsConstantVector, mReformDofsAtEachStep);
 
         KRATOS_CATCH("")
     }
@@ -267,6 +267,16 @@ public:
         if (mpb != nullptr) {
             mpb->Clear();
         }
+        if (mpEffectiveRhs != nullptr) {
+            mpEffectiveRhs->Clear();
+        }
+        if (mpEffectiveLhs != nullptr) {
+            mpEffectiveLhs->Clear();
+        }
+
+        // Clear the constraint-related arrays
+        mConstraintsRelationMatrix.Clear();
+        mConstraintsConstantVector.Clear();
 
         // Clearing scheme
         // Note that this resets the DOF set
@@ -434,7 +444,7 @@ public:
      * @brief This method returns the effective LHS matrix
      * @return The effective LHS matrix
      */
-    typename SystemMatrixType::Pointer pGetEffectiveSystemMatrix()
+    SystemMatrixPointerType pGetEffectiveSystemMatrix()
     {
         return mpEffectiveLhs;
     }
@@ -461,9 +471,27 @@ public:
      * @brief This method returns the effective RHS vector
      * @return The effective RHS vector
      */
-    typename SystemVectorType::Pointer pGetEffectiveSystemVector()
+    SystemVectorPointerType pGetEffectiveSystemVector()
     {
         return mpEffectiveRhs;
+    }
+
+    /**
+     * @brief This method returns the constraints constant vector (i.e., b)
+     * @return Pointer to the constaints constant vector
+     */
+    SystemVectorType& GetConstraintsConstantVector()
+    {
+        return mConstraintsConstantVector;
+    }
+
+    /**
+     * @brief This method returns the constraints relation matrix (i.e., T)
+     * @return Pointer to the constraints relation matrix
+     */
+    SystemMatrixType& GetConstraintsRelationMatrix()
+    {
+        return mConstraintsRelationMatrix;
     }
 
     /**
@@ -668,19 +696,23 @@ private:
     DofsArrayType mDofSet; /// The set containing the DoF of the system
 
     //TODO: Should these be unique_ptr?
-    SystemVectorPointerType mpdx; /// The incremement in the solution //TODO: use naming convention
+    SystemVectorPointerType mpdx = nullptr; /// The incremement in the solution //TODO: use naming convention
 
     //TODO: Should these be unique_ptr?
-    SystemVectorPointerType mpb; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
+    SystemVectorPointerType mpb = nullptr; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
 
     //TODO: Should these be unique_ptr?
-    SystemVectorPointerType mpEffectiveRhs; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
+    SystemMatrixPointerType mpA = nullptr; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
 
-    //TODO: Should these be unique_ptr?
-    SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
+    //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same matrix)
+    SystemMatrixPointerType mpEffectiveLhs = nullptr; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
 
-    //TODO: Should these be unique_ptr?
-    SystemMatrixPointerType mpEffectiveLhs; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
+    //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same vector)
+    SystemVectorPointerType mpEffectiveRhs = nullptr; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
+
+    SystemMatrixType mConstraintsRelationMatrix; // Constraints relation matrix
+
+    SystemVectorType mConstraintsConstantVector; // Constraints constant vector
 
     int mEchoLevel;
 

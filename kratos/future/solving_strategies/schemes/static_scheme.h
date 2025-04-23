@@ -182,6 +182,8 @@ public:
         typename TSparseMatrixType::Pointer& rpA,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpB,
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector,
         const bool ReformDofSet = true) override
     {
         KRATOS_TRY
@@ -209,7 +211,7 @@ public:
 
                 // Set up the system constraints
                 BuiltinTimer constraints_construction_time;
-                this->ConstructMasterSlaveConstraintsStructure(rDofSet);
+                this->ConstructMasterSlaveConstraintsStructure(rDofSet, rConstraintsRelationMatrix, rConstraintsConstantVector);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
             } else {
                 // Set up the equation ids (note that this needs to be always done)

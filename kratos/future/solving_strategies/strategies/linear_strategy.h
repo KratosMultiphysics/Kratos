@@ -162,57 +162,59 @@ public:
 
         // Get system data
         auto& r_dof_set = this->GetDofSet();
-        auto p_A = this->pGetSystemMatrix();
-        auto p_b = this->pGetSystemVector();
+        auto p_lhs = this->pGetSystemMatrix();
+        auto p_rhs = this->pGetSystemVector();
         auto& r_dx = this->GetSolutionVector();
-        auto p_eff_A = this->pGetEffectiveSystemMatrix();
-        auto p_eff_b = this->pGetEffectiveSystemVector();
+        auto p_eff_lhs = this->pGetEffectiveSystemMatrix();
+        auto p_eff_rhs = this->pGetEffectiveSystemVector();
+        auto& r_T = this->GetConstraintsRelationMatrix();
+        auto& r_b = this->GetConstraintsConstantVector();
 
         // Initialize non-linear iteration (once as this is a linear strategy)
-	    p_scheme->InitializeNonLinIteration(*p_A, r_dx, *p_b);
+	    p_scheme->InitializeNonLinIteration(*p_lhs, r_dx, *p_rhs);
 
         if (!(this->GetStiffnessMatrixIsBuilt())) {
             // Initialize values
-            p_A->SetValue(0.0);
-            p_b->SetValue(0.0);
+            p_lhs->SetValue(0.0);
+            p_rhs->SetValue(0.0);
             r_dx.SetValue(0.0);
 
             // Build the local system and apply the Dirichlet conditions
-            p_scheme->Build(*p_A, *p_b);
-            p_scheme->BuildConstraints();
-            p_scheme->ApplyConstraints(p_A, p_eff_A, p_b, p_eff_b);
-            p_scheme->ApplyDirichletConditions(r_dof_set, *p_eff_A, *p_eff_b);
+            p_scheme->Build(*p_lhs, *p_rhs);
+            p_scheme->BuildConstraints(r_T, r_b);
+            p_scheme->ApplyConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, r_T, r_b);
+            p_scheme->ApplyDirichletConditions(r_dof_set, *p_eff_lhs, *p_eff_rhs);
             this->SetStiffnessMatrixIsBuilt(true);
         } else {
             // Initialize values
-            p_b->SetValue(0.0);
+            p_rhs->SetValue(0.0);
             r_dx.SetValue(0.0);
 
             // Build the RHS and apply the Dirichlet conditions
-            p_scheme->Build(*p_b);
-            p_scheme->ApplyConstraints(p_A, p_eff_A, p_b, p_eff_b); //TODO: In here we should apply them to the RHS-only!
-            p_scheme->ApplyDirichletConditions(r_dof_set, *p_eff_b);
+            p_scheme->Build(*p_rhs);
+            p_scheme->ApplyConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, r_T, r_b); //TODO: In here we should apply them to the RHS-only!
+            p_scheme->ApplyDirichletConditions(r_dof_set, *p_eff_rhs);
         }
 
         // Solve the system
         const auto& rp_linear_solver = this->pGetLinearSolver();
         if (rp_linear_solver->AdditionalPhysicalDataIsNeeded()) {
-            rp_linear_solver->ProvideAdditionalData(*p_eff_A, r_dx, *p_eff_b, r_dof_set, this->GetModelPart());
+            rp_linear_solver->ProvideAdditionalData(*p_eff_lhs, r_dx, *p_eff_rhs, r_dof_set, this->GetModelPart());
         }
-        rp_linear_solver->Solve(*p_eff_A, r_dx, *p_eff_b);
+        rp_linear_solver->Solve(*p_eff_lhs, r_dx, *p_eff_rhs);
 
         // Debugging info
         this->EchoInfo();
 
         // Update results (note that this also updates the mesh if needed)
-        p_scheme->Update(r_dof_set, *p_A, r_dx, *p_b);
+        p_scheme->Update(r_dof_set, *p_lhs, r_dx, *p_rhs);
 
         // Finalize current (unique) non linear iteration
-        p_scheme->FinalizeNonLinIteration(*p_A, r_dx, *p_b);
+        p_scheme->FinalizeNonLinIteration(*p_lhs, r_dx, *p_rhs);
 
         // Calculate reactions if required //TODO: Think on the constraints in here!!!
         if (this->GetComputeReactions()) {
-            p_scheme->CalculateReactions(r_dof_set, *p_b);
+            p_scheme->CalculateReactions(r_dof_set, *p_rhs);
         }
 
         return true;
