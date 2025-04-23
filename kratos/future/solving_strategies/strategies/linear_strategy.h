@@ -179,6 +179,7 @@ public:
 
             // Build the local system and apply the Dirichlet conditions
             p_scheme->Build(*p_A, *p_b);
+            p_scheme->BuildConstraints();
             p_scheme->ApplyConstraints(p_A, p_eff_A, p_b, p_eff_b);
             p_scheme->ApplyDirichletConditions(r_dof_set, *p_eff_A, *p_eff_b);
             this->SetStiffnessMatrixIsBuilt(true);
@@ -189,7 +190,7 @@ public:
 
             // Build the RHS and apply the Dirichlet conditions
             p_scheme->Build(*p_b);
-            p_scheme->ApplyConstraints(p_A, p_eff_A, p_b, p_eff_b);
+            p_scheme->ApplyConstraints(p_A, p_eff_A, p_b, p_eff_b); //TODO: In here we should apply them to the RHS-only!
             p_scheme->ApplyDirichletConditions(r_dof_set, *p_eff_b);
         }
 

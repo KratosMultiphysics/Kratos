@@ -377,9 +377,9 @@ public:
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalEqIds.resize(0);
-                rTLS.LocalVector.resize(0);
-                rTLS.LocalMatrix.resize(0,0);
+                rTLS.LocalEqIds.resize(0, false);
+                rTLS.LocalVector.resize(0, false);
+                rTLS.LocalMatrix.resize(0, 0, false);
             }
         };
 
@@ -391,9 +391,9 @@ public:
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalEqIds.resize(0);
-                rTLS.LocalVector.resize(0);
-                rTLS.LocalMatrix.resize(0,0);
+                rTLS.LocalEqIds.resize(0, false);
+                rTLS.LocalVector.resize(0, false);
+                rTLS.LocalMatrix.resize(0, 0, false);
             }
         };
 
@@ -423,8 +423,8 @@ public:
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalVector.resize(0);
-                rTLS.LocalEqIds.resize(0);
+                rTLS.LocalEqIds.resize(0, false);
+                rTLS.LocalVector.resize(0, false);
             }
         };
 
@@ -436,9 +436,9 @@ public:
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalVector.resize(0);
-                rTLS.LocalMatrix.resize(0,0);
-                rTLS.LocalEqIds.resize(0);
+                rTLS.LocalEqIds.resize(0, false);
+                rTLS.LocalVector.resize(0, false);
+                rTLS.LocalMatrix.resize(0, 0, false);
             }
         };
 
@@ -469,14 +469,10 @@ public:
         //TODO: IMPLEMENTATION
     }
 
-    virtual void ApplyConstraints(
-        typename TSparseMatrixType::Pointer& rpLhs,
-        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
-        typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs)
+    virtual void BuildConstraints()
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
-            Timer::Start("ApplyConstraints");
+            Timer::Start("BuildConstraints");
 
             const auto timer_constraints = BuiltinTimer();
 
@@ -505,9 +501,30 @@ public:
             auto& r_assembly_helper = GetAssemblyHelper();
             r_assembly_helper.SetConstraintAssemblyFunction(const_func);
             r_assembly_helper.AssembleMasterSlaveConstraints(aux_tls);
-            r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, aux_tls);
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints build time: " << timer_constraints << std::endl;
+
+            Timer::Stop("BuildConstraints");
+        } else {
+            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "There are no constraints to build." << std::endl;
+        }
+    }
+
+    virtual void ApplyConstraints(
+        typename TSparseMatrixType::Pointer& rpLhs,
+        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
+        typename TSparseVectorType::Pointer& rpRhs,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs)
+    {
+        if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
+            Timer::Start("ApplyConstraints");
+
+            const auto timer_constraints = BuiltinTimer();
+
+            auto& r_assembly_helper = GetAssemblyHelper();
+            r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs);
+
+            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints apply time: " << timer_constraints << std::endl;
 
             Timer::Stop("ApplyConstraints");
         } else {
@@ -547,8 +564,8 @@ public:
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalVector.resize(0);
-                rTLS.LocalEqIds.resize(0);
+                rTLS.LocalEqIds.resize(0, false);
+                rTLS.LocalVector.resize(0, false);
             }
         };
 
@@ -560,9 +577,9 @@ public:
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
             } else {
-                rTLS.LocalVector.resize(0);
-                rTLS.LocalMatrix.resize(0,0);
-                rTLS.LocalEqIds.resize(0);
+                rTLS.LocalEqIds.resize(0, false);
+                rTLS.LocalVector.resize(0, false);
+                rTLS.LocalMatrix.resize(0, 0, false);
             }
         };
 

@@ -322,14 +322,13 @@ public:
         typename TSparseMatrixType::Pointer& rpLhs,
         typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs,
-        TThreadLocalStorage& rTLS)
+        typename TSparseVectorType::Pointer& rpEffectiveRhs)
     {
         //TODO: Do it as the other assembly functions
         if (mBuildType == BuildType::Block) {
-            ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rTLS);
+            ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs);
         } else if (mBuildType == BuildType::Elimination) {
-            ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rTLS);
+            ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs);
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -1064,8 +1063,7 @@ private:
         typename TSparseMatrixType::Pointer& rpLhs,
         typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs,
-        TThreadLocalStorage& rTLS)
+        typename TSparseVectorType::Pointer& rpEffectiveRhs)
     {
         if constexpr (TBuildType == BuildType::Block) {
             // Initialize the effective RHS
