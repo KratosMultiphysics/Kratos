@@ -17,6 +17,7 @@
 #include "includes/smart_pointers.h" // KRATOS_CLASS_POINTER_DEFINITION
 #include "includes/model_part.h" // ModelPart
 #include "includes/code_location.h" // KRATOS_CODE_LOCATION
+#include "linear_solvers/linear_solver.h" // LinearSolver
 
 // STL Includes
 #include <memory> // unique_ptr
@@ -203,13 +204,14 @@ namespace Kratos {
  *              @endcode
  */
 template<class TSparseSpace,
-         class TDenseSpace,
-         class TLinearSolver>
+         class TDenseSpace>
 class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver
-    : public BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>
+    : public BuilderAndSolver<TSparseSpace,TDenseSpace,LinearSolver<TSparseSpace,TDenseSpace>>
 {
 private:
-    using Interface = BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>;
+    using LinearSolverType = LinearSolver<TSparseSpace,TDenseSpace>;
+
+    using Interface = BuilderAndSolver<TSparseSpace,TDenseSpace,LinearSolverType>;
 
 public:
     /// @internal
@@ -225,7 +227,7 @@ public:
     /// @note The provided linear solver is not used. Check the input settings
     ///       on how to configure linear solvers for this class.
     /// @see PMultigridBuilderAndSolver::GetDefaultParameters
-    PMultigridBuilderAndSolver(const typename TLinearSolver::Pointer& pSolver,
+    PMultigridBuilderAndSolver(const typename LinearSolverType::Pointer& pSolver,
                                Parameters Settings);
 
     PMultigridBuilderAndSolver(PMultigridBuilderAndSolver&& rOther) noexcept = default;
@@ -234,8 +236,8 @@ public:
 
     /// @brief Construct from a linear solver and parameters.
     /// @see PMultigridBuilderAndSolver::GetDefaultParameters
-    typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer
-    Create(typename TLinearSolver::Pointer pNewLinearSystemSolver,
+    typename BuilderAndSolver<TSparseSpace,TDenseSpace,LinearSolverType>::Pointer
+    Create(typename LinearSolverType::Pointer pNewLinearSystemSolver,
            Parameters ThisParameters) const override;
 
     /// @name Allocation and Initialization
@@ -306,7 +308,7 @@ public:
                           typename Interface::TSystemVectorType& rRhs) override;
 
     /// @}
-    /// @name Compound Assembly and Solution
+    /// @name Solution
     /// @{
 
     /// @copydoc BuilderAndSolver::BuildAndSolve
@@ -315,6 +317,11 @@ public:
                        typename Interface::TSystemMatrixType& A,
                        typename Interface::TSystemVectorType& Dx,
                        typename Interface::TSystemVectorType& b) override;
+
+    /// @copydoc BuilderAndSolver::SystemSolve(typename Interface::TSystemMatrixType&, typename Interface::TSystemVectorType&, typename Interface::TSystemVectorType&)
+    void SystemSolve(typename Interface::TSystemMatrixType& rLhs,
+                     typename Interface::TSystemVectorType& rSolution,
+                     typename Interface::TSystemVectorType& rRhs) override;
 
     /// @}
     /// @name Postprocessing
@@ -382,12 +389,6 @@ public:
     /// @{
 
     /// @warning Not implemented.
-    void SystemSolve(typename Interface::TSystemMatrixType& rLhs,
-                     typename Interface::TSystemVectorType& rSolution,
-                     typename Interface::TSystemVectorType& rRhs) override
-    {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented\n";}
-
-    /// @warning Not implemented.
     void BuildRHSAndSolve(typename Interface::TSchemeType::Pointer pScheme,
                           ModelPart& rModelPart,
                           typename Interface::TSystemMatrixType& rLhs,
@@ -424,7 +425,7 @@ protected:
 private:
     std::size_t GetEquationSystemSize() const noexcept;
 
-    TLinearSolver& GetLinearSolver() noexcept;
+    LinearSolverType& GetLinearSolver() noexcept;
 
     PMultigridBuilderAndSolver(const PMultigridBuilderAndSolver& rOther) = delete;
 

@@ -24,7 +24,7 @@ namespace Kratos {
 
 class ModelPart;
 
-template <class TSparse, class TDense, class TSolver>
+template <class TSparse, class TDense>
 class PMultigridBuilderAndSolver;
 
 
@@ -51,10 +51,9 @@ public:
     template <class TMatrix,
               class TVector,
               class TSparse,
-              class TDense,
-              class TSolver>
+              class TDense>
     PMGStatusStream(std::ostream& rStream,
-                    PMultigridBuilderAndSolver<TSparse,TDense,TSolver>& rBuilderAndSolver,
+                    PMultigridBuilderAndSolver<TSparse,TDense>& rBuilderAndSolver,
                     ModelPart& rModelPart,
                     const TMatrix& rRootLhs,
                     const TVector& rRootSolution,

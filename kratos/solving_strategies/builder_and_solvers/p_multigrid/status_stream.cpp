@@ -33,15 +33,11 @@ namespace Kratos {
 
 
 using DoubleBnS = PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
-                                             TUblasDenseSpace<double>,
-                                             LinearSolver<TUblasSparseSpace<double>,
-                                                          TUblasDenseSpace<double>>>;
+                                             TUblasDenseSpace<double>>;
 
 
 using SingleBnS = PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
-                                             TUblasDenseSpace<double>,
-                                             LinearSolver<TUblasSparseSpace<float>,
-                                                          TUblasDenseSpace<double>>>;
+                                             TUblasDenseSpace<double>>;
 
 
 std::unique_ptr<VtuOutput> MakeVtuOutput(ModelPart& rModelPart,
@@ -287,10 +283,9 @@ struct PMGStatusStream::Impl {
 template <class TMatrix,
           class TVector,
           class TSparse,
-          class TDense,
-          class TSolver>
+          class TDense>
 PMGStatusStream::PMGStatusStream(std::ostream& rStream,
-                                 PMultigridBuilderAndSolver<TSparse,TDense,TSolver>& rBuilderAndSolver,
+                                 PMultigridBuilderAndSolver<TSparse,TDense>& rBuilderAndSolver,
                                  ModelPart& rModelPart,
                                  const TMatrix& rRootLhs,
                                  const TVector& rRootSolution,
