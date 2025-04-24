@@ -331,16 +331,29 @@ public:
     {
         KRATOS_TRY
 
+        // For the base class we just simply move using the displacements of the nodes
         KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-
-        block_for_each(GetModelPart().Nodes(), [](Node& rNode){
-            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
-            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
-        });
+        SimpleDisplacementMeshMoving(GetModelPart(), DISPLACEMENT);
 
         KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0) << " MESH MOVED " << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function is designed to move the mesh using the displacements of the nodes
+     * @param rModelPart The model part to be moved
+     * @param rVariable The variable to be used for the mesh moving
+     */
+    static void SimpleDisplacementMeshMoving(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double, 3>>& rDisplacementVariable = DISPLACEMENT
+        )
+    {
+        block_for_each(rModelPart.Nodes(), [&rDisplacementVariable](Node& rNode){
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(rDisplacementVariable);
+        });
     }
 
     /**
