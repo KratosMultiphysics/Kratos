@@ -141,7 +141,7 @@ class LaserDrillingTransientSolver(
         self.some_elements_are_above_the_evap_temp = False
         self.jump_between_pulses_counter = 0
         self.pulse_number = 0
-        self.print_hdf5_and_gnuplot_files = False
+        self.print_hdf5_and_gnuplot_files = False  # TODO: Make into a parameter
 
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
 
@@ -572,6 +572,9 @@ class LaserDrillingTransientSolver(
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, reference_temp)
 
     def ResidualHeatStage(self):
+        """
+        TODO: Currently, unused. It is overriden by LaserDrillingTransienSolverAblationPlusThermal.ResidualHeatStage
+        """
         if self.evaporation_energy_fraction:
             self.projector = SurfaceFEMProjector(
                 self.n_surface_elements, self.R_far, self.sparse_option
@@ -953,6 +956,17 @@ class LaserDrillingTransientSolver(
         plt.show()
 
     def MonitorDecomposedVolume(self):
+        """
+        Tallies up the volume of the decomposed elements
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        The sum of DECOMPOSED_ELEMENTAL_VOLUME
+        """
         decomposed_volume = 0.0
         for elem in self.main_model_part.Elements:
             out = elem.CalculateOnIntegrationPoints(
@@ -962,6 +976,17 @@ class LaserDrillingTransientSolver(
         return decomposed_volume
 
     def MonitorEnergy(self):
+        """
+        Tallies up the energy of the (not decomposed) elements
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        The sum of THERMAL_ENERGY over all ACTIVE elements
+        """
         energy = 0.0
         for elem in self.main_model_part.Elements:
             if elem.Is(KratosMultiphysics.ACTIVE):
@@ -1018,7 +1043,7 @@ class LaserDrillingTransientSolver(
 
         Returns
         -------
-        None
+        The second element of the list
         """
 
         return val[1]
@@ -1076,10 +1101,13 @@ class LaserDrillingTransientSolver(
             self.decomposed_nodes_coords_file.close()
 
     def PenetrationDepthEstimation(self):
+        # TODO: this function is never called. Should we remove it?
+        # TODO: where does this formula come from?
         F_th = self.F_th
+        # TODO: make this into a parameter
         V = 4.72e-7  # mm3. Approximate ablated volume for 1 pulses (experimental) and 3W power. For 5 pulses it should be around 2.36e-6
         R_th = self.radius_th
-        l_s = V / (np.pi * (0.5 * R_th**2 * (np.log(self.C / F_th)) - 0.25 * self.K * R_th**4))
+        l_s = V / (np.pi * (0.5 * R_th**2 * np.log(self.C / F_th) - 0.25 * self.K * R_th**4))
         return l_s
 
     # Based on Eq. 27 from Gamaly (2002) - Ablation of solids by femtosecond lasers: Ablation mechanism and ablation thresholds for metals and dielectrics
@@ -1143,7 +1171,7 @@ class LaserDrillingTransientSolver(
             dataset = f["/temperature_increments"].create_dataset(
                 str(step), self.temperature_increments.shape, dtype=self.temperature_increments.dtype
             )
-            # Write the radii and temperatures data to the dataset.
+            # Write the radii and temperatures data to the dataset. TODO: the radii is not being written, I believe
             dataset[:] = self.temperature_increments
             # Add a time label to the dataset.
             dataset.attrs["time"] = time
@@ -1219,6 +1247,13 @@ class LaserDrillingTransientSolver(
         """
         Increases the temperature as an effect of the energy deposition by the laser pulse.
         Takes into account the refraction of the ray at the boundary air-solid.
+        Must be implemented by child classes.
+        """
+        pass
+
+    @abstractmethod
+    def ComputeIonizationEnergyPerUnitVolumeThreshold(self):
+        """
         Must be implemented by child classes.
         """
         pass

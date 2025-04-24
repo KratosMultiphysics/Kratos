@@ -17,9 +17,14 @@ class LaserDrillingTransientSolverAblationPlusThermal(
         super().__init__(model, custom_settings)
 
     def SolveSolutionStep(self):
+        """
+        TODO: Overrides LaserDrillingTransientSolver.SolveSolutionStep
+        """
         super(laserdrilling_transient_solver.LaserDrillingTransientSolver, self).SolveSolutionStep()
 
     def ComputeIonizationEnergyPerUnitVolumeThreshold(self):
+        # TODO: make this quantities into parameters
+        # TODO: it is never called?
         # Compute ionization energy per volume of C11_H12_O3
         E_m_H = 1312e3  #  J/mol (1st level ionization energy)
         E_m_C = 4621e3  #  J/mol (3rd level ionization energy)
@@ -245,6 +250,9 @@ class LaserDrillingTransientSolverAblationPlusThermal(
             self.list_of_ablated_nodes_coords_Y = self.list_of_decomposed_nodes_coords_Y
 
     def Finalize(self):
+        """
+        Overwrites LaserDrillingTransientSolver.Finalize
+        """
         super().Finalize()
         if self.print_hole_geometry_files:
             self.hole_theoretical_profile_file = open("hole_theoretical_profile.txt", "w")
