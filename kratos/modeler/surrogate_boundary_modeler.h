@@ -233,7 +233,7 @@ public:
         rOStream << "=== Meshing Data ===" << std::endl;
         rOStream << "NumberOfDivisions: " << n[0] << " " << n[1] << " " << n[2] << std::endl;
 
-        rOStream << "BoundingBox: " 
+        rOStream << "VoxelSize: " 
                 << GetKeyPlanes(0)[1] - GetKeyPlanes(0)[0] << " " 
                 << GetKeyPlanes(1)[1] - GetKeyPlanes(1)[0] << " " 
                 << GetKeyPlanes(2)[1] - GetKeyPlanes(2)[0] << " " 
