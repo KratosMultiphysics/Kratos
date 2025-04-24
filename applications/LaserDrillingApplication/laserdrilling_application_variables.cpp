@@ -14,7 +14,7 @@
 
 namespace Kratos
 {
-
+// TODO: Describe what these variables are and check which ones are in use
 KRATOS_CREATE_VARIABLE(double, THERMAL_ENERGY)
 KRATOS_CREATE_VARIABLE(double, THERMAL_ENERGY_PER_VOLUME)
 KRATOS_CREATE_VARIABLE(double, MATERIAL_THERMAL_ENERGY_PER_VOLUME)
