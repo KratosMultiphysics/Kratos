@@ -26,12 +26,19 @@ namespace Kratos
             double xy_distance = std::sqrt(coor[0] * coor[0] + coor[1] * coor[1]);
             double local_xy_distance = xy_distance - mMajorRadius;
 
-            mXYDistance[i_thread] = xy_distance;
-            mRho[i_thread] = std::sqrt(local_xy_distance * local_xy_distance + coor[2] * coor[2]) / mMinorRadius;
-            mSin[i_thread] = coor[0] / xy_distance;
-            mCos[i_thread] = coor[1] / xy_distance;
-            mZ[i_thread] = coor[2];
-            mCommonTerm[i_thread] = (4. / mU0) * (mXYDistance[i_thread] - mMajorRadius) / (mMinorRadius * mMinorRadius) * mRho[i_thread];
+            // mXYDistance[i_thread] = xy_distance;
+            // mRho[i_thread] = std::sqrt(local_xy_distance * local_xy_distance + coor[2] * coor[2]) / mMinorRadius;
+            // mSin[i_thread] = coor[0] / xy_distance;
+            // mCos[i_thread] = coor[1] / xy_distance;
+            // mZ[i_thread] = coor[2];
+            // mCommonTerm[i_thread] = (4. / mU0) * (mXYDistance[i_thread] - mMajorRadius) / (mMinorRadius * mMinorRadius) * mRho[i_thread];
+
+            mXYDistance[i_thread] = 1.;
+            mRho[i_thread] = 1.0;
+            mSin[i_thread] = 1.0;
+            mCos[i_thread] = 1.0;
+            mZ[i_thread] = 1.0;
+            mCommonTerm[i_thread] = mZ[i_thread] * 2.0;
 
             std::cout << "Updating coords for i_thread = " << i_thread << " for coor = " << coor << ": (mCoordinatesAreUpToDate = " << mCoordinatesAreUpToDate[i_thread] << ")" << std::endl;
             std::cout << "xy_distance = " << xy_distance << std::endl;

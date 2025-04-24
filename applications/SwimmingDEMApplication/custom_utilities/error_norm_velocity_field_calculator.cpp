@@ -72,11 +72,11 @@ namespace Kratos
                 {
                     // Integrate the difference between exact and computed variable
                     result += weight * std::pow(fluid_accel_gauss_points(g, d) - exact_var_values_at_gauss_points(g, d), 2.0);
-                    if(mNormalizeResult)
+                    if (mNormalizeResult)
                         l2_norm_factor += weight * exact_var_values_at_gauss_points(g, d) * exact_var_values_at_gauss_points(g, d);
                 }
             }
-            if(!mNormalizeResult)
+            if (!mNormalizeResult)
                 l2_norm_factor += r_geometry.Area();
         }
         std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
@@ -85,13 +85,16 @@ namespace Kratos
 
     double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues(ModelPart &r_model_part)
     {
+        double l2_norm_factor = 0.0, result = 0.0;
+
         ProcessInfo process_info = r_model_part.GetProcessInfo();
         const unsigned int dim = process_info[DOMAIN_SIZE];
         const int number_of_elements = r_model_part.NumberOfElements();
 
         // Compute L2 error = sum_e sum_g sum_d W_g * (u_d(x_g) - u_d,exact(x_g))^2,
         // where u_d and u_d,exact are the piecewise functions of the variable and the exact variable, respectively
-        double l2_norm_factor = 0.0, result = 0.0;
+
+        #pragma omp parallel for reduction(+:l2_norm_factor, result)
         for (int e = 0; e < number_of_elements; e++)
         {
             ModelPart::ElementsContainerType::iterator rElement = r_model_part.ElementsBegin() + e;
@@ -135,11 +138,11 @@ namespace Kratos
                 {
                     // Integrate the difference between exact and computed variable
                     result += weight * std::pow(fluid_accel_gauss_points(g, d) - exact_fluid_accel_gauss_points(g, d), 2.0);
-                    if(mNormalizeResult)
+                    if (mNormalizeResult)
                         l2_norm_factor += weight * exact_fluid_accel_gauss_points(g, d) * exact_fluid_accel_gauss_points(g, d);
                 }
             }
-            if(!mNormalizeResult)
+            if (!mNormalizeResult)
                 l2_norm_factor += r_geometry.Area();
         }
         std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
@@ -225,18 +228,18 @@ namespace Kratos
                 array_1d<double, 3> exact_material_acceleration_gauss_point;
                 // CalculateMaterialAcceleration(gauss_points_coordinates[g], exact_material_acceleration_gauss_point);
                 mpFlowField->CalculateMaterialAcceleration(0.0, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
-                std::cout << "Material acceleration at point " << gauss_points_coordinates[g] << " = " << exact_material_acceleration_gauss_point << std::endl;
+                // std::cout << "Material acceleration at point " << gauss_points_coordinates[g] << " = " << exact_material_acceleration_gauss_point << std::endl;
 
                 double weight = DetJ[g] * integration_points[g].Weight();
                 for (unsigned int d = 0; d < dim; d++)
                 {
                     // Integrate the difference between exact and computed variable
                     result += weight * std::pow(fluid_accel_gauss_points(g, d) - exact_material_acceleration_gauss_point[d], 2.0);
-                    if(mNormalizeResult)
+                    if (mNormalizeResult)
                         l2_norm_factor += weight * exact_material_acceleration_gauss_point[d] * exact_material_acceleration_gauss_point[d];
                 }
             }
-            if(!mNormalizeResult)
+            if (!mNormalizeResult)
                 l2_norm_factor += r_geometry.Area();
         }
         std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
@@ -245,13 +248,15 @@ namespace Kratos
 
     double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues(ModelPart &r_model_part)
     {
+        double l2_norm_factor = 0.0, result = 0.0;
+
         ProcessInfo process_info = r_model_part.GetProcessInfo();
         const unsigned int dim = process_info[DOMAIN_SIZE];
         const int number_of_elements = r_model_part.NumberOfElements();
 
         // Compute L2 error = sum_e sum_g sum_d W_g * (u_d(x_g) - u_d,exact(x_g))^2,
         // where u_d and u_d,exact are the piecewise functions of the variable and the exact variable, respectively
-        double l2_norm_factor = 0.0, result = 0.0;
+        #pragma omp parallel for reduction(+:l2_norm_factor, result)
         for (int e = 0; e < number_of_elements; e++)
         {
             ModelPart::ElementsContainerType::iterator rElement = r_model_part.ElementsBegin() + e;
@@ -306,19 +311,20 @@ namespace Kratos
 
                 // Exact fluid's acceleration at gauss points
                 array_1d<double, 3> exact_material_acceleration_gauss_point;
-                // CalculateMaterialAcceleration(gauss_points_coordinates[g], exact_material_acceleration_gauss_point);
                 mpFlowField->CalculateMaterialAcceleration(0.0, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
-                std::cout << "Material acceleration at point " << gauss_points_coordinates[g] << " = " << exact_material_acceleration_gauss_point << std::endl;
+                // std::cout << "Point = " << gauss_points_coordinates[g] << ", ",
+                // std::cout << "Dtu (manufactured) = " << exact_material_acceleration_gauss_point << ", ";
+                // std::cout << "Dtu (numeric) = [" << fluid_accel_gauss_points(g, 0) << ", " << fluid_accel_gauss_points(g, 1) << ", " << fluid_accel_gauss_points(g, 2) << "]" << std::endl;
 
                 for (unsigned int d = 0; d < dim; d++)
                 {
                     // Integrate the difference between exact and computed variable
                     result += weight * std::pow(fluid_accel_gauss_points(g, d) - exact_material_acceleration_gauss_point[d], 2.0);
-                    if(mNormalizeResult)
+                    if (mNormalizeResult)
                         l2_norm_factor += weight * exact_material_acceleration_gauss_point[d] * exact_material_acceleration_gauss_point[d];
                 }
             }
-            if(!mNormalizeResult)
+            if (!mNormalizeResult)
                 l2_norm_factor += r_geometry.Area();
         }
         std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;

@@ -81,7 +81,8 @@ double EthierFlowField::U2(const int i)
 
 double EthierFlowField::U0DT(const int i)
 {
-    return - mD * mD * U0(i);
+    // return - mD * mD * U0(i);
+    return 0.;
 }
 double EthierFlowField::U0D0(const int i)
 {
@@ -97,7 +98,8 @@ double EthierFlowField::U0D2(const int i)
 }
 double EthierFlowField::U1DT(const int i)
 {
-    return - mD * mD * U1(i);
+    // return - mD * mD * U1(i);
+    return 0.;
 }
 double EthierFlowField::U1D0(const int i)
 {
@@ -113,7 +115,8 @@ double EthierFlowField::U1D2(const int i)
 }
 double EthierFlowField::U2DT(const int i)
 {
-    return - mD * mD * U2(i);
+    // return - mD * mD * U2(i);
+    return 0.;
 }
 double EthierFlowField::U2D0(const int i)
 {
