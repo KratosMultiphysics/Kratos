@@ -183,7 +183,7 @@ protected:
     ///@}
     ///@name Protected Inquiry
     ///@{
-    virtual void CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo );
+    virtual void CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     ///@}
