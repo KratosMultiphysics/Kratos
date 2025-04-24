@@ -74,11 +74,11 @@ namespace Kratos:: Python
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-    typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSparseSpaceType;
-    typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexLocalSpaceType;
+    using ComplexSparseSpaceType = UblasSpace<std::complex<double>, ComplexCompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>>;
+    using ComplexLocalSpaceType = UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector>;
 
     //ADDED BY PAOLO (next two)
 
@@ -541,8 +541,8 @@ namespace Kratos:: Python
         //********************************************************************
         //********************************************************************
 
-        //strategy base class
-        typedef SolvingStrategy< SparseSpaceType, LocalSpaceType > BaseSolvingStrategyType;
+        // Strategy base class
+        using BaseSolvingStrategyType = SolvingStrategy< SparseSpaceType, LocalSpaceType >;
         py::class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"BaseSolvingStrategy")
             .def(py::init<ModelPart&, Parameters >() )
             .def(py::init < ModelPart&, bool >())
@@ -560,6 +560,7 @@ namespace Kratos:: Python
             .def("MoveMeshFlag", &BaseSolvingStrategyType::GetMoveMeshFlag)
             .def("GetMoveMeshFlag", &BaseSolvingStrategyType::GetMoveMeshFlag)
             .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
+            .def_static("SimpleDisplacementMeshMoving", &BaseSolvingStrategyType::SimpleDisplacementMeshMoving)
             .def("Clear", &BaseSolvingStrategyType::Clear)
             .def("Check", &BaseSolvingStrategyType::Check)
             .def("GetDefaultParameters",&BaseSolvingStrategyType::GetDefaultParameters)
