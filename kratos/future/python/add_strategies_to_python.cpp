@@ -43,6 +43,13 @@ void AddStrategiesToPython(py::module& m)
     ;
 
     using ImplicitSchemeType = Future::ImplicitScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    py::class_<ImplicitSchemeType, typename ImplicitSchemeType::Pointer>(m, "ImplicitSchemeType")
+        .def(py::init<ModelPart&, Parameters>())
+        // .def("Execute",&Future::Process::Execute)
+        // .def("Info",&Future::Process::Info)
+        // .def("__str__", PrintObject<Future::Process>)
+    ;
+
     using StaticSchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     py::class_<StaticSchemeType, typename StaticSchemeType::Pointer, ImplicitSchemeType>(m, "StaticSchemeType")
         .def(py::init<ModelPart&, Parameters>())

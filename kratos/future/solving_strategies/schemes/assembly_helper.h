@@ -84,6 +84,9 @@ public:
     /// DOF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
+    /// DOF pointer vector type definition
+    using DofPointerVectorType = typename MasterSlaveConstraint::DofPointerVectorType;
+
     /// Function type for elements assembly
     using ElementAssemblyFunctionType = std::function<void(ModelPart::ElementConstantIterator, const ProcessInfo&, TThreadLocalStorage&)>;
 
@@ -188,13 +191,13 @@ public:
     }
 
     virtual void ConstructMasterSlaveConstraintsStructure(
-        const DofsArrayType& rDofSet, //TODO: Confirm once we do the elimination if this is needed
+        const DofsArrayType& rDofSet,
         const ModelPart& rModelPart,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector)
     {
         if (mBuildType == BuildType::Block) {
-            BlockConstructMasterSlaveConstraintsStructure(rModelPart, rConstraintsRelationMatrix, rConstraintsConstantVector);
+            BlockConstructMasterSlaveConstraintsStructure(rDofSet, rModelPart, rConstraintsRelationMatrix, rConstraintsConstantVector);
         } else if (mBuildType == BuildType::Elimination) {
             EliminationConstructMasterSlaveConstraintsStructure(rDofSet, rModelPart, rConstraintsRelationMatrix, rConstraintsConstantVector);
         } else {
@@ -876,6 +879,7 @@ private:
 
     //FIXME: This only works in serial!!!
     void BlockConstructMasterSlaveConstraintsStructure(
+        const DofsArrayType& rDofSet,
         const ModelPart& rModelPart,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector)
@@ -889,33 +893,53 @@ private:
             std::vector<LockObject> lock_array(mEquationSystemSize);
             std::vector<std::unordered_set<IndexType>> indices(mEquationSystemSize);
 
-            #pragma omp parallel
-            {
-                Element::EquationIdVectorType slave_eq_ids;
-                Element::EquationIdVectorType master_eq_ids;
-                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_slave_eq_ids;
 
-                #pragma omp for schedule(guided, 512) nowait
-                for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
-                    // Get current constraint master and slave equation ids
-                    auto it_const = it_const_begin + i_const;
-                    it_const->EquationIdVector(slave_eq_ids, master_eq_ids, rModelPart.GetProcessInfo());
+            // std::unordered_map<std::pair<typename Dof::Pointer, IndexType> constraints_master_dofs;
+            std::unordered_map<typename DofType::Pointer, IndexType> constraints_master_dofs;
+            std::unordered_map<typename DofType::Pointer, DofPointerVectorType> constraints_slave_dofs;
 
-                    // For each slave DOF save its corresponding master equation ids
-                    for (auto slave_eq_id : slave_eq_ids) {
-                        //FIXME: should we throw an error if temp_slave_eq_ids[slave_eq_id] is already there?
-                        temp_slave_eq_ids[slave_eq_id].insert(master_eq_ids.begin(), master_eq_ids.end());
-                    }
+            for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
+                // Get current constraint master and slave DOFs
+                auto it_const = it_const_begin + i_const;
+                const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
+                const auto& r_master_dofs = it_const->GetMasterDofsVector();
+
+                // Add the constraint DOFs to the corresponding maps
+                for (auto& rp_slave : r_slave_dofs) {
+                    constraints_slave_dofs.insert(std::make_pair(rp_slave, r_master_dofs));
                 }
-
-                // Merging all the temporal indexes
-                for (auto& slave_pair : temp_slave_eq_ids) {
-                    const auto& r_master_eq_ids = slave_pair.second;
-                    lock_array[slave_pair.first].lock();
-                    indices[slave_pair.first].insert(r_master_eq_ids.begin(), r_master_eq_ids.end());
-                    lock_array[slave_pair.first].unlock();
-                }
+                // for (auto& rp_master : r_master_dofs) {
+                //     constraints_master_dofs.insert(std::make_pair(rp_master, rp_master->EquationId()));
+                // }
             }
+
+            // #pragma omp parallel
+            // {
+            //     Element::EquationIdVectorType slave_eq_ids;
+            //     Element::EquationIdVectorType master_eq_ids;
+            //     std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_slave_eq_ids;
+
+            //     #pragma omp for schedule(guided, 512) nowait
+            //     for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
+            //         // Get current constraint master and slave equation ids
+            //         auto it_const = it_const_begin + i_const;
+            //         it_const->EquationIdVector(slave_eq_ids, master_eq_ids, rModelPart.GetProcessInfo());
+
+            //         // For each slave DOF save its corresponding master equation ids
+            //         for (auto slave_eq_id : slave_eq_ids) {
+            //             //FIXME: should we throw an error if temp_slave_eq_ids[slave_eq_id] is already there?
+            //             temp_slave_eq_ids[slave_eq_id].insert(master_eq_ids.begin(), master_eq_ids.end());
+            //         }
+            //     }
+
+            //     // Merging all the temporal indexes
+            //     for (auto& slave_pair : temp_slave_eq_ids) {
+            //         const auto& r_master_eq_ids = slave_pair.second;
+            //         lock_array[slave_pair.first].lock();
+            //         indices[slave_pair.first].insert(r_master_eq_ids.begin(), r_master_eq_ids.end());
+            //         lock_array[slave_pair.first].unlock();
+            //     }
+            // }
 
             // Clear the equation ids vectors
             mSlaveIds.clear();
@@ -925,21 +949,49 @@ private:
             KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
             TSparseGraphType constraints_sparse_graph(mEquationSystemSize);
 
-            // Loop the equation id indices vector
-            // If entry is empty means a master DOF
-            // If entry is not empty it is a slave DOF and contains the corresponding master equation ids
-            for (IndexType i_dof_eq_id = 0; i_dof_eq_id < mEquationSystemSize; ++i_dof_eq_id) {
-                // Check if current DOF is master or slave
-                // Note that if it is slave we add its corresponding master DOFs to the sparse graph
-                if (indices[i_dof_eq_id].size() == 0) {
-                    mMasterIds.push_back(i_dof_eq_id); // Add to master DOFs equation ids vector
-                } else {
-                    mSlaveIds.push_back(i_dof_eq_id); // Add to slave DOFs equation ids vector
-                    constraints_sparse_graph.AddEntries(i_dof_eq_id, indices[i_dof_eq_id]); // Add slave DOF (row) master entries (cols) to constraints matrix graph
+            // // Loop the equation id indices vector
+            // // If entry is empty means a master DOF
+            // // If entry is not empty it is a slave DOF and contains the corresponding master equation ids
+            // for (IndexType i_dof_eq_id = 0; i_dof_eq_id < mEquationSystemSize; ++i_dof_eq_id) {
+            //     // Check if current DOF is master or slave
+            //     // Note that if it is slave we add its corresponding master DOFs to the sparse graph
+            //     if (indices[i_dof_eq_id].size() == 0) {
+            //         mMasterIds.push_back(i_dof_eq_id); // Add to master DOFs equation ids vector
+            //     } else {
+            //         mSlaveIds.push_back(i_dof_eq_id); // Add to slave DOFs equation ids vector
+            //         constraints_sparse_graph.AddEntries(i_dof_eq_id, indices[i_dof_eq_id]); // Add slave DOF (row) master entries (cols) to constraints matrix graph
+            //     }
+
+            //     // Ensure that the diagonal is there in T
+            //     constraints_sparse_graph.AddEntry(i_dof_eq_id, i_dof_eq_id); // Add diagonal contribution for master DOFs
+            // }
+
+            // Loop the elements and conditions DOFs container
+            for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
+                // Get current DOF
+                auto p_dof = *(rDofSet.ptr_begin() + i_dof);
+                const IndexType i_dof_eq_id = p_dof->EquationId();
+
+                // Check if current DOF is slave by checking the slaves DOFs map
+                // If not present in the slaves DOFs map it should be considered a "master" DOF
+                // Note that here "master" means an actual masters DOF or a DOF that do not involve any constraint
+                auto i_dof_slave_find = constraints_slave_dofs.find(p_dof);
+                if (i_dof_slave_find != constraints_slave_dofs.end()) { // Slave DOF
+                    mSlaveIds.push_back(i_dof_eq_id);
+                    for (auto& rp_master : i_dof_slave_find->second) {
+                        constraints_sparse_graph.AddEntry(i_dof_eq_id, rp_master->EquationId()); // Add slave DOF (row) master entries (cols) to constraints matrix graph
+                    }
+                } else { // "Master" DOF
+                    auto i_dof_master_find = constraints_master_dofs.find(p_dof);
+                    if (i_dof_master_find != constraints_master_dofs.end()) { // Is master DOF
+                        mMasterIds.push_back(i_dof_master_find->second); // We use the equation id coming from the constraint
+                    } else { // Is standard DOF (not related to any constraint) and we treat it as master "of itself"
+                        mMasterIds.push_back(i_dof_eq_id); // We use the equation id coming from the existing DOF set (the elements & conditions one)
+                    }
                 }
 
                 // Ensure that the diagonal is there in T
-                constraints_sparse_graph.AddEntry(i_dof_eq_id, i_dof_eq_id); // Add diagonal contribution for master DOFs
+                constraints_sparse_graph.AddEntry(i_dof_eq_id, i_dof_eq_id); // Add diagonal contribution for "master" DOFs
             }
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)

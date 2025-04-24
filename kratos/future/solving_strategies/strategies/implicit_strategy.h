@@ -693,7 +693,9 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    DofsArrayType mDofSet; /// The set containing the DoF of the system
+    DofsArrayType mDofSet; /// The set containing the DOFs of the system
+
+    DofsArrayType mMasterDofSet; /// The set containing the master DOFs of the system
 
     //TODO: Should these be unique_ptr?
     SystemVectorPointerType mpdx = nullptr; /// The incremement in the solution //TODO: use naming convention
