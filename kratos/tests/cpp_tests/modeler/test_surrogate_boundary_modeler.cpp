@@ -142,7 +142,7 @@ End SubModelPart
 				{
 					"type" : "elements_with_cell_color",
 					"model_part_name": "main_model_part.workpiece",
-					"color": 14,
+					"color": -1,
 					"properties_id": 1
 				} 
 				]
