@@ -145,6 +145,7 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
 
     auto trial_sigma_tau = CalculateTrialStressVector(
         rParameters.GetStrainVector(), r_prop[INTERFACE_NORMAL_STIFFNESS], r_prop[INTERFACE_SHEAR_STIFFNESS]);
+    trial_sigma_tau[1] = std::abs(trial_sigma_tau[1]);
 
     if (!ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(
             trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
