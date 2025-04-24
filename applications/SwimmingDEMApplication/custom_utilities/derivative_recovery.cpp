@@ -246,30 +246,30 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         ++node_pos;
     }
 
-    // Map of local dof position to global dof position
-    std::vector<std::map<unsigned, unsigned>> elements_id_map(number_of_elements);
-    for (unsigned int e = 0; e < number_of_elements; e++)
+    // Compute the mass matrix of the system (only once)
+    if(!mMassMatrixAlreadyComputed)
     {
-        ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
-        Geometry<Node>& r_geometry = it_elem->GetGeometry();
-
-        std::map<unsigned, unsigned> element_map;
-        for(unsigned n = 0; n < r_geometry.size(); n++)
+        // Map of local dof position to global dof position
+        std::vector<std::map<unsigned, unsigned>> elements_id_map(number_of_elements);
+        for (unsigned int e = 0; e < number_of_elements; e++)
         {
-            const SizeType node_pos = id_to_position[r_geometry[n].Id()];
-            for (unsigned i = 0; i < number_of_dofs; i++)
-            {
-                unsigned local_dof_position = n * number_of_dofs + i;  // Each node has a local position in the element
-                unsigned global_dof_position = node_pos * number_of_dofs + i;  // Each DOF in the model part has a unique position (we assume the nodes in r_geometry are always at the same order)
-                element_map[local_dof_position] = global_dof_position;  // This maps the local DOF position of the element to the global position of this DOF
-            }
-        }
-        elements_id_map[e] = element_map;
-    }
+            ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
+            Geometry<Node>& r_geometry = it_elem->GetGeometry();
 
-    // Compute the mass matrix
-    if(mMassMatrixAlreadyComputed == false)
-    {
+            std::map<unsigned, unsigned> element_map;
+            for(unsigned n = 0; n < r_geometry.size(); n++)
+            {
+                const SizeType node_pos = id_to_position[r_geometry[n].Id()];
+                for (unsigned i = 0; i < number_of_dofs; i++)
+                {
+                    unsigned local_dof_position = n * number_of_dofs + i;  // Each node has a local position in the element
+                    unsigned global_dof_position = node_pos * number_of_dofs + i;  // Each DOF in the model part has a unique position (we assume the nodes in r_geometry are always at the same order)
+                    element_map[local_dof_position] = global_dof_position;  // This maps the local DOF position of the element to the global position of this DOF
+                }
+            }
+            elements_id_map[e] = element_map;
+        }
+
         // Construct the structure of the sparse mass matrix
         ConstructMassMatrixStructure(r_model_part, system_size, elements_id_map, m_global_mass_matrix);
 
@@ -287,6 +287,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                 local_lhs = ZeroMatrix(local_lhs.size1(), local_lhs.size2());
             }
         }
+
         mMassMatrixAlreadyComputed = true;
     }
 
