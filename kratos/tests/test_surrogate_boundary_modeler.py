@@ -80,9 +80,10 @@ class TestSurrogateBoundaryModelerCoarseSphere(KratosUnittest.TestCase):
                 distance = CalculateAnalyticalDistance(node.GetNodePtr())
                 signed_distance = node.GetSignedDistance()
                 
-                self.assertAlmostEqual(distance, signed_distance, delta=4e-2)
+                self.assertAlmostEqual(-distance, signed_distance, delta=4e-2)
 
-        #surrogate_boundary.PrintSBData()
+        output = surrogate_boundary.PrintSBData()
+        print(output)
 
 
 

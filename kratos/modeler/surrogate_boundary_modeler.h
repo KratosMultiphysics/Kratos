@@ -188,9 +188,9 @@ public:
                         double d = norm_2(mSurrogateBoundaryData[node_index].GetVectorDistance());
                         if (mColors.GetNodalColor(i,j,k) == inside_color) 
                         {
-                            mSurrogateBoundaryData[node_index].GetSignedDistance() = d;
-                        } else {
                             mSurrogateBoundaryData[node_index].GetSignedDistance() = -d;
+                        } else {
+                            mSurrogateBoundaryData[node_index].GetSignedDistance() = d;
                         }
                     }
                 } 
@@ -225,26 +225,35 @@ public:
     }
 
     /// Print object's data.
-    void PrintSBData() //std::ostream & rOStream
+    std::string PrintSBData() 
     {
-        std::ostream& rOStream = std::cout;
-        array_1d<std::size_t, 3> n = mMeshingData.GetNumberOfDivisions();
-        rOStream << "NumberOfDivisions (x,y,z): " << n << std::endl;
-        rOStream << "BoundingBox [(x,y,z), (x,y,z)]: [(" << this->GetKeyPlanes(0)[0] << ", " << this->GetKeyPlanes(1)[0] << ", " << this->GetKeyPlanes(2)[0] << 
-                    "), (" << this->GetKeyPlanes(0)[n[0]-1] << ", " << this->GetKeyPlanes(1)[n[1]-1] << ", " << this->GetKeyPlanes(2)[n[2]-1] << ")]" << std::endl;
-        
-        for (std::size_t i = 0; i < n[0]; i++) 
-        {
-            for (std::size_t j = 0; j < n[1]; j++) 
-            {
-                for (std::size_t k = 0; k < n[2]; k++) 
-                {
-                    SurrogateBoundaryNode& node = GetSurrogateBoundaryNode(i,j,k);
-                    rOStream << node.IsActive() << " " << node.IsInside() << " " << node.GetVectorDistance() << std::endl;
+        std::stringstream rOStream;
+        const auto n = mMeshingData.GetNumberOfDivisions();
+
+        rOStream << "=== Meshing Data ===" << std::endl;
+        rOStream << "NumberOfDivisions: " << n[0] << " " << n[1] << " " << n[2] << std::endl;
+
+        rOStream << "BoundingBox: " 
+                << GetKeyPlanes(0)[1] - GetKeyPlanes(0)[0] << " " 
+                << GetKeyPlanes(1)[1] - GetKeyPlanes(1)[0] << " " 
+                << GetKeyPlanes(2)[1] - GetKeyPlanes(2)[0] << " " 
+                << std::endl;
+
+        rOStream << "=== Node Data ===" << std::endl;
+
+        for (std::size_t i = 0; i < n[0]; ++i) {
+            for (std::size_t j = 0; j < n[1]; ++j) {
+                for (std::size_t k = 0; k < n[2]; ++k) {
+                    SurrogateBoundaryNode& node = GetSurrogateBoundaryNode(i, j, k);
+                    auto& v = node.GetVectorDistance();
+                    rOStream << node.IsActive() << " " << node.IsInside() << " "
+                            << v[0] << " " << v[1] << " " << v[2] << std::endl;
                 }
             }
         }
+        return rOStream.str();
     }
+
 
 private:
 
