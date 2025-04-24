@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/constant_velocity_field.h"
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
+#include "custom_utilities/fields/poiseuille_torus_flow_field.h"
 #include "custom_utilities/fields/product_of_sines_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field_2D.h"
@@ -87,6 +88,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/error_norm_calculator_utility.h"
 #include "custom_utilities/error_norm_torus.h"
 #include "custom_utilities/error_norm_ethier_field.h"
+#include "custom_utilities/error_norm_velocity_field_calculator.h"
 #include "custom_utilities/averaging_variables_utility.h"
 
 namespace Kratos{
@@ -253,6 +255,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<EthierFlowField, EthierFlowField::Pointer, VelocityField > (m, "EthierFlowField")
         .def(py::init<const double, const double>())
+        ;
+
+    py::class_<PoiseuilleTorusFlowField, PoiseuilleTorusFlowField::Pointer, VelocityField > (m, "PoiseuilleTorusFlowField")
+        .def(py::init<const double, const double, const double>())
         ;
 
     py::class_<PouliotFlowField, PouliotFlowField::Pointer, VelocityField > (m, "PouliotFlowField")
@@ -586,10 +592,21 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     py::class_<ErrorNormEthierFieldCalculator> (m, "ErrorNormEthierFieldCalculator")
         .def(py::init<const double, const double>())
         .def(py::init<const double, const double, const bool>())
+        .def(py::init<const EthierFlowField&>())
+        .def(py::init<const EthierFlowField&, const bool>())
         .def("getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues", &ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues)
         .def("getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues", &ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues)
         .def("getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues", &ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues)
         .def("getL2NormFluidAccelWithRecoveryUsingGaussExactValues", &ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues)
+        ;
+
+    py::class_<ErrorNormVelocityFieldCalculator> (m, "ErrorNormVelocityFieldCalculator")
+        .def(py::init<VelocityField::Pointer>())
+        .def(py::init<VelocityField::Pointer, const bool>())
+        .def("getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues", &ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues)
+        .def("getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues", &ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues)
+        .def("getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues", &ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues)
+        .def("getL2NormFluidAccelWithRecoveryUsingGaussExactValues", &ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues)
         ;
 
     py::class_<MeshRotationUtility> (m, "MeshRotationUtility")

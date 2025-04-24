@@ -121,6 +121,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/velocity_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/cellular_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/ethier_flow_field.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/poiseuille_torus_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/product_of_sines_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/pouliot_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/pouliot_flow_field_2D.cpp
@@ -137,6 +138,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/error_norm_calculator_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/error_norm_torus.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/error_norm_ethier_field.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/error_norm_velocity_field_calculator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/averaging_variables_utility.cpp
 )
 

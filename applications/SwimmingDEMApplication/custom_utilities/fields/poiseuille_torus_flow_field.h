@@ -23,62 +23,131 @@
 #include "utilities/openmp_utils.h"
 #include "velocity_field.h"
 
-
 namespace Kratos
 {
-class KRATOS_API(SWIMMING_DEM_APPLICATION) PoiseuilleTorus : public VelocityField
-{
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) PoiseuilleTorusFlowField : public VelocityField
+    {
 
-public:
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(PoiseuilleTorusFlowField);
 
-KRATOS_CLASS_POINTER_DEFINITION(PoiseuilleTorus);
+        /// Default constructor.
+        PoiseuilleTorusFlowField() : VelocityField(), mMajorRadius(1.), mMinorRadius(.5), mU0(1.)
+        {
+            unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
+            ResizeVectorsForParallelism(number_of_threads);
+        };
 
-/// Default constructor.
+        PoiseuilleTorusFlowField(const double major_radius, const double minor_radius, const double u0) : VelocityField(), mMajorRadius(major_radius), mMinorRadius(minor_radius), mU0(u0)
+        {
+            unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
+            std::cout << "Resizing..." << std::endl;
+            ResizeVectorsForParallelism(number_of_threads);
+            std::cout << "Done." << std::endl;
+        }
 
-PoiseuilleTorus():VelocityField(), mMajorRadius(1.), mMinorRadius(.5), mCenterVelocity(1.)
-{
-    unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
-    ResizeVectorsForParallelism(number_of_threads);
-};
+        /// Destructor.
+        virtual ~PoiseuilleTorusFlowField() {}
 
-PoiseuilleTorus(double major_radius, double minor_radius, double center_velocity):VelocityField(), mMajorRadius(major_radius), mMinorRadius(minor_radius), mCenterVelocity(center_velocity)
-{
-    unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
-    ResizeVectorsForParallelism(number_of_threads);
-}
+        //***************************************************************************************************************
+        //***************************************************************************************************************
+        void ResizeVectorsForParallelism(const int n_threads) override;
 
-/// Destructor.
+        void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread = 0) override;
 
-virtual ~PoiseuilleTorus(){}
+        void UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread = 0) override;
 
-double getDistanceToCenter(const array_1d<double, 3>& coor);
-double getVelocityModule();
-double getThetaAngle(const array_1d<double, 3>& coor);
+        void LockCoordinates(const int i_thread = 0) override;
 
-void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread = 0) override;
-void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread = 0) override;
+        void UnlockCoordinates(const int i_thread = 0) override;
+        //***************************************************************************************************************
+        //***************************************************************************************************************
 
-double U0(const int i_thread = 0) override;
-double U1(const int i_thread = 0) override;
-double U2(const int i_thread = 0) override;
+        // virtual void CalculateMaterialAcceleration(const double time, const array_1d<double, 3> &coor, array_1d<double, 3> &accel, const int i_thread = 0) override;
 
-virtual void CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const int i_thread = 0) override;
+        // Values
 
-private:
-double mMajorRadius;
-double mMinorRadius;
-double mCenterVelocity;
+        double U0(const int i_thread = 0) override;
+        double U1(const int i_thread = 0) override;
+        double U2(const int i_thread = 0) override;
 
-double mTheta;
-double mRho;
+        // First-order derivatives
 
-double mX;
-double mY;
-double mZ;
+        double U0DT(const int i_thread = 0) override;
+        double U0D0(const int i_thread = 0) override;
+        double U0D1(const int i_thread = 0) override;
+        double U0D2(const int i_thread = 0) override;
 
+        double U1DT(const int i_thread = 0) override;
+        double U1D0(const int i_thread = 0) override;
+        double U1D1(const int i_thread = 0) override;
+        double U1D2(const int i_thread = 0) override;
 
-}; // Class PoiseuilleTorus
+        double U2DT(const int i_thread = 0) override;
+        double U2D0(const int i_thread = 0) override;
+        double U2D1(const int i_thread = 0) override;
+        double U2D2(const int i_thread = 0) override;
 
-}  // Namespace Kratos
+        // Second-order derivatives
+
+        double U0DTDT(const int i_thread = 0) override;
+        double U0DTD0(const int i_thread = 0) override;
+        double U0DTD1(const int i_thread = 0) override;
+        double U0DTD2(const int i_thread = 0) override;
+        double U0D0D0(const int i_thread = 0) override;
+        double U0D0D1(const int i_thread = 0) override;
+        double U0D0D2(const int i_thread = 0) override;
+        double U0D1D1(const int i_thread = 0) override;
+        double U0D1D2(const int i_thread = 0) override;
+        double U0D2D2(const int i_thread = 0) override;
+
+        double U1DTDT(const int i_thread = 0) override;
+        double U1DTD0(const int i_thread = 0) override;
+        double U1DTD1(const int i_thread = 0) override;
+        double U1DTD2(const int i_thread = 0) override;
+        double U1D0D0(const int i_thread = 0) override;
+        double U1D0D1(const int i_thread = 0) override;
+        double U1D0D2(const int i_thread = 0) override;
+        double U1D1D1(const int i_thread = 0) override;
+        double U1D1D2(const int i_thread = 0) override;
+        double U1D2D2(const int i_thread = 0) override;
+
+        double U2DTDT(const int i_thread = 0) override;
+        double U2DTD0(const int i_thread = 0) override;
+        double U2DTD1(const int i_thread = 0) override;
+        double U2DTD2(const int i_thread = 0) override;
+        double U2D0D0(const int i_thread = 0) override;
+        double U2D0D1(const int i_thread = 0) override;
+        double U2D0D2(const int i_thread = 0) override;
+        double U2D1D1(const int i_thread = 0) override;
+        double U2D1D2(const int i_thread = 0) override;
+        double U2D2D2(const int i_thread = 0) override;
+
+    private:
+        ///@}
+        ///@name Member r_variables
+        ///@{
+        double mMajorRadius;
+        double mMinorRadius;
+        double mU0;
+
+        std::vector<int> mCoordinatesAreUpToDate;
+        std::vector<int> mXYDistance;
+        std::vector<int> mRho;
+        std::vector<int> mCos;
+        std::vector<int> mSin;
+        std::vector<int> mZ;
+        std::vector<int> mCommonTerm;
+
+        // double mX;
+        // double mY;
+        // double mZ;
+
+        /// Assignment operator.
+        PoiseuilleTorusFlowField & operator=(PoiseuilleTorusFlowField const& rOther);
+
+    }; // Class PoiseuilleTorusFlowField
+
+} // Namespace Kratos
 
 #endif

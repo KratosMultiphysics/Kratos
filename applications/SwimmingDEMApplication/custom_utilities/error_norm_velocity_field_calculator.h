@@ -10,8 +10,8 @@
 //  Main authors:    Aniol Sala
 //
 
-#if !defined(KRATOS_ERROR_ETHIER_FIELD)
-#define KRATOS_ERROR_ETHIER_FIELD
+#if !defined(KRATOS_ERROR_VELOCITY_FIELD)
+#define KRATOS_ERROR_VELOCITY_FIELD
 
 // External includes
 #include <omp.h>
@@ -22,7 +22,7 @@
 #include "utilities/parallel_utilities.h"
 #include "includes/kratos_parameters.h"
 #include "includes/process_info.h"
-#include "custom_utilities/fields/ethier_flow_field.h"
+#include "fields/velocity_field.h"
 
 // Application includes
 #include "swimming_DEM_application.h"
@@ -35,7 +35,7 @@
 namespace Kratos
 {
 
-class ErrorNormEthierFieldCalculator
+class ErrorNormVelocityFieldCalculator
 {
 
 public:
@@ -52,18 +52,12 @@ public:
     typedef Element::Pointer  ElementPointerType;
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(ErrorNormEthierFieldCalculator);
+    KRATOS_CLASS_POINTER_DEFINITION(ErrorNormVelocityFieldCalculator);
 
-    ErrorNormEthierFieldCalculator(const double a, const double b, const bool normalize_result): mA(a), mD(b), mNormalizeResult(normalize_result), mFlowField(a, b)
+    ErrorNormVelocityFieldCalculator(VelocityField::Pointer velocity_field): mpFlowField(velocity_field), mNormalizeResult(false)
     {}
 
-    ErrorNormEthierFieldCalculator(const double a, const double b): mA(a), mD(b), mNormalizeResult(false), mFlowField(a, b)
-    {}
-
-    ErrorNormEthierFieldCalculator(const EthierFlowField& velocity_field): mFlowField(std::move(velocity_field)), mA(0.), mD(0.), mNormalizeResult(false)
-    {}
-
-    ErrorNormEthierFieldCalculator(const EthierFlowField& velocity_field, const bool normalize_result): mNormalizeResult(normalize_result), mFlowField(velocity_field), mA(0.), mD(0.)
+    ErrorNormVelocityFieldCalculator(VelocityField::Pointer velocity_field, const bool normalize_result): mNormalizeResult(normalize_result), mpFlowField(velocity_field)
     {}
 
     double getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues(ModelPart& r_model_part);   // Get the L2 norm using the shape functions (no recovered field)
@@ -71,16 +65,14 @@ public:
     double getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues(ModelPart& r_model_part);   // Get the L2 norm using the shape functions (no recovered field)
     double getL2NormFluidAccelWithRecoveryUsingGaussExactValues(ModelPart& r_model_part);  // Get the L2 norm using the exact values 
 
-    virtual ~ErrorNormEthierFieldCalculator(){}
+    virtual ~ErrorNormVelocityFieldCalculator(){}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
 private:
-    const double mA;
-    const double mD;
     const bool mNormalizeResult;
-    EthierFlowField mFlowField;
+    VelocityField::Pointer mpFlowField;
 
 }; // Class ErrorNormEthierFieldCalculator
 

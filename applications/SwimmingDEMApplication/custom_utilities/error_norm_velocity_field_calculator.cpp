@@ -1,8 +1,8 @@
-#include "error_norm_ethier_field.h"
+#include "error_norm_velocity_field_calculator.h"
 
 namespace Kratos
 {
-    double ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues(ModelPart &r_model_part)
+    double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues(ModelPart &r_model_part)
     {
         ProcessInfo process_info = r_model_part.GetProcessInfo();
         const unsigned int dim = process_info[DOMAIN_SIZE];
@@ -35,7 +35,7 @@ namespace Kratos
                     array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                     // array_1d<double, 3> exact_var_node_values = r_geometry[n].FastGetSolutionStepValue(EXACT_MATERIAL_ACCELERATION);
                     array_1d<double, 3> exact_var_node_values;
-                    mFlowField.CalculateMaterialAcceleration(0.0, r_geometry[n].Coordinates(), exact_var_node_values, omp_get_thread_num());
+                    mpFlowField->CalculateMaterialAcceleration(0.0, r_geometry[n].Coordinates(), exact_var_node_values, omp_get_thread_num());
                     for (unsigned i = 0; i < dim; i++)
                     {
                         vel_gauss_points(g, i) += u_nodal[i] * NContainer(g, n);
@@ -83,7 +83,7 @@ namespace Kratos
         return std::sqrt(result / l2_norm_factor);
     }
 
-    double ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues(ModelPart &r_model_part)
+    double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues(ModelPart &r_model_part)
     {
         ProcessInfo process_info = r_model_part.GetProcessInfo();
         const unsigned int dim = process_info[DOMAIN_SIZE];
@@ -115,7 +115,7 @@ namespace Kratos
                 {
                     array_1d<double, 3> fluid_accel_nodal = r_geometry[n].FastGetSolutionStepValue(MATERIAL_ACCELERATION);
                     array_1d<double, 3> exact_fluid_accel_nodal;
-                    mFlowField.CalculateMaterialAcceleration(0.0, r_geometry[n].Coordinates(), exact_fluid_accel_nodal, omp_get_thread_num());
+                    mpFlowField->CalculateMaterialAcceleration(0.0, r_geometry[n].Coordinates(), exact_fluid_accel_nodal, omp_get_thread_num());
                     for (unsigned i = 0; i < dim; i++)
                     {
                         fluid_accel_gauss_points(g, i) += fluid_accel_nodal[i] * NContainer(g, n);
@@ -146,7 +146,7 @@ namespace Kratos
         return std::sqrt(result / l2_norm_factor);
     }
 
-    double ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues(ModelPart &r_model_part)
+    double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues(ModelPart &r_model_part)
     {
         ProcessInfo process_info = r_model_part.GetProcessInfo();
         const unsigned int dim = process_info[DOMAIN_SIZE];
@@ -224,7 +224,7 @@ namespace Kratos
             {
                 array_1d<double, 3> exact_material_acceleration_gauss_point;
                 // CalculateMaterialAcceleration(gauss_points_coordinates[g], exact_material_acceleration_gauss_point);
-                mFlowField.CalculateMaterialAcceleration(0.0, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
+                mpFlowField->CalculateMaterialAcceleration(0.0, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
                 std::cout << "Material acceleration at point " << gauss_points_coordinates[g] << " = " << exact_material_acceleration_gauss_point << std::endl;
 
                 double weight = DetJ[g] * integration_points[g].Weight();
@@ -243,7 +243,7 @@ namespace Kratos
         return std::sqrt(result / l2_norm_factor);
     }
 
-    double ErrorNormEthierFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues(ModelPart &r_model_part)
+    double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues(ModelPart &r_model_part)
     {
         ProcessInfo process_info = r_model_part.GetProcessInfo();
         const unsigned int dim = process_info[DOMAIN_SIZE];
@@ -307,18 +307,8 @@ namespace Kratos
                 // Exact fluid's acceleration at gauss points
                 array_1d<double, 3> exact_material_acceleration_gauss_point;
                 // CalculateMaterialAcceleration(gauss_points_coordinates[g], exact_material_acceleration_gauss_point);
-                mFlowField.CalculateMaterialAcceleration(0.0, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
-
-                // std::cout << "Gauss point xg = " << gauss_points_coordinates[g] << " = " << gauss_points_coordinates[g] / mMajorRadius << ":" << std::endl;
-                // std::cout << "  - rho   = " << getDistanceToCenter(gauss_points_coordinates[g]) / mMinorRadius << std::endl;
-                // std::cout << "  - d     = " << std::sqrt(gauss_points_coordinates[g][0] * gauss_points_coordinates[g][0] + gauss_points_coordinates[g][1] * gauss_points_coordinates[g][1]) / mMajorRadius << std::endl;
-                // std::cout << "  - u(xg) = " << getVelocity(gauss_points_coordinates[g]) / mCenterVelocity << std::endl;
-                // std::cout << "  - Dtu   = " << exact_material_acceleration_gauss_point << std::endl;
-                // std::cout << "  - x_c   = " << r_geometry.Center() << std::endl;
-                // for (size_t i = 0; i < r_geometry.PointsNumber(); i++)
-                // {
-                //     std::cout << "  - x_n   = " << r_geometry.Points()[i].Coordinates() << std::endl;
-                // }
+                mpFlowField->CalculateMaterialAcceleration(0.0, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
+                std::cout << "Material acceleration at point " << gauss_points_coordinates[g] << " = " << exact_material_acceleration_gauss_point << std::endl;
 
                 for (unsigned int d = 0; d < dim; d++)
                 {
