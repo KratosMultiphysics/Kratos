@@ -126,7 +126,10 @@ public:
 
 };
 
-static void SetUpTestSchemesModelPart(ModelPart& rModelPart)
+static void SetUpTestSchemesModelPart(
+    const std::size_t NumElems,
+    const double ElemSize,
+    ModelPart& rModelPart)
 {
     const int domain_size = 2;
     const std::size_t buffer_size = 3;
@@ -135,15 +138,13 @@ static void SetUpTestSchemesModelPart(ModelPart& rModelPart)
 
     rModelPart.AddNodalSolutionStepVariable(DISTANCE);
 
-    auto p_node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto p_node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto p_node_3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
-
-    auto p_geom_1 = Kratos::make_shared<Line2D2<Node>>(p_node_1, p_node_2);
-    auto p_geom_2 = Kratos::make_shared<Line2D2<Node>>(p_node_2, p_node_3);
-
-    rModelPart.AddElement(Kratos::make_intrusive<TestElement>(1, p_geom_1));
-    rModelPart.AddElement(Kratos::make_intrusive<TestElement>(2, p_geom_2));
+    rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+    for (std::size_t i_elem = 0; i_elem < NumElems; ++i_elem) {
+        auto p_node_a = rModelPart.pGetNode(i_elem + 1);
+        auto p_node_b = rModelPart.CreateNewNode(i_elem + 2, (i_elem + 1)*ElemSize, 0.0, 0.0);
+        auto p_geom = Kratos::make_shared<Line2D2<Node>>(p_node_a, p_node_b);
+        rModelPart.AddElement(Kratos::make_intrusive<TestElement>(i_elem + 1, p_geom));
+    }
 
     rModelPart.GetNodalSolutionStepVariablesList().AddDof(&DISTANCE);
     for (auto& r_node : rModelPart.Nodes()) {
@@ -163,7 +164,9 @@ KRATOS_TEST_CASE_IN_SUITE(StaticScheme, KratosCoreFastSuite)
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    SetUpTestSchemesModelPart(r_test_model_part);
+    const std::size_t num_elems = 2;
+    const double elem_size = 1.0;
+    SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -216,7 +219,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    SetUpTestSchemesModelPart(r_test_model_part);
+    const std::size_t num_elems = 2;
+    const double elem_size = 1.0;
+    SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -261,13 +266,15 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
 #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithConstraints, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraint, KratosCoreFastSuite)
 {
 #ifdef KRATOS_USE_FUTURE
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    SetUpTestSchemesModelPart(r_test_model_part);
+    const std::size_t num_elems = 3;
+    const double elem_size = 1.0;
+    SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
 
     // Create a periodicity constraint with jump
     const double jump = 1.0;
@@ -316,6 +323,78 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithConstraints, KratosCoreFastSuite)
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 1.5, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
+#else
+    true;
+#endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraints, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    const std::size_t num_elems = 3;
+    const double elem_size = 1.0;
+    SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
+
+    // Create a constraint involving multiple master DOFs
+    std::vector<typename Dof<double>::Pointer> slave_dofs(1);
+    std::vector<typename Dof<double>::Pointer> master_dofs(2);
+    slave_dofs[0] = r_test_model_part.GetNode(4).pGetDof(DISTANCE);
+    master_dofs[0] = r_test_model_part.GetNode(1).pGetDof(DISTANCE);
+    master_dofs[1] = r_test_model_part.GetNode(2).pGetDof(DISTANCE);
+
+    Vector jump_vector(1);
+    jump_vector[0] = 1.0;
+
+    Matrix relation_matrix(1, 2);
+    relation_matrix(0,0) = 0.5;
+    relation_matrix(0,1) = 0.5;
+
+    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+        "LinearMasterSlaveConstraint", 1, master_dofs, slave_dofs, relation_matrix, jump_vector);
+    p_const_1->Set(ACTIVE, true);
+
+    // Create the scheme
+    Parameters scheme_settings = Parameters(R"({
+        "build_settings" : {
+            "build_type" : "block"
+        }
+    })");
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+
+    // Create the linear solver
+    Parameters amgcl_settings = Parameters(R"({
+    })");
+    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
+    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
+
+    // Create the strategy
+    Parameters strategy_settings = Parameters(R"({
+    })");
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+
+    // Apply Dirichlet BCs
+    auto p_node_1 = r_test_model_part.pGetNode(1);
+    p_node_1->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
+    p_node_1->Fix(DISTANCE);
+
+    // Solve the problem
+    p_strategy->Initialize();
+    p_strategy->Check();
+    p_strategy->InitializeSolutionStep();
+    p_strategy->Predict();
+    p_strategy->SolveSolutionStep();
+    p_strategy->FinalizeSolutionStep();
+    p_strategy->Clear();
+
+    // Check results
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.888888888888888, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.166666666666666, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
 #else
     true;
 #endif
