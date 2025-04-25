@@ -124,6 +124,8 @@ public:
 
     void ApplyStrongBoundaryConditions();
 
+    void ComputeExactGradient(double x, double y, Vector& exact_solution_gradient);
+
 
     const Parameters GetDefaultParameters() const override
     {
@@ -133,7 +135,9 @@ public:
             "skin_model_part_name": "please_specify_model_part_name",
             "variable_name": "please_specify_a_variable",
             "value"           : "please_specify_a_value",
+            "initial_gradient_inside_trimmed_elements"           : 0.0,
             "interpolation_scheme": "please_specify_an_interpolation_scheme",
+            "number_of_interpolation_points": 200,
             "MLS_polinomial_order": 1
         })" );
 
@@ -177,10 +181,13 @@ private:
     Vector mRHSTrimmedElementsContribution;
     Vector mPhiDir;
     IndexType mNumberOfNodesBackgroundMesh; 
-    std::string mUnknownVariable;
+    std::string mUnknownVariableName;
+    const Kratos::Variable<double>* mpUnknownVariable; 
     std::string mInterpolationScheme;
     Kratos::unique_ptr<GenericFunctionUtility> mpEvalFunction;
     IndexType mMLSPolinomialOrder = 0;
+    IndexType mInterpolationPointsNumber = 0;
+    double mInitialGradientInsideTrimmedElements = 0.0;
 
     // Member variables for the interpolation
     Matrix mInterpolationPointsCoordinates;

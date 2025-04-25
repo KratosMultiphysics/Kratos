@@ -29,7 +29,9 @@ namespace Kratos
         std::string skin_model_part_name = mParameters["skin_model_part_name"].GetString();
         mpSkinModelPart = &mpModel->GetModelPart(skin_model_part_name);
         // Read the unknown variable for the problem
-        mUnknownVariable = mParameters["variable_name"].GetString();
+        mUnknownVariableName = mParameters["variable_name"].GetString();
+        // Retrieve the Kratos variable from its string name
+        mpUnknownVariable = &Kratos::KratosComponents<Kratos::Variable<double>>::Get(mUnknownVariableName);
         // Read the value to be applied as BC
         std::string value = mParameters["value"].GetString();
         // Read the interpolation scheme 
@@ -39,7 +41,13 @@ namespace Kratos
         // Define the polinomial order of the MLS interpolation
         mMLSPolinomialOrder = mParameters["MLS_polinomial_order"].GetInt();
         // Get the number of nodes of the background mesh 
-        mNumberOfNodesBackgroundMesh = mpBackgroundMeshModelPart->NumberOfNodes();
+        mNumberOfNodesBackgroundMesh = mpBackgroundMeshModelPart->GetRootModelPart().NumberOfNodes();
+        // Get the number of interpolation points
+        mInterpolationPointsNumber = mParameters["number_of_interpolation_points"].GetInt();
+        // Get the initial gradient inside the trimmed elements
+        mInitialGradientInsideTrimmedElements = mParameters["initial_gradient_inside_trimmed_elements"].GetDouble();
+
+        std::cout << "Applying the Dirichlet BC for: " + mUnknownVariableName << std::endl;
 
         // Build the LHS in the first iteration
         if (mIterations == 0){
@@ -109,9 +117,8 @@ namespace Kratos
             // Assemble the elemental contribution in the global matrix
             std::vector<IndexType> equation_id_vector;
             for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
-                equation_id_vector.push_back(gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).EquationId());
+                equation_id_vector.push_back((gauss_point_it->GetGeometry()[i].Id()));
             }
-
 
             for (IndexType j = 0; j < equation_id_vector.size(); j++){
                 for (IndexType k = 0; k < equation_id_vector.size(); k++){
@@ -146,20 +153,25 @@ namespace Kratos
             Vector det_jacobian;
             p_gauss_point_geometry->DeterminantOfJacobian(det_jacobian);
 
-            // Calculate the normal vector of the boundary inside the element
-            Vector unit_normal_vector = gauss_point_it -> GetValue(UNIT_NORMAL);
-            Vector unit_normal_vector_2d = ZeroVector(2); 
-            for (IndexType i = 0; i < 2; ++i) unit_normal_vector_2d[i] = unit_normal_vector[i];
+            double beta = 1.0;
+            bool use_full_gradient = false;
+            if (use_full_gradient){
+                LHSTrimmedElementsContribution_elemental = beta * prod(dN_dx, trans(dN_dx)) * weight * det_jacobian[0];
+            } else {
+                // Calculate the normal vector of the boundary inside the element
+                Vector unit_normal_vector = gauss_point_it -> GetValue(UNIT_NORMAL);
+                Vector unit_normal_vector_2d = ZeroVector(2); 
+                for (IndexType i = 0; i < 2; ++i) unit_normal_vector_2d[i] = unit_normal_vector[i];
 
-            Matrix normal_prod =  outer_prod(unit_normal_vector_2d, unit_normal_vector_2d);
-
-            Matrix first_prod = prod(dN_dx, normal_prod);
-            LHSTrimmedElementsContribution_elemental = prod(first_prod, trans(dN_dx)) * weight * det_jacobian[0];
+                Matrix normal_prod =  outer_prod(unit_normal_vector_2d, unit_normal_vector_2d);
+                Matrix first_prod = prod(dN_dx, normal_prod);
+                LHSTrimmedElementsContribution_elemental = beta * prod(first_prod, trans(dN_dx)) * weight * det_jacobian[0];
+            }
 
             // Assemble the elemental contribution in the global matrix
             std::vector<IndexType> equation_id_vector;
             for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
-                equation_id_vector.push_back(gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).EquationId());
+                equation_id_vector.push_back(gauss_point_it->GetGeometry()[i].Id());
             }
             
             for (IndexType j = 0; j < equation_id_vector.size(); j++){
@@ -220,7 +232,7 @@ namespace Kratos
             // Assemble the elemental contribution in the global matrix
             std::vector<IndexType> equation_id_vector;
             for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
-                equation_id_vector.push_back(gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).EquationId());
+                equation_id_vector.push_back(gauss_point_it->GetGeometry()[i].Id());
             }
             
             for (IndexType j = 0; j < equation_id_vector.size(); j++){
@@ -240,7 +252,11 @@ namespace Kratos
         // Loop over the elements in intersected_elements_sub_model_part. Each element represents a gauss point over a NURBS surface
         for (auto gauss_point_it = mpSkinModelPart->ElementsBegin(); gauss_point_it != mpSkinModelPart->ElementsEnd(); gauss_point_it++){
             const auto p_gauss_point_geometry = gauss_point_it->pGetGeometry();
-            
+
+            // Gauss point position
+            double gauss_point_x = p_gauss_point_geometry->Center()[0];
+            double gauss_point_y = p_gauss_point_geometry->Center()[1];
+
             // Initialize the elemental vector
             Vector RHSTrimmedElementsContribution_elemental = ZeroVector(number_active_control_points_per_gp);
 
@@ -257,35 +273,57 @@ namespace Kratos
             Vector det_jacobian;
             p_gauss_point_geometry->DeterminantOfJacobian(det_jacobian);
 
-            // Calculate the normal vector of the boundary inside the element
-            Vector unit_normal_vector = gauss_point_it -> GetValue(UNIT_NORMAL);
-            Vector unit_normal_vector_2d = ZeroVector(2); 
-            for (IndexType i = 0; i < 2; ++i) unit_normal_vector_2d[i] = unit_normal_vector[i];
-
             // Calculate the interpolated solution gradient at the gp position
             Vector interpolated_solution_gradient = ZeroVector(3);
             Vector exact_solution_gradient = ZeroVector(3);
             double interpolated_solution = 0.0;
-            InterpolateSolutionGradients(interpolated_solution_gradient, interpolated_solution, p_gauss_point_geometry->Center(), 200);
+            
+            if (mIterations == 0){
+                interpolated_solution_gradient[0] = mInitialGradientInsideTrimmedElements;
+                interpolated_solution_gradient[1] = mInitialGradientInsideTrimmedElements;
+            } else {
+                InterpolateSolutionGradients(interpolated_solution_gradient, interpolated_solution, p_gauss_point_geometry->Center(), mInterpolationPointsNumber);
+            }
             
             exact_solution_gradient[0]=(M_PI*std::cos(M_PI * p_gauss_point_geometry->Center()[0])*std::cos(M_PI*p_gauss_point_geometry->Center()[1]));
             exact_solution_gradient[1] = (-M_PI*std::sin(M_PI * p_gauss_point_geometry->Center()[0])*std::sin(M_PI*p_gauss_point_geometry->Center()[1]));
-            const double gp_normal_gradient = inner_prod(interpolated_solution_gradient, unit_normal_vector);
+            // if(mUnknownVariableName == "DISPLACEMENT_X" or mUnknownVariableName == "DISPLACEMENT_Y"){
+            //     exact_solution_gradient[0]=0.0;
+            //     exact_solution_gradient[1]=0.0;
+            // } else if(mUnknownVariableName == "DISPLACEMENT_Z"){
+            //     ComputeExactGradient(gauss_point_x, gauss_point_y, exact_solution_gradient);
+            // }
+
             
             // std::cout << "----------------" << std::endl;
-            KRATOS_WATCH(p_gauss_point_geometry->Center())
-            KRATOS_WATCH(exact_solution_gradient[0])
-            KRATOS_WATCH(exact_solution_gradient[1])
-            KRATOS_WATCH(interpolated_solution_gradient[0])
-            KRATOS_WATCH(interpolated_solution_gradient[1])
+            // KRATOS_WATCH(p_gauss_point_geometry->Center())
+            // KRATOS_WATCH(exact_solution_gradient[0])
+            // KRATOS_WATCH(exact_solution_gradient[1])
+            // KRATOS_WATCH(interpolated_solution_gradient[0])
+            // KRATOS_WATCH(interpolated_solution_gradient[1])
+
 
             double beta = 1.0;
-            RHSTrimmedElementsContribution_elemental = beta * prod(dN_dx, unit_normal_vector_2d) * gp_normal_gradient * weight * det_jacobian[0];
+            bool use_full_gradient = false;
+            if (use_full_gradient){
+                // Full gradient regularization
+                Vector gradient_dot_dN = prod(dN_dx, interpolated_solution_gradient);
+                RHSTrimmedElementsContribution_elemental = beta * gradient_dot_dN * weight * det_jacobian[0];
+            } else{
+                // Calculate the normal vector of the boundary inside the element
+                Vector unit_normal_vector = gauss_point_it -> GetValue(UNIT_NORMAL);
+                Vector unit_normal_vector_2d = ZeroVector(2); 
+                for (IndexType i = 0; i < 2; ++i) unit_normal_vector_2d[i] = unit_normal_vector[i];
+
+                // Normal component regularization (original behavior)
+                double gp_normal_gradient = inner_prod(interpolated_solution_gradient, unit_normal_vector_2d);
+                RHSTrimmedElementsContribution_elemental = beta * prod(dN_dx, unit_normal_vector_2d) * gp_normal_gradient * weight * det_jacobian[0];
+            }
 
             // Assemble the elemental contribution in the global matrix
             std::vector<IndexType> equation_id_vector;
             for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
-                equation_id_vector.push_back(gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).EquationId());
+                equation_id_vector.push_back(gauss_point_it->GetGeometry()[i].Id());
             }
             
             for (IndexType j = 0; j < equation_id_vector.size(); j++){
@@ -342,7 +380,7 @@ namespace Kratos
             else if (mMLSPolinomialOrder == 2){
                 MLSShapeFunctionsUtility::CalculateShapeFunctions<3,2>(mClosestInterpolationPointsCoordinates, quadrature_point_position, h_MLS, rN_MLS);
             }
-            
+
             // Interpolate the field
             double interpolatedValue_gradx = 0.0;
             double interpolatedValue_grady = 0.0;
@@ -378,7 +416,7 @@ namespace Kratos
             // For the interpolation, we do not use the gauss points which are already fixed by the algorithm 
             bool skip_element = false;
             for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
-                if (gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).IsFixed() == 1){
+                if (gauss_point_it->GetGeometry()[i].GetDof(*mpUnknownVariable).IsFixed() == 1){
                     skip_element = true;
                     break;
                 }
@@ -407,12 +445,12 @@ namespace Kratos
             // For the interpolation, we do not use the gauss points which are already fixed by the algorithm 
             bool skip_element = false;
             Vector nodal_solution = ZeroVector(number_active_control_points_per_gp);
-            for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
-                if (gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).IsFixed() == 1){
+            for (IndexType k = 0; k < number_active_control_points_per_gp; k++){
+                if (gauss_point_it->GetGeometry()[k].GetDof(*mpUnknownVariable).IsFixed() == 1){
                     skip_element = true;
                     break;
                 }
-                nodal_solution[i] = gauss_point_it->GetGeometry()[i].GetSolutionStepValue(TEMPERATURE);
+                nodal_solution[k] = gauss_point_it->GetGeometry()[k].GetSolutionStepValue(*mpUnknownVariable);
             }
 
             if (skip_element == true) continue;
@@ -424,9 +462,22 @@ namespace Kratos
 
             Vector solution_gradients = prod(trans(dN_dx), nodal_solution);
 
-            // Fill the vectors and matrices with the required information 
-            SolutionGradientX[i] = solution_gradients[0];
-            SolutionGradientY[i] = solution_gradients[1];
+            if (mUnknownVariableName == "DISPLACEMENT_Z"){
+                Vector exact_solution_gradient = ZeroVector(3);
+                ComputeExactGradient(gp_center.X(), gp_center.Y(), exact_solution_gradient);
+                // KRATOS_WATCH(gauss_point_it->Id())
+                // KRATOS_WATCH(gp_center)
+                // KRATOS_WATCH(solution_gradients)
+                // KRATOS_WATCH(exact_solution_gradient)
+                SolutionGradientX[i] = solution_gradients[0];
+                SolutionGradientY[i] = solution_gradients[1];
+            } else{
+                // Fill the vectors and matrices with the required information 
+                // KRATOS_WATCH(gauss_point_it->Id())
+                // KRATOS_WATCH(gp_center)
+                SolutionGradientX[i] = solution_gradients[0];
+                SolutionGradientY[i] = solution_gradients[1];
+            }
 
             InterpolationPoints(i, 0) = gp_center.X();
             InterpolationPoints(i, 1) = gp_center.Y();
@@ -441,12 +492,13 @@ namespace Kratos
     void ApplyStrongBCSExtendedGradientMethodProcess::ApplyStrongBoundaryConditions(){
         IndexType number_active_control_points_per_gp = mpSkinModelPart->ConditionsBegin()->GetGeometry().PointsNumber();
 
-        for (auto gauss_point_it = mpSkinModelPart->ConditionsBegin(); gauss_point_it != mpSkinModelPart->  ConditionsEnd(); gauss_point_it++){
+        for (auto gauss_point_it = mpSkinModelPart->ConditionsBegin(); gauss_point_it != mpSkinModelPart->ConditionsEnd(); gauss_point_it++){
             for (IndexType i = 0; i < number_active_control_points_per_gp; i++){
-                double value_to_fix = mPhiDir[gauss_point_it->GetGeometry()[i].GetDof(TEMPERATURE).EquationId()];
-                if (value_to_fix == 0.0) continue;
-                gauss_point_it->GetGeometry()[i].Fix(TEMPERATURE);
-                gauss_point_it->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = value_to_fix;
+                IndexType node_id = gauss_point_it->GetGeometry()[i].Id();
+                double value_to_fix = mPhiDir[node_id];
+                if (mLHS(node_id,node_id) == 1.0) continue;
+                gauss_point_it->GetGeometry()[i].Fix(*mpUnknownVariable);
+                gauss_point_it->GetGeometry()[i].FastGetSolutionStepValue(*mpUnknownVariable) = value_to_fix;
             }
         }
     }
@@ -529,6 +581,43 @@ namespace Kratos
         
         return 1.3 * min_distance;
      }
+
+    void ApplyStrongBCSExtendedGradientMethodProcess::ComputeExactGradient(double x, double y, Vector& exact_solution_gradient){
+        double sum_x = 0.0;
+        double a = 1.0;
+        double b = 1.0;
+        double q0 = -1.0;
+        double E = 3.0e9;
+        double D = (E * std::pow(0.01, 3)) / (12.0 * (1.0 - std::pow(0.3, 2)));
+
+        for (int m = 1; m <= 100; m += 2) {  // Only odd values of m
+            for (int n = 1; n <= 100; n += 2) {  // Only odd values of n
+                double sin_ny = std::sin(n * M_PI * (y-0.5) / b);
+                double cos_mx = std::cos(m * M_PI * (x-0.5) / a);
+                double term = (m * M_PI / a) * cos_mx * sin_ny;
+
+                double denominator = m * n * std::pow((std::pow(m / a, 2) + std::pow(n / b, 2)), 2);
+                sum_x += term / denominator;
+            }
+        }
+
+        exact_solution_gradient[0] = (16 * q0 / (std::pow(M_PI, 6) * D)) * sum_x;
+
+        double sum_y = 0.0;
+
+        for (int m = 1; m <= 100; m += 2) {  // Only odd values of m
+            for (int n = 1; n <= 100; n += 2) {  // Only odd values of n
+                double sin_mx = std::sin(m * M_PI * (x-0.5) / a);
+                double cos_ny = std::cos(n * M_PI * (y-0.5) / b);
+                double term = (n * M_PI / b) * sin_mx * cos_ny;
+
+                double denominator = m * n * std::pow((std::pow(m / a, 2) + std::pow(n / b, 2)), 2);
+                sum_y += term / denominator;
+            }
+        }
+
+        exact_solution_gradient[1] = (16 * q0 / (std::pow(M_PI, 6) * D)) * sum_y;
+    }
 
 
 } // End namespace Kratos

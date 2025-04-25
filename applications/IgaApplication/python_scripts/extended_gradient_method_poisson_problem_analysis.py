@@ -56,7 +56,7 @@ class ExtendedGradientMethodPoissonProblemAnalysis(AnalysisStage):
             epsilon = 1e-3
             is_not_converged = True
             self.iteration_number = 0
-            self.maximum_iterations = 20
+            self.maximum_iterations = 30
 
             # Initialize the old solution field
             self.old_solution_field = np.zeros(self._GetSolver().GetComputingModelPart().NumberOfNodes())

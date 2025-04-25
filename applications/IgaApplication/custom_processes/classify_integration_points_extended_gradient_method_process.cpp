@@ -241,7 +241,8 @@ namespace Kratos
         average_unit_normal_vector /= norm_2(average_unit_normal_vector);
         
         // Return that the knot span is intersected ant the unit normal vector
-        unit_normal_vector = average_unit_normal_vector;
+        // unit_normal_vector = average_unit_normal_vector;
+        unit_normal_vector = vector_of_unit_normals[0];
         return true;
     }
 
