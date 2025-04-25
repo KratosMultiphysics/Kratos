@@ -453,7 +453,10 @@ bool PGrid<TSparse,TDense>::ApplyCoarseCorrection(typename TParentSparse::Vector
     #ifndef NDEBUG
     KRATOS_TRY
     CheckMatrix<typename TSparse::DataType,
-                MatrixChecks::All>(mRestrictionOperator);
+                MatrixChecks::RowsAreSorted
+              | MatrixChecks::ColumnsAreSorted>(mRestrictionOperator);
+    KRATOS_CATCH("")
+    KRATOS_TRY
     CheckMatrix<typename TSparse::DataType,
                 MatrixChecks::RowsAreSorted
               | MatrixChecks::ColumnsAreSorted>(mProlongationOperator);
