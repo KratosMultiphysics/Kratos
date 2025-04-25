@@ -132,7 +132,7 @@ namespace Kratos
                     rOutput[point_number] = q[1];
                 }
             }
-        }
+        } 
         else if (rVariable==PK2_STRESS_XX || rVariable==PK2_STRESS_YY || rVariable==PK2_STRESS_XY)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {

@@ -109,133 +109,177 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        // const auto& r_geometry = GetGeometry();
-        // const auto& r_integration_points = r_geometry.IntegrationPoints();
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
 
-        // if (rOutput.size() != r_integration_points.size())
-        // {
-        //     rOutput.resize(r_integration_points.size());
-        // }
+        if (rOutput.size() != r_integration_points.size())
+        {
+             rOutput.resize(r_integration_points.size());
+         }
 
-        // if(rVariable==SHEAR_FORCE_1 || rVariable==SHEAR_FORCE_2)
-        // {
-        //     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+        if(rVariable==SHEAR_FORCE_1 || rVariable==SHEAR_FORCE_2)
+        {
+             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
-        //         array_1d<double, 2> q = ZeroVector(2);
-        //         CalculateShearForce(point_number, q, rCurrentProcessInfo);
+                 array_1d<double, 2> q = ZeroVector(2);
+                 CalculateShearForce(point_number, q, rCurrentProcessInfo);
 
-        //         if (rVariable==SHEAR_FORCE_1)
-        //         {
-        //             rOutput[point_number] = q[0];
-        //         }
-        //         else if (rVariable==SHEAR_FORCE_2)
-        //         {
-        //             rOutput[point_number] = q[1];
-        //         }
-        //     }
-        // }
-        // else if (rVariable==PK2_STRESS_XX || rVariable==PK2_STRESS_YY || rVariable==PK2_STRESS_XY)
-        // {
-        //     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                 if (rVariable==SHEAR_FORCE_1)
+                 {
+                     rOutput[point_number] = q[0];
+                 }
+                 else if (rVariable==SHEAR_FORCE_2)
+                 {
+                     rOutput[point_number] = q[1];
+                 }
+             }
+         }
+        else if (rVariable==PK2_STRESS_XX || rVariable==PK2_STRESS_YY || rVariable==PK2_STRESS_XY)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
                 
-        //         array_1d<double, 3> membrane_stress_pk2_car;
-        //         array_1d<double, 3> bending_stress_pk2_car;
+                array_1d<double, 6> membrane_stress_pk2_car; //3 to  6 
+                array_1d<double, 6> bending_stress_pk2_car; // 3 to  6 
 
-        //         CalculatePK2Stress(point_number, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
+                CalculatePK2Stress(point_number, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
 
-        //         if (rVariable==PK2_STRESS_XX)
-        //         {
-        //             rOutput[point_number] = membrane_stress_pk2_car[0];
-        //         }
-        //         else if (rVariable==PK2_STRESS_YY)
-        //         {
-        //             rOutput[point_number] = membrane_stress_pk2_car[1];
-        //         }
-        //         else if (rVariable==PK2_STRESS_XY)
-        //         {
-        //             rOutput[point_number] = membrane_stress_pk2_car[2];
-        //         }
-        //     }
-        // }
-        // else if(rVariable==CAUCHY_STRESS_XX || rVariable==CAUCHY_STRESS_YY || rVariable==CAUCHY_STRESS_XY 
-        //     || rVariable==CAUCHY_STRESS_TOP_XX || rVariable==CAUCHY_STRESS_TOP_YY || rVariable==CAUCHY_STRESS_TOP_XY  
-        //     || rVariable==CAUCHY_STRESS_BOTTOM_XX || rVariable==CAUCHY_STRESS_BOTTOM_YY || rVariable==CAUCHY_STRESS_BOTTOM_XY
-        //     || rVariable==MEMBRANE_FORCE_XX || rVariable==MEMBRANE_FORCE_YY || rVariable==MEMBRANE_FORCE_XY 
-        //     || rVariable==INTERNAL_MOMENT_XX || rVariable==INTERNAL_MOMENT_YY || rVariable==INTERNAL_MOMENT_XY)
-        // {
-        //     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                if (rVariable==PK2_STRESS_XX)
+                {
+                    rOutput[point_number] = membrane_stress_pk2_car[0];
+                }
+                else if (rVariable==PK2_STRESS_YY)
+                {
+                    rOutput[point_number] = membrane_stress_pk2_car[1];
+                }
+                else if (rVariable==PK2_STRESS_XY)
+                {
+                    rOutput[point_number] = membrane_stress_pk2_car[3]; // 2 to 3
+                }
+            }
+        }
+        else if(rVariable==CAUCHY_STRESS_XX || rVariable==CAUCHY_STRESS_YY || rVariable==CAUCHY_STRESS_XY || rVariable==CAUCHY_STRESS_XZ || rVariable==CAUCHY_STRESS_YZ
+            || rVariable==CAUCHY_STRESS_TOP_XX || rVariable==CAUCHY_STRESS_TOP_YY || rVariable==CAUCHY_STRESS_TOP_XY  || rVariable==CAUCHY_STRESS_TOP_XZ || rVariable==CAUCHY_STRESS_TOP_YZ
+            || rVariable==CAUCHY_STRESS_BOTTOM_XX || rVariable==CAUCHY_STRESS_BOTTOM_YY || rVariable==CAUCHY_STRESS_BOTTOM_XY || rVariable==CAUCHY_STRESS_BOTTOM_XZ || rVariable==CAUCHY_STRESS_BOTTOM_YZ
+            || rVariable==MEMBRANE_FORCE_XX || rVariable==MEMBRANE_FORCE_YY || rVariable==MEMBRANE_FORCE_XY || rVariable==MEMBRANE_FORCE_XZ || rVariable==MEMBRANE_FORCE_YZ
+            || rVariable==INTERNAL_MOMENT_XX || rVariable==INTERNAL_MOMENT_YY || rVariable==INTERNAL_MOMENT_XY || rVariable==INTERNAL_MOMENT_XZ || rVariable==INTERNAL_MOMENT_YZ)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
                 
-        //         array_1d<double, 3> membrane_stress_cau_car;
-        //         array_1d<double, 3> bending_stress_cau_car;
+                array_1d<double, 6> membrane_stress_cau_car;
+                array_1d<double, 6> bending_stress_cau_car;
 
-        //         CalculateCauchyStress(point_number, membrane_stress_cau_car, bending_stress_cau_car, rCurrentProcessInfo);
-        //         double thickness = this->GetProperties().GetValue(THICKNESS);
+                CalculateCauchyStress(point_number, membrane_stress_cau_car, bending_stress_cau_car, rCurrentProcessInfo);
+                double thickness = this->GetProperties().GetValue(THICKNESS);
 
-        //         if (rVariable==CAUCHY_STRESS_XX)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[0];
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_YY)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[1];
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_XY)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[2];
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_TOP_XX) 
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[0] + thickness / 2 * bending_stress_cau_car[0];
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_TOP_YY) 
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[1] + thickness / 2 * bending_stress_cau_car[1];
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_TOP_XY) 
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[2] + thickness / 2 * bending_stress_cau_car[2];
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_BOTTOM_XX)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[0] - thickness / 2 * bending_stress_cau_car[0];
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_BOTTOM_YY)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[1] - thickness / 2 * bending_stress_cau_car[1];
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_BOTTOM_XY)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[2] - thickness / 2 * bending_stress_cau_car[2];
-        //         }
-        //         else if (rVariable==MEMBRANE_FORCE_XX)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[0] * thickness;
-        //         }
-        //         else if (rVariable==MEMBRANE_FORCE_YY)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[1] * thickness;
-        //         }
-        //         else if (rVariable==MEMBRANE_FORCE_XY)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car[2] * thickness;
-        //         }
-        //         else if (rVariable==INTERNAL_MOMENT_XX)
-        //         {
-        //             rOutput[point_number] = bending_stress_cau_car[0] * pow(thickness, 3) / 12;
-        //         }
-        //         else if (rVariable==INTERNAL_MOMENT_XX)
-        //         {
-        //             rOutput[point_number] = bending_stress_cau_car[1] * pow(thickness, 3) / 12;
-        //         }
-        //         else if (rVariable==INTERNAL_MOMENT_XY)
-        //         {
-        //             rOutput[point_number] = bending_stress_cau_car[2] * pow(thickness, 3) / 12;
-        //         }
-        //     } 
-        // }
-        // else if (mConstitutiveLawVector[0]->Has(rVariable)) {
-        //     GetValueOnConstitutiveLaw(rVariable, rOutput);
-        // }
+                if (rVariable==CAUCHY_STRESS_XX)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[0];
+                }
+                else if (rVariable==CAUCHY_STRESS_YY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[1];
+                }
+                else if (rVariable==CAUCHY_STRESS_XY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[2];
+                }
+                else if (rVariable==CAUCHY_STRESS_XZ)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[4];
+                }
+                else if (rVariable==CAUCHY_STRESS_YZ)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[5];
+                }
+                // Top Surface Cauchy Stresses
+                else if (rVariable==CAUCHY_STRESS_TOP_XX) 
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[0] + thickness / 2 * bending_stress_cau_car[0];
+                }
+                else if (rVariable==CAUCHY_STRESS_TOP_YY) 
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[1] + thickness / 2 * bending_stress_cau_car[1];
+                }
+                else if (rVariable==CAUCHY_STRESS_TOP_XY) 
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[2] + thickness / 2 * bending_stress_cau_car[2];
+                }
+                else if (rVariable==CAUCHY_STRESS_TOP_XZ)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[4]+ thickness / 2 * bending_stress_cau_car[4];
+                }
+                else if (rVariable==CAUCHY_STRESS_TOP_YZ)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[5]+ thickness / 2 * bending_stress_cau_car[5];
+                }
+                // Bottom Surface Cauchy Stresses
+                else if (rVariable==CAUCHY_STRESS_BOTTOM_XX)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[0] - thickness / 2 * bending_stress_cau_car[0];
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM_YY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[1] - thickness / 2 * bending_stress_cau_car[1];
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM_XY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[2] - thickness / 2 * bending_stress_cau_car[2];
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM_XZ)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[4] - thickness / 2 * bending_stress_cau_car[4];
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM_YZ)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[5] - thickness / 2 * bending_stress_cau_car[5];
+                }
+                // Membrane Forces
+                else if (rVariable==MEMBRANE_FORCE_XX)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[0] * thickness;
+                }
+                else if (rVariable==MEMBRANE_FORCE_YY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[1] * thickness;
+                }
+                else if (rVariable==MEMBRANE_FORCE_XY)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[2] * thickness;
+                }
+                else if (rVariable==MEMBRANE_FORCE_XZ)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[4] * thickness;
+                }
+                else if (rVariable==MEMBRANE_FORCE_YZ)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car[5] * thickness;
+                }
+                // Internal Moments
+                else if (rVariable==INTERNAL_MOMENT_XX)
+                {
+                    rOutput[point_number] = bending_stress_cau_car[0] * pow(thickness, 3) / 12;
+                }
+                else if (rVariable==INTERNAL_MOMENT_XX)
+                {
+                    rOutput[point_number] = bending_stress_cau_car[1] * pow(thickness, 3) / 12;
+                }
+                else if (rVariable==INTERNAL_MOMENT_XY)
+                {
+                     rOutput[point_number] = bending_stress_cau_car[2] * pow(thickness, 3) / 12;
+                }
+                else if (rVariable==INTERNAL_MOMENT_XZ)
+                {
+                    rOutput[point_number] = bending_stress_cau_car[4] * pow(thickness, 3) / 12;
+                }
+                else if (rVariable==INTERNAL_MOMENT_YZ)
+                {
+                    rOutput[point_number] = bending_stress_cau_car[5] * pow(thickness, 3) / 12;
+                }
+             } 
+         }
+         else if (mConstitutiveLawVector[0]->Has(rVariable)) {
+             GetValueOnConstitutiveLaw(rVariable, rOutput);
+         }
     }
 
     void ShellRMElement::CalculateOnIntegrationPoints(
@@ -244,58 +288,58 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        // const auto& r_geometry = GetGeometry();
-        // const auto& r_integration_points = r_geometry.IntegrationPoints();
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
 
-        // if (rOutput.size() != r_integration_points.size())
-        // {
-        //     rOutput.resize(r_integration_points.size());
-        // }
+        if (rOutput.size() != r_integration_points.size())
+        {
+            rOutput.resize(r_integration_points.size());
+        }
 
-        // if (rVariable==PK2_STRESS)
-        // {
-        //     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+        if (rVariable==PK2_STRESS)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
-        //         array_1d<double, 3> membrane_stress_pk2_car;
-        //         array_1d<double, 3> bending_stress_pk2_car;
+                array_1d<double, 6> membrane_stress_pk2_car;
+                array_1d<double, 6> bending_stress_pk2_car;
 
-        //         CalculatePK2Stress(point_number, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
-        //         rOutput[point_number] = membrane_stress_pk2_car;
-        //     }
-        // }
-        // else if(rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM 
-        //         || rVariable==MEMBRANE_FORCE ||  rVariable==INTERNAL_MOMENT)
-        // {
-        //     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                CalculatePK2Stress(point_number, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
+                rOutput[point_number] = membrane_stress_pk2_car;
+            }
+        }
+        else if(rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM 
+                || rVariable==MEMBRANE_FORCE ||  rVariable==INTERNAL_MOMENT)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
-        //         array_1d<double, 3> membrane_stress_cau_car;
-        //         array_1d<double, 3> bending_stress_cau_car;
+                array_1d<double, 6> membrane_stress_cau_car;
+                array_1d<double, 6> bending_stress_cau_car;
 
-        //         CalculateCauchyStress(point_number, membrane_stress_cau_car, bending_stress_cau_car, rCurrentProcessInfo);
-        //         double thickness = this->GetProperties().GetValue(THICKNESS);
+                CalculateCauchyStress(point_number, membrane_stress_cau_car, bending_stress_cau_car, rCurrentProcessInfo);
+                double thickness = this->GetProperties().GetValue(THICKNESS);
 
-        //         if (rVariable==CAUCHY_STRESS)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car;
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_TOP) 
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car + thickness / 2 * bending_stress_cau_car;
-        //         }
-        //         else if (rVariable==CAUCHY_STRESS_BOTTOM)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car - thickness / 2 * bending_stress_cau_car;
-        //         }
-        //         else if (rVariable==MEMBRANE_FORCE)
-        //         {
-        //             rOutput[point_number] = membrane_stress_cau_car * thickness;
-        //         }
-        //         else if (rVariable==INTERNAL_MOMENT)
-        //         {
-        //             rOutput[point_number] = bending_stress_cau_car * pow(thickness, 3) / 12;
-        //         }
-        //     }
-        // }
+                if (rVariable==CAUCHY_STRESS)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car;
+                }
+                else if (rVariable==CAUCHY_STRESS_TOP) 
+                {
+                    rOutput[point_number] = membrane_stress_cau_car + thickness / 2 * bending_stress_cau_car;
+                }
+                else if (rVariable==CAUCHY_STRESS_BOTTOM)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car - thickness / 2 * bending_stress_cau_car;
+                }
+                else if (rVariable==MEMBRANE_FORCE)
+                {
+                    rOutput[point_number] = membrane_stress_cau_car * thickness;
+                }
+                else if (rVariable==INTERNAL_MOMENT)
+                {
+                    rOutput[point_number] = bending_stress_cau_car * pow(thickness, 3) / 12;
+                }
+            }
+        }
     }
 
 
@@ -458,13 +502,13 @@ namespace Kratos
                     //    integration_weight);
                 }
                 
-                // RIGHT HAND SIDE VECTOR
-                // if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-                // {
-                    // operation performed: rRightHandSideVector -= Weight*IntForce
-                    // noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
-                    // noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
-                // }
+                RIGHT HAND SIDE VECTOR
+                if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
+                {
+                    operation performed: rRightHandSideVector -= Weight*IntForce
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
+                }
                 
             } //end of zeta loop 
         }// end of xi,eta loop 
@@ -970,62 +1014,6 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            // derivative normal w.r.t to r
-            // //first line
-            // da3(0, 0) = 0;
-            // da3(0, 1) = -r_DN_De(i, 0) * rActualKinematic.a2[2] + r_DN_De(i, 1) * rActualKinematic.a1[2];
-            // da3(0, 2) = r_DN_De(i, 0) * rActualKinematic.a2[1] - r_DN_De(i, 1) * rActualKinematic.a1[1];
-
-            // //second line
-            // da3(1, 0) = r_DN_De(i, 0) * rActualKinematic.a2[2] - r_DN_De(i, 1) * rActualKinematic.a1[2];
-            // da3(1, 1) = 0;
-            // da3(1, 2) = -r_DN_De(i, 0) * rActualKinematic.a2[0] + r_DN_De(i, 1) * rActualKinematic.a1[0];
-
-            // //third line
-            // da3(2, 0) = -r_DN_De(i, 0) * rActualKinematic.a2[1] + r_DN_De(i, 1) * rActualKinematic.a1[1];
-            // da3(2, 1) = r_DN_De(i, 0) * rActualKinematic.a2[0] - r_DN_De(i, 1) * rActualKinematic.a1[0];
-            // da3(2, 2) = 0;
-
-            // for (IndexType j = 0; j < 3; j++)
-            // {
-            //     double a3da3la3 = (rActualKinematic.a3_tilde[0] * da3(j, 0) + rActualKinematic.a3_tilde[1] * da3(j, 1) + rActualKinematic.a3_tilde[2] * da3(j, 2)) * inv_dA3;
-
-            //     dn(j, 0) = da3(j, 0) * inv_dA - rActualKinematic.a3_tilde[0] * a3da3la3;
-            //     dn(j, 1) = da3(j, 1) * inv_dA - rActualKinematic.a3_tilde[1] * a3da3la3;
-            //     dn(j, 2) = da3(j, 2) * inv_dA - rActualKinematic.a3_tilde[2] * a3da3la3;
-            // }
-            ///////////////////////////////////////////
-
-            // // derivative normal w.r.t to xi, eta and zeta
-            // da1_d1[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
-            // da1_d1[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
-            // da1_d1[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 0);
-
-            // da1_d2[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 1);
-            // da1_d2[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 1);
-            // da1_d2[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 1);
-
-            // da2_d2[0] = (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 2);
-            // da2_d2[1] = (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 2);
-            // da2_d2[2] = (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 2);
-
-            // MathUtils<double>::CrossProduct(da3_tilde_d1_1, da1_d1, rActualKinematic.a2);
-            // MathUtils<double>::CrossProduct(da3_tilde_d1_2, rActualKinematic.a1, da1_d2);
-            // da3_tilde_d1 = da3_tilde_d1_1 + da3_tilde_d1_2;
-
-            // MathUtils<double>::CrossProduct(da3_tilde_d2_1, da1_d2, rActualKinematic.a2);
-            // MathUtils<double>::CrossProduct(da3_tilde_d2_2, rActualKinematic.a1, da2_d2);
-            // da3_tilde_d2 = da3_tilde_d2_1 + da3_tilde_d2_2;
-
-
-            // for (IndexType j = 0; j < 3; j++)
-            // {
-            //     dn(0, j) = da3_tilde_d1[j] * inv_dA - rActualKinematic.a3_tilde[j] * inner_prod(rActualKinematic.a3_tilde, da3_tilde_d1) * inv_dA3;
-            //     dn(1, j) = da3_tilde_d2[j] * inv_dA - rActualKinematic.a3_tilde[j] * inner_prod(rActualKinematic.a3_tilde, da3_tilde_d2) * inv_dA3;
-            //     dn(2, j) = 0.0;
-            // }
-
-             /////////////////////////////////////////////
             // xi Derivatives
             const double dxidx= J_inv(0,0);
             const double dxidy= J_inv(1,0);
@@ -1065,17 +1053,14 @@ namespace Kratos
             rB(0, index)     = DN_De_Jn(i, 0);
             rB(0, index + 1) = 0;
             rB(0, index + 2) = 0;
-
             rB(0, index + 3) = 0;
             rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
             rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
         
 
-
             rB(1, index)     = 0;
             rB(1, index + 1) = DN_De_Jn(i, 1);
             rB(1, index + 2) = 0;
-
             rB(1, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3))) ; 
             rB(1, index + 4) = 0;
             rB(1, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
@@ -1084,7 +1069,6 @@ namespace Kratos
             rB(2, index)     = 0;
             rB(2, index + 1) = 0;
             rB(2, index + 2) = DN_De_Jn(i, 2);
-
             rB(2, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2)) ;  
             rB(2, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
             rB(2, index + 5) = 0;
@@ -1092,84 +1076,23 @@ namespace Kratos
             rB(3, index)     = DN_De_Jn(i, 1);                    
             rB(3, index + 1) = DN_De_Jn(i, 0);  
             rB(3, index + 2) = 0;
-
-            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3))); //!!
-            rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3));  //!!
+            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3))); 
+            rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3));
             rB(3, index + 5) = ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1x + dzetadx * y1))) - ((DN_De_Jn_bending(i, 1) * y2)+ (r_N(i) * (thickness/2) *  (zeta * dy2y + dzetady * y2))); 
-
 
             rB(4, index)     = 0;
             rB(4, index + 1) = DN_De_Jn(i, 2);
             rB(4, index + 2) = DN_De_Jn(i, 1);
-
-            rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)))  - ((DN_De_Jn_bending(i, 2) * y3)+ (r_N (i)  * (thickness/2) * (zeta *dy3z + dzetadz * y3))); // !!
+            rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)))  - ((DN_De_Jn_bending(i, 2) * y3)+ (r_N (i)  * (thickness/2) * (zeta *dy3z + dzetadz * y3)));
             rB(4, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1))); 
-            rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) + (r_N (i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)) ; // !!
-
+            rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) + (r_N (i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)) ;
 
             rB(5, index)   = DN_De_Jn (i,2);                    
             rB(5, index + 1) = 0;  
             rB(5, index + 2) = DN_De_Jn(i, 0);
-
             rB(5, index + 3) = ((DN_De_Jn_bending(i, 0)  * y2) + (r_N(i) * (thickness/2) * ( zeta * dy2x +  dzetadx * y2)) ); 
             rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (r_N (i)   * (thickness/2) * ( zeta * dy3z + dzetadz * y3 ))) - ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx * y1) )); //!!
             rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 )+(r_N (i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));  // !!
-
-            // rB(0, index)     = DN_De_Jn(i, 0);
-            // rB(0, index + 1) = 0;
-            // rB(0, index + 2) = 0;
-
-            // rB(0, index + 3) = 0;
-            // rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (DN_De_Jn(i, 0) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * zeta * dy3x);
-            // rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (DN_De_Jn(i, 0) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * zeta * dy2x));
-        
-
-
-            // rB(1, index)     = 0;
-            // rB(1, index + 1) = DN_De_Jn(i, 1);
-            // rB(1, index + 2) = 0;
-
-            // rB(1, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (DN_De_Jn(i, 1) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * zeta * dy3y)) ; 
-            // rB(1, index + 4) = 0;
-            // rB(1, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (DN_De_Jn(i, 1) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * zeta * dy1y); 
-
-
-            // rB(2, index)     = 0;
-            // rB(2, index + 1) = 0;
-            // rB(2, index + 2) = DN_De_Jn(i, 2);
-
-            // rB(2, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (DN_De_Jn(i, 2)  * (thickness/2) * zeta  * y2) + (r_N(i)   * dy2z)* (thickness/2) * zeta ;  //* (thickness/2) 
-            // rB(2, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1) + (DN_De_Jn(i, 2) * (thickness/2) * zeta * y1)  + (r_N(i)   * dy1z) * (thickness/2) * zeta); //* (thickness/2)
-            // rB(2, index + 5) = 0;
-            
-            // rB(3, index)     = DN_De_Jn(i, 1);                    
-            // rB(3, index + 1) = DN_De_Jn(i, 0);  
-            // rB(3, index + 2) = 0;
-
-            // rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) + (DN_De_Jn(i, 0) * (thickness/2) * zeta * y3) +(r_N(i) * (thickness/2) * zeta * dy3x)); //!!
-            // rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) + (DN_De_Jn(i, 1) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * zeta * dy3y);  //!!
-            // rB(3, index + 5) = ((DN_De_Jn_bending(i, 0) * y1) +(DN_De_Jn(i, 0) * (thickness/2) * zeta * y1)  + (r_N(i) * (thickness/2) * zeta * dy1x)) 
-            //                     - ((DN_De_Jn_bending(i, 1) * y2) + (DN_De_Jn(i, 1) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * zeta * dy2y)); 
-
-
-            // rB(4, index)     = 0;
-            // rB(4, index + 1) = DN_De_Jn(i, 2);
-            // rB(4, index + 2) = DN_De_Jn(i, 1);
-
-            // rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (DN_De_Jn(i, 1) * (thickness/2) * zeta * y2)  + (r_N(i) * (thickness/2) * zeta * dy2y))  
-            //                 - ((DN_De_Jn_bending(i, 2) * y3) + (DN_De_Jn(i, 2) * (thickness/2) * zeta * y3) + (r_N (i)  * dy3z)* (thickness/2) * zeta); //* (thickness/2) !!
-            // rB(4, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1) + (DN_De_Jn(i, 1) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * zeta * dy1y)); 
-            // rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) +  (DN_De_Jn(i, 2) * (thickness/2) * zeta * y1 ) + (r_N (i) * (thickness/2) * zeta * dy1z) ; // !!
-
-
-            // rB(5, index)   = DN_De_Jn (i,2);                    
-            // rB(5, index + 1) = 0;  
-            // rB(5, index + 2) = DN_De_Jn(i, 0);
-
-            // rB(5, index + 3) = ((DN_De_Jn_bending(i, 0)  * y2) + (DN_De_Jn(i, 0) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * zeta * dy2x) ); 
-            // rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (DN_De_Jn (i,2) *(thickness/2) * zeta * y3) +  (r_N (i)  * dy3z) * (thickness/2) * zeta )
-            //                  - ((DN_De_Jn_bending(i, 0) * y1) + (DN_De_Jn(i, 0) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * zeta * dy1x)); //* (thickness/2)  !!
-            // rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 ) + (DN_De_Jn (i,2) *(thickness/2) * zeta * y2 ) + (r_N (i) * (thickness/2) * zeta * dy2z));  // !!
         }
 
         //noalias(rB) = -prod(m_T_vector[IntegrationPointIndex],rB);
@@ -1398,14 +1321,12 @@ namespace Kratos
 
     ///@}
     ///@name Stress recovery
-    ///@{
-    /*
-    
+    ///@{ 
     
     void ShellRMElement::CalculatePK2Stress(
         const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rPK2MembraneStressCartesian,
-        array_1d<double, 3>& rPK2BendingStressCartesian,
+        array_1d<double, 6>& rPK2MembraneStressCartesian,
+        array_1d<double, 6>& rPK2BendingStressCartesian,
         const ProcessInfo& rCurrentProcessInfo) const
     {
         // Compute Kinematics and Metric
@@ -1419,8 +1340,8 @@ namespace Kratos
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-        ConstitutiveVariables constitutive_variables_membrane(3);
-        ConstitutiveVariables constitutive_variables_curvature(3);
+        ConstitutiveVariables constitutive_variables_membrane(6);
+        ConstitutiveVariables constitutive_variables_curvature(6);
         CalculateConstitutiveVariables(
             IntegrationPointIndex,
             kinematic_variables,
@@ -1437,13 +1358,13 @@ namespace Kratos
     
     void ShellRMElement::CalculateCauchyStress(
         const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
-        array_1d<double, 3>& rCauchyBendingStressesCartesian, 
+        array_1d<double, 6>& rCauchyMembraneStressesCartesian, 
+        array_1d<double, 6>& rCauchyBendingStressesCartesian, 
         const ProcessInfo& rCurrentProcessInfo) const
     {
         // Compute PK2 stress
-        array_1d<double, 3> membrane_stress_pk2_car;
-        array_1d<double, 3> bending_stress_pk2_car;
+        array_1d<double, 6> membrane_stress_pk2_car;
+        array_1d<double, 6> bending_stress_pk2_car;
 
         CalculatePK2Stress(IntegrationPointIndex, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
 
@@ -1457,25 +1378,25 @@ namespace Kratos
         double detF = kinematic_variables.dA / m_dA_vector[IntegrationPointIndex];
 
         // Compute Transformation matrix T from local cartesian coordinate system to covariant basis
-        Matrix T_car_to_cov = ZeroMatrix(3,3);
+        Matrix T_car_to_cov = ZeroMatrix(6,6);
         T_car_to_cov = trans(m_T_vector[IntegrationPointIndex]);
-        for (IndexType i = 0; i < 3; i++)
+        for (IndexType i = 0; i < 6; i++)
         {
             T_car_to_cov(2, i) = T_car_to_cov(i, 2) / 2;
         }
 
         // Compute Transformation matrix T from covariant basis to local cartesian coordinate system            
-        Matrix T_cov_to_car = ZeroMatrix(3,3);
+        Matrix T_cov_to_car = ZeroMatrix(6,6);
         CalculateTransformationFromCovariantToCartesian(kinematic_variables, T_cov_to_car);
 
         // Compute Cauchy stress
-        array_1d<double, 3> membrane_stress_pk2_cov = prod(T_car_to_cov, membrane_stress_pk2_car);
-        array_1d<double, 3> membrane_stress_cau_cov = membrane_stress_pk2_cov / detF;
-        array_1d<double, 3> membrane_stress_cau_car = prod(T_cov_to_car, membrane_stress_cau_cov);
+        array_1d<double, 6> membrane_stress_pk2_cov = prod(T_car_to_cov, membrane_stress_pk2_car);
+        array_1d<double, 6> membrane_stress_cau_cov = membrane_stress_pk2_cov / detF;
+        array_1d<double, 6> membrane_stress_cau_car = prod(T_cov_to_car, membrane_stress_cau_cov);
 
-        array_1d<double, 3> bending_stress_pk2_cov = prod(T_car_to_cov, bending_stress_pk2_car);
-        array_1d<double, 3> bending_stress_cau_cov = bending_stress_pk2_cov / detF;
-        array_1d<double, 3> bending_stress_cau_car = prod(T_cov_to_car, bending_stress_cau_cov);
+        array_1d<double, 6> bending_stress_pk2_cov = prod(T_car_to_cov, bending_stress_pk2_car);
+        array_1d<double, 6> bending_stress_cau_cov = bending_stress_pk2_cov / detF;
+        array_1d<double, 6> bending_stress_cau_car = prod(T_cov_to_car, bending_stress_cau_cov);
 
         rCauchyMembraneStressesCartesian = membrane_stress_cau_car;
         rCauchyBendingStressesCartesian = bending_stress_cau_car;
@@ -1899,7 +1820,7 @@ namespace Kratos
         rDTransCartToCov_Dalpha_init[1](2,1) = eG21_d2*eG22 + eG21*eG22_d2;
         rDTransCartToCov_Dalpha_init[1](2,2) = eG11_d2*eG22 + eG21_d2*eG12 + eG11*eG22_d2 + eG21*eG12_d2;
     }
-*/
+
     ///@}
     ///@name Dynamic Functions
     ///@{
