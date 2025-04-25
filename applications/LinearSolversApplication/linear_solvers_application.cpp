@@ -25,6 +25,7 @@
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
+#include "custom_solvers/mkl_ilu.hpp" // MKLILU0Solver, MKLILUTSolver
 #include "mkl_service.h"
 #endif
 
@@ -114,6 +115,26 @@ void KratosLinearSolversApplication::Register()
     using ComplexPardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<complex>>;
     static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
+
+    // ILU0 smoother.
+    static auto mkl_ilu0_factory = StandardLinearSolverFactory<
+        TUblasSparseSpace<double>,
+        TUblasDenseSpace<double>,
+        MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
+    >();
+    KratosComponents<LinearSolverFactory<
+        TUblasSparseSpace<double>,
+        TUblasDenseSpace<double>>>::Add("mkl_ilu0", mkl_ilu0_factory);
+
+    // ILUT smoother.
+    static auto mkl_ilut_factory = StandardLinearSolverFactory<
+        TUblasSparseSpace<double>,
+        TUblasDenseSpace<double>,
+        MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
+    >();
+    KratosComponents<LinearSolverFactory<
+        TUblasSparseSpace<double>,
+        TUblasDenseSpace<double>>>::Add("mkl_ilut", mkl_ilut_factory);
 
 #endif // defined USE_EIGEN_MKL
 }
