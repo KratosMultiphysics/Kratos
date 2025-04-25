@@ -199,9 +199,13 @@ void DerivativeRecovery<TDim>::ConstructMassMatrixStructure(ModelPart& r_model_p
     IndexType* mass_matrix_col_indices = global_mass_matrix.index2_data().begin();
 
     mass_matrix_row_indices[0] = 0;
+
+    // #pragma omp parallel for
     for (IndexType i=0; i < system_size; ++i) {
         mass_matrix_row_indices[i+1] = mass_matrix_row_indices[i] + indices[i].size();  // mass_matrix_row_indices[i + 1] ???
     }
+
+    #pragma omp parallel for schedule(guided)
     for (IndexType i = 0; i < system_size; ++i) {
 
         const IndexType row_begin = mass_matrix_row_indices[i];
@@ -274,18 +278,17 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         ConstructMassMatrixStructure(r_model_part, system_size, elements_id_map, m_global_mass_matrix);
 
         // mprojection_rhs = ZeroVector(system_size);
+        // #pragma omp parallel for schedule(guided) firstprivate(local_lhs)
         ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
         Matrix local_lhs;
-        #pragma omp parallel firstprivate(number_of_elements, local_lhs, elements_id_map)
-        {
-        # pragma omp for schedule(guided, 512) nowait
-            for (unsigned e = 0; e < number_of_elements; e++){
-                ModelPart::ElementsContainerType::iterator it_elem = el_begin + e;
-                // Node id to global index map
-                CalculateLocalMassMatrix(number_of_dofs, it_elem, local_lhs);
-                AssembleMassMatrix(m_global_mass_matrix, local_lhs, elements_id_map[e]);
-                local_lhs = ZeroMatrix(local_lhs.size1(), local_lhs.size2());
-            }
+
+        #pragma omp parallel for schedule(guided) firstprivate(local_lhs)
+        for (unsigned e = 0; e < number_of_elements; e++){
+            ModelPart::ElementsContainerType::iterator it_elem = el_begin + e;
+            // Node id to global index map
+            CalculateLocalMassMatrix(number_of_dofs, it_elem, local_lhs);
+            AssembleMassMatrix(m_global_mass_matrix, local_lhs, elements_id_map[e]);
+            local_lhs = ZeroMatrix(local_lhs.size1(), local_lhs.size2());
         }
 
         mMassMatrixAlreadyComputed = true;
