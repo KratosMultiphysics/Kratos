@@ -407,6 +407,96 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    ///@}
+     ///@name Explicit dynamic functions
+     ///@{
+ 
+     void Shell3pElement::AddExplicitContribution(
+         const VectorType& rRHSVector,
+         const Variable<VectorType>& rRHSVariable,
+         const Variable<double >& rDestinationVariable,
+         const ProcessInfo& rCurrentProcessInfo
+         )
+     {
+         auto& r_geometry = GetGeometry();
+         const IndexType nb_nodes = r_geometry.size();
+         const IndexType nb_dofs = r_geometry.size() * 3;
+ 
+         if (rDestinationVariable == NODAL_MASS) {
+             VectorType element_mass_vector(nb_dofs);
+             CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
+ 
+             for (IndexType i = 0; i < nb_nodes; ++i) {
+                 double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
+                 IndexType index = i * 3;
+ 
+                 #pragma omp atomic
+                 r_nodal_mass += element_mass_vector(index);
+ 
+             }
+         }
+     }
+ 
+     void Shell3pElement::AddExplicitContribution(
+         const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+         const Variable<array_1d<double, 3>>& rDestinationVariable,
+         const ProcessInfo& rCurrentProcessInfo
+         )
+     {
+         auto& r_geometry = GetGeometry();
+         const IndexType nb_nodes = r_geometry.size();
+         const IndexType nb_dofs = nb_nodes * 3;
+ 
+         #pragma omp critical
+         {
+             //KRATOS_WATCH("fint")
+             //KRATOS_WATCH(rRHSVector)
+      
+ 
+         if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+ 
+             Vector damping_residual_contribution = ZeroVector(nb_dofs);
+             Vector current_nodal_velocities = ZeroVector(nb_dofs);
+             GetFirstDerivativesVector(current_nodal_velocities, 0);
+             Matrix damping_matrix;
+             ProcessInfo temp_process_information; // cant pass const ProcessInfo
+             CalculateDampingMatrix(damping_matrix, temp_process_information);
+             // current residual contribution due to damping
+             noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+ 
+             for (IndexType i = 0; i < nb_nodes; ++i) {
+                 IndexType index = 3 * i;
+                 array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+ 
+ 
+                 for (IndexType j = 0; j < 3; ++j) {
+                 #pragma omp atomic
+                     r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                 }
+             }
+         }
+         else if (rDestinationVariable == NODAL_INERTIA) {
+ 
+             // Getting the vector mass
+             VectorType mass_vector(nb_dofs);
+             CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
+ 
+             for (IndexType i = 0; i < nb_nodes; ++i) {
+                 double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
+                 array_1d<double, 3>& r_nodal_inertia = r_geometry[i].GetValue(NODAL_INERTIA);
+                 IndexType index = i * 3;
+ 
+                 #pragma omp atomic
+                 r_nodal_mass += mass_vector[index];
+ 
+                 for (IndexType k = 0; k < 3; ++k) {
+                     #pragma omp atomic
+                     r_nodal_inertia[k] += 0.0;
+                 }
+             }
+         }
+         }   
+     }
 
     ///@}
     ///@name Implicit
@@ -506,6 +596,49 @@ namespace Kratos
         }
         KRATOS_CATCH("")
     }
+
+
+     void Shell3pElement::CalculateLumpedMassVector(
+         Vector& rLumpedMassVector,
+         const ProcessInfo& rCurrentProcessInfo
+         ) const
+     {
+         const auto& r_geometry = GetGeometry();
+         const IndexType nb_nodes = r_geometry.size();
+         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+         auto& r_integration_points = r_geometry.IntegrationPoints();
+         const double num_integration_points = r_integration_points.size();
+         // Clear matrix
+         if (rLumpedMassVector.size() != nb_nodes * 3) {
+             rLumpedMassVector.resize(nb_nodes * 3, false);
+         }
+ 
+         for (IndexType point_number = 0; point_number < num_integration_points; ++point_number) {
+             
+              double integration_weight = r_integration_points[point_number].Weight();
+ 
+             double thickness = this->GetProperties().GetValue(THICKNESS);
+             double density = this->GetProperties().GetValue(DENSITY);
+             double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
+ 
+             // #pragma omp critical
+             // {
+             //     KRATOS_WATCH(mass)
+             // }
+ 
+             for (IndexType i = 0; i < nb_nodes; ++i) {
+                 for (IndexType j = 0; j < 3; ++j) {
+                     IndexType index = i * 3 + j;
+ 
+                     rLumpedMassVector[index] = mass * r_N(point_number, i);
+                 }
+             }
+         }
+         #pragma omp critical
+         {
+             //KRATOS_WATCH(rLumpedMassVector)
+         }
+     }
 
     ///@}
     ///@name Kinematics

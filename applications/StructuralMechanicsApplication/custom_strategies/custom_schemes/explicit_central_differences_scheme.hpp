@@ -676,12 +676,20 @@ public:
         using TLS = std::tuple<LocalSystemVectorType,Element::EquationIdVectorType>;
         TLS thread_local_storage; // {RHS_contribution, equation_id_vector_dummy}
 
+
         // Compute on conditions
         block_for_each(r_conditions, thread_local_storage, [&r_current_process_info, this](Condition& r_condition, TLS& r_rhs_contrib_and_equation_ids){
-            CalculateRHSContribution(r_condition,
-                                     std::get<0>(r_rhs_contrib_and_equation_ids),
-                                     std::get<1>(r_rhs_contrib_and_equation_ids),
-                                     r_current_process_info);
+            const std::string cond_name = r_condition.Info();
+            KRATOS_WATCH(cond_name)
+
+            // if (cond_name.find("LoadCondition") != std::string::npos || cond_name.find("LoadCondition") != std::string::npos) {
+                CalculateRHSContribution(r_condition,
+                                        std::get<0>(r_rhs_contrib_and_equation_ids),
+                                        std::get<1>(r_rhs_contrib_and_equation_ids),
+                                        r_current_process_info);
+
+                //KRATOS_WATCH( std::get<0>(r_rhs_contrib_and_equation_ids))
+            // }
         });
 
         // Compute on elements
