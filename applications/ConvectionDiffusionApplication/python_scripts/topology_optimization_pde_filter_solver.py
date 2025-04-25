@@ -54,7 +54,9 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
         self.settings["element_replace_settings"].ValidateAndAssignDefaults(default_replace_settings)
 
         ## Elements
-        num_nodes_elements = len(self.main_model_part.Elements[1].GetNodes())
+        for el in self.main_model_part.Elements:
+            num_nodes_elements = len(el.GetNodes())
+            break
         name_string = f"{self.element_name}{domain_size}D{num_nodes_elements}N"
         self.settings["element_replace_settings"]["element_name"].SetString(name_string)
         ## Conditions
@@ -84,7 +86,6 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
     def ImportModelPart(self):
         # Here the optimization model part is cloned to be pde filter model part so that the nodes are shared
         element_name, condition_name = self.__GetElementAndConditionNames()
-        print(element_name, condition_name)
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(
             self.base_optimization_model_part,
@@ -97,7 +98,7 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.PDE_FILTER_REACTION , 0.0, self.main_model_part.Nodes)
         
         if not self.is_restarted():
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self._get_element_condition_replace_settings()).Execute()
             self._set_and_fill_buffer()
 
         if (self.settings["echo_level"].GetInt() > 0):
