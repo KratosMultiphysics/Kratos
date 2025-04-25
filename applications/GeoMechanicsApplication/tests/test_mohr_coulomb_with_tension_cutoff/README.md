@@ -12,7 +12,7 @@ The diagram includes one admissible and four inadmissible zones. Hence, five tes
 
 The boundary conditions are shown below:
 
-<img src="MeshStructure.svg" width="600">
+<img src="mesh_structure.svg" width="600">
 
 ||$\Delta x \mathrm{[m]}$|$\Delta y\mathrm{[m]}$|
 |--------------------------|-----|------|
