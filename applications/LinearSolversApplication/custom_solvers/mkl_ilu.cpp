@@ -391,13 +391,13 @@ void MKLILUTSolver<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
 }
 
 
-template KRATOS_API(LINEARSOLVERS_APPLICATION) class MKLILUSolverBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLILUSolverBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
 
-template KRATOS_API(LINEARSOLVERS_APPLICATION) class MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
 
-template KRATOS_API(LINEARSOLVERS_APPLICATION) class MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
 
 } // namespace Kratos

@@ -161,10 +161,10 @@ MKLSolverBase<TSparse,TDense>::MakeSystemView(const SparseMatrix& rLhs,
 }
 
 
-template KRATOS_API(LINEARSOLVERS_APPLICATION) class MKLSolverBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLSolverBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
 
-template KRATOS_API(LINEARSOLVERS_APPLICATION) class MKLSolverBase<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
+template class MKLSolverBase<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
 
 
 } // namespace Kratos
