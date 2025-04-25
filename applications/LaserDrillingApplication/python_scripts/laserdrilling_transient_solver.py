@@ -153,6 +153,11 @@ class LaserDrillingTransientSolver(
         with open("ProjectParameters.json", "r") as project_parameters_file:
             self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
 
+        """ 
+        TODO: instead of hardcoding default values for the parameters, wouldn't it be better if when a parameter is not defined the program failed?
+        In this way, we would ensure that the user is sure that they want to set a specific value for a variable. And they
+        would not be able to accidentally run a case with values that were not chosen by them
+        """
         if not self.project_parameters["problem_data"].Has("average_laser_power"):
             self.average_laser_power = 18
         else:
@@ -288,7 +293,7 @@ class LaserDrillingTransientSolver(
             ].GetBool()
 
         if self.material_settings["compute_optical_penetration_depth_using_refractive_index"].GetBool():
-            self.ComputeOpticalPenetrationDepth()
+            self.ComputeOpticalPenetrationDepth()  # TODO: Better to return the value instead of modifying a global?
             self.delta_pen = self.l_s
 
         if self.material_settings[
@@ -871,6 +876,8 @@ class LaserDrillingTransientSolver(
         return q
 
     def InitialThermalConductionTime(self, radius):
+        # TODO: This is never called. Also, it has radius as a parameter but it is unused. In addition, it does nothing, it just returns a variable that is calculated in SetParameters
+
         # This function returns the characteristic time required for the initial heat distribution from the surface to the interior
         # 4.0 (2**2) in numerator due to equation (4c) in Weber, 2014. 'Heat accumulation during pulsed laser materials processing'
         # C = 4.0 / (4.0 * np.pi * self.rho**2 * self.kappa * self.cp**2 * (self.T_e - self.T0)**2)
@@ -895,6 +902,7 @@ class LaserDrillingTransientSolver(
         super(
             convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self
         ).SolveSolutionStep()
+        # TODO: Perhaps the following fits better in FinalizeSolutionStep?
         if self.print_hdf5_and_gnuplot_files:
             self.temperature_increments = np.array(
                 [
@@ -907,6 +915,7 @@ class LaserDrillingTransientSolver(
     def ComputePulseHoleAndAddToTotalHole(self):
         for i, Y_coord in enumerate(self.hole_theoretical_Y_coords):
             self.hole_theoretical_X_coords[i] += self.EvaporationDepth(Y_coord)
+
         if self.pulse_number == 1:
             import copy
 

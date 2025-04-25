@@ -23,8 +23,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(
         super(laserdrilling_transient_solver.LaserDrillingTransientSolver, self).SolveSolutionStep()
 
     def ComputeIonizationEnergyPerUnitVolumeThreshold(self):
-        # TODO: make this quantities into parameters
-        # TODO: it is never called?
+        # TODO: make these quantities into parameters. Why C11_H12_O3?
         # Compute ionization energy per volume of C11_H12_O3
         E_m_H = 1312e3  #  J/mol (1st level ionization energy)
         E_m_C = 4621e3  #  J/mol (3rd level ionization energy)
@@ -117,17 +116,16 @@ class LaserDrillingTransientSolverAblationPlusThermal(
         # TODO: change 'open's to 'with open as xx' if possible
         self.hole_profile_in_Y_zero_file = open("hole_profile_in_Y_zero.txt", "w")
 
-        # TODO: vectorize this loop
+        # TODO: vectorize this loop?
         for node in self.main_model_part.Nodes:
             radius = node.Y
             F = interp1d(Y, X, bounds_error=False, fill_value=0.0)
             distance_to_surface = F(radius)
             z = node.X - distance_to_surface
+
             delta_temp = self.TemperatureVariationDueToLaser(radius, z)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-            # TODO: this feels a bit wrong, adding up temperatures is not trivial. Maybe it would be better to
-            # add up energies and then calculate temperatures? Answer: should be fine since it is an temperature
-            # difference what is being added.
+
             new_temp = old_temp + delta_temp
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
@@ -226,13 +224,14 @@ class LaserDrillingTransientSolverAblationPlusThermal(
                 enthalpy_energy_per_volume = elem.GetValue(
                     LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME
                 )
+                # TODO: I think it makes sense to move the computation of energy_threshold elsewhere.
                 if self.use_enthalpy_and_ionization:
-                    ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold  # TODO: there's a typo on "ionizaRion" I think, but it never crashes, so it must be unused
+                    ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold  # TODO: there's a typo on "ionizaRion" I think, but it never crashes, so it must be unused or exist everywhere
                     energy_threshold = min(enthalpy_energy_per_volume, ionization_energy_per_volume_threshold)
                 else:
                     energy_threshold = elem.GetValue(
-                        LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME  # TODO: What is this variable?
-                    )  # self.q_ast
+                        LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME
+                    )  # self.q_ast # TODO: rename MATERIAL_THERMAL_ENERGY_PER_VOLUME to something more descriptive
                 if q_energy_per_volume >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     for node in elem.GetNodes():
