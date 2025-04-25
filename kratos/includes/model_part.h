@@ -1737,15 +1737,9 @@ public:
         return mpProcessInfo;
     }
 
-    void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
-    {
-        mpProcessInfo = pNewProcessInfo;
-    }
+    void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo);
 
-    void SetProcessInfo(ProcessInfo& NewProcessInfo)
-    {
-        *mpProcessInfo = NewProcessInfo;
-    }
+    void SetProcessInfo(ProcessInfo& NewProcessInfo);
 
     SizeType NumberOfMeshes()
     {
@@ -2174,6 +2168,10 @@ private:
     {
         mpParentModelPart = pParentModelPart;
     }
+
+    void SetProcessInfoRecursive(std::shared_ptr<ProcessInfo> pNewProcessInfo);
+
+    void SetProcessInfoRecursive(ProcessInfo& NewProcessInfo);
 
     template <typename TEntitiesContainerType>
     void AddEntities(TEntitiesContainerType const& Source, TEntitiesContainerType& rDestination, Flags Options)

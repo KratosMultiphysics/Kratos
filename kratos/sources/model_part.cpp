@@ -2129,6 +2129,39 @@ std::vector<std::string> ModelPart::GetSubModelPartNames() const
     return SubModelPartsNames;
 }
 
+void ModelPart::SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
+{
+    ModelPart& rootModelPart = this->GetRootModelPart();
+    rootModelPart.SetProcessInfoRecursive(pNewProcessInfo);
+}
+
+
+void ModelPart::SetProcessInfo(ProcessInfo& NewProcessInfo)
+{
+    ModelPart& rootModelPart = this->GetRootModelPart();
+    rootModelPart.SetProcessInfoRecursive(NewProcessInfo);
+}
+
+void ModelPart::SetProcessInfoRecursive(ProcessInfo::Pointer pNewProcessInfo)
+{
+    mpProcessInfo = pNewProcessInfo;
+
+    for (auto& subModelPart : mSubModelParts)
+    {
+        subModelPart.SetProcessInfoRecursive(pNewProcessInfo);
+    }
+}
+
+void ModelPart::SetProcessInfoRecursive(ProcessInfo& NewProcessInfo)
+{
+    *mpProcessInfo = NewProcessInfo;
+
+    for (auto& subModelPart : mSubModelParts)
+    {
+        subModelPart.SetProcessInfoRecursive(NewProcessInfo);
+    }
+}
+
 void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 {
     KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
