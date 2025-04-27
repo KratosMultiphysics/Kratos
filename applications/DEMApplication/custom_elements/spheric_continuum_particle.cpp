@@ -531,8 +531,11 @@ namespace Kratos {
         int BrokenBondsCounter = 0;
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            if(mNeighbourElements[i] == NULL) BrokenBondsCounter++;
-            else if (mIniNeighbourFailureId[i] > 0) BrokenBondsCounter++;
+            if (i >= mNeighbourElements.size()) {
+                BrokenBondsCounter++;
+            } else if (mNeighbourElements[i] == nullptr || mIniNeighbourFailureId[i] > 0) {
+                BrokenBondsCounter++; 
+            }
         }
 
         if(mContinuumInitialNeighborsSize) {
