@@ -245,9 +245,6 @@ namespace Kratos {
             if (r_process_info[CONTACT_MESH_OPTION]) {
                 CreateContactElements();
                 InitializeContactElements();
-            }else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
-                CreateContactElements();
-                InitializeContactElements();
             }
         }
         //Synch this var.
