@@ -144,7 +144,7 @@ However, since the thickness is by definition 1, the integration coefficient can
 
 ### Modifiers
 
-For other elements the integration coefficient calculator has a modifier, which is multiplied with the default calculation value mentioned before. 
+For other elements the integration coefficient calculator has a modifier, which modifies the default integration coefficient value. Currently, there are two modifiers and they are described below. 
 
 #### An axisymmetric element
 
@@ -153,7 +153,7 @@ $$V_i = 2\pi r w_i \det{(J)}$$
 
 #### A line element
 
-There are a number of line elements and the modifier always provides the default integration coefficient multiplied by the user provided CROSS_AREA.
+There is a number of line elements and the line element modifier provides the default integration coefficient multiplied by the user provided CROSS_AREA.
 
 
 ## Bibliography
