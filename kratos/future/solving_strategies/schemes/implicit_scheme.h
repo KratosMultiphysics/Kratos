@@ -119,8 +119,14 @@ public:
     /// Data type definition
     using DataType = typename TSparseMatrixType::DataType;
 
+    /// DoF type definition
+    using DofType = Dof<DataType>;
+
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
+
+    /// Effective DOFs map type definition
+    using EffectiveDofsMapType = std::unordered_map<typename DofType::Pointer, IndexType>;
 
     /// TLS type
     using TLSType = ImplicitThreadLocalStorage<DataType>;
@@ -230,6 +236,7 @@ public:
      */
     virtual void InitializeSolutionStep(
         DofsArrayType& rDofSet,
+        EffectiveDofsMapType& rEffectiveDofMap,
         typename TSparseMatrixType::Pointer& rpA,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpB,
@@ -353,13 +360,14 @@ public:
 
     virtual void ConstructMasterSlaveConstraintsStructure(
         const DofsArrayType& rDofSet,
+        EffectiveDofsMapType& rEffectiveDofMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector)
     {
         KRATOS_TRY
 
         // Call the assembly helper to set the master-slave constraints
-        (this->GetAssemblyHelper()).ConstructMasterSlaveConstraintsStructure(rDofSet, *mpModelPart, rConstraintsRelationMatrix, rConstraintsConstantVector);
+        (this->GetAssemblyHelper()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, rDofSet, rEffectiveDofMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
@@ -522,6 +530,8 @@ public:
         typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpRhs,
         typename TSparseVectorType::Pointer& rpEffectiveRhs,
+        typename TSparseVectorType::Pointer& rpDx,
+        typename TSparseVectorType::Pointer& rpEffectiveDx,
         const TSparseMatrixType& rConstraintsRelationMatrix,
         const TSparseVectorType& rConstraintsConstantVector)
     {
@@ -531,7 +541,7 @@ public:
             const auto timer_constraints = BuiltinTimer();
 
             auto& r_assembly_helper = GetAssemblyHelper();
-            r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rConstraintsRelationMatrix, rConstraintsConstantVector);
+            r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, *rpEffectiveRhs, *rpDx, *rpEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints apply time: " << timer_constraints << std::endl;
 
@@ -541,6 +551,7 @@ public:
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
             rpEffectiveLhs = rpLhs;
             rpEffectiveRhs = rpRhs;
+            rpEffectiveDx = rpDx;
         }
     }
 
@@ -629,6 +640,28 @@ public:
         TSparseVectorType &b)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
+    }
+
+    /**
+     * @brief Calculates the update vector
+     * This method computes the solution update vector from the effective one
+     * @param rConstraintsRelationMatrix The constraints relation matrix (i.e., T)
+     * @param rConstraintsConstantVector The constraints constant vector (i.e., b)
+     * @param rEffectiveDx The effective solution update vector
+     * @param rDx The solution update vector
+     */
+    void CalculateUpdateVector(
+        const TSparseMatrixType& rConstraintsRelationMatrix,
+        const TSparseVectorType& rConstraintsConstantVector,
+        const TSparseVectorType& rEffectiveDx,
+        TSparseVectorType& rDx)
+    {
+        if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
+            rDx = rConstraintsConstantVector;
+            rConstraintsRelationMatrix.SpMV(rEffectiveDx, rDx);
+        } else {
+            rDx = rEffectiveDx;
+        }
     }
 
     /**

@@ -98,6 +98,9 @@ public:
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
+    /// Effective DOFs map type definition
+    using EffectiveDofsMapType = typename BaseType::EffectiveDofsMapType;
+
     // /// TLS type definition
     // struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme --> Also we need to move them out of here.
     // {
@@ -179,6 +182,7 @@ public:
      */
     void InitializeSolutionStep(
         DofsArrayType& rDofSet,
+        EffectiveDofsMapType& rEffectiveDofMap,
         typename TSparseMatrixType::Pointer& rpA,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpB,
@@ -211,7 +215,7 @@ public:
 
                 // Set up the system constraints
                 BuiltinTimer constraints_construction_time;
-                this->ConstructMasterSlaveConstraintsStructure(rDofSet, rConstraintsRelationMatrix, rConstraintsConstantVector);
+                this->ConstructMasterSlaveConstraintsStructure(rDofSet, rEffectiveDofMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
             } else {
                 // Set up the equation ids (note that this needs to be always done)
@@ -221,6 +225,7 @@ public:
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
 
                 //TODO: Check if the constraints need to be also set in here!!!!!!
+                //TODO: If a constraint gets active/inactive we need to reset it
             }
             KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 

@@ -71,8 +71,17 @@ public:
     // Linear solver pointer definition
     using LinearSolverPointerType = typename Future::LinearSolver<TMatrixType, TVectorType>::Pointer;
 
-    /// DoF array type definition
+    /// Index type definition
+    using IndexType = typename TMatrixType::IndexType;
+
+    /// Data type definition
+    using DataType = typename TMatrixType::DataType;
+
+    /// DOFs array type definition
     using DofsArrayType = typename ModelPart::DofsArrayType;
+
+    /// Effective DOFs map type definition
+    using EffectiveDofsMapType = std::unordered_map<typename Dof<DataType>::Pointer, IndexType>;
 
     /// Matrix type definition
     using SystemMatrixType = TMatrixType;
@@ -188,7 +197,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mDofSet, mpA, mpdx, mpb, mConstraintsRelationMatrix, mConstraintsConstantVector, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mDofSet, mEffectiveDofMap, mpA, mpdx, mpb, mConstraintsRelationMatrix, mConstraintsConstantVector, mReformDofsAtEachStep);
 
         KRATOS_CATCH("")
     }
@@ -272,6 +281,9 @@ public:
         }
         if (mpEffectiveLhs != nullptr) {
             mpEffectiveLhs->Clear();
+        }
+        if (mpEffectiveDx != nullptr) {
+            mpEffectiveDx->Clear();
         }
 
         // Clear the constraint-related arrays
@@ -471,7 +483,7 @@ public:
      * @brief This method returns the effective RHS vector
      * @return The effective RHS vector
      */
-    SystemVectorPointerType pGetEffectiveSystemVector()
+    typename TVectorType::Pointer pGetEffectiveSystemVector()
     {
         return mpEffectiveRhs;
     }
@@ -504,6 +516,24 @@ public:
     }
 
     /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    typename SystemVectorType::Pointer pGetSolutionVector()
+    {
+        return mpdx;
+    }
+
+    /**
+     * @brief This method returns the effective solution vector
+     * @return The effective Dx vector
+     */
+    typename SystemVectorType::Pointer pGetEffectiveSolutionVector()
+    {
+        return mpEffectiveDx;
+    }
+
+    /**
      * @brief It allows to get the list of Dofs from the element
      */
     DofsArrayType& GetDofSet()
@@ -517,6 +547,22 @@ public:
     const DofsArrayType& GetDofSet() const
     {
         return mDofSet;
+    }
+
+    /**
+     * @brief It allows to get the map of effective DOFs
+     */
+    EffectiveDofsMapType& GetEffectiveDofMap()
+    {
+        return mEffectiveDofMap;
+    }
+
+    /**
+     * @brief It allows to get the map of effective DOFs
+     */
+    const EffectiveDofsMapType &GetEffectiveDofMap() const
+    {
+        return mEffectiveDofMap;
     }
 
     ///@}
@@ -695,7 +741,7 @@ private:
 
     DofsArrayType mDofSet; /// The set containing the DOFs of the system
 
-    DofsArrayType mMasterDofSet; /// The set containing the master DOFs of the system
+    EffectiveDofsMapType mEffectiveDofMap; /// The map containing the effective DOFs of the system
 
     //TODO: Should these be unique_ptr?
     SystemVectorPointerType mpdx = nullptr; /// The incremement in the solution //TODO: use naming convention
@@ -707,10 +753,13 @@ private:
     SystemMatrixPointerType mpA = nullptr; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
 
     //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same matrix)
-    SystemMatrixPointerType mpEffectiveLhs = nullptr; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
+    SystemMatrixPointerType mpEffectiveLhs = nullptr; /// The LHS matrix of the system of equations
 
     //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same vector)
-    SystemVectorPointerType mpEffectiveRhs = nullptr; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
+    SystemVectorPointerType mpEffectiveRhs = nullptr; /// The RHS vector of the system of equations
+
+    //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same vector)
+    SystemVectorPointerType mpEffectiveDx = nullptr; /// The effective solution increment for the constrained system
 
     SystemMatrixType mConstraintsRelationMatrix; // Constraints relation matrix
 

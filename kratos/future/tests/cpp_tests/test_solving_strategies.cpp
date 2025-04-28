@@ -174,20 +174,28 @@ KRATOS_TEST_CASE_IN_SUITE(StaticScheme, KratosCoreFastSuite)
             "build_type" : "block"
         }
     })");
-    auto p_scheme = Kratos::make_unique<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
     // Create the DOF set and set the global ids
     // Note that in a standard case this happens at the strategy level
     ModelPart::DofsArrayType dof_set;
-    p_scheme->SetUpDofArray(dof_set);
-    p_scheme->SetUpSystemIds(dof_set);
+    SchemeType::EffectiveDofsMapType eff_dof_map;
+    // p_scheme->SetUpDofArray(dof_set);
+    // p_scheme->SetUpSystemIds(dof_set);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
+    CsrMatrix<> T;
+    SystemVector<> b;
     auto p_lhs = Kratos::make_shared<CsrMatrix<>>();
     auto p_dx = Kratos::make_shared<SystemVector<>>();
     auto p_rhs = Kratos::make_shared<SystemVector<>>();
-    p_scheme->ResizeAndInitializeVectors(dof_set, p_lhs, p_dx, p_rhs);
+    // p_scheme->ConstructMasterSlaveConstraintsStructure(dof_set, eff_dof_map, T, b);
+    // p_scheme->ResizeAndInitializeVectors(dof_set, eff_dof_map, p_lhs, p_dx, p_rhs);
+
+    // Call the initialize solution step (note that this sets all the arrays above)
+    p_scheme->InitializeSolutionStep(dof_set, eff_dof_map, p_lhs, p_dx, p_rhs, T, b);
 
     // Call the build
     p_scheme->Build(*p_lhs, *p_rhs);
@@ -272,7 +280,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraint, KratosCoreFas
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    const std::size_t num_elems = 3;
+    const std::size_t num_elems = 2;
     const double elem_size = 1.0;
     SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
 
