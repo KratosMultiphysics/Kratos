@@ -164,7 +164,7 @@ class MaterialEditor:
 
         with open(self.json_path, 'w') as f:
             json.dump(self.data, f, indent=4)
-        messagebox.showinfo("Success", "Material parameters updated successfully!")
+        # messagebox.showinfo("Success", "Material parameters updated successfully!")
 
     def _convert_type(self, value):
         try:
@@ -190,11 +190,11 @@ class ProjectParameterEditor:
         pattern = r'("time_step"\s*:\s*)([0-9eE+.\-]+)'
         replacement = r'\g<1>' + str(new_time_step)
         self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
-        if count == 0:
-            messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
-        else:
-            self._write_back()
-            messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
+        # if count == 0:
+        #     messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
+        # else:
+        #     self._write_back()
+        #     messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
 
 class MdpaEditor:
     def __init__(self, mdpa_path):
@@ -218,7 +218,7 @@ class MdpaEditor:
             self.raw_text = new_text
         with open(self.mdpa_path, 'w') as f:
             f.write(self.raw_text)
-        messagebox.showinfo("Success", f"'$maximum_strain' replaced with {prescribed_displacement}")
+        # messagebox.showinfo("Success", f"'$maximum_strain' replaced with {prescribed_displacement}")
 
 
     def update_initial_effective_cell_pressure(self, initial_effective_cell_pressure):
@@ -235,7 +235,7 @@ class MdpaEditor:
         else:
             with open(self.mdpa_path, 'w') as f:
                 f.write(new_text)
-            messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
+        #     messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
 
 def plot_sigma(sigma_1, sigma_3):
     """
@@ -293,7 +293,8 @@ def plot_sigma(sigma_1, sigma_3):
         xaxis=dict(rangemode='tozero'),
         yaxis=dict(rangemode='tozero'),
     )
-    fig.show()
+    # fig.show()
+    return fig
 
 def plot_delta_sigma(vertical_strain, sigma_diff):
     """
@@ -350,7 +351,7 @@ def plot_delta_sigma(vertical_strain, sigma_diff):
         xaxis=dict(rangemode='tozero'),
         yaxis=dict(rangemode='tozero'),
     )
-    fig.show()
+    return fig
 
 def plot_mohr_coulomb_circle(sigma_1, sigma_3):
     """
@@ -435,7 +436,7 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3):
     #     xaxis=dict(rangemode='tozero'),
     #     yaxis=dict(rangemode='tozero'),
     # )
-    fig.show()
+    return fig
 
 def plot_p_q(p_list, q_list):
 
@@ -469,7 +470,7 @@ def plot_p_q(p_list, q_list):
         xaxis=dict(rangemode='tozero'),
         yaxis=dict(rangemode='tozero'),
     )
-    fig.show()
+    return fig
 
 def plot_volumetric_strain(vertical_strain, volumetric_strain):
     """
@@ -526,7 +527,7 @@ def plot_volumetric_strain(vertical_strain, volumetric_strain):
         xaxis=dict(rangemode='tozero'),
         yaxis=dict(rangemode='tozero'),
     )
-    fig.show()
+    return fig
 
 def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initial_effective_cell_pressure):
     json_file_path = 'test_triaxial/MaterialParameters_stage1.json'
@@ -575,16 +576,23 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
 
         p_list.append(p)
         q_list.append(q)
-
-    plot_sigma(sigma1_list, sigma3_list)
-
     sigma_diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
-    plot_delta_sigma(vertical_strain, sigma_diff)
-    plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1])
-    plot_p_q(p_list, q_list)
-    plot_volumetric_strain(vertical_strain, volumetric_strain)
+
+    # plot_sigma(sigma1_list, sigma3_list)
+    # plot_delta_sigma(vertical_strain, sigma_diff)
+    # plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1])
+    # plot_p_q(p_list, q_list)
+    # plot_volumetric_strain(vertical_strain, volumetric_strain)
+
+    figs = [
+        plot_delta_sigma(vertical_strain, sigma_diff),
+        plot_volumetric_strain(vertical_strain, volumetric_strain),
+        plot_sigma(sigma1_list, sigma3_list),
+        plot_p_q(p_list, q_list),
+        plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1]),
+    ]
+    return figs
 
 if __name__ == "__main__":
-    lab_test("../MohrCoulomb64.dll", ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"],
+    figs = lab_test("../MohrCoulomb64.dll", ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"],
              1, 0.01, 20, 100)
-
