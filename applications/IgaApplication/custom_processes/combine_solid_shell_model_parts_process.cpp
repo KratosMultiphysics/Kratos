@@ -101,7 +101,8 @@ namespace Kratos
 		
 		// assign each coupling geometry to the coupling condition
 		ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("CouplingInterface");
-		std::string name = "CouplingPenaltyCondition";
+		std::string name = "CouplingSolidShellPenaltyCondition";
+		//std::string name = "CouplingPenaltyCondition";
 		const Condition& rReferenceCondition = KratosComponents<Condition>::Get(name);
 
 		ModelPart::ConditionsContainerType new_condition_list;
