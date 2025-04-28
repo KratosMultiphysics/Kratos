@@ -1356,7 +1356,7 @@ public:
 
     SizeType NumberOfGeometries() const
     {
-        return mGeometries.NumberOfGeometries();
+        return mGeometries.size();
     }
 
     /**
@@ -1540,53 +1540,64 @@ public:
 
     /// Returns the Geometry::Pointer corresponding to the Id
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
-        return mGeometries.pGetGeometry(GeometryId);
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
+        return *(i.base());
     }
 
     /// Returns the const Geometry::Pointer corresponding to the Id
     const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
-        return mGeometries.pGetGeometry(GeometryId);
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
+        return *(i.base());
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
     typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
-        return mGeometries.pGetGeometry(GeometryName);
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto i = mGeometries.find(hash_index);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryName << ".";
+        return *(i.base());
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
     const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
-        return mGeometries.pGetGeometry(GeometryName);
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto i = mGeometries.find(hash_index);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryName << ".";
+        return *(i.base());
     }
 
     /// Returns a reference geometry corresponding to the id
     GeometryType& GetGeometry(IndexType GeometryId) {
-        return mGeometries.GetGeometry(GeometryId);
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a const reference geometry corresponding to the id
     const GeometryType& GetGeometry(IndexType GeometryId) const {
-        return mGeometries.GetGeometry(GeometryId);
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
     GeometryType& GetGeometry(std::string GeometryName) {
-        return mGeometries.GetGeometry(GeometryName);
+        return *pGetGeometry(GeometryName);
     }
 
     /// Returns a const reference geometry corresponding to the name
     const GeometryType& GetGeometry(std::string GeometryName) const {
-        return mGeometries.GetGeometry(GeometryName);
+        return *pGetGeometry(GeometryName);
     }
 
 
     /// Checks if has geometry by id.
     bool HasGeometry(IndexType GeometryId) const {
-        return mGeometries.HasGeometry(GeometryId);
+        return (mGeometries.find(GeometryId) != mGeometries.end());
     }
 
     /// Checks if has geometry by name.
     bool HasGeometry(std::string GeometryName) const {
-        return mGeometries.HasGeometry(GeometryName);
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        return (mGeometries.find(hash_index) != mGeometries.end());
     }
 
 
