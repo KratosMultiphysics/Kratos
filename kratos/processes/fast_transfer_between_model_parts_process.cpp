@@ -130,7 +130,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
-        GeometriesMapType geometries_buffer_vector;
+        GeometriesArrayType geometries_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
@@ -273,7 +273,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
-        GeometriesMapType geometries_buffer_vector;
+        GeometriesArrayType geometries_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
@@ -376,7 +376,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
-        GeometriesMapType geometries_buffer_vector;
+        GeometriesArrayType geometries_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();

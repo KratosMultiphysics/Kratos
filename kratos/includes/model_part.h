@@ -247,16 +247,20 @@ public:
     /**
     * Contains all geometries, which can be addressed by specific identifiers.
     */
-    typedef GeometryContainer<GeometryType> GeometryContainerType;
+   /// Type alias for the container of geometries.
+    using GeometryContainerType = PointerVectorSet<GeometryType,
+        IndexedObject,
+        std::less<typename IndexedObject::result_type>,
+        std::equal_to<typename IndexedObject::result_type>,
+        typename GeometryType::Pointer,
+        std::vector<typename GeometryType::Pointer>
+    >;
 
-    /// Geometry Iterator
-    typedef typename GeometryContainerType::GeometryIterator GeometryIterator;
+    /// Iterator for geometries in the container. Provides direct references to geometries.
+    typedef typename GeometryContainerType::iterator GeometryIterator;
 
-    /// Const Geometry Iterator
-    typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
-
-    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
-    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
+    /// Const iterator for geometries in the container. Provides direct references to geometries.
+    typedef typename GeometryContainerType::const_iterator GeometryConstantIterator;
 
     /// The container of the sub model parts. A hash table is used.
     /**
@@ -1472,7 +1476,7 @@ public:
         ModelPart* p_root_model_part = &this->GetRootModelPart();
 
         block_for_each(GeometryBegin, GeometriesEnd, [p_root_model_part](const auto& prGeometry) {
-            const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
+            const auto& r_geometry = ReferenceGetter<GeometryContainerType::value_type>::Get(prGeometry);
             const auto& r_geometries = p_root_model_part->Geometries();
             auto it_found = r_geometries.find(r_geometry.Id());
             if (it_found != p_root_model_part->GeometriesEnd()) {
@@ -1507,7 +1511,7 @@ public:
             ModelPart* p_root_model_part = &this->GetRootModelPart();
 
             block_for_each(rInputContainer.begin(), rInputContainer.end(), [p_root_model_part](const auto& prGeometry) {
-                const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
+                const auto& r_geometry = ReferenceGetter<GeometryContainerType::value_type>::Get(prGeometry);
                 const auto& r_geometries = p_root_model_part->Geometries();
                 auto it_found = r_geometries.find(r_geometry.Id());
                 if (it_found != p_root_model_part->GeometriesEnd()) {
@@ -1601,35 +1605,35 @@ public:
 
     /// Begin geometry iterator
     GeometryIterator GeometriesBegin() {
-        return mGeometries.GeometriesBegin();
+        return mGeometries.begin();
     }
 
     /// Begin geometry const iterator
     GeometryConstantIterator GeometriesBegin() const {
-        return mGeometries.GeometriesBegin();
+        return mGeometries.begin();
     }
 
     /// End geometry iterator
     GeometryIterator GeometriesEnd() {
-        return mGeometries.GeometriesEnd();
+        return mGeometries.end();
     }
 
     /// End geometry const iterator
     GeometryConstantIterator GeometriesEnd() const {
-        return mGeometries.GeometriesEnd();
+        return mGeometries.end();
     }
 
 
-    /// Get geometry map container
-    GeometriesMapType& Geometries()
+    /// Get geometry container
+    GeometryContainerType& Geometries()
     {
-        return mGeometries.Geometries();
+        return mGeometries;
     }
 
     /// Get geometry map container
-    const GeometriesMapType& Geometries() const
+    const GeometryContainerType& Geometries() const
     {
-        return mGeometries.Geometries();
+        return mGeometries;
     }
 
     ///@}
@@ -2244,10 +2248,10 @@ template <> struct ModelPart::Container<ModelPart::MasterSlaveConstraintContaine
     static MasterSlaveConstraintContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.MasterSlaveConstraints(); }
 };
 
-template <> struct ModelPart::Container<ModelPart::GeometriesMapType> {
+template <> struct ModelPart::Container<ModelPart::GeometryContainerType> {
     static std::string GetEntityName() { return "geometry"; }
     // TODO: Can be used once we move the geometries container to meshes.
-    // static GeometriesMapType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
+    // static GeometryContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
 };
 
 ///@}
