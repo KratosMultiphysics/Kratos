@@ -43,6 +43,28 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__DumpUpdatedCFDSettings()
             self._runTest()
 
+    def test_mok_fsi_iqnimvj_explicit(self):
+        self.accelerator_type = "iqnimvj_explicit"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi")
+            self.__ManipulateCFDSettings()
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD()
+            self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
+    def test_mok_fsi_iqnimvj_implicit(self):
+        self.accelerator_type = "iqnimvj_implicit"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi")
+            self.__ManipulateCFDSettings()
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD()
+            self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
     def test_mok_fsi_block_mvqn(self):
         self.accelerator_type = "block_mvqn"
 
@@ -53,7 +75,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
             self._runTest()
-
 
     def test_mok_fsi_block_ibqnls(self):
         self.accelerator_type = "block_ibqnls"
