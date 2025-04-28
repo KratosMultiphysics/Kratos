@@ -230,6 +230,7 @@ class MPMSolver(PythonSolver):
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
 
         if not self.is_restarted():
+            # TODO: Revert this temporary fix once PR #13376 is merged
             _SetProcessInfo(self.material_point_model_part, self.grid_model_part.ProcessInfo)
             # self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
 
@@ -237,6 +238,7 @@ class MPMSolver(PythonSolver):
             KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
             KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
         else:
+            # TODO: Revert this temporary fix once PR #13376 is merged
             _SetProcessInfo(self.grid_model_part, self.material_point_model_part.ProcessInfo)
             # self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
 
@@ -518,10 +520,11 @@ class MPMSolver(PythonSolver):
         # this function avoids the long call to ProcessInfo and is also safer
         # in case the detection of a restart is changed later
         return self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-
+    
+# TODO: Remove this temporary fix once PR #13376 is merged
 def _SetProcessInfo(target_model_part: KratosMultiphysics.ModelPart,
                     process_info: KratosMultiphysics.ProcessInfo) -> None:
-    # This is a temporary function until the PR #(insert pr number here later) is approved/denied
+    # This is a temporary function until the PR #13376 is approved/denied
     # the function recursively apply process info to all sub model part, not just the root model part.
     target_model_part.ProcessInfo = process_info
     sub_model_part: KratosMultiphysics.ModelPart
