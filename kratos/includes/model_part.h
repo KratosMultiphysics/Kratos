@@ -29,7 +29,6 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
-#include "containers/geometry_container.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
