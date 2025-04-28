@@ -13,7 +13,7 @@ Currently, the following policies are implemented (still under development):
 
 1. The [StressStatePolicy](#stressstatepolicy) - this is used to calculate several stress-related properties depending
    on the configuration. There are three flavours: `ThreeDimensionalStressState`, `PlaneStrainStressState` and `AxisymmetricStressState`.
-2. Integration coefficient calculator.
+2. The [Integration coefficient calculator](#integration-coefficient)
 
 ## StressStatePolicy
 
@@ -130,34 +130,30 @@ N_1 / r & 0 & N_2 / r & 0 & N_3 / r & 0\\
 ```
 Note that in our geomechanics code base, the radial coordinate $r$ is equal to $x$.
 
-## Integration coefficient
+## Integration coefficient calculator
 
 Based on its name, the integration coefficient calculator calculates the integration coefficient. The integration coefficient (or integration volume) 
 depends on the integration weight ($w_i$) and the determinant of the Jacobian ($J$). 
 
-### basic version
-There is a basic version that works for plane and 3D elements. In case of the 3D element, the integration volume is calculated as:
+### Default calculation
+There is a default version that works for plane and 3D elements. In case of the 3D element, the integration volume is calculated as:
 $$V_i = w_i \det{(J)}$$
 
 Since $w_i$ is the volume in isoparametric coordinates. For the plane element, $w_i$ is the area in isoparametric coordinates. 
 However, since the thickness is by definition 1, the integration coefficient can be calculated using the same equation.
 
-### modifiers
+### Modifiers
 
-For other elements the integration coefficient calculator has a modifier. 
+For other elements the integration coefficient calculator has a modifier, which is multiplied with the default calculation value mentioned before. 
 
 #### An axisymmetric element
 
 This modifier takes $w_i$ as the isoparametric area and converts it to a volume by a multiplication with the axisymmetric circumference:
 $$V_i = 2\pi r w_i \det{(J)}$$
 
-#### A thermal element 
-
-This modifier provides the integration coefficient as the base version except a 1D local dimension case. In this case it multiplies the integration coefficient by the user provided CROSS_AREA.
-
 #### A line element
 
-For the Pw line element, the modifier provides the base version integration coefficient multiplied by the user provided CROSS_AREA.
+There are a number of line elements and the modifier always provides the default integration coefficient multiplied by the user provided CROSS_AREA.
 
 
 ## Bibliography
