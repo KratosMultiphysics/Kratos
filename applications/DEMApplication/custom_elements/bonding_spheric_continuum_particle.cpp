@@ -98,26 +98,26 @@ namespace Kratos
             KRATOS_CATCH("")
 	};
 
-        bool BondingSphericContinuumParticle::NeighbourIsToBeBonded(const int neighbour_id) {
-            for(int i=0; i<(int)mIdsOfElementsToBeBonded.size(); i++) {
-                if(mIdsOfElementsToBeBonded[i] == neighbour_id) {
-                    return true;
-                }
+    bool BondingSphericContinuumParticle::NeighbourIsToBeBonded(const int neighbour_id) {
+        for(int i=0; i<(int)mIdsOfElementsToBeBonded.size(); i++) {
+            if(mIdsOfElementsToBeBonded[i] == neighbour_id) {
+                return true;
             }
-            return false;
         }
+        return false;
+    }
 
-        void BondingSphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){
-            SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations();
-            //TODO: ADD SOMETHING HERE like 'mIdsOfElementsToBeBonded.push_back(id_of_neighbour)'
+    void BondingSphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){
+        SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations();
+        //TODO: ADD SOMETHING HERE like 'mIdsOfElementsToBeBonded.push_back(id_of_neighbour)'
 
-             for(int i=mContinuumInitialNeighborsSize; i<(int)mNeighbourElements.size(); i++) {
-                  //if (> ) {
-                mIdsOfElementsToBeBonded.push_back(i);
-                //mIdsOfElementsToBeBonded.push_back(mNeighbourElements[i]);
+            for(int i=mContinuumInitialNeighborsSize; i<(int)mNeighbourElements.size(); i++) {
+                //if (> ) {
+            mIdsOfElementsToBeBonded.push_back(i);
+            //mIdsOfElementsToBeBonded.push_back(mNeighbourElements[i]);
 
-                 // }
-             }
-        }
+                // }
+            }
+    }
 
 }  // namespace Kratos.
