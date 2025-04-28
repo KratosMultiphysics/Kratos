@@ -494,7 +494,7 @@ namespace Kratos {
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
                 CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce);
-            } else if (r_process_info[IS_TIME_TO_PRINT] && contact_mesh_option == 1) {
+            } /*else if (r_process_info[IS_TIME_TO_PRINT] && contact_mesh_option == 1) {
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
                     CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
@@ -504,7 +504,7 @@ namespace Kratos {
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
                     CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
                 }
-            }
+            }*/
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
                 AddNeighbourContributionToStressTensor(r_process_info, GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, radius_sum, this);
@@ -531,9 +531,10 @@ namespace Kratos {
         int BrokenBondsCounter = 0;
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            if (i >= mNeighbourElements.size()) {
+            /*if (i >= mNeighbourElements.size()) {
                 BrokenBondsCounter++;
-            } else if (mNeighbourElements[i] == nullptr || mIniNeighbourFailureId[i] > 0) {
+            } else*/
+            if (mBondElements[i] == NULL || mIniNeighbourFailureId[i] > 0) {
                 BrokenBondsCounter++; 
             }
         }
@@ -913,6 +914,7 @@ namespace Kratos {
 
         KRATOS_TRY
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
+        //KRATOS_ERROR_IF(i >= mBondElements.size()) << "The index of the bond is larger than the size of the vector of bonds. i = " << i << " and size = " << mBondElements.size() << std::endl;
         ParticleContactElement* bond = mBondElements[i];
         if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
 
