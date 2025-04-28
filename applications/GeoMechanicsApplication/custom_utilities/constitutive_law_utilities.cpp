@@ -13,6 +13,7 @@
 
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "utilities/math_utils.h"
 
 namespace
 {
@@ -78,6 +79,11 @@ double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rPr
     return rProperties.Has(GEO_FRICTION_ANGLE)
                ? rProperties[GEO_FRICTION_ANGLE]
                : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
+}
+
+double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rProperties)
+{
+    return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
 } // namespace Kratos
