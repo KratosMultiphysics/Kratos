@@ -55,8 +55,21 @@ namespace Kratos {
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
 
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            auto& central_node = GetGeometry()[0];
+            auto& neighbour_node = neighbour_iterator->GetGeometry()[0];
+            
             array_1d<double, 3> other_to_me_vect;
-            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+            if (!r_process_info[DOMAIN_IS_PERIODIC]){ // default infinite-domain case
+                noalias(other_to_me_vect) = central_node.Coordinates() - neighbour_node.Coordinates();
+            } else { // periodic domain
+                double my_coors[3] = {central_node[0], central_node[1], central_node[2]};
+                double other_coors[3] = {neighbour_node[0], neighbour_node[1], neighbour_node[2]};
+
+                TransformNeighbourCoorsToClosestInPeriodicDomain(r_process_info, my_coors, other_coors);
+                other_to_me_vect[0] = my_coors[0] - other_coors[0];
+                other_to_me_vect[1] = my_coors[1] - other_coors[1];
+                other_to_me_vect[2] = my_coors[2] - other_coors[2];
+            }
 
             double distance = DEM_MODULUS_3(other_to_me_vect);
             double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
