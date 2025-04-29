@@ -126,11 +126,10 @@ double TemperatureSensor::CalculateValue(ModelPart& rModelPart)
         const auto& r_element = rModelPart.GetElement(mElementId);
         const auto& r_geometry = r_element.GetGeometry();
 
-        Vector Ns;
-        r_geometry.ShapeFunctionsValues(Ns, mLocalPoint);
-
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            temperature += r_geometry[i].FastGetSolutionStepValue(TEMPERATURE) * Ns[i];
+            const auto nodal_temperature = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE);
+            //std::cout << "-- node id " << r_geometry[i].Id() << ", temperature "  << nodal_temperature << std::endl;
+            temperature += nodal_temperature * mNs[i];
         }
     }
     return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(temperature);
@@ -212,7 +211,7 @@ void TemperatureSensor::CalculatePartialSensitivity(
             const IndexType block_size = rSensitivityGradient.size() / r_geometry.size();
 
             for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                rSensitivityGradient[i * block_size] = mNs[i];
+                rSensitivityGradient[i * block_size] = -1* mNs[i];
             }
         }
     }
