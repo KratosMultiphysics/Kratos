@@ -172,8 +172,8 @@ def create_menu():
     param_frame = ttk.Frame(dropdown_frame, padding="10")
     param_frame.pack(fill="both", expand=True, pady=10)
 
-    button_frame = ttk.Frame(menu_window, padding="10")
-    button_frame.pack(side="bottom", fill="x", padx=10, pady=10)
+    button_frame = ttk.Frame(dropdown_frame, padding="10")
+    button_frame.pack(fill="x", pady=10)
 
     def update_parameters(*args):
         # Clear the parameter frame
@@ -313,8 +313,8 @@ def create_menu():
     plot_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
 
     # Desired size per subplot
-    width_per_ax = 4
-    height_per_ax = 3
+    width_per_ax = 6
+    height_per_ax = 5
 
     # Grid layout
     nrows, ncols = 3, 2

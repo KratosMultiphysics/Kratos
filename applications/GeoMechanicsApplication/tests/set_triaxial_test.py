@@ -36,13 +36,12 @@ class TriaxialTest:
         return cohesion, friction_angle
 
 def run_triaxial_test(output_file_paths):
-    os.getcwd()
+    current_working = os.getcwd()
 
     # construct parameterfile names of stages to run
     project_path = os.path.join('test_triaxial')
     n_stages = 2
-    parameter_file_names = [os.path.join('ProjectParameters_stage' + str(i + 1) + '.json') for i in
-                            range(n_stages)]
+    parameter_file_names = [os.path.join('ProjectParameters_stage' + str(i + 1) + '.json') for i in range(n_stages)]
 
     # change to project directory
     os.chdir(project_path)
@@ -63,6 +62,8 @@ def run_triaxial_test(output_file_paths):
     # os.chdir(currentWorking)
 
     cauchy_stress_results = []
+    mean_effective_stress_results = []
+    von_mise_stress_results = []
     displacement_results = []
     strain_results = []
 
@@ -70,7 +71,6 @@ def run_triaxial_test(output_file_paths):
         reader = test_helper.GiDOutputFileReader()
         output_data = reader.read_output_from(output_file_path)
 
-        # Iterate through all results in the output_data
         for result_name, result_items in output_data["results"].items():
             if result_name == "CAUCHY_STRESS_TENSOR":
                 for result_item in result_items:
@@ -80,6 +80,39 @@ def run_triaxial_test(output_file_paths):
                         "time": time,
                         "values": values
                     })
+
+            elif result_name == "MEAN_EFFECTIVE_STRESS":
+                for result_item in result_items:
+                    time = result_item["time"]
+                    values = result_item["values"]
+
+                    # Check if it's a Gauss point result with 3 integration points (tri3)
+                    is_likely_tri3 = (
+                            isinstance(values, list) and
+                            all("value" in v and isinstance(v["value"], list) and len(v["value"]) == 3 for v in values)
+                    )
+                    if is_likely_tri3:
+                        mean_effective_stress_results.append({
+                            "time": time,
+                            "values": values
+                        })
+
+            elif result_name == "VON_MISES_STRESS":
+                for result_item in result_items:
+                    time = result_item["time"]
+                    values = result_item["values"]
+
+                    # Check if it's a Gauss point result with 3 integration points (tri3)
+                    is_likely_tri3 = (
+                            isinstance(values, list) and
+                            all("value" in v and isinstance(v["value"], list) and len(v["value"]) == 3 for v in values)
+                    )
+                    if is_likely_tri3:
+                        von_mise_stress_results.append({
+                            "time": time,
+                            "values": values
+                        })
+
             elif result_name == "DISPLACEMENT":
                 for result_item in result_items:
                     time = result_item["time"]
@@ -99,7 +132,6 @@ def run_triaxial_test(output_file_paths):
 
     reshaped_values_by_time = {}
 
-    # Process Cauchy stress results
     for idx, result in enumerate(cauchy_stress_results):
         time_step = result["time"]
         element_values = result["values"]
@@ -119,14 +151,13 @@ def run_triaxial_test(output_file_paths):
 
         reshaped_values_by_time[time_step] = reshaped_values
 
-
     volumetric_strains = []
     yy_strains = []
 
     for idx, result in enumerate(strain_results):
         element_values = result["values"]
 
-        if not element_values:  # Skip empty lists
+        if not element_values:
             continue
 
         element = element_values[0]
@@ -140,7 +171,30 @@ def run_triaxial_test(output_file_paths):
         volumetric_strains.append(epsilon_v)
         yy_strains.append(epsilon_yy)
 
-    return reshaped_values_by_time, yy_strains, volumetric_strains
+    von_mise_stress = []
+    for idx, result in enumerate(von_mise_stress_results):
+        element_values = result["values"]
+
+        if not element_values:
+            continue
+
+        element = element_values[0]
+        deviatoric_stress = element["value"][1]
+        von_mise_stress.append(deviatoric_stress)
+
+    mean_effective_stresses = []
+    for idx, result in enumerate(mean_effective_stress_results):
+        element_values = result["values"]
+
+        if not element_values:
+            continue
+
+        element = element_values[0]
+        mean_stress = element["value"][1]
+        mean_effective_stresses.append(mean_stress)
+
+
+    return reshaped_values_by_time, yy_strains, volumetric_strains, von_mise_stress, mean_effective_stresses
 
 class MaterialEditor:
     def __init__(self, json_path):
@@ -190,11 +244,11 @@ class ProjectParameterEditor:
         pattern = r'("time_step"\s*:\s*)([0-9eE+.\-]+)'
         replacement = r'\g<1>' + str(new_time_step)
         self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
-        # if count == 0:
-        #     messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
-        # else:
-        #     self._write_back()
-        #     messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
+        else:
+            self._write_back()
+            messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
 
 class MdpaEditor:
     def __init__(self, mdpa_path):
@@ -233,9 +287,27 @@ class MdpaEditor:
         if count == 0:
             messagebox.showwarning("Warning", "Could not find '$initial_effective_cell_pressure' to update.")
         else:
+            self.raw_text = new_text
+        with open(self.mdpa_path, 'w') as f:
+            f.write(self.raw_text)
+        #     messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
+
+    def update_first_timestep(self, first_timestep):
+
+        pattern = r'(\s*)\$first_timestep(\s*)'
+
+        def replacer(match):
+            leading_ws = match.group(1)
+            trailing_ws = match.group(2)
+            return f"{leading_ws}{first_timestep}{trailing_ws}"
+
+        new_text, count = re.subn(pattern, replacer, self.raw_text)
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find '$first_timestep' to update.")
+        else:
             with open(self.mdpa_path, 'w') as f:
                 f.write(new_text)
-        #     messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
+        #     messagebox.showinfo("Success", f"'$first_timestep' replaced with {first_timestep}")
 
 def plot_sigma(sigma_1, sigma_3):
     """
@@ -544,13 +616,15 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
     mdpa_editor = MdpaEditor(mdpa_path)
     mdpa_editor.update_maximum_strain(maximum_strain)
     mdpa_editor.update_initial_effective_cell_pressure(initial_effective_cell_pressure)
+    first_timestep = 1.0 + (1.0 / time_step)
+    mdpa_editor.update_first_timestep(first_timestep)
 
 
 # List of output files to process
     output_files = [
         os.path.join('gid_output', "triaxial_Stage_2.post.res")]
 
-    reshaped_values_by_time, vertical_strain, volumetric_strain = run_triaxial_test(output_files)
+    reshaped_values_by_time, vertical_strain, volumetric_strain, von_mise_stress, mean_effective_stresses = run_triaxial_test(output_files)
 
     sigma1_list = []
     sigma3_list = []
@@ -566,16 +640,6 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
             sigma1_list.append(sigma_min)
             sigma3_list.append(sigma_max)
 
-    p_list = []
-    q_list = []
-
-    for eigenvalues in eigenvalue_list:
-        sigma1, sigma2, sigma3 = np.sort(eigenvalues)
-        p = (sigma1 + sigma2 + sigma3) / 3
-        q = np.sqrt(0.5 * ((sigma1 - sigma2) ** 2 + (sigma2 - sigma3) ** 2 + (sigma3 - sigma1) ** 2))
-
-        p_list.append(p)
-        q_list.append(q)
     sigma_diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
 
     # plot_sigma(sigma1_list, sigma3_list)
@@ -588,7 +652,7 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
         plot_delta_sigma(vertical_strain, sigma_diff),
         plot_volumetric_strain(vertical_strain, volumetric_strain),
         plot_sigma(sigma1_list, sigma3_list),
-        plot_p_q(p_list, q_list),
+        plot_p_q(mean_effective_stresses, von_mise_stress),
         plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1]),
     ]
     return figs
