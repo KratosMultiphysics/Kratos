@@ -45,7 +45,7 @@ namespace Kratos
  * @ingroup ContactStructuralMechanicsApplication
  * @class PairedCondition
  * @brief This is a base class for the conditions paired
- * @details This is a base class for the conditions paired, it is basically equal to the base condition, with a pointer to the paired geoemtry
+ * @details This is a base class for the conditions paired, it is basically equal to the base condition, with a pointer to the paired geometry
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PairedCondition
@@ -160,7 +160,7 @@ public:
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an array of nodes
      * @param NewId the ID of the new element
      * @param rThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element

@@ -29,8 +29,8 @@ public:
     static double CalculateTrace(const Vector& rStressVector);
     static double CalculateMeanStress(const Vector& rStressVector);
     static double CalculateLodeAngle(const Vector& rStressVector);
-    static double CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double Phi);
-    static double CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double Phi);
+    static double CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians);
+    static double CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double PhiInRadians);
     static double CalculateVonMisesStrain(const Vector& rStrainVector);
     static Vector CalculateHenckyStrain(const Matrix& rDeformationGradient, size_t VoigtSize);
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
@@ -49,8 +49,8 @@ public:
                                           std::size_t   StressVectorSize);
 
 private:
-    static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
-    static double CalculateDenominator(const Vector& rStressVector, double Phi);
+    static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians);
+    static double CalculateDenominator(const Vector& rStressVector, double PhiInRadians);
 };
 
 } // namespace Kratos
