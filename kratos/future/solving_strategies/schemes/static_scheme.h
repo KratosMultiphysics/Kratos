@@ -257,11 +257,6 @@ public:
         KRATOS_ERROR_IF_NOT(this->GetSchemeIsInitialized()) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
         KRATOS_ERROR_IF_NOT(this->GetSchemeSolutionStepIsInitialized()) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
-        // If the mesh is to be updated, call the MoveMesh() method
-        if (this->GetMoveMesh()) {
-            this->MoveMesh();
-        }
-
         KRATOS_CATCH("")
     }
 

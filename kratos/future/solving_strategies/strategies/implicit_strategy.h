@@ -81,7 +81,8 @@ public:
     using DofsArrayType = typename ModelPart::DofsArrayType;
 
     /// Effective DOFs map type definition
-    using EffectiveDofsMapType = std::unordered_map<typename Dof<DataType>::Pointer, IndexType>;
+    // using EffectiveDofsMapType = std::unordered_map<typename Dof<DataType>::Pointer, IndexType>;
+    using EffectiveDofsMapType = std::vector<std::pair<typename Dof<DataType>::Pointer, IndexType>>;
 
     /// Matrix type definition
     using SystemMatrixType = TMatrixType;
@@ -206,30 +207,33 @@ public:
     {
         KRATOS_TRY
 
+        //FIXME: I think all this implementation must be moved to the Scheme!
+
         // Call the time scheme predict (note that this also updates the mesh if needed)
         pGetScheme()->Predict(*mpA, *mpdx, *mpb);
 
-        //TODO: Constraints implementation
-        // // Applying constraints if needed
-        // const auto &r_comm = GetModelPart().GetCommunicator().GetDataCommunicator();
-        // auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
-        // const int local_number_of_constraints = r_constraints_array.size();
-        // const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
-        // if(global_number_of_constraints != 0) {
-        //     const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        // Applying constraints if needed
+        const auto& r_model_part = this->GetModelPart();
+        const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
+        auto& r_constraints = r_model_part.MasterSlaveConstraints();
+        const std::size_t n_constraints_loc = r_constraints.size();
+        const std::size_t n_constraints_glob = r_comm.SumAll(n_constraints_loc);
 
-        //     block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
-        //         rConstraint.ResetSlaveDofs(r_process_info);
-        //     });
-        //     block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
-        //         rConstraint.Apply(r_process_info);
-        //     });
+        if (n_constraints_glob != 0) {
+            const auto& r_process_info = r_model_part.GetProcessInfo();
 
-        //     //the following is needed since we need to eventually compute time derivatives after applying
-        //     //Master slave relations
-        //     TSparseSpace::SetToZero(rDx);
-        //     this->pGetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-        // }
+            block_for_each(r_constraints, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.ResetSlaveDofs(r_process_info);
+            });
+
+            block_for_each(r_constraints, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.Apply(r_process_info);
+            });
+
+            // The following is needed since we need to eventually compute time derivatives after applying master-slave relations
+            mpdx->SetValue(0.0);
+            pGetScheme()->Update(mDofSet, *mpA, *mpdx, *mpb);
+        }
 
         KRATOS_CATCH("")
     }
@@ -753,13 +757,13 @@ private:
     SystemMatrixPointerType mpA = nullptr; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
 
     //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same matrix)
-    SystemMatrixPointerType mpEffectiveLhs = nullptr; /// The LHS matrix of the system of equations
+    SystemMatrixPointerType mpEffectiveLhs = Kratos::make_shared<TMatrixType>(); /// The LHS matrix of the system of equations
 
     //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same vector)
-    SystemVectorPointerType mpEffectiveRhs = nullptr; /// The RHS vector of the system of equations
+    SystemVectorPointerType mpEffectiveRhs = Kratos::make_shared<TVectorType>(); /// The RHS vector of the system of equations
 
     //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same vector)
-    SystemVectorPointerType mpEffectiveDx = nullptr; /// The effective solution increment for the constrained system
+    SystemVectorPointerType mpEffectiveDx = Kratos::make_shared<TVectorType>(); /// The effective solution increment for the constrained system
 
     SystemMatrixType mConstraintsRelationMatrix; // Constraints relation matrix
 

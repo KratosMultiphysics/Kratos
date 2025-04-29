@@ -274,7 +274,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
 #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraint, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraint, KratosCoreFastSuite)
 {
 #ifdef KRATOS_USE_FUTURE
     // Set up the test model part
@@ -284,8 +284,10 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraint, KratosCoreFas
     const double elem_size = 1.0;
     SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
 
-    // Create a periodicity constraint with jump
-    const double jump = 1.0;
+    // Create a constraint with jump to impose u_3 = u_1 + 2
+    // Note that as u_1 is fixed to 1.0 this actually imposes the Laplacian solution
+    // In this way we can check the MPC with fixed DOF but ensuring a compatible system of equations
+    const double jump = 2.0;
     const double weight = 1.0;
     auto& r_master_node = r_test_model_part.GetNode(1);
     auto& r_slave_node = r_test_model_part.GetNode(3);
@@ -329,8 +331,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraint, KratosCoreFas
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 1.5, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
 #else
     true;
 #endif

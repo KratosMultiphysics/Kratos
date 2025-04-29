@@ -126,7 +126,8 @@ public:
     using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Effective DOFs map type definition
-    using EffectiveDofsMapType = std::unordered_map<typename DofType::Pointer, IndexType>;
+    // using EffectiveDofsMapType = std::unordered_map<typename DofType::Pointer, IndexType>;
+    using EffectiveDofsMapType = std::vector<std::pair<typename DofType::Pointer, IndexType>>;
 
     /// TLS type
     using TLSType = ImplicitThreadLocalStorage<DataType>;
@@ -557,18 +558,18 @@ public:
 
     //TODO: Think about the dynamic case and the mass and damping matrices!!
     virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const EffectiveDofsMapType& rEffectiveDofList,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rLHS, rRHS);
+        GetAssemblyHelper().ApplyDirichletConditions(rEffectiveDofList, rLHS, rRHS);
     }
 
     virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const EffectiveDofsMapType& rEffectiveDofList,
         TSparseVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(rDofSet, rRHS);
+        GetAssemblyHelper().ApplyDirichletConditions(rEffectiveDofList, rRHS);
     }
 
     //TODO: Think about the dynamic case and the mass and damping matrices!!
@@ -657,7 +658,7 @@ public:
         TSparseVectorType& rDx)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
-            rDx = rConstraintsConstantVector;
+            rDx.SetValue(0.0);
             rConstraintsRelationMatrix.SpMV(rEffectiveDx, rDx);
         } else {
             rDx = rEffectiveDx;

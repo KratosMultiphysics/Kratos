@@ -85,7 +85,9 @@ public:
     using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Effective DOFs map type definition
-    using EffectiveDofsMapType = std::unordered_map<typename DofType::Pointer, IndexType>;
+    // using EffectiveDofsMapType = std::unordered_map<typename DofType::Pointer, IndexType>;
+
+    using EffectiveDofsMapType = std::vector<std::pair<typename DofType::Pointer, IndexType>>;
 
     /// DOF pointer vector type definition
     using DofPointerVectorType = typename MasterSlaveConstraint::DofPointerVectorType;
@@ -351,7 +353,7 @@ public:
     }
 
     virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const EffectiveDofsMapType& rEffectiveDofMap,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS)
     {
@@ -360,7 +362,7 @@ public:
             // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
             // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
-            ApplyBlockBuildDirichletConditions(rDofSet, rLHS, rRHS);
+            ApplyBlockBuildDirichletConditions(rEffectiveDofMap, rLHS, rRHS);
 
         } else if (mBuildType == BuildType::Elimination) {
 
@@ -374,11 +376,11 @@ public:
     }
 
     virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const EffectiveDofsMapType& rEffectiveDofMap,
         TSparseVectorType& rRHS)
     {
         if (mBuildType == BuildType::Block) {
-            ApplyBlockBuildDirichletConditions(rDofSet, rRHS);
+            ApplyBlockBuildDirichletConditions(rEffectiveDofMap, rRHS);
         } else if (mBuildType == BuildType::Elimination) {
             return;
         } else {
@@ -837,7 +839,7 @@ private:
     }
 
     void ApplyBlockBuildDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const EffectiveDofsMapType& rEffectiveDofMap,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS) const
     {
@@ -849,11 +851,11 @@ private:
 
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto dof_begin = rDofSet.begin();
-        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](IndexType Index){
-            auto it_dof = dof_begin + Index;
-            if (it_dof->IsFixed()) {
-                free_dofs_vector[Index] = 0;
+        const auto eff_dof_begin = rEffectiveDofMap.begin();
+        IndexPartition<std::size_t>(rEffectiveDofMap.size()).for_each([&](IndexType Index){
+            auto eff_dof_pair = *(eff_dof_begin + Index);
+            if (eff_dof_pair.first->IsFixed()) {
+                free_dofs_vector[eff_dof_pair.second] = 0;
             }
         });
 
@@ -869,16 +871,16 @@ private:
     }
 
     void ApplyBlockBuildDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const EffectiveDofsMapType& rEffectiveDofMap,
         TSparseVectorType& rRHS) const
     {
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto dof_begin = rDofSet.begin();
-        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](IndexType Index){
-            auto it_dof = dof_begin + Index;
-            if (it_dof->IsFixed()) {
-                rRHS[Index] = 0.0;
+        const auto eff_dof_begin = rEffectiveDofMap.begin();
+        IndexPartition<std::size_t>(rEffectiveDofMap.size()).for_each([&](IndexType Index){
+            auto eff_dof_pair = *(eff_dof_begin + Index);
+            if (eff_dof_pair.first->IsFixed()) {
+                rRHS[eff_dof_pair.second] = 0.0;
             }
         });
     }
@@ -899,9 +901,11 @@ private:
         const SizeType n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
         if (n_constraints) {
 
+            // Auxiliary set to store the unordered effective DOFs (masters from constraints and standard ones)
+            std::unordered_set<typename DofType::Pointer> effective_dofs_set;
+
             // Get the master / slave DOFs from the constraints
             std::unordered_map<typename DofType::Pointer, DofPointerVectorType> constraints_slave_dofs;
-
             const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
             for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
                 // Get current constraint master and slave DOFs
@@ -917,7 +921,7 @@ private:
                 // Add the master DOFs to the system DOFs map
                 // Note that we initialize the system ids to zero as these will be overwritten later
                 for (auto& rp_master : r_master_dofs) {
-                    rEffectiveDofMap.insert(std::make_pair(rp_master, 0));
+                    effective_dofs_set.insert(rp_master);
                 }
             }
 
@@ -932,65 +936,26 @@ private:
                 auto i_dof_find_in_slaves = constraints_slave_dofs.find(p_dof);
                 if (i_dof_find_in_slaves == constraints_slave_dofs.end()) {
                     // Check if the current DOF is already in the "master" DOFs map
-                    auto i_dof_find_in_system = rEffectiveDofMap.find(p_dof);
-                    if (i_dof_find_in_system == rEffectiveDofMap.end()) {
+                    auto i_dof_find_in_system = effective_dofs_set.find(p_dof); //TODO: I think we can avoid this as std::unordered_set guarrantees uniqueness
+                    if (i_dof_find_in_system == effective_dofs_set.end()) {
                         // Add current DOF to the system DOFs map
                         // Note that we initialize the system ids to zero but these will be overwritten later
-                        rEffectiveDofMap.insert(std::make_pair(p_dof, 0));
+                        effective_dofs_set.insert(p_dof);
                     }
                 }
             }
 
-            // Sort the "master" DOFs before setting the equation ids
-            std::vector<typename DofType::Pointer> ordered_system_dofs;
-            ordered_system_dofs.reserve(rEffectiveDofMap.size());
-            for (const auto& system_dof_pair : rEffectiveDofMap) {
-                ordered_system_dofs.push_back(system_dof_pair.first);
-            }
-            std::sort(ordered_system_dofs.begin(), ordered_system_dofs.end());
+            // Sort the effective DOFs before setting the equation ids
+            std::vector<typename DofType::Pointer> ordered_eff_dofs_set(effective_dofs_set.begin(), effective_dofs_set.end());
+            std::sort(ordered_eff_dofs_set.begin(), ordered_eff_dofs_set.end());
 
             // Set the "master" DOFs equation ids based on the sorted list
-            IndexType aux_eq_id = 0;
-            for (const auto p_dof : ordered_system_dofs) {
-                auto p_dof_find_in_system = rEffectiveDofMap.find(p_dof);
-                KRATOS_ERROR_IF(p_dof_find_in_system == rEffectiveDofMap.end()) << "DOF cannot be find." << std::endl;
-                (*p_dof_find_in_system).second = aux_eq_id;
-                aux_eq_id++;
-            }
-
-            for (auto pair : rEffectiveDofMap) {
-                std::cout << pair.first << " - " << *(pair.first) << " - " << pair.second << std::endl;
-            }
-
-            //TODO: Add the sparse graph contributions
-
-            // #pragma omp parallel
-            // {
-            //     Element::EquationIdVectorType slave_eq_ids;
-            //     Element::EquationIdVectorType master_eq_ids;
-            //     std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_slave_eq_ids;
-
-            //     #pragma omp for schedule(guided, 512) nowait
-            //     for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
-            //         // Get current constraint master and slave equation ids
-            //         auto it_const = it_const_begin + i_const;
-            //         it_const->EquationIdVector(slave_eq_ids, master_eq_ids, rModelPart.GetProcessInfo());
-
-            //         // For each slave DOF save its corresponding master equation ids
-            //         for (auto slave_eq_id : slave_eq_ids) {
-            //             //FIXME: should we throw an error if temp_slave_eq_ids[slave_eq_id] is already there?
-            //             temp_slave_eq_ids[slave_eq_id].insert(master_eq_ids.begin(), master_eq_ids.end());
-            //         }
-            //     }
-
-            //     // Merging all the temporal indexes
-            //     for (auto& slave_pair : temp_slave_eq_ids) {
-            //         const auto& r_master_eq_ids = slave_pair.second;
-            //         lock_array[slave_pair.first].lock();
-            //         indices[slave_pair.first].insert(r_master_eq_ids.begin(), r_master_eq_ids.end());
-            //         lock_array[slave_pair.first].unlock();
-            //     }
-            // }
+            const SizeType n_eff_dofs = ordered_eff_dofs_set.size();
+            rEffectiveDofMap.resize(n_eff_dofs);
+            IndexPartition<IndexType>(n_eff_dofs).for_each([&](IndexType Index){
+                auto p_dof = ordered_eff_dofs_set[Index];
+                rEffectiveDofMap[Index] = std::make_pair(p_dof, Index);
+            });
 
             // Clear the equation ids vectors
             mSlaveIds.clear();
@@ -999,51 +964,6 @@ private:
             // Set up constraints matrix sparse graph (note that mEquationSystemSize is the DOF set size in the block build)
             KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
             TSparseGraphType constraints_sparse_graph(mEquationSystemSize);
-
-            // // Loop the equation id indices vector
-            // // If entry is empty means a master DOF
-            // // If entry is not empty it is a slave DOF and contains the corresponding master equation ids
-            // for (IndexType i_dof_eq_id = 0; i_dof_eq_id < mEquationSystemSize; ++i_dof_eq_id) {
-            //     // Check if current DOF is master or slave
-            //     // Note that if it is slave we add its corresponding master DOFs to the sparse graph
-            //     if (indices[i_dof_eq_id].size() == 0) {
-            //         mMasterIds.push_back(i_dof_eq_id); // Add to master DOFs equation ids vector
-            //     } else {
-            //         mSlaveIds.push_back(i_dof_eq_id); // Add to slave DOFs equation ids vector
-            //         constraints_sparse_graph.AddEntries(i_dof_eq_id, indices[i_dof_eq_id]); // Add slave DOF (row) master entries (cols) to constraints matrix graph
-            //     }
-
-            //     // Ensure that the diagonal is there in T
-            //     constraints_sparse_graph.AddEntry(i_dof_eq_id, i_dof_eq_id); // Add diagonal contribution for master DOFs
-            // }
-
-            // // Loop the elements and conditions DOFs container
-            // for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
-            //     // Get current DOF
-            //     auto p_dof = *(rDofSet.ptr_begin() + i_dof);
-            //     const IndexType i_dof_eq_id = p_dof->EquationId();
-
-            //     // Check if current DOF is slave by checking the slaves DOFs map
-            //     // If not present in the slaves DOFs map it should be considered a "master" DOF
-            //     // Note that here "master" means an actual masters DOF or a DOF that do not involve any constraint
-            //     auto i_dof_slave_find = constraints_slave_dofs.find(p_dof);
-            //     if (i_dof_slave_find != constraints_slave_dofs.end()) { // Slave DOF
-            //         mSlaveIds.push_back(i_dof_eq_id);
-            //         for (auto& rp_master : i_dof_slave_find->second) {
-            //             constraints_sparse_graph.AddEntry(i_dof_eq_id, rp_master->EquationId()); // Add slave DOF (row) master entries (cols) to constraints matrix graph
-            //         }
-            //     } else { // "Master" DOF
-            //         auto i_dof_master_find = constraints_master_dofs.find(p_dof);
-            //         if (i_dof_master_find != constraints_master_dofs.end()) { // Is master DOF
-            //             mMasterIds.push_back(i_dof_master_find->second); // We use the equation id coming from the constraint
-            //         } else { // Is standard DOF (not related to any constraint) and we treat it as master "of itself"
-            //             mMasterIds.push_back(i_dof_eq_id); // We use the equation id coming from the existing DOF set (the elements & conditions one)
-            //         }
-            //     }
-
-            //     // Ensure that the diagonal is there in T
-            //     constraints_sparse_graph.AddEntry(i_dof_eq_id, i_dof_eq_id); // Add diagonal contribution for "master" DOFs
-            // }
 
             // Loop the elements and conditions DOFs container
             for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
@@ -1062,39 +982,34 @@ private:
                     // Add current slave DOF connectivities to the constraints sparse graph
                     // The slave rows eq ids come from the system ones while the column master ones are the above defined
                     for (auto& rp_master : i_dof_slave_find->second) {
-                        auto find_in_masters = rEffectiveDofMap.find(rp_master);
+                        auto find_in_masters = std::find_if(
+                            rEffectiveDofMap.begin(),
+                            rEffectiveDofMap.end(),
+                            [rp_master](const std::pair<typename DofType::Pointer, IndexType>& rEffDofPair){return rEffDofPair.first == rp_master;});
                         KRATOS_ERROR_IF(find_in_masters == rEffectiveDofMap.end()) << "DOF cannot be find." << std::endl;
                         constraints_sparse_graph.AddEntry(i_dof_eq_id, find_in_masters->second);
                     }
                 } else { // "Master" DOF
-                    auto find_in_masters = rEffectiveDofMap.find(p_dof);
+                    auto find_in_masters = std::find_if(
+                        rEffectiveDofMap.begin(),
+                        rEffectiveDofMap.end(),
+                        [p_dof](const std::pair<typename DofType::Pointer, IndexType>& rEffDofPair){return rEffDofPair.first == p_dof;});
                     KRATOS_ERROR_IF(find_in_masters == rEffectiveDofMap.end()) << "DOF cannot be find." << std::endl;
                     mMasterIds.push_back(find_in_masters->second);
                     constraints_sparse_graph.AddEntry(i_dof_eq_id, find_in_masters->second);
                 }
             }
 
-            std::cout << "mSlaveIds" << std::endl;
-            for (auto val : mSlaveIds) {
-                std::cout << val << std::endl;
-            }
-
-            std::cout << "mMasterIds" << std::endl;
-            for (auto val : mMasterIds) {
-                std::cout << val << std::endl;
-            }
-
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
             rConstraintsConstantVector = std::move(TSparseVectorType(mEquationSystemSize));
             rConstraintsRelationMatrix = std::move(TSparseMatrixType(constraints_sparse_graph));
 
-            KRATOS_WATCH(rConstraintsRelationMatrix)
         } else {
-            // TODO: Make this parallel
-            for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
-                typename DofType::Pointer p_dof = *(rDofSet.ptr_begin() + i_dof);
-                rEffectiveDofMap.insert(std::make_pair(p_dof, p_dof->EquationId()));
-            }
+            rEffectiveDofMap.resize(rDofSet.size());
+            IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
+                typename DofType::Pointer p_dof = *(rDofSet.ptr_begin() + Index);
+                rEffectiveDofMap[Index] = std::make_pair(p_dof, p_dof->EquationId());
+            });
         }
     }
 
@@ -1238,9 +1153,7 @@ private:
             rEffectiveDx.SetValue(0.0);
 
             // Apply constraints to RHS
-            TSparseVectorType aux(*rpRhs);
-            rpLhs->SpMV(-1.0, rConstraintsConstantVector, 1.0, aux);
-            rConstraintsRelationMatrix.TransposeSpMV(aux, rEffectiveRhs);
+            rConstraintsRelationMatrix.TransposeSpMV(*rpRhs, rEffectiveRhs);
 
             // Apply constraints to LHS
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*rpLhs, rConstraintsRelationMatrix);

@@ -162,6 +162,7 @@ public:
 
         // Get system data
         auto& r_dof_set = this->GetDofSet();
+        auto& r_eff_dof_list = this->GetEffectiveDofMap();
         auto p_lhs = this->pGetSystemMatrix();
         auto p_rhs = this->pGetSystemVector();
         auto p_dx = this->pGetSolutionVector();
@@ -184,7 +185,7 @@ public:
             p_scheme->Build(*p_lhs, *p_rhs);
             p_scheme->BuildConstraints(r_T, r_b);
             p_scheme->ApplyConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
-            p_scheme->ApplyDirichletConditions(r_dof_set, *p_eff_lhs, *p_eff_rhs); // TODO: This should be done with the effective dofset
+            p_scheme->ApplyDirichletConditions(r_eff_dof_list, *p_eff_lhs, *p_eff_rhs);
             this->SetStiffnessMatrixIsBuilt(true);
         } else {
             // Initialize values
@@ -194,7 +195,7 @@ public:
             // Build the RHS and apply the Dirichlet conditions
             p_scheme->Build(*p_rhs);
             p_scheme->ApplyConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b); //TODO: In here we should apply them to the RHS-only!
-            p_scheme->ApplyDirichletConditions(r_dof_set, *p_eff_rhs); //TODO: This should be done with the effective dofset
+            p_scheme->ApplyDirichletConditions(r_eff_dof_list, *p_eff_rhs);
         }
 
         // Solve the system
