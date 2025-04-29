@@ -24,6 +24,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
+#include "custom_strategies/builder_and_solvers/geo_residualbased_block_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
 
 // schemes
@@ -121,6 +122,14 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
     py::class_<ResidualBasedBlockBuilderAndSolverWithMassAndDampingType,
                ResidualBasedBlockBuilderAndSolverWithMassAndDampingType::Pointer, BuilderAndSolverType>(
         m, "ResidualBasedBlockBuilderAndSolverWithMassAndDamping")
+        .def(py::init<LinearSolverType::Pointer>())
+        .def(py::init<LinearSolverType::Pointer, Parameters>());
+
+    using GeoResidualBasedBlockBuilderAndSolverType =
+        GeoResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    py::class_<GeoResidualBasedBlockBuilderAndSolverType,
+               GeoResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType>(
+        m, "GeoResidualBasedBlockBuilderAndSolver")
         .def(py::init<LinearSolverType::Pointer>())
         .def(py::init<LinearSolverType::Pointer, Parameters>());
 }
