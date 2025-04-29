@@ -112,19 +112,32 @@ class prob_analysis:
 if __name__ == "__main__":
 
     # Example usage
-    template_project_path = r"c:\Users\nuttall\OneDrive - Stichting Deltares\Desktop\dummy 2 stage test"
-    input_parameters = [[1, "PorousDomain.Soil", kratos_geo.UMAT_PARAMETERS, 0],
-                        [1, "PorousDomain.Soil", kratos_geo.UMAT_PARAMETERS, 1]]
-    input_values = [5000000.0, 0.2]
-    output_parameters = [[0, np.max, test_helper.get_nodal_variable, "PorousDomain.Soil", Kratos.DISPLACEMENT_Y, None],
-                         [1, None, test_helper.get_nodal_variable, "PorousDomain.Soil", Kratos.DISPLACEMENT_Y, 2]]
+    input_young_moduli = [100E5, 500E5, 900.0E05, 1000.0E05, 2000.0E05]
+    min_displacements = []
+    displacements_at_node_13 = []
+    for young_modulus in input_young_moduli:
+        template_project_path = r"C:\tmp\FEA-Tools\Quay_Wall\Quay_Wall_4Stage_quadratic_master_slave_interface_with_anchor_reset_displacement_and_prestress_truss_anchor"
+        input_parameters = [[0, "PorousDomain.Parts_Solid_layer_1|1", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Parts_Solid_layer_1|2", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Parts_Solid_layer_2|1", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Parts_Solid_layer_2|2", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Parts_Solid_layer_3|1", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Parts_Solid_layer_3|2", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Parts_Solid_layer_4|1", Kratos.YOUNG_MODULUS]]
+        input_values = [young_modulus] * len(input_parameters)
+        output_parameters = [[0, np.min, test_helper.get_nodal_variable, "PorousDomain.porous_computational_model_part", Kratos.DISPLACEMENT_Y],
+                             [1, None, test_helper.get_nodal_variable, "PorousDomain.porous_computational_model_part", Kratos.DISPLACEMENT_Y, 13]]
 
-    try:
-        prob_analysis_instance = prob_analysis(template_project_path, input_parameters, output_parameters)
-        output_values = prob_analysis_instance.calculate(input_values)
-        print(output_values)
-    except Exception as e:
-        print("An error occurred:", e)
-    finally:
-        # Clean up and remove the temporary folder
-        prob_analysis_instance.finalize()
+        try:
+            prob_analysis_instance = prob_analysis(template_project_path, input_parameters, output_parameters)
+            output_values = prob_analysis_instance.calculate(input_values)
+            min_displacements.append(output_values[0])
+            displacements_at_node_13.append(output_values[1])
+        except Exception as e:
+            print("An error occurred:", e)
+        finally:
+            # Clean up and remove the temporary folder
+            prob_analysis_instance.finalize()
+
+    print("Minimum displacements:", min_displacements)
+    print("Displacements at node 13:", displacements_at_node_13)
