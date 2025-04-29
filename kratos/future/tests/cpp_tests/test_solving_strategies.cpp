@@ -411,7 +411,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraints, KratosCoreF
     const double elem_size = 1.0;
     SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
 
-    // Create a constraint involving multiple master DOFs
+    // Create a constraint involving multiple master DOFs such that u_4 = 0.5*u_1 + 0.5*u_2 + 1.0
     std::vector<typename Dof<double>::Pointer> slave_dofs(1);
     std::vector<typename Dof<double>::Pointer> master_dofs(2);
     slave_dofs[0] = r_test_model_part.GetNode(4).pGetDof(DISTANCE);
@@ -465,9 +465,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraints, KratosCoreF
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.888888888888888, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.166666666666666, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
 #else
     true;
 #endif
