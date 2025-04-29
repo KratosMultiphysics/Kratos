@@ -83,7 +83,6 @@ public:
                     "min_radius_factor": 0.5,
                     "search_neighbours_step": false,
                     "body_domain_sub_model_part_list": [],
-                    "loads_sub_model_part_list": [],
                     "loads_variable_list" : [],
                     "rebuild_level": 2
                 }  )");

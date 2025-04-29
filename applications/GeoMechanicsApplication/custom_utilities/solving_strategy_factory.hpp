@@ -63,8 +63,7 @@ public:
             const auto reform_dof_set_at_each_step = rSolverSettings["reform_dofs_at_each_step"].GetBool();
             const auto move_mesh_flag = rSolverSettings["move_mesh_flag"].GetBool();
 
-            const std::vector<std::string> strategy_entries = {"loads_sub_model_part_list",
-                                                               "loads_variable_list"};
+            const std::vector<std::string> strategy_entries = {"loads_variable_list"};
             auto                           strategy_parameters =
                 ParametersUtilities::CopyOptionalParameters(rSolverSettings, strategy_entries);
             auto result =

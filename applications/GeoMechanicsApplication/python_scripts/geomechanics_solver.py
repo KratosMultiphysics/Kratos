@@ -127,7 +127,6 @@ class GeoMechanicalSolver(PythonSolver):
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
             "body_domain_sub_model_part_list": [""],
-            "loads_sub_model_part_list": [],
             "loads_variable_list": []
         }""")
 
@@ -209,9 +208,6 @@ class GeoMechanicalSolver(PythonSolver):
 
         sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"].values()]
         self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
-
-        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["loads_sub_model_part_list"].values()]
-        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Executes the check and prepare model process (Create computing_model_part and set constitutive law)
@@ -410,8 +406,6 @@ class GeoMechanicalSolver(PythonSolver):
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
         params.AddValue("body_domain_sub_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
-        params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-        params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
         # CheckAndPrepareModelProcess creates the porous_computational_model_part
         from KratosMultiphysics.GeoMechanicsApplication import check_and_prepare_model_process_geo
         check_and_prepare_model_process_geo.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
@@ -470,7 +464,6 @@ class GeoMechanicalSolver(PythonSolver):
 
         if strategy_type.lower() == "newton_raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                                          self.scheme,
@@ -483,7 +476,6 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
