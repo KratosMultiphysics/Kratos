@@ -85,7 +85,7 @@ void AssignIgaExternalConditionsProcess::Execute(){
                             i_cond->SetValue(DIRECTION_X, dir_x_value);
                             i_cond->SetValue(DIRECTION_Y, dir_y_value);
                             i_cond->SetValue(DIRECTION_Z, dir_z_value);
-                            i_cond->SetValue(MODULE, module_value);
+                            i_cond->SetValue(MODULUS, module_value);
                         } 
                     } else {KRATOS_ERROR << "AssignIgaExternalConditionsProcess : No Conditions defined for AssignByDirection" ;}
                 }
