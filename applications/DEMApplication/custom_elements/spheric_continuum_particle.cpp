@@ -64,7 +64,6 @@ namespace Kratos {
             } else { // periodic domain
                 double my_coors[3] = {central_node[0], central_node[1], central_node[2]};
                 double other_coors[3] = {neighbour_node[0], neighbour_node[1], neighbour_node[2]};
-
                 TransformNeighbourCoorsToClosestInPeriodicDomain(r_process_info, my_coors, other_coors);
                 other_to_me_vect[0] = my_coors[0] - other_coors[0];
                 other_to_me_vect[1] = my_coors[1] - other_coors[1];
