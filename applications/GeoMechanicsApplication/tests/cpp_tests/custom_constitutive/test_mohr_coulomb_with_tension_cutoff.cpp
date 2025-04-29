@@ -432,4 +432,58 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
                               1.E6);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_WorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    // Act & Assert
+    KRATOS_EXPECT_EQ(mc_law.WorkingSpaceDimension(), 2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    // Act & Assert
+    KRATOS_EXPECT_EQ(mc_law.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    // Act & Assert
+    KRATOS_EXPECT_EQ(mc_law.GetStrainSize(), 4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetStrainMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    // Act & Assert
+    KRATOS_EXPECT_EQ(mc_law.GetStrainMeasure(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_IsIncremental, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    // Act & Assert
+    KRATOS_EXPECT_EQ(mc_law.IsIncremental(), true);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_RequiresInitializeMaterialResponse, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    // Act & Assert
+    KRATOS_EXPECT_EQ(mc_law.IsIncremental(), true);
+}
+
 } // namespace Kratos::Testing
