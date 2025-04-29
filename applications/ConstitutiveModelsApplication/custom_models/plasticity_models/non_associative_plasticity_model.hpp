@@ -781,7 +781,7 @@ namespace Kratos
                double DeltaGamma;
                DeltaGamma = MathUtils<double>::Dot( AuxVector, DeltaStressYieldCondition);
 
-               double Denominador = H + MathUtils<double>::Dot<VectorType, VectorType>( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative );
+               double Denominador = H + MathUtils<double>::Dot<VectorType, VectorType>( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) );
 
                DeltaGamma /= Denominador;
 
