@@ -1,6 +1,6 @@
 from KratosMultiphysics import *
 
-## This proces sets the value several scalar variables corresponding to the thermal problem using the ApplyConstantScalarValueProcess.
+## This process sets the value several scalar variables corresponding to the thermal problem using the ApplyConstantScalarValueProcess.
 ## In this case, the scalar value is automatically fixed.
 
 def Factory(settings, Model):

@@ -44,7 +44,7 @@ class MpmAnalysis(AnalysisStage):
         friction_active = False
 
         for proc_list in project_parameters["processes"].values():
-            for proc in proc_list:
+            for proc in proc_list.values():
                 if proc.Has("process_name") and proc["process_name"].GetString() == "ApplyMPMSlipBoundaryProcess":
                     proc_params = proc["Parameters"]
 

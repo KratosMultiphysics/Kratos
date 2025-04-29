@@ -60,6 +60,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
+    using SizeType = IndexType;
     typedef int MpiIndexType;
     typedef CsrMatrix<TDataType,TIndexType> BlockMatrixType;
     typedef typename CsrMatrix<TDataType,TIndexType>::MatrixMapType MatrixMapType;
@@ -88,7 +89,7 @@ public:
         //compute the columns size
         TIndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
         TIndexType tot_col_size = max_col_index+1;
-            
+
         //this ensures that diagonal blocks are square for square matrices
         if (tot_col_size == mpRowNumbering->Size()) {
             mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, mpRowNumbering->GetCpuBounds());
@@ -717,7 +718,7 @@ public:
             IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
             IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
             for(IndexType k = row_begin; k < row_end; ++k){
-                const IndexType j = GetOffDiagonalBlock().index2_data()[k]; 
+                const IndexType j = GetOffDiagonalBlock().index2_data()[k];
                 const TDataType v = GetOffDiagonalBlock().value_data()[k];
                 tmp_data.push_back(GetRowNumbering().GlobalId(i));
                 tmp_data.push_back(mOffDiagonalGlobalIds[j]);
@@ -760,21 +761,36 @@ public:
                 }
             }
             p_csr_output->FinalizeAssemble();
-        }        
-        
+        }
+
         return p_csr_output;
+    }
+
+    TDataType NormDiagonal() const
+    {
+        TDataType diagonal_norm_squared = std::pow(GetDiagonalBlock().NormDiagonal(), 2);
+        diagonal_norm_squared = GetComm().SumAll(diagonal_norm_squared);
+        return (std::sqrt(diagonal_norm_squared));
+    }
+
+    TDataType MaxDiagonal() const
+    {
+        TDataType diagonal_max = GetDiagonalBlock().MaxDiagonal();
+        diagonal_max = GetComm().MaxAll(diagonal_max);
+        return diagonal_max;
+    }
+
+    TDataType MinDiagonal() const
+    {
+        TDataType diagonal_min = GetDiagonalBlock().MinDiagonal();
+        diagonal_min = GetComm().MinAll(diagonal_min);
+        return diagonal_min;
     }
 
     //TODO
     // LeftScaling
     // RightScaling
     // SymmetricScaling
-
-    //TODO
-    //void ApplyDirichlet
-
-    //TODO
-    //NormFrobenius
 
     ///@}
     ///@name Access

@@ -227,7 +227,7 @@ class MainCoupledFemDem_Solution:
         # processes to be executed before witting the output
         self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
 
-        # processes to be executed after writting the output
+        # processes to be executed after writing the output
         self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
 
         if not self.is_slave:

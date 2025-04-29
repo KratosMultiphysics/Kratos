@@ -69,7 +69,7 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
     this->Set(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE, mThisParameters["predefined_master_slave"].GetBool());
     this->Set(BaseContactSearchProcess::PURE_SLIP, mThisParameters["pure_slip"].GetBool());
 
-    // If we are going to consider multple searchs
+    // If we are going to consider multple searches
     const std::string& id_name = mThisParameters["id_name"].GetString();
     const bool multiple_searchs = id_name == "" ? false : true;
     this->Set(BaseContactSearchProcess::MULTIPLE_SEARCHS, multiple_searchs);

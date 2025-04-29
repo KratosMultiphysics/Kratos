@@ -27,7 +27,7 @@ public:
     MockElement() : UPwSmallStrainElement<2, 4>() {}
 
     MockElement(IndexType NewId, const GeometryType::Pointer& rGeometry, const PropertiesType::Pointer& rProperties)
-        : UPwSmallStrainElement(NewId, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>())
+        : UPwSmallStrainElement(NewId, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>(), nullptr)
     {
     }
 

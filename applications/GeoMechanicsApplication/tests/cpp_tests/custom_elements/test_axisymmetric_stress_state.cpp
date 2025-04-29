@@ -14,6 +14,7 @@
 #include "containers/model.h"
 #include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/stress_state_policy.h"
+#include "custom_utilities/registration_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
@@ -23,6 +24,7 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
+#include <type_traits>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -73,7 +75,15 @@ KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanic
 
     // The expected number is calculated as follows:
     // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 5.02655, 1e-5);
+    KRATOS_EXPECT_RELATIVE_NEAR(calculated_coefficient, 5.02655, Defaults::relative_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<AxisymmetricStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<AxisymmetricStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<AxisymmetricStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<AxisymmetricStressState>);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -83,6 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSui
     const auto p_cloned_stress_state_policy = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<AxisymmetricStressState*>(p_cloned_stress_state_policy.get()), nullptr);
+    KRATOS_EXPECT_NE(p_cloned_stress_state_policy.get(), p_stress_state_policy.get());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestCalculateGreenLagrangeStrainThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -127,7 +138,8 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectStressTensorSize, 
 KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistrationOfAllStressStatePolicies{};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"AxisymmetricStressState"s, AxisymmetricStressState{}};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<AxisymmetricStressState>()};
     auto serializer = StreamSerializer{};
 

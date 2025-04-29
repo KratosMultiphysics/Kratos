@@ -367,6 +367,8 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
 {
     auto& main_model_part = GetMainModelPart();
+    main_model_part.GetProcessInfo().SetValue(TIME_UNIT_CONVERTER, 1.0);
+
     if (!main_model_part.HasSubModelPart(mComputationalSubModelPartName)) {
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
     }

@@ -92,7 +92,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
             old_total_displacements = [node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT)
                                        for node in self._GetSolver().GetComputingModelPart().Nodes]
 
-        self._GetSolver().solver.SetRebuildLevel(self.rebuild_level)
+        self._GetSolver().solving_strategy.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
             # check against max_delta_time should only be necessary here when the very first increment exceeds the maximum increment.
@@ -136,7 +136,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 self.InitializeSolutionStep()
                 self._GetSolver().Predict()
                 converged = self._GetSolver().SolveSolutionStep()
-                self._GetSolver().solver.SetStiffnessMatrixIsBuilt(True)
+                self._GetSolver().solving_strategy.SetStiffnessMatrixIsBuilt(True)
 
                 if converged:
                     # scale next step if desired

@@ -48,6 +48,7 @@ cmake                                                 ^
   -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
   -DBOOST_ROOT="%TEMP%\boost"                         ^
   -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5                  ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   ^
   -DCMAKE_UNITY_BUILD=ON                                    || goto :error
 

@@ -37,7 +37,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 //#include "utilities/enrichment_utilities.h"
 
-#include <boost/timer.hpp>
+#include <chrono>
 #include "utilities/timer.h"
 
 #ifdef _OPENMP
@@ -172,7 +172,7 @@ namespace Kratos
         typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
 
         //starting calculating time of construction of the kdtree
-        boost::timer kdtree_construction;
+		const auto start{std::chrono::steady_clock::now()};
 
         for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
@@ -182,8 +182,10 @@ namespace Kratos
 	    //putting the nodes of the destination_model part in an auxiliary list
 	    list_of_nodes.push_back(pnode);
 	  }
-
-        std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+	   
+	    const auto finish{std::chrono::steady_clock::now()};
+        const std::chrono::duration<double> kdtree_construction{finish - start};
+        std::cout << "kdt constructin time " << kdtree_construction.count() << std::endl;
 
         //create a spatial database with the list of new nodes
         unsigned int bucket_size = 20;
@@ -278,7 +280,7 @@ namespace Kratos
         typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
 
         //starting calculating time of construction of the kdtree
-        boost::timer kdtree_construction;
+		const auto start{std::chrono::steady_clock::now()};
 
         for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
@@ -289,7 +291,9 @@ namespace Kratos
             list_of_nodes.push_back(pnode);
 	  }
 
-        std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+        const auto finish{std::chrono::steady_clock::now()};
+        const std::chrono::duration<double> kdtree_construction{finish - start};
+        std::cout << "kdt constructin time " << kdtree_construction.count() << std::endl;
 
         //create a spatial database with the list of new nodes
         unsigned int bucket_size = 20;
@@ -1310,7 +1314,7 @@ namespace Kratos
 
 
 	//starting calculating time of construction of the kdtree
-	boost::timer kdtree_construction;
+	const auto start{std::chrono::steady_clock::now()};
 
 	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
@@ -1321,7 +1325,9 @@ namespace Kratos
 	    list_of_nodes.push_back(pnode);
 	  }
 
-	std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+	const auto finish{std::chrono::steady_clock::now()};
+    const std::chrono::duration<double> kdtree_construction{finish - start};
+    std::cout << "kdt constructin time " << kdtree_construction.count() << std::endl;
 
 	//create a spatial database with the list of new nodes
 	unsigned int bucket_size = 20;

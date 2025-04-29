@@ -58,7 +58,7 @@ class DamageDetectionResponse(ResponseFunction):
 
         # reading test analsis list
         self.list_of_test_analysis_data: 'list[tuple[ExecutionPolicyDecorator, DataIO, str, float]]' = []
-        for params in parameters["test_analysis_list"]:
+        for params in parameters["test_analysis_list"].values():
             params.ValidateAndAssignDefaults(default_settings["test_analysis_list"][0])
             primal_analysis_name = params["primal_analysis_name"].GetString()
             sensor_measurement_data_file_name = params["sensor_measurement_csv_file"].GetString()
@@ -92,7 +92,7 @@ class DamageDetectionResponse(ResponseFunction):
 
     def Check(self) -> None:
         pass
-    
+
     def Finalize(self) -> None:
         self.adjoint_analysis.Finalize()
 

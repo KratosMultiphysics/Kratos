@@ -90,13 +90,13 @@ Vector& SmallStrainUMAT2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisV
     return rValue;
 }
 
-void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rThisVariable,
+void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable,
                                                const Vector&           rValue,
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUMAT3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }
 }

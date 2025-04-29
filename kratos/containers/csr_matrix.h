@@ -61,12 +61,19 @@ class CsrMatrix final
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType;
-    typedef std::unordered_map<std::pair<IndexType, IndexType>,
-            double,
-            PairHasher<IndexType, IndexType>,
-            PairComparor<IndexType, IndexType>
-            > MatrixMapType;
+
+    using DataType = TDataType;
+
+    using SizeType = TIndexType;
+
+    using IndexType = TIndexType;
+
+    using MatrixMapType = std::unordered_map<
+        std::pair<IndexType, IndexType>,
+        TDataType,
+        PairHasher<IndexType, IndexType>,
+        PairComparor<IndexType, IndexType>
+        >;
 
     /// Pointer definition of CsrMatrix
     KRATOS_CLASS_POINTER_DEFINITION(CsrMatrix);
@@ -108,23 +115,35 @@ public:
         SetValue(0.0);
     }
 
-    CsrMatrix(const MatrixMapType& matrix_map)
+    CsrMatrix(const MatrixMapType& rMatrixMap)
     {
+        // Set sparse graph from matrix map
         SparseGraph<TIndexType> Agraph;
-        for(const auto& item : matrix_map){
+        for (const auto& item : rMatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             Agraph.AddEntry(I,J);
         }
         Agraph.Finalize();
 
+        // Set up CSR matrix arrays and sizes from sparse graph
+        TIndexType row_data_size = 0;
+        TIndexType col_data_size = 0;
+        Agraph.ExportCSRArrays(mpRowIndicesData, row_data_size, mpColIndicesData, col_data_size);
+        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, row_data_size);
+        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, col_data_size);
+        mNrows = size1();
+        ComputeColSize();
+        ResizeValueData(mColIndices.size());
+
+        // Assemble data from matrix map
         this->BeginAssemble();
-        for(const auto item : matrix_map){
+        for (const auto item : rMatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             TDataType value = item.second;
             this->AssembleEntry(value,I,J);
-        }        
+        }
         this->FinalizeAssemble();
     }
 
@@ -154,9 +173,10 @@ public:
         });
     }
 
-    //move constructor
+    /// Move constructor
     CsrMatrix(CsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
     {
+        mpComm = rOtherMatrix.mpComm;
         mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
         rOtherMatrix.mIsOwnerOfData=false;
 
@@ -186,7 +206,7 @@ public:
     /// Assignment operator.
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
 
-    //move assignement operator
+    /// Move assignment operator
     CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
     {
         mpComm = rOtherMatrix.mpComm;
@@ -369,8 +389,6 @@ public:
         mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
     }
 
-
-
     void CheckColSize()
     {
         IndexType max_col = 0;
@@ -427,7 +445,7 @@ public:
         }
     }
 
-    //y = alpha*y + beta*A*x
+    // y = alpha*A*x + beta*y
     template<class TInputVectorType, class TOutputVectorType>
     void SpMV(const TDataType alpha,
               const TInputVectorType& x,
@@ -468,7 +486,7 @@ public:
         });
     }
 
-    //y = alpha*y + beta*A^t*x
+    // y = alpha*A^t*x + beta*y
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TDataType alpha,
                        const TInputVectorType& x,
@@ -542,7 +560,6 @@ public:
     void BeginAssemble() {} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
     void FinalizeAssemble() {} //the SMP version does nothing. This function is there to be implemented in the MPI case
-
 
     template<class TMatrixType, class TIndexVectorType >
     void Assemble(
@@ -677,8 +694,49 @@ public:
         }
     }
 
-    //TODO
-    //NormFrobenius
+    TDataType NormDiagonal() const
+    {
+        const TDataType diagonal_norm = IndexPartition<IndexType>(size1()).template for_each<SumReduction<TDataType>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::pow(value_data()[k], 2);
+                }
+            }
+            return 0.0;
+        });
+
+        return std::sqrt(diagonal_norm);
+    }
+
+    TDataType MaxDiagonal() const
+    {
+        return IndexPartition<IndexType>(size1()).template for_each<MaxReduction<TDataType>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::abs(value_data()[k]);
+                }
+            }
+            return std::numeric_limits<TDataType>::lowest();
+        });
+    }
+
+    TDataType MinDiagonal() const
+    {
+        return IndexPartition<IndexType>(size1()).template for_each<MinReduction<TDataType>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::abs(value_data()[k]);
+                }
+            }
+            return std::numeric_limits<TDataType>::max();
+        });
+    }
 
     ///@}
     ///@name Access

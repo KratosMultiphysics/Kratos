@@ -407,7 +407,7 @@ namespace Kratos
 
     //delete mesher container
     rMesh.Finalize();
-    ClearTetgenIO(tr); // blocks tetgen automatic destructor deletetion of a NULL pointer []
+    ClearTetgenIO(tr); // blocks tetgen automatic destructor deletion of a NULL pointer []
 
 
     KRATOS_CATCH( "" )
@@ -422,7 +422,7 @@ namespace Kratos
 
     //delete mesher container
     // rMesh.Finalize();
-    // ClearTetgenIO(tr); // blocks tetgen automatic destructor deletetion of a NULL pointer []
+    // ClearTetgenIO(tr); // blocks tetgen automatic destructor deletion of a NULL pointer []
     tr.deinitialize();
     tr.initialize();
 

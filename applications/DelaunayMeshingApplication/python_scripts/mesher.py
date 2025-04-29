@@ -89,7 +89,7 @@ class Mesher(object):
             #mesher_flags = "pnBYYQ"
 
             #BOUNDARY SEARCH
-            #to get conectivities, boundaries and neighbours only
+            #to get connectivities, boundaries and neighbours only
             #mesher_flags = "ncEBQ"
 
         if( self.dimension == 3 ):

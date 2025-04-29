@@ -44,6 +44,7 @@
 #include "custom_modelers/iga_modeler.h"
 #include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
+#include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
 #include "custom_modelers/coupling_geometry_modeler.h"
 
@@ -145,6 +146,7 @@ private:
     const IgaModeler mIgaModeler;
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
+    const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
     const CouplingGeometryModeler mCouplingGeometryModeler;
 

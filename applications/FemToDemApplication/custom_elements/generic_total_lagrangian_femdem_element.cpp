@@ -223,7 +223,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIt
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
     }
     this->SetValue(FEMDEM_STRESS_VECTOR, this_constitutive_variables.StressVector);
@@ -301,7 +301,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
 
         // Calculating weights for integration on the reference configuration
@@ -398,7 +398,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
 
         // Call the constitutive law to update material variables
@@ -2078,7 +2078,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
             CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
             //call the constitutive law to update material variables
-            // Compute material reponse
+            // Compute material response
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
 
             if ( rOutput[point_number].size() != strain_size )

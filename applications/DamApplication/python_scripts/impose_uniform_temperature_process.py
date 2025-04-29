@@ -1,7 +1,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
 
-## This proces sets the value of a scalar variable using the ApplyConstantScalarValueProcess.
+## This process sets the value of a scalar variable using the ApplyConstantScalarValueProcess.
 ## In this case, the scalar value is not automatically fixed, so the fixicity must be introduced before.
 
 def Factory(settings, Model):

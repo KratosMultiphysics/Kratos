@@ -26,7 +26,7 @@
 
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
+#include "integration_coefficients_calculator.h"
 #include "stress_state_policy.h"
 
 namespace Kratos
@@ -42,23 +42,36 @@ public:
     using Element::Element;
 
     /// Constructor using an array of nodes
-    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : Element(NewId, ThisNodes), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    UPwBaseElement(IndexType                                       NewId,
+                   const NodesArrayType&                           ThisNodes,
+                   std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : Element(NewId, ThisNodes),
+          mpStressStatePolicy{std::move(pStressStatePolicy)},
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
     /// Constructor using Geometry
-    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : Element(NewId, pGeometry), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    UPwBaseElement(IndexType                                       NewId,
+                   GeometryType::Pointer                           pGeometry,
+                   std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : Element(NewId, pGeometry),
+          mpStressStatePolicy{std::move(pStressStatePolicy)},
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
     /// Constructor using Properties
-    UPwBaseElement(IndexType                          NewId,
-                   GeometryType::Pointer              pGeometry,
-                   PropertiesType::Pointer            pProperties,
-                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : Element(NewId, pGeometry, pProperties), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    UPwBaseElement(IndexType                                       NewId,
+                   GeometryType::Pointer                           pGeometry,
+                   PropertiesType::Pointer                         pProperties,
+                   std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : Element(NewId, pGeometry, pProperties),
+          mpStressStatePolicy{std::move(pStressStatePolicy)},
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
         // this is needed for interface elements
         mThisIntegrationMethod = this->GetIntegrationMethod();
@@ -166,14 +179,19 @@ protected:
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const;
 
-    void CalculateDerivativesOnInitialConfiguration(
-        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int IntegrationPointIndex) const;
+    void CalculateDerivativesOnInitialConfiguration(double&      rDetJ,
+                                                    Matrix&      rJ0,
+                                                    Matrix&      rInvJ0,
+                                                    Matrix&      rDNu_DX0,
+                                                    unsigned int IntegrationPointIndex) const;
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     virtual std::size_t GetNumberOfDOF() const;
 
     StressStatePolicy& GetStressStatePolicy() const;
+
+    std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const;
 
 private:
     [[nodiscard]] virtual DofsVectorType GetDofs() const;
@@ -188,6 +206,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
+    IntegrationCoefficientsCalculator mIntegrationCoefficientsCalculator;
 };
 
 // Class UPwBaseElement

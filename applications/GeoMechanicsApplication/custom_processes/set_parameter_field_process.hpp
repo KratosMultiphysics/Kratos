@@ -59,7 +59,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rParameters);
+    SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rSettings);
 
     ///@}
     ///@name Operations
