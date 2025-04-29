@@ -7,6 +7,7 @@ End Table
 Begin Table 2 TIME DISPLACEMENT_Y
   0.0 0.0
   1.0 0.0
+  $first_timestep 0.0
   2.0 $maximum_strain
 End Table
 
