@@ -24,7 +24,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ScopedSerializerRegistration
 {
 public:
     template <typename... Pairs>
-    explicit ScopedSerializerRegistration(Pairs... PackedNameAndInstancePairs)
+    explicit ScopedSerializerRegistration(const Pairs&... PackedNameAndInstancePairs)
     {
         Register(PackedNameAndInstancePairs...);
     }
@@ -49,7 +49,7 @@ private:
     }
 
     template <typename Pair, typename... Pairs>
-    void Register(const Pair& rNameAndInstance, Pairs... PackedNameAndInstancePairs)
+    void Register(const Pair& rNameAndInstance, const Pairs&... PackedNameAndInstancePairs)
     {
         Register(rNameAndInstance);
         Register(PackedNameAndInstancePairs...);

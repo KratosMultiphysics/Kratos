@@ -20,6 +20,7 @@
 #include "geo_mechanics_application_variables.h"
 
 #include <cmath>
+#include <type_traits>
 
 namespace
 {
@@ -340,4 +341,10 @@ void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("TensionCutOff", mTensionCutOff);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
 }
+
+static_assert(!std::is_copy_constructible_v<MohrCoulombWithTensionCutOff>);
+static_assert(!std::is_copy_assignable_v<MohrCoulombWithTensionCutOff>);
+static_assert(std::is_move_constructible_v<MohrCoulombWithTensionCutOff>);
+static_assert(std::is_move_assignable_v<MohrCoulombWithTensionCutOff>);
+
 } // Namespace Kratos

@@ -203,7 +203,7 @@ private:
     void load(Serializer& rSerializer) override;
 
     std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
-    IntegrationCoefficientsCalculator mIntegrationCoefficientsCalculator;
+    IntegrationCoefficientsCalculator  mIntegrationCoefficientsCalculator;
 };
 
 // Class UPwBaseElement

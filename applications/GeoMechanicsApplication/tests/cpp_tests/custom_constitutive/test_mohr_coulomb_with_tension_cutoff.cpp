@@ -361,9 +361,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     Vector calculated_cauchy_stress_vector;
     p_law->GetValue(CAUCHY_STRESS_VECTOR, calculated_cauchy_stress_vector);
 
-    const auto scoped_registration_dimension = ScopedSerializerRegistration{"PlaneStrain"s, PlaneStrain{}};
-    const auto scoped_registration_law =
-        ScopedSerializerRegistration{"MohrCoulombWithTensionCutOff"s, MohrCoulombWithTensionCutOff{}};
+    const auto scoped_registration = ScopedSerializerRegistration{
+        std::make_pair("PlaneStrain"s, PlaneStrain{}),
+        std::make_pair("MohrCoulombWithTensionCutOff"s, MohrCoulombWithTensionCutOff{})};
     auto serializer = StreamSerializer{};
 
     ConstitutiveLaw::Parameters parameters_to_be_ignored;
