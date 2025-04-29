@@ -125,8 +125,7 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
         "max_radius_factor": 10.0,
         "min_radius_factor": 0.1,
         "search_neighbours_step": false,
-        "body_domain_sub_model_part_list": [],
-        "loads_variable_list" : []
+        "body_domain_sub_model_part_list": []
     }  )");
 
     int  MaxIterations          = 15;

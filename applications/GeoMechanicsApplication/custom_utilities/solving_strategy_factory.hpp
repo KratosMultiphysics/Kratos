@@ -63,9 +63,7 @@ public:
             const auto reform_dof_set_at_each_step = rSolverSettings["reform_dofs_at_each_step"].GetBool();
             const auto move_mesh_flag = rSolverSettings["move_mesh_flag"].GetBool();
 
-            const std::vector<std::string> strategy_entries = {"loads_variable_list"};
-            auto                           strategy_parameters =
-                ParametersUtilities::CopyOptionalParameters(rSolverSettings, strategy_entries);
+            auto strategy_parameters = Parameters{};
             auto result =
                 std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
                     rModelPart, scheme, criteria, builder_and_solver, strategy_parameters,
