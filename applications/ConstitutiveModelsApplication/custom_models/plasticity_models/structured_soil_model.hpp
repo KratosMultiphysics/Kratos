@@ -427,10 +427,7 @@ namespace Kratos
                AuxVector = prod( ElasticMatrix, StrainVector);
                double DeltaGamma;
                DeltaGamma = MathUtils<double>::Dot( AuxVector, DeltaStressYieldCondition);
-
-               VectorType AuxVector2;
-               AuxVector2 = prod(ElasticMatrix, PlasticPotentialDerivative);
-               double Denominador = H + MathUtils<double>::Dot( DeltaStressYieldCondition, AuxVector2 );
+               double Denominador = H + MathUtils<double>::Dot<VectorType, VectorType>( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) );
 
                DeltaGamma /= Denominador;
 
@@ -542,10 +539,7 @@ namespace Kratos
                   double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H, PlasticPotDerTensor);
 
                   double DeltaGamma = YieldSurface;
-
-                  VectorType AuxVector2;
-                  AuxVector2 = prod(ElasticMatrix, PlasticPotentialDerivative);
-                  DeltaGamma /= ( H + MathUtils<double>::Dot( DeltaStressYieldCondition, AuxVector2 ) );
+                  DeltaGamma /= ( H + MathUtils<double>::Dot<VectorType, VectorType>( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) ) );
 
                   MatrixType UpdateMatrix;
                   this->ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
