@@ -4,6 +4,7 @@ from typing import Optional
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSM
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
@@ -38,6 +39,10 @@ class MaterialPropertiesControl(Control):
             "output_all_fields"                 : false,
             "consider_recursive_property_update": false,
             "filter_settings"                   : {},
+            "control_weighting_settings"  : {
+                    "control_weighting_type"        : "constant",
+                    "control_weight_initial": 1.0                        
+                                             }, 
             "model_part_names": [
                 {
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
@@ -90,6 +95,8 @@ class MaterialPropertiesControl(Control):
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
         self.clamper = KratosSI.ElementSmoothClamper(control_variable_bounds[0], control_variable_bounds[1])
+        self.control_weighting_settings = parameters["control_weighting_settings"]
+        
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -103,9 +110,30 @@ class MaterialPropertiesControl(Control):
                 if KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.adjoint_model_part, "element_specific_properties_created"):
                     raise RuntimeError(f"Trying to create element specific properties for {self.adjoint_model_part.FullName()} which already has element specific properties.")
 
+                element_1: Kratos.Element = self.primal_model_part.GetElement(1)
+                area = element_1.Properties[KratosSM.CROSS_AREA]
+                if area > 0.0:
+                    for element in self.primal_model_part.Elements:
+                        element: Kratos.Element
+                        print("elem id is ", element.Id)
+                        print("area before",element.Properties[KratosSM.CROSS_AREA])
+                        if (element.Id in range(1,21)) or (element.Id in range(52,72)):
+                            element.Properties[KratosSM.CROSS_AREA] = 0.01
+                        elif (element.Id in range(21,32)) or (element.Id in range(32, 52)) or (element.Id in range(72, 81)) or (element.Id in range(81, 101)):
+                            element.Properties[KratosSM.CROSS_AREA] = 0.0001
+                        elif (element.Id in range(101,119)):
+                            element.Properties[KratosSM.CROSS_AREA] = 0.0016
+                        elif (element.Id in range(119,135)):
+                            element.Properties[KratosSM.CROSS_AREA] = 0.0004
+                        else:
+                            print("element id not found")
+                        print("area after",element.Properties[KratosSM.CROSS_AREA])
+                
+
                 # now assign the properties of primal to the adjoint model parts
                 KratosSI.ControlUtils.AssignEquivalentProperties(self.primal_model_part.Elements, self.adjoint_model_part.Elements)
                 KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.adjoint_model_part, "element_specific_properties_created")
+
 
         # initialize the filter
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
@@ -145,6 +173,55 @@ class MaterialPropertiesControl(Control):
         KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, self.controlled_physical_variable)
         return physical_thickness_field
 
+    def GetControlWeight(self) -> float:
+        control_weighting_settings = self.control_weighting_settings
+        weight = 0.0
+        step = self.optimization_problem.GetStep()
+        block_size = 10
+        block = step // block_size
+        if control_weighting_settings["control_weighting_type"].GetString() == "constant":
+            weight = control_weighting_settings["control_weight_initial"].GetDouble()
+        elif control_weighting_settings["control_weighting_type"].GetString() == "constant_stepwise":
+            weight = control_weighting_settings["control_weight_initial"].GetDouble()
+            if block % 2 == 0:
+                if not self.controlled_physical_variable == Kratos.YOUNG_MODULUS:
+                    weight = 0.0
+            # elif block % 2 == 1:
+            #     if not self.controlled_physical_variable == Kratos.TEMPERATURE:
+            #         weight = 0.0
+            # if block % 3 == 2:
+            #     if not self.controlled_physical_variable == KratosSM.CONSTITUTIVE_LAW_MIXTURE_PHI:
+            #         weight = 0.0
+        elif control_weighting_settings["control_weighting_type"].GetString() == "exponentially_decreasing":
+            optimization_step = self.optimization_problem.GetStep()
+            weight = (control_weighting_settings["control_weight_initial"].GetDouble() - 1.0) * math.exp(-optimization_step/500) + 1.0
+        elif control_weighting_settings["control_weighting_type"].GetString() == "exponentially_increasing":
+            optimization_step = self.optimization_problem.GetStep()
+            constant = control_weighting_settings["control_weight_initial"].GetDouble()
+            weight = (1.0 - constant ) * (1.0 - math.exp(-optimization_step/500)) + constant
+        elif control_weighting_settings["control_weighting_type"].GetString() == "super_exponentially_increasing":
+            optimization_step = self.optimization_problem.GetStep()
+            #constant = control_weighting_settings["control_weight_initial"].GetDouble()
+            weight =  ( math.exp(0.02 * optimization_step)) 
+        else:
+            raise RuntimeError(f"Unknown control weighting defined")
+        filename = self.GetName() +"_weight.csv"
+
+        # # Check if the file exists
+        # file_exists = os.path.isfile(filename)
+    
+        # # Open the file in append mode
+        # with open(filename, 'a', newline='') as csvfile:
+        #     writer = csv.writer(csvfile)
+            
+        #     # If the file does not exist, create it and add a header
+        #     if not file_exists:
+        #         writer.writerow(["Value"])
+            
+        #     # Append the double value to the next row
+        #     writer.writerow([weight])
+        return weight
+    
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         with TimeLogger("ShellThicknessControl::MapGradient", None, "Finished",False):
             keys = physical_gradient_variable_container_expression_map.keys()
@@ -159,7 +236,7 @@ class MaterialPropertiesControl(Control):
 
             # dj/dE -> physical_gradient
             # dj/dphi = dj/dphysical * dphysical/dphi
-            return self.filter.BackwardFilterIntegratedField(physical_gradient * self.physical_phi_derivative_field)
+            return self.filter.BackwardFilterIntegratedField(physical_gradient * self.physical_phi_derivative_field * self.GetControlWeight())
 
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
@@ -185,7 +262,7 @@ class MaterialPropertiesControl(Control):
 
         # project forward the filtered thickness field to get clamped physical field
         physical_field = self.clamper.ProjectForward(self.physical_phi_field)
-
+        #print(physical_field.Evaluate())
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(physical_field, self.controlled_physical_variable)
         if self.consider_recursive_property_update:
