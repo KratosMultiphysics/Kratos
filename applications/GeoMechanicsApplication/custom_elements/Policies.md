@@ -13,7 +13,7 @@ Currently, the following policies are implemented (still under development):
 
 1. The [StressStatePolicy](#stressstatepolicy) - this is used to calculate several stress-related properties depending
    on the configuration. There are three flavours: `ThreeDimensionalStressState`, `PlaneStrainStressState` and `AxisymmetricStressState`.
-2. The [Integration coefficient calculator](#integration-coefficient)
+2. The [Integration coefficient calculator](#integration-coefficient-calculator)
 
 ## StressStatePolicy
 
