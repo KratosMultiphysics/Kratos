@@ -27,6 +27,8 @@
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
 #include "custom_constitutive/timoshenko_plane_strain_beam_elastic_constitutive_law.h"
+#include "custom_constitutive/thermal_truss_constitutive_law.h"
+
 
 
 namespace Kratos::Python {
@@ -73,6 +75,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< TimoshenkoBeamPlaneStrainElasticConstitutiveLaw, typename TimoshenkoBeamPlaneStrainElasticConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw").def(py::init<>() )
+    ;
+
+    py::class_< ThermalTrussConstitutiveLaw, typename ThermalTrussConstitutiveLaw::Pointer, ConstitutiveLaw >
+    (m, "ThermalTrussConstitutiveLaw").def(py::init<>() )
     ;
 }
 
