@@ -389,7 +389,7 @@ namespace Kratos {
                 bool add_new_bond = true;
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
                 unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
-                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighbourElements.size();
+                unsigned int neighbors_size = mListOfSphericContinuumParticles[i]->mNeighbourElements.size();
 
                 //continuum part
                 for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
@@ -482,16 +482,18 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
-                unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
+                //unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
+                unsigned int neighbors_size = mListOfSphericContinuumParticles[i]->mNeighbourElements.size();
 
-                for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
+                //continuum part and discontinuum part
+                for (unsigned int j = 0; j < neighbors_size; j++) {
                     SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*> (neighbour_elements[j]);
                     if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
                     //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
                     if (mListOfSphericContinuumParticles[i]->Id() < neighbour_element->Id()) continue;
                     //In all functions using mBondElements we must check that this bond is not used.
 
-                    for (unsigned int k = 0; k < neighbour_element->mContinuumInitialNeighborsSize; k++) {
+                    for (unsigned int k = 0; k < neighbour_element->mNeighbourElements.size(); k++) {
                         //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
                         //In all functions using mBondElements we must check that this bond is not used.
                         if (neighbour_element->mNeighbourElements[k] == NULL) continue; //The initial neighbor was deleted at some point in time!!

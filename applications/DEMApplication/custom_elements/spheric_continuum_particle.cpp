@@ -488,23 +488,21 @@ namespace Kratos {
 
             
             int contact_mesh_option = r_process_info[CONTACT_MESH_OPTION];
-            if (contact_mesh_option == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
-                double total_local_elastic_contact_force[3] = {0.0};
-                total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
-                total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
-                total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
-                CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce);
-            } /*else if (r_process_info[IS_TIME_TO_PRINT] && contact_mesh_option == 1) {
-                unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
-                if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
-                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+            //if (contact_mesh_option == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
+            if (contact_mesh_option == 1 && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
+                if (i < (int)mContinuumInitialNeighborsSize) {
+                    double total_local_elastic_contact_force[3] = {0.0};
+                    total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
+                    total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
+                    total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
+                    CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce);
+                } else {
+                    unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
+                    if ((i < (int)mNeighbourElements.size())) {
+                        CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                    }
                 }
-            } else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && contact_mesh_option == 1) {
-                unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
-                if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
-                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
-                }
-            }*/
+            }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
                 AddNeighbourContributionToStressTensor(r_process_info, GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, radius_sum, this);
