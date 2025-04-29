@@ -388,4 +388,48 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_cauchy_stress_vector, calculated_cauchy_stress_vector);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0e8);
+    properties.SetValue(POISSON_RATIO, 0.3);
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    parameters.SetOptions(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    Vector strain_vector = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector);
+    Vector stress_vector = ZeroVector(4);
+    parameters.SetStressVector(stress_vector);
+    Matrix constitutive_matrix = ZeroMatrix(4, 4);
+    parameters.SetConstitutiveMatrix(constitutive_matrix);
+
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act
+    Vector     cauchy_stress_vector = ZeroVector(4);
+    const auto dummy_process_info   = ProcessInfo{};
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, dummy_process_info);
+    law.InitializeMaterialResponseCauchy(parameters);
+    law.CalculateMaterialResponseCauchy(parameters);
+
+    // Assert
+    Matrix expected_constitutive_matrix(4, 4);
+    // clang-format off
+    expected_constitutive_matrix <<= 1.35E8, 5.77E7, 5.77E7, 0.,
+                                     5.77E7, 1.35E8, 5.77E7, 0.,
+                                     5.77E7, 5.77E7, 1.35E8, 0.,
+                                     0.,     0.,     0.,     3.85E7;
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix,
+                              1.E6);
+}
+
 } // namespace Kratos::Testing
