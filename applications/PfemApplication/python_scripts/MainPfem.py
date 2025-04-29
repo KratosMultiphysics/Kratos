@@ -120,8 +120,8 @@ class PfemSolution(MainSolid.Solution):
                 #get normalized direction
                 direction   = []
                 scalar_prod = 0
-                for i in range(self.ProjectParameters["problem_data"]["gravity_vector"].size()):
-                    direction.append( self.ProjectParameters["problem_data"]["gravity_vector"][i].GetDouble() )
+                for i in range(self._project_parameters["problem_data"]["gravity_vector"].size()):
+                    direction.append( self._project_parameters["problem_data"]["gravity_vector"][i].GetDouble() )
                     scalar_prod = scalar_prod + direction[i]*direction[i]
 
                 norm = math.sqrt(scalar_prod)
@@ -143,7 +143,7 @@ class PfemSolution(MainSolid.Solution):
                         default_settings["Parameters"]["direction"][counter].SetDouble(i)
                         counter+=1
 
-                model_part_name = self.model.GetMainModelPart().Name
+                model_part_name = self._model.GetMainModelPart().Name
                 default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
 
                 loads_processes.Append(default_settings)
