@@ -5,6 +5,7 @@ from pathlib import Path
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSM
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
@@ -76,8 +77,10 @@ class DamageDetectionResponse(ResponseFunction):
         self.sensor_name_dict: 'dict[str, KratosDT.Sensors.Sensor]' = {}
         self.optimization_problem = optimization_problem
 
+        self.gradient_is_normalized = False
+
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return [Kratos.YOUNG_MODULUS]
+        return [Kratos.YOUNG_MODULUS, Kratos.TEMPERATURE]
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
@@ -134,7 +137,24 @@ class DamageDetectionResponse(ResponseFunction):
                 sensitivity_variable = Kratos.KratosGlobals.GetVariable(f"{physical_variable.Name()}_SENSITIVITY")
                 for container_expression in collective_expression.GetContainerExpressions():
                     sensitivities = self.adjoint_analysis.GetSensitivities(container_expression.GetModelPart())
-                    container_expression.SetExpression((container_expression.GetExpression() - sensitivities[sensitivity_variable].GetExpression() * test_case_weight))
+                    
+                    gradient_weighting = 1.0
+                    # if sensitivity_variable == Kratos.YOUNG_MODULUS:
+                    #     gradient_weighting = 1e25
+
+                    # if (not hasattr(self, "l2_norm_E")) and physical_variable == Kratos.YOUNG_MODULUS:
+                    #     self.l2_norm_E = Kratos.Expression.Utils.NormInf(sensitivities[KratosOA.YOUNG_MODULUS_SENSITIVITY])
+
+                    # if (not hasattr(self, "l2_norm_T")) and physical_variable == Kratos.TEMPERATURE:
+                    #     self.l2_norm_T = Kratos.Expression.Utils.NormInf(sensitivities[KratosSM.TEMPERATURE_SENSITIVITY])
+                        
+                    # if physical_variable == Kratos.YOUNG_MODULUS: 
+                    #     sensitivities[KratosOA.YOUNG_MODULUS_SENSITIVITY] /= self.l2_norm_E
+
+                    # if physical_variable == Kratos.TEMPERATURE:
+                    #     sensitivities[KratosSM.TEMPERATURE_SENSITIVITY] /= (self.l2_norm_T)
+
+                    container_expression.SetExpression((container_expression.GetExpression() - sensitivities[sensitivity_variable].GetExpression() * test_case_weight * gradient_weighting))
                     container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
 
     def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
