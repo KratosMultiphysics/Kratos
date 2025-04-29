@@ -99,12 +99,9 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_DIFFUSION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_REACTION)
-        # SETTINGS
-        self._DefineSettings()
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Transport Topology Optimization T and T_ADJ solver variables added correctly.")
-        
-    def _DefineSettings(self):
+        # SUPER CLASS VARIABLES
         super().AddVariables()
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Transport Topology Optimization T and T_ADJ solver variables added correctly.")
     
     def _CheckMaterialProperties(self):
         print("--|--> Conductivity:", self.main_model_part.Nodes[1].GetValue(KratosMultiphysics.CONDUCTIVITY))

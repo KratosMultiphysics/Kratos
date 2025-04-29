@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
 def Factory(settings, Model):
@@ -83,16 +84,41 @@ class ApplyTransportTopologyOptimizationImposeTransportScalarProcess(KratosMulti
             }
             """
             )
+        
+        self.impose_transport_scalar_model_part = Model[settings["model_part_name"].GetString()]
     
         self.transport_scalar_process = AssignScalarVariableProcess(Model, transport_scalar_settings)
         self.adjoint_transport_scalar_process = AssignScalarVariableProcess(Model, adjoint_transport_scalar_settings)
 
 
     def ExecuteInitializeSolutionStep(self):
-        self.transport_scalar_process.ExecuteInitializeSolutionStep()
-        self.adjoint_transport_scalar_process.ExecuteInitializeSolutionStep()
-
+        # Call the base process ExecuteInitializeSolutionStep()
+        if self.IsPhysicsStage():
+            self.transport_scalar_process.ExecuteInitializeSolutionStep()
+        elif self.IsAdjointStage():
+            self.adjoint_transport_scalar_process.ExecuteInitializeSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("'ExecuteInitializeSolutionStep' for ApplyTransportTopologyOptimizationImposeTransportScalarProcess called during a non valid stage.")
 
     def ExecuteFinalizeSolutionStep(self):
-        self.transport_scalar_process.ExecuteFinalizeSolutionStep()
-        self.adjoint_transport_scalar_process.ExecuteFinalizeSolutionStep()
+        # Call the base process ExecuteFinalizeSolutionStep()
+        if self.IsPhysicsStage():
+            self.transport_scalar_process.ExecuteFinalizeSolutionStep()
+        elif self.IsAdjointStage():
+            self.adjoint_transport_scalar_process.ExecuteFinalizeSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("'ExecuteFinalizeSolutionStep' for ApplyTransportTopologyOptimizationImposeTransportScalarProcess called during a non valid stage.")
+
+    def IsPhysicsStage(self):
+        top_opt_stage = self.impose_transport_scalar_model_part.ProcessInfo.GetValue(KratosCD.TRANSPORT_TOP_OPT_PROBLEM_STAGE)
+        if top_opt_stage == 1:
+            return True
+        else:
+            return False
+        
+    def IsAdjointStage(self):
+        top_opt_stage = self.impose_transport_scalar_model_part.ProcessInfo.GetValue(KratosCD.TRANSPORT_TOP_OPT_PROBLEM_STAGE)
+        if top_opt_stage == 2:
+            return True
+        else:
+            return False

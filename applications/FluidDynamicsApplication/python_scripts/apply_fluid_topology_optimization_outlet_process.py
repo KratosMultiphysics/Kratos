@@ -123,17 +123,21 @@ class ApplyFluidTopologyOptimizationOutletProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         # Call the base process ExecuteInitializeSolutionStep()
-        self.aux_pressure_process.ExecuteInitializeSolutionStep()
-        self.aux_external_pressure_process.ExecuteInitializeSolutionStep()
-        self.aux_adjoint_pressure_process.ExecuteInitializeSolutionStep()
-        self.aux_adjoint_external_pressure_process.ExecuteInitializeSolutionStep()
+        if self.IsPhysicsStage():
+            self.aux_pressure_process.ExecuteInitializeSolutionStep()
+            self.aux_external_pressure_process.ExecuteInitializeSolutionStep()
+        elif self.IsAdjointStage():
+            self.aux_adjoint_pressure_process.ExecuteInitializeSolutionStep()
+            self.aux_adjoint_external_pressure_process.ExecuteInitializeSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("'ExecuteInitializeSolutionStep' for ApplyFluidTopologyOptimizationOutletProcess called during a non valid stage.")
 
         # Set the characteristic outlet velocity in the outlet model part ProcessInfo
         if self.__outlet_inflow_contribution:
             # If required, update the outlet characteristic velocity
-            if (self.outlet_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE] == 1):
+            if self.IsPhysicsStage():
                 velocity_variable=KratosMultiphysics.VELOCITY
-            elif (self.outlet_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE] == 2):
+            elif self.IsAdjointStage():
                 velocity_variable=KratosMultiphysics.VELOCITY_ADJ
             else:
                 raise Exception("Evaluating Outlet Inflow Contribution for FLuid Topology Optimization Outlet Process in the wrong 'FLUID_TOP_OPT_PROBLEM_STAGE'.")
@@ -147,9 +151,14 @@ class ApplyFluidTopologyOptimizationOutletProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         # Call the base process ExecuteFinalizeSolutionStep()
-        self.aux_pressure_process.ExecuteFinalizeSolutionStep()
-        self.aux_external_pressure_process.ExecuteFinalizeSolutionStep()
-
+        if self.IsPhysicsStage():
+            self.aux_pressure_process.ExecuteFinalizeSolutionStep()
+            self.aux_external_pressure_process.ExecuteFinalizeSolutionStep()
+        elif self.IsAdjointStage():
+            self.aux_adjoint_pressure_process.ExecuteFinalizeSolutionStep()
+            self.aux_adjoint_external_pressure_process.ExecuteFinalizeSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("'ExecuteFinalizeSolutionStep' for ApplyFluidTopologyOptimizationOutletProcess called during a non valid stage.")
 
     def __ComputeOutletAverageVelocity(self, velocity_variable):
         # Compute the outlet average velocity
@@ -210,3 +219,17 @@ class ApplyFluidTopologyOptimizationOutletProcess(KratosMultiphysics.Process):
             if (ext_pres_settings["value"].GetString == ""):
                 raise Exception("Outlet external pressure function sting is emp+ty.")  
         return pres_settings, ext_pres_settings
+    
+    def IsPhysicsStage(self):
+        top_opt_stage = self.outlet_model_part.ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
+        if top_opt_stage == 1:
+            return True
+        else:
+            return False
+        
+    def IsAdjointStage(self):
+        top_opt_stage = self.outlet_model_part.ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
+        if top_opt_stage == 2:
+            return True
+        else:
+            return False

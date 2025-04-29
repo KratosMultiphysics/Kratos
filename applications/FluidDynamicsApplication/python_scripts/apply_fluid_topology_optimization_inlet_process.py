@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 from KratosMultiphysics import assign_vector_by_direction_process
 
@@ -81,10 +81,32 @@ class ApplyFluidTopologyOptimizationInletProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         # Call the base process ExecuteInitializeSolutionStep()
-        self.aux_process.ExecuteInitializeSolutionStep()
-        self.aux_process_adjoint.ExecuteInitializeSolutionStep()
+        if self.IsPhysicsStage():
+            self.aux_process.ExecuteInitializeSolutionStep()
+        elif self.IsAdjointStage():
+            self.aux_process_adjoint.ExecuteInitializeSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("'ExecuteInitializeSolutionStep' for ApplyFluidTopologyOptimizationInletProcess called during a non valid stage.")
 
     def ExecuteFinalizeSolutionStep(self):
         # Call the base process ExecuteFinalizeSolutionStep()
-        self.aux_process.ExecuteFinalizeSolutionStep()
-        self.aux_process_adjoint.ExecuteFinalizeSolutionStep()
+        if self.IsPhysicsStage():
+            self.aux_process.ExecuteFinalizeSolutionStep()
+        elif self.IsAdjointStage():
+            self.aux_process_adjoint.ExecuteFinalizeSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("'ExecuteFinalizeSolutionStep' for ApplyFluidTopologyOptimizationInletProcess called during a non valid stage.")
+
+    def IsPhysicsStage(self):
+        top_opt_stage = self.inlet_model_part.ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
+        if top_opt_stage == 1:
+            return True
+        else:
+            return False
+        
+    def IsAdjointStage(self):
+        top_opt_stage = self.inlet_model_part.ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
+        if top_opt_stage == 2:
+            return True
+        else:
+            return False

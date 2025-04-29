@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
 def Factory(settings, Model):
@@ -66,16 +67,41 @@ class ApplyFluidTopologyOptimizationFixVelocityComponentProcess(KratosMultiphysi
             }
             """
             )
+        
+        self.fix_component_model_part = Model[settings["model_part_name"].GetString()]
     
         self.velocity_component_process = AssignScalarVariableProcess(Model, velocity_settings)
         self.adjoint_velocity_component_process = AssignScalarVariableProcess(Model, adjoint_velocity_settings)
 
 
     def ExecuteInitializeSolutionStep(self):
-        self.velocity_component_process.ExecuteInitializeSolutionStep()
-        self.adjoint_velocity_component_process.ExecuteInitializeSolutionStep()
-
+        # Call the base process ExecuteInitializeSolutionStep()
+        if self.IsPhysicsStage():
+            self.velocity_component_process.ExecuteInitializeSolutionStep()
+        elif self.IsAdjointStage():
+            self.adjoint_velocity_component_process.ExecuteInitializeSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("'ExecuteInitializeSolutionStep' for ApplyFluidTopologyOptimizationFixVelocityComponentProcess called during a non valid stage.")
 
     def ExecuteFinalizeSolutionStep(self):
-        self.velocity_component_process.ExecuteFinalizeSolutionStep()
-        self.adjoint_velocity_component_process.ExecuteFinalizeSolutionStep()
+        # Call the base process ExecuteFinalizeSolutionStep()
+        if self.IsPhysicsStage():
+            self.velocity_component_process.ExecuteFinalizeSolutionStep()
+        elif self.IsAdjointStage():
+            self.adjoint_velocity_component_process.ExecuteFinalizeSolutionStep()
+        else:
+            KratosMultiphysics.Logger.PrintError("'ExecuteFinalizeSolutionStep' for ApplyFluidTopologyOptimizationFixVelocityComponentProcess called during a non valid stage.")
+    
+    def IsPhysicsStage(self):
+        top_opt_stage = self.fix_component_model_part.ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
+        if top_opt_stage == 1:
+            return True
+        else:
+            return False
+        
+    def IsAdjointStage(self):
+        top_opt_stage = self.fix_component_model_part.ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
+        if top_opt_stage == 2:
+            return True
+        else:
+            return False

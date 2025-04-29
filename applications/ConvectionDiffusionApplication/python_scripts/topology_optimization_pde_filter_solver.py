@@ -4,6 +4,27 @@ import KratosMultiphysics
 import numpy as np #import the numpy library
 import scipy as sp #import the scipy library
 
+# Auxiliary function to check the parallel type at runtime
+#TODO: Delete this once we come up with the final factory-based design
+def _CheckIsDistributed():
+    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
+        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        return world_data_comm.IsDistributed()
+    else:
+        return False
+# If required, import parallel applications and modules
+if _CheckIsDistributed():
+    import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.MetisApplication as KratosMetis
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
+# Importing factories
+if _CheckIsDistributed():
+    import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
+else:
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+    import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
+
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
@@ -126,7 +147,12 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = 1.0
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
-        solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        # As the (no) time integration is managed by the element, we set a "fake" scheme to perform the solution update
+        if not _CheckIsDistributed():
+            solution_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        else:
+            solution_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticScheme()
+
         return solution_scheme
     
     def SolveSolutionStep(self):
