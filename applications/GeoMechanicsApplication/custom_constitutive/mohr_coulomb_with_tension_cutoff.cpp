@@ -260,13 +260,29 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
                 MathUtils<>::DegreesToRadians(r_prop[GEO_FRICTION_ANGLE]), r_prop[GEO_COHESION]);
         }
 
-        StressStrainUtilities::ReorderEigenValuesAndVectors(principal_trial_stress_vector, rotation_matrix);
+        principal_trial_stress_vector = this->RearrangeEigenValuesAndVectors(principal_trial_stress_vector);
     }
 
     mStressVector = StressStrainUtilities::RotatePrincipalStresses(
         principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
 
     rParameters.GetStressVector() = mStressVector;
+}
+
+Vector MohrCoulombWithTensionCutOff::RearrangeEigenValuesAndVectors(const Vector& rPrincipalStressVector)
+{
+    auto result = rPrincipalStressVector;
+    if (result[0] < result[1]) {
+        double average = (result[0] + result[1]) * 0.5;
+        result[0] = average;
+        result[1] = average;
+    }
+    else if(result[1] < result[2]) {
+        double average = (result[1] + result[2]) * 0.5;
+        result[1] = average;
+        result[2] = average;
+    }
+    return result;
 }
 
 bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const

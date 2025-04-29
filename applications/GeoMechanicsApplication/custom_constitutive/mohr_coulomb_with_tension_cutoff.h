@@ -88,6 +88,7 @@ private:
     [[nodiscard]] static bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
                                                          double        DilatancyAngle,
                                                          const Vector& rCornerPoint);
+    Vector RearrangeEigenValuesAndVectors(const Vector& rPrincipalStressVector);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
