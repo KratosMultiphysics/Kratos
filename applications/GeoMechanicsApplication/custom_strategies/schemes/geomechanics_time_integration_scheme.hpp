@@ -79,24 +79,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void InitializeElements(ModelPart& rModelPart) override
-    {
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](auto& rElement) {
-            rElement.Initialize(r_current_process_info);
-        });
-        this->SetElementsAreInitialized();
-    }
-
-    void InitializeConditions(ModelPart& rModelPart) override
-    {
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        block_for_each(rModelPart.Conditions(), [r_current_process_info](auto& rCondition) {
-            rCondition.Initialize(r_current_process_info);
-        });
-        this->SetConditionsAreInitialized();
-    }
-
     void Predict(ModelPart& rModelPart, DofsArrayType&, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
     {
         this->UpdateVariablesDerivatives(rModelPart);
@@ -196,11 +178,11 @@ public:
     }
 
     template <typename T>
-    void CalculateSystemContributionsImpl(T&                                rCurrentComponent,
-                                          LocalSystemMatrixType&            LHS_Contribution,
-                                          LocalSystemVectorType&            RHS_Contribution,
-                                          typename T::EquationIdVectorType& EquationId,
-                                          const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateSystemContributionsImpl(T&                     rCurrentComponent,
+                                                 LocalSystemMatrixType& LHS_Contribution,
+                                                 LocalSystemVectorType& RHS_Contribution,
+                                                 typename T::EquationIdVectorType& EquationId,
+                                                 const ProcessInfo& CurrentProcessInfo)
 
     {
         KRATOS_TRY
@@ -228,10 +210,10 @@ public:
     }
 
     template <typename T>
-    void CalculateRHSContributionImpl(T&                                rCurrentComponent,
-                                      LocalSystemVectorType&            RHS_Contribution,
-                                      typename T::EquationIdVectorType& EquationId,
-                                      const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateRHSContributionImpl(T&                                rCurrentComponent,
+                                             LocalSystemVectorType&            RHS_Contribution,
+                                             typename T::EquationIdVectorType& EquationId,
+                                             const ProcessInfo&                CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -258,10 +240,10 @@ public:
     }
 
     template <typename T>
-    void CalculateLHSContributionImpl(T&                                rCurrentComponent,
-                                      LocalSystemMatrixType&            LHS_Contribution,
-                                      typename T::EquationIdVectorType& EquationId,
-                                      const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateLHSContributionImpl(T&                                rCurrentComponent,
+                                             LocalSystemMatrixType&            LHS_Contribution,
+                                             typename T::EquationIdVectorType& EquationId,
+                                             const ProcessInfo&                CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -337,7 +319,7 @@ private:
         }
     }
 
-    void CheckBufferSize(const ModelPart& rModelPart) const
+    static void CheckBufferSize(const ModelPart& rModelPart)
     {
         constexpr auto minimum_buffer_size = ModelPart::IndexType{2};
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < minimum_buffer_size)
@@ -347,14 +329,14 @@ private:
     }
 
     template <class T>
-    void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable) const
+    static void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable)
     {
         KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
             << rVariable.Name() << " variable is not allocated for node " << rNode.Id() << std::endl;
     }
 
     template <class T>
-    void CheckDof(const Node& rNode, const Variable<T>& rVariable) const
+    static void CheckDof(const Node& rNode, const Variable<T>& rVariable)
     {
         KRATOS_ERROR_IF_NOT(rNode.HasDofFor(rVariable))
             << "missing " << rVariable.Name() << " dof on node " << rNode.Id() << std::endl;

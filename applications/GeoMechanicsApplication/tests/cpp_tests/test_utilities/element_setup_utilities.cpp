@@ -89,8 +89,9 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D15NElement()
 Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<2, 3>>(1, Kratos::make_shared<Triangle2D3<Node>>(rNodes), rProperties,
-                                                       std::make_unique<PlaneStrainStressState>());
+    return make_intrusive<UPwSmallStrainElement<2, 3>>(
+        1, Kratos::make_shared<Triangle2D3<Node>>(rNodes), rProperties,
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D3NElement()
@@ -116,8 +117,9 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement(const Geo::ConstVariab
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<2, 6>>(1, Kratos::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
-                                                       std::make_unique<PlaneStrainStressState>());
+    return make_intrusive<UPwSmallStrainElement<2, 6>>(
+        1, Kratos::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NElement()
@@ -128,8 +130,9 @@ Element::Pointer ElementSetupUtilities::Create2D6NElement()
 Element::Pointer ElementSetupUtilities::Create2D6NDiffOrderElement(const PointerVector<Node>& rNodes,
                                                                    const Properties::Pointer& rProperties)
 {
-    return make_intrusive<SmallStrainUPwDiffOrderElement>(1, std::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
-                                                          std::make_unique<PlaneStrainStressState>());
+    return make_intrusive<SmallStrainUPwDiffOrderElement>(
+        1, std::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NDiffOrderElement()
@@ -158,7 +161,7 @@ Element::Pointer ElementSetupUtilities::Create2D10NElement(const PointerVector<N
 {
     return make_intrusive<UPwSmallStrainElement<2, 10>>(
         1, Kratos::make_shared<Triangle2D10<Node>>(rNodes), rProperties,
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D10NElement()
@@ -171,7 +174,7 @@ Element::Pointer ElementSetupUtilities::Create2D15NElement(const PointerVector<N
 {
     return make_intrusive<UPwSmallStrainElement<2, 15>>(
         1, Kratos::make_shared<Triangle2D15<Node>>(rNodes), rProperties,
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D15NElement()
@@ -184,7 +187,7 @@ Element::Pointer ElementSetupUtilities::Create3D10NElement(const PointerVector<N
 {
     return make_intrusive<UPwSmallStrainElement<3, 10>>(
         1, Kratos::make_shared<Tetrahedra3D10<Node>>(rNodes), rProperties,
-        std::make_unique<ThreeDimensionalStressState>());
+        std::make_unique<ThreeDimensionalStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D10NElement()

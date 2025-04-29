@@ -114,6 +114,13 @@ public:
         });
     }
 
+    // Move constructor
+    SystemVector(SystemVector<TDataType,TIndexType>& rOtherVector)
+    {
+        mpComm = rOtherVector.mpComm;
+        mData = rOtherVector.mData;
+    }
+
     /// Destructor.
     ~SystemVector(){}
 
@@ -196,6 +203,13 @@ public:
         return *this;
     }
 
+    /// Move assignment operator
+    SystemVector& operator=(SystemVector&& rOtherVector)
+    {
+        mpComm = rOtherVector.mpComm;
+        mData = rOtherVector.mData;
+        return *this;
+    }
 
     SystemVector& operator+=(const SystemVector& rOtherVector)
     {

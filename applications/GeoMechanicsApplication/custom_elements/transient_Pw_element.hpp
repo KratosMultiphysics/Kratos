@@ -51,14 +51,20 @@ public:
     explicit TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
+    TransientPwElement(IndexType                          NewId,
+                       const NodesArrayType&              ThisNodes,
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                       std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
-    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
+    TransientPwElement(IndexType                          NewId,
+                       GeometryType::Pointer              pGeometry,
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                       std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -66,8 +72,9 @@ public:
     TransientPwElement(IndexType                          NewId,
                        GeometryType::Pointer              pGeometry,
                        PropertiesType::Pointer            pProperties,
-                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                       std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
