@@ -51,7 +51,7 @@ AxisymThermalContactDomainPenalty2DCondition::AxisymThermalContactDomainPenalty2
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 AxisymThermalContactDomainPenalty2DCondition&  AxisymThermalContactDomainPenalty2DCondition::operator=(AxisymThermalContactDomainPenalty2DCondition const& rOther)

@@ -33,6 +33,10 @@ public:
                                           const Matrix&                rF,
                                           double                       detF);
 
+    static double GetCohesion(const Properties& rProperties);
+    static double GetFrictionAngleInDegrees(const Properties& rProperties);
+    static double GetFrictionAngleInRadians(const Properties& rProperties);
+
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
