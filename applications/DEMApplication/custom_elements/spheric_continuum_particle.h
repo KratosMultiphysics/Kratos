@@ -111,6 +111,12 @@ namespace Kratos
 
 
         virtual void ContactAreaWeighting();
+        virtual void CalculateInitialBondContactArea(const double distance,
+                                                    const double my_search_radius,
+                                                    const double other_search_radius,
+                                                    const double my_radius,
+                                                    const double other_radius,
+                                                    double& bond_contact_area);
         virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
         virtual bool IsSkin() { return (bool)*mSkinSphere; }
@@ -136,6 +142,7 @@ namespace Kratos
         std::vector<int> mIniNeighbourFailureId;
         //std::vector<double> mIniNeighbourDelta;
         std::map<int, double> mIniNeighbourDelta;
+        std::map<int, double> mIniBondContactArea;
 
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;

@@ -93,6 +93,11 @@ namespace Kratos {
                 DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 discontinuum_ini_size++;
             }
+
+            //calculate the initial conatct area
+            double ini_bond_contact_area = 0.0;
+            CalculateInitialBondContactArea(distance, GetSearchRadius(), neighbour_iterator->GetSearchRadius(), GetRadius(), neighbour_iterator->GetRadius(), ini_bond_contact_area);
+            mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = ini_bond_contact_area;
         }
 
         mContinuumInitialNeighborsSize = continuum_ini_size;
@@ -194,6 +199,31 @@ namespace Kratos {
                 } //for every neighbor
             }
         }//if more than 6 neighbors
+    }
+
+    void SphericContinuumParticle::CalculateInitialBondContactArea(const double distance,
+                                                                const double my_search_radius,
+                                                                const double other_search_radius,
+                                                                const double my_radius,
+                                                                const double other_radius,
+                                                                double& bond_contact_area) 
+    {
+        const double dis_squared = distance * distance;
+        const double my_search_r_squared = my_search_radius * my_search_radius;
+        const double other_search_r_squared = other_search_radius * other_search_radius;
+        const double squared_dis_squared = dis_squared * dis_squared;
+
+        double numerator = 2.0 * dis_squared * (my_search_r_squared + other_search_r_squared) - std::pow(my_search_r_squared - other_search_r_squared, 2) - squared_dis_squared;
+        double Rbond = 0.0;
+
+        if (numerator > 0.0) {
+            Rbond = std::sqrt(numerator) / (2.0 * distance);
+            Rbond = std::min(Rbond, std::min(my_radius, other_radius));
+        } else {
+            Rbond = std::min(my_radius, other_radius);  // fallback if square root argument is negative
+        }
+
+        bond_contact_area = Globals::Pi * Rbond * Rbond;
     }
 
     double SphericContinuumParticle::EffectiveVolumeRadius() {
