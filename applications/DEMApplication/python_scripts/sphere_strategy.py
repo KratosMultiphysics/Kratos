@@ -306,6 +306,11 @@ class ExplicitStrategy():
             if self.DEM_parameters["PeriodicDomainOption"].GetBool():
                 self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 1) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
 
+        self.spheres_model_part.ProcessInfo.SetValue(USE_INITIAL_BOND_CONTACT_AREA, False)
+        if "UseInitialBondContactArea" in self.DEM_parameters.keys():
+            if self.DEM_parameters["UseInitialBondContactArea"].GetBool():
+                self.spheres_model_part.ProcessInfo.SetValue(USE_INITIAL_BOND_CONTACT_AREA, True)
+
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
