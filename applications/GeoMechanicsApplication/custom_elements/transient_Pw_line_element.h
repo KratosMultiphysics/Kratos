@@ -16,6 +16,7 @@
 #include "calculation_contribution.h"
 #include "compressibility_calculator.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "filter_compressibility_calculator.h"
@@ -24,6 +25,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "integration_coefficient_modifier_for_pw_line_element.h"
 #include "permeability_calculator.h"
 #include <numeric>
 #include <optional>
@@ -39,30 +41,38 @@ public:
 
     explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientPwLineElement(IndexType                                   NewId,
-                           const GeometryType::Pointer&                pGeometry,
-                           const std::vector<CalculationContribution>& rContributions)
-        : Element(NewId, pGeometry), mContributions(rContributions)
+    TransientPwLineElement(IndexType                                       NewId,
+                           const GeometryType::Pointer&                    pGeometry,
+                           const std::vector<CalculationContribution>&     rContributions,
+                           std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+        : Element(NewId, pGeometry),
+          mContributions(rContributions),
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
-    TransientPwLineElement(IndexType                                   NewId,
-                           const GeometryType::Pointer&                pGeometry,
-                           const PropertiesType::Pointer&              pProperties,
-                           const std::vector<CalculationContribution>& rContributions)
-        : Element(NewId, pGeometry, pProperties), mContributions(rContributions)
+    TransientPwLineElement(IndexType                                       NewId,
+                           const GeometryType::Pointer&                    pGeometry,
+                           const PropertiesType::Pointer&                  pProperties,
+                           const std::vector<CalculationContribution>&     rContributions,
+                           std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+        : Element(NewId, pGeometry, pProperties),
+          mContributions(rContributions),
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes),
-                                                      pProperties, mContributions);
+                                                      pProperties, mContributions,
+                                                      this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, mContributions);
+        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, mContributions,
+                                                      this->CloneIntegrationCoefficientModifier());
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
@@ -138,7 +148,7 @@ public:
     {
         KRATOS_TRY
 
-        CheckElementLength();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
@@ -155,13 +165,7 @@ public:
 private:
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     std::vector<CalculationContribution> mContributions;
-
-    void CheckElementLength() const
-    {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "Length smaller than " << min_domain_size << " for element " << Id() << std::endl;
-    }
+    IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
 
     void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
     {
@@ -241,19 +245,6 @@ private:
         }
     }
 
-    Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
-    {
-        const auto& r_properties         = GetProperties();
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-
-        auto result = Vector{r_integration_points.size()};
-        std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
-                       result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
-            return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA];
-        });
-        return result;
-    }
-
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
         auto        result     = array_1d<double, TNumNodes>{};
@@ -292,6 +283,11 @@ private:
                                                    body_acceleration.begin(), 0.0)));
         }
         return projected_gravity;
+    }
+
+    std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const
+    {
+        return mIntegrationCoefficientsCalculator.CloneModifier();
     }
 
     std::unique_ptr<ContributionCalculator> CreateCalculator(const CalculationContribution& rContribution,
@@ -366,7 +362,8 @@ private:
         return [this]() -> Vector {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            return CalculateIntegrationCoefficients(det_J_container);
+            return mIntegrationCoefficientsCalculator.Run<Vector>(
+                GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
         };
     }
 

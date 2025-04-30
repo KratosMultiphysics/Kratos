@@ -401,7 +401,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.main_model_part, self.main_model_part.GetParentModelPart()).Execute()
 
     def _GenerateErrorProcess(self):
-        """ This method creates an erro process to compute the metric
+        """ This method creates an error process to compute the metric
 
         Keyword arguments:
         self -- It signifies an instance of a class.
