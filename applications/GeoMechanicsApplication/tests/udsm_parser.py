@@ -18,22 +18,20 @@ def clean_c_buffer(char_buffer):
         decoded = raw.decode("utf-8", errors="ignore")
         # Remove leading numbers and spaces (like "0    ")
         decoded = re.sub(r"^\s*\d+\s+", "", decoded)
-        # Strip non-display chars
         decoded_clean = re.sub(r"[^\w\s\-\(\)\[\]\.,':=+/]", "", decoded)
         return decoded_clean.strip()
     except Exception:
-        return "<?>"  # fallback
+        return "<?>"
 
 def find_symbol_in_dll(dll_path, dll_lib, symbol_name):
     try:
         pe = pefile.PE(dll_path)
         symbol_name_lower = symbol_name.lower()
 
-        # Iterate over all exported symbols
         for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
             name = exp.name
             if name and name.decode().lower() == symbol_name_lower:
-                return getattr(dll_lib, name.decode())  # Return the correct symbol name
+                return getattr(dll_lib, name.decode())
 
         return None
     except Exception as e:
@@ -93,7 +91,6 @@ def get_state_var_name(getstatevarname, model_no, state_var_no):
     return clean_c_buffer(char_buffer)
 
 def get_material_files(material_directory):
-    # Get the list of files in the material directory
     material_files = os.listdir(material_directory)
     return material_files
 def udsm_parser(dll_path):
@@ -103,10 +100,8 @@ def udsm_parser(dll_path):
     """
     import ctypes
 
-    # Load the DLL
     dll_lib = ctypes.CDLL(dll_path, winmode=0)
 
-    # Get the function pointers
     getmodelcount = find_symbol_in_dll(dll_path, dll_lib, "getmodelcount")
     getmodelname = find_symbol_in_dll(dll_path, dll_lib, "getmodelname")
     getparamcount = find_symbol_in_dll(dll_path, dll_lib, "getparamcount")
@@ -114,7 +109,6 @@ def udsm_parser(dll_path):
     #getstatevarcount = find_symbol_in_dll(dll_path, dll_lib, "getstatevarcount")
     #getstatevarname = find_symbol_in_dll(dll_path, dll_lib, "getstatevarname")
 
-    # Close the DLL
     model_count = get_model_count(getmodelcount)
 
     # create library object with the structure that contains the parameters from each of the models in the file
@@ -132,43 +126,34 @@ def udsm_parser(dll_path):
 
 def create_menu():
     root = tk.Tk()
-    root.withdraw()  # Hide the root window
+    root.withdraw()
 
-    umat_entry_parameters = []
-
-    # Prompt user to select a DLL file
     dll_path = filedialog.askopenfilename(title="Select DLL File", filetypes=[("DLL files", "*.dll")])
     if not dll_path:
         messagebox.showerror("Error", "No DLL file selected.")
         return
 
-    # Parse the UDSM from the DLL file
     model_dict = udsm_parser(dll_path)
 
-    # Create a new window for the menu
     menu_window = tk.Toplevel()
     menu_window.title("Triaxial Test")
-    menu_window.state('zoomed')  # Maximize the window
+    menu_window.state('zoomed')
     menu_window.resizable(True, True)
 
-    # Global variables for the plot canvas and axes
     global fig, axes, canvas
     fig = None
     axes = None
     canvas = None
 
-
-# Create a frame for the dropdown menu
     dropdown_frame = ttk.Frame(menu_window, padding="10")
     dropdown_frame.pack(side="left", fill="y", padx=10, pady=10)
 
     ttk.Label(dropdown_frame, text="Select a Model:", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=5)
     model_var = tk.StringVar(menu_window)
-    model_var.set(model_dict["model_name"][0])  # Set default value
+    model_var.set(model_dict["model_name"][0])
     model_menu = ttk.Combobox(dropdown_frame, textvariable=model_var, values=model_dict["model_name"], state="readonly")
     model_menu.pack(side="top", fill="x", expand=True, padx=5)
 
-    # Create a frame for the parameters
     param_frame = ttk.Frame(dropdown_frame, padding="10")
     param_frame.pack(fill="both", expand=True, pady=10)
 
@@ -176,17 +161,14 @@ def create_menu():
     button_frame.pack(fill="x", pady=10)
 
     def update_parameters(*args):
-        # Clear the parameter frame
         for widget in param_frame.winfo_children():
             widget.destroy()
 
-        # Dictionary to store entry widgets
         entry_widgets = {}
         triaxial_entry_widgets = {}
 
-        # Define default values for parameters
         default_values = {
-            "1. E": "10000",  # Example default value
+            "1. E": "10000",
             "2. n_ur": "0.3",
             "3. c'": "0.0",
             "4. f_peak": "30.0",
@@ -196,16 +178,13 @@ def create_menu():
             "8. n_un (UMAT)": "0.3"
         }
 
-        # Get the selected model and its parameters
         selected_model = model_var.get()
         index = model_dict["model_name"].index(selected_model)
         params = model_dict["param_names"][index]
 
-        # Add a label for "Triaxial Input Data"
         parameter_frame = ttk.Frame(param_frame, padding="10")
         parameter_frame.pack(fill="x", pady=10)
         ttk.Label(parameter_frame, text="Soil Input Parameters", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=5)
-        # Add text input fields for each parameter
         for param in params:
             param_row = ttk.Frame(param_frame)
             param_row.pack(fill="x", padx=10, pady=2)
@@ -214,13 +193,11 @@ def create_menu():
             entry = ttk.Entry(param_row)
             entry.pack(side="left", fill="x", expand=True)
 
-            # Set default value if available
-            default_value = default_values.get(param, "N/A")  # Use "N/A" if no default value is defined
+            default_value = default_values.get(param, "N/A")
             entry.insert(0, default_value)
 
-            entry_widgets[param] = entry  # Store the entry widget
+            entry_widgets[param] = entry
 
-        # Add a label for "Triaxial Input Data"
         triaxial_frame = ttk.Frame(param_frame, padding="10")
         triaxial_frame.pack(fill="x", pady=10)
 
@@ -240,19 +217,16 @@ def create_menu():
             entry = ttk.Entry(input_row)
             entry.pack(side="left", fill="x", expand=True, padx=5)
 
-            # Set default value
             entry.insert(0, default_value)
 
             ttk.Label(input_row, text=unit, font=("Arial", 10)).pack(side="left", padx=5)
-            triaxial_entry_widgets[label_text] = entry  # Store the entry widget
+            triaxial_entry_widgets[label_text] = entry
 
-        # Save the entry widgets globally for access in run_calculation
         global parameter_entries, input_entries, model_index
         parameter_entries = entry_widgets
         input_entries = triaxial_entry_widgets
         model_index = index + 1
     def run_calculation():
-        # Retrieve values from the entry widgets
         parameters = [entry.get() for key, entry in parameter_entries.items()]
         try:
             initial_effective_stress = float(input_entries["Initial effective cell pressure |σ'\u2093\u2093|"].get())
@@ -262,16 +236,13 @@ def create_menu():
             messagebox.showerror("Error", "Invalid input for 'Triaxial Input Data'. Please enter numeric values.")
             return
 
-        # Call lab_test to get updated figures
         figs = lab_test(dll_path, model_index, parameters, time_step, maximum_strain, initial_effective_stress)
 
-        # Clear axes and plot new data
         for i, ax in enumerate(axes):
             ax.clear()
 
             if i < len(figs):
                 fig = figs[i]
-
                 x_label = fig.layout.xaxis.title.text if fig.layout.xaxis.title else None
                 y_label = fig.layout.yaxis.title.text if fig.layout.yaxis.title else None
 
@@ -303,43 +274,34 @@ def create_menu():
     run_button = ttk.Button(button_frame, text="Run Calculation", command=run_calculation)
     run_button.pack(pady=5)
 
-    # Bind the dropdown menu to update parameters on selection change
     model_var.trace("w", update_parameters)
 
-    # Initialize the parameters for the default model
     update_parameters()
 
-    # Create a frame for the plots
     plot_frame = ttk.Frame(menu_window, padding="5")
     plot_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
 
-    # Desired size per subplot
     width_per_ax = 6
     height_per_ax = 5
 
-    # Grid layout
     nrows, ncols = 3, 2
     figsize = (ncols * width_per_ax, nrows * height_per_ax)
 
-    # Define grid layout with spacing
     fig = plt.figure(figsize=figsize)
-    gs = GridSpec(nrows, ncols, figure=fig, wspace=0.4, hspace=0.6)  # Adjust wspace and hspace for spacing
+    gs = GridSpec(nrows, ncols, figure=fig, wspace=0.4, hspace=0.6)
 
-    # Create subplots with individual aspect ratios
     axes = []
     for i in range(nrows * ncols):
-        if i < 5:  # Only create 5 subplots
+        if i < 5:
             ax = fig.add_subplot(gs[i])
-            ax.plot([0, 1, 2, 3], [0, 0, 0, 0])  # Placeholder data
+            ax.plot([0, 1, 2, 3], [0, 0, 0, 0])
             # ax.set_title(f"Plot {i + 1}")
             # ax.set_aspect('equal') #if i % 2 == 0 else 'equal')  # Example: alternate aspect ratios
             axes.append(ax)
 
-    # Hide the 6th subplot
     if len(axes) == 6:
-        fig.delaxes(axes[5])  # or axes[5].set_visible(False)
+        fig.delaxes(axes[5])
 
-    # Embed the matplotlib figure in the tkinter frame
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     canvas_widget = canvas.get_tk_widget()
     canvas_widget.pack(fill="both", expand=True)
@@ -355,6 +317,5 @@ def create_menu():
 
 
 if __name__ == "__main__":
-
     create_menu()
 

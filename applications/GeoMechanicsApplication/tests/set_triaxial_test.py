@@ -97,7 +97,6 @@ def run_triaxial_test(output_file_paths, work_dir):
                     time = result_item["time"]
                     values = result_item["values"]
 
-                    # Check if it's a Gauss point result with 3 integration points (tri3)
                     is_likely_tri3 = (
                             isinstance(values, list) and
                             all("value" in v and isinstance(v["value"], list) and len(v["value"]) == 3 for v in values)
@@ -315,7 +314,6 @@ def plot_sigma(sigma_1, sigma_3):
     """
     fig = go.Figure()
 
-    # Add scatter plot for σ₁ vs σ₃
     fig.add_trace(go.Scatter(
         x=sigma_3,
         y=sigma_1,
@@ -327,7 +325,7 @@ def plot_sigma(sigma_1, sigma_3):
     fig.update_layout(
         title=dict(
             text='σ₁ vs σ₃ Plot',
-            x=0.5,  # Center the title
+            x=0.5,
             xanchor='center',
             yanchor='top'
         ),
@@ -368,12 +366,11 @@ def plot_delta_sigma(vertical_strain, sigma_diff):
     Plots the difference between σ₁ and σ₃ against displacement.
 
     Args:
-        displacement (list): List of displacements.
-        diff (list): List of differences between σ₁ and σ₃.
+        vertical_strain (list): List of vertical strains.
+        sigma_diff (list): List of differences between σ₁ and σ₃.
     """
     fig = go.Figure()
 
-    # Add scatter plot for σ₁ vs σ₃
     fig.add_trace(go.Scatter(
         x=vertical_strain,
         y=sigma_diff,
@@ -427,17 +424,15 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
     Args:
         sigma_1 (float): Maximum principal stress.
         sigma_3 (float): Minimum principal stress.
+        cohesion (float): Cohesion of the material.
+        friction_angle (float): Friction angle of the material.
     """
-    # Calculate the center and radius of the Mohr-Coulomb circle
     center = (sigma_1 + sigma_3) / 2
     radius = (sigma_1 - sigma_3) / 2
-
-    # Generate points for the circle
     theta = np.linspace(0, np.pi, 200)
     sigma = center + radius * np.cos(theta)
     tau = radius * np.sin(theta)
 
-    # Generate the dashed line
     phi_rad = np.radians(friction_angle)
 
     x_line = np.linspace(0, sigma_1, 200)
@@ -445,7 +440,6 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
 
     fig = go.Figure()
 
-    # Add the Mohr-Coulomb circle
     fig.add_trace(go.Scatter(
         x=sigma,
         y=tau,
@@ -454,7 +448,6 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
         line=dict(color='blue', width=2)
     ))
 
-    # Add the dashed line for failure line
     fig.add_trace(go.Scatter(
         x=x_line,
         y=y_line,
@@ -621,7 +614,6 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
     mdpa_editor.update_initial_effective_cell_pressure(initial_effective_cell_pressure)
     first_timestep = 1.0 + (1.0 / time_step)
     mdpa_editor.update_first_timestep(first_timestep)
-
 
     output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial_Stage_2.post.res")]
 
