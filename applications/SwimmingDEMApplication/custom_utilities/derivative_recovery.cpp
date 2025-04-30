@@ -688,6 +688,8 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model
     }
     if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
         CalculateVectorMaterialDerivative(r_model_part, vector_container, vector_rate_container, material_derivative_container);
+        std::cout << "Error in RecoverSuperConvergentMatDeriv: mSomeCloudsDontWork = " << mSomeCloudsDontWork << std::endl;
+        exit(1);
     }
     // Solving least squares problem (Zhang, 2006)
     unsigned int n_relevant_terms = 3;
