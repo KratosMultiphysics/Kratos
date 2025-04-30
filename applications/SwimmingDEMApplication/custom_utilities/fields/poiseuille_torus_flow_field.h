@@ -41,9 +41,9 @@ namespace Kratos
         PoiseuilleTorusFlowField(const double major_radius, const double minor_radius, const double u0) : VelocityField(), mMajorRadius(major_radius), mMinorRadius(minor_radius), mU0(u0)
         {
             unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
-            std::cout << "Resizing..." << std::endl;
+            // std::cout << "Resizing..." << std::endl;
             ResizeVectorsForParallelism(number_of_threads);
-            std::cout << "Done." << std::endl;
+            // std::cout << "Done." << std::endl;
         }
 
         /// Destructor.
@@ -132,12 +132,12 @@ namespace Kratos
         double mU0;
 
         std::vector<int> mCoordinatesAreUpToDate;
-        std::vector<int> mXYDistance;
-        std::vector<int> mRho;
-        std::vector<int> mCos;
-        std::vector<int> mSin;
-        std::vector<int> mZ;
-        std::vector<int> mCommonTerm;
+        std::vector<double> mXYDistance;
+        std::vector<double> mRho;
+        std::vector<double> mCos;
+        std::vector<double> mSin;
+        std::vector<double> mZ;
+        std::vector<double> mCommonTerm;
 
         // double mX;
         // double mY;

@@ -4,7 +4,7 @@ namespace Kratos
 {
     void PoiseuilleTorusFlowField::ResizeVectorsForParallelism(const int n_threads)
     {
-        std::cout << "Resizing with n_threads = " << n_threads << std::endl;
+        // std::cout << "Resizing with n_threads = " << n_threads << std::endl;
         mXYDistance.resize(n_threads);
         mRho.resize(n_threads);
         mSin.resize(n_threads);
@@ -23,32 +23,25 @@ namespace Kratos
     {
         if (!mCoordinatesAreUpToDate[i_thread])
         {
-            double xy_distance = std::sqrt(coor[0] * coor[0] + coor[1] * coor[1]);
-            double local_xy_distance = xy_distance - mMajorRadius;
+            // double xy_distance = std::sqrt(coor[0] * coor[0] + coor[1] * coor[1]);
+            // double local_xy_distance = xy_distance - mMajorRadius;
 
-            // mXYDistance[i_thread] = xy_distance;
-            // mRho[i_thread] = std::sqrt(local_xy_distance * local_xy_distance + coor[2] * coor[2]) / mMinorRadius;
-            // mSin[i_thread] = coor[0] / xy_distance;
-            // mCos[i_thread] = coor[1] / xy_distance;
-            // mZ[i_thread] = coor[2];
-            // mCommonTerm[i_thread] = (4. / mU0) * (mXYDistance[i_thread] - mMajorRadius) / (mMinorRadius * mMinorRadius) * mRho[i_thread];
+            mXYDistance[i_thread] = std::sqrt(coor[0] * coor[0] + coor[1] * coor[1]);
+            mRho[i_thread] = std::sqrt((mXYDistance[i_thread] - mMajorRadius) * (mXYDistance[i_thread] - mMajorRadius) + coor[2] * coor[2]) / mMinorRadius;
+            mSin[i_thread] = coor[0] / mXYDistance[i_thread];
+            mCos[i_thread] = coor[1] / mXYDistance[i_thread];
+            mZ[i_thread] = coor[2];
+            mCommonTerm[i_thread] = (4. / mU0) * (mXYDistance[i_thread] - mMajorRadius) / (mMinorRadius * mMinorRadius) * mRho[i_thread];
 
-            mXYDistance[i_thread] = 1.;
-            mRho[i_thread] = 1.0;
-            mSin[i_thread] = 1.0;
-            mCos[i_thread] = 1.0;
-            mZ[i_thread] = 1.0;
-            mCommonTerm[i_thread] = mZ[i_thread] * 2.0;
-
-            std::cout << "Updating coords for i_thread = " << i_thread << " for coor = " << coor << ": (mCoordinatesAreUpToDate = " << mCoordinatesAreUpToDate[i_thread] << ")" << std::endl;
-            std::cout << "xy_distance = " << xy_distance << std::endl;
-            std::cout << "local_xy    = " << local_xy_distance << std::endl;
-            std::cout << "mXyDist     = " << mXYDistance[i_thread] << std::endl;
-            std::cout << "rho         = " << mRho[i_thread] << std::endl;
-            std::cout << "sin         = " << mSin[i_thread] << std::endl;
-            std::cout << "cos         = " << mCos[i_thread] << std::endl;
-            std::cout << "z           = " << mZ[i_thread] << std::endl;
-            std::cout << "common_term = " << mCommonTerm[i_thread] << std::endl;
+            // std::cout << "Updating coords for i_thread = " << i_thread << " for coor = " << coor << ": (mCoordinatesAreUpToDate = " << mCoordinatesAreUpToDate[i_thread] << ")" << std::endl;
+            // std::cout << "xy_distance = " << xy_distance << std::endl;
+            // std::cout << "local_xy    = " << local_xy_distance << std::endl;
+            // std::cout << "mXyDist     = " << mXYDistance[i_thread] << std::endl;
+            // std::cout << "rho         = " << mRho[i_thread] << std::endl;
+            // std::cout << "sin         = " << mSin[i_thread] << std::endl;
+            // std::cout << "cos         = " << mCos[i_thread] << std::endl;
+            // std::cout << "z           = " << mZ[i_thread] << std::endl;
+            // std::cout << "common_term = " << mCommonTerm[i_thread] << std::endl;
         }
     }
 
@@ -83,12 +76,12 @@ namespace Kratos
     double PoiseuilleTorusFlowField::U0(const int i_thread)
     {
         // double velocity_module = getVelocityModule(i_thread);
-        return mU0 * mCos[i_thread];
+        return mU0 * (1. - mRho[i_thread] * mRho[i_thread]) * mCos[i_thread];
     }
 
     double PoiseuilleTorusFlowField::U1(const int i_thread)
     {
-        return -1. * mU0 * mSin[i_thread];
+        return -1. * mU0 * (1. - mRho[i_thread] * mRho[i_thread]) * mSin[i_thread];
     }
 
     double PoiseuilleTorusFlowField::U2(const int i_thread)
