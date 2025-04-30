@@ -483,7 +483,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_RequiresInitializeMateria
     auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
 
     // Act & Assert
-    KRATOS_EXPECT_EQ(mc_law.IsIncremental(), true);
+    KRATOS_EXPECT_EQ(mc_law.RequiresInitializeMaterialResponse(), true);
 }
 
 } // namespace Kratos::Testing
