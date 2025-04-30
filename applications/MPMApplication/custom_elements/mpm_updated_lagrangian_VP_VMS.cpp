@@ -1037,7 +1037,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateElementalSystem(
 {
     KRATOS_TRY
     //printf("    > CalculateElementalSystem\n");
-    CalculateResidualVectorFlag = true; //temporary solution
+    //CalculateResidualVectorFlag = true; //temporary solution
     // Create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
@@ -1104,7 +1104,8 @@ void MPMUpdatedLagrangianVPVMS::CalculateElementalSystem(
         //KRATOS_WATCH(mMP.volume_acceleration);
         //KRATOS_WATCH(mMP.mass);
         //KRATOS_WATCH(Variables.BodyForceMP);
-        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass); // caso statico: il primo termine deve essere zero.
+        //KRATOS_WATCH(mMP.volume);
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass) + (Variables.BodyForceMP * mMP.mass); // * mMP.mass   caso statico: il primo termine deve essere zero.
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
@@ -1396,7 +1397,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     StabilizedPressure = prod(rVariables.DN_DX, resizedVolumeForce);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {   
-        rRightHandSideVector[index_i] -= rVariables.tau1 * StabilizedPressure[i] / mMP.density;
+        rRightHandSideVector[index_i] += rVariables.tau1 * StabilizedPressure[i];
         index_i += (dimension + 1);
     }
     //KRATOS_WATCH(rVariables.StressVector);
@@ -1546,7 +1547,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddBp (MatrixType& rLeftHandSideMatr
         {
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_i+k, index_j) += rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_i+k, index_j) -= rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight;
             }
             index_j += (dimension + 1);
         }
@@ -1603,7 +1604,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddSv (MatrixType& rLeftHandSideMatr
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    rLeftHandSideMatrix(i*(dimension+1) + idim, j*(dimension+1) + jdim) -= rVariables.tau2 * rVariables.DN_DX(i,idim) * rVariables.DN_DX(j,jdim) * rIntegrationWeight;
+                    rLeftHandSideMatrix(i*(dimension+1) + idim, j*(dimension+1) + jdim) += rVariables.tau2 * rVariables.DN_DX(i,idim) * rVariables.DN_DX(j,jdim) * rIntegrationWeight;
                 }
             }
         }
@@ -1633,7 +1634,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddSp (MatrixType& rLeftHandSideMatr
         indexj=0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            rLeftHandSideMatrix(dimension + i*(dimension+1), dimension + j*(dimension+1)) -= rVariables.tau1 * K(indexi,indexj);
+            rLeftHandSideMatrix(dimension + i*(dimension+1), dimension + j*(dimension+1)) += rVariables.tau1 * K(indexi,indexj);
             indexj++;     
         }
         indexi++;
