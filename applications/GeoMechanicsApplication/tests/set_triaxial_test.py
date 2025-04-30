@@ -640,12 +640,6 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
 
     cohesion, friction_angle = TriaxialTest(json_file_path).read_umat_parameters()
 
-    # plot_sigma(sigma1_list, sigma3_list)
-    # plot_delta_sigma(vertical_strain, sigma_diff)
-    # plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1])
-    # plot_p_q(p_list, q_list)
-    # plot_volumetric_strain(vertical_strain, volumetric_strain)
-
     figs = [
         plot_delta_sigma(vertical_strain, sigma_diff),
         plot_volumetric_strain(vertical_strain, volumetric_strain),

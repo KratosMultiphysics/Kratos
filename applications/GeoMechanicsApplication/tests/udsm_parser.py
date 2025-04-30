@@ -357,7 +357,4 @@ def create_menu():
 if __name__ == "__main__":
 
     create_menu()
-    # Example usage
-    #dll_path = r"c:\Users\nuttall\OneDrive - Stichting Deltares\Desktop\Bugs\ColumnWetDry\udsm.dll"
-    #model_name, num_params, param_names = udsm_parser(dll_path)
 
