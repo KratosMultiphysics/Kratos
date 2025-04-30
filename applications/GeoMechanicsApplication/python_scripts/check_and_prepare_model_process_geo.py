@@ -1,8 +1,4 @@
-
 import KratosMultiphysics
-
-# Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.GeoMechanicsApplication
 
 
@@ -22,8 +18,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.processes_sub_model_part_list = Parameters["processes_sub_model_part_list"]
         self.body_domain_sub_model_part_list = Parameters["body_domain_sub_model_part_list"]
         self.body_domain_sub_sub_model_part_list = Parameters["body_domain_sub_sub_model_part_list"]
-        self.loads_sub_model_part_list = Parameters["loads_sub_model_part_list"]
-        self.loads_sub_sub_model_part_list = Parameters["loads_sub_sub_model_part_list"]
 
     def Execute(self):
         # Construct the computing model part: a model part which contains the mesh to compute
@@ -75,13 +69,3 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for elem in body_sub_model_part.Elements:
                 list_of_ids.add(elem.Id)
             body_sub_sub_model_part.AddElements(list(list_of_ids))
-        # Arc-Length
-        for i in range(self.loads_sub_model_part_list.size()):
-            load_sub_model_part = self.main_model_part.GetSubModelPart(self.loads_sub_model_part_list[i].GetString())
-            if not self.main_model_part.HasSubModelPart(self.loads_sub_sub_model_part_list[i].GetString()):
-                computing_model_part.CreateSubModelPart(self.loads_sub_sub_model_part_list[i].GetString())
-            load_sub_sub_model_part = computing_model_part.GetSubModelPart(self.loads_sub_sub_model_part_list[i].GetString())
-            list_of_ids = set()
-            for node in load_sub_model_part.Nodes:
-                list_of_ids.add(node.Id)
-            load_sub_sub_model_part.AddNodes(list(list_of_ids))
