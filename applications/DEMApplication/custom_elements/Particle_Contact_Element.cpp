@@ -111,6 +111,9 @@ void ParticleContactElement::InitializeSolutionStep(const ProcessInfo& r_process
     mLocalContactForce[0] = 0.0;
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
+    mGlobalContactForce[0] = 0.0;
+    mGlobalContactForce[1] = 0.0;
+    mGlobalContactForce[2] = 0.0;
     if (mFailureCriterionState<1.0) {
         mFailureCriterionState = 0.0;
     } // else we keep it at 1.0.
