@@ -19,6 +19,7 @@
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <custom_constitutive/three_dimensional.h>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -428,8 +429,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
                                      5.77E7, 5.77E7, 1.35E8, 0.,
                                      0.,     0.,     0.,     3.85E7;
     // clang-format on
-    KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix,
-                              1.E6);
+    KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, 1.E6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_WorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -485,6 +485,39 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_RequiresInitializeMateria
 
     // Act & Assert
     KRATOS_EXPECT_TRUE(mc_law.RequiresInitializeMaterialResponse());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto mc_law_plane_strain = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    // Act
+    ConstitutiveLaw::Features features;
+    mc_law_plane_strain.GetLawFeatures(features);
+
+    // Assert
+    KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::INFINITESIMAL_STRAINS));
+    KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::ISOTROPIC));
+    KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::PLANE_STRAIN_LAW));
+    KRATOS_EXPECT_EQ(features.GetStrainMeasures().front(),ConstitutiveLaw::StrainMeasure_Infinitesimal);
+    KRATOS_EXPECT_EQ(features.GetStrainSize(), 4);
+    KRATOS_EXPECT_EQ(features.GetSpaceDimension(), 2);
+
+    // Arrange
+    auto mc_law_3d = MohrCoulombWithTensionCutOff(std::make_unique<ThreeDimensional>());
+
+    // Act
+    mc_law_3d.GetLawFeatures(features);
+
+    // Assert
+    KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::INFINITESIMAL_STRAINS));
+    KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::ISOTROPIC));
+    KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW));
+    KRATOS_EXPECT_EQ(features.GetStrainMeasures().front(),ConstitutiveLaw::StrainMeasure_Infinitesimal);
+    KRATOS_EXPECT_EQ(features.GetStrainSize(), 6);
+    KRATOS_EXPECT_EQ(features.GetSpaceDimension(), 3);
+
 }
 
 } // namespace Kratos::Testing
