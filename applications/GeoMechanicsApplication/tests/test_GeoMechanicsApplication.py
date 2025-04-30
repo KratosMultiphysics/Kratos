@@ -7,7 +7,6 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from generalTests import KratosGeoMechanicsGeneralTests
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
 from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
@@ -77,11 +76,7 @@ def AssembleTestSuites():
     '''
 
     # Create an array with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-
     small_test_cases = [
-                        KratosGeoMechanicsGeneralTests,
                         KratosGeoMechanicsExcavationTests,
                         KratosGeoMechanicsResetDisplacementTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
@@ -161,15 +156,15 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # add the tests to the corresponding suite,
-    smallSuite = suites['small']
-    nightSuite = suites['nightly']
-    validSuite = suites['validation']
-    allSuite = suites['all']
+    small_suite = suites['small']
+    night_suite = suites['nightly']
+    valid_suite = suites['validation']
+    all_suite = suites['all']
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
-    validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
-    allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
+    night_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
+    valid_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
+    all_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
 
     return suites
 
