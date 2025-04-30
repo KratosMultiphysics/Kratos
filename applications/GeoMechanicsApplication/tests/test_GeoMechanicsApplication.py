@@ -112,6 +112,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsInterfaceElementTests,
                         KratosGeoMechanicsMasterSlaveConstraints,
                         KratosGeoMechanicsSingleElementWithMohrCoulomb,
+                        KratosGeoMechanicsMohrCoulombWithTensionTests
     ]
 
     # Create an array with the selected tests
@@ -133,8 +134,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTimeIntegrationTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
-                        KratosGeoMechanicsPartialSaturation,
-                        KratosGeoMechanicsMohrCoulombWithTensionTests
+                        KratosGeoMechanicsPartialSaturation
                         ]
     night_test_cases.extend(small_test_cases)
 
