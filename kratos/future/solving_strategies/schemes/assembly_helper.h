@@ -353,7 +353,7 @@ public:
     }
 
     virtual void ApplyDirichletConditions(
-        const EffectiveDofsMapType& rEffectiveDofMap,
+        const DofsArrayType& rDofSet,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS)
     {
@@ -362,7 +362,7 @@ public:
             // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
             // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
-            ApplyBlockBuildDirichletConditions(rEffectiveDofMap, rLHS, rRHS);
+            ApplyBlockBuildDirichletConditions(rDofSet, rLHS, rRHS);
 
         } else if (mBuildType == BuildType::Elimination) {
 
@@ -376,11 +376,11 @@ public:
     }
 
     virtual void ApplyDirichletConditions(
-        const EffectiveDofsMapType& rEffectiveDofMap,
+        const DofsArrayType& rDofSet,
         TSparseVectorType& rRHS)
     {
         if (mBuildType == BuildType::Block) {
-            ApplyBlockBuildDirichletConditions(rEffectiveDofMap, rRHS);
+            ApplyBlockBuildDirichletConditions(rDofSet, rRHS);
         } else if (mBuildType == BuildType::Elimination) {
             return;
         } else {
@@ -839,7 +839,7 @@ private:
     }
 
     void ApplyBlockBuildDirichletConditions(
-        const EffectiveDofsMapType& rEffectiveDofMap,
+        const DofsArrayType& rDofSet,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS) const
     {
@@ -851,11 +851,11 @@ private:
 
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto eff_dof_begin = rEffectiveDofMap.begin();
-        IndexPartition<std::size_t>(rEffectiveDofMap.size()).for_each([&](IndexType Index){
-            auto eff_dof_pair = *(eff_dof_begin + Index);
-            if (eff_dof_pair.first->IsFixed()) {
-                free_dofs_vector[eff_dof_pair.second] = 0;
+        const auto dof_begin = rDofSet.begin();
+        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](IndexType Index){
+            auto p_dof = dof_begin + Index;
+            if (p_dof->IsFixed()) {
+                free_dofs_vector[p_dof->EquationId()] = 0;
             }
         });
 
@@ -871,16 +871,16 @@ private:
     }
 
     void ApplyBlockBuildDirichletConditions(
-        const EffectiveDofsMapType& rEffectiveDofMap,
+        const DofsArrayType& rDofSet,
         TSparseVectorType& rRHS) const
     {
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto eff_dof_begin = rEffectiveDofMap.begin();
-        IndexPartition<std::size_t>(rEffectiveDofMap.size()).for_each([&](IndexType Index){
-            auto eff_dof_pair = *(eff_dof_begin + Index);
-            if (eff_dof_pair.first->IsFixed()) {
-                rRHS[eff_dof_pair.second] = 0.0;
+        const auto dof_begin = rDofSet.begin();
+        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](IndexType Index){
+            auto p_dof = dof_begin + Index;
+            if (p_dof->IsFixed()) {
+                rRHS[p_dof->EquationId()] = 0;
             }
         });
     }
@@ -946,8 +946,12 @@ private:
             }
 
             // Sort the effective DOFs before setting the equation ids
+            // Note that we dereference the DOF pointers in order to use the greater operator from dof.h
             std::vector<typename DofType::Pointer> ordered_eff_dofs_set(effective_dofs_set.begin(), effective_dofs_set.end());
-            std::sort(ordered_eff_dofs_set.begin(), ordered_eff_dofs_set.end());
+            std::sort(
+                ordered_eff_dofs_set.begin(),
+                ordered_eff_dofs_set.end(),
+                [](typename DofType::Pointer pA, typename DofType::Pointer pB){return *pA > *pB;});
 
             // Set the "master" DOFs equation ids based on the sorted list
             const SizeType n_eff_dofs = ordered_eff_dofs_set.size();
@@ -1048,6 +1052,8 @@ private:
 
         rConstraintsRelationMatrix.BeginAssemble();
         rConstraintsConstantVector.BeginAssemble();
+
+        KRATOS_WATCH(rConstraintsRelationMatrix)
 
         #pragma omp parallel firstprivate(consts_begin, r_process_info)
         {

@@ -558,18 +558,18 @@ public:
 
     //TODO: Think about the dynamic case and the mass and damping matrices!!
     virtual void ApplyDirichletConditions(
-        const EffectiveDofsMapType& rEffectiveDofList,
+        const DofsArrayType& rDofList,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(rEffectiveDofList, rLHS, rRHS);
+        GetAssemblyHelper().ApplyDirichletConditions(rDofList, rLHS, rRHS);
     }
 
     virtual void ApplyDirichletConditions(
-        const EffectiveDofsMapType& rEffectiveDofList,
+        const DofsArrayType& rDofList,
         TSparseVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(rEffectiveDofList, rRHS);
+        GetAssemblyHelper().ApplyDirichletConditions(rDofList, rRHS);
     }
 
     //TODO: Think about the dynamic case and the mass and damping matrices!!

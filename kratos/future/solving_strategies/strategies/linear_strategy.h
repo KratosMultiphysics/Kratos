@@ -184,8 +184,8 @@ public:
             // Build the local system and apply the Dirichlet conditions
             p_scheme->Build(*p_lhs, *p_rhs);
             p_scheme->BuildConstraints(r_T, r_b);
+            p_scheme->ApplyDirichletConditions(r_dof_set, *p_lhs, *p_rhs);
             p_scheme->ApplyConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
-            p_scheme->ApplyDirichletConditions(r_eff_dof_list, *p_eff_lhs, *p_eff_rhs);
             this->SetStiffnessMatrixIsBuilt(true);
         } else {
             // Initialize values
@@ -194,8 +194,8 @@ public:
 
             // Build the RHS and apply the Dirichlet conditions
             p_scheme->Build(*p_rhs);
+            p_scheme->ApplyDirichletConditions(r_dof_set, *p_rhs);
             p_scheme->ApplyConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b); //TODO: In here we should apply them to the RHS-only!
-            p_scheme->ApplyDirichletConditions(r_eff_dof_list, *p_eff_rhs);
         }
 
         // Solve the system
@@ -210,6 +210,7 @@ public:
 
         // Get the solution update vector from the effective one
         p_scheme->CalculateUpdateVector(r_T, r_b, *p_eff_dx, *p_dx);
+        //FIXME: update "los sueltos" in the database first
 
         // Update results (note that this also updates the mesh if needed)
         p_scheme->Update(r_dof_set, *p_lhs, *p_dx, *p_rhs);

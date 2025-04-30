@@ -473,5 +473,84 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraints, KratosCoreF
 #endif
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraints, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    const std::size_t num_elems = 3;
+    const double elem_size = 1.0;
+    SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
+
+    // Create the nodes to apply the tie constraints
+    auto p_node_5 = r_test_model_part.CreateNewNode(5, 0.0, 0.0, 0.0);
+    auto p_node_6 = r_test_model_part.CreateNewNode(6, 0.0, 0.0, 0.0);
+    p_node_5->AddDof(DISTANCE);
+    p_node_6->AddDof(DISTANCE);
+
+    // Create a tie constraint at each side of the domain
+    // Note that these nodes are not connected to the domain (i.e., are somehow "flying")
+    const double jump = 0.0;
+    const double weight = 1.0;
+
+    auto& r_slave_node_a = r_test_model_part.GetNode(1);
+    auto& r_master_node_a = r_test_model_part.GetNode(5);
+    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+        "LinearMasterSlaveConstraint", 1, r_master_node_a, DISTANCE, r_slave_node_a, DISTANCE, weight, jump);
+    p_const_1->Set(ACTIVE, true);
+
+    auto& r_slave_node_b = r_test_model_part.GetNode(4);
+    auto& r_master_node_b = r_test_model_part.GetNode(6);
+    auto p_const_2 = r_test_model_part.CreateNewMasterSlaveConstraint(
+        "LinearMasterSlaveConstraint", 2, r_master_node_b, DISTANCE, r_slave_node_b, DISTANCE, weight, jump);
+    p_const_2->Set(ACTIVE, true);
+
+    // Create the scheme
+    Parameters scheme_settings = Parameters(R"({
+        "build_settings" : {
+            "build_type" : "block"
+        }
+    })");
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+
+    // Create the linear solver
+    Parameters amgcl_settings = Parameters(R"({
+    })");
+    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
+    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
+
+    // Create the strategy
+    Parameters strategy_settings = Parameters(R"({
+    })");
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+
+    // Apply Dirichlet BCs to the tie nodes
+    p_node_5->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
+    p_node_5->Fix(DISTANCE);
+
+    p_node_6->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
+    p_node_6->Fix(DISTANCE);
+
+    // Solve the problem
+    p_strategy->Initialize();
+    p_strategy->Check();
+    p_strategy->InitializeSolutionStep();
+    p_strategy->Predict();
+    p_strategy->SolveSolutionStep();
+    p_strategy->FinalizeSolutionStep();
+    p_strategy->Clear();
+
+    // Check results
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
+#else
+    true;
+#endif
+}
+
 }  // namespace Kratos::Testing.
 
