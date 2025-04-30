@@ -134,7 +134,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < rFemNeighbours.size(); i++) {
 
-            double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
+            double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
             array_1d<double, 3> wall_delta_disp_at_contact_point = ZeroVector(3);
             array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);
             double DistPToB = 0.0;
