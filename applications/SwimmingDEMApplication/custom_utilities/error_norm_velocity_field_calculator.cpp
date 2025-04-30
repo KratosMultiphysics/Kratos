@@ -79,7 +79,7 @@ namespace Kratos
             if (!mNormalizeResult)
                 l2_norm_factor += r_geometry.Area();
         }
-        std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
+        // std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
         return std::sqrt(result / l2_norm_factor);
     }
 
@@ -145,7 +145,7 @@ namespace Kratos
             if (!mNormalizeResult)
                 l2_norm_factor += r_geometry.Area();
         }
-        std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
+        // std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
         return std::sqrt(result / l2_norm_factor);
     }
 
@@ -242,7 +242,7 @@ namespace Kratos
             if (!mNormalizeResult)
                 l2_norm_factor += r_geometry.Area();
         }
-        std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
+        // std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
         return std::sqrt(result / l2_norm_factor);
     }
 
@@ -327,7 +327,7 @@ namespace Kratos
             if (!mNormalizeResult)
                 l2_norm_factor += r_geometry.Area();
         }
-        std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
+        // std::cout << "L2 norm factor: " << l2_norm_factor << ", result = " << result << std::endl;
         return std::sqrt(result / l2_norm_factor);
     }
 }
