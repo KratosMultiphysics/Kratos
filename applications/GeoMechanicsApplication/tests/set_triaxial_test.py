@@ -36,17 +36,16 @@ class TriaxialTest:
         return cohesion, friction_angle
 
 def run_triaxial_test(output_file_paths):
-    current_working = os.getcwd()
+    original_cwd = os.getcwd()
 
     # construct parameterfile names of stages to run
     project_path = os.path.join('test_triaxial')
     n_stages = 2
     parameter_file_names = [os.path.join('ProjectParameters_stage' + str(i + 1) + '.json') for i in range(n_stages)]
 
-    # change to project directory
     os.chdir(project_path)
 
-    # setup stages from parameterfiles
+
     parameters_stages = [None] * n_stages
     for idx, parameter_file_name in enumerate(parameter_file_names):
         with open(parameter_file_name, 'r') as parameter_file:
@@ -57,9 +56,6 @@ def run_triaxial_test(output_file_paths):
 
     # execute the stages
     [stage.Run() for stage in stages]
-
-    # # back to working directory
-    # os.chdir(currentWorking)
 
     cauchy_stress_results = []
     mean_effective_stress_results = []
@@ -193,6 +189,8 @@ def run_triaxial_test(output_file_paths):
         mean_stress = element["value"][1]
         mean_effective_stresses.append(mean_stress)
 
+
+    os.chdir(original_cwd)
 
     return reshaped_values_by_time, yy_strains, volumetric_strains, von_mise_stress, mean_effective_stresses
 
@@ -425,7 +423,7 @@ def plot_delta_sigma(vertical_strain, sigma_diff):
     )
     return fig
 
-def plot_mohr_coulomb_circle(sigma_1, sigma_3):
+def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
     """
     Plots the Mohr-Coulomb circle with σ' on the x-axis and mobilized shear stress on the y-axis.
 
@@ -443,9 +441,7 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3):
     tau = radius * np.sin(theta)
 
     # Generate the dashed line
-    phi_rad = np.radians(TriaxialTest(os.path.join('MaterialParameters_stage1.json'))
-                         .read_umat_parameters()[1])
-    cohesion = TriaxialTest(os.path.join('MaterialParameters_stage1.json')).read_umat_parameters()[0]
+    phi_rad = np.radians(friction_angle)
 
     x_line = np.linspace(0, sigma_1, 200)
     y_line = x_line * np.tan(phi_rad) - cohesion
@@ -642,6 +638,8 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
 
     sigma_diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
 
+    cohesion, friction_angle = TriaxialTest(json_file_path).read_umat_parameters()
+
     # plot_sigma(sigma1_list, sigma3_list)
     # plot_delta_sigma(vertical_strain, sigma_diff)
     # plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1])
@@ -653,7 +651,7 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
         plot_volumetric_strain(vertical_strain, volumetric_strain),
         plot_sigma(sigma1_list, sigma3_list),
         plot_p_q(mean_effective_stresses, von_mise_stress),
-        plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1]),
+        plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1], cohesion, friction_angle),
     ]
     return figs
 

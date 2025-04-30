@@ -262,18 +262,19 @@ def create_menu():
             messagebox.showerror("Error", "Invalid input for 'Triaxial Input Data'. Please enter numeric values.")
             return
 
+        # Call lab_test to get updated figures
         figs = lab_test(dll_path, model_index, parameters, time_step, maximum_strain, initial_effective_stress)
+
+        # Clear axes and plot new data
         for i, ax in enumerate(axes):
             ax.clear()
 
-            if i < len(figs):  # Make sure there's a plotly fig for this subplot
+            if i < len(figs):
                 fig = figs[i]
 
-                # Extract x and y labels from the Plotly figure
                 x_label = fig.layout.xaxis.title.text if fig.layout.xaxis.title else None
                 y_label = fig.layout.yaxis.title.text if fig.layout.yaxis.title else None
 
-                # Extract all traces and plot them
                 for trace in fig.data:
                     if isinstance(trace, go.Scatter):
                         x = trace.x
@@ -285,20 +286,20 @@ def create_menu():
                 ax.set_ylabel(y_label)
 
                 ax.invert_xaxis()
-                if i in [1, 2, 4]:  # Flip y-axis for fig 1 and 3
+                if i in [1, 2, 4]:
                     ax.invert_yaxis()
-                    ax.set_ylim(0, np.min(y)*1.2)  # Ensure x-axis starts from 0
+                    ax.set_ylim(0, np.min(y)*1.2)
                 else:
                     ax.set_ylim(0, np.max(y)*1.2)
 
-                ax.set_xlim(0, np.min(x)*1.2)  # Ensure x-axis starts from 0
+                ax.set_xlim(0, np.min(x)*1.2)
 
-
-            titles = ["Delta Sigma", "Volumetric Strain", "Sigma Plot", "p-q Plot", "Mohr-Coulomb Circle"]
-            ax.set_title(titles[i] if i < len(titles) else f"Plot {i + 1}")
-            ax.legend()
+                titles = ["Delta Sigma", "Volumetric Strain", "Sigma Plot", "p-q Plot", "Mohr-Coulomb Circle"]
+                ax.set_title(titles[i] if i < len(titles) else f"Plot {i + 1}")
+                ax.legend()
 
         canvas.draw()
+
     run_button = ttk.Button(button_frame, text="Run Calculation", command=run_calculation)
     run_button.pack(pady=5)
 
@@ -344,6 +345,13 @@ def create_menu():
     canvas_widget.pack(fill="both", expand=True)
 
     menu_window.mainloop()
+
+    def reset_simulation():
+        menu_window.destroy()
+        create_menu()
+
+    reset_button = ttk.Button(button_frame, text="Reset Simulation", command=reset_simulation)
+    reset_button.pack(pady=5)
 
 
 if __name__ == "__main__":
