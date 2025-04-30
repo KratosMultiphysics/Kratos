@@ -1033,10 +1033,11 @@ void MPMUpdatedLagrangianVPVMS::CalculateElementalSystem(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
-    const bool CalculateResidualVectorFlag)
+    bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
     //printf("    > CalculateElementalSystem\n");
+    CalculateResidualVectorFlag = true; //temporary solution
     // Create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
@@ -1080,7 +1081,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateElementalSystem(
         SetSpecificVariables(Variables,rCurrentProcessInfo);
 
         // Compute stabilization parameters
-        CalculateTaus(rCurrentProcessInfo.GetValue(STABILIZATION_TYPE),Variables);
+        CalculateTaus(rCurrentProcessInfo.GetValue(STABILIZATION_TYPE),Variables,rCurrentProcessInfo);
     }
 
     // The MP_Volume (integration weight) is evaluated
@@ -1218,19 +1219,22 @@ void MPMUpdatedLagrangianVPVMS::ComputeElementSize(double& ElemSize){
 // Calculate stabilization parameters
 
 void MPMUpdatedLagrangianVPVMS::CalculateTaus(const int& stabilization_type,
-    GeneralVariables& rVariables)
+    GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //printf("    > CalculateTaus\n");
     // Add computations for the tau stabilization
 
-    const double constant1=1.0;
+    //const double constant1= 10.0;
+    const double constant1 = rCurrentProcessInfo.GetValue(CONSTANT1);
+    const double constant2 = rCurrentProcessInfo.GetValue(CONSTANT2);
     double characteristic_element_size;
     ComputeElementSize(characteristic_element_size);
 
     rVariables.tau1 = constant1 * pow(characteristic_element_size,2) / (rVariables.ShearModulus);
-    rVariables.tau2 = rVariables.ShearModulus;
-
+    rVariables.tau2 = constant2 * rVariables.ShearModulus;
+    //rVariables.tau1 = constant1 * mMP.density * pow(characteristic_element_size,2) / (rVariables.ShearModulus);
+    //rVariables.tau2 = constant2 * pow(characteristic_element_size,2) / rVariables.tau1;
     KRATOS_CATCH( "" )
 }
 
@@ -1313,7 +1317,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddRHS(
     // Operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
     CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
-    // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
+    // To be removed
     //CalculateAndAddStabilizedVelocity( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
     //if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==1)
@@ -1341,8 +1345,8 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddExternalForces(VectorType& rRight
         int index_i = dimension * i + i;
 
         for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rRightHandSideVector[index_i + j] += r_N(0, i) * rVolumeForce[j];
+        {           
+            rRightHandSideVector[index_i + j] += r_N(0, i) * rVolumeForce[j]; // * rIntegrationWeight;
         }
     }
 
@@ -1381,7 +1385,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     Vector resizedVolumeForce;
     if (dimension==2) {
         resizedVolumeForce.resize(3, false);
-        resizedVolumeForce = rVolumeForce;
+        resizedVolumeForce = rVolumeForce; // * rIntegrationWeight;
         resizedVolumeForce.resize(2, true);
     } else {
         KRATOS_ERROR << "3d problem not yet implemented " << std::endl;
@@ -1392,7 +1396,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     StabilizedPressure = prod(rVariables.DN_DX, resizedVolumeForce);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {   
-        rRightHandSideVector[index_i] -= rVariables.tau1 * StabilizedPressure[i];
+        rRightHandSideVector[index_i] -= rVariables.tau1 * StabilizedPressure[i] / mMP.density;
         index_i += (dimension + 1);
     }
     //KRATOS_WATCH(rVariables.StressVector);
@@ -1424,7 +1428,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddLHS(
     CalculateAndAddBv( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
     //KRATOS_WATCH(rLeftHandSideMatrix);
 
-    CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    //CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
     CalculateAndAddSv( rLeftHandSideMatrix, rVariables, rIntegrationWeight, rCurrentProcessInfo ); //°i termini dinamici o vanno omessi, o si aggiungono altrove

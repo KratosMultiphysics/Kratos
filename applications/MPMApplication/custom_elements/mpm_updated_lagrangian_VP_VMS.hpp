@@ -579,7 +579,7 @@ protected:
     ///@{
 
     // Calculation of stabilization parameters
-    void CalculateTaus(const int& stabilization_type, GeneralVariables& rVariables);
+    void CalculateTaus(const int& stabilization_type, GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     /*
      * Calculation of Specific variables: pressure and gradient pressure, velocity and gradient velocity

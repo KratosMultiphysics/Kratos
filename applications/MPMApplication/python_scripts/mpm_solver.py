@@ -59,6 +59,8 @@ class MPMSolver(PythonSolver):
             "pressure_dofs"                      : false,
             "velocity_formulation"               : false,
             "stabilization"                      : "ppp",
+            "stabilization_constant_1"           : 1.0,
+            "stabilization_constant_2"           : 1.0,
             "compressible"                       : true,
             "axis_symmetric_flag"                : false,
             "consistent_mass_matrix"             : false,
@@ -217,6 +219,8 @@ class MPMSolver(PythonSolver):
         velocity_formulation   = self.settings["velocity_formulation"].GetBool() #°
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         stabilization_type     = self.settings["stabilization"].GetString()
+        constant1 = self.settings["stabilization_constant_1"].GetDouble()
+        constant2 = self.settings["stabilization_constant_2"].GetDouble()
 
         if axis_symmetric_flag:
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_AXISYMMETRIC, True)
@@ -236,6 +240,8 @@ class MPMSolver(PythonSolver):
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.STABILIZATION_TYPE, stabilization_type)
         if velocity_formulation:
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_MIXED_VP, True) #°
+        self.grid_model_part.ProcessInfo.SetValue(KratosMPM.CONSTANT1, constant1)
+        self.grid_model_part.ProcessInfo.SetValue(KratosMPM.CONSTANT2, constant2)
         # Assigning extra information to the main model part
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
 
