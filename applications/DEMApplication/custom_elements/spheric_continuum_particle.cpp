@@ -44,7 +44,7 @@ namespace Kratos {
         std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
         std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
         std::vector<int> DiscontinuumInitialNeighborsIds;
-        std::vector<double> DiscontinuumInitialNeighborsDeltas;
+        //std::vector<double> DiscontinuumInitialNeighborsDeltas;
         mIniNeighbourFailureId.clear(); // We will have to build this vector, we still don't know its size, it applies only to continuum particles
         size_t continuum_ini_size    = 0;
         size_t discontinuum_ini_size = 0;
