@@ -245,9 +245,8 @@ class GeoMechanicalSolver(PythonSolver):
         # Get the convergence criterion
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
-        # Solver creation
-        self.solver = self._ConstructSolver(self.builder_and_solver,
-                                            self.settings["strategy_type"].GetString())
+        self.solving_strategy = self._create_solving_strategy(self.builder_and_solver,
+                                                              self.settings["strategy_type"].GetString())
 
         # Set echo_level
         self.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -256,7 +255,7 @@ class GeoMechanicalSolver(PythonSolver):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        self.solver.Initialize()
+        self.solving_strategy.Initialize()
 
         self.find_neighbour_elements_of_conditions_process = GeoMechanicsApplication.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
         self.find_neighbour_elements_of_conditions_process.Execute()
@@ -265,16 +264,16 @@ class GeoMechanicalSolver(PythonSolver):
         self.deactivate_conditions_on_inactive_elements_process.Execute()
 
     def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
+        self.solving_strategy.InitializeSolutionStep()
 
     def Predict(self):
-        self.solver.Predict()
+        self.solving_strategy.Predict()
 
     def SolveSolutionStep(self):
-        return self.solver.SolveSolutionStep()
+        return self.solving_strategy.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.solver.FinalizeSolutionStep()
+        self.solving_strategy.FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         new_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] + self.ComputeDeltaTime()
@@ -296,13 +295,13 @@ class GeoMechanicalSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.solver.SetEchoLevel(level)
+        self.solving_strategy.SetEchoLevel(level)
 
     def Clear(self):
-        self.solver.Clear()
+        self.solving_strategy.Clear()
 
     def Check(self):
-        self.solver.Check()
+        self.solving_strategy.Check()
 
     #### Specific internal functions ####
 
@@ -460,8 +459,7 @@ class GeoMechanicalSolver(PythonSolver):
 
         return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
-    def _ConstructSolver(self, builder_and_solver, strategy_type):
-
+    def _create_solving_strategy(self, builder_and_solver, strategy_type):
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.IS_CONVERGED, True)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, 1)
 
