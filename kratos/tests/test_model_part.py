@@ -1091,8 +1091,8 @@ class TestModelPart(KratosUnittest.TestCase):
 
     def test_set_process_info_three_rootmodel(self):
         current_model = KratosMultiphysics.Model()
-        SomeProcessInfo = KratosMultiphysics.ProcessInfo()
-        SomeProcessInfo[KratosMultiphysics.TIME] = 4.050
+        NewProcessInfo = KratosMultiphysics.ProcessInfo()
+        NewProcessInfo[KratosMultiphysics.TIME] = 4.050
 
         Main1 = current_model.CreateModelPart("Main1")
         Main2 = current_model.CreateModelPart("Main2")
@@ -1104,16 +1104,21 @@ class TestModelPart(KratosUnittest.TestCase):
         self._assert_process_info(Main2, KratosMultiphysics.TIME, 2.050)
         self._assert_process_info(Main3, KratosMultiphysics.TIME, 3.050)
 
-        Main1.ProcessInfo = SomeProcessInfo
+        Main1.ProcessInfo = NewProcessInfo
         self._assert_process_info(Main1, KratosMultiphysics.TIME, 4.050)
         self._assert_process_info(Main2, KratosMultiphysics.TIME, 2.050)
         self._assert_process_info(Main3, KratosMultiphysics.TIME, 3.050)
 
-        SomeProcessInfo[KratosMultiphysics.TIME] = 5.050
-        Main2.ProcessInfo = SomeProcessInfo
+        NewProcessInfo[KratosMultiphysics.TIME] = 5.050
+        Main2.ProcessInfo = Main3.ProcessInfo
         self._assert_process_info(Main1, KratosMultiphysics.TIME, 5.050)
-        self._assert_process_info(Main2, KratosMultiphysics.TIME, 5.050)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 3.050)
         self._assert_process_info(Main3, KratosMultiphysics.TIME, 3.050)
+
+        Main3.ProcessInfo = NewProcessInfo
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 5.050)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 3.050)
+        self._assert_process_info(Main3, KratosMultiphysics.TIME, 5.050)
 
     def _assert_process_info(self, model_part, property_key, expected_value):
         root_model_part = model_part.GetRootModelPart()
