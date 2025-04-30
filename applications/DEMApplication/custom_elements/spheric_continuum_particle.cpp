@@ -959,8 +959,8 @@ namespace Kratos {
     }
 
     double SphericContinuumParticle::GetInitialBondContactArea(int index) {
-        if (mInitialBondContactArea.find(static_cast<int>(index)) != mInitialBondContactArea.end()){
-            return mInitialBondContactArea[static_cast<int>(index)];
+        if (mIniBondContactArea.find(static_cast<int>(index)) != mIniBondContactArea.end()){
+            return mIniBondContactArea[static_cast<int>(index)];
          } else {
             return 0.0;
          }
