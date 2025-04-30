@@ -379,7 +379,8 @@ namespace Kratos {
 
                     p_continuum_particle_i->mNeighbourElements.push_back(p_continuum_particle_j);
                     p_continuum_particle_i->mIniNeighbourIds.push_back(p_continuum_particle_j->Id());
-                    p_continuum_particle_i->mIniNeighbourDelta.push_back(initial_delta);
+                    //p_continuum_particle_i->mIniNeighbourDelta.push_back(initial_delta);
+                    p_continuum_particle_i->mIniNeighbourDelta[static_cast<int>(p_continuum_particle_j->Id())] = initial_delta;
                     p_continuum_particle_i->mIniNeighbourFailureId.push_back(0);
                     p_continuum_particle_i->mContinuumInitialNeighborsSize++;
                     p_continuum_particle_i->mInitialNeighborsSize++;
@@ -388,7 +389,7 @@ namespace Kratos {
 
                     p_continuum_particle_j->mNeighbourElements.push_back(p_continuum_particle_i);
                     p_continuum_particle_j->mIniNeighbourIds.push_back(p_continuum_particle_i->Id());
-                    p_continuum_particle_j->mIniNeighbourDelta.push_back(initial_delta);
+                    p_continuum_particle_j->mIniNeighbourDelta[static_cast<int>(p_continuum_particle_i->Id())] = initial_delta;
                     p_continuum_particle_j->mIniNeighbourFailureId.push_back(0);
                     p_continuum_particle_j->mContinuumInitialNeighborsSize++;
                     p_continuum_particle_j->mInitialNeighborsSize++;

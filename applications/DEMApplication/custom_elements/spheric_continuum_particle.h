@@ -134,7 +134,8 @@ namespace Kratos
         int mContinuumGroup;
         std::vector<int> mIniNeighbourIds;
         std::vector<int> mIniNeighbourFailureId;
-        std::vector<double> mIniNeighbourDelta;
+        //std::vector<double> mIniNeighbourDelta;
+        std::map<int, double> mIniNeighbourDelta;
 
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;

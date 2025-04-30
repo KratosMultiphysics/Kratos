@@ -50,7 +50,7 @@ namespace Kratos {
         size_t discontinuum_ini_size = 0;
         unsigned int neighbours_size = mNeighbourElements.size();
         mIniNeighbourIds.resize(neighbours_size);
-        mIniNeighbourDelta.resize(neighbours_size);
+        //mIniNeighbourDelta.resize(neighbours_size);
 
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
 
@@ -73,11 +73,13 @@ namespace Kratos {
             double distance = DEM_MODULUS_3(other_to_me_vect);
             double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
             double initial_delta = radius_sum - distance;
+
             int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
             if ((r_other_continuum_group  == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
 
                 mIniNeighbourIds[continuum_ini_size]   = neighbour_iterator->Id();
-                mIniNeighbourDelta[continuum_ini_size] = initial_delta;
+                //mIniNeighbourDelta[continuum_ini_size] = initial_delta;
+                mIniNeighbourDelta[static_cast<int>(neighbour_iterator->Id())] = initial_delta;
                 mIniNeighbourFailureId.push_back(0);
                 array_1d<double, 3> vector_of_zeros(3,0.0);
                 //mArrayOfOldDeltaDisplacements.push_back(vector_of_zeros);
@@ -86,7 +88,8 @@ namespace Kratos {
                 continuum_ini_size++;
             } else {
                 DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
-                DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
+                //DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
+                mIniNeighbourDelta[static_cast<int>(neighbour_iterator->Id())] = initial_delta;
                 DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 discontinuum_ini_size++;
             }
@@ -102,7 +105,7 @@ namespace Kratos {
         for (unsigned int k = 0; k < discontinuum_ini_size; k++) {
 
             mIniNeighbourIds[continuum_ini_size + k]   = DiscontinuumInitialNeighborsIds[k];
-            mIniNeighbourDelta[continuum_ini_size + k] = DiscontinuumInitialNeighborsDeltas[k];
+            //mIniNeighbourDelta[continuum_ini_size + k] = DiscontinuumInitialNeighborsDeltas[k];
             mNeighbourElements[continuum_ini_size + k] = DiscontinuumInitialNeighborsElements[k];
         }
     }//SetInitialSphereContacts
@@ -242,19 +245,28 @@ namespace Kratos {
 
             unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
 
-            if (data_buffer.mDomainIsPeriodic){
-                TransformNeighbourCoorsToClosestInPeriodicDomain(data_buffer);
+            auto& central_node = GetGeometry()[0];
+            auto& neighbour_node = neighbour_iterator->GetGeometry()[0];
+            
+            array_1d<double, 3> other_to_me_vect;
+            if (!r_process_info[DOMAIN_IS_PERIODIC]){ // default infinite-domain case
+                noalias(data_buffer.mOtherToMeVector) = central_node.Coordinates() - neighbour_node.Coordinates();
+            } else { // periodic domain
+                double my_coors[3] = {central_node[0], central_node[1], central_node[2]};
+                double other_coors[3] = {neighbour_node[0], neighbour_node[1], neighbour_node[2]};
+                TransformNeighbourCoorsToClosestInPeriodicDomain(r_process_info, my_coors, other_coors);
+                data_buffer.mOtherToMeVector[0] = my_coors[0] - other_coors[0];
+                data_buffer.mOtherToMeVector[1] = my_coors[1] - other_coors[1];
+                data_buffer.mOtherToMeVector[2] = my_coors[2] - other_coors[2];
             }
             
-            noalias(data_buffer.mOtherToMeVector) = this->GetGeometry()[0].Coordinates() - data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
-
             const double& other_radius = data_buffer.mpOtherParticle->GetRadius();
 
             data_buffer.mDistance = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
             double radius_sum = GetRadius() + other_radius;
 
-            double initial_delta = GetInitialDelta(i);
-
+            double initial_delta = GetInitialDelta(neighbour_iterator_id);         
+            
             double initial_dist = radius_sum - initial_delta;
             double indentation = initial_dist - data_buffer.mDistance;
             double indentation_particle = radius_sum - data_buffer.mDistance;
@@ -903,8 +915,12 @@ namespace Kratos {
     }
 
     double SphericContinuumParticle::GetInitialDelta(int index) {
-        if (index < (int) mIniNeighbourDelta.size()) return mIniNeighbourDelta[index];
-        else  return 0.0;
+        //if (index < (int) mIniNeighbourDelta.size()) return mIniNeighbourDelta[index];
+        if (mIniNeighbourDelta.find(static_cast<int>(index)) != mIniNeighbourDelta.end()){
+            return mIniNeighbourDelta[static_cast<int>(index)];
+         } else {
+            return 0.0;
+         }
     }
 
     double SphericContinuumParticle::GetInitialDeltaWithFEM(int index) {

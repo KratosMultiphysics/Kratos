@@ -73,14 +73,14 @@ namespace Kratos
             mInitialNeighborsSize = mContinuumInitialNeighborsSize + discont_ini_neighbour_elems.size();
 
             mIniNeighbourIds.resize(mInitialNeighborsSize);
-            mIniNeighbourDelta.resize(mInitialNeighborsSize);
+            //mIniNeighbourDelta.resize(mInitialNeighborsSize); TODO: check if this is USED
             mIniNeighbourFailureId.resize(mContinuumInitialNeighborsSize);
 
             //Continuum
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
                 mNeighbourElements[i] = cont_ini_neighbour_elems[i];
                 mIniNeighbourIds[i]   = cont_ini_ids[i];
-                mIniNeighbourDelta[i] = cont_ini_deltas[i];
+                //mIniNeighbourDelta[i] = cont_ini_deltas[i];
                 mIniNeighbourFailureId[i] = cont_ini_failure_ids[i];
             }
 
