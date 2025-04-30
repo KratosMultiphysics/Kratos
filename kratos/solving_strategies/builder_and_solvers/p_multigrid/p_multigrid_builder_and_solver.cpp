@@ -35,6 +35,14 @@
 namespace Kratos {
 
 
+enum class Reordering
+{
+    None,
+    ReverseCuthillMcKee,
+    CuthillMcKee
+}; // enum class Reordering
+
+
 // --------------------------------------------------------- //
 // PIMPL
 // --------------------------------------------------------- //
@@ -62,6 +70,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 
     std::unique_ptr<Scaling> mpDiagonalScaling;
 
+    Reordering mReordering;
+
     int mMaxIterations;
 
     typename TSparse::DataType mTolerance;
@@ -80,6 +90,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
           mpConstraintAssembler(),
           mMaybeHierarchy(),
           mpDiagonalScaling(),
+          mReordering(Reordering::None),
           mMaxIterations(0),
           mTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
           mMaxDepth(-1),
@@ -359,6 +370,29 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                                                              rLhs,
                                                              /*EnsureDiagonal=*/true);
 
+        if (   mReordering == Reordering::CuthillMcKee
+            || mReordering == Reordering::ReverseCuthillMcKee) {
+            // Reduce matrix bandwidth.
+            std::vector<typename TSparse::IndexType> new_to_old_map(rLhs.size1());
+            CuthillMcKee(new_to_old_map.data(),
+                         &*rLhs.index1_data().begin(),
+                         &*rLhs.index1_data().begin() + rLhs.size1() + 1,
+                         &*rLhs.index2_data().begin());
+
+            if (mReordering == Reordering::ReverseCuthillMcKee) {
+                std::reverse(new_to_old_map.begin(), new_to_old_map.end());
+            }
+
+            ReorderTopology<TSparse>(rLhs.index1_data(),
+                                     rLhs.index2_data(),
+                                     new_to_old_map.data());
+
+            // Reissue equation IDs.
+            IndexPartition<typename TSparse::IndexType>(mpInterface->GetDofSet().size()).for_each([this, &new_to_old_map] (auto i_dof) {
+                (mpInterface->GetDofSet().begin() + new_to_old_map[i_dof])->SetEquationId(i_dof);
+            }); // for i_dof in range(mpInterface->GetDofSet().size())
+        } // if bandwidth reduction requested
+
         // Construct the coarse hierarchy's topology.
         if (mMaybeHierarchy.has_value()) {
             std::visit([&rModelPart, &rLhs, this](auto& r_grid){
@@ -561,11 +595,6 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::SetUpDofSet(typename Interface:
     this->GetDofSet().clear();
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
-    std::vector<std::atomic<std::uint8_t>> hanging_nodes(rModelPart.Nodes().size());
-    std::fill(hanging_nodes.begin(),
-              hanging_nodes.end(),
-              static_cast<std::uint8_t>(1));
-
     // Fill the global DOF set array
     #pragma omp parallel
     {
@@ -702,6 +731,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ResizeAndInitializeVectors(type
                                                 *rpSolution,
                                                 *rpRhs,
                                                 this->GetDofSet());
+
     } else {
         if (rpLhs->size1() != this->mEquationSystemSize || rpLhs->size2() != this->mEquationSystemSize) {
             KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
@@ -960,6 +990,24 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
     KRATOS_CATCH("")
 
     KRATOS_TRY
+    const std::unordered_map<std::string,Reordering> reordering_options {
+        {std::string {"none"}, Reordering::None},
+        {std::string {"cuthill_mckee"}, Reordering::CuthillMcKee},
+        {std::string {"reverse_cuthill_mckee"}, Reordering::ReverseCuthillMcKee}
+    };
+    const auto it_reordering = reordering_options.find(Settings["reordering"].Get<std::string>());
+    if (it_reordering == reordering_options.end()) {
+        std::stringstream message;
+        message << "Invalid setting for \"reordering\": \"" << Settings["reordering"].Get<std::string>() << "\"\n";
+        message << "Options are:\n";
+        for ([[maybe_unused]] const auto& [r_name, r_enum] : reordering_options) {
+            message << "\t\"" << r_name << "\"\n";
+        }
+    }
+    mpImpl->mReordering = it_reordering->second;
+    KRATOS_CATCH("")
+
+    KRATOS_TRY
     Interface::AssignSettings(settings);
     KRATOS_CATCH("")
 
@@ -1062,6 +1110,7 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() co
         "max_iterations"    : 1e2,
         "tolerance"         : 1e-8,
         "verbosity"         : 1,
+        "reordering"        : "none",
         "smoother_settings" : {
             "solver_type" : ""
         },

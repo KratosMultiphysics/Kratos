@@ -217,7 +217,7 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                     &rRelationMatrix,
                     &rHessian,
                     &rConstraintGaps](const MasterSlaveConstraint& r_constraint,
-                                                                                                               TLS& r_tls){
+                                      TLS& r_tls){
         if (r_constraint.IsActive()) {
             r_constraint.EquationIdVector(r_tls.slave_ids,
                                           r_tls.master_ids,

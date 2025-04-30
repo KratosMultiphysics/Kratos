@@ -346,7 +346,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         // In case you're wondering, I'm not using an std::vector<std::atomic<bool>>
         // because I don't want someone to change it into a vector of naked
         // bools in the future, which would lead to catastrophe. Bools and
-        // std::uint8_t s are memory and performance-wise identical anyway.
+        // std::uint8_t s are memory- and performance-wise identical anyway.
         std::vector<std::atomic<std::uint8_t>> hanging_nodes(rModelPart.Nodes().size());
         block_for_each(hanging_nodes, [](auto& r_flag) {r_flag = 1;});
 
