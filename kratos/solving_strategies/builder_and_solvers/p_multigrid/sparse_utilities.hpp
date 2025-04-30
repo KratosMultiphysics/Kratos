@@ -20,6 +20,7 @@
 // System includes
 #include <cstdint> // std::uint8_t
 #include <climits> // CHAR_BIT
+#include <deque> // std::deque
 
 
 namespace Kratos {
@@ -661,6 +662,182 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
     }
 
     #undef KRATOS_BALANCED_MATRIX_VECTOR_PRODUCT
+    KRATOS_CATCH("")
+}
+
+
+template <class TValue>
+struct MinElementReduction
+{
+    using value_type = std::pair<TValue,TValue>;
+
+    using return_type = value_type;
+
+    return_type mValue = {std::numeric_limits<TValue>::max(),
+                          std::numeric_limits<TValue>::max()};
+
+    return_type GetValue() const noexcept
+    {
+        return mValue;
+    }
+
+    void LocalReduce(const value_type& rValue)
+    {
+        if (rValue.first < mValue.first)
+            mValue = rValue;
+    }
+
+    void ThreadSafeReduce(const MinElementReduction& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
+    }
+};
+
+
+template <class TValue>
+struct PairOrderingOnSecond
+{
+    using value_type = std::pair<TValue,TValue>;
+
+    bool operator()(const value_type& rLeft, const value_type& rRight) const noexcept
+    {
+        return rLeft.second < rRight.second;
+    }
+};
+
+
+template <class TIndex>
+void CuthillMcKee(TIndex* itOutputBegin,
+                  const TIndex* itRowExtentBegin,
+                  const TIndex* itRowExtentEnd,
+                  const TIndex* itColumnIndexBegin)
+{
+    KRATOS_TRY
+
+    const auto it_original_output_begin = itOutputBegin;
+    const TIndex row_count = std::distance(itRowExtentBegin, itRowExtentEnd) - 1;
+    if (!row_count) return;
+
+    std::unordered_set<TIndex> visited_or_queued;
+    std::vector<TIndex> vertex_degrees(row_count);
+    std::deque<TIndex> to_visit;
+
+    {
+        const TIndex i_min_degree = IndexPartition<TIndex>(row_count).template for_each<MinElementReduction<TIndex>>(
+            [&vertex_degrees, itRowExtentBegin] (TIndex i_row) -> std::pair<TIndex,TIndex> {
+                const TIndex row_size = itRowExtentBegin[i_row + 1] - itRowExtentBegin[i_row];
+                vertex_degrees[i_row] = row_size;
+                return std::make_pair(row_size, i_row);
+        }).second; // for i_row in range(row_count)
+        to_visit.push_back(i_min_degree);
+        visited_or_queued.insert(i_min_degree);
+    }
+
+    while (visited_or_queued.size() < row_count || !to_visit.empty()) {
+        // Strip the next vertex to visit.
+        const TIndex i_row = to_visit.front();
+        to_visit.pop_front();
+
+        // Insert unvisited neighbors into the visit queue
+        // in ascending order of their vertex degree.
+        const TIndex i_entry_begin = itRowExtentBegin[i_row];
+        const TIndex i_entry_end = itRowExtentBegin[i_row + 1];
+        const auto size_before_insertion = to_visit.size();
+
+        for (TIndex i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
+            const TIndex i_vertex = itColumnIndexBegin[i_entry];
+            if (visited_or_queued.find(i_vertex) == visited_or_queued.end()) {
+                to_visit.push_back(i_vertex);
+                visited_or_queued.insert(i_vertex);
+            } // i_vertex not in visited_or_queued
+        } // for i_entry in range(i_entry_begin, i_entry_end)
+
+        std::sort(to_visit.begin() + size_before_insertion,
+                  to_visit.end(),
+                  [&vertex_degrees](TIndex left, TIndex right){
+                    return vertex_degrees[left] < vertex_degrees[right];
+                  });
+
+        *itOutputBegin++ = i_row;
+
+        // If the task queue is empty, find the unvisited vertex with
+        // the lowest degree and add it to the queue.
+        if (to_visit.empty()) {
+            std::pair<TIndex,TIndex> min_element {std::numeric_limits<TIndex>::max(), std::numeric_limits<TIndex>::max()};
+            for (TIndex i_row=0; i_row<row_count; ++i_row) {
+                const TIndex vertex_degree = vertex_degrees[i_row];
+                if (vertex_degree < min_element.first) {
+                    if (visited_or_queued.find(i_row) == visited_or_queued.end()) {
+                        min_element = std::make_pair(vertex_degree, i_row);
+                    }
+                } // if vertex_degree < min_element.first
+            } // for i_row in range(row_count)
+
+            if (min_element.second != std::numeric_limits<TIndex>::max()) {
+                to_visit.push_back(min_element.second);
+                visited_or_queued.insert(min_element.second);
+            }
+        } // if to_visit.empty()
+    } // while visited_or_queued.size() != row_count
+
+    KRATOS_ERROR_IF_NOT(std::distance(it_original_output_begin, itOutputBegin)
+                        == std::distance(itRowExtentBegin, itRowExtentEnd) - 1)
+        << std::distance(it_original_output_begin, itOutputBegin)
+        << " != "
+        << std::distance(itRowExtentBegin, itRowExtentEnd) - 1;
+
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse>
+void ReorderTopology(typename TSparse::MatrixType::index_array_type& rRowExtents,
+                     typename TSparse::MatrixType::index_array_type& rColumnIndices,
+                     const typename TSparse::IndexType* itNewToOldMapBegin)
+{
+    KRATOS_ERROR_IF_NOT(rRowExtents.size());
+
+    KRATOS_TRY
+    using TIndex = typename TSparse::IndexType;
+    const TIndex row_count = rRowExtents.size() - 1;
+    const TIndex entry_count = rColumnIndices.size();
+
+    typename TSparse::MatrixType::index_array_type new_index1_data(row_count + 1),
+                                                   new_index2_data(entry_count);
+
+    // Compute reordered row extents.
+    std::vector<TIndex> old_to_new_map(row_count);
+    new_index1_data[0] = 0;
+    for (TIndex i_row=0; i_row<row_count; ++i_row) {
+        const auto i_old_row = itNewToOldMapBegin[i_row];
+        KRATOS_ERROR_IF_NOT(i_old_row < old_to_new_map.size()) << i_old_row << " !< " << old_to_new_map.size();
+        old_to_new_map[i_old_row] = i_row;
+        KRATOS_ERROR_IF_NOT(i_old_row + 1 < rRowExtents.size()) << i_old_row + 1 << " !< " << rRowExtents.size();
+        const auto row_size = rRowExtents[i_old_row + 1] - rRowExtents[i_old_row];
+        KRATOS_ERROR_IF_NOT(i_row + 1 < new_index1_data.size()) << i_row + 1 << " !< " << new_index1_data.size();
+        new_index1_data[i_row + 1] = new_index1_data[i_row] + row_size;
+    } // for i_row in range(row_count)
+
+    IndexPartition<TIndex>(row_count).for_each([&rRowExtents, &rColumnIndices, &new_index1_data, &new_index2_data, itNewToOldMapBegin, &old_to_new_map]
+                                               (auto i_row) {
+        const auto i_old_row = itNewToOldMapBegin[i_row];
+        auto it_old_entry_begin = rColumnIndices.begin() + rRowExtents[i_old_row];
+        const auto it_old_entry_end = rColumnIndices.begin() + rRowExtents[i_old_row + 1];
+        auto it_entry_begin = new_index2_data.begin() + new_index1_data[i_row];
+        KRATOS_ERROR_IF_NOT(rRowExtents[i_old_row] < rColumnIndices.size());
+        KRATOS_ERROR_IF_NOT(new_index1_data[i_row] < new_index2_data.size());
+        std::transform(it_old_entry_begin,
+                       it_old_entry_end,
+                       it_entry_begin,
+                       [&old_to_new_map] (auto i_dof) {
+                           return old_to_new_map[i_dof];
+                       });
+        std::sort(it_entry_begin, it_entry_begin + std::distance(it_old_entry_begin, it_old_entry_end));
+    }); // for i_row in range(row_count)
+
+    rRowExtents.swap(new_index1_data);
+    rColumnIndices.swap(new_index2_data);
     KRATOS_CATCH("")
 }
 
