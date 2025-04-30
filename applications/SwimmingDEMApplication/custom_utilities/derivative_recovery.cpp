@@ -9,6 +9,8 @@
 #include "linear_solvers/amgcl_solver.h"
 #include "swimming_DEM_application.h"
 #include "swimming_dem_application_variables.h"
+#include "omp.h"
+
 namespace Kratos
 {
 template <std::size_t TDim>
@@ -205,7 +207,7 @@ void DerivativeRecovery<TDim>::ConstructMassMatrixStructure(ModelPart& r_model_p
         mass_matrix_row_indices[i+1] = mass_matrix_row_indices[i] + indices[i].size();  // mass_matrix_row_indices[i + 1] ???
     }
 
-    #pragma omp parallel for schedule(guided)
+    #pragma omp parallel for
     for (IndexType i = 0; i < system_size; ++i) {
 
         const IndexType row_begin = mass_matrix_row_indices[i];
@@ -277,12 +279,11 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         // Construct the structure of the sparse mass matrix
         ConstructMassMatrixStructure(r_model_part, system_size, elements_id_map, m_global_mass_matrix);
 
-        // mprojection_rhs = ZeroVector(system_size);
-        // #pragma omp parallel for schedule(guided) firstprivate(local_lhs)
-        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+        // #pragma omp parallel
+        // {
         Matrix local_lhs;
-
-        #pragma omp parallel for schedule(guided) firstprivate(local_lhs)
+        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+        // #pragma omp for schedule(guided)
         for (unsigned e = 0; e < number_of_elements; e++){
             ModelPart::ElementsContainerType::iterator it_elem = el_begin + e;
             // Node id to global index map
@@ -290,55 +291,88 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
             AssembleMassMatrix(m_global_mass_matrix, local_lhs, elements_id_map[e]);
             local_lhs = ZeroMatrix(local_lhs.size1(), local_lhs.size2());
         }
+        // }
 
         mMassMatrixAlreadyComputed = true;
     }
 
     // Compute the projection of grad(u_j) for each j (RHS)
+    // unsigned num_threads = omp_get_num_threads();
+    unsigned num_threads = omp_get_max_threads();
+    std::vector<SparseSpaceType::VectorType> thread_local_rhs(num_threads, ZeroVector(system_size));
     SparseSpaceType::VectorType ProjectionRHS = ZeroVector(system_size);
+    SparseSpaceType::VectorType ProjectionCoefficients = ZeroVector(system_size);
     for(unsigned j = 0; j < TDim; j++)
     {
-        for (unsigned int e = 0; e < number_of_elements; e++)
-        {
-            // std::cout << "  Computing element e = " << e << std::endl;
-            ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
-            Geometry<Node>& r_geometry = it_elem->GetGeometry();
-            unsigned int NumNodes = r_geometry.size();
-            GeometryData::IntegrationMethod integration_method = it_elem->GetIntegrationMethod();
-            const std::vector<IntegrationPoint<3>> r_integrations_points = r_geometry.IntegrationPoints( integration_method );
-            unsigned int r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
-            Vector detJ_vector(r_number_integration_points);
-            r_geometry.DeterminantOfJacobian(detJ_vector, integration_method);
-            Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
-            DenseVector<Matrix> shape_derivatives;
-            r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, detJ_vector, integration_method);
+        // Reset thread local rhs
+        for(unsigned t = 0; t < num_threads; t++)
+            thread_local_rhs[t] = ZeroVector(system_size);
+        ProjectionRHS = ZeroVector(system_size);
+        ProjectionCoefficients = ZeroVector(system_size);
 
-            // Compute the mass matrix
-            // if(!mass_matrix_computed)
-            // {
-            for (unsigned int g = 0; g < r_number_integration_points; g++)
+        // for (unsigned int e = 0; e < number_of_elements; e++)
+        #pragma omp parallel
+        {
+            // Parallel variables
+            auto& rLocalMesh = r_model_part.GetCommunicator().LocalMesh();
+            ModelPart::ElementIterator elements_begin = rLocalMesh.ElementsBegin();
+
+            unsigned tid = omp_get_thread_num();
+            auto& local_rhs = thread_local_rhs[tid];
+
+            #pragma omp for
+            for(unsigned e = 0; e<static_cast<int>(rLocalMesh.NumberOfElements()); ++e)
             {
-                double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
-                for (unsigned int a = 0; a < NumNodes; ++a){
-                    for (unsigned int b = 0; b < NumNodes; ++b){
-                        for (unsigned int d = 0; d < TDim; d++)
-                        {
-                            // Mass matrix (LHS)
-                            unsigned int a_global = TDim * id_to_position[r_geometry[a].Id()] + d;
-                            double nodal_value_j = r_geometry[b].FastGetSolutionStepValue(vector_container)[j];
-                            double projection_rhs_value = Weight * nodal_value_j * NContainer(g, a) * shape_derivatives[g](b, d);
-                            ProjectionRHS[a_global] += projection_rhs_value;
+                const ModelPart::ElementIterator it_elem = elements_begin + e;
+                // ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
+
+                Geometry<Node>& r_geometry = it_elem->GetGeometry();
+                unsigned int NumNodes = r_geometry.size();
+                GeometryData::IntegrationMethod integration_method = it_elem->GetIntegrationMethod();
+                const std::vector<IntegrationPoint<3>> r_integrations_points = r_geometry.IntegrationPoints( integration_method );
+                unsigned int r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+                Vector detJ_vector(r_number_integration_points);
+                r_geometry.DeterminantOfJacobian(detJ_vector, integration_method);
+                Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
+                DenseVector<Matrix> shape_derivatives;
+                r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, detJ_vector, integration_method);
+
+                // Compute the mass matrix
+                // if(!mass_matrix_computed)
+                // {
+                for (unsigned int g = 0; g < r_number_integration_points; g++)
+                {
+                    double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
+                    for (unsigned int a = 0; a < NumNodes; ++a){
+                        for (unsigned int b = 0; b < NumNodes; ++b){
+                            for (unsigned int d = 0; d < TDim; d++)
+                            {
+                                // Mass matrix (LHS)
+                                unsigned int a_global = TDim * id_to_position[r_geometry[a].Id()] + d;
+                                double nodal_value_j = r_geometry[b].FastGetSolutionStepValue(vector_container)[j];
+                                double projection_rhs_value = Weight * nodal_value_j * NContainer(g, a) * shape_derivatives[g](b, d);
+                                // ProjectionRHS[a_global] += projection_rhs_value;
+                                local_rhs[a_global] += projection_rhs_value;
+                            }
                         }
                     }
                 }
             }
         }
-        SparseSpaceType::VectorType ProjectionCoefficients = ZeroVector(system_size);
-        // AMGCLSolver<TSparseSpace, TDenseSpace > LinearSolver;
+        // Reduction outside the parallel region
+        for (unsigned tid = 0; tid < num_threads; tid++)
+        {
+            for (int i = 0; i < system_size; ++i) {
+                ProjectionRHS[i] += thread_local_rhs[tid][i];
+            }
+        }
+
+        // Invert mass matrix
         AMGCLSolver<SparseSpaceType, DenseSpaceType> LinearSolver;
         LinearSolver.Solve(m_global_mass_matrix, ProjectionCoefficients, ProjectionRHS);
 
         // Add values of material derivatives
+        #pragma omp parallel for
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
@@ -370,8 +404,8 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
         }
 
         // Reset variables
-        ProjectionRHS = ZeroVector(system_size);
-        ProjectionCoefficients = ZeroVector(system_size);
+        // ProjectionRHS = ZeroVector(system_size);
+        // ProjectionCoefficients = ZeroVector(system_size);
     }
     KRATOS_INFO("SwimmingDEM") << "Finished constructing the material derivative by computing the L2 projection." << std::endl;
 }
