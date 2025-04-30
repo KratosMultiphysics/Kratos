@@ -202,7 +202,7 @@ public:
 
     /**
      * @brief Returns the string containing a detailed description of this object.
-     * @return the string with informations
+     * @return the string with information
      */
     std::string GetInfo() const override;
 

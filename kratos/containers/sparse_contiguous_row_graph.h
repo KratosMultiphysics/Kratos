@@ -142,6 +142,11 @@ public:
         return mGraph.size();
     }
 
+    bool IsEmpty() const
+    {
+        return mGraph.empty();
+    }
+
     bool Has(const IndexType I, const IndexType J) const
     {
         const auto& row = mGraph[I];
