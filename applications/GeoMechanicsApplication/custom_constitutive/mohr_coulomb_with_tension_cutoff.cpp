@@ -102,6 +102,22 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVecto
     return rPrincipalTrialStressVector + lambda * rDerivativeOfFlowFunction;
 }
 
+bool IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex)
+{
+    return TensileStrength < Apex && rTrialSigmaTau[0] - rTrialSigmaTau[1] - TensileStrength > 0.0;
+}
+
+bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex, const Vector& rCornerPoint)
+{
+    return TensileStrength < Apex &&
+           rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
+}
+
+bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau, double DilatancyAngle, const Vector& rCornerPoint)
+{
+    return rTrialSigmaTau[0] - rCornerPoint[0] - (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
+}
+
 } // namespace
 
 namespace Kratos
@@ -282,29 +298,6 @@ bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector
     const auto coulomb_tolerance      = tolerance * (1.0 + std::abs(coulomb_yield_function));
     const auto tension_tolerance      = tolerance * (1.0 + std::abs(tension_yield_function));
     return coulomb_yield_function < coulomb_tolerance && tension_yield_function < tension_tolerance;
-}
-
-bool MohrCoulombWithTensionCutOff::IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau,
-                                                                   double        TensileStrength,
-                                                                   double        Apex) const
-{
-    return TensileStrength < Apex && rTrialSigmaTau[0] - rTrialSigmaTau[1] - TensileStrength > 0.0;
-}
-
-bool MohrCoulombWithTensionCutOff::IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau,
-                                                                     double        TensileStrength,
-                                                                     double        Apex,
-                                                                     const Vector& rCornerPoint) const
-{
-    return TensileStrength < Apex &&
-           rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
-}
-
-bool MohrCoulombWithTensionCutOff::IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
-                                                              double        DilatancyAngle,
-                                                              const Vector& rCornerPoint)
-{
-    return rTrialSigmaTau[0] - rCornerPoint[0] - (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
 }
 
 Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,

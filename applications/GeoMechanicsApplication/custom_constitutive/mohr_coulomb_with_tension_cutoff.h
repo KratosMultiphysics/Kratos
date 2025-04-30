@@ -78,16 +78,6 @@ private:
                                                     double        YoungsModulus,
                                                     double        PoissonsRatio) const;
     [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
-    [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau,
-                                                         double        TensileStrength,
-                                                         double        Apex) const;
-    [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau,
-                                                           double        TensileStrength,
-                                                           double        Apex,
-                                                           const Vector& rCornerPoint) const;
-    [[nodiscard]] static bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
-                                                         double        DilatancyAngle,
-                                                         const Vector& rCornerPoint);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
