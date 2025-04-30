@@ -343,7 +343,12 @@ namespace Kratos {
             const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
 
             if (i < (int)mContinuumInitialNeighborsSize) {
-                mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
+                if (r_process_info[USE_INITIAL_BOND_CONTACT_AREA]) {
+                    calculation_area = GetInitialBondContactArea(neighbour_iterator_id); //this is the area that we are going to use for the calculation of the forces. It is not the same as the one used in the contact law.
+                } else {
+                    mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
+                }
+
                 if (mContinuumConstitutiveLawArray[i]->GetTypeOfLaw() == "parallel_bond_CL") {
                     mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator, indentation_particle);
                 } else {
@@ -948,6 +953,14 @@ namespace Kratos {
         //if (index < (int) mIniNeighbourDelta.size()) return mIniNeighbourDelta[index];
         if (mIniNeighbourDelta.find(static_cast<int>(index)) != mIniNeighbourDelta.end()){
             return mIniNeighbourDelta[static_cast<int>(index)];
+         } else {
+            return 0.0;
+         }
+    }
+
+    double SphericContinuumParticle::GetInitialBondContactArea(int index) {
+        if (mInitialBondContactArea.find(static_cast<int>(index)) != mInitialBondContactArea.end()){
+            return mInitialBondContactArea[static_cast<int>(index)];
          } else {
             return 0.0;
          }

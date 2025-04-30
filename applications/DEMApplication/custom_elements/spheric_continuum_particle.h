@@ -119,6 +119,7 @@ namespace Kratos
                                                     double& bond_contact_area);
         virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
+        virtual double GetInitialBondContactArea(int index);
         virtual bool IsSkin() { return (bool)*mSkinSphere; }
         void MarkNewSkinParticlesDueToBreakage();
 
