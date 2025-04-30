@@ -3,7 +3,8 @@ import json
 import numpy as np
 import plotly.graph_objects as go
 import re
-import tkinter as tk
+import tempfile
+import shutil
 from tkinter import messagebox, filedialog
 
 import KratosMultiphysics as Kratos
@@ -35,16 +36,9 @@ class TriaxialTest:
         friction_angle = umat_parameters[3]
         return cohesion, friction_angle
 
-def run_triaxial_test(output_file_paths):
-    original_cwd = os.getcwd()
-
-    # construct parameterfile names of stages to run
-    project_path = os.path.join('test_triaxial')
+def run_triaxial_test(output_file_paths, work_dir):
     n_stages = 2
-    parameter_file_names = [os.path.join('ProjectParameters_stage' + str(i + 1) + '.json') for i in range(n_stages)]
-
-    os.chdir(project_path)
-
+    parameter_file_names = [os.path.join(work_dir, f'ProjectParameters_stage{i + 1}.json') for i in range(n_stages)]
 
     parameters_stages = [None] * n_stages
     for idx, parameter_file_name in enumerate(parameter_file_names):
@@ -54,8 +48,13 @@ def run_triaxial_test(output_file_paths):
     model = Kratos.Model()
     stages = [GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
 
-    # execute the stages
-    [stage.Run() for stage in stages]
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(work_dir)
+        for stage in stages:
+            stage.Run()
+    finally:
+        os.chdir(original_cwd)
 
     cauchy_stress_results = []
     mean_effective_stress_results = []
@@ -272,7 +271,6 @@ class MdpaEditor:
             f.write(self.raw_text)
         # messagebox.showinfo("Success", f"'$maximum_strain' replaced with {prescribed_displacement}")
 
-
     def update_initial_effective_cell_pressure(self, initial_effective_cell_pressure):
         pattern = r'(\s*)\$initial_effective_cell_pressure(\s*)'
 
@@ -363,7 +361,6 @@ def plot_sigma(sigma_1, sigma_3):
         xaxis=dict(rangemode='tozero'),
         yaxis=dict(rangemode='tozero'),
     )
-    # fig.show()
     return fig
 
 def plot_delta_sigma(vertical_strain, sigma_diff):
@@ -500,10 +497,6 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
         template='plotly_white',
         xaxis_scaleanchor="y"
     )
-    # fig.update_layout(
-    #     xaxis=dict(rangemode='tozero'),
-    #     yaxis=dict(rangemode='tozero'),
-    # )
     return fig
 
 def plot_p_q(p_list, q_list):
@@ -598,17 +591,31 @@ def plot_volumetric_strain(vertical_strain, volumetric_strain):
     return fig
 
 def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initial_effective_cell_pressure):
-    json_file_path = 'test_triaxial/MaterialParameters_stage1.json'
+    tmp_folder = tempfile.mkdtemp(prefix="triaxial_")
+
+    src_dir = 'test_triaxial'
+    files_to_copy = [
+        "MaterialParameters_stage1.json",
+        "ProjectParameters_stage1.json",
+        "ProjectParameters_stage2.json",
+        "triaxial.mdpa"
+    ]
+
+    for filename in files_to_copy:
+        shutil.copy(os.path.join(src_dir, filename), tmp_folder)
+
+    json_file_path = os.path.join(tmp_folder, "MaterialParameters_stage1.json")
+    project_param_path = os.path.join(tmp_folder, "ProjectParameters_stage2.json")
+    mdpa_path = os.path.join(tmp_folder, "triaxial.mdpa")
+
     material_editor = MaterialEditor(json_file_path)
     material_editor._update_material_and_save({"UMAT_PARAMETERS": umat_parameters,
                                                "UDSM_NAME": dll_path,
                                                "UDSM_NUMBER": index})
 
-    project_param_path = 'test_triaxial/ProjectParameters_stage2.json'
     project_editor = ProjectParameterEditor(project_param_path)
     project_editor.update_time_step_properties(time_step)
 
-    mdpa_path = 'test_triaxial/triaxial.mdpa'
     mdpa_editor = MdpaEditor(mdpa_path)
     mdpa_editor.update_maximum_strain(maximum_strain)
     mdpa_editor.update_initial_effective_cell_pressure(initial_effective_cell_pressure)
@@ -616,11 +623,9 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
     mdpa_editor.update_first_timestep(first_timestep)
 
 
-# List of output files to process
-    output_files = [
-        os.path.join('gid_output', "triaxial_Stage_2.post.res")]
+    output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial_Stage_2.post.res")]
 
-    reshaped_values_by_time, vertical_strain, volumetric_strain, von_mise_stress, mean_effective_stresses = run_triaxial_test(output_files)
+    reshaped_values_by_time, vertical_strain, volumetric_strain, von_mise_stress, mean_effective_stresses = run_triaxial_test(output_files, tmp_folder)
 
     sigma1_list = []
     sigma3_list = []
