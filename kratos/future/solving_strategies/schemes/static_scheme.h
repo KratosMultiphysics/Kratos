@@ -114,9 +114,6 @@ public:
     //     Element::EquationIdVectorType LocalEqIds;
     // };
 
-    // /// Assembly helper type
-    // using AssemblyHelperType = Future::AssemblyHelper<ThreadLocalStorage, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -182,10 +179,12 @@ public:
      */
     void InitializeSolutionStep(
         DofsArrayType& rDofSet,
-        EffectiveDofsMapType& rEffectiveDofMap,
+        DofsArrayType& rEffectiveDofSet,
+        EffectiveDofsMapType& rEffectiveDofIdMap,
         typename TSparseMatrixType::Pointer& rpA,
-        typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpB,
+        typename TSparseVectorType::Pointer& rpDx,
+        typename TSparseVectorType::Pointer& rpEffectiveDx,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector,
         const bool ReformDofSet = true) override
@@ -208,15 +207,16 @@ public:
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
 
-                // Allocating the system vectors to their correct sizes
-                BuiltinTimer system_matrix_resize_time;
-                this->ResizeAndInitializeVectors(rDofSet, rpA, rpDx, rpB);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
-
                 // Set up the system constraints
                 BuiltinTimer constraints_construction_time;
-                this->ConstructMasterSlaveConstraintsStructure(rDofSet, rEffectiveDofMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
+                this->ConstructMasterSlaveConstraintsStructure(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
+
+                // Allocating the system vectors to their correct sizes
+                BuiltinTimer system_matrix_resize_time;
+                this->ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpA, rpB, rpDx, rpEffectiveDx);
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
+
             } else {
                 // Set up the equation ids (note that this needs to be always done)
                 BuiltinTimer setup_system_time;
@@ -247,15 +247,43 @@ public:
      * @param b RHS Vector
      */
     virtual void Predict(
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b) override
+        DofsArrayType& rDofSet,
+        EffectiveDofsMapType& rEffectiveDofIdMap,
+        TSparseMatrixType& rA,
+        TSparseVectorType& rb,
+        TSparseVectorType& rDx,
+        TSparseVectorType& rEffectiveDx,
+        TSparseMatrixType& rConstraintsRelationMatrix) override
     {
         KRATOS_TRY
 
         // Internal solution loop check to avoid repetitions
         KRATOS_ERROR_IF_NOT(this->GetSchemeIsInitialized()) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
         KRATOS_ERROR_IF_NOT(this->GetSchemeSolutionStepIsInitialized()) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
+
+        // Applying constraints if needed
+        const auto& r_model_part = this->GetModelPart();
+        const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
+        auto& r_constraints = r_model_part.MasterSlaveConstraints();
+        const std::size_t n_constraints_loc = r_constraints.size();
+        const std::size_t n_constraints_glob = r_comm.SumAll(n_constraints_loc);
+
+        if (n_constraints_glob != 0) {
+            const auto& r_process_info = r_model_part.GetProcessInfo();
+
+            block_for_each(r_constraints, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.ResetSlaveDofs(r_process_info);
+            });
+
+            block_for_each(r_constraints, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.Apply(r_process_info);
+            });
+
+            // The following is needed since we need to eventually compute time derivatives after applying master-slave relations
+            rDx.SetValue(0.0);
+            rEffectiveDx.SetValue(0.0);
+            this->Update(rDofSet, rEffectiveDofIdMap, rA, rb, rDx, rEffectiveDx, rConstraintsRelationMatrix);
+        }
 
         KRATOS_CATCH("")
     }
@@ -269,18 +297,27 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    virtual void Update(
+    void Update(
         DofsArrayType& rDofSet,
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b) override
+        EffectiveDofsMapType& rEffectiveDofIdMap,
+        TSparseMatrixType& rA,
+        TSparseVectorType& rb,
+        TSparseVectorType& rDx,
+        const TSparseVectorType& rEffectiveDx,
+        const TSparseMatrixType& rConstraintsRelationMatrix) override
     {
         KRATOS_TRY
 
+        // First update the constraints loose DOFs with the effective solution vector
+        this->UpdateConstraintsLooseDofs(rEffectiveDx, rDofSet, rEffectiveDofIdMap);
+
+        // Get the solution update vector from the effective one
+        this->CalculateUpdateVector(rConstraintsRelationMatrix, rEffectiveDx, rDx);
+
         // Update DOFs with solution values (note that we solve for the increments)
-        block_for_each(rDofSet, [&Dx](DofType& rDof){
+        block_for_each(rDofSet, [&rDx](DofType& rDof){
             if (rDof.IsFree()) {
-                rDof.GetSolutionStepValue() += Dx[rDof.EquationId()];
+                rDof.GetSolutionStepValue() += rDx[rDof.EquationId()];
             }
         });
 

@@ -119,6 +119,12 @@ public:
     /// Data type definition
     using DataType = typename TSparseMatrixType::DataType;
 
+    /// TLS type
+    using TLSType = ImplicitThreadLocalStorage<DataType>;
+
+    /// Assembly helper type
+    using AssemblyHelperType = Future::AssemblyHelper<TLSType, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
+
     /// DoF type definition
     using DofType = Dof<DataType>;
 
@@ -126,14 +132,7 @@ public:
     using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Effective DOFs map type definition
-    // using EffectiveDofsMapType = std::unordered_map<typename DofType::Pointer, IndexType>;
-    using EffectiveDofsMapType = std::vector<std::pair<typename DofType::Pointer, IndexType>>;
-
-    /// TLS type
-    using TLSType = ImplicitThreadLocalStorage<DataType>;
-
-    /// Assembly helper type
-    using AssemblyHelperType = Future::AssemblyHelper<TLSType, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
+    using EffectiveDofsMapType = typename AssemblyHelperType::EffectiveDofsMapType;
 
     ///@}
     ///@name Life Cycle
@@ -237,10 +236,12 @@ public:
      */
     virtual void InitializeSolutionStep(
         DofsArrayType& rDofSet,
-        EffectiveDofsMapType& rEffectiveDofMap,
+        DofsArrayType& rEffectiveDofSet,
+        EffectiveDofsMapType& rEffectiveDofIdMap,
         typename TSparseMatrixType::Pointer& rpA,
-        typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpB,
+        typename TSparseVectorType::Pointer& rpDx,
+        typename TSparseVectorType::Pointer& rpEffectiveDx,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector,
         const bool ReformDofSet = true)
@@ -343,16 +344,18 @@ public:
     //TODO: Think on the overloads for the mass and damping matrices
     virtual void ResizeAndInitializeVectors(
         const DofsArrayType& rDofSet,
+        const DofsArrayType& rEffectiveDofSet,
         typename TSparseMatrixType::Pointer& rpLHS,
-        typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpRHS,
+        typename TSparseVectorType::Pointer& rpDx,
+        typename TSparseVectorType::Pointer& rpEffectiveDx,
         const bool CalculateReactions = false)
     {
         KRATOS_TRY
 
         // Call the assembly helper to allocate and initialize the required vectors
         // Note that this also allocates the required reaction vectors (e.g., elimination build)
-        (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rpLHS, rpDx, rpRHS, CalculateReactions);
+        (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpLHS, rpRHS, rpDx, rpEffectiveDx, CalculateReactions);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
 
@@ -361,14 +364,15 @@ public:
 
     virtual void ConstructMasterSlaveConstraintsStructure(
         const DofsArrayType& rDofSet,
-        EffectiveDofsMapType& rEffectiveDofMap,
+        DofsArrayType& rEffectiveDofSet,
+        EffectiveDofsMapType& rEffectiveDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector)
     {
         KRATOS_TRY
 
         // Call the assembly helper to set the master-slave constraints
-        (this->GetAssemblyHelper()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, rDofSet, rEffectiveDofMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
+        (this->GetAssemblyHelper()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
@@ -619,9 +623,13 @@ public:
      * @param b RHS Vector
      */
     virtual void Predict(
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b)
+        DofsArrayType& rDofSet,
+        EffectiveDofsMapType& rEffectiveDofIdMap,
+        TSparseMatrixType& rA,
+        TSparseVectorType& rb,
+        TSparseVectorType& rDx,
+        TSparseVectorType& rEffectiveDx,
+        TSparseMatrixType& rConstraintsRelationMatrix)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
     }
@@ -635,25 +643,57 @@ public:
      * @param b RHS Vector
      */
     virtual void Update(
-        DofsArrayType &rDofSet,
-        TSparseMatrixType &A,
-        TSparseVectorType &Dx,
-        TSparseVectorType &b)
+        DofsArrayType& rDofSet,
+        EffectiveDofsMapType& rEffectiveDofIdMap,
+        TSparseMatrixType& rA,
+        TSparseVectorType& rb,
+        TSparseVectorType& rDx,
+        const TSparseVectorType& rEffectiveDx,
+        const TSparseMatrixType& rConstraintsRelationMatrix)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
+    }
+
+    void UpdateConstraintsLooseDofs(
+        const TSparseVectorType& rEffectiveDx,
+        DofsArrayType& rDofSet,
+        EffectiveDofsMapType& rEffectiveDofIdMap)
+    {
+        if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
+            // Create a temporary std::unordered_set to make the search efficient
+            std::unordered_set<typename DofType::Pointer> aux_dof_set(rDofSet.GetContainer().begin(), rDofSet.GetContainer().end());
+
+            // Find the loose constraint DOFs by comparing the standard DOF set to the effective one
+            // Those nodes appearing in the effective DOFs map but not in the standard DOF set are loose DOFs
+            std::vector<std::pair<typename DofType::Pointer, IndexType>> loose_dofs;
+            loose_dofs.reserve(rEffectiveDofIdMap.size());
+            for (auto& rEffectiveDofPair : rEffectiveDofIdMap) {
+                auto p_dof = rEffectiveDofPair.first;
+                if (aux_dof_set.find(p_dof) == aux_dof_set.end()) {
+                    loose_dofs.push_back(rEffectiveDofPair);
+                }
+            }
+
+            // Update the constraint loose DOFs with the effective solution increment values
+            IndexPartition<IndexType>(loose_dofs.size()).for_each([&](IndexType Index){
+                auto loose_dof_info = loose_dofs[Index];
+                auto p_loose_dof = loose_dof_info.first;
+                if (p_loose_dof->IsFree()) {
+                    p_loose_dof->GetSolutionStepValue() += rEffectiveDx[loose_dof_info.second];
+                }
+            });
+        }
     }
 
     /**
      * @brief Calculates the update vector
      * This method computes the solution update vector from the effective one
      * @param rConstraintsRelationMatrix The constraints relation matrix (i.e., T)
-     * @param rConstraintsConstantVector The constraints constant vector (i.e., b)
      * @param rEffectiveDx The effective solution update vector
      * @param rDx The solution update vector
      */
     void CalculateUpdateVector(
         const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSparseVectorType& rConstraintsConstantVector,
         const TSparseVectorType& rEffectiveDx,
         TSparseVectorType& rDx)
     {

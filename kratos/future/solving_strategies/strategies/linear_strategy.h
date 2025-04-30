@@ -162,7 +162,6 @@ public:
 
         // Get system data
         auto& r_dof_set = this->GetDofSet();
-        auto& r_eff_dof_list = this->GetEffectiveDofMap();
         auto p_lhs = this->pGetSystemMatrix();
         auto p_rhs = this->pGetSystemVector();
         auto p_dx = this->pGetSolutionVector();
@@ -208,12 +207,9 @@ public:
         // Debugging info
         this->EchoInfo();
 
-        // Get the solution update vector from the effective one
-        p_scheme->CalculateUpdateVector(r_T, r_b, *p_eff_dx, *p_dx);
-        //FIXME: update "los sueltos" in the database first
-
         // Update results (note that this also updates the mesh if needed)
-        p_scheme->Update(r_dof_set, *p_lhs, *p_dx, *p_rhs);
+        auto& r_eff_dof_id_map = this->GetEffectiveDofIdMap();
+        p_scheme->Update(r_dof_set, r_eff_dof_id_map, *p_lhs, *p_rhs, *p_dx, *p_eff_dx, r_T);
 
         // Finalize current (unique) non linear iteration
         p_scheme->FinalizeNonLinIteration(*p_lhs, *p_dx, *p_rhs);

@@ -81,8 +81,7 @@ public:
     using DofsArrayType = typename ModelPart::DofsArrayType;
 
     /// Effective DOFs map type definition
-    // using EffectiveDofsMapType = std::unordered_map<typename Dof<DataType>::Pointer, IndexType>;
-    using EffectiveDofsMapType = std::vector<std::pair<typename Dof<DataType>::Pointer, IndexType>>;
+    using EffectiveDofsMapType = std::unordered_map<typename Dof<DataType>::Pointer, IndexType>;
 
     /// Matrix type definition
     using SystemMatrixType = TMatrixType;
@@ -198,7 +197,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mDofSet, mEffectiveDofMap, mpA, mpdx, mpb, mConstraintsRelationMatrix, mConstraintsConstantVector, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mDofSet, mEffectiveDofSet, mEffectiveDofIdMap, mpA, mpb, mpdx, mpEffectiveDx, mConstraintsRelationMatrix, mConstraintsConstantVector, mReformDofsAtEachStep);
 
         KRATOS_CATCH("")
     }
@@ -207,33 +206,8 @@ public:
     {
         KRATOS_TRY
 
-        //FIXME: I think all this implementation must be moved to the Scheme!
-
         // Call the time scheme predict (note that this also updates the mesh if needed)
-        pGetScheme()->Predict(*mpA, *mpdx, *mpb);
-
-        // Applying constraints if needed
-        const auto& r_model_part = this->GetModelPart();
-        const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
-        auto& r_constraints = r_model_part.MasterSlaveConstraints();
-        const std::size_t n_constraints_loc = r_constraints.size();
-        const std::size_t n_constraints_glob = r_comm.SumAll(n_constraints_loc);
-
-        if (n_constraints_glob != 0) {
-            const auto& r_process_info = r_model_part.GetProcessInfo();
-
-            block_for_each(r_constraints, [&r_process_info](MasterSlaveConstraint& rConstraint){
-                rConstraint.ResetSlaveDofs(r_process_info);
-            });
-
-            block_for_each(r_constraints, [&r_process_info](MasterSlaveConstraint& rConstraint){
-                rConstraint.Apply(r_process_info);
-            });
-
-            // The following is needed since we need to eventually compute time derivatives after applying master-slave relations
-            mpdx->SetValue(0.0);
-            pGetScheme()->Update(mDofSet, *mpA, *mpdx, *mpb);
-        }
+        pGetScheme()->Predict(mDofSet, mEffectiveDofIdMap, *mpA, *mpb, *mpdx, *mpEffectiveDx, mConstraintsRelationMatrix);
 
         KRATOS_CATCH("")
     }
@@ -556,17 +530,32 @@ public:
     /**
      * @brief It allows to get the map of effective DOFs
      */
-    EffectiveDofsMapType& GetEffectiveDofMap()
+    DofsArrayType& GetEffectiveDofSet()
     {
-        return mEffectiveDofMap;
+        return mEffectiveDofSet;
     }
 
     /**
      * @brief It allows to get the map of effective DOFs
      */
-    const EffectiveDofsMapType &GetEffectiveDofMap() const
+    const DofsArrayType &GetEffectiveDofSet() const
     {
-        return mEffectiveDofMap;
+        return mEffectiveDofSet;
+    }
+    /**
+     * @brief It allows to get the map of effective DOFs
+     */
+    EffectiveDofsMapType& GetEffectiveDofIdMap()
+    {
+        return mEffectiveDofIdMap;
+    }
+
+    /**
+     * @brief It allows to get the map of effective DOFs
+     */
+    const EffectiveDofsMapType& GetEffectiveDofIdMap() const
+    {
+        return mEffectiveDofIdMap;
     }
 
     ///@}
@@ -745,7 +734,9 @@ private:
 
     DofsArrayType mDofSet; /// The set containing the DOFs of the system
 
-    EffectiveDofsMapType mEffectiveDofMap; /// The map containing the effective DOFs of the system
+    DofsArrayType mEffectiveDofSet; /// The PVS containing the effective DOFs of the system
+
+    EffectiveDofsMapType mEffectiveDofIdMap; /// The pointer to ids map containing the effective DOFs of the system
 
     //TODO: Should these be unique_ptr?
     SystemVectorPointerType mpdx = nullptr; /// The incremement in the solution //TODO: use naming convention

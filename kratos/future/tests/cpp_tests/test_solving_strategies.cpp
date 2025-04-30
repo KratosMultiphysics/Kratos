@@ -180,22 +180,20 @@ KRATOS_TEST_CASE_IN_SUITE(StaticScheme, KratosCoreFastSuite)
     // Create the DOF set and set the global ids
     // Note that in a standard case this happens at the strategy level
     ModelPart::DofsArrayType dof_set;
+    ModelPart::DofsArrayType eff_dof_set;
     SchemeType::EffectiveDofsMapType eff_dof_map;
-    // p_scheme->SetUpDofArray(dof_set);
-    // p_scheme->SetUpSystemIds(dof_set);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
     CsrMatrix<> T;
     SystemVector<> b;
     auto p_lhs = Kratos::make_shared<CsrMatrix<>>();
-    auto p_dx = Kratos::make_shared<SystemVector<>>();
     auto p_rhs = Kratos::make_shared<SystemVector<>>();
-    // p_scheme->ConstructMasterSlaveConstraintsStructure(dof_set, eff_dof_map, T, b);
-    // p_scheme->ResizeAndInitializeVectors(dof_set, eff_dof_map, p_lhs, p_dx, p_rhs);
+    auto p_dx = Kratos::make_shared<SystemVector<>>();
+    auto p_eff_dx = Kratos::make_shared<SystemVector<>>();
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(dof_set, eff_dof_map, p_lhs, p_dx, p_rhs, T, b);
+    p_scheme->InitializeSolutionStep(dof_set, eff_dof_set, eff_dof_map, p_lhs, p_rhs, p_dx, p_eff_dx, T, b);
 
     // Call the build
     p_scheme->Build(*p_lhs, *p_rhs);
