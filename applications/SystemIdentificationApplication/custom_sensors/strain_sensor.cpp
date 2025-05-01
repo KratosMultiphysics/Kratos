@@ -15,8 +15,11 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_components.h"
+#include "utilities/brute_force_point_locator.h"
 
 // Application includes
+#include "custom_utilities/sensor_utils.h"
 #include "system_identification_application_variables.h"
 
 // Include base h
@@ -65,6 +68,73 @@ StrainSensor::StrainSensor(
     }
 
     this->GetNode()->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
+}
+
+Sensor::Pointer StrainSensor::Create(
+    ModelPart& rDomainModelPart,
+    ModelPart& rSensorModelPart,
+    const IndexType Id,
+    Parameters SensorParameters)
+{
+    KRATOS_TRY
+
+    SensorParameters.ValidateAndAssignDefaults(StrainSensor::GetDefaultParameters());
+
+    const auto& location = SensorParameters["location"].GetVector();
+    KRATOS_ERROR_IF_NOT(location.size() == 3)
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" should have 3 components. [ location = " << location << " ].\n";
+
+    Point loc(location[0], location[1], location[2]);
+
+    Vector dummy_shape_functions;
+
+    const auto element_id = BruteForcePointLocator(rDomainModelPart).FindElement(loc, dummy_shape_functions);
+    const auto& r_element = rDomainModelPart.GetElement(element_id);
+
+    auto p_node = rSensorModelPart.CreateNewNode(Id, location[0], location[1], location[2]);
+
+    const auto& strain_type_str = SensorParameters["strain_type"].GetString();
+
+    StrainType strain_type;
+
+    if (strain_type_str == "strain_xx") {
+        strain_type = StrainType::STRAIN_XX;
+    } else if (strain_type_str == "strain_yy") {
+        strain_type = StrainType::STRAIN_YY;
+    } else if (strain_type_str == "strain_zz") {
+        strain_type = StrainType::STRAIN_ZZ;
+    } else if (strain_type_str == "strain_xy") {
+        strain_type = StrainType::STRAIN_XY;
+    } else if (strain_type_str == "strain_xz") {
+        strain_type = StrainType::STRAIN_XZ;
+    } else if (strain_type_str == "strain_yz") {
+        strain_type = StrainType::STRAIN_YZ;
+    } else {
+        KRATOS_ERROR << "Unsupported strain type = \""
+                     << strain_type_str << "\". Followings are supported:"
+                     << "\n\tstrain_xx"
+                     << "\n\tstrain_yy"
+                     << "\n\tstrain_zz"
+                     << "\n\tstrain_xy"
+                     << "\n\tstrain_xz"
+                     << "\n\tstrain_yz";
+    }
+
+    auto p_sensor = Kratos::make_shared<StrainSensor>(
+        SensorParameters["name"].GetString(),
+        p_node,
+        KratosComponents<Variable<Matrix>>::Get(SensorParameters["strain_variable"].GetString()),
+        strain_type,
+        r_element,
+        SensorParameters["weight"].GetDouble()
+    );
+
+    SensorUtils::ReadVariableData(p_sensor->GetNode()->GetData(), SensorParameters["variable_data"]);
+
+    return p_sensor;
+
+    KRATOS_CATCH("");
 }
 
 Parameters StrainSensor::GetDefaultParameters()
