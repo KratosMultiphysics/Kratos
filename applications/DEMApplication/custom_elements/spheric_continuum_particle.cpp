@@ -592,7 +592,7 @@ namespace Kratos {
             
             int contact_mesh_option = r_process_info[CONTACT_MESH_OPTION];
             //if (contact_mesh_option == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
-            if (contact_mesh_option == 1 && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
+            if (contact_mesh_option == 1 && i < (int)mNeighbourElements.size() && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
                 if (i < (int)mContinuumInitialNeighborsSize) {
                     double total_local_elastic_contact_force[3] = {0.0};
                     total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
@@ -601,10 +601,7 @@ namespace Kratos {
                     double bond_volume = GetInitialBondVolume(neighbour_iterator_id);
                     CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce, bond_volume);
                 } else {
-                    unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
-                    if ((i < (int)mNeighbourElements.size())) {
-                        CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
-                    }
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
                 }
             }
 
