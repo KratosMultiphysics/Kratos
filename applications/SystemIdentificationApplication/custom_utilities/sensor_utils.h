@@ -52,6 +52,10 @@ public:
         Sensor::Pointer pSensor,
         const std::string& rExpressionName);
 
+    static void ReadVariableData(
+        DataValueContainer& rDataValueContainer,
+        Parameters VariableDataParameters);
+
     ///@}
 };
 
