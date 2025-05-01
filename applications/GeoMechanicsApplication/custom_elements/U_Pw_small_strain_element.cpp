@@ -49,6 +49,13 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    UPwBaseElement::Initialize(rCurrentProcessInfo);
+    mIsInitialized = false;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -116,6 +123,89 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
+    if (!mIsInitialized) {
+        const PropertiesType&                           r_properties = this->GetProperties();
+        const GeometryType&                             r_geometry   = this->GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
+            r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
+
+        // Stiffness matrix is needed to calculate Biot coefficient
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        mExternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
+        mInternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
+
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+        RetentionLaw::Parameters RetentionParameters(r_properties);
+
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+        const auto integration_coefficients =
+            this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+        const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
+            r_geometry, this->GetIntegrationMethod());
+        const auto integration_coefficients_on_initial_configuration =
+            this->CalculateIntegrationCoefficients(IntegrationPoints, det_Js_initial_configuration);
+
+        const auto deformation_gradients = CalculateDeformationGradients();
+        auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
+        std::vector<Matrix> constitutive_matrices;
+        this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                             Variables.NContainer, Variables.DN_DXContainer,
+                                             strain_vectors, mStressVector, constitutive_matrices);
+        const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+            constitutive_matrices, this->GetProperties());
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NContainer, Variables.PressureVector);
+        const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
+        const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
+        const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+            biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_properties);
+        auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
+        const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+        std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
+                       relative_permeability_values.cbegin(), relative_permeability_values.begin(),
+                       std::multiplies<>{});
+
+        const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
+
+        for (unsigned int integration_point = 0; integration_point < IntegrationPoints.size(); ++integration_point) {
+            this->CalculateKinematics(Variables, integration_point);
+            Variables.B                  = b_matrices[integration_point];
+            Variables.F                  = deformation_gradients[integration_point];
+            Variables.StrainVector       = strain_vectors[integration_point];
+            Variables.ConstitutiveMatrix = constitutive_matrices[integration_point];
+
+            // Compute Nu and BodyAcceleration
+            GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(
+                Variables.Nu, Variables.NContainer, integration_point);
+            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
+                Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, integration_point);
+
+            Variables.RelativePermeability = relative_permeability_values[integration_point];
+            Variables.BishopCoefficient    = bishop_coefficients[integration_point];
+
+            Variables.BiotCoefficient        = biot_coefficients[integration_point];
+            Variables.BiotModulusInverse     = biot_moduli_inverse[integration_point];
+            Variables.DegreeOfSaturation     = degrees_of_saturation[integration_point];
+            Variables.IntegrationCoefficient = integration_coefficients[integration_point];
+            Variables.IntegrationCoefficientInitialConfiguration =
+                integration_coefficients_on_initial_configuration[integration_point];
+
+            this->CalculateAndAddExternalForces(mExternalForcesAtStart, Variables, integration_point);
+            this->CalculateAndAddInternalForces(mInternalForcesAtStart, Variables, integration_point);
+        }
+
+        mIsInitialized = true;
+    }
+
     this->ResetHydraulicDischarge();
 }
 
@@ -511,7 +601,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             return constitutive_matrix(variable_index, variable_index);
         });
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
+        try {
         OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
+        }
+        catch (...){ std::fill(rOutput.begin(), rOutput.end(), 0.0); }
     } else if (r_properties.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
         std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
@@ -719,6 +812,24 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                                                                          std::vector<int>& rOutput,
+                                                                          const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == PLASTICITY) {
+        rOutput.resize(mConstitutiveLawVector.size());
+        for (unsigned int integration_point = 0; integration_point < mConstitutiveLawVector.size();
+             ++integration_point) {
+            rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
+                rVariable, rOutput[integration_point]);
+        }
+    } else {
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " is not supported in "
+                     << "UPwSmallStrainElement::CalculateOnIntegrationPoints" << std::endl;
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,
                                                                               const ProcessInfo& rCurrentProcessInfo)
 {
@@ -782,6 +893,34 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+                                                                           ElementVariables& rVariables,
+                                                                           unsigned int GPoint)
+{
+    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
+
+    this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
+
+    if (!rVariables.IgnoreUndrained) {
+        this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
+
+        this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+                                                                           ElementVariables& rVariables,
+                                                                           unsigned int GPoint)
+{
+    this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
+
+    if (!rVariables.IgnoreUndrained) {
+        this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                                  const ProcessInfo& rCurrentProcessInfo)
 {
@@ -824,7 +963,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
                                                           bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
-
+    // KRATOS_INFO("CalculateAll") << "START\n";
     const PropertiesType&                           r_properties = this->GetProperties();
     const GeometryType&                             r_geometry   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
@@ -874,6 +1013,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
     const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
+    Vector total_external_forces = ZeroVector(TNumNodes * (TDim + 1));
     for (unsigned int integration_point = 0; integration_point < IntegrationPoints.size(); ++integration_point) {
         this->CalculateKinematics(Variables, integration_point);
         Variables.B                  = b_matrices[integration_point];
@@ -900,10 +1040,25 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         // Contributions to the right hand side
-        if (CalculateResidualVectorFlag)
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, integration_point);
+        if (CalculateResidualVectorFlag) {
+            this->CalculateAndAddRHSWithProcessInfo(rRightHandSideVector, Variables,
+                                                    integration_point, rCurrentProcessInfo);
+            this->CalculateAndAddExternalForces(total_external_forces, Variables, integration_point);
+        }
     }
 
+    if (rCurrentProcessInfo[TIME] > 0.0 && CalculateResidualVectorFlag) {
+        const auto f_ext = -mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) *
+                                                         rCurrentProcessInfo[TIME];
+        // KRATOS_INFO("f_ext") << f_ext << std::endl;
+        // KRATOS_INFO("total_external_forces") << total_external_forces << std::endl;
+        // KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;
+        // KRATOS_INFO("mExternalForcesAtStart") << mExternalForcesAtStart << std::endl;
+        // KRATOS_INFO("RHS total after before external force: ") << rRightHandSideVector << std::endl;
+        rRightHandSideVector += f_ext;
+        // KRATOS_INFO("RHS total after adding external force: ") << rRightHandSideVector << std::endl;
+    }
+    // KRATOS_INFO("CalculateAll") << "END\n";
     KRATOS_CATCH("")
 }
 
@@ -1165,6 +1320,19 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRig
     }
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHSWithProcessInfo(VectorType& rRightHandSideVector,
+                                                                               ElementVariables& rVariables,
+                                                                               unsigned int GPoint,
+                                                                               const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAndAddInternalForces(rRightHandSideVector, rVariables, GPoint);
+    if (rCurrentProcessInfo[TIME] <= 0.0) {
+        // For t > 0 the unbalance reduction stepping is applied for the external loads
+        CalculateAndAddExternalForces(rRightHandSideVector, rVariables, GPoint);
+    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

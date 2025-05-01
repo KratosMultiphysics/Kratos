@@ -609,6 +609,14 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
     KRATOS_CATCH("")
 }
 
+int& SmallStrainUDSM3DLaw::GetValue(const Variable<int>& rThisVariable, int& rValue)
+{
+    if ( rThisVariable == PLASTICITY)
+        rValue = mPlastic;
+
+    return mPlastic;
+}
+
 void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
@@ -709,7 +717,6 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
     double Zorigin(0.0);
     int    iElement          = 0;
     int    integrationNumber = 0;
-    int    iPlastic          = 0;
     int    isUndr            = 0;
 
     // variable to check if an error happened in the model:
@@ -722,9 +729,10 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
               &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
               &(mStateVariablesFinalized.data()[0]), &(mDeltaStrainVector.data()[0]),
               (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-              &(mStateVariables.data()[0]), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
+              &(mStateVariables.data()[0]), &mPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
               &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
               &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+
 
     if (iAbort != 0) {
         KRATOS_INFO("CallUDSM, iAbort !=0")

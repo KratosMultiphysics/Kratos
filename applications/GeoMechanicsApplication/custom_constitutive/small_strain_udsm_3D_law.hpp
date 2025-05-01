@@ -352,7 +352,12 @@ protected:
 
     array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
     array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
+    int                             mPlastic = 0;
 
+public:
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
+
+protected:
     double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
 
     ///@}

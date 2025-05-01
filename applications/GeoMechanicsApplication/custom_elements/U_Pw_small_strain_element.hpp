@@ -88,6 +88,7 @@ public:
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -120,6 +121,10 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                                      std::vector<int>&    rOutput,
+                                      const ProcessInfo&   rCurrentProcessInfo) override;
 
     using UPwBaseElement::CalculateOnIntegrationPoints;
 
@@ -222,6 +227,10 @@ protected:
                                                       const ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
+    virtual void CalculateAndAddRHSWithProcessInfo(VectorType&        rRightHandSideVector,
+                                                   ElementVariables&  rVariables,
+                                                   unsigned int       GPoint,
+                                                   const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
                                        const ElementVariables& rVariables,
@@ -287,6 +296,13 @@ protected:
                                                  const Matrix& rGradNpt,
                                                  double        IntegrationCoefficient) const;
 
+    virtual void CalculateAndAddInternalForces(VectorType&       rRightHandSideVector,
+                                               ElementVariables& rVariables,
+                                               unsigned int      GPoint);
+    virtual void CalculateAndAddExternalForces(VectorType&       rRightHandSideVector,
+                                               ElementVariables& rVariables,
+                                               unsigned int      GPoint);
+
     VectorType GetPressureSolutionVector();
 
 private:
@@ -309,6 +325,10 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
+    Vector mInternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
+    Vector mExternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
+    bool   mIsInitialized         = false;
 };
 
 // Class UPwSmallStrainElement
