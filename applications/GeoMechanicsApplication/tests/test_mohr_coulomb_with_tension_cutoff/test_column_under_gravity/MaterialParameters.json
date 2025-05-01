@@ -23,8 +23,7 @@
         "GEO_FRICTION_ANGLE"       :  30.0,
         "GEO_DILATANCY_ANGLE"      :  0.0,
         "GEO_TENSILE_STRENGTH"     :  1000.0
-      },
-      "Tables": {}
+      }
     }
   }]
 }
