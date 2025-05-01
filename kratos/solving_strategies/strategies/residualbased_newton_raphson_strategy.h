@@ -372,7 +372,7 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY
         // Validate and assign defaults
-        Settings = this->ValidateAndAssignParameters(Settings, this->GetDefaultParameters());
+        //Settings = this->ValidateAndAssignParameters(Settings, this->GetDefaultParameters());
         this->AssignSettings(Settings);
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
@@ -788,6 +788,8 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         ModelPart& r_model_part = BaseType::GetModelPart();
 
+        KRATOS_INFO("InitializeSolutionStep [strategy]") << "Step number: " << r_model_part.GetProcessInfo()[STEP] << "\n";
+
         // Set up the system, operation performed just once unless it is required
         // to reform the dof set at each iteration
         BuiltinTimer system_construction_time;
@@ -939,27 +941,36 @@ class ResidualBasedNewtonRaphsonStrategy
         //initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        KRATOS_INFO("SolveSolutionStep") << "Step number: " << r_model_part.GetProcessInfo()[STEP] << "\n";
+        KRATOS_INFO("SolveSolutionStep") << "Iteration number: " << iteration_number << "\n";
         bool residual_is_updated = false;
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
         // Function to perform the building and the solving phase.
+        KRATOS_INFO("SolveSolutionStep") << "BaseType::mRebuildLevel = " << BaseType::mRebuildLevel
+        << " | BaseType::mStiffnessMatrixIsBuilt = " << BaseType::mStiffnessMatrixIsBuilt
+        << " | mUseOldStiffnessInFirstIteration = " << mUseOldStiffnessInFirstIteration << "\n";
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
+            KRATOS_INFO("SolveSolutionStep") << "Calculate A, b and x\n";
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
 
-            if (mUseOldStiffnessInFirstIteration){
-                p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
+            if (mUseOldStiffnessInFirstIteration && r_model_part.GetProcessInfo()[STEP] > 1){
+                p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb, BaseType::MoveMeshFlag());
             } else {
                 p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
             }
         } else {
+            KRATOS_INFO("SolveSolutionStep") << "Calculate b and x\n";
+
             TSparseSpace::SetToZero(rDx);  // Dx = 0.00;
             TSparseSpace::SetToZero(rb);
 
-            p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            //p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+            p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb, BaseType::MoveMeshFlag());
         }
 
         // Debugging info
@@ -988,9 +999,15 @@ class ResidualBasedNewtonRaphsonStrategy
         }
 
         //Iteration Cycle... performed only for NonLinearProblems
+        this->SetStiffnessMatrixIsBuilt(true);
         while (is_converged == false &&
                iteration_number++ < mMaxIterationNumber)
         {
+            KRATOS_INFO("SolveSolutionStep") << "Iteration number: " << iteration_number << "\n";
+            KRATOS_INFO("SolveSolutionStep") << "BaseType::mRebuildLevel = " << BaseType::mRebuildLevel
+<< " | BaseType::mStiffnessMatrixIsBuilt = " << BaseType::mStiffnessMatrixIsBuilt
+<< " | mUseOldStiffnessInFirstIteration = " << mUseOldStiffnessInFirstIteration << "\n";
+
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
@@ -1012,18 +1029,22 @@ class ResidualBasedNewtonRaphsonStrategy
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
+                        KRATOS_INFO("SolveSolutionStep") << "Calculate A, b and x\n";
+
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                     else
                     {
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
+                        KRATOS_INFO("SolveSolutionStep") << "Calculate b and x\n";
 
                         p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                 }
                 else
                 {
+                    KRATOS_INFO("SolveSolutionStep") << "Calculate b and x\n";
                     TSparseSpace::SetToZero(rDx);
                     TSparseSpace::SetToZero(rb);
 
