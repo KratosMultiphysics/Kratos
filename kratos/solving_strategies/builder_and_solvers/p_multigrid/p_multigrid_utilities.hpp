@@ -314,6 +314,12 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     static_assert(OrderReduction == std::numeric_limits<unsigned>::max(),
                   "The current implementation requires geometries to be always reduced to their linear equivalents in a single step.");
 
+    KRATOS_DEBUG_ERROR_IF_NOT(std::is_sorted(rParentIndirectDofSet.begin(),
+                                             rParentIndirectDofSet.end(),
+                                             [](const Dof<double>& r_left, const Dof<double>& r_right){
+                                                return r_left.Id() < r_right.Id();
+                                             }));
+
     KRATOS_TRY
 
     using GlobalIndex = typename TUblasSparseSpace<TValue>::MatrixType::size_type;
@@ -377,11 +383,12 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                         // Find the first DoF in the parent's set.
                         auto it_first_dof = std::lower_bound(rParentIndirectDofSet.begin(),
                                                              rParentIndirectDofSet.end(),
-                                                             **r_row_dofs.begin(),
+                                                             *r_row_dofs.front(),
                                                              [](const Dof<double>& r_parent_dof, const Dof<double>& r_dof){
                                                                 return r_parent_dof.Id() < r_dof.Id();
                                                              });
-                        if (it_first_dof == rParentIndirectDofSet.end()) continue;
+                        if (   it_first_dof == rParentIndirectDofSet.end()
+                            || it_first_dof->Id() != r_row_dofs.front()->Id()) continue;
 
                         // Find which DoFs are included from the node.
                         r_tls.included_dofs.resize(r_row_dofs.size());
@@ -405,11 +412,10 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                         for (unsigned i_component=0u; i_component<component_count; ++i_component) {
                             if (!r_tls.included_dofs[i_component]) continue;
                             Dof<double>* p_fine_row_dof = r_row_dofs[i_component].get();
-                            [[maybe_unused]] std::scoped_lock<LockObject> row_lock(locks[p_fine_row_dof->EquationId()]);
-
                             const std::size_t i_row_dof = p_fine_row_dof->EquationId();
-                            rows[i_row_dof].second = p_fine_row_dof;
+                            [[maybe_unused]] std::scoped_lock<LockObject> row_lock(locks[i_row_dof]);
 
+                            rows[i_row_dof].second = p_fine_row_dof;
                             const std::size_t i_column_dof = r_column_dofs[i_component]->EquationId();
                             [[maybe_unused]] const auto [it_emplace, inserted] = rows[i_row_dof].first.emplace(i_column_dof, value);
 
@@ -470,7 +476,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     for (std::size_t i_fine_dof=0ul; i_fine_dof<FineSystemSize; ++i_fine_dof) {
         entry_count += rows[i_fine_dof].first.size();
         if (!rows[i_fine_dof].first.empty()) {
-            rDofMap[i_coarse_dof] = i_fine_dof;
+            rDofMap[i_coarse_dof] = (rParentIndirectDofSet.begin() + i_fine_dof)->EquationId();
             ++i_coarse_dof;
         } // if not ros[i_fine_dof].first.empty()
     } // for i_fine_dof in range(FineSystemSize)

@@ -292,16 +292,23 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
 
 template <class TSparse, class TDense>
 void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::const_iterator itParentDofBegin,
-                                                     [[maybe_unused]] typename IndirectDofSet::const_iterator itParentDofEnd)
+                                                     typename IndirectDofSet::const_iterator itParentDofEnd)
 {
 
     if (mIndirectDofSet.empty()) return;
+
+    std::vector<std::uint8_t> fixed_dofs(std::distance(itParentDofBegin, itParentDofEnd), static_cast<std::uint8_t>(false));
+    IndexPartition<typename TSparse::IndexType>(fixed_dofs.size()).for_each(
+        [&fixed_dofs, itParentDofBegin](auto i_column_dof) {
+            const auto it_column_dof = itParentDofBegin + i_column_dof;
+            fixed_dofs[it_column_dof->EquationId()] = it_column_dof->IsFixed();
+        });
 
     // Apply dirichlet conditions on the restriction operator.
     KRATOS_TRY
     block_for_each(mIndirectDofSet.begin(),
                    mIndirectDofSet.end(),
-                   [this, itParentDofBegin](const Dof<double>& r_dof){
+                   [&fixed_dofs, this](const Dof<double>& r_dof){
         const std::size_t i_dof = r_dof.EquationId();
         const typename TSparse::IndexType i_entry_begin = mRestrictionOperator.index1_data()[i_dof];
         const typename TSparse::IndexType i_entry_end = mRestrictionOperator.index1_data()[i_dof + 1];
@@ -321,8 +328,7 @@ void PGrid<TSparse,TDense>::ApplyDirichletConditions(typename IndirectDofSet::co
             // Zero out the column which is associated with the zero'ed row.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 const auto i_column = mRestrictionOperator.index2_data()[i_entry];
-                const auto it_column_dof = itParentDofBegin + i_column;
-                if (it_column_dof->IsFixed()) {
+                if (fixed_dofs[i_column]) {
                     mRestrictionOperator.value_data()[i_entry] = 0.0;
                 }
             } // for i_entry in range(i_entry_begin, i_entry_end)

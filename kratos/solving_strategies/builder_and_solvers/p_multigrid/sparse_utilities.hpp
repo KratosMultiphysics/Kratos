@@ -408,9 +408,16 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
 
+    std::vector<std::uint8_t> fixed_columns(std::distance(itRowDofBegin, itRowDofEnd), static_cast<std::uint8_t>(false));
+    IndexPartition<typename TSparse::IndexType>(fixed_columns.size()).for_each(
+        [itColumnDofBegin, &fixed_columns](auto i_column_dof) {
+            const auto it_column_dof = itColumnDofBegin + i_column_dof;
+            fixed_columns[it_column_dof->EquationId()] = it_column_dof->IsFixed();
+        });
+
     block_for_each(itRowDofBegin,
                    itRowDofEnd,
-                   [&rLhs, &rRhs, itColumnDofBegin, DiagonalScaleFactor](const Dof<double>& r_dof){
+                   [&rLhs, &rRhs, &fixed_columns, itColumnDofBegin, DiagonalScaleFactor](const Dof<double>& r_dof){
         const IndexType i_dof = r_dof.EquationId();
         const typename TSparse::IndexType i_entry_begin = rLhs.index1_data()[i_dof];
         const typename TSparse::IndexType i_entry_end = rLhs.index1_data()[i_dof + 1];
@@ -433,7 +440,6 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
             // Zero out the column which is associated with the zero'ed row.
             for (typename TSparse::IndexType i_entry=i_entry_begin; i_entry<i_entry_end; ++i_entry) {
                 const auto i_column = rLhs.index2_data()[i_entry];
-                const auto it_column_dof = itColumnDofBegin + i_column;
 
                 if (i_column == i_dof) {
                     found_diagonal = true;
@@ -441,7 +447,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
                         << "zero on main diagonal of row " << i_dof << " "
                         << "related to dof " << r_dof.GetVariable().Name() << " "
                         << "of node " << r_dof.Id();
-                } /*if i_column == i_dof*/ else if (it_column_dof->IsFixed()) {
+                } /*if i_column == i_dof*/ else if (fixed_columns[i_column]) {
                     rLhs.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                 }
 
