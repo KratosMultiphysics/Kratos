@@ -52,6 +52,17 @@ public:
     ///@{
 
     /// Constructor.
+
+    /**
+     * @brief Construct a new Sensor object
+     * @details         This construct a new sensor with a given name, weigh and a node. The node
+     *                  position should reflect the location of the sensor. It does not have to necessarily
+     *                  coincide with a mesh node. Usually these nodes are created in a separate model part
+     *                  and not as a part of the mesh.
+     * @param rName     Name of the sensor. Needs to be unique.
+     * @param pNode     Node which represents the location of the sensor and data value container.
+     * @param Weight    Weight of the sensor.
+     */
     Sensor(
         const std::string& rName,
         Node::Pointer pNode,
@@ -59,6 +70,31 @@ public:
 
     /// Destructor.
     ~Sensor() = default;
+
+    ///@}
+    ///@name Static operations
+    ///@{
+
+    /**
+     * @brief Creates a new sensor attached to a domain model part given.
+     * @details This static method is used to construct the sensors on a domain model part
+     *          with settings passed in using SensorParameters.
+     *
+     * @param rDomainModelPart      Domain model part, from which sensor will compute its values, sensitivities, etc.
+     * @param rSensorModelPart      Model part, which will be used to create the node for the new sensor. This node will be having the location of the sensor.
+     * @param Id                    Id of the created sensor.
+     * @param SensorParameters      Parameters required to construct the sensor.
+     * @return Sensor::Pointer      A new sensor.
+     */
+    static Sensor::Pointer Create(
+        ModelPart& rDomainModelPart,
+        ModelPart& rSensorModelPart,
+        const IndexType Id,
+        Parameters SensorParameters)
+    {
+        KRATOS_ERROR << "Trying to create a default \"Sensor\" which is not allowed. Please create specific sensor." << std::endl;
+        return Sensor::Pointer();
+    }
 
     ///@}
     ///@name Operations
