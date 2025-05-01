@@ -54,6 +54,7 @@ void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
     mContactSigma = 0.0;
     mContactTau = 0.0;
     mContactRadius = 0.0;
+    mBondVolume = 0.0;
 
     array_1d<double, 3> vector_of_zeros(3,0.0);
     this->SetValue(LOCAL_CONTACT_FORCE, vector_of_zeros);
@@ -64,6 +65,7 @@ void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
     this->SetValue(FAILURE_CRITERION_STATE, 0.0);
     this->SetValue(UNIDIMENSIONAL_DAMAGE, 0.0);
     this->SetValue(CONTACT_RADIUS, 0.0);
+    this->SetValue(BOND_VOLUME, 0.0);
 
     KRATOS_CATCH( "" )
 }
@@ -83,6 +85,7 @@ void ParticleContactElement::PrepareForPrinting() {
     this->GetValue(FAILURE_CRITERION_STATE)= mFailureCriterionState;
     this->GetValue(UNIDIMENSIONAL_DAMAGE)  = mUnidimendionalDamage;
     this->GetValue(CONTACT_RADIUS)         = mContactRadius;
+    this->GetValue(BOND_VOLUME)            = mBondVolume;
 
     KRATOS_CATCH( "" )
 }

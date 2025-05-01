@@ -1555,6 +1555,7 @@ class DEMIo():
                 self.PushPrintVar(self.PostContactSigma, CONTACT_SIGMA, self.contact_variables)
                 self.PushPrintVar(self.PostMeanContactArea, MEAN_CONTACT_AREA, self.contact_variables)
                 self.PushPrintVar(self.PostContactRadius, CONTACT_RADIUS, self.contact_variables)
+                self.PushPrintVar(self.PostElasticForces, BOND_VOLUME, self.contact_variables)
 
     def AddMpiVariables(self):
         pass

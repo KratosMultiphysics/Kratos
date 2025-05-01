@@ -74,6 +74,7 @@ public:
     double mFailureCriterionState;
     double mUnidimendionalDamage;
     double mContactRadius;
+    double mBondVolume;
 
 protected:
 

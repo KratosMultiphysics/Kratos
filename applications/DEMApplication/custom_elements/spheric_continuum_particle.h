@@ -102,7 +102,8 @@ namespace Kratos
                                                         double acumulated_damage, 
                                                         int time_steps, 
                                                         double calculation_area, 
-                                                        double GlobalContactForce[3]);
+                                                        double GlobalContactForce[3],
+                                                        double bond_volume = 0.0);
 
         virtual void FilterNonSignificantDisplacements(double DeltDisp[3], //IN GLOBAL AXES
                                                        double RelVel[3], //IN GLOBAL AXES
@@ -117,9 +118,15 @@ namespace Kratos
                                                     const double my_radius,
                                                     const double other_radius,
                                                     double& bond_contact_area);
+        virtual void CalculateBondVolume(const double distance,
+                                        const double my_radius,
+                                        const double other_radius,
+                                        const double R_bond,
+                                        double& V_bond);
         virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
         virtual double GetInitialBondContactArea(int index);
+        virtual double GetInitialBondVolume(int index);
         virtual bool IsSkin() { return (bool)*mSkinSphere; }
         void MarkNewSkinParticlesDueToBreakage();
 
@@ -144,6 +151,7 @@ namespace Kratos
         //std::vector<double> mIniNeighbourDelta;
         std::map<int, double> mIniNeighbourDelta;
         std::map<int, double> mIniBondContactArea;
+        std::map<int, double> mBondVolume;
 
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;

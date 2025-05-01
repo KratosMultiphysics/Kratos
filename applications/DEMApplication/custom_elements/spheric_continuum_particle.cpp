@@ -98,6 +98,12 @@ namespace Kratos {
             double ini_bond_contact_area = 0.0;
             CalculateInitialBondContactArea(distance, GetSearchRadius(), neighbour_iterator->GetSearchRadius(), GetRadius(), neighbour_iterator->GetRadius(), ini_bond_contact_area);
             mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = ini_bond_contact_area;
+
+            //TODO: This implementation is right only when all the particles are cememnted.
+            double V_bond = 0.0;
+            double R_bond = std::sqrt(ini_bond_contact_area / Globals::Pi);
+            CalculateBondVolume(distance, GetRadius(), neighbour_iterator->GetRadius(), R_bond, V_bond);
+            mBondVolume[static_cast<int>(neighbour_iterator->Id())] = V_bond;
         }
 
         mContinuumInitialNeighborsSize = continuum_ini_size;
@@ -224,6 +230,44 @@ namespace Kratos {
         }
 
         bond_contact_area = Globals::Pi * Rbond * Rbond;
+    }
+
+    void SphericContinuumParticle::CalculateBondVolume(const double distance,
+                                                    const double my_radius,
+                                                    const double other_radius,
+                                                    const double R_bond,
+                                                    double& V_bond) 
+    {
+
+        // Step 1: h'_i, h'_j, h_bond
+        double hi_prime = my_radius - std::sqrt(std::max(0.0, my_radius * my_radius - R_bond * R_bond));
+        double hj_prime = other_radius - std::sqrt(std::max(0.0, other_radius * other_radius - R_bond * R_bond));
+        double h_bond = distance - (my_radius + other_radius) + hi_prime + hj_prime;
+
+        // Step 2: V_cylinder
+        double V_cylinder = Globals::Pi * R_bond * R_bond * h_bond;
+
+        // Step 3: V_ball_cylinder_intersect
+        double V_ball_cylinder_intersect = Globals::Pi * hi_prime * hi_prime * (my_radius - hi_prime / 3.0)
+                        + Globals::Pi * hj_prime * hj_prime * (other_radius - hj_prime / 3.0);
+
+        // Step 4: V_ball_ball_intersect
+        double V_ball_ball_intersect = 0.0;
+        if (distance < (my_radius + other_radius)) {
+            double distance_squared = distance * distance;
+            double cos_alpha = (other_radius * other_radius + distance_squared - my_radius * my_radius) / (2.0 * other_radius * distance);
+            double cos_beta  = (my_radius * my_radius + distance_squared - other_radius * other_radius) / (2.0 * my_radius * distance);
+            cos_alpha = std::clamp(cos_alpha, -1.0, 1.0);
+            cos_beta = std::clamp(cos_beta, -1.0, 1.0);
+
+            double hi = other_radius * (1.0 - cos_alpha);
+            double hj = my_radius * (1.0 - cos_beta);
+
+            V_ball_ball_intersect = (Globals::Pi / 3.0) * (3 * other_radius - hi) * hi * hi + (Globals::Pi / 3.0) * (3 * my_radius - hj) * hj * hj;
+        }
+        
+        // Step 5: Final V_bond
+        V_bond = V_cylinder - V_ball_cylinder_intersect + V_ball_ball_intersect;
     }
 
     double SphericContinuumParticle::EffectiveVolumeRadius() {
@@ -554,7 +598,8 @@ namespace Kratos {
                     total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                     total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                     total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
-                    CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce);
+                    double bond_volume = GetInitialBondVolume(neighbour_iterator_id);
+                    CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce, bond_volume);
                 } else {
                     unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                     if ((i < (int)mNeighbourElements.size())) {
@@ -953,17 +998,25 @@ namespace Kratos {
         //if (index < (int) mIniNeighbourDelta.size()) return mIniNeighbourDelta[index];
         if (mIniNeighbourDelta.find(static_cast<int>(index)) != mIniNeighbourDelta.end()){
             return mIniNeighbourDelta[static_cast<int>(index)];
-         } else {
+        } else {
             return 0.0;
-         }
+        }
     }
 
     double SphericContinuumParticle::GetInitialBondContactArea(int index) {
         if (mIniBondContactArea.find(static_cast<int>(index)) != mIniBondContactArea.end()){
             return mIniBondContactArea[static_cast<int>(index)];
-         } else {
+        } else {
             return 0.0;
-         }
+        }
+    }
+
+    double SphericContinuumParticle::GetInitialBondVolume(int index) {
+        if (mBondVolume.find(static_cast<int>(index)) != mBondVolume.end()){
+            return mBondVolume[static_cast<int>(index)];
+        } else {
+            return 0.0;
+        }
     }
 
     double SphericContinuumParticle::GetInitialDeltaWithFEM(int index) {
@@ -978,7 +1031,8 @@ namespace Kratos {
                                                                         double acumulated_damage, 
                                                                         int time_steps, 
                                                                         double calculation_area, 
-                                                                        double GlobalContactForce[3]) 
+                                                                        double GlobalContactForce[3],
+                                                                        double bond_volume)
     {
 
         KRATOS_TRY
@@ -995,6 +1049,7 @@ namespace Kratos {
         bond->mContactFailure = mIniNeighbourFailureId[i];
         bond->mFailureCriterionState = failure_criterion_state;
         bond->mContactRadius = sqrt(calculation_area / Globals::Pi);
+        bond->mBondVolume = bond_volume;
 
         bond->mGlobalContactForce[0] = GlobalContactForce[0];
         bond->mGlobalContactForce[1] = GlobalContactForce[1];
