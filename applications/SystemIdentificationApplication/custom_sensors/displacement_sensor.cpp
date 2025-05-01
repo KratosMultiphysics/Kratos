@@ -16,8 +16,10 @@
 // External includes
 
 // Project includes
+#include "utilities/brute_force_point_locator.h"
 
 // Application includes
+#include "custom_utilities/sensor_utils.h"
 #include "system_identification_application_variables.h"
 
 // Include base h
@@ -95,6 +97,50 @@ DisplacementSensor::DisplacementSensor(
     }
 
     this->GetNode()->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
+}
+
+Sensor::Pointer DisplacementSensor::Create(
+    ModelPart& rDomainModelPart,
+    ModelPart& rSensorModelPart,
+    const IndexType Id,
+    Parameters SensorParameters)
+{
+    KRATOS_TRY
+
+    SensorParameters.ValidateAndAssignDefaults(DisplacementSensor::GetDefaultParameters());
+
+    const auto& direction = SensorParameters["direction"].GetVector();
+    KRATOS_ERROR_IF_NOT(direction.size() == 3)
+        << "Direction of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" should have 3 components. [ direction = " << direction << " ].\n";
+
+    const auto& location = SensorParameters["location"].GetVector();
+    KRATOS_ERROR_IF_NOT(location.size() == 3)
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" should have 3 components. [ location = " << location << " ].\n";
+
+    Point loc(location[0], location[1], location[2]);
+
+    Vector dummy_shape_functions;
+
+    const auto element_id = BruteForcePointLocator(rDomainModelPart).FindElement(loc, dummy_shape_functions);
+    const auto& r_element = rDomainModelPart.GetElement(element_id);
+
+    auto p_node = rSensorModelPart.CreateNewNode(Id, location[0], location[1], location[2]);
+
+    auto p_sensor = Kratos::make_shared<DisplacementSensor>(
+        SensorParameters["name"].GetString(),
+        p_node,
+        array_1d<double, 3>{direction[0], direction[1], direction[2]},
+        r_element,
+        SensorParameters["weight"].GetDouble()
+    );
+
+    SensorUtils::ReadVariableData(p_sensor->GetNode()->GetData(), SensorParameters["variable_data"]);
+
+    return p_sensor;
+
+    KRATOS_CATCH("");
 }
 
 Parameters DisplacementSensor::GetSensorParameters() const

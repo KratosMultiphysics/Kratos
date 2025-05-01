@@ -60,10 +60,20 @@ public:
     ~DisplacementSensor() override = default;
 
     ///@}
-    ///@name Operations
+    ///@name Static operations
     ///@{
 
+    static Sensor::Pointer Create(
+        ModelPart& rDomainModelPart,
+        ModelPart& rSensorModelPart,
+        const IndexType Id,
+        Parameters SensorParameters);
+
     static Parameters GetDefaultParameters();
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     Parameters GetSensorParameters() const override;
 
