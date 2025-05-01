@@ -13,13 +13,13 @@
 
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
-#include <custom_constitutive/three_dimensional.h>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -402,7 +402,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
-    parameters.SetOptions(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    parameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     Vector strain_vector = ZeroVector(4);
     parameters.SetStrainVector(strain_vector);
     Vector stress_vector = ZeroVector(4);
@@ -415,9 +415,6 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act
-    Vector     cauchy_stress_vector = ZeroVector(4);
-    const auto dummy_process_info   = ProcessInfo{};
-    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, dummy_process_info);
     law.InitializeMaterialResponseCauchy(parameters);
     law.CalculateMaterialResponseCauchy(parameters);
 
@@ -432,59 +429,49 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, 1.E6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_WorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_WorkingSpaceDimensionDependsOnConstitutiveLawDimension,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(mc_law.WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(
+        MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.WorkingSpaceDimension(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StressMeasureIsAlwaysCauchy, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(mc_law.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
+    KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.GetStressMeasure(),
+                     ConstitutiveLaw::StressMeasure_Cauchy);
+    KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.GetStressMeasure(),
+                     ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StrainSizeDependsOnConstitutiveLawDimension,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(mc_law.GetStrainSize(), 4);
+    KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.GetStrainSize(), 4);
+    KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.GetStrainSize(), 6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetStrainMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StrainMeasureIsAlwaysInfinitesimal,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(mc_law.GetStrainMeasure(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
+    KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.GetStrainMeasure(),
+                     ConstitutiveLaw::StrainMeasure_Infinitesimal);
+    KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.GetStrainMeasure(),
+                     ConstitutiveLaw::StrainMeasure_Infinitesimal);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_IsIncremental, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_HasIncrementalFormulation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    // Act & Assert
-    KRATOS_EXPECT_TRUE(mc_law.IsIncremental())
+    EXPECT_TRUE(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.IsIncremental());
+    EXPECT_TRUE(MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.IsIncremental());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_RequiresInitializeMaterialResponse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    auto mc_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-
-    // Act & Assert
-    KRATOS_EXPECT_TRUE(mc_law.RequiresInitializeMaterialResponse())
+    EXPECT_TRUE(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.RequiresInitializeMaterialResponse());
+    EXPECT_TRUE(MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.RequiresInitializeMaterialResponse());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -500,7 +487,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetLawFeatures, KratosGeo
     KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::INFINITESIMAL_STRAINS))
     KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::ISOTROPIC))
     KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::PLANE_STRAIN_LAW))
-    KRATOS_EXPECT_EQ(features.GetStrainMeasures().front(),ConstitutiveLaw::StrainMeasure_Infinitesimal);
+    KRATOS_EXPECT_EQ(features.GetStrainMeasures().front(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
     KRATOS_EXPECT_EQ(features.GetStrainSize(), 4);
     KRATOS_EXPECT_EQ(features.GetSpaceDimension(), 2);
 
@@ -514,10 +501,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetLawFeatures, KratosGeo
     KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::INFINITESIMAL_STRAINS))
     KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::ISOTROPIC))
     KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW))
-    KRATOS_EXPECT_EQ(features.GetStrainMeasures().front(),ConstitutiveLaw::StrainMeasure_Infinitesimal);
+    KRATOS_EXPECT_EQ(features.GetStrainMeasures().front(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
     KRATOS_EXPECT_EQ(features.GetStrainSize(), 6);
     KRATOS_EXPECT_EQ(features.GetSpaceDimension(), 3);
-
 }
 
 } // namespace Kratos::Testing
