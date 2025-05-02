@@ -1532,9 +1532,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
         GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
 
     for (unsigned int integration_point = 0; integration_point < rDeformationGradients.size(); ++integration_point) {
+        // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a pointer
+        // to an implicitly converted object
+        const auto shape_function_values = Vector{row(rNuContainer, integration_point)};
         ConstitutiveLawUtilities::SetConstitutiveParameters(
             rConstitutiveParameters, rStrainVectors[integration_point],
-            rConstitutiveMatrices[integration_point], row(rNuContainer, integration_point),
+            rConstitutiveMatrices[integration_point], shape_function_values,
             rDNu_DXContainer[integration_point], rDeformationGradients[integration_point],
             determinants_of_deformation_gradients[integration_point]);
         rConstitutiveParameters.SetStressVector(rStressVectors[integration_point]);

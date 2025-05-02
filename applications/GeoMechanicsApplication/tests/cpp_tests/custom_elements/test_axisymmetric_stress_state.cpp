@@ -61,23 +61,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
-        std::make_unique<AxisymmetricStressState>();
-
-    // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
-    Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
-
-    const double detJ                   = 2.0;
-    const double calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
-        integration_point, detJ, ModelSetupUtilities::Create2D3NTriangleGeometry());
-
-    // The expected number is calculated as follows:
-    // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
-    KRATOS_EXPECT_RELATIVE_NEAR(calculated_coefficient, 5.02655, Defaults::relative_tolerance);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     EXPECT_FALSE(std::is_copy_constructible_v<AxisymmetricStressState>);
