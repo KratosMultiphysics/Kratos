@@ -20,6 +20,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mIsogeometricBeamElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mEmbeddedIsogeometricBeamElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mIgaMembraneElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell3pElement(0, Element::GeometryType::Pointer(
@@ -70,6 +74,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("TrussElement", mTrussElement)
     KRATOS_REGISTER_ELEMENT("TrussEmbeddedEdgeElement", mTrussEmbeddedEdgeElement)
+    KRATOS_REGISTER_ELEMENT("IsogeometricBeamElement", mIsogeometricBeamElement)
+    KRATOS_REGISTER_ELEMENT("EmbeddedIsogeometricBeamElement", mEmbeddedIsogeometricBeamElement)
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
@@ -159,6 +165,23 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_NITSCHE_STABILIZATION_SIZE)
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
+
+    //Beam Variables
+    KRATOS_REGISTER_VARIABLE(CROSS_AREA)
+    KRATOS_REGISTER_VARIABLE(LOCAL_CS_N)
+    KRATOS_REGISTER_VARIABLE(LOCAL_CS_n)
+    KRATOS_REGISTER_VARIABLE(LOCAL_CS_V)
+    KRATOS_REGISTER_VARIABLE(LOCAL_CS_v)
+    KRATOS_REGISTER_VARIABLE(T_0)
+    KRATOS_REGISTER_VARIABLE(N_0)
+    KRATOS_REGISTER_VARIABLE(CENTER_LINE_ROTATION)
+    KRATOS_REGISTER_VARIABLE(I_Y)
+    KRATOS_REGISTER_VARIABLE(I_Z)
+    KRATOS_REGISTER_VARIABLE(I_T)
+    KRATOS_REGISTER_VARIABLE(HEIGHT)
+    KRATOS_REGISTER_VARIABLE(WIDTH)
+
+
 
     // SBM Variables 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
