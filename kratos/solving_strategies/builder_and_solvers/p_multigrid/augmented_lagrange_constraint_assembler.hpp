@@ -118,15 +118,9 @@ public:
     typename TSparse::DataType GetPenaltyFactor() const;
 
     /// @internal
-    typename TSparse::DataType GetInitialLagrangeMultiplier() const
-    {
-        return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[0];
-    }
-
-    /// @internal
     typename TSparse::DataType GetTolerance() const
     {
-        return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[1];
+        return this->GetValue(AugmentedLagrangeConstraintAssembler::GetAlgorithmicParametersVariable())[0];
     }
 
     /// @internal

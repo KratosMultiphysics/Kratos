@@ -37,7 +37,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                               int Verbosity)
 {
     // Sanity checks.
-    KRATOS_ERROR_IF_NOT(std::distance(itDofBegin, itDofEnd) == rRelationMatrix.size2());
+    KRATOS_ERROR_IF_NOT(static_cast<typename TSparse::IndexType>(std::distance(itDofBegin, itDofEnd)) == rRelationMatrix.size2());
     KRATOS_ERROR_IF_NOT(rConstraintGaps.size() == rRelationMatrix.size1());
 
     KRATOS_TRY
@@ -181,9 +181,8 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstrain
     mpImpl->mpPenaltyFunctor = std::make_unique<Scaling>(Settings["penalty_factor"]);
 
     // Parse other algorithmic settings.
-    Vector algorithmic_parameters(2);
-    algorithmic_parameters[0] = Settings["initial_lagrange_multiplier"].Get<double>();
-    algorithmic_parameters[1] = Settings["tolerance"].Get<double>();
+    Vector algorithmic_parameters(1);
+    algorithmic_parameters[0] = Settings["tolerance"].Get<double>();
     this->SetValue(this->GetAlgorithmicParametersVariable(), algorithmic_parameters);
     this->SetValue(NL_ITERATION_NUMBER, Settings["max_iterations"].Get<int>());
 
@@ -306,7 +305,6 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
     using SparseUtils = SparseMatrixMultiplicationUtility;
     mpImpl->mpPenaltyFunctor->template Cache<TSparse>(rLhs);
     const typename TSparse::DataType penalty_factor = this->GetPenaltyFactor();
-    const typename TSparse::DataType initial_lagrange_multiplier = this->GetInitialLagrangeMultiplier();
 
     // Apply initial penalty- and lagrange terms to the left- and right hand sides.
     {
@@ -333,22 +331,9 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
                          penalty_factor);
 
         // Add terms to the RHS vector.
-        typename TSparse::VectorType rhs_term(rRhs.size()),
-                                     lagrange_multipliers(this->GetRelationMatrix().size1(),
-                                                          initial_lagrange_multiplier);
-
-        TSparse::UnaliasedAdd(lagrange_multipliers,
-                              -penalty_factor,
-                              this->GetConstraintGapVector());
-
-        TSparse::SetToZero(rhs_term);
         BalancedProduct<TSparse,TSparse,TSparse>(r_transpose_relation_matrix,
-                                                 lagrange_multipliers,
-                                                 rhs_term);
-
-        TSparse::UnaliasedAdd(rRhs,
-                              -1.0,
-                              rhs_term);
+                                                 this->GetConstraintGapVector(),
+                                                 rRhs);
     }
     KRATOS_CATCH("")
 }
@@ -436,7 +421,6 @@ Parameters AugmentedLagrangeConstraintAssembler<TSparse,TDense>::GetDefaultParam
     return Parameters(R"({
         "method" : "augmented_lagrange",
         "penalty_factor" : "norm",
-        "initial_lagrange_multiplier" : 0.0,
         "tolerance" : 1e-6,
         "max_iterations" : 1e1,
         "verbosity" : 1
