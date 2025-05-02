@@ -41,7 +41,7 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithoutPWDofs(const Propertie
         rProperties,
         {CalculationContribution::Permeability, CalculationContribution::Compressibility,
          CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForPwLineElement>()};
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
 
     return result;
 }
@@ -80,7 +80,7 @@ intrusive_ptr<Element> CreatePwLineElementWithoutPWDofs(ModelPart& rModelPart, c
         CalculationContribution::FluidBodyFlow};
     auto element = make_intrusive<TransientPwLineElement<2, 2>>(
         rModelPart.NumberOfElements() + 1, p_geometry, rProperties, contributions,
-        std::make_unique<IntegrationCoefficientModifierForPwLineElement>());
+        std::make_unique<IntegrationCoefficientModifierForLineElement>());
     rModelPart.AddElement(element);
     return element;
 }
