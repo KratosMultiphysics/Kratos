@@ -36,6 +36,10 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                               const std::string& rConstraintAssemblerName,
                               int Verbosity)
 {
+    // Sanity checks.
+    KRATOS_ERROR_IF_NOT(std::distance(itDofBegin, itDofEnd) == rRelationMatrix.size2());
+    KRATOS_ERROR_IF_NOT(rConstraintGaps.size() == rRelationMatrix.size1());
+
     KRATOS_TRY
 
     /// @todo Make applying dirichlet conditions on penalty constraints more robust and efficient.
