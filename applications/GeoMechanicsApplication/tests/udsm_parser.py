@@ -126,31 +126,51 @@ def udsm_parser(dll_path):
 
 def create_menu():
     root = tk.Tk()
-    root.withdraw()
+    root.title("Triaxial Test")
+    root.state('zoomed')
+    root.resizable(True, True)
 
-    dll_path = filedialog.askopenfilename(title="Select DLL File", filetypes=[("DLL files", "*.dll")])
-    if not dll_path:
-        messagebox.showerror("Error", "No DLL file selected.")
-        return
+    top_frame = ttk.Frame(root, padding="10")
+    top_frame.pack(side="top", fill="x")
 
-    model_dict = udsm_parser(dll_path)
+    main_frame = ttk.Frame(root)
+    main_frame.pack(side="top", fill="both", expand=True)
 
-    menu_window = tk.Toplevel()
-    menu_window.title("Triaxial Test")
-    menu_window.state('zoomed')
-    menu_window.resizable(True, True)
+    def load_dll():
+        dll_path = filedialog.askopenfilename(title="Select DLL File", filetypes=[("DLL files", "*.dll")])
+        if not dll_path:
+            messagebox.showerror("Error", "No DLL file selected.")
+            return
+
+        try:
+            model_dict = udsm_parser(dll_path)
+        except Exception as e:
+            messagebox.showerror("DLL Error", f"Failed to parse DLL: {e}")
+            return
+
+        # Clear previous UI
+        for widget in main_frame.winfo_children():
+            widget.destroy()
+
+        # Build full UI after DLL is selected
+        build_ui_from_model(root, main_frame, dll_path, model_dict)
+
+    select_dll_button = ttk.Button(top_frame, text="Select DLL File", command=load_dll)
+    select_dll_button.pack(side="left")
+
+    root.mainloop()
+
+def build_ui_from_model(root, parent_frame, dll_path, model_dict):
 
     global fig, axes, canvas
-    fig = None
-    axes = None
-    canvas = None
+    umat_entry_parameters = []
+    model_var = tk.StringVar(root)
+    model_var.set(model_dict["model_name"][0])
 
-    dropdown_frame = ttk.Frame(menu_window, padding="10")
+    dropdown_frame = ttk.Frame(parent_frame, padding="10")
     dropdown_frame.pack(side="left", fill="y", padx=10, pady=10)
 
     ttk.Label(dropdown_frame, text="Select a Model:", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=5)
-    model_var = tk.StringVar(menu_window)
-    model_var.set(model_dict["model_name"][0])
     model_menu = ttk.Combobox(dropdown_frame, textvariable=model_var, values=model_dict["model_name"], state="readonly")
     model_menu.pack(side="top", fill="x", expand=True, padx=5)
 
@@ -159,6 +179,26 @@ def create_menu():
 
     button_frame = ttk.Frame(dropdown_frame, padding="10")
     button_frame.pack(fill="x", pady=10)
+
+    plot_frame = ttk.Frame(parent_frame, padding="5")
+    plot_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+
+    width_per_ax = 6
+    height_per_ax = 5
+    nrows, ncols = 3, 2
+    figsize = (ncols * width_per_ax, nrows * height_per_ax)
+
+    fig = plt.figure(figsize=figsize)
+    gs = GridSpec(nrows, ncols, figure=fig, wspace=0.4, hspace=0.6)
+    axes = [fig.add_subplot(gs[i]) for i in range(5)]  # Only 5 plots used
+
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas_widget = canvas.get_tk_widget()
+    canvas_widget.pack(fill="both", expand=True)
+
+    # Hide the 6th plot if it exists
+    if len(fig.axes) == 6:
+        fig.delaxes(fig.axes[5])
 
     def update_parameters(*args):
         for widget in param_frame.winfo_children():
@@ -226,6 +266,7 @@ def create_menu():
         parameter_entries = entry_widgets
         input_entries = triaxial_entry_widgets
         model_index = index + 1
+
     def run_calculation():
         parameters = [entry.get() for key, entry in parameter_entries.items()]
         try:
