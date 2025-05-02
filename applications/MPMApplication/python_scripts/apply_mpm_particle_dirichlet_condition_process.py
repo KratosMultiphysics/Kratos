@@ -53,8 +53,8 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         """
         Set boundary_condition_type:
         1. penalty
-        2. lagrange / perturbed Lagrangian if Penalty factor > 0
-        3. fixdof (WIP)
+        2. Lagrange multiplier
+        3. perturbed Lagrangian (Lagrange with Penalty factor >0 )
         """
 
         # set type of boundary
@@ -63,6 +63,9 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
         elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
             self.boundary_condition_type = 2
+            self.penalty_factor = 0.0
+        elif (self.imposition_type == "perturbed_lagrange" or self.imposition_type == "Perturbed_Lagrange"):
+            self.boundary_condition_type = 3
             self.penalty_factor = settings["penalty_factor"].GetDouble()
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
@@ -131,9 +134,9 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.SetValue(KratosMPM.IS_EQUAL_DISTRIBUTED, self.is_equal_distributed)
                 condition.SetValue(KratosMPM.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(KratosMPM.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
-
+                              
                 ### Set necessary essential BC variables
-                if self.boundary_condition_type==1 or self.boundary_condition_type==2:
+                if self.boundary_condition_type==1 or self.boundary_condition_type==2 or self.boundary_condition_type==3:
                     condition.SetValue(KratosMPM.PENALTY_FACTOR, self.penalty_factor)
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "material_points_per_condition", '
