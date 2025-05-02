@@ -1073,7 +1073,7 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() co
         },
         "coarse_hierarchy_settings" : {}
     })");
-    parameters.SetValue("coarse_hierarchy_settings", PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>().GetDefaultParameters());
+    parameters.SetValue("coarse_hierarchy_settings", PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::GetDefaultParameters());
     parameters.RecursivelyAddMissingParameters(Interface::GetDefaultParameters());
     return parameters;
 }

@@ -516,7 +516,12 @@ namespace Kratos:: Python
         typedef PMultigridBuilderAndSolver<SparseSpaceType,LocalSpaceType> PMultigridBuilderAndSolverType;
         py::class_<PMultigridBuilderAndSolverType,PMultigridBuilderAndSolverType::Pointer,BuilderAndSolverType>(m, "PMultigridBuilderAndSolver")
             .def(py::init<>())
-            .def(py::init<const LinearSolverType::Pointer&,Parameters>())
+            .def(py::init<const LinearSolverType::Pointer&,Parameters>(),
+                 (std::string {"@param LinearSolver Pointer to a linear solver. This is ignored because PMultigridBuilderAndSolver constructs its own instances internally.\n"}
+                             + "@param Settings\n"
+                             + "@details Default parameters:\n" + PMultigridBuilderAndSolverType().GetDefaultParameters().PrettyPrintJsonString()).c_str(),
+                 py::arg("LinearSolver"),
+                 py::arg("Settings"))
             ;
 
         //********************************************************************
