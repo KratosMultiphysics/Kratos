@@ -89,12 +89,16 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
         r_lagrange_multiplier[j] *= 0.0;
     }
 
-    // Additional treatment for slip conditions
+    pBoundaryParticle->SetLock();
+    pBoundaryParticle->FastGetSolutionStepValue(NODAL_AREA) += this->GetIntegrationWeight();
+    pBoundaryParticle->UnSetLock();
+
+    // The calculation of the normal is required for slip and contact conditions
     if (Is(SLIP))
     {
         pBoundaryParticle->SetLock();
         pBoundaryParticle->Set(SLIP);
-        pBoundaryParticle->FastGetSolutionStepValue(NORMAL) = m_normal;
+        pBoundaryParticle->FastGetSolutionStepValue(NORMAL) += this->GetIntegrationWeight() * m_normal;
         pBoundaryParticle->UnSetLock();
         
 
@@ -103,31 +107,13 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
         {
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
-            // distinguish between penalty and lagrange in bossak scheme
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 3.0;
-            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_normal;
+            r_geometry[i].SetValue(PARTICLE_BASED_SLIP, true);
+            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_normal * this->GetIntegrationWeight();
             r_geometry[i].UnSetLock();
         }
     }
 
-
 }
-
-void MPMParticleLagrangeDirichletCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-    // At the beginning of NonLinearIteration, REACTION has to be reset to zero
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(REACTION).clear();
-        r_geometry[i].UnSetLock();
-    }
-
-}
-
 
 //************************************************************************************
 //************************************************************************************
@@ -144,6 +130,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int block_size = this->GetBlockSize();
 
     // Resizing as needed the LHS
     const unsigned int matrix_size = number_of_nodes * dimension + dimension;
@@ -174,39 +161,35 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     // Calculating shape function
     MPMShapeFunctionPointValues(Variables.N);
-    Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
     bool apply_constraints = true;
 
-    if (Is(CONTACT))
-    {   
-        // NOTE: the normal_vector is assumed always pointing outside the boundary
-        array_1d<double, 3 > field_displacement = ZeroVector(3);
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            for ( unsigned int j = 0; j < dimension; j++)
-            {
-                field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
-            }
-        }
-            
-        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_normal);
-        // If penetrates, apply constraint, otherwise no
-        if (penetration > 0.0)
-            apply_constraints=false;
-            
-    }
-
-    // reset active if condition is not connected to the body
+    // deactivate condition if not connected to material
     int counter = 0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <std::numeric_limits<double>::epsilon() )
             counter+=1;
     }
-    if (counter == number_of_nodes)
-        this->Reset(ACTIVE);
-    
+    // if (counter == number_of_nodes)
+    //     this->Reset(ACTIVE);   
+
+    auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
+    if (mp_counter < 1 )
+        this->Reset(ACTIVE);  
+
+    if (Is(CONTACT) && this->Is(ACTIVE))
+    {  
+        auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+        array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER); 
+
+        const double normal_force = MathUtils<double>::Dot(r_lagrange_multiplier, m_normal);
+       
+        if (normal_force > 0.0)
+            apply_constraints=false;
+     
+    }
+   
     if (apply_constraints && this->Is(ACTIVE))    
     {
         Matrix lagrange_matrix = ZeroMatrix(matrix_size, matrix_size);
@@ -220,22 +203,30 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                 lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
 
                 // perturbed Lagrangian
-                lagrange_matrix(ibase + k, ibase + k) = -1/m_penalty;
+                if (m_penalty>0)
+                    lagrange_matrix(ibase + k, ibase + k) = -1/m_penalty;
+
+                    
             }
-            // Stabilization for elements containing conditions but no material points
+            // // Stabilization for elements containing conditions but no material points
             // auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
             // if (mp_counter < 1 ){
-                if (GetProperties().Has(YOUNG_MODULUS) )
-                    const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-                auto mpc_counter = r_geometry.GetGeometryParent(0).GetValue(MPC_COUNTER);
-                auto volume = r_geometry.GetGeometryParent(0).Area();
+            //     double young_modulus = 0.0;
+            //     // if (GetProperties().Has(YOUNG_MODULUS) )
+            //     //     young_modulus = GetProperties()[YOUNG_MODULUS];
+            //     //     KRATOS_WATCH(young_modulus)
+            //     auto mpc_counter = r_geometry.GetGeometryParent(0).GetValue(MPC_COUNTER);
+            //     // auto volume = r_geometry.GetGeometryParent(0).Volume();
             //     for (unsigned int k = 0; k < dimension; k++)
             //     {
-            //         lagrange_matrix(i* dimension+k, i* dimension+k) = young_modulus/mpc_counter /  this->GetIntegrationWeight() * volume ; 
+            //         // ToDo: check stabilization
+            //         // KRATOS_WATCH(young_modulus / mpc_counter /  this->GetIntegrationWeight() * volume)
+            //         // lagrange_matrix(i* dimension+k, i* dimension+k) = young_modulus / mpc_counter /  this->GetIntegrationWeight() / this->GetIntegrationWeight() * volume ; 
+            //         lagrange_matrix(i* dimension+k, i* dimension+k) = 10000000 / mpc_counter /  this->GetIntegrationWeight() / this->GetIntegrationWeight() ; 
             //     }
             // }
         }
-
+         
         // Calculate LHS Matrix and RHS Vector
         if ( CalculateStiffnessMatrixFlag == true )
         {    
@@ -269,15 +260,61 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             }
             
             right_hand_side += prod(lagrange_matrix, gap_function);
-
+        
             //add imposed displacement
             for (unsigned int j = 0; j < dimension; j++){
-                right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
-            }
+                    right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
+                }
 
             right_hand_side *= this->GetIntegrationWeight();
             noalias(rRightHandSideVector) = -right_hand_side;
+        }
+        
+        if (Is(SLIP)){
+            auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+            // normalize normal at boundary particle node
+            MPMMathUtilities<double>::Normalize(pBoundaryParticle->FastGetSolutionStepValue(NORMAL));
             
+            // rotate to normal-tangential frame
+            if (CalculateStiffnessMatrixFlag == true){
+                GetRotationTool().Rotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+            } else {
+                MatrixType temp = ZeroMatrix(matrix_size,matrix_size);
+                GetRotationTool().Rotate(temp, rRightHandSideVector, GetGeometry());
+            }
+
+            if (CalculateStiffnessMatrixFlag == true) {
+                for (unsigned int i = 0; i < matrix_size; ++i) {
+                    for (unsigned int j = 0; j < matrix_size; ++j) {
+                        // erase tangential DoFs
+                        if (j > number_of_nodes * dimension)
+                            rLeftHandSideMatrix(i, j) = 0.0;
+                       
+                        if (i > number_of_nodes * dimension)
+                            rLeftHandSideMatrix(i, j) = 0.0;
+                    }
+                }
+
+                for (unsigned int k = 0; k < dimension-1; k++){
+                    rLeftHandSideMatrix(number_of_nodes * dimension + k + 1, number_of_nodes * dimension + k + 1) = 1.0;
+                }
+            }
+
+            if (CalculateResidualVectorFlag == true) {
+                for (unsigned int j = 0; j < matrix_size; j++) {
+                    if (j % block_size != 0) // tangential DoF
+                        rRightHandSideVector[j] = 0.0;
+                }
+            }
+
+            // rotate back to global frame
+            if (CalculateStiffnessMatrixFlag == true){
+                GetRotationTool().RevertRotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+            } else {
+                MatrixType temp = ZeroMatrix(matrix_size,matrix_size);
+                GetRotationTool().RevertRotate(temp, rRightHandSideVector, GetGeometry());
+            }
+
         }
     }
     
@@ -286,10 +323,10 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
 //************************************************************************************
 //************************************************************************************
-void MPMParticleLagrangeDirichletCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void MPMParticleLagrangeDirichletCondition::CalculateNodalReactions(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    
+        
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -298,7 +335,7 @@ void MPMParticleLagrangeDirichletCondition::FinalizeNonLinearIteration(const Pro
     array_1d<double, 3 > mpc_force = ZeroVector(3);
     auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 
-    mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+    mpc_force = - pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
     // Calculating shape function
     MPMShapeFunctionPointValues(Variables.N);
@@ -322,7 +359,6 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
     if (Is(SLIP))
     {
         GeometryType& r_geometry = GetGeometry();
-        
         auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
         pBoundaryParticle->SetLock();
         pBoundaryParticle->Reset(SLIP);
@@ -331,64 +367,20 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
 
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
-        // Here MPC normal vector and IS_STRUCTURE are reset
+        // Here MPC normal vector and PARTICLE_BASED_SLIP are reset
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             r_geometry[i].SetLock();
             r_geometry[i].Reset(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
+            r_geometry[i].SetValue(PARTICLE_BASED_SLIP, false);
             r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
             r_geometry[i].UnSetLock();
         }
     }
 
-    this->CalculateInterfaceContactForce( rCurrentProcessInfo);
-
     KRATOS_CATCH( "" )
 }
 
-void MPMParticleLagrangeDirichletCondition::CalculateInterfaceContactForce( const ProcessInfo& rCurrentProcessInfo )
-{
-    
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
-    GeneralVariables Variables;
-    MPMShapeFunctionPointValues(Variables.N);
-
-    array_1d<double, 3 > mpc_force = ZeroVector(3);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
-        {
-            auto r_geometry = GetGeometry();
-            
-            const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
-            const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
-
-            if (nodal_area > std::numeric_limits<double>::epsilon())
-            {
-                mpc_force += Variables.N[i] * nodal_force * this->GetIntegrationWeight() / nodal_area;
-            }
-        }
-    }
-
-    // Apply in the normal contact direction and allow releasing motion
-    if (Is(CONTACT))
-    {
-        // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(mpc_force, m_normal);
-
-        // This check is done to avoid sticking forces
-        if (normal_force > 0.0)
-            mpc_force = 1.0 * normal_force * m_normal;
-        else
-            mpc_force = ZeroVector(3);
-    }
-    
-    m_contact_force = -mpc_force;
-
-}
 
 void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     EquationIdVectorType& rResult,

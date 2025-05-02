@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
 #include "mpm_application_variables.h"
+#include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
 {
@@ -98,14 +99,7 @@ public:
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    /**
-     * Called at the begining at each nonlinear iteration
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Operations
@@ -199,8 +193,8 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+    void CalculateNodalReactions(const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void CalculateInterfaceContactForce( const ProcessInfo& rCurrentProcessInfo );
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
