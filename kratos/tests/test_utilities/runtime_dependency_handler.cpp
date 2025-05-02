@@ -16,6 +16,7 @@
 #include "includes/define.h" // defines KRATOS_COMPILED_IN... flags
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
+#define NOMINMAX
 #include <windows.h>
 #else
 #include <dlfcn.h>
