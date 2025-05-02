@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.14.0)
+cmake_minimum_required (VERSION 3.15.0)
 
 project (KratosMultiphysics)
 set (CMAKE_CXX_STANDARD 17)
@@ -38,10 +38,20 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif(POLICY CMP0135)
 
+# Path Normalization
+if(POLICY CMP0177)
+  cmake_policy(SET CMP0177 NEW)
+endif(POLICY CMP0177)
+
+# Boost config
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif(POLICY CMP0167)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
-set (KratosMultiphysics_MINOR_VERSION 0)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_MINOR_VERSION 2)
+set (KratosMultiphysics_PATCH_VERSION 1)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -75,6 +85,12 @@ endif()
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
 
+# If no benchmark policy enable by default
+option(KRATOS_BUILD_BENCHMARK "KRATOS_BUILD_BENCHMARK defines if the C++ benchmarks (Google benchmark) are compiled. These increase compilation time. Default setting is OFF" OFF)
+
+# If logger coloring policy enable by default
+option(KRATOS_COLORED_OUTPUT "KRATOS_COLORED_OUTPUT defines if the logger output it is colored. Default setting is OFF" OFF)
+
 # If no pch policy disable by default
 option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
 
@@ -102,6 +118,7 @@ SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -D_DEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+set( CMAKE_MAP_IMPORTED_CONFIG_FULLDEBUG Debug)
 
 # Define internal CMake flags needed
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
@@ -196,8 +213,8 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-    message( "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
-    message( FATAL_ERROR "Please use Version 8 or greater")
+    message(STATUS "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
+    message(FATAL_ERROR "Please use Version 8 or greater")
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
@@ -229,8 +246,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
         # pybind requires min. version 17, but we need at least 18:
-        message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
-        message( FATAL_ERROR "Please use Version 18 or greater")
+        message(STATUS "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
+        message(FATAL_ERROR "Please use Version 18 or greater")
       endif()
       if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
         # "IntelLLVM": Intel's NextGen LLVM compiler (icx)
@@ -260,18 +277,22 @@ message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 # Old non-compatible versions of VS
 if(${MSVC})
   if(${MSVC_TOOLSET_VERSION} LESS 141)
-    message( "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
-    message( FATAL_ERROR "Please use VisualStudio Toolset 141 (VisualStudio 2017) or greater")
+    message(STATUS "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
+    message(FATAL_ERROR "Please use VisualStudio Toolset 141 (VisualStudio 2017) or greater")
   endif(${MSVC_TOOLSET_VERSION} LESS 141)
 endif(${MSVC})
 
 # Common flags for MSVC
 if(${MSVC})
-  message("Detected compiler as MSVC")
+  message(STATUS "Detected compiler as MSVC")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+  # CMake does not select the correct runtime library for FullDebug now, no idea why
+  if( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebugDLL" CACHE STRING "" FORCE)
+  endif( ${CMAKE_BUILD_TYPE} MATCHES "FullDebug" )
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
@@ -288,6 +309,8 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 include(install_function)
 include(KratosDependencies)
 include(KratosGTest)
+include(KratosAddSources)
+include(KratosGBenchmark)
 include(FetchContent)
 
 # Logger configuration
@@ -297,10 +320,13 @@ endif(KRATOS_COLORED_OUTPUT MATCHES ON)
 
 # Testing
 if(KRATOS_BUILD_TESTING MATCHES ON)
+  # Add the definitions if required
+  ADD_DEFINITIONS(-DKRATOS_BUILD_TESTING)
+
   # retrieve a copy of the current directory's `COMPILE_OPTIONS`
   get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
 
-  # Disable warnings (needed by centos. We should all love centos, it clearly needs some affection)
+  # Disable warnings (needed by Intel Compiler Legacy)
   add_compile_options(-w)
 
   FetchContent_Declare(
@@ -319,6 +345,31 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
   # restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
 endif(KRATOS_BUILD_TESTING MATCHES ON) 
+
+# Benchmarking
+if(KRATOS_BUILD_BENCHMARK MATCHES ON)
+  # Add the definitions if required
+  ADD_DEFINITIONS(-DKRATOS_BUILD_BENCHMARKING)
+
+  # Retrieve a copy of the current directory's `COMPILE_OPTIONS`
+  get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
+
+  # Disable warnings (needed by centos. We should all love centos, it clearly needs some affection)
+  add_compile_options(-w)
+
+  FetchContent_Declare(
+    googlebenchmark
+    URL https://github.com/google/benchmark/archive/v1.9.0.zip
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+  set(CMAKE_INSTALL_LIBDIR "libs") # In Linux default dir is lib
+  set(CMAKE_INSTALL_BINDIR "libs") # In Win default dir is bin
+  FetchContent_MakeAvailable(googlebenchmark)
+
+  # Restore the current directory's old `COMPILE_OPTIONS`
+  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
+endif(KRATOS_BUILD_BENCHMARK MATCHES ON)
 
 ################### PYBIND11
 
@@ -412,7 +463,7 @@ elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
   message(STATUS "Shared memory parallelization is disabled!")
 
 else()
-  message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
+  message(FATAL_ERROR "Invalid option chosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
 
 OPTION(KRATOS_NO_TRY_CATCH "Disabled the use of try/catch through the code" OFF)
@@ -420,37 +471,8 @@ if( KRATOS_NO_TRY_CATCH MATCHES ON )
   add_definitions( -DKRATOS_NO_TRY_CATCH )
 endif( KRATOS_NO_TRY_CATCH MATCHES ON )
 
-##*****************************
-# Finding and including BOOST library (version should not matter anymore)
-if(DEFINED ENV{BOOST_ROOT})
-  set(BOOST_ROOT $ENV{BOOST_ROOT})
-endif(DEFINED ENV{BOOST_ROOT})
-
-find_package(Boost)
-
-if(NOT Boost_FOUND)
-  # Trying to find in in external libraries
-  set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
-  find_package(Boost)
-  if(NOT Boost_FOUND)
-    message(FATAL_ERROR "It was not possible to find Boost in your machine, please define properly BOOST_ROOT if you have not")
-  endif(NOT Boost_FOUND)
-endif(NOT Boost_FOUND)
-
-set(Boost_USE_STATIC_LIBS   OFF)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_REALPATH ON)
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
-message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
-message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
-
-if(Boost_VERSION_STRING VERSION_LESS 1.70)
-  message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
-else()
-  add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
-endif ()
+# Boost
+include(KratosBoost)
 
 # std::atomic_ref is part of C++20, hence using boost::atomic_ref
 # boost::atomic_ref has full support from version 1.74
@@ -539,7 +561,7 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
-  # supress anoying warnings from trilinos due to not having the same package name as the lib name.
+  # suppress annoying warnings from trilinos due to not having the same package name as the lib name.
   if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
   endif()
@@ -568,7 +590,7 @@ if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
     endif( ZLIB_FOUND )
 endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
-# We local compilate ZLIB
+# We compile ZLIB locally
 if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
@@ -601,7 +623,7 @@ if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
 endif()
 
 # Build exclusions and linking dirs.
-# The intended usage of this flags is to allow a defered/incremental compilation of core/applications.
+# The intended usage of this flags is to allow a deferred/incremental compilation of core/applications.
 # Please do not use this options for regular development and never use this with REMOVE_INSTALL_DIRECTORIES=ON
 OPTION ( EXCLUDE_KRATOS_CORE "Force exclusion of the core" OFF )
 OPTION ( EXCLUDE_AUTOMATIC_DEPENDENCIES "Force exclusion of automatically added app dependencies" OFF )

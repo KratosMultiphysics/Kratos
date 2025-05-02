@@ -1,5 +1,5 @@
 ---
-title: 
+title: VTK Output Process
 keywords: vtk output process core
 tags: [process vtk output process]
 sidebar: kratos_core_processes

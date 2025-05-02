@@ -65,10 +65,9 @@ void UPwFaceLoadInterfaceCondition<3, 4>::CalculateInitialGap(const GeometryType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
+void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                                   const ProcessInfo& CurrentProcessInfo)
 {
-    // Previous definitions
     const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(this->GetIntegrationMethod());
@@ -86,7 +85,7 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rR
     array_1d<double, TNumNodes * TDim> DisplacementVector;
     ConditionUtilities::GetDisplacementsVector(DisplacementVector, Geom);
     array_1d<double, TNumNodes * TDim> FaceLoadVector;
-    ConditionUtilities::GetFaceLoadVector<TNumNodes>(FaceLoadVector, Geom);
+    ConditionUtilities::GetFaceLoadVector<TDim, TNumNodes>(FaceLoadVector, Geom);
     BoundedMatrix<double, TDim, TDim> RotationMatrix;
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
     bool          ComputeJointWidth;
@@ -98,7 +97,6 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rR
     array_1d<double, TDim>                        TractionVector;
     array_1d<double, TNumNodes * TDim>            UVector;
 
-    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
         // Compute traction vector
         ConditionUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(

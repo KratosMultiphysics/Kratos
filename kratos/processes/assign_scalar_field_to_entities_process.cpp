@@ -49,7 +49,6 @@ AssignScalarFieldToEntitiesProcess<TEntity, THistorical>::AssignScalarFieldToEnt
     const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mMeshId       = rParameters["mesh_id"].GetInt();
     mVariableName = rParameters["variable_name"].GetString();
 
     mpFunction = Kratos::make_unique<GenericFunctionUtility>(rParameters["value"].GetString(), rParameters["local_axes"]);
@@ -89,7 +88,6 @@ const Parameters AssignScalarFieldToEntitiesProcess<TEntity, THistorical>::GetDe
     const Parameters default_parameters( R"(
     {
         "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "mesh_id"         : 0,
         "variable_name"   : "VARIABLE_NAME",
         "interval"        : [0.0, 1e30],
         "value"           : "please give an expression in terms of the variable x, y, z, t",
@@ -590,7 +588,7 @@ void AssignScalarFieldToEntitiesProcess<TEntity, THistorical>::InternalAssignVal
 template<>
 PointerVectorSet<Node, IndexedObject>& AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Nodes();
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -599,7 +597,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarFieldToEntitiesProcess<Node, 
 template<>
 PointerVectorSet<Node, IndexedObject>& AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Nodes();
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -608,7 +606,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarFieldToEntitiesProcess<Node, 
 template<>
 PointerVectorSet<Condition, IndexedObject>& AssignScalarFieldToEntitiesProcess<Condition>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Conditions();
+    return mrModelPart.Conditions();
 }
 
 /***********************************************************************************/
@@ -617,7 +615,7 @@ PointerVectorSet<Condition, IndexedObject>& AssignScalarFieldToEntitiesProcess<C
 template<>
 PointerVectorSet<Element, IndexedObject>& AssignScalarFieldToEntitiesProcess<Element>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Elements();
+    return mrModelPart.Elements();
 }
 
 /***********************************************************************************/

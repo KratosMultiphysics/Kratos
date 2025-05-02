@@ -380,60 +380,6 @@ public:
 		}
 	}
 
-	void CalculateReactionForces(ModelPart& rModelPart) const
-	{
-		TLocalVectorType global_reaction(this->GetDomainSize());
-		TLocalVectorType local_reaction(this->GetDomainSize());
-		TLocalVectorType reaction(this->GetDomainSize());
-
-		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-		#pragma omp parallel for firstprivate(reaction,local_reaction,global_reaction)
-		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
-		{
-			ModelPart::NodeIterator itNode = it_begin+iii;
-			const double nodal_mass = itNode->FastGetSolutionStepValue(NODAL_MASS, 0);
-
-			if( this->IsConformingSlip(*itNode) && nodal_mass > std::numeric_limits<double>::epsilon())
-			{
-				if(this->GetDomainSize() == 3)
-				{
-					BoundedMatrix<double,3,3> rRot;
-					this->LocalRotationOperatorPure(rRot,*itNode);
-
-					array_1d<double,3>& rReaction = itNode->FastGetSolutionStepValue(REACTION);
-					// rotate reaction to local frame
-					for(unsigned int i = 0; i < 3; i++) reaction[i] = rReaction[i];
-					noalias(local_reaction) = prod(rRot,reaction);
-
-					// remove tangential directions
-					local_reaction[1]=0.0;
-					local_reaction[2]=0.0;
-					// rotate reaction to global frame
-					noalias(global_reaction) = prod(trans(rRot),local_reaction);
-					// save values
-					for(unsigned int i = 0; i < 3; i++) rReaction[i] = global_reaction[i];
-				}
-				else
-				{
-					BoundedMatrix<double,2,2> rRot;
-					this->LocalRotationOperatorPure(rRot,*itNode);
-
-					array_1d<double,3>& rReaction = itNode->FastGetSolutionStepValue(REACTION);
-					// rotate reaction to local frame
-					for(unsigned int i = 0; i < 2; i++) reaction[i] = rReaction[i];
-					noalias(local_reaction) = prod(rRot,reaction);
-
-					// remove tangential direction
-					local_reaction[1]=0.0;
-					// rotate reaction to global frame
-					noalias(global_reaction) = prod(trans(rRot),local_reaction);
-					// save values
-					for(unsigned int i = 0; i < 2; i++) rReaction[i] = global_reaction[i];
-				}
-			}
-		}
-	}
-
 
     /// Helper function to rotate a 3-vector to and from the coordinate system defined by the NORMAL defined at rNode
     /**
@@ -526,18 +472,17 @@ public:
 						tangent_force_dir2 = tangent_force2 / tangent_force_norm;
 					}
 
-					r_friction_force[1] = tangent_force_dir1 * max_tangent_force_norm;
-					r_friction_force[2] = tangent_force_dir2 * max_tangent_force_norm;
-				}
-				else { // STICK
-					r_friction_force[1] = tangent_force1;
-					r_friction_force[2] = tangent_force2;
-				}
-
-                // reset friction-related flags/variables
+                    r_friction_force[1] = tangent_force_dir1 * max_tangent_force_norm;
+                    r_friction_force[2] = tangent_force_dir2 * max_tangent_force_norm;
+                }
+                else { // STICK
+                    r_friction_force[1] = tangent_force1;
+                    r_friction_force[2] = tangent_force2;
+                }
+				
+				// reset flag as this function is called in InitializeNonLinearIteration
 				rNode.SetValue(FRICTION_ASSIGNED, false);
-                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
-			}
+            }
         });
     }
 

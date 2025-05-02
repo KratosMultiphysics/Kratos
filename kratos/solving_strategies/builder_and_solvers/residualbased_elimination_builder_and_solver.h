@@ -32,6 +32,7 @@
 #include "includes/model_part.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -650,104 +651,15 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Setting up the dofs" << std::endl;
-
-        // Gets the array of elements from the modeler
-        ElementsArrayType& r_elements_array = rModelPart.Elements();
-        const int nelements = static_cast<int>(r_elements_array.size());
-
-        DofsVectorType elemental_dof_list;
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        SizeType nthreads = ParallelUtilities::GetNumThreads();
-
-        typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-
-        std::vector<set_type> dofs_aux_list(nthreads);
-
-        for (int i = 0; i < static_cast<int>(nthreads); ++i) {
-            dofs_aux_list[i].reserve(nelements);
-        }
-
-        IndexPartition<std::size_t>(nelements).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
-            auto it_elem = r_elements_array.begin() + Index;
-            const IndexType this_thread_id = OpenMPUtils::ThisThread();
-
-            // Gets list of Dof involved on every element
-            pScheme->GetDofList(*it_elem, tls_elemental_dof_list, r_current_process_info);
-
-            dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
-        });
-
-        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-        const int nconditions = static_cast<int>(r_conditions_array.size());
-
-        IndexPartition<std::size_t>(nconditions).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
-            auto it_cond = r_conditions_array.begin() + Index;
-            const IndexType this_thread_id = OpenMPUtils::ThisThread();
-
-            // Gets list of Dof involved on every element
-            pScheme->GetDofList(*it_cond, tls_elemental_dof_list, r_current_process_info);
-            dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
-        });
-
-        // Here we do a reduction in a tree so to have everything on thread 0
-        SizeType old_max = nthreads;
-        SizeType new_max = ceil(0.5*static_cast<double>(old_max));
-        while (new_max >= 1 && new_max != old_max) {
-            IndexPartition<std::size_t>(new_max).for_each([&](std::size_t Index){
-                if (Index + new_max < old_max) {
-                    dofs_aux_list[Index].insert(dofs_aux_list[Index + new_max].begin(), dofs_aux_list[Index + new_max].end());
-                    dofs_aux_list[Index + new_max].clear();
-                }
-            });
-
-            old_max = new_max;
-            new_max = ceil(0.5*static_cast<double>(old_max));
-        }
-
-        DofsArrayType dof_temp;
-        BaseType::mDofSet = DofsArrayType();
-
-        dof_temp.reserve(dofs_aux_list[0].size());
-        for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); ++it) {
-            dof_temp.push_back(*it);
-        }
-        dof_temp.Sort();
-
-        BaseType::mDofSet = dof_temp;
-
-        // Throws an exception if there are no Degrees of freedom involved in the analysis
-        KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
-
-        BaseType::mDofSetIsInitialized = true;
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished setting up the dofs" << std::endl;
-
+        // Call the external utility
 #ifdef USE_LOCKS_IN_ASSEMBLY
-        if (mLockArray.size() != 0) {
-            for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
-                omp_destroy_lock(&mLockArray[i]);
-        }
-
-        mLockArray.resize(BaseType::mDofSet.size());
-
-        for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
-            omp_init_lock(&mLockArray[i]);
+        EliminationBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, mLockArray, this->GetEchoLevel(), BaseType::GetCalculateReactionsFlag());
+#else
+        EliminationBuildDofArrayUtility::SetUpDofArray(rModelPart, BaseType::mDofSet, this->GetEchoLevel(), BaseType::GetCalculateReactionsFlag());
 #endif
 
-        // If reactions are to be calculated, we check if all the dofs have reactions defined
-        // This is tobe done only in debug mode
-#ifdef KRATOS_DEBUG
-        if(BaseType::GetCalculateReactionsFlag()) {
-            for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
-                    KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " << std::endl
-                        << "Node : " << dof_iterator->Id() << std::endl
-                        << "Dof : " << (*dof_iterator) << std::endl << "Not possible to calculate reactions." << std::endl;
-            }
-        }
-#endif
+        // Set the flag as already initialized
+        BaseType::mDofSetIsInitialized = true;
 
         KRATOS_CATCH("");
     }
@@ -903,7 +815,7 @@ public:
         ) override
     {
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
     }
 
     /**

@@ -14,8 +14,10 @@
 
 #include <numeric>
 
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
@@ -32,13 +34,15 @@ public:
 
     explicit GeoSteadyStatePwPipingElement(IndexType NewId = 0) : Element(NewId) {}
 
-    GeoSteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+    GeoSteadyStatePwPipingElement(IndexType NewId, const GeometryType::Pointer& rpGeometry)
+        : Element(NewId, rpGeometry)
     {
     }
 
-    GeoSteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+    GeoSteadyStatePwPipingElement(IndexType                      NewId,
+                                  const GeometryType::Pointer&   rpGeometry,
+                                  const PropertiesType::Pointer& rpProperties)
+        : Element(NewId, rpGeometry, rpProperties)
     {
     }
 
@@ -96,12 +100,14 @@ public:
     int Check(const ProcessInfo&) const override
     {
         KRATOS_TRY
-        CheckDomainSize();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
         // conditional on model dimension
-        CheckForNonZeroZCoordinateIn2D();
+        if constexpr (TDim == 2) {
+            CheckForNonZeroZCoordinate();
+        }
 
         KRATOS_CATCH("")
 
@@ -113,12 +119,16 @@ public:
         Element::Initialize(rCurrentProcessInfo);
         // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
-        this->SetValue(PIPE_EROSION, false);
-        const double small_pipe_height = 1e-10;
-        this->SetValue(PIPE_HEIGHT, small_pipe_height);
-        this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
-        this->SetValue(DIFF_PIPE_HEIGHT, 0.);
-        this->SetValue(PIPE_ACTIVE, false);
+
+        if (!mIsInitialized) {
+            this->SetValue(PIPE_EROSION, false);
+            constexpr double small_pipe_height = 1e-10;
+            this->SetValue(PIPE_HEIGHT, small_pipe_height);
+            this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
+            this->SetValue(DIFF_PIPE_HEIGHT, 0.);
+            this->SetValue(PIPE_ACTIVE, false);
+            mIsInitialized = true;
+        }
     }
 
     double CalculateEquilibriumPipeHeight(const PropertiesType& rProp, const GeometryType& rGeom, double)
@@ -130,8 +140,8 @@ public:
 
         const auto particle_d = GeoTransportEquationUtilities::CalculateParticleDiameter(rProp);
         // for a more generic element calculate slope of pipe (in degrees! see formula), currently pipe is assumed to be horizontal
-        const double pipe_slope = 0.0;
-        const double theta      = rProp[PIPE_THETA];
+        constexpr double pipe_slope = 0.0;
+        const auto       theta      = rProp[PIPE_THETA];
 
         return rProp[PIPE_MODEL_FACTOR] * (Globals::Pi / 3.0) * particle_d *
                (rProp[DENSITY_SOLID] / rProp[DENSITY_WATER] - 1.0) * rProp[PIPE_ETA] *
@@ -140,15 +150,82 @@ public:
                std::abs(head_gradient);
     }
 
-private:
-    void CheckDomainSize() const
+    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+                                      std::vector<bool>&    rValues,
+                                      const ProcessInfo&    rCurrentProcessInfo) override
     {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize (" << GetGeometry().DomainSize() << ") is smaller than "
-            << min_domain_size << " for element " << Id() << std::endl;
+        if (rVariable == PIPE_ACTIVE) {
+            const auto number_of_integration_points =
+                this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.resize(number_of_integration_points);
+            std::fill_n(rValues.begin(), number_of_integration_points, this->GetValue(rVariable));
+        }
     }
 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override
+    {
+        if (rVariable == PIPE_HEIGHT) {
+            const auto number_of_integration_points =
+                this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.resize(number_of_integration_points);
+            std::fill_n(rValues.begin(), number_of_integration_points, this->GetValue(rVariable));
+        }
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>&    rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (rVariable == FLUID_FLUX_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR) {
+            const auto number_of_integration_points =
+                this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.resize(number_of_integration_points);
+            const auto dynamic_viscosity_inverse = 1.0 / this->GetProperties()[DYNAMIC_VISCOSITY];
+            const auto permeability_matrix = FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT));
+            auto       local_fluid_flux_vector = array_1d<double, 3>(3, 0.0);
+            local_fluid_flux_vector[0] = -dynamic_viscosity_inverse * permeability_matrix(0, 0) *
+                                         CalculateHeadGradient(this->GetProperties(), this->GetGeometry());
+            std::fill_n(rValues.begin(), number_of_integration_points, local_fluid_flux_vector);
+
+            if (rVariable == LOCAL_FLUID_FLUX_VECTOR) return;
+
+            // For the global fluid flux vector the local fluid flux vector should be rotated to the direction of the element
+            const auto& r_integration_points =
+                this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+            for (std::size_t i = 0; i < number_of_integration_points; ++i) {
+                Matrix jacobian;
+                this->GetGeometry().Jacobian(jacobian, r_integration_points[i]);
+                const auto tangential_vector =
+                    GeoMechanicsMathUtilities::Normalized(Vector{column(jacobian, 0)});
+                std::transform(tangential_vector.begin(), tangential_vector.end(),
+                               rValues[i].begin(), [&local_fluid_flux_vector](auto component) {
+                    return component * local_fluid_flux_vector[0];
+                });
+            }
+        }
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                      std::vector<Matrix>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override
+    {
+        if (rVariable == PERMEABILITY_MATRIX || rVariable == LOCAL_PERMEABILITY_MATRIX) {
+            // permeability matrix
+            const auto number_of_integration_points =
+                this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.resize(number_of_integration_points);
+            std::fill_n(rValues.begin(), number_of_integration_points,
+                        FillPermeabilityMatrix(this->GetValue(PIPE_HEIGHT)));
+        }
+    }
+
+    using Element::CalculateOnIntegrationPoints;
+
+    std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
+
+private:
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
         for (const auto& node : GetGeometry()) {
@@ -168,11 +245,14 @@ private:
 
     void CheckProperties() const
     {
-        // typical material parameters check, this should be in the check of the constitutive law.
-        // possibly check PIPE_HEIGHT, CROSS_SECTION == 1.0
+        // typical material parameters check, this should be in the check of the constitutive
+        // law. possibly check PIPE_HEIGHT, CROSS_SECTION == 1.0
         CheckProperty(DENSITY_WATER);
         CheckProperty(DYNAMIC_VISCOSITY);
         CheckProperty(PIPE_HEIGHT);
+        if constexpr (TDim == 3) {
+            CheckProperty(PIPE_WIDTH_FACTOR);
+        }
     }
 
     void CheckProperty(const Kratos::Variable<double>& rVariable) const
@@ -184,18 +264,16 @@ private:
             << ") is not in the range [0,-> at element " << Id() << std::endl;
     }
 
-    void CheckForNonZeroZCoordinateIn2D() const
+    void CheckForNonZeroZCoordinate() const
     {
-        if constexpr (TDim == 2) {
-            const auto& r_geometry = GetGeometry();
-            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
-                                                  [](const auto& node) { return node.Z() != 0.0; });
-            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
-        }
+        const auto& r_geometry = GetGeometry();
+        auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
+                                              [](const auto& node) { return node.Z() != 0.0; });
+        KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
+            << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
     }
 
-    double CalculateLength(const GeometryType& Geom) const
+    static double CalculateLength(const GeometryType& Geom)
     {
         // currently length is only calculated in x direction, to be changed for inclined pipes
         return std::abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
@@ -243,7 +321,10 @@ private:
 
     Matrix FillPermeabilityMatrix(double pipe_height) const
     {
-        return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
+        if constexpr (TDim == 2) {
+            return ScalarMatrix{1, 1, std::pow(pipe_height, 3) / 12.0};
+        }
+        return ScalarMatrix{1, 1, this->GetProperties()[PIPE_WIDTH_FACTOR] * std::pow(pipe_height, 4) / 12.0};
     }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
@@ -308,9 +389,10 @@ private:
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
 
-            array_1d<double, 1> projected_gravity = ZeroVector(1);
-            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N         = Vector{row(rNContainer, integration_point_index)};
+            const auto projected_gravity =
+                array_1d<double, 1>(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
+                                                          body_acceleration.begin(), 0.0));
+            const auto N = Vector{row(rNContainer, integration_point_index)};
             fluid_body_vector +=
                 r_properties[DENSITY_WATER] *
                 prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
@@ -329,11 +411,15 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        rSerializer.save("mIsInitialized", mIsInitialized);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        rSerializer.load("mIsInitialized", mIsInitialized);
     }
+
+    bool mIsInitialized = false;
 };
 } // namespace Kratos

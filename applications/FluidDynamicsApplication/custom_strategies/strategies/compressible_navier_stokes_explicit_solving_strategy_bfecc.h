@@ -27,7 +27,7 @@
 #include "factories/factory.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_bfecc.h"
 
-/* Appication includes */
+/* Application includes */
 #include "fluid_dynamics_application_variables.h"
 #include "compressible_navier_stokes_explicit_solving_strategy.h"
 

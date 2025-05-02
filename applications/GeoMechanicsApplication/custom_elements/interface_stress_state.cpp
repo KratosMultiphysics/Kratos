@@ -11,6 +11,7 @@
 //
 #include "interface_stress_state.h"
 #include "geo_mechanics_application_constants.h"
+#include "includes/serializer.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -37,13 +38,6 @@ Matrix InterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, c
     }
 
     return result;
-}
-
-double InterfaceStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                             double DetJ,
-                                                             const Geometry<Node>&) const
-{
-    return rIntegrationPoint.Weight() * DetJ;
 }
 
 Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
@@ -76,4 +70,15 @@ Vector InterfaceStressState::DefineInterfaceVoigtVector()
 
 const Vector InterfaceStressState::VoigtVectorInterface2D =
     InterfaceStressState::DefineInterfaceVoigtVector();
+
+void InterfaceStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void InterfaceStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
+}
+
 } // namespace Kratos

@@ -12,7 +12,7 @@
 //
 
 #include "two_fluid_navier_stokes_alpha_method.h"
-#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
+#include "data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
 
 namespace Kratos
 {

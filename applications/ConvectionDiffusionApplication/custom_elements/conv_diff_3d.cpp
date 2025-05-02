@@ -79,7 +79,7 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     BoundedMatrix<double, 3, 4 > Third = ZeroMatrix(3, 4);
     BoundedMatrix<double, 3, 3 > Identity = 1.0 * IdentityMatrix(3, 3);
     
-    array_1d<double, 3 > grad_g = ZeroVector(3); //dimesion coincides with space dimension
+    array_1d<double, 3 > grad_g = ZeroVector(3); //dimension coincides with space dimension
 
     
     if (rLeftHandSideMatrix.size1() != number_of_points)
