@@ -77,14 +77,13 @@ class LaserDrillingTransientSolverAblationPlusThermal(
             delta_pen = self.delta_pen
             F_p = self.F_p
             omega_0 = self.omega_0
-            import math
 
             q_energy_per_volume = (
                 (1.0 / delta_pen)
                 * F_p
-                * math.exp(-2.0 * (y1 / omega_0) ** 2)
-                * math.exp(-l / delta_pen)
-                * math.cos(incident_angle)
+                * np.exp(-2.0 * (y1 / omega_0) ** 2)
+                * np.exp(-l / delta_pen)
+                * np.cos(incident_angle)
             )
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
@@ -136,10 +135,9 @@ class LaserDrillingTransientSolverAblationPlusThermal(
             delta_pen = self.delta_pen
             F_p = self.F_p
             omega_0 = self.omega_0
-            import math
 
             q_energy_per_volume = (
-                (1.0 / delta_pen) * F_p * math.exp(-2.0 * (radius / omega_0) ** 2) * math.exp(-z / delta_pen)
+                (1.0 / delta_pen) * F_p * np.exp(-2.0 * (radius / omega_0) ** 2) * np.exp(-z / delta_pen)
             )
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
@@ -164,23 +162,20 @@ class LaserDrillingTransientSolverAblationPlusThermal(
         delta_pen = self.delta_pen
         F_p = self.F_p
         omega_0 = self.omega_0
-        import math
 
         q_energy_per_volume = (
-            (1.0 / delta_pen) * F_p * math.exp(-2.0 * (radius / omega_0) ** 2) * math.exp(-z / delta_pen)
-        )  # * math.cos(incidence_angle)
+            (1.0 / delta_pen) * F_p * np.exp(-2.0 * (radius / omega_0) ** 2) * np.exp(-z / delta_pen)
+        )  # * np.cos(incidence_angle)
         delta_temp = q_energy_per_volume / (self.rho * self.cp)
         return delta_temp
 
     def ComputePulseVolume(self):
-        import math
-
         return (
             0.25
             * self.delta_pen
-            * math.pi
+            * np.pi
             * self.omega_0**2
-            * (math.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
+            * (np.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
         )
 
     def RemoveElementsByAblation(self):
