@@ -244,6 +244,7 @@ namespace Kratos::MPMSearchElementUtility
 
                     int& mpc_counter = r_found_geom.GetValue(MPC_COUNTER) ; 
                     mpc_counter +=1;
+                    condition_itr->Set(ACTIVE);
 
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
                         r_found_geom[j].Set(ACTIVE);
@@ -393,6 +394,7 @@ namespace Kratos::MPMSearchElementUtility
 
                         int& mpc_counter = pelem->GetGeometry().GetValue(MPC_COUNTER) ; 
                         mpc_counter +=1;
+                        condition_itr->Set(ACTIVE);
 
                     } else {
                         KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
