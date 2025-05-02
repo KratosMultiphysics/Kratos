@@ -19,7 +19,7 @@ The application includes tests to check the proper functioning of the applicatio
 
 - **A set of *Neumann* conditions**:
      * *Point loads (loads applied directly on the nodes)*
-     * *Point moment (a discret moment applied directly on the nodes)*
+     * *Point moment (a discrete moment applied directly on the nodes)*
      * *Line load (a distributed load applied over a line)*
      * *Surface load (a distributed load applied over a face)*
      * *A simple point contact conditions based on the distance*
@@ -43,7 +43,7 @@ The application includes tests to check the proper functioning of the applicatio
         * Spring-damper element (3D)
         * Cable element (3D)
         * Truss element (3D)
-        * Corrotational beam element (both 2D/3D)
+        * Corotational beam element (both 2D/3D)
     * *Two-dimensional elements* :
         * Membrane (pre-stressed)
         * Isotropic shell element
@@ -79,6 +79,6 @@ The application includes tests to check the proper functioning of the applicatio
 
 - **+100 Python unittest, including Validation tests, and several cpp tests**
 
-## ️ Examples:
+## Examples:
 
 Examples can be found [here](https://github.com/KratosMultiphysics/Examples/tree/master/structural_mechanics).
