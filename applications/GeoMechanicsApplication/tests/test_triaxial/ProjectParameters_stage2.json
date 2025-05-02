@@ -3,8 +3,8 @@
         "problem_name"  : "triaxial",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
-        "start_time"    : 1.0,
-        "end_time"      : 2.0
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
     },
     "solver_settings"  : {
         "time_stepping"                      : {

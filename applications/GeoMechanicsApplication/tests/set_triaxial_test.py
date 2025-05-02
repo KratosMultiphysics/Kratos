@@ -235,8 +235,8 @@ class ProjectParameterEditor:
         with open(self.json_path, 'w') as f:
             f.write(self.raw_text)
 
-    def update_time_step_properties(self, number_of_step):
-        new_time_step = 1.0 / number_of_step # (end_time - start_time) / number_of_steps
+    def update_time_step_properties(self, number_of_step, end_time):
+        new_time_step = end_time / number_of_step # (end_time - start_time) / number_of_steps
         pattern = r'("time_step"\s*:\s*)([0-9eE+.\-]+)'
         replacement = r'\g<1>' + str(new_time_step)
         self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
@@ -244,7 +244,17 @@ class ProjectParameterEditor:
             messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
         else:
             self._write_back()
-            messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
+            # messagebox.showinfo("Success", f"'time_step' updated to {new_time_step}")
+
+    def update_end_time_properties(self, end_time):
+        pattern = r'("end_time"\s*:\s*)([0-9eE+.\-]+)'
+        replacement = r'\g<1>' + str(end_time)
+        self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find 'end_time' to update.")
+        else:
+            self._write_back()
+            # messagebox.showinfo("Success", f"'end_time' updated to {end_time}")
 
 class MdpaEditor:
     def __init__(self, mdpa_path):
@@ -287,8 +297,8 @@ class MdpaEditor:
             f.write(self.raw_text)
         #     messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
 
-    def update_first_timestep(self, first_timestep):
-
+    def update_first_timestep(self, num_steps):
+        first_timestep = 1.0 / num_steps
         pattern = r'(\s*)\$first_timestep(\s*)'
 
         def replacer(match):
@@ -302,6 +312,20 @@ class MdpaEditor:
         else:
             with open(self.mdpa_path, 'w') as f:
                 f.write(new_text)
+        #     messagebox.showinfo("Success", f"'$first_timestep' replaced with {first_timestep}")
+
+    def update_end_time(self, end_time):
+        pattern = r'\$end_time\b'
+        replacement = str(end_time)
+
+        new_text, count = re.subn(pattern, replacement, self.raw_text)
+
+        if count == 0:
+            messagebox.showwarning("Warning", "Could not find '$end_time' to update.")
+        else:
+            self.raw_text = new_text
+            with open(self.mdpa_path, 'w') as f:
+                f.write(self.raw_text)
         #     messagebox.showinfo("Success", f"'$first_timestep' replaced with {first_timestep}")
 
 def plot_sigma(sigma_1, sigma_3):
@@ -583,7 +607,7 @@ def plot_volumetric_strain(vertical_strain, volumetric_strain):
     )
     return fig
 
-def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initial_effective_cell_pressure):
+def lab_test(dll_path, index, umat_parameters, num_steps, end_time, maximum_strain, initial_effective_cell_pressure):
     tmp_folder = tempfile.mkdtemp(prefix="triaxial_")
 
     src_dir = 'test_triaxial'
@@ -607,13 +631,14 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
                                                "UDSM_NUMBER": index})
 
     project_editor = ProjectParameterEditor(project_param_path)
-    project_editor.update_time_step_properties(time_step)
+    project_editor.update_time_step_properties(num_steps, end_time)
+    project_editor.update_end_time_properties(end_time)
 
     mdpa_editor = MdpaEditor(mdpa_path)
     mdpa_editor.update_maximum_strain(maximum_strain)
     mdpa_editor.update_initial_effective_cell_pressure(initial_effective_cell_pressure)
-    first_timestep = 1.0 + (1.0 / time_step)
-    mdpa_editor.update_first_timestep(first_timestep)
+    mdpa_editor.update_end_time(end_time)
+    mdpa_editor.update_first_timestep(num_steps)
 
     output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial_Stage_2.post.res")]
 
@@ -648,4 +673,4 @@ def lab_test(dll_path, index, umat_parameters, time_step, maximum_strain, initia
 
 if __name__ == "__main__":
     figs = lab_test("../MohrCoulomb64.dll", ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"],
-             1, 0.01, 20, 100)
+             1, 0.01, 1.0, 10, 100)

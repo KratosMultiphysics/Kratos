@@ -246,7 +246,8 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
         triaxial_inputs = [
             ("Initial effective cell pressure |σ'\u2093\u2093|", "kN/m²", "100"),
             ("Maximum Strain |ε\u1d67\u1d67|", "%", "10"),
-            ("Number of steps", "", "100")
+            ("Number of steps", "", "100"),
+            ("Duration", "s", "1.0")
         ]
 
         for label_text, unit, default_value in triaxial_inputs:
@@ -272,12 +273,13 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
         try:
             initial_effective_stress = float(input_entries["Initial effective cell pressure |σ'\u2093\u2093|"].get())
             maximum_strain = float(input_entries["Maximum Strain |ε\u1d67\u1d67|"].get())
-            time_step = float(input_entries["Number of steps"].get())
+            num_steps = float(input_entries["Number of steps"].get())
+            end_time = float(input_entries["Duration"].get())
         except ValueError:
             messagebox.showerror("Error", "Invalid input for 'Triaxial Input Data'. Please enter numeric values.")
             return
 
-        figs = lab_test(dll_path, model_index, parameters, time_step, maximum_strain, initial_effective_stress)
+        figs = lab_test(dll_path, model_index, parameters, num_steps, end_time, maximum_strain, initial_effective_stress)
 
         for i, ax in enumerate(axes):
             ax.clear()
