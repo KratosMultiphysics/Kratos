@@ -223,17 +223,17 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<double> mpc_penalty_factor(1);
         PointerVector<Condition> MaterialPointConditions;
 
-        // Determine condition index: This convention is done in order for the purpose of visualization in GiD
-        const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
-        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements() + rMPMModelPart.NumberOfElements();
-        const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
+        const unsigned int id_number_conditions=0;
+        const unsigned int id_number_elements = rBackgroundGridModelPart.GetRootModelPart().Elements().back().Id();
+        const unsigned int id_number_nodes = rBackgroundGridModelPart.GetRootModelPart().Nodes().back().Id();
+        
         unsigned int condition_id;
-        if (number_elements > number_nodes && number_elements > number_conditions)
-            condition_id = number_elements+1;
-        else if (number_nodes > number_elements && number_nodes > number_conditions)
-            condition_id = number_nodes+1;
+        if (id_number_elements > id_number_conditions && id_number_elements > id_number_conditions)
+            condition_id = id_number_elements+1;
+        else if (id_number_nodes > id_number_elements && id_number_nodes > id_number_conditions)
+            condition_id = id_number_nodes+1;
         else
-            condition_id = number_conditions+1;
+            condition_id = id_number_conditions+1;
 
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
@@ -380,12 +380,15 @@ namespace Kratos::MaterialPointGeneratorUtility
                         const bool is_contact = r_cond.Is(CONTACT);
                         const bool is_interface = r_cond.Is(INTERFACE);
                         const bool flip_normal_direction = r_cond.Is(MODIFIED);
-
+                       
                         std::string condition_type_name;
 
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
-                            condition_type_name = "MPMParticlePenaltyDirichletCondition";
+                            if(boundary_condition_type==1)
+                                condition_type_name = "MPMParticlePenaltyDirichletCondition";
+                            else if(boundary_condition_type==2 || boundary_condition_type==3)
+                                condition_type_name = "MPMParticleLagrangeDirichletCondition";
                         }
                         else{
                             if(r_cond.Has( POINT_LOAD ) ){
@@ -401,7 +404,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // Check Normal direction
                         if (flip_normal_direction) mpc_normal *= -1.0;
-
+                        
                         // Create Material Point Point Load Condition
                         if (condition_type_name == "MPMParticlePointLoadCondition" ){
                             // create point load condition
@@ -517,7 +520,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                                     // Mark as boundary condition
                                     p_condition->Set(BOUNDARY, true);
 
-                                    if (boundary_condition_type == 1)
+                                    if (boundary_condition_type == 1 || boundary_condition_type == 2 || boundary_condition_type == 3)
                                     {
                                         p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
                                     }
@@ -996,7 +999,8 @@ namespace Kratos::MaterialPointGeneratorUtility
         {
             auto element_itr = (rBackgroundGridModelPart.ElementsBegin() + i);
             auto coord = element_itr->GetGeometry().Center();
-            auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, coord[0], coord[1], coord[2]);
+            const int id = rBackgroundGridModelPart.GetRootModelPart().Nodes().back().Id();
+            auto p_new_node = rBackgroundGridModelPart.CreateNewNode(id + 1, coord[0], coord[1], coord[2]);
 
             p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
             p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
