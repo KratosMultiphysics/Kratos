@@ -10,9 +10,7 @@ def CreateSolver(model, custom_settings):
     return LaserDrillingTransientSolverAblationPlusThermal(model, custom_settings)
 
 
-class LaserDrillingTransientSolverAblationPlusThermal(
-    laserdrilling_transient_solver.LaserDrillingTransientSolver
-):
+class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_solver.LaserDrillingTransientSolver):
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
 
@@ -115,21 +113,29 @@ class LaserDrillingTransientSolverAblationPlusThermal(
         # TODO: change 'open's to 'with open as xx' if possible
         self.hole_profile_in_Y_zero_file = open("hole_profile_in_Y_zero.txt", "w")
 
+        # Function that returns the hole depth (x coord) as a function of the radius coord (y coord)
+        F = interp1d(Y, X, bounds_error=False, fill_value=0.0)  # TODO: legacy function, update
+
         # TODO: vectorize this loop?
         for node in self.main_model_part.Nodes:
+            """
+            Translate each node towards the surface, i.e., in the negative x direction
+            by an amount equal to the hole's depth at the node's Y coord (Y = radius).
+            In essence, shift all nodes along the x axis to fill the hole.
+            """
             radius = node.Y
-            F = interp1d(Y, X, bounds_error=False, fill_value=0.0)
             distance_to_surface = F(radius)
             z = node.X - distance_to_surface
 
+            # Apply the increase in temperature caused by the laser on each node
             delta_temp = self.TemperatureVariationDueToLaser(radius, z)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-
             new_temp = old_temp + delta_temp
+
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
 
-            if radius < 1e-8:  # TODO: why this value? Make it into a variable or even a simluation parameter?
+            if radius < 1e-8:  # TODO: why this value? Make it into a variable or even a simulation parameter?
                 self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
 
             delta_pen = self.delta_pen
@@ -138,27 +144,43 @@ class LaserDrillingTransientSolverAblationPlusThermal(
 
             q_energy_per_volume = (
                 (1.0 / delta_pen) * F_p * np.exp(-2.0 * (radius / omega_0) ** 2) * np.exp(-z / delta_pen)
-            )
+            )  # TODO: unused?
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
-            delta_temp = self.T_e - old_temp  # TODO: warning: possible temperature addition
+            delta_temp = self.T_e - old_temp
             enthalpy_energy_per_volume = self.rho * (self.H_ev + self.cp * delta_temp)
             node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume)
 
         self.hole_profile_in_Y_zero_file.close()
 
         for elem in self.main_model_part.Elements:
-            q_energy_per_volume = elem.CalculateOnIntegrationPoints(
+            q_energy_per_volume_elemental = elem.CalculateOnIntegrationPoints(
                 LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
             )
-            elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume[0])
-            enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(
+            elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume_elemental[0])
+
+            enthalpy_energy_per_volume_elemental = elem.CalculateOnIntegrationPoints(
                 LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
             )
-            elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume[0])
+            elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume_elemental[0])
 
-    def TemperatureVariationDueToLaser(self, radius, z, incidence_angle=0):
+    def TemperatureVariationDueToLaser(self, radius, z):
+        """
+        Computes the temperature increase caused by the laser in a specified position.
+
+        Parameters
+        ----------
+        radius: float
+            The radial coordinate of the point
+        z: float
+            The axial coordinate of the point
+
+        Returns
+        -------
+        The temperature increase in kelvins
+        """
+
         delta_pen = self.delta_pen
         F_p = self.F_p
         omega_0 = self.omega_0
@@ -170,13 +192,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(
         return delta_temp
 
     def ComputePulseVolume(self):
-        return (
-            0.25
-            * self.delta_pen
-            * np.pi
-            * self.omega_0**2
-            * (np.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
-        )
+        return 0.25 * self.delta_pen * np.pi * self.omega_0**2 * (np.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
 
     def RemoveElementsByAblation(self):
         """
@@ -216,17 +232,15 @@ class LaserDrillingTransientSolverAblationPlusThermal(
         if self.ablation_energy_fraction:
             for elem in self.main_model_part.Elements:
                 q_energy_per_volume = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME)
-                enthalpy_energy_per_volume = elem.GetValue(
-                    LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME
-                )
+                enthalpy_energy_per_volume = elem.GetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME)
                 # TODO: I think it makes sense to move the computation of energy_threshold elsewhere.
                 if self.use_enthalpy_and_ionization:
-                    ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold  # TODO: there's a typo on "ionizaRion" I think, but it never crashes, so it must be unused or exist everywhere
+                    ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold  # TODO: there's a typo on "ionizaRion" I think, but it never crashes, so it must be unused or be misspelled everywhere
                     energy_threshold = min(enthalpy_energy_per_volume, ionization_energy_per_volume_threshold)
                 else:
                     energy_threshold = elem.GetValue(
                         LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME
-                    )  # self.q_ast # TODO: rename MATERIAL_THERMAL_ENERGY_PER_VOLUME to something more descriptive
+                    )  # self.q_ast # TODO: rename MATERIAL_THERMAL_ENERGY_PER_VOLUME to something more descriptive (see Woodfield 2024)
                 if q_energy_per_volume >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     for node in elem.GetNodes():
@@ -263,10 +277,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(
             for i, node_Y in enumerate(self.one_pulse_hole_theoretical_Y_coords):
                 if self.one_pulse_hole_theoretical_X_coords[i]:
                     self.hole_theoretical_profile_file_no_z_offset_variation.write(
-                        str(node_Y)
-                        + " "
-                        + str(-self.pulse_number * self.one_pulse_hole_theoretical_X_coords[i])
-                        + "\n"
+                        str(node_Y) + " " + str(-self.pulse_number * self.one_pulse_hole_theoretical_X_coords[i]) + "\n"
                     )
             self.hole_theoretical_profile_file_no_z_offset_variation.close()
 

@@ -17,7 +17,7 @@ namespace Kratos
 // TODO: Describe what these variables are and check which ones are in use
 KRATOS_CREATE_VARIABLE(double, THERMAL_ENERGY)
 KRATOS_CREATE_VARIABLE(double, THERMAL_ENERGY_PER_VOLUME)
-KRATOS_CREATE_VARIABLE(double, MATERIAL_THERMAL_ENERGY_PER_VOLUME)
+KRATOS_CREATE_VARIABLE(double, MATERIAL_THERMAL_ENERGY_PER_VOLUME) // q_ast "the energy per unit volume [J/m ] required to completely ionize the solid material" - Woodfield 2024
 KRATOS_CREATE_VARIABLE(double, THERMAL_DECOMPOSITION)
 KRATOS_CREATE_VARIABLE(double, THERMAL_ENERGY_PER_VOLUME_THRESHOLD)
 KRATOS_CREATE_VARIABLE(double, ALPHA_THRESHOLD)

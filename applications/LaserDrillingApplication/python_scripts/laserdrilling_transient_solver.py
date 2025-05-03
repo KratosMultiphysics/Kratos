@@ -32,9 +32,7 @@ def CreateSolver(model, custom_settings):
     return LaserDrillingTransientSolver(model, custom_settings)
 
 
-class LaserDrillingTransientSolver(
-    convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, ABC
-):
+class LaserDrillingTransientSolver(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, ABC):
     def __init__(self, model, custom_settings):
         # Construct the base solver and validate the settings in base class
         super().__init__(model, custom_settings)
@@ -50,10 +48,7 @@ class LaserDrillingTransientSolver(
         error_in_delta_time = abs(self.jump_between_pulses_counter - self.time_jump_between_pulses)
 
         numerical_error = 1e-16  # TODO: Make it global or a parameter?
-        if (
-            self.jump_between_pulses_counter >= self.time_jump_between_pulses
-            or error_in_delta_time < numerical_error
-        ):
+        if self.jump_between_pulses_counter >= self.time_jump_between_pulses or error_in_delta_time < numerical_error:
             self.jump_between_pulses_counter = 0
             self.pulse_number += 1
             self.ResetTemperatureField()
@@ -70,9 +65,7 @@ class LaserDrillingTransientSolver(
                 system_energy = self.MonitorEnergy()
                 print("Expected energy after laser:", expected_energy_after_laser, "J")
                 print("Actual energy after laser:", system_energy, "J")
-                relative_error = (
-                    100.0 * (system_energy - expected_energy_after_laser) / expected_energy_after_laser
-                )
+                relative_error = 100.0 * (system_energy - expected_energy_after_laser) / expected_energy_after_laser
                 print("Relative error in energy (%):", relative_error, "\n\n")
 
             self.RemoveElementsByAblation()
@@ -122,6 +115,18 @@ class LaserDrillingTransientSolver(
         return spot_diameter
 
     def ComputePeakFluence(self):
+        """
+        Computes the peak fluence of a gaussian pulse from its energy and waist radius
+        Source: Woodfield 2024, eq (5)
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        The peak fluence
+        """
         return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2
 
     def ComputeMaximumAblationRadius(self):
@@ -161,9 +166,7 @@ class LaserDrillingTransientSolver(
         if not self.project_parameters["problem_data"].Has("average_laser_power"):
             self.average_laser_power = 18
         else:
-            self.average_laser_power = self.project_parameters["problem_data"][
-                "average_laser_power"
-            ].GetDouble()
+            self.average_laser_power = self.project_parameters["problem_data"]["average_laser_power"].GetDouble()
 
         if not self.project_parameters["problem_data"].Has("pulse_frequency"):
             self.pulse_frequency = 2e5
@@ -173,9 +176,7 @@ class LaserDrillingTransientSolver(
         if not self.project_parameters["problem_data"].Has("beam_waist_diameter"):
             self.beam_waist_diameter = 0.0179
         else:
-            self.beam_waist_diameter = self.project_parameters["problem_data"][
-                "beam_waist_diameter"
-            ].GetDouble()
+            self.beam_waist_diameter = self.project_parameters["problem_data"]["beam_waist_diameter"].GetDouble()
 
         if not self.project_parameters["problem_data"].Has("Rayleigh_length"):
             self.rayleigh_length = 0.409
@@ -199,9 +200,7 @@ class LaserDrillingTransientSolver(
         if not self.project_parameters["problem_data"].Has("compute_vaporisation"):
             self.compute_vaporisation = False
         else:
-            self.compute_vaporisation = self.project_parameters["problem_data"][
-                "compute_vaporisation"
-            ].GetBool()
+            self.compute_vaporisation = self.project_parameters["problem_data"]["compute_vaporisation"].GetBool()
 
         if not self.material_settings["Variables"].Has("IONIZATION_ALPHA"):
             self.ionization_alpha = 1.0  # 0.95
@@ -224,7 +223,9 @@ class LaserDrillingTransientSolver(
             self.l_th = self.material_settings["Variables"]["THERMAL_DEPTH"].GetDouble()
 
         if not self.material_settings["Variables"].Has("ENTHALPY"):
-            self.H_ev = 4e5  # J/Kg. Value found on the internet for a given epoxy resin.
+            self.H_ev = (
+                4e5  # J/Kg. Value found on the internet for a given epoxy resin. # TODO: find an actual source ffs
+            )
         else:
             self.H_ev = self.material_settings["Variables"]["ENTHALPY"].GetDouble()
 
@@ -246,9 +247,7 @@ class LaserDrillingTransientSolver(
             ].GetBool()
 
         self.Q = self.average_laser_power / self.pulse_frequency  # Energy per pulse
-        self.time_jump_between_pulses = (
-            1.0 / self.pulse_frequency
-        )  # TODO: rename to something like pulse_period?
+        self.time_jump_between_pulses = 1.0 / self.pulse_frequency  # TODO: rename to something like pulse_period?
         self.cp = self.material_settings["Variables"]["SPECIFIC_HEAT"].GetDouble()
         self.conductivity = self.material_settings["Variables"]["CONDUCTIVITY"].GetDouble()
         self.rho = self.material_settings["Variables"]["DENSITY"].GetDouble()
@@ -296,12 +295,9 @@ class LaserDrillingTransientSolver(
             self.ComputeOpticalPenetrationDepth()  # TODO: Better to return the value instead of modifying a global?
             self.delta_pen = self.l_s
 
-        if self.material_settings[
-            "compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization"
-        ].GetBool():
-            self.ionizarion_energy_per_volume_threshold = (
-                self.ComputeIonizationEnergyPerUnitVolumeThreshold()
-            )  # TODO: typo "ionizaRion"?
+        if self.material_settings["compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization"].GetBool():
+            self.ionizarion_energy_per_volume_threshold = self.ComputeIonizationEnergyPerUnitVolumeThreshold()
+            # TODO: typo "ionizaRion"?
             self.use_enthalpy_and_ionization = True
         else:
             self.use_enthalpy_and_ionization = False
@@ -348,13 +344,9 @@ class LaserDrillingTransientSolver(
 
             material_part_i = self.main_model_part.GetSubModelPart(material_part_name_i)
             material_settings_i = i["Material"]
-            thermal_energy_per_volume_i = material_settings_i["Variables"][
-                "ENERGY_PER_VOLUME_THRESHOLD"
-            ].GetDouble()
+            thermal_energy_per_volume_i = material_settings_i["Variables"]["ENERGY_PER_VOLUME_THRESHOLD"].GetDouble()
             for elem in material_part_i.Elements:
-                elem.SetValue(
-                    LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, thermal_energy_per_volume_i
-                )
+                elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, thermal_energy_per_volume_i)
 
         # self.sigma = 0.5 * self.R_far
         # self.K = 1 / (2 * self.sigma**2)
@@ -439,17 +431,12 @@ class LaserDrillingTransientSolver(
 
     def SetUpHDF5Files(self):
         radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
-        self.near_field_nodes = [
-            node for node in self.main_model_part.Nodes if radius_2(node) < self.R_far**2
-        ]
+        self.near_field_nodes = [node for node in self.main_model_part.Nodes if radius_2(node) < self.R_far**2]
         self.radii = np.sqrt(np.array([radius_2(node) for node in self.near_field_nodes]))
         self.results_filename = "results.h5"
         self.CreateResultsFile(self.results_filename)
         self.temperature_increments = np.array(
-            [
-                node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0
-                for node in self.near_field_nodes
-            ]
+            [node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes]
         )
 
     def AdjustTemperatureFieldAfterAblation(self):
@@ -465,9 +452,7 @@ class LaserDrillingTransientSolver(
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temperature)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temperature)
         for elem in self.main_model_part.Elements:
-            elem.CalculateOnIntegrationPoints(
-                KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo
-            )
+            elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
 
     def ImposeLaserDeltaTemperature(self):
         """
@@ -563,9 +548,7 @@ class LaserDrillingTransientSolver(
             node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
         for elem in self.main_model_part.Elements:
-            elem.CalculateOnIntegrationPoints(
-                KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo
-            )
+            elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
             pre_evaporation_temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
             elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
 
@@ -711,15 +694,11 @@ class LaserDrillingTransientSolver(
         axis[1][0].set_xlabel("radius (mm)")
         axis[1][0].set_ylabel("Delta temps (K)", fontsize=label_size)
         axis[0][1].grid()
-        axis[0][1].plot(
-            self.evap_elements_centers_Y, self.evap_elements_enthalpies, color="black", marker="x"
-        )
+        axis[0][1].plot(self.evap_elements_centers_Y, self.evap_elements_enthalpies, color="black", marker="x")
         axis[0][1].set_xlabel("radius (mm)")
         axis[0][1].set_ylabel("Enthalpies (J)", fontsize=label_size)
         axis[1][1].grid()
-        axis[1][1].plot(
-            self.evap_elements_centers_Y, self.uncapped_delta_temp_elements, color="green", marker="*"
-        )
+        axis[1][1].plot(self.evap_elements_centers_Y, self.uncapped_delta_temp_elements, color="green", marker="*")
         # axis[1][1].set_ylim(bottom=0, top=None)
         axis[1][1].set_xlabel("radius (mm)")
         axis[1][1].set_ylabel("Uncapped delta temps (K)", fontsize=label_size)
@@ -793,18 +772,14 @@ class LaserDrillingTransientSolver(
         p = 1
         axis[1].tick_params(axis="both", which="major", labelsize=numbers_size)
         axis[1].tick_params(axis="both", which="minor", labelsize=numbers_size)
-        for list_X, list_Y in zip(
-            self.full_list_of_ablated_nodes_coords_X, self.full_list_of_ablated_nodes_coords_Y
-        ):
+        for list_X, list_Y in zip(self.full_list_of_ablated_nodes_coords_X, self.full_list_of_ablated_nodes_coords_Y):
             axis[1].plot(list_Y, -list_X, color="black")
             axis[1].set_ylim(bottom=-0.0023, top=None)
             converted_num = "Ablation number #" + str(p)
             list_of_legends.append(converted_num)
             p += 1
         i = 1
-        for list_X, list_Y in zip(
-            self.list_of_lists_of_decomposed_nodes_X, self.list_of_lists_of_decomposed_nodes_Y
-        ):
+        for list_X, list_Y in zip(self.list_of_lists_of_decomposed_nodes_X, self.list_of_lists_of_decomposed_nodes_Y):
             axis[1].plot(list_Y, -list_X)
             axis[1].set_ylim(bottom=-0.0023, top=0)
             converted_num = "Evap. layer #" + str(i)
@@ -866,12 +841,7 @@ class LaserDrillingTransientSolver(
         # print("\nNecessary time step for maximum depth:", minimum_time_step_for_maximum_depth, '\n')
 
     def EnergyPerUnitArea1D(self, radius):
-        C = (
-            (1 - self.ablation_energy_fraction)
-            * self.Q
-            * self.K
-            / (np.pi * (1 - np.exp(-self.K * self.R_far**2)))
-        )
+        C = (1 - self.ablation_energy_fraction) * self.Q * self.K / (np.pi * (1 - np.exp(-self.K * self.R_far**2)))
         q = C * np.exp(-self.K * radius**2)
         return q
 
@@ -899,16 +869,11 @@ class LaserDrillingTransientSolver(
         return delta_temp
 
     def SolveSolutionStep(self):
-        super(
-            convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self
-        ).SolveSolutionStep()
+        super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
         # TODO: Perhaps the following fits better in FinalizeSolutionStep?
         if self.print_hdf5_and_gnuplot_files:
             self.temperature_increments = np.array(
-                [
-                    node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0
-                    for node in self.near_field_nodes
-                ]
+                [node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes]
             )
             self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
@@ -933,9 +898,7 @@ class LaserDrillingTransientSolver(
                 if elem.Id == self.element_id_to_study:
                     temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
                     thermal_decomposition = elem.GetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION)
-                    self.temperature_alpha_file.write(
-                        str(temperature) + " " + str(thermal_decomposition) + "\n"
-                    )
+                    self.temperature_alpha_file.write(str(temperature) + " " + str(thermal_decomposition) + "\n")
                     self.time_alpha_file.write(str(current_time) + " " + str(thermal_decomposition) + "\n")
                     break
         self.UpdateLaserRelatedParameters()
@@ -1094,12 +1057,8 @@ class LaserDrillingTransientSolver(
                 coords = [X, Y]
                 list_of_decomposed_nodes_coords.append(coords)
         list_of_decomposed_nodes_coords.sort(key=self.sortSecond)
-        self.list_of_decomposed_nodes_coords_X = np.array(
-            [coord[0] for coord in list_of_decomposed_nodes_coords]
-        )
-        self.list_of_decomposed_nodes_coords_Y = np.array(
-            [coord[1] for coord in list_of_decomposed_nodes_coords]
-        )
+        self.list_of_decomposed_nodes_coords_X = np.array([coord[0] for coord in list_of_decomposed_nodes_coords])
+        self.list_of_decomposed_nodes_coords_Y = np.array([coord[1] for coord in list_of_decomposed_nodes_coords])
         if os.path.exists(self.decomposed_nodes_coords_filename):
             os.remove(self.decomposed_nodes_coords_filename)
 
@@ -1211,9 +1170,7 @@ class LaserDrillingTransientSolver(
                 for elem in self.main_model_part.Elements:
                     num_nodes_elements = len(elem.GetNodes())
                     break
-            num_nodes_elements = (
-                self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
-            )
+            num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
             if not num_nodes_elements:
                 num_nodes_elements = domain_size + 1
             name_string = f"{element_name}{domain_size}D{num_nodes_elements}N"
