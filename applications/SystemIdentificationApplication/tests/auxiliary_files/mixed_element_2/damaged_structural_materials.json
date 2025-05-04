@@ -1,0 +1,80 @@
+{
+    "properties": [
+        {
+            "model_part_name": "Structure.Parts_Solid_solids",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "LinearElastic3DLaw"
+                },
+                "Variables": {
+                    "DENSITY": 7850.0,
+                    "YOUNG_MODULUS": 3e10,
+                    "POISSON_RATIO": 0.29
+                },
+                "Tables": null
+            }
+        },
+        {
+            "model_part_name": "Structure.Parts_Truss_truss",
+            "properties_id": 2,
+            "Material": {
+                "constitutive_law": {
+                    "name": "BeamConstitutiveLaw"
+                },
+                "Variables": {
+                    "DENSITY": 7850.0,
+                    "YOUNG_MODULUS": 2e11,
+                    "CROSS_AREA": 1,
+                    "TRUSS_PRESTRESS_PK2": 100.0,
+                    "POISSON_RATIO": 0.30000,
+                    "COMPUTE_LUMPED_MASS_MATRIX": false,
+                    "TORSIONAL_INERTIA": 3.0,
+                    "I22": 1.0,
+                    "I33": 1.0,
+                    "RAYLEIGH_ALPHA": 49.67,
+                    "RAYLEIGH_BETA": 2.4e-5
+                },
+                "Tables": null
+            }
+        },
+        {
+            "model_part_name": "Structure.damaged_solid",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "LinearElastic3DLaw"
+                },
+                "Variables": {
+                    "DENSITY": 7850.0,
+                    "YOUNG_MODULUS": 3e7,
+                    "POISSON_RATIO": 0.29
+                },
+                "Tables": null
+            }
+        },
+        {
+            "model_part_name": "Structure.damaged_truss",
+            "properties_id": 2,
+            "Material": {
+                "constitutive_law": {
+                    "name": "BeamConstitutiveLaw"
+                },
+                "Variables": {
+                    "DENSITY": 7850.0,
+                    "YOUNG_MODULUS": 2e6,
+                    "CROSS_AREA": 1,
+                    "TRUSS_PRESTRESS_PK2": 100.0,
+                    "POISSON_RATIO": 0.30000,
+                    "COMPUTE_LUMPED_MASS_MATRIX": false,
+                    "TORSIONAL_INERTIA": 3.0,
+                    "I22": 1.0,
+                    "I33": 1.0,
+                    "RAYLEIGH_ALPHA": 49.67,
+                    "RAYLEIGH_BETA": 2.4e-5
+                },
+                "Tables": null
+            }
+        }
+    ]
+}
