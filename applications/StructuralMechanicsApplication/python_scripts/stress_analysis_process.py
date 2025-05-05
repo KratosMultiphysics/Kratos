@@ -21,7 +21,7 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
         self.model = model
         self.modelpart = model.GetModelPart("Structure")
         self.config_data = settings["Structural_Elements"]
-        #Schema_Validation(settings)
+        Schema_Validation(settings)
 
         #### initialization
     def ExecuteFinalizeSolutionStep(self):
@@ -47,4 +47,4 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
                       "\n CL: ", panel.cl)
 
                 case _:
-                    print(f"{structural_element['type']} is not a valid structural element type.")
+                    print(f"{structural_element['type'].GetString()} is not a valid structural element type.")
