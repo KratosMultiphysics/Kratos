@@ -322,15 +322,16 @@ public:
     }
 
     virtual void AssembleMasterSlaveConstraints(
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector,
         TThreadLocalStorage& rTLS)
     {
         //TODO: Do it as the other assembly functions
         if (mBuildType == BuildType::Block) {
-            AssembleMasterSlaveConstraintsImplementation<BuildType::Block>(rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
+            AssembleMasterSlaveConstraintsImplementation<BuildType::Block>(rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
         } else if (mBuildType == BuildType::Elimination) {
-            AssembleMasterSlaveConstraintsImplementation<BuildType::Elimination>(rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
+            AssembleMasterSlaveConstraintsImplementation<BuildType::Elimination>(rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -357,7 +358,8 @@ public:
     }
 
     virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const DofsArrayType& rDofArray,
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS)
     {
@@ -365,26 +367,31 @@ public:
             //TODO: Implement this in the CSR matrix or here? --> Most probably we shouldn't call it here neither
             // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
             // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
-
-            ApplyBlockBuildDirichletConditions(rDofSet, rLHS, rRHS);
-
+            if (rDofIdMap.empty()) {
+                ApplyBlockBuildDirichletConditions(rDofArray, rLHS, rRHS);
+            } else {
+                ApplyBlockBuildDirichletConditions(rDofArray, rDofIdMap, rLHS, rRHS);
+            }
         } else if (mBuildType == BuildType::Elimination) {
-
             //TODO: Implement this in the CSR matrix or here? --> Most probably we shouldn't call it here neither
             // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
             // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
-
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
     }
 
     virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const DofsArrayType& rDofArray,
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseVectorType& rRHS)
     {
         if (mBuildType == BuildType::Block) {
-            ApplyBlockBuildDirichletConditions(rDofSet, rRHS);
+            if (rDofIdMap.empty()) {
+                ApplyBlockBuildDirichletConditions(rDofArray, rRHS);
+            } else {
+                ApplyBlockBuildDirichletConditions(rDofArray, rDofIdMap, rRHS);
+            }
         } else if (mBuildType == BuildType::Elimination) {
             return;
         } else {
@@ -843,7 +850,8 @@ private:
     }
 
     void ApplyBlockBuildDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const DofsArrayType& rDofArray,
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS) const
     {
@@ -855,9 +863,43 @@ private:
 
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto dof_begin = rDofSet.begin();
-        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](IndexType Index){
-            auto p_dof = dof_begin + Index;
+        const auto dof_ptr_begin = rDofArray.ptr_begin();
+        IndexPartition<std::size_t>(rDofArray.size()).for_each([&](IndexType Index){
+            const auto p_dof = *(dof_ptr_begin + Index);
+            if (p_dof->IsFixed()) {
+                const auto p_dof_find = rDofIdMap.find(p_dof);
+                KRATOS_ERROR_IF(p_dof_find == rDofIdMap.end()) << "DOF cannot be found in DOF id map." << std::endl;
+                free_dofs_vector[p_dof_find->second] = 0;
+            }
+        });
+
+        //TODO: Implement this in the CSR matrix or here?
+        // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
+        // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+
+        // Get the diagonal scaling factor
+        const double diagonal_value = GetDiagonalScalingFactor(rLHS);
+
+        // Apply the free DOFs (i.e., fixity) vector to the system arrays
+        rLHS.ApplyHomogeneousDirichlet(free_dofs_vector, diagonal_value, rRHS);
+    }
+
+    void ApplyBlockBuildDirichletConditions(
+        const DofsArrayType& rDofArray,
+        TSparseMatrixType& rLHS,
+        TSparseVectorType& rRHS) const
+    {
+        // Set the free DOFs vector (0 means fixed / 1 means free)
+        // Note that we initialize to 1 so we start assuming all free
+        // Also note that the type is uint_8 for the sake of efficiency
+        const SizeType system_size = rLHS.size1();
+        std::vector<uint8_t> free_dofs_vector(system_size, 1);
+
+        // Loop the DOFs to find which ones are fixed
+        // Note that DOFs are assumed to be numbered consecutively in the block building
+        const auto dof_begin = rDofArray.begin();
+        IndexPartition<std::size_t>(rDofArray.size()).for_each([&](IndexType Index){
+            const auto p_dof = dof_begin + Index;
             if (p_dof->IsFixed()) {
                 free_dofs_vector[p_dof->EquationId()] = 0;
             }
@@ -875,13 +917,31 @@ private:
     }
 
     void ApplyBlockBuildDirichletConditions(
-        const DofsArrayType& rDofSet,
+        const DofsArrayType& rDofArray,
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseVectorType& rRHS) const
     {
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto dof_begin = rDofSet.begin();
-        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](IndexType Index){
+        const auto dof_ptr_begin = rDofArray.ptr_begin();
+        IndexPartition<std::size_t>(rDofArray.size()).for_each([&](IndexType Index){
+            auto p_dof = *(dof_ptr_begin + Index);
+            if (p_dof->IsFixed()) {
+                auto p_dof_find = rDofIdMap.find(p_dof);
+                KRATOS_ERROR_IF(p_dof_find == rDofIdMap.end()) << "DOF cannot be found in DOF id map." << std::endl;
+                rRHS[p_dof_find->second] = 0;
+            }
+        });
+    }
+
+    void ApplyBlockBuildDirichletConditions(
+        const DofsArrayType& rDofArray,
+        TSparseVectorType& rRHS) const
+    {
+        // Loop the DOFs to find which ones are fixed
+        // Note that DOFs are assumed to be numbered consecutively in the block building
+        const auto dof_begin = rDofArray.begin();
+        IndexPartition<std::size_t>(rDofArray.size()).for_each([&](IndexType Index){
             auto p_dof = dof_begin + Index;
             if (p_dof->IsFixed()) {
                 rRHS[p_dof->EquationId()] = 0;
@@ -1008,8 +1068,8 @@ private:
             rConstraintsRelationMatrix = std::move(TSparseMatrixType(constraints_sparse_graph));
 
         } else {
-            rEffectiveDofSet = rDofSet;
-            rEffectiveDofIdMap = EffectiveDofsMapType();
+            rEffectiveDofSet = rDofSet; // If there are no constraints the effective DOF set is the standard one
+            rEffectiveDofIdMap = EffectiveDofsMapType(); // Create an empty master ids map as the standard DOF equation ids can be used
         }
     }
 
@@ -1026,6 +1086,7 @@ private:
 
     template<BuildType TBuildType>
     void AssembleMasterSlaveConstraintsImplementation(
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector,
         TThreadLocalStorage& rTLS)
@@ -1050,7 +1111,7 @@ private:
         rConstraintsRelationMatrix.BeginAssemble();
         rConstraintsConstantVector.BeginAssemble();
 
-        #pragma omp parallel firstprivate(consts_begin, r_process_info)
+        #pragma omp parallel firstprivate(rDofIdMap, consts_begin, r_process_info)
         {
             // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
             std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
@@ -1059,13 +1120,36 @@ private:
             if (mpConstraintAssemblyFunction != nullptr) {
                 # pragma omp for schedule(guided, 512) nowait
                 for (int k = 0; k < n_consts; ++k) {
-                    // Calculate local LHS contributions
+                    // Calculate local contributions
                     auto it_const = consts_begin + k;
                     const bool assemble_const = (*mpConstraintAssemblyFunction)(it_const, r_process_info, rTLS);
 
+                    // Set the master and slave equation ids
+                    // Note that the slaves follow the system equation ids while the masters use the effective map ones
+                    const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
+                    auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
+                    const SizeType n_slaves = r_slave_dofs.size();
+                    if (r_slave_eq_ids.size() != n_slaves) {
+                        r_slave_eq_ids.resize(n_slaves);
+                    }
+                    for (IndexType i_slave = 0; i_slave < n_slaves; ++i_slave) {
+                        r_slave_eq_ids[i_slave] = (*(r_slave_dofs.begin() + i_slave))->EquationId();
+                    }
+
+                    const auto& r_master_dofs = it_const->GetMasterDofsVector();
+                    auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
+                    const SizeType n_masters = r_master_dofs.size();
+                    if (r_master_eq_ids.size() != n_masters) {
+                        r_master_eq_ids.resize(n_masters);
+                    }
+                    for (IndexType i_master = 0; i_master < n_masters; ++i_master) {
+                        auto p_master = *(r_master_dofs.begin() + i_master);
+                        auto p_master_find = rDofIdMap.find(p_master);
+                        KRATOS_ERROR_IF(p_master_find == rDofIdMap.end()) << "Master DOF cannot be found in DOF ids map." << std::endl;
+                        r_master_eq_ids[i_master] = p_master_find->second;
+                    }
+
                     // Assemble the constraints local contributions to the global system
-                    const auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
-                    const auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
                     if (assemble_const) {
                         if constexpr (TBuildType == BuildType::Block) {
                             // Assemble relation matrix contribution
@@ -1107,6 +1191,14 @@ private:
         if constexpr (TBuildType == BuildType::Block) {
             // Setting the master dofs into the T and C system
             //TODO: Can't this be parallel?
+            for (auto eq_id : mMasterIds) {
+                std::cout << eq_id << std::endl;
+            }
+            std::cout << std::endl;
+            for (auto eq_id : mSlaveIds) {
+                std::cout << eq_id << std::endl;
+            }
+
             for (auto eq_id : mMasterIds) {
                 rConstraintsConstantVector[eq_id] = 0.0;
                 rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;

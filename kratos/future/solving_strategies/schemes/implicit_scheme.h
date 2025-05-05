@@ -488,6 +488,7 @@ public:
     }
 
     virtual void BuildConstraints(
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector)
     {
@@ -497,9 +498,9 @@ public:
             const auto timer_constraints = BuiltinTimer();
 
             const auto const_func = [](ModelPart::MasterSlaveConstraintConstantIteratorType ItConst, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-                // Get the positions in the global system
-                // Note that we always do this in order to treat inactive constraints as standard DOFs while assembling
-                ItConst->EquationIdVector(rTLS.SlaveEqIds, rTLS.MasterEqIds, rProcessInfo);
+                // // Get the positions in the global system
+                // // Note that we always do this in order to treat inactive constraints as standard DOFs while assembling
+                // ItConst->EquationIdVector(rTLS.SlaveEqIds, rTLS.MasterEqIds, rProcessInfo);
 
                 if (ItConst->Is(ACTIVE)) {
                     // Calculate local relation matrix and constant vector contributions
@@ -520,7 +521,7 @@ public:
             TLSType aux_tls;
             auto& r_assembly_helper = GetAssemblyHelper();
             r_assembly_helper.SetConstraintAssemblyFunction(const_func);
-            r_assembly_helper.AssembleMasterSlaveConstraints(rConstraintsRelationMatrix, rConstraintsConstantVector, aux_tls);
+            r_assembly_helper.AssembleMasterSlaveConstraints(rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, aux_tls);
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints build time: " << timer_constraints << std::endl;
 
@@ -562,18 +563,20 @@ public:
 
     //TODO: Think about the dynamic case and the mass and damping matrices!!
     virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofList,
+        const DofsArrayType& rDofArray,
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(rDofList, rLHS, rRHS);
+        GetAssemblyHelper().ApplyDirichletConditions(rDofArray, rDofIdMap, rLHS, rRHS);
     }
 
     virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofList,
+        const DofsArrayType& rDofArray,
+        const EffectiveDofsMapType& rDofIdMap,
         TSparseVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(rDofList, rRHS);
+        GetAssemblyHelper().ApplyDirichletConditions(rDofArray, rDofIdMap, rRHS);
     }
 
     //TODO: Think about the dynamic case and the mass and damping matrices!!
