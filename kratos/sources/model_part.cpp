@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "includes/exception.h"
 #include "utilities/reduction_utilities.h"
+#include <stack>
 
 namespace Kratos
 {
@@ -2131,34 +2132,39 @@ std::vector<std::string> ModelPart::GetSubModelPartNames() const
 
 void ModelPart::SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
 {
-    ModelPart& rootModelPart = this->GetRootModelPart();
-    rootModelPart.SetProcessInfoRecursive(pNewProcessInfo);
-}
+    std::stack<ModelPart*> model_part_stack;
+    model_part_stack.push(&this->GetRootModelPart());
 
-
-void ModelPart::SetProcessInfo(ProcessInfo& NewProcessInfo)
-{
-    ModelPart& rootModelPart = this->GetRootModelPart();
-    rootModelPart.SetProcessInfoRecursive(NewProcessInfo);
-}
-
-void ModelPart::SetProcessInfoRecursive(ProcessInfo::Pointer pNewProcessInfo)
-{
-    mpProcessInfo = pNewProcessInfo;
-
-    for (auto& subModelPart : mSubModelParts)
+    while (!model_part_stack.empty())
     {
-        subModelPart.SetProcessInfoRecursive(pNewProcessInfo);
+        ModelPart* currentModelPart = model_part_stack.top();
+        model_part_stack.pop();
+
+        currentModelPart->mpProcessInfo = pNewProcessInfo;
+
+        for (auto& subModelPart : currentModelPart->mSubModelParts)
+        {
+            model_part_stack.push(&subModelPart);
+        }
     }
 }
 
-void ModelPart::SetProcessInfoRecursive(ProcessInfo& NewProcessInfo)
+void ModelPart::SetProcessInfo(ProcessInfo& rNewProcessInfo)
 {
-    *mpProcessInfo = NewProcessInfo;
+    std::stack<ModelPart*> model_part_stack;
+    model_part_stack.push(&this->GetRootModelPart());
 
-    for (auto& subModelPart : mSubModelParts)
+    while (!model_part_stack.empty())
     {
-        subModelPart.SetProcessInfoRecursive(NewProcessInfo);
+        ModelPart* currentModelPart = model_part_stack.top();
+        model_part_stack.pop();
+
+        *currentModelPart->mpProcessInfo = rNewProcessInfo;
+
+        for (auto& subModelPart : currentModelPart->mSubModelParts)
+        {
+            model_part_stack.push(&subModelPart);
+        }
     }
 }
 

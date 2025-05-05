@@ -2169,10 +2169,6 @@ private:
         mpParentModelPart = pParentModelPart;
     }
 
-    void SetProcessInfoRecursive(std::shared_ptr<ProcessInfo> pNewProcessInfo);
-
-    void SetProcessInfoRecursive(ProcessInfo& NewProcessInfo);
-
     template <typename TEntitiesContainerType>
     void AddEntities(TEntitiesContainerType const& Source, TEntitiesContainerType& rDestination, Flags Options)
     {
