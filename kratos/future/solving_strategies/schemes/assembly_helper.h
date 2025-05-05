@@ -322,6 +322,7 @@ public:
     }
 
     virtual void AssembleMasterSlaveConstraints(
+        const DofsArrayType& rDofSet,
         const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector,
@@ -329,9 +330,9 @@ public:
     {
         //TODO: Do it as the other assembly functions
         if (mBuildType == BuildType::Block) {
-            AssembleMasterSlaveConstraintsImplementation<BuildType::Block>(rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
+            AssembleMasterSlaveConstraintsImplementation<BuildType::Block>(rDofSet, rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
         } else if (mBuildType == BuildType::Elimination) {
-            AssembleMasterSlaveConstraintsImplementation<BuildType::Elimination>(rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
+            AssembleMasterSlaveConstraintsImplementation<BuildType::Elimination>(rDofSet, rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -523,9 +524,9 @@ private:
 
     typename TSparseVectorType::Pointer mpReactionsVector = nullptr; // Auxiliary vector to calculate the reactions in the elimination build
 
-    std::vector<IndexType> mSlaveIds; /// Vector containing the equation ids of the slaves
+    // std::vector<IndexType> mSlaveIds; /// Vector containing the equation ids of the slaves
 
-    std::vector<IndexType> mMasterIds; /// Vector containing the equation ids of the master
+    // std::vector<IndexType> mMasterIds; /// Vector containing the equation ids of the master
 
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave DOFs (only used in the block build)
 
@@ -1008,14 +1009,14 @@ private:
 
             // Sort the effective DOFs before setting the equation ids
             // Note that we dereference the DOF pointers in order to use the greater operator from dof.h
-            std::vector<typename DofType::Pointer> ordered_eff_dofs_set(effective_dofs_set.begin(), effective_dofs_set.end());
+            std::vector<typename DofType::Pointer> ordered_eff_dofs_vector(effective_dofs_set.begin(), effective_dofs_set.end());
             std::sort(
-                ordered_eff_dofs_set.begin(),
-                ordered_eff_dofs_set.end(),
+                ordered_eff_dofs_vector.begin(),
+                ordered_eff_dofs_vector.end(),
                 [](typename DofType::Pointer pA, typename DofType::Pointer pB){return *pA > *pB;});
 
-            // Fill the effective DOFs PVS witht he sorted effective DOFs container
-            rEffectiveDofSet = std::move(DofsArrayType(ordered_eff_dofs_set));
+            // Fill the effective DOFs PVS with the sorted effective DOFs container
+            rEffectiveDofSet = std::move(DofsArrayType(ordered_eff_dofs_vector));
 
             // Set the effective DOFs equation ids based on the sorted list
             rEffectiveDofIdMap.reserve(rEffectiveDofSet.size());
@@ -1027,14 +1028,14 @@ private:
             }
 
             // Clear the equation ids vectors
-            mSlaveIds.clear();
-            mMasterIds.clear();
+            // mSlaveIds.clear();
+            // mMasterIds.clear();
 
             // Set up constraints matrix sparse graph (note that mEquationSystemSize is the DOF set size in the block build)
             KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
             TSparseGraphType constraints_sparse_graph(mEquationSystemSize);
 
-            // Loop the elements and conditions DOFs container
+            // Loop the elements and conditions DOFs container to add the slave entries to the graph
             for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
                 // Get current DOF
                 auto p_dof = *(rDofSet.ptr_begin() + i_dof);
@@ -1045,8 +1046,8 @@ private:
                 // Note that here "master" means an actual masters DOF or a DOF that do not involve any constraint
                 auto i_dof_slave_find = constraints_slave_dofs.find(p_dof);
                 if (i_dof_slave_find != constraints_slave_dofs.end()) { // Slave DOF
-                    // Add current slave DOF to slave equation ids list
-                    mSlaveIds.push_back(i_dof_eq_id);
+                    // // Add current slave DOF to slave equation ids list
+                    // mSlaveIds.push_back(i_dof_eq_id);
 
                     // Add current slave DOF connectivities to the constraints sparse graph
                     // The slave rows eq ids come from the system ones while the column master ones are the above defined
@@ -1058,10 +1059,20 @@ private:
                 } else { // Effective DOF
                     auto eff_dof_find = rEffectiveDofIdMap.find(p_dof);
                     KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofIdMap.end()) << "Effective DOF cannot be find." << std::endl;
-                    mMasterIds.push_back(eff_dof_find->second);
+                    // mMasterIds.push_back(eff_dof_find->second);
                     constraints_sparse_graph.AddEntry(i_dof_eq_id, eff_dof_find->second);
                 }
             }
+
+            // // Loop the effective DOFs container to add the remaining diagonal entries to the graph
+            // for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) {
+            //     // Get current effective DOF
+            //     auto p_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
+            //     auto eff_dof_find = rEffectiveDofIdMap.find(p_dof);
+            //     KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofIdMap.end()) << "Effective DOF cannot be find." << std::endl;
+            //     std::cout << "Effective DOF: " << eff_dof_find->second << " - " << eff_dof_find->second << std::endl;
+            //     constraints_sparse_graph.AddEntry(eff_dof_find->second, eff_dof_find->second);
+            // }
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
             rConstraintsConstantVector = std::move(TSparseVectorType(mEquationSystemSize));
@@ -1086,6 +1097,7 @@ private:
 
     template<BuildType TBuildType>
     void AssembleMasterSlaveConstraintsImplementation(
+        const DofsArrayType& rDofSet,
         const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector,
@@ -1189,20 +1201,17 @@ private:
         rConstraintsConstantVector.FinalizeAssemble();
 
         if constexpr (TBuildType == BuildType::Block) {
-            // Setting the master dofs into the T and C system
-            //TODO: Can't this be parallel?
-            for (auto eq_id : mMasterIds) {
-                std::cout << eq_id << std::endl;
-            }
-            std::cout << std::endl;
-            for (auto eq_id : mSlaveIds) {
-                std::cout << eq_id << std::endl;
-            }
-
-            for (auto eq_id : mMasterIds) {
-                rConstraintsConstantVector[eq_id] = 0.0;
-                rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
-            }
+            // Setting the missing effective but not constrain-related DOFs into the T and C system
+            // For doing so we loop the standard DOF array (the one from elements and conditions)
+            // We search for each DOF in the effective DOF ids map, if present it means its effective
+            IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
+                const auto p_dof = *(rDofSet.ptr_begin() + Index);
+                const auto p_dof_find = rDofIdMap.find(p_dof);
+                if (p_dof_find != rDofIdMap.end()) {
+                    rConstraintsConstantVector[p_dof->EquationId()] = 0.0;
+                    rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->second) = 1.0;
+                }
+            });
 
             // Setting inactive slave dofs in the T and C system
             //TODO: Can't this be parallel?

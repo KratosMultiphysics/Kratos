@@ -488,6 +488,7 @@ public:
     }
 
     virtual void BuildConstraints(
+        const DofsArrayType& rDofSet,
         const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector)
@@ -521,7 +522,7 @@ public:
             TLSType aux_tls;
             auto& r_assembly_helper = GetAssemblyHelper();
             r_assembly_helper.SetConstraintAssemblyFunction(const_func);
-            r_assembly_helper.AssembleMasterSlaveConstraints(rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, aux_tls);
+            r_assembly_helper.AssembleMasterSlaveConstraints(rDofSet, rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, aux_tls);
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints build time: " << timer_constraints << std::endl;
 
