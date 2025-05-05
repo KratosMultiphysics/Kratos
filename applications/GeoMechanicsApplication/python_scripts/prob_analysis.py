@@ -6,7 +6,7 @@ import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as kratos_geo
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
-import applications.GeoMechanicsApplication.tests.test_helper as test_helper
+import KratosMultiphysics.GeoMechanicsApplication.test_helper as test_helper
 
 class prob_analysis:
     def __init__(self, template_project_path, input_material_parameters, output_parameters):
