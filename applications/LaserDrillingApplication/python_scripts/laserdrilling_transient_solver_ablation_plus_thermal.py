@@ -61,7 +61,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
             incident_angle = theta_1
 
-            delta_temp = self.TemperatureVariationDueToLaser(y1, l, incident_angle)
+            delta_temp = self.TemperatureVariationDueToLaser(y1, l)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             new_temp = old_temp + delta_temp
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
