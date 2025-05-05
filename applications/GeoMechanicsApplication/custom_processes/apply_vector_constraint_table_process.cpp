@@ -109,6 +109,13 @@ void ApplyVectorConstraintTableProcess::ExecuteInitializeSolutionStep()
     }
 }
 
+void ApplyVectorConstraintTableProcess::ExecuteFinalizeSolutionStep()
+{
+    for (const auto& process : mProcesses) {
+        process->ExecuteFinalizeSolutionStep();
+    }
+}
+
 void ApplyVectorConstraintTableProcess::ExecuteFinalize()
 {
     for (const auto& process : mProcesses) {

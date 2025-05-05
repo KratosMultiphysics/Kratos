@@ -152,7 +152,7 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ApplyConstantScalarValueProcess::ExecuteInitialize()
+void ApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
     const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
@@ -170,7 +170,7 @@ void ApplyConstantScalarValueProcess::ExecuteInitialize()
     KRATOS_CATCH("");
 }
 
-void ApplyConstantScalarValueProcess::ExecuteFinalize() {
+void ApplyConstantScalarValueProcess::ExecuteFinalizeSolutionStep() {
     if (this->Is(VARIABLE_IS_FIXED) && KratosComponents<Variable<double>>::Has(mVariableName)) {
         VariableUtils().ApplyFixity(
             KratosComponents<Variable<double>>::Get(mVariableName), false, mrModelPart.Nodes());

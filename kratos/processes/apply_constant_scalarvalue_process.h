@@ -140,12 +140,12 @@ public:
      * @brief This function is designed for being called at the beginning of the computations
      * right after reading the model and the groups
      */
-    void ExecuteInitialize() override;
+    void ExecuteInitializeSolutionStep() override;
 
     /**
      * @brief This function is designed for being called at the end of the computations
      */
-    void ExecuteFinalize() override;
+    void ExecuteFinalizeSolutionStep() override;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
