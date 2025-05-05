@@ -3,11 +3,14 @@ import json
 
 class Schema_Validation:
     def __init__(self, config_data):
-        self.config_data = config_data
+        self.config_data = self.param_to_dict(config_data)
         
         self.create_schemas()
         self.create_type_schemas()
         self.validate_structural_element_input()
+
+    def param_to_dict(self, params):
+        return json.loads(params.WriteJsonString())
 
     def create_schemas(self):
         """Add templates for the configuration file here.
