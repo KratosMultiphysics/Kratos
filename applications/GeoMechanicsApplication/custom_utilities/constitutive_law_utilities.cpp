@@ -180,18 +180,6 @@ Vector ConstitutiveLawUtilities::ReturnMappingToCoulombWithTensionCutOff(const P
     return mapped_sigma_tau;
 }
 
-bool ConstitutiveLawUtilities::IsAdmissibleSigmaTauStressState(const Vector& rSigmaTau,
-                                                               const CoulombYieldSurface& rCoulombYieldSurface,
-                                                               const TensionCutoff& rTensionCutOff)
-{
-    constexpr auto tolerance              = 1.0e-10;
-    const auto     coulomb_yield_function = rCoulombYieldSurface.YieldFunctionValue(rSigmaTau);
-    const auto     tension_yield_function = rTensionCutOff.YieldFunctionValue(rSigmaTau);
-    const auto     coulomb_tolerance      = tolerance * (1.0 + std::abs(coulomb_yield_function));
-    const auto     tension_tolerance      = tolerance * (1.0 + std::abs(tension_yield_function));
-    return coulomb_yield_function < coulomb_tolerance && tension_yield_function < tension_tolerance;
-}
-
 double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rProperties)
 {
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));

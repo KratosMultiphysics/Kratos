@@ -118,6 +118,10 @@ void InterfaceMohrCoulombWithTensionCutOff::InitializeMaterial(const Properties&
                                                                const Geometry<Node>&,
                                                                const Vector&)
 {
+    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{
+        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]), rMaterialProperties[GEO_COHESION],
+        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
+        rMaterialProperties[GEO_TENSILE_STRENGTH]};
     mCoulombYieldSurface =
         CoulombYieldSurface(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]),
                             rMaterialProperties[GEO_COHESION],
@@ -147,8 +151,7 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
         rParameters.GetStrainVector(), r_prop[INTERFACE_NORMAL_STIFFNESS], r_prop[INTERFACE_SHEAR_STIFFNESS]);
     trial_sigma_tau[1] = std::abs(trial_sigma_tau[1]);
 
-    if (!ConstitutiveLawUtilities::IsAdmissibleSigmaTauStressState(
-            trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
+    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         trial_sigma_tau = ConstitutiveLawUtilities::ReturnMappingToCoulombWithTensionCutOff(
             r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
     }
@@ -203,6 +206,7 @@ void InterfaceMohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
+    rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
 }
 
@@ -214,6 +218,7 @@ void InterfaceMohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
+    rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
 }
 

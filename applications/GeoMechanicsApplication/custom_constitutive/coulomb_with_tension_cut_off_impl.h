@@ -27,9 +27,15 @@ public:
     CoulombWithTensionCutOffImpl() = default;
     CoulombWithTensionCutOffImpl(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad, double TensileStrength);
 
+    [[nodiscard]] bool IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
+
 private:
     CoulombYieldSurface mCoulombYieldSurface;
     TensionCutoff       mTensionCutOff;
+
+    friend class Serializer;
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 };
 
 } // namespace Kratos

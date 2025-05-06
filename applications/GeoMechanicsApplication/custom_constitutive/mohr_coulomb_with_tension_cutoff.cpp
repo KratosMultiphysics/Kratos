@@ -182,8 +182,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     auto trial_sigma_tau =
         StressStrainUtilities::TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
 
-    while (!ConstitutiveLawUtilities::IsAdmissibleSigmaTauStressState(
-        trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
+    while (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         trial_sigma_tau = ConstitutiveLawUtilities::ReturnMappingToCoulombWithTensionCutOff(
             r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
         principal_trial_stress_vector = StressStrainUtilities::TransformSigmaAndTauToPrincipalStresses(
@@ -224,6 +223,7 @@ void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
+    rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
 }
 
@@ -236,6 +236,8 @@ void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
+    rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
 }
+
 } // Namespace Kratos
