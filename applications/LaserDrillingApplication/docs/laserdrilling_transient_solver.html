@@ -1,0 +1,2982 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>laserdrilling_transient_solver API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>laserdrilling_transient_solver</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="laserdrilling_transient_solver.CreateSolver"><code class="name flex">
+<span>def <span class="ident">CreateSolver</span></span>(<span>model, custom_settings)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def CreateSolver(model, custom_settings):
+    return LaserDrillingTransientSolver(model, custom_settings)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver"><code class="flex name class">
+<span>class <span class="ident">LaserDrillingTransientSolver</span></span>
+<span>(</span><span>model, custom_settings)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LaserDrillingTransientSolver(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, ABC):
+    def __init__(self, model, custom_settings):
+        # Construct the base solver and validate the settings in base class
+        super().__init__(model, custom_settings)
+
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+
+        self.delta_time = self.main_model_part.ProcessInfo[
+            KratosMultiphysics.DELTA_TIME
+        ]  # TODO: Make delta_time a local variable
+
+        self.jump_between_pulses_counter += self.delta_time
+        error_in_delta_time = abs(self.jump_between_pulses_counter - self.time_jump_between_pulses)
+
+        numerical_error = 1e-16  # TODO: Make it global or a parameter?
+        if self.jump_between_pulses_counter &gt;= self.time_jump_between_pulses or error_in_delta_time &lt; numerical_error:
+            self.jump_between_pulses_counter = 0
+            self.pulse_number += 1
+            self.ResetTemperatureField()
+
+            if self.print_debug_info:
+                initial_system_energy = self.MonitorEnergy()
+                print(&#34;\n\nEnergy before laser:&#34;, initial_system_energy, &#34;J&#34;)
+
+            self.ImposeLaserDeltaTemperature()
+
+            if self.print_debug_info:
+                print(&#34;self.Q:&#34;, self.Q, &#34;J&#34;)
+                expected_energy_after_laser = initial_system_energy + self.Q
+                system_energy = self.MonitorEnergy()
+                print(&#34;Expected energy after laser:&#34;, expected_energy_after_laser, &#34;J&#34;)
+                print(&#34;Actual energy after laser:&#34;, system_energy, &#34;J&#34;)
+                relative_error = 100.0 * (system_energy - expected_energy_after_laser) / expected_energy_after_laser
+                print(&#34;Relative error in energy (%):&#34;, relative_error, &#34;\n\n&#34;)
+
+            self.RemoveElementsByAblation()
+            self.AdjustTemperatureFieldAfterAblation()
+            self.ResidualHeatStage()
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters(r&#34;&#34;&#34;{
+            &#34;time_integration_method&#34; : &#34;implicit&#34;,
+            &#34;transient_parameters&#34; : {
+                &#34;dynamic_tau&#34;: 1.0,
+                &#34;theta&#34;    : 0.5
+            },
+            &#34;ambient_temperature&#34; : 0.0
+        }&#34;&#34;&#34;)
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
+
+    def AllocateKratosMemory(self):
+        # Set element counter variable to zero
+        for elem in self.main_model_part.Elements:
+            elem.SetValue(LaserDrillingApplication.THERMAL_COUNTER, 0)
+            elem.SetValue(KratosMultiphysics.TEMPERATURE, 0.0)
+            elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
+            elem.SetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION, 0.01)
+            elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, 0.0)
+            elem.SetValue(LaserDrillingApplication.ELEMENTAL_VOLUME, 0.0)
+            elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
+            elem.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, 0.0)
+            elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
+            elem.Set(KratosMultiphysics.ACTIVE, True)
+            elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, 0.0)
+
+        for node in self.main_model_part.Nodes:
+            node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 0.0)
+            node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
+            node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
+            node.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, 0.0)
+            node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
+            node.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, 0.0)
+
+    def ComputeSpotDiameter(self):
+        spot_diameter = self.beam_waist_diameter * np.sqrt(
+            1.0 + ((self.focus_z_offset + self.z_ast_max) / self.rayleigh_length) ** 2
+        )
+        return spot_diameter
+
+    def ComputePeakFluence(self):
+        &#34;&#34;&#34;
+        Computes the peak fluence of a gaussian pulse from its energy and waist radius
+        Source: Woodfield 2024, eq (5)
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        The peak fluence
+        &#34;&#34;&#34;
+        return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2
+
+    def ComputeMaximumAblationRadius(self):
+        import math  # TODO: Why not import math at the top? And why not use numpy?
+
+        return self.omega_0 * math.sqrt(0.5 * math.log(self.F_p / (self.delta_pen * self.q_ast)))
+
+    def SetParameters(self):
+        # TODO: - Utilitzar GUI de GiD de la LaserDrilling Application per a generar un cas amb 2 materials i
+        #         revisar si pots llegir-los utilitzant les funcions del solver base ja existents:
+        #         ConvectionDiffusionTransientSolver -&gt; ConvectionDiffusionSolver -&gt; PrepareModelPart() -&gt; self.import_materials()
+        #         (applications\ConvectionDiffusionApplication\python_scripts\convection_diffusion_solver.py)
+        #         Si no funcinoa, pots provar la GUI de GiD de la ConvectionDiffusion Application per a generar un cas amb 2 materials
+        #       - Segurament hauras de generalitzar aquesta funcio per a mes d&#39;1 material: tot el que es llegeixi de self.material_settings
+        #         hauria de llegir-se del json de materials (LaserDrillingMaterials.json)
+
+        self.some_elements_are_above_the_evap_temp = False
+        self.jump_between_pulses_counter = 0
+        self.pulse_number = 0
+        self.print_hdf5_and_gnuplot_files = False  # TODO: Make into a parameter
+
+        materials_filename = self.settings[&#34;material_import_settings&#34;][&#34;materials_filename&#34;].GetString()
+
+        with open(materials_filename, &#34;r&#34;) as parameter_file:
+            materials = KratosMultiphysics.Parameters(parameter_file.read())
+
+        self.material_settings = materials[&#34;properties&#34;][0][&#34;Material&#34;]
+
+        with open(&#34;ProjectParameters.json&#34;, &#34;r&#34;) as project_parameters_file:
+            self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
+
+        &#34;&#34;&#34; 
+        TODO: instead of hardcoding default values for the parameters, wouldn&#39;t it be better if when a parameter is not defined the program failed?
+        In this way, we would ensure that the user is sure that they want to set a specific value for a variable. And they
+        would not be able to accidentally run a case with values that were not chosen by them
+        &#34;&#34;&#34;
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;average_laser_power&#34;):
+            self.average_laser_power = 18
+        else:
+            self.average_laser_power = self.project_parameters[&#34;problem_data&#34;][&#34;average_laser_power&#34;].GetDouble()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;pulse_frequency&#34;):
+            self.pulse_frequency = 2e5
+        else:
+            self.pulse_frequency = self.project_parameters[&#34;problem_data&#34;][&#34;pulse_frequency&#34;].GetDouble()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;beam_waist_diameter&#34;):
+            self.beam_waist_diameter = 0.0179
+        else:
+            self.beam_waist_diameter = self.project_parameters[&#34;problem_data&#34;][&#34;beam_waist_diameter&#34;].GetDouble()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;Rayleigh_length&#34;):
+            self.rayleigh_length = 0.409
+        else:
+            self.rayleigh_length = self.project_parameters[&#34;problem_data&#34;][&#34;Rayleigh_length&#34;].GetDouble()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;focus_Z_offset&#34;):
+            self.focus_z_offset = 0.4
+        else:
+            self.focus_z_offset = self.project_parameters[&#34;problem_data&#34;][&#34;focus_Z_offset&#34;].GetDouble()
+
+        self.z_ast_max = 0.0
+
+        # self.spot_diameter = self.ComputeSpotDiameter()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;vaporisation_temperature&#34;):
+            self.T_e = 1000.0
+        else:
+            self.T_e = self.project_parameters[&#34;problem_data&#34;][&#34;vaporisation_temperature&#34;].GetDouble()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;compute_vaporisation&#34;):
+            self.compute_vaporisation = False
+        else:
+            self.compute_vaporisation = self.project_parameters[&#34;problem_data&#34;][&#34;compute_vaporisation&#34;].GetBool()
+
+        if not self.material_settings[&#34;Variables&#34;].Has(&#34;IONIZATION_ALPHA&#34;):
+            self.ionization_alpha = 1.0  # 0.95
+        else:
+            self.ionization_alpha = 1.0  # self.material_settings[&#39;Variables&#39;][&#39;IONIZATION_ALPHA&#39;].GetDouble()
+
+        if not self.material_settings[&#34;Variables&#34;].Has(&#34;PENETRATION_DEPTH&#34;):
+            self.l_s = 0.002148  # mm.
+        else:
+            self.l_s = self.material_settings[&#34;Variables&#34;][&#34;PENETRATION_DEPTH&#34;].GetDouble()
+
+        if not self.material_settings[&#34;Variables&#34;].Has(&#34;ABLATION_THRESHOLD&#34;):
+            self.F_th = 0.010667  # J/mm2
+        else:
+            self.F_th = self.material_settings[&#34;Variables&#34;][&#34;ABLATION_THRESHOLD&#34;].GetDouble()
+
+        if not self.material_settings[&#34;Variables&#34;].Has(&#34;THERMAL_DEPTH&#34;):
+            self.l_th = 0.0007  # mm.
+        else:
+            self.l_th = self.material_settings[&#34;Variables&#34;][&#34;THERMAL_DEPTH&#34;].GetDouble()
+
+        if not self.material_settings[&#34;Variables&#34;].Has(&#34;ENTHALPY&#34;):
+            self.H_ev = (
+                4e5  # J/Kg. Value found on the internet for a given epoxy resin. # TODO: find an actual source ffs
+            )
+        else:
+            self.H_ev = self.material_settings[&#34;Variables&#34;][&#34;ENTHALPY&#34;].GetDouble()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;mesh_size&#34;):
+            self.mesh_size = &#34;coarse&#34;
+        else:
+            self.mesh_size = self.project_parameters[&#34;problem_data&#34;][&#34;mesh_size&#34;].GetString()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;mesh_type&#34;):
+            self.mesh_type = &#34;unstructured&#34;
+        else:
+            self.mesh_type = self.project_parameters[&#34;problem_data&#34;][&#34;mesh_type&#34;].GetString()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;print_hole_geometry_files&#34;):
+            self.print_hole_geometry_files = False
+        else:
+            self.print_hole_geometry_files = self.project_parameters[&#34;problem_data&#34;][
+                &#34;print_hole_geometry_files&#34;
+            ].GetBool()
+
+        self.Q = self.average_laser_power / self.pulse_frequency  # Energy per pulse
+        self.time_jump_between_pulses = 1.0 / self.pulse_frequency  # TODO: rename to something like pulse_period?
+        self.cp = self.material_settings[&#34;Variables&#34;][&#34;SPECIFIC_HEAT&#34;].GetDouble()
+        self.conductivity = self.material_settings[&#34;Variables&#34;][&#34;CONDUCTIVITY&#34;].GetDouble()
+        self.rho = self.material_settings[&#34;Variables&#34;][&#34;DENSITY&#34;].GetDouble()
+        self.T0 = self.settings[&#34;ambient_temperature&#34;].GetDouble()
+        self.kappa = self.conductivity / (self.rho * self.cp)
+        self.ablation_energy_fraction = self.ionization_alpha
+        self.evaporation_energy_fraction = 1.0 - self.ionization_alpha
+
+        ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
+        ## Laser data
+        self.omega_0 = 0.5 * self.ComputeSpotDiameter()  # self.R_far # mm
+        import numpy as np
+
+        y_limit = 2.0 * self.omega_0
+        self.hole_theoretical_Y_coords = np.linspace(0.0, float(y_limit), 101)
+        self.hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
+        self.one_pulse_hole_theoretical_Y_coords = np.linspace(0.0, 0.0, 101)
+        self.one_pulse_hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
+        self.F_p = self.ComputePeakFluence()
+
+        ## Material calibration using experiments
+        if not self.material_settings[&#34;Variables&#34;].Has(&#34;OPTICAL_PENETRATION_DEPTH&#34;):
+            self.delta_pen = 5e-4  # mm
+        else:
+            self.delta_pen = self.material_settings[&#34;Variables&#34;][&#34;OPTICAL_PENETRATION_DEPTH&#34;].GetDouble()
+
+        if not self.material_settings[&#34;Variables&#34;].Has(&#34;ENERGY_PER_VOLUME_THRESHOLD&#34;):
+            self.q_ast = 10.0  # J/mm3
+        else:
+            self.q_ast = self.material_settings[&#34;Variables&#34;][&#34;ENERGY_PER_VOLUME_THRESHOLD&#34;].GetDouble()
+
+        if not self.material_settings[&#34;Variables&#34;].Has(&#34;REFRACTIVE_INDEX&#34;):
+            self.refractive_index_n = 1.5
+        else:
+            self.refractive_index_n = self.material_settings[&#34;Variables&#34;][&#34;REFRACTIVE_INDEX&#34;].GetDouble()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;consider_material_refraction&#34;):
+            self.consider_material_refraction = False
+        else:
+            self.consider_material_refraction = self.project_parameters[&#34;problem_data&#34;][
+                &#34;consider_material_refraction&#34;
+            ].GetBool()
+
+        if self.material_settings[&#34;compute_optical_penetration_depth_using_refractive_index&#34;].GetBool():
+            self.ComputeOpticalPenetrationDepth()  # TODO: Better to return the value instead of modifying a global?
+            self.delta_pen = self.l_s
+
+        if self.material_settings[&#34;compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization&#34;].GetBool():
+            self.ionizarion_energy_per_volume_threshold = self.ComputeIonizationEnergyPerUnitVolumeThreshold()
+            # TODO: typo &#34;ionizaRion&#34;?
+            self.use_enthalpy_and_ionization = True
+        else:
+            self.use_enthalpy_and_ionization = False
+
+        self.decomposed_nodes_coords_filename = (
+            &#34;hole_coords_q_ast=&#34;
+            + str(self.q_ast)
+            + &#34;_delta_pen=&#34;
+            + str(self.delta_pen)
+            + &#34;_&#34;
+            + self.mesh_type
+            + &#34;_&#34;
+            + self.mesh_size
+            + &#34;.txt&#34;
+        )
+
+        self.r_ast_max = self.ComputeMaximumAblationRadius()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;adjust_T_field_after_ablation&#34;):
+            self.adjust_T_field_after_ablation = False
+        else:
+            self.adjust_T_field_after_ablation = self.project_parameters[&#34;problem_data&#34;][
+                &#34;adjust_T_field_after_ablation&#34;
+            ].GetBool()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;reference_T_after_laser&#34;):
+            self.reference_T_after_laser = 298.15
+        else:
+            self.reference_T_after_laser = self.project_parameters[&#34;problem_data&#34;][
+                &#34;reference_T_after_laser&#34;
+            ].GetDouble()
+
+        if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;print_debug_info&#34;):
+            self.print_debug_info = False
+        else:
+            self.print_debug_info = self.project_parameters[&#34;problem_data&#34;][&#34;print_debug_info&#34;].GetBool()
+
+        self.analytical_ablated_volume_in_n_pulses = 0.0
+
+        for properties, i in enumerate(materials[&#34;properties&#34;]):
+            full_material_part_name_i = i[&#34;model_part_name&#34;].GetString()
+            prefix = &#34;ThermalModelPart.&#34;
+            material_part_name_i = full_material_part_name_i.removeprefix(prefix)
+
+            material_part_i = self.main_model_part.GetSubModelPart(material_part_name_i)
+            material_settings_i = i[&#34;Material&#34;]
+            thermal_energy_per_volume_i = material_settings_i[&#34;Variables&#34;][&#34;ENERGY_PER_VOLUME_THRESHOLD&#34;].GetDouble()
+            for elem in material_part_i.Elements:
+                elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, thermal_energy_per_volume_i)
+
+        # self.sigma = 0.5 * self.R_far
+        # self.K = 1 / (2 * self.sigma**2)
+        # import math
+        # self.C = self.ablation_energy_fraction * self.Q * self.K / (np.pi * (1 - math.exp(-self.K * self.R_far**2)))
+        # self.irradiated_surface_area = np.pi * self.R_far**2
+
+        # if self.ablation_energy_fraction:
+        # Find F_th_fraction multiplying F_th so Radius_th = R_far
+        # This gives a F_th_fraction of 0.313, a little too flat (maximum not captured)
+        # F_th_fraction = self.C * np.exp(-self.K * self.R_far**2) / (self.ablation_energy_fraction * self.Q / A)
+
+        ####################################
+        # Calibrated for:                  #
+        # residual heat fraction   = 0.05  #
+        # Vaporisation temperature = 1000K #
+        # Power                    = 3W    #
+        ####################################
+
+        # self.F_th = 0.009667 # J/mm2 #F_th_fraction * self.ablation_energy_fraction * self.Q / self.irradiated_surface_area
+        # self.radius_th = math.sqrt(math.log(self.C / self.F_th) / self.K)
+
+        # self.l_s = self.PenetrationDepthEstimation() #0.001 # 5 pulses, with evaporation
+
+        # self.l_s = 0.002048
+        # self.l_th = 0.33 # micrometers # Thermal depth, assumed
+
+        l_th_in_meters = self.l_th * 1e-3
+        kappa_in_square_meters = self.kappa * 1e-6
+        self.thermal_penetration_time = l_th_in_meters**2 / kappa_in_square_meters
+
+        # Finite Elements
+        # self.n_surface_elements = 10 # number of elements
+        # self.sparse_option = True
+        # self.surface_nodes_Y_values = np.linspace(0.0, self.R_far, self.n_surface_elements + 1)
+        # self.surface_element_size = self.R_far / self.n_surface_elements
+
+        # Debug
+        self.plot_progressive_hole_figures = False
+
+    def ComputeMaximumDepth(self):
+        # TODO: Are we sure that what I understand to be the node at the axis of symmetry is
+        # always the deepest one? Shouldn&#39;t we search for the deepest among the list?
+        maximum_depth = self.list_of_ablated_nodes_coords_X[0]
+        return maximum_depth
+
+    def ComputeOpticalPenetrationDepth(self):
+        # TODO: Shouldn&#39;t this be a parameter read from the JSON parameters?
+        light_lambda = 550e-6  # mm, light wavelength
+
+        # TODO: Is there a reason not to combine the following two lines?
+        epoxy_n = self.refractive_index_n
+        n = epoxy_n
+        A = 4.0 * n / ((n + 1) ** 2 + n**2)
+
+        # TODO: Why modify the global self.l_s and also return its value?
+        self.l_s = 0.25 * light_lambda * A / np.pi
+        return self.l_s
+
+    def UpdateLaserRelatedParameters(self):
+        self.z_ast_max = self.ComputeMaximumDepth()
+        # TODO: Maybe implement a function ComputeWaist that does this? For code clarity and
+        # so we don&#39;t forget to multiply by 0.5
+        self.omega_0 = 0.5 * self.ComputeSpotDiameter()
+        self.F_p = self.ComputePeakFluence()
+        self.r_ast_max = self.ComputeMaximumAblationRadius()
+
+    def SetUpResultsFiles(self):
+        self.SetUpGNUPlotFiles()
+        self.SetUpHDF5Files()
+
+    def SetUpGNUPlotFiles(self):
+        if os.path.exists(&#34;temperature_alpha.txt&#34;):
+            os.remove(&#34;temperature_alpha.txt&#34;)
+        self.temperature_alpha_file = open(&#34;temperature_alpha.txt&#34;, &#34;a&#34;)
+        if os.path.exists(&#34;time_alpha.txt&#34;):
+            os.remove(&#34;time_alpha.txt&#34;)
+        self.time_alpha_file = open(&#34;time_alpha.txt&#34;, &#34;a&#34;)
+        if os.path.exists(&#34;decomposed_volume_evolution.txt&#34;):
+            os.remove(&#34;decomposed_volume_evolution.txt&#34;)
+        self.decomposed_volume_file = open(&#34;decomposed_volume_evolution.txt&#34;, &#34;a&#34;)
+
+    def SetUpHDF5Files(self):
+        radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
+        self.near_field_nodes = [node for node in self.main_model_part.Nodes if radius_2(node) &lt; self.R_far**2]
+        self.radii = np.sqrt(np.array([radius_2(node) for node in self.near_field_nodes]))
+        self.results_filename = &#34;results.h5&#34;
+        self.CreateResultsFile(self.results_filename)
+        self.temperature_increments = np.array(
+            [node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes]
+        )
+
+    def AdjustTemperatureFieldAfterAblation(self):
+        if not self.adjust_T_field_after_ablation:
+            return
+        # TODO: check if self.T0 - self.reference_T_after_laser = 0.
+        # In that case, new_temperature = old_temperature and this loop can be skipped
+        # I don&#39;t know if it&#39;s worth doing this modification, but right now,
+        # self.T0 - self.reference_T_after_laser = 0 (15-04-2025)
+        for node in self.main_model_part.Nodes:
+            old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            new_temperature = old_temperature + self.T0 - self.reference_T_after_laser
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temperature)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temperature)
+        for elem in self.main_model_part.Elements:
+            elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
+
+    def ImposeLaserDeltaTemperature(self):
+        &#34;&#34;&#34;
+        Calls a function that applies the temperature increase due to the laser pulse.
+        Depending on the parameters of the simulation, it decides which function to call.
+        For example, it chooses between applying the pulse with or without refraction.
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        &#34;&#34;&#34;
+        # TODO: Is there any advantage to writing the conditional in this way, instead of
+        # having the clause not be negated?
+        if not self.consider_material_refraction:
+            self.ImposeTemperatureIncreaseDueToLaser()
+        else:
+            self.ImposeTemperatureIncreaseDueToLaserWithRefraction()
+
+    def Initialize(self):
+        super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).Initialize()
+        self.starting_time = timer.time()
+
+        self.AllocateKratosMemory()
+
+        self.SetParameters()
+
+        # TODO: change python arrays into numpy arrays?
+        # TODO: Explain what these are
+        self.list_of_decomposed_nodes_coords = []
+        self.list_of_decomposed_nodes_coords_X = []
+        self.list_of_decomposed_nodes_coords_Y = []
+        self.list_of_lists_of_decomposed_nodes_X = []
+        self.list_of_lists_of_decomposed_nodes_Y = []
+        self.full_list_of_ablated_nodes_coords_X = []
+        self.full_list_of_ablated_nodes_coords_Y = []
+
+        if self.print_hdf5_and_gnuplot_files:
+            self.SetUpResultsFiles()
+
+        # TODO: Initial condition, ambient temperature. Do this using GUI!
+        for node in self.main_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.T0)
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
+
+        self.IdentifyInitialSurfaceNodes()
+
+        self.ResidualHeatStage()
+
+        if self.print_hdf5_and_gnuplot_files:
+            self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
+
+    def CountActiveElements(self):
+        count = 0
+        for elem in self.main_model_part.Elements:
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                count += 1
+        return count
+
+    def IdentifyInitialSurfaceNodes(self):
+        # TODO: Why are they called &#39;decomposed&#39; in this function?
+        list_of_decomposed_nodes_ids = []
+        list_of_decomposed_elements_ids = []
+        list_of_decomposed_nodes_coords_X = []
+        list_of_decomposed_nodes_coords_Y = []
+
+        for elem in self.main_model_part.Elements:
+            for node in elem.GetNodes():
+                # TODO: extremely ad-hoc!
+                if node.X &lt; 0.0000001 and node.Y &lt;= self.r_ast_max:
+                    list_of_decomposed_nodes_ids.append(node.Id)
+                    list_of_decomposed_elements_ids.append(elem.Id)
+                    list_of_decomposed_nodes_coords_X.append(node.X)
+                    list_of_decomposed_nodes_coords_Y.append(node.Y)
+
+        self.list_of_decomposed_nodes_ids = np.array(list(set(list_of_decomposed_nodes_ids)))
+        self.list_of_decomposed_elements_ids = np.array(list(set(list_of_decomposed_elements_ids)))
+        self.list_of_decomposed_nodes_coords_X = np.array(list_of_decomposed_nodes_coords_X)
+        self.list_of_decomposed_nodes_coords_Y = np.array(list_of_decomposed_nodes_coords_Y)
+
+        if not self.main_model_part.HasSubModelPart(&#34;BoundaryPart&#34;):
+            self.main_model_part.CreateSubModelPart(&#34;BoundaryPart&#34;)
+            self.boundary_part = self.main_model_part.GetSubModelPart(&#34;BoundaryPart&#34;)
+
+        self.boundary_part.AddElements(self.list_of_decomposed_elements_ids)
+        self.boundary_part.AddNodes(self.list_of_decomposed_nodes_ids)
+
+    def StorePreEvaporationTemperature(self):
+        for node in self.main_model_part.Nodes:
+            pre_evaporation_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
+        for elem in self.main_model_part.Elements:
+            elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
+            pre_evaporation_temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
+            elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
+
+    def ResetTemperatureField(self):
+        if self.adjust_T_field_after_ablation:
+            reference_temp = self.reference_T_after_laser
+            for node in self.main_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, reference_temp)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, reference_temp)
+
+    def ResidualHeatStage(self):
+        &#34;&#34;&#34;
+        TODO: Currently, unused. It is overriden by LaserDrillingTransienSolverAblationPlusThermal.ResidualHeatStage
+        &#34;&#34;&#34;
+        if self.evaporation_energy_fraction:
+            self.projector = SurfaceFEMProjector(
+                self.n_surface_elements, self.R_far, self.sparse_option
+            )  # , delta_coefficients)
+            self.q_interp = self.projector.InterpolateFunctionAndNormalize(self.EnergyPerUnitArea1D)  # , 1.0)
+            if self.compute_vaporisation:
+                self.first_evaporation_stage_done = False
+                self.max_vaporisation_layers = 50
+                # if self.pulse_number == 1:
+                #     self.max_vaporisation_layers = 1
+                self.vaporisation_layer_number = 1
+                self.some_elements_are_above_the_evap_temp = True
+                print(&#34;Removing elements by evaporation...&#34;)
+                print(&#34;Pulse number:&#34;, self.pulse_number)
+                self.last_evaporation_layer_applied = False
+                self.StorePreEvaporationTemperature()
+                self.ablation_only_legend_added = False
+
+                while self.some_elements_are_above_the_evap_temp:
+                    if self.vaporisation_layer_number &gt; self.max_vaporisation_layers:
+                        if not self.max_vaporisation_layers:
+                            self.ImposeTemperatureIncreaseDueTo1DConduction()
+                        print(&#34;******************************MAXIMUM ITERATIONS EXCEEDED!!!&#34;)
+                        break
+                    self.ImposeTemperatureIncreaseDueTo1DConduction()
+                    self.RemoveElementsByEvaporation()
+
+                print(&#34;Done!&#34;)
+            else:
+                self.ImposeTemperatureIncreaseDueTo1DConduction()
+
+    def RemoveElementsByEvaporation(self):
+        evap_elements_centers_Y = []
+        evap_elements_volumes = []
+        delta_temp_elements = []
+        uncapped_delta_temp_elements = []
+        self.some_elements_are_above_the_evap_temp = False
+        for elem in self.boundary_part.Elements:
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                temp = elem.CalculateOnIntegrationPoints(
+                    KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo
+                )
+                element_temperature = temp[0]
+                if element_temperature &gt; self.T_e:
+                    pre_evap_temp = elem.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE)
+                    delta_temp = self.T_e - pre_evap_temp
+                    uncapped_delta_temp = element_temperature - pre_evap_temp
+                    delta_temp_elements.append(delta_temp)
+                    uncapped_delta_temp_elements.append(uncapped_delta_temp)
+                    self.some_elements_are_above_the_evap_temp = True
+                    elem.Set(KratosMultiphysics.ACTIVE, False)
+                    vol = elem.CalculateOnIntegrationPoints(
+                        LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo
+                    )
+                    elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, vol[0])
+                    element_volume = elem.GetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME)
+                    Y_centroid = elem.GetGeometry().Center().Y
+                    evap_elements_centers_Y.append(Y_centroid)
+                    evap_elements_volumes.append(element_volume)
+                    for node in elem.GetNodes():
+                        node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
+
+        number_of_problematic_elements = 0
+        for elem in self.main_model_part.Elements:
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                number_of_decomposed_nodes = 0
+                temp = elem.CalculateOnIntegrationPoints(
+                    KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo
+                )
+                element_temperature = temp[0]
+                for node in elem.GetNodes():
+                    if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
+                        number_of_decomposed_nodes += 1
+                if number_of_decomposed_nodes == 3:
+                    elem.Set(KratosMultiphysics.ACTIVE, False)
+                    elem.CalculateOnIntegrationPoints(
+                        LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo
+                    )
+                    element_volume = elem.GetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME)
+                    Y_centroid = elem.GetGeometry().Center().Y
+                    pre_evap_temp = elem.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE)
+                    delta_temp = self.T_e - pre_evap_temp
+                    # delta_temp_elements.append(delta_temp)
+                    uncapped_delta_temp = element_temperature - pre_evap_temp
+                    # uncapped_delta_temp_elements.append(uncapped_delta_temp)
+                    # evap_elements_centers_Y.append(Y_centroid)
+                    # evap_elements_volumes.append(element_volume)
+                    number_of_problematic_elements += 1
+        print(&#34;Number_of_problematic_elements:&#34;, number_of_problematic_elements)
+        evap_elements_centers_Y = np.array(evap_elements_centers_Y)
+        evap_elements_volumes = np.array(evap_elements_volumes)
+        self.evap_elements_centers_Y = evap_elements_centers_Y[evap_elements_centers_Y.argsort()]
+        self.evap_elements_volumes = evap_elements_volumes[evap_elements_centers_Y.argsort()]
+        # print(&#34;self.evap_elements_centers_Y:&#34;, self.evap_elements_centers_Y)
+        # print(&#34;self.evap_elements_volumes:&#34;, self.evap_elements_volumes)
+
+        delta_temp_elements = np.array(delta_temp_elements)
+        self.delta_temp_elements = delta_temp_elements[evap_elements_centers_Y.argsort()]
+        uncapped_delta_temp_elements = np.array(uncapped_delta_temp_elements)
+        self.uncapped_delta_temp_elements = uncapped_delta_temp_elements[evap_elements_centers_Y.argsort()]
+
+        # Total enthalpy: Energy consumed for the material to vaporize plus the energy for heating up the material to the vaporization temperature.
+        # Equation (8) in Wang, 2019. &#39;Thermal effect of femtosecond laser polystyrene processing&#39;
+        self.evap_elements_enthalpies = (
+            self.evap_elements_volumes * self.rho * (self.H_ev + self.cp * self.delta_temp_elements)
+        )
+
+        # print(&#34;evap_elements_volumes:&#34;, evap_elements_volumes)
+        # print(&#34;delta_temp_elements:&#34;, delta_temp_elements)
+        # print(&#34;self.evap_elements_enthalpies:&#34;, self.evap_elements_enthalpies)
+
+        self.support_elements = [[] for i in range(self.n_surface_elements + 1)]
+
+        if not self.some_elements_are_above_the_evap_temp:
+            return
+
+        import matplotlib.pyplot as plt
+
+        figure, axis = plt.subplots(2, 2, figsize=(15, 8))
+        label_size = 13
+        numbers_size = 11
+        axis[0][0].grid()
+        axis[0][0].plot(self.evap_elements_centers_Y, self.evap_elements_volumes, color=&#34;red&#34;, marker=&#34;+&#34;)
+        axis[0][0].set_xlabel(&#34;radius (mm)&#34;)
+        axis[0][0].set_ylabel(&#34;Volumes (mm3)&#34;, fontsize=label_size)
+        axis[1][0].grid()
+        axis[1][0].plot(self.evap_elements_centers_Y, self.delta_temp_elements, color=&#34;blue&#34;, marker=&#34;o&#34;)
+        # axis[1][0].set_ylim(bottom=0, top=None)
+        axis[1][0].set_xlabel(&#34;radius (mm)&#34;)
+        axis[1][0].set_ylabel(&#34;Delta temps (K)&#34;, fontsize=label_size)
+        axis[0][1].grid()
+        axis[0][1].plot(self.evap_elements_centers_Y, self.evap_elements_enthalpies, color=&#34;black&#34;, marker=&#34;x&#34;)
+        axis[0][1].set_xlabel(&#34;radius (mm)&#34;)
+        axis[0][1].set_ylabel(&#34;Enthalpies (J)&#34;, fontsize=label_size)
+        axis[1][1].grid()
+        axis[1][1].plot(self.evap_elements_centers_Y, self.uncapped_delta_temp_elements, color=&#34;green&#34;, marker=&#34;*&#34;)
+        # axis[1][1].set_ylim(bottom=0, top=None)
+        axis[1][1].set_xlabel(&#34;radius (mm)&#34;)
+        axis[1][1].set_ylabel(&#34;Uncapped delta temps (K)&#34;, fontsize=label_size)
+        # figure.show()
+
+        print(&#34;\nEvaporating layer number&#34;, self.vaporisation_layer_number, &#34;...&#34;)
+        self.vaporisation_layer_number += 1
+
+        if not self.sparse_option:
+            self.projector.FillUpMassMatrix()
+        else:
+            self.projector.FillUpSparseMassMatrix()
+        self.projector.AssignDeltasToTestFunctionSupports(self.evap_elements_centers_Y, self.support_elements)
+        self.projector.FillUpDeltasRHS(
+            self.evap_elements_centers_Y, self.support_elements, self.evap_elements_enthalpies
+        )
+        self.u = self.projector.Project()
+
+        total_energy = self.projector.CalculateEnergyOfFEMFunction(self.u)
+
+        print(&#34;Total energy expected =&#34;, sum(self.evap_elements_enthalpies))
+        print(&#34;Total energy calculated =&#34;, total_energy)
+
+        import matplotlib.pyplot as plt
+
+        _, axis = plt.subplots(1, 2, figsize=(20, 5))
+        axis[0].grid()
+        axis[0].plot(self.projector.X, self.q_interp, color=&#34;red&#34;, marker=&#34;+&#34;)
+        axis[0].plot(self.projector.X, self.u, color=&#34;blue&#34;, marker=&#34;o&#34;)
+
+        self.q_interp -= self.u
+
+        # TODO: rethink this!
+        for i, q in enumerate(self.q_interp):
+            if q &lt; 0.0:
+                self.q_interp[i] = 0.0
+
+        axis[0].tick_params(axis=&#34;both&#34;, which=&#34;major&#34;, labelsize=numbers_size)
+        axis[0].tick_params(axis=&#34;both&#34;, which=&#34;minor&#34;, labelsize=numbers_size)
+        plt.subplots_adjust(left=0.1, bottom=None, right=0.9, top=None, wspace=0.22, hspace=None)
+        axis[0].plot(self.projector.X, self.q_interp, color=&#34;black&#34;, marker=&#34;*&#34;)
+        axis[0].set_ylim(bottom=0.0, top=0.0036)
+        axis[0].legend(
+            [&#34;fluence (interpolated)&#34;, &#34;fluence (lost)&#34;, &#34;fluence (remaining)&#34;],
+            loc=&#34;upper right&#34;,
+            fontsize=label_size,
+        )
+        axis[0].set_xlabel(&#34;radius (mm)&#34;, fontsize=label_size)
+        axis[0].set_ylabel(&#34;Energies (J/mm2)&#34;, fontsize=label_size)
+
+        self.AddDecomposedNodesToSurfaceList()
+        self.first_evaporation_stage_done = True
+
+        X = self.list_of_decomposed_nodes_coords_X
+        Y = self.list_of_decomposed_nodes_coords_Y
+
+        if not self.ablation_only_legend_added:
+            if self.ablation_energy_fraction:
+                self.full_list_of_ablated_nodes_coords_X.append(self.list_of_ablated_nodes_coords_X)
+                self.full_list_of_ablated_nodes_coords_Y.append(self.list_of_ablated_nodes_coords_Y)
+            else:
+                self.full_list_of_ablated_nodes_coords_X.append(0.0 * Y)
+                self.full_list_of_ablated_nodes_coords_Y.append(Y)
+            self.ablation_only_legend_added = True
+
+        self.list_of_lists_of_decomposed_nodes_X.append(X)
+        self.list_of_lists_of_decomposed_nodes_Y.append(Y)
+
+        axis[1].grid()
+        list_of_legends = []
+        p = 1
+        axis[1].tick_params(axis=&#34;both&#34;, which=&#34;major&#34;, labelsize=numbers_size)
+        axis[1].tick_params(axis=&#34;both&#34;, which=&#34;minor&#34;, labelsize=numbers_size)
+        for list_X, list_Y in zip(self.full_list_of_ablated_nodes_coords_X, self.full_list_of_ablated_nodes_coords_Y):
+            axis[1].plot(list_Y, -list_X, color=&#34;black&#34;)
+            axis[1].set_ylim(bottom=-0.0023, top=None)
+            converted_num = &#34;Ablation number #&#34; + str(p)
+            list_of_legends.append(converted_num)
+            p += 1
+        i = 1
+        for list_X, list_Y in zip(self.list_of_lists_of_decomposed_nodes_X, self.list_of_lists_of_decomposed_nodes_Y):
+            axis[1].plot(list_Y, -list_X)
+            axis[1].set_ylim(bottom=-0.0023, top=0)
+            converted_num = &#34;Evap. layer #&#34; + str(i)
+            list_of_legends.append(converted_num)
+            i += 1
+        axis[1].legend(list_of_legends, loc=&#34;lower right&#34;, fontsize=11)
+        axis[1].set_xlabel(&#34;radius (mm)&#34;, fontsize=label_size)
+        axis[1].set_ylabel(&#34;Ablation plus evaporation (mm)&#34;, fontsize=label_size)
+
+        if self.plot_progressive_hole_figures:
+            plt.show()
+
+        if self.vaporisation_layer_number &lt;= self.max_vaporisation_layers:
+            self.RetrievePreEvaporationTemperatureState()
+
+    def RetrievePreEvaporationTemperatureState(self):
+        for node in self.main_model_part.Nodes:
+            node.SetSolutionStepValue(
+                KratosMultiphysics.TEMPERATURE,
+                node.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE),
+            )
+            node.SetSolutionStepValue(
+                KratosMultiphysics.TEMPERATURE,
+                1,
+                node.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE),
+            )
+        for elem in self.main_model_part.Elements:
+            elem.SetValue(
+                KratosMultiphysics.TEMPERATURE,
+                elem.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE),
+            )
+
+    def ImposeTemperatureIncreaseDueTo1DConduction(self):
+        X = self.list_of_decomposed_nodes_coords_X
+        Y = self.list_of_decomposed_nodes_coords_Y
+        self.minimum_characteristic_Z = 1e6
+        self.maximum_characteristic_Z = -1e6
+        for node in self.main_model_part.Nodes:
+            radius = node.Y
+            &#34;&#34;&#34; if not self.ablation_energy_fraction:
+                distance_to_surface = 0.0
+            else: &#34;&#34;&#34;
+            F = interp1d(Y, X, bounds_error=False, fill_value=0.0)
+            distance_to_surface = F(radius)
+            z = node.X - distance_to_surface
+            if radius &lt;= self.r_ast_max:
+                delta_temp = self.TemperatureVariationInZDueToLaser1D(radius, z)
+                old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                new_temp = old_temp + delta_temp
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
+        # print(&#34;\nResidual heat fraction:&#34;, self.ionization_alpha)
+        # print(&#34;\nMaximum characteristic depth:&#34;, self.maximum_characteristic_Z)
+        # problem_characteristic_time_minimum_depth = self.minimum_characteristic_Z**2 / self.kappa
+        # problem_characteristic_time_maximum_depth = self.maximum_characteristic_Z**2 / self.kappa
+        # minimum_time_step_for_minimum_depth = 0.1 * problem_characteristic_time_minimum_depth
+        # minimum_time_step_for_maximum_depth = 0.1 * problem_characteristic_time_maximum_depth
+        # print(&#34;\nThermal problem characteristic time for maximum depth:&#34;, problem_characteristic_time_maximum_depth)
+        # print(&#34;\nNecessary time step for maximum depth:&#34;, minimum_time_step_for_maximum_depth, &#39;\n&#39;)
+
+    def EnergyPerUnitArea1D(self, radius):
+        C = (1 - self.ablation_energy_fraction) * self.Q * self.K / (np.pi * (1 - np.exp(-self.K * self.R_far**2)))
+        q = C * np.exp(-self.K * radius**2)
+        return q
+
+    def InitialThermalConductionTime(self, radius):
+        # TODO: This is never called. Also, it has radius as a parameter but it is unused. In addition, it does nothing, it just returns a variable that is calculated in SetParameters
+
+        # This function returns the characteristic time required for the initial heat distribution from the surface to the interior
+        # 4.0 (2**2) in numerator due to equation (4c) in Weber, 2014. &#39;Heat accumulation during pulsed laser materials processing&#39;
+        # C = 4.0 / (4.0 * np.pi * self.rho**2 * self.kappa * self.cp**2 * (self.T_e - self.T0)**2)
+        # t = C * self.EnergyPerUnitArea1D(radius)**2
+        return self.thermal_penetration_time
+
+    def TemperatureVariationInZDueToLaser1D(self, radius, z):
+        # q = self.EnergyPerUnitArea1D(radius)
+        q = self.projector.EvaluateFEMFunction(self.q_interp, radius)
+        t_penetration = self.InitialThermalConductionTime(radius)
+        # 2.0 in numerator due to equation (4c) in Weber, 2014. &#39;Heat accumulation during pulsed laser materials processing&#39;
+        C = 2.0 * q / (self.rho * self.cp * 2.0 * np.sqrt(np.pi * self.kappa * t_penetration))
+        delta_temp = C * np.exp(-(z**2) / (4.0 * self.kappa * t_penetration))
+        characteristic_Z = np.sqrt(4.0 * self.kappa * t_penetration)
+        if characteristic_Z &lt;= self.minimum_characteristic_Z:
+            self.minimum_characteristic_Z = characteristic_Z
+        if characteristic_Z &gt;= self.maximum_characteristic_Z:
+            self.maximum_characteristic_Z = characteristic_Z
+        return delta_temp
+
+    def SolveSolutionStep(self):
+        super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
+        # TODO: Perhaps the following fits better in FinalizeSolutionStep?
+        if self.print_hdf5_and_gnuplot_files:
+            self.temperature_increments = np.array(
+                [node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes]
+            )
+            self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
+
+    def ComputePulseHoleAndAddToTotalHole(self):
+        for i, Y_coord in enumerate(self.hole_theoretical_Y_coords):
+            self.hole_theoretical_X_coords[i] += self.EvaporationDepth(Y_coord)
+
+        if self.pulse_number == 1:
+            import copy
+
+            self.one_pulse_hole_theoretical_X_coords = copy.deepcopy(self.hole_theoretical_X_coords)
+            self.one_pulse_hole_theoretical_Y_coords = self.hole_theoretical_Y_coords
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        if self.print_hdf5_and_gnuplot_files:
+            decomp_vol = self.MonitorDecomposedVolume()
+            decomp_vol *= 1e9  # To convert mm3 into um3
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            self.decomposed_volume_file.write(str(current_time) + &#34; &#34; + str(decomp_vol) + &#34;\n&#34;)
+            for elem in self.main_model_part.Elements:
+                if elem.Id == self.element_id_to_study:
+                    temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
+                    thermal_decomposition = elem.GetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION)
+                    self.temperature_alpha_file.write(str(temperature) + &#34; &#34; + str(thermal_decomposition) + &#34;\n&#34;)
+                    self.time_alpha_file.write(str(current_time) + &#34; &#34; + str(thermal_decomposition) + &#34;\n&#34;)
+                    break
+        self.UpdateLaserRelatedParameters()
+        self.ComputePulseHoleAndAddToTotalHole()
+
+    def Finalize(self):
+        super().Finalize()
+        elapsed_time = timer.time() - self.starting_time
+        print(&#34;\nElapsed_time:&#34;, elapsed_time, &#34;\n&#34;)
+        if self.print_hdf5_and_gnuplot_files:
+            self.decomposed_volume_file.close()
+            self.temperature_alpha_file.close()
+            self.time_alpha_file.close()
+            self.PrintDecomposedVolumeEvolution()
+
+    def PrintDecomposedVolumeEvolution(self):
+        import matplotlib.pyplot as plt
+
+        file = open(os.path.expanduser(&#34;decomposed_volume_evolution.txt&#34;))
+        lines = file.readlines()
+        x, y = [], []
+        for line in lines:
+            x.append(line.split()[0])
+            y.append(line.split()[1])
+        file.close()
+        plt.plot(x, y)
+        plt.show()
+
+    def MonitorDecomposedVolume(self):
+        &#34;&#34;&#34;
+        Tallies up the volume of the decomposed elements
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        The sum of DECOMPOSED_ELEMENTAL_VOLUME
+        &#34;&#34;&#34;
+        decomposed_volume = 0.0
+        for elem in self.main_model_part.Elements:
+            out = elem.CalculateOnIntegrationPoints(
+                LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo
+            )
+            decomposed_volume += out[0]
+        return decomposed_volume
+
+    def MonitorEnergy(self):
+        &#34;&#34;&#34;
+        Tallies up the energy of the (not decomposed) elements
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        The sum of THERMAL_ENERGY over all ACTIVE elements
+        &#34;&#34;&#34;
+        energy = 0.0
+        for elem in self.main_model_part.Elements:
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                # NOTE: Here out is an std::vector with all components containing the same elemental thermal energy
+                out = elem.CalculateOnIntegrationPoints(
+                    LaserDrillingApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo
+                )
+                energy += out[0]
+        return energy
+
+    def RemoveElementsByAblation(self):
+        # TODO: make this method abstract? It is overridden by LaserDrillingTransientSolverAblationPlusThermal.RemoveElementsByAblation
+        if self.ablation_energy_fraction:
+            X = self.list_of_decomposed_nodes_coords_X
+            Y = self.list_of_decomposed_nodes_coords_Y
+
+            for elem in self.main_model_part.Elements:
+                X_centroid = elem.GetGeometry().Center().X
+                Y_centroid = elem.GetGeometry().Center().Y
+                # if self.pulse_number == 1:
+                #     X_interp = 0
+                # else:
+                F = interp1d(Y, X, bounds_error=False)
+                X_interp = F(Y_centroid)
+                DeltaX = X_centroid - X_interp
+                d_ev = self.EvaporationDepth(Y_centroid)
+                if DeltaX &lt;= d_ev:  # and Y_centroid &lt;= self.radius_th:
+                    elem.Set(KratosMultiphysics.ACTIVE, False)
+                    for node in elem.GetNodes():
+                        node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
+            for elem in self.main_model_part.Elements:
+                if elem.Is(KratosMultiphysics.ACTIVE):
+                    number_of_decomposed_nodes = 0
+                    for node in elem.GetNodes():
+                        if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
+                            number_of_decomposed_nodes += 1
+                    if number_of_decomposed_nodes == 3:
+                        elem.Set(KratosMultiphysics.ACTIVE, False)
+            self.AddDecomposedNodesToSurfaceList()
+            self.list_of_ablated_nodes_coords_X = self.list_of_decomposed_nodes_coords_X
+            self.list_of_ablated_nodes_coords_Y = self.list_of_decomposed_nodes_coords_Y
+            &#34;&#34;&#34;print(&#39;\nR_far:&#39;, self.R_far)
+            print(&#39;\nRadius_th:&#39;, self.radius_th)
+            print(&#34;\nDecomposed volume:&#34;, self.MonitorDecomposedVolume())&#34;&#34;&#34;
+
+    def sortSecond(self, val):
+        &#34;&#34;&#34;
+        Helper function used, for instance, as a key for sorting a list. Returns the second element of the list.
+
+        Parameters
+        ----------
+        val: list
+             The list.
+
+        Returns
+        -------
+        The second element of the list
+        &#34;&#34;&#34;
+
+        return val[1]
+
+    def AddDecomposedNodesToSurfaceList(self):
+        list_of_decomposed_nodes_ids = []
+        list_of_decomposed_elements_ids = []
+        number_of_boundary_elements = 0
+        for elem in self.main_model_part.Elements:
+            first_decomposed_node_found = False
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                for node in elem.GetNodes():
+                    if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
+                        list_of_decomposed_nodes_ids.append(node.Id)
+                        if not first_decomposed_node_found:
+                            number_of_boundary_elements += 1
+                            list_of_decomposed_elements_ids.append(elem.Id)
+                            first_decomposed_node_found = True
+        self.list_of_decomposed_nodes_ids = np.array(
+            list(set(list_of_decomposed_nodes_ids))
+        )  # TODO: why do list(set(x))? To remove duplicates?
+        self.list_of_decomposed_elements_ids = np.array(list_of_decomposed_elements_ids)
+
+        if not self.main_model_part.HasSubModelPart(&#34;BoundaryPart&#34;):
+            self.main_model_part.CreateSubModelPart(&#34;BoundaryPart&#34;)
+            self.boundary_part = self.main_model_part.GetSubModelPart(&#34;BoundaryPart&#34;)
+        else:
+            self.main_model_part.RemoveSubModelPart(self.boundary_part)
+            self.main_model_part.CreateSubModelPart(&#34;BoundaryPart&#34;)
+            self.boundary_part = self.main_model_part.GetSubModelPart(&#34;BoundaryPart&#34;)
+        self.boundary_part.AddElements(self.list_of_decomposed_elements_ids)
+        self.boundary_part.AddNodes(self.list_of_decomposed_nodes_ids)
+
+        list_of_decomposed_nodes_coords = []
+        for node in self.main_model_part.Nodes:
+            if node.Id in self.list_of_decomposed_nodes_ids:
+                X = node.X
+                Y = node.Y
+                coords = [X, Y]
+                list_of_decomposed_nodes_coords.append(coords)
+        list_of_decomposed_nodes_coords.sort(key=self.sortSecond)
+        self.list_of_decomposed_nodes_coords_X = np.array([coord[0] for coord in list_of_decomposed_nodes_coords])
+        self.list_of_decomposed_nodes_coords_Y = np.array([coord[1] for coord in list_of_decomposed_nodes_coords])
+        if os.path.exists(self.decomposed_nodes_coords_filename):
+            os.remove(self.decomposed_nodes_coords_filename)
+
+        if self.print_hole_geometry_files:
+            self.decomposed_nodes_coords_file = open(self.decomposed_nodes_coords_filename, &#34;a&#34;)
+            for coord in list_of_decomposed_nodes_coords:
+                self.decomposed_nodes_coords_file.write(str(coord[1]) + &#34; &#34; + str(-coord[0]) + &#34;\n&#34;)
+            self.decomposed_nodes_coords_file.close()
+
+    def PenetrationDepthEstimation(self):
+        # TODO: this function is never called. Should we remove it?
+        # TODO: where does this formula come from?
+        F_th = self.F_th
+        # TODO: make this into a parameter
+        V = 4.72e-7  # mm3. Approximate ablated volume for 1 pulses (experimental) and 3W power. For 5 pulses it should be around 2.36e-6
+        R_th = self.radius_th
+        l_s = V / (np.pi * (0.5 * R_th**2 * np.log(self.C / F_th) - 0.25 * self.K * R_th**4))
+        return l_s
+
+    # Based on Eq. 27 from Gamaly (2002) - Ablation of solids by femtosecond lasers: Ablation mechanism and ablation thresholds for metals and dielectrics
+    # TODO: remove?
+    &#34;&#34;&#34;def EvaporationDepth(self, r): 
+        if r &gt;= self.radius_th:
+            return 0
+        else:
+            q = self.C * np.exp(-self.K * r**2)
+            d_ev = 0.5 * self.l_s * (np.log(q) - np.log(self.F_th))
+            return d_ev&#34;&#34;&#34;
+
+    # Based on eq. 6 in Woodfield (2024)
+    def EvaporationDepth(self, r):
+        &#34;&#34;&#34;
+        Calculates the depth of the ablated cavity as a function of radial position for a single gaussian pulse according to eq. (6) in Woodfield (2024).
+
+        Parameters
+        ----------
+        r: float
+            Radial coordinate with respect to the axis of the beam
+
+        Returns
+        -------
+        float
+            The depth of the cavity at the specified radial coordinate r
+        &#34;&#34;&#34;
+        if r &gt;= self.r_ast_max:
+            return 0.0
+        else:
+            delta_pen = self.delta_pen
+            F_p = self.F_p
+            q_ast = self.q_ast
+            omega_0 = self.omega_0
+            import math
+
+            z_ast = delta_pen * (math.log(F_p / (delta_pen * q_ast)) - 2.0 * (r / omega_0) ** 2)
+            return z_ast
+
+    def CreateResultsFile(self, filename):
+        if os.path.exists(self.results_filename):
+            os.remove(self.results_filename)
+        with h5py.File(filename, &#34;a&#34;) as f:
+            f.attrs[&#34;ambient_temperature&#34;] = self.T0
+            f.attrs[&#34;pulse_energy&#34;] = self.Q
+            f.attrs[&#34;specific_heat_capacity&#34;] = self.cp
+            f.attrs[&#34;density&#34;] = self.rho
+            f.attrs[&#34;conductivity&#34;] = self.conductivity
+            # Create a dataset to store the radii
+            dataset = f.create_dataset(&#34;radii&#34;, (self.radii.shape), dtype=self.radii.dtype)
+            dataset[:] = self.radii[:]
+            f.create_group(&#34;temperature_increments&#34;)
+
+    def WriteResults(self, filename, process_info):
+        step = process_info[KratosMultiphysics.STEP]
+        time = step = process_info[KratosMultiphysics.TIME]
+        # Open the HDF5 file.
+        with h5py.File(filename, &#34;a&#34;) as f:
+            assert self.radii.shape == self.temperature_increments.shape
+            # Create a dataset to store the radii and temperatures data.
+            dataset = f[&#34;/temperature_increments&#34;].create_dataset(
+                str(step), self.temperature_increments.shape, dtype=self.temperature_increments.dtype
+            )
+            # Write the radii and temperatures data to the dataset. TODO: the radii is not being written, I believe
+            dataset[:] = self.temperature_increments
+            # Add a time label to the dataset.
+            dataset.attrs[&#34;time&#34;] = time
+
+    def _get_element_condition_replace_settings(self):
+        ## Get and check domain size
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size not in [2, 3]:
+            raise Exception(&#34;DOMAIN_SIZE is not set in ProcessInfo container.&#34;)
+        ## Validate the replace settings
+        default_replace_settings = self.GetDefaultParameters()[&#34;element_replace_settings&#34;]
+        self.settings[&#34;element_replace_settings&#34;].ValidateAndAssignDefaults(default_replace_settings)
+        ## Elements
+        ## Note that we check for the elements that require substitution to allow for custom elements
+        element_name = self.settings[&#34;element_replace_settings&#34;][&#34;element_name&#34;].GetString()
+        element_list = [
+            &#34;EulerianConvDiff&#34;,
+            &#34;LaplacianElement&#34;,
+            &#34;MixedLaplacianElement&#34;,
+            &#34;AdjointHeatDiffusionElement&#34;,
+            &#34;QSConvectionDiffusionExplicit&#34;,
+            &#34;DConvectionDiffusionExplicit&#34;,
+            &#34;LaserAxisymmetricEulerianConvectionDiffusion&#34;,
+        ]
+        if element_name in element_list:
+            num_nodes_elements = 0
+            if len(self.main_model_part.Elements) &gt; 0:
+                for elem in self.main_model_part.Elements:
+                    num_nodes_elements = len(elem.GetNodes())
+                    break
+            num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
+            if not num_nodes_elements:
+                num_nodes_elements = domain_size + 1
+            name_string = f&#34;{element_name}{domain_size}D{num_nodes_elements}N&#34;
+            self.settings[&#34;element_replace_settings&#34;][&#34;element_name&#34;].SetString(name_string)
+        ## Conditions
+        condition_name = self.settings[&#34;element_replace_settings&#34;][&#34;condition_name&#34;].GetString()
+        condition_list = [
+            &#34;FluxCondition&#34;,
+            &#34;ThermalFace&#34;,
+            &#34;AxisymmetricThermalFace&#34;,
+            &#34;LineCondition&#34;,
+            &#34;SurfaceCondition&#34;,
+        ]
+        if condition_name in condition_list:
+            num_nodes_conditions = 0
+            if len(self.main_model_part.Conditions) &gt; 0:
+                for cond in self.main_model_part.Conditions:
+                    num_nodes_conditions = len(cond.GetNodes())
+                    break
+            num_nodes_conditions = (
+                self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+            )
+            if not num_nodes_conditions:
+                num_nodes_conditions = domain_size
+            name_string = f&#34;{condition_name}{domain_size}D{num_nodes_conditions}N&#34;
+            self.settings[&#34;element_replace_settings&#34;][&#34;condition_name&#34;].SetString(name_string)
+        return self.settings[&#34;element_replace_settings&#34;]
+
+    @abstractmethod
+    def ImposeTemperatureIncreaseDueToLaser(self):
+        &#34;&#34;&#34;
+        Increases the temperature as an effect of the energy deposition by the laser pulse.
+        Does not take into account the refraction of the ray at the boundary air-solid.
+        Must be implemented by child classes.
+        &#34;&#34;&#34;
+        pass
+
+    @abstractmethod
+    def ImposeTemperatureIncreaseDueToLaserWithRefraction(self):
+        &#34;&#34;&#34;
+        Increases the temperature as an effect of the energy deposition by the laser pulse.
+        Takes into account the refraction of the ray at the boundary air-solid.
+        Must be implemented by child classes.
+        &#34;&#34;&#34;
+        pass
+
+    @abstractmethod
+    def ComputeIonizationEnergyPerUnitVolumeThreshold(self):
+        &#34;&#34;&#34;
+        Must be implemented by child classes.
+        &#34;&#34;&#34;
+        pass</code></pre>
+</details>
+<div class="desc"><p>The transient class for convection-diffusion solvers.</p>
+<p>Public member variables:
+transient_settings &ndash; settings for the implicit dynamic solvers.</p>
+<p>See convection_diffusion_solver.py for more information.</p>
+<p>The constructor of the PythonSolver-Object.</p>
+<p>It is intended to be called from the constructor
+of deriving classes:
+super().<strong>init</strong>(settings)</p>
+<p>Keyword arguments:
+self &ndash; It signifies an instance of a class.
+model &ndash; The Model to be used
+settings &ndash; The solver settings used</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver</li>
+<li>KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_solver.ConvectionDiffusionSolver</li>
+<li>KratosMultiphysics.python_solver.PythonSolver</li>
+<li>abc.ABC</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.GetDefaultParameters"><code class="name flex">
+<span>def <span class="ident">GetDefaultParameters</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This function returns the default-settings used by this class</p></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.AddDecomposedNodesToSurfaceList"><code class="name flex">
+<span>def <span class="ident">AddDecomposedNodesToSurfaceList</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def AddDecomposedNodesToSurfaceList(self):
+    list_of_decomposed_nodes_ids = []
+    list_of_decomposed_elements_ids = []
+    number_of_boundary_elements = 0
+    for elem in self.main_model_part.Elements:
+        first_decomposed_node_found = False
+        if elem.Is(KratosMultiphysics.ACTIVE):
+            for node in elem.GetNodes():
+                if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
+                    list_of_decomposed_nodes_ids.append(node.Id)
+                    if not first_decomposed_node_found:
+                        number_of_boundary_elements += 1
+                        list_of_decomposed_elements_ids.append(elem.Id)
+                        first_decomposed_node_found = True
+    self.list_of_decomposed_nodes_ids = np.array(
+        list(set(list_of_decomposed_nodes_ids))
+    )  # TODO: why do list(set(x))? To remove duplicates?
+    self.list_of_decomposed_elements_ids = np.array(list_of_decomposed_elements_ids)
+
+    if not self.main_model_part.HasSubModelPart(&#34;BoundaryPart&#34;):
+        self.main_model_part.CreateSubModelPart(&#34;BoundaryPart&#34;)
+        self.boundary_part = self.main_model_part.GetSubModelPart(&#34;BoundaryPart&#34;)
+    else:
+        self.main_model_part.RemoveSubModelPart(self.boundary_part)
+        self.main_model_part.CreateSubModelPart(&#34;BoundaryPart&#34;)
+        self.boundary_part = self.main_model_part.GetSubModelPart(&#34;BoundaryPart&#34;)
+    self.boundary_part.AddElements(self.list_of_decomposed_elements_ids)
+    self.boundary_part.AddNodes(self.list_of_decomposed_nodes_ids)
+
+    list_of_decomposed_nodes_coords = []
+    for node in self.main_model_part.Nodes:
+        if node.Id in self.list_of_decomposed_nodes_ids:
+            X = node.X
+            Y = node.Y
+            coords = [X, Y]
+            list_of_decomposed_nodes_coords.append(coords)
+    list_of_decomposed_nodes_coords.sort(key=self.sortSecond)
+    self.list_of_decomposed_nodes_coords_X = np.array([coord[0] for coord in list_of_decomposed_nodes_coords])
+    self.list_of_decomposed_nodes_coords_Y = np.array([coord[1] for coord in list_of_decomposed_nodes_coords])
+    if os.path.exists(self.decomposed_nodes_coords_filename):
+        os.remove(self.decomposed_nodes_coords_filename)
+
+    if self.print_hole_geometry_files:
+        self.decomposed_nodes_coords_file = open(self.decomposed_nodes_coords_filename, &#34;a&#34;)
+        for coord in list_of_decomposed_nodes_coords:
+            self.decomposed_nodes_coords_file.write(str(coord[1]) + &#34; &#34; + str(-coord[0]) + &#34;\n&#34;)
+        self.decomposed_nodes_coords_file.close()</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.AdjustTemperatureFieldAfterAblation"><code class="name flex">
+<span>def <span class="ident">AdjustTemperatureFieldAfterAblation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def AdjustTemperatureFieldAfterAblation(self):
+    if not self.adjust_T_field_after_ablation:
+        return
+    # TODO: check if self.T0 - self.reference_T_after_laser = 0.
+    # In that case, new_temperature = old_temperature and this loop can be skipped
+    # I don&#39;t know if it&#39;s worth doing this modification, but right now,
+    # self.T0 - self.reference_T_after_laser = 0 (15-04-2025)
+    for node in self.main_model_part.Nodes:
+        old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+        new_temperature = old_temperature + self.T0 - self.reference_T_after_laser
+        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temperature)
+        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temperature)
+    for elem in self.main_model_part.Elements:
+        elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.AllocateKratosMemory"><code class="name flex">
+<span>def <span class="ident">AllocateKratosMemory</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def AllocateKratosMemory(self):
+    # Set element counter variable to zero
+    for elem in self.main_model_part.Elements:
+        elem.SetValue(LaserDrillingApplication.THERMAL_COUNTER, 0)
+        elem.SetValue(KratosMultiphysics.TEMPERATURE, 0.0)
+        elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
+        elem.SetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION, 0.01)
+        elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, 0.0)
+        elem.SetValue(LaserDrillingApplication.ELEMENTAL_VOLUME, 0.0)
+        elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
+        elem.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, 0.0)
+        elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
+        elem.Set(KratosMultiphysics.ACTIVE, True)
+        elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, 0.0)
+
+    for node in self.main_model_part.Nodes:
+        node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 0.0)
+        node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
+        node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, 0.0)
+        node.SetValue(LaserDrillingApplication.ENERGY_PER_VOLUME, 0.0)
+        node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, 0.0)
+        node.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, 0.0)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeIonizationEnergyPerUnitVolumeThreshold"><code class="name flex">
+<span>def <span class="ident">ComputeIonizationEnergyPerUnitVolumeThreshold</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def ComputeIonizationEnergyPerUnitVolumeThreshold(self):
+    &#34;&#34;&#34;
+    Must be implemented by child classes.
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<div class="desc"><p>Must be implemented by child classes.</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeMaximumAblationRadius"><code class="name flex">
+<span>def <span class="ident">ComputeMaximumAblationRadius</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ComputeMaximumAblationRadius(self):
+    import math  # TODO: Why not import math at the top? And why not use numpy?
+
+    return self.omega_0 * math.sqrt(0.5 * math.log(self.F_p / (self.delta_pen * self.q_ast)))</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeMaximumDepth"><code class="name flex">
+<span>def <span class="ident">ComputeMaximumDepth</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ComputeMaximumDepth(self):
+    # TODO: Are we sure that what I understand to be the node at the axis of symmetry is
+    # always the deepest one? Shouldn&#39;t we search for the deepest among the list?
+    maximum_depth = self.list_of_ablated_nodes_coords_X[0]
+    return maximum_depth</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeOpticalPenetrationDepth"><code class="name flex">
+<span>def <span class="ident">ComputeOpticalPenetrationDepth</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ComputeOpticalPenetrationDepth(self):
+    # TODO: Shouldn&#39;t this be a parameter read from the JSON parameters?
+    light_lambda = 550e-6  # mm, light wavelength
+
+    # TODO: Is there a reason not to combine the following two lines?
+    epoxy_n = self.refractive_index_n
+    n = epoxy_n
+    A = 4.0 * n / ((n + 1) ** 2 + n**2)
+
+    # TODO: Why modify the global self.l_s and also return its value?
+    self.l_s = 0.25 * light_lambda * A / np.pi
+    return self.l_s</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputePeakFluence"><code class="name flex">
+<span>def <span class="ident">ComputePeakFluence</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ComputePeakFluence(self):
+    &#34;&#34;&#34;
+    Computes the peak fluence of a gaussian pulse from its energy and waist radius
+    Source: Woodfield 2024, eq (5)
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    The peak fluence
+    &#34;&#34;&#34;
+    return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2</code></pre>
+</details>
+<div class="desc"><p>Computes the peak fluence of a gaussian pulse from its energy and waist radius
+Source: Woodfield 2024, eq (5)</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>None</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>The peak fluence</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputePulseHoleAndAddToTotalHole"><code class="name flex">
+<span>def <span class="ident">ComputePulseHoleAndAddToTotalHole</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ComputePulseHoleAndAddToTotalHole(self):
+    for i, Y_coord in enumerate(self.hole_theoretical_Y_coords):
+        self.hole_theoretical_X_coords[i] += self.EvaporationDepth(Y_coord)
+
+    if self.pulse_number == 1:
+        import copy
+
+        self.one_pulse_hole_theoretical_X_coords = copy.deepcopy(self.hole_theoretical_X_coords)
+        self.one_pulse_hole_theoretical_Y_coords = self.hole_theoretical_Y_coords</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeSpotDiameter"><code class="name flex">
+<span>def <span class="ident">ComputeSpotDiameter</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ComputeSpotDiameter(self):
+    spot_diameter = self.beam_waist_diameter * np.sqrt(
+        1.0 + ((self.focus_z_offset + self.z_ast_max) / self.rayleigh_length) ** 2
+    )
+    return spot_diameter</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.CountActiveElements"><code class="name flex">
+<span>def <span class="ident">CountActiveElements</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def CountActiveElements(self):
+    count = 0
+    for elem in self.main_model_part.Elements:
+        if elem.Is(KratosMultiphysics.ACTIVE):
+            count += 1
+    return count</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.CreateResultsFile"><code class="name flex">
+<span>def <span class="ident">CreateResultsFile</span></span>(<span>self, filename)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def CreateResultsFile(self, filename):
+    if os.path.exists(self.results_filename):
+        os.remove(self.results_filename)
+    with h5py.File(filename, &#34;a&#34;) as f:
+        f.attrs[&#34;ambient_temperature&#34;] = self.T0
+        f.attrs[&#34;pulse_energy&#34;] = self.Q
+        f.attrs[&#34;specific_heat_capacity&#34;] = self.cp
+        f.attrs[&#34;density&#34;] = self.rho
+        f.attrs[&#34;conductivity&#34;] = self.conductivity
+        # Create a dataset to store the radii
+        dataset = f.create_dataset(&#34;radii&#34;, (self.radii.shape), dtype=self.radii.dtype)
+        dataset[:] = self.radii[:]
+        f.create_group(&#34;temperature_increments&#34;)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.EnergyPerUnitArea1D"><code class="name flex">
+<span>def <span class="ident">EnergyPerUnitArea1D</span></span>(<span>self, radius)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def EnergyPerUnitArea1D(self, radius):
+    C = (1 - self.ablation_energy_fraction) * self.Q * self.K / (np.pi * (1 - np.exp(-self.K * self.R_far**2)))
+    q = C * np.exp(-self.K * radius**2)
+    return q</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.EvaporationDepth"><code class="name flex">
+<span>def <span class="ident">EvaporationDepth</span></span>(<span>self, r)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def EvaporationDepth(self, r):
+    &#34;&#34;&#34;
+    Calculates the depth of the ablated cavity as a function of radial position for a single gaussian pulse according to eq. (6) in Woodfield (2024).
+
+    Parameters
+    ----------
+    r: float
+        Radial coordinate with respect to the axis of the beam
+
+    Returns
+    -------
+    float
+        The depth of the cavity at the specified radial coordinate r
+    &#34;&#34;&#34;
+    if r &gt;= self.r_ast_max:
+        return 0.0
+    else:
+        delta_pen = self.delta_pen
+        F_p = self.F_p
+        q_ast = self.q_ast
+        omega_0 = self.omega_0
+        import math
+
+        z_ast = delta_pen * (math.log(F_p / (delta_pen * q_ast)) - 2.0 * (r / omega_0) ** 2)
+        return z_ast</code></pre>
+</details>
+<div class="desc"><p>Calculates the depth of the ablated cavity as a function of radial position for a single gaussian pulse according to eq. (6) in Woodfield (2024).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>r</code></strong> :&ensp;<code>float</code></dt>
+<dd>Radial coordinate with respect to the axis of the beam</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The depth of the cavity at the specified radial coordinate r</dd>
+</dl></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.Finalize"><code class="name flex">
+<span>def <span class="ident">Finalize</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Finalize(self):
+    super().Finalize()
+    elapsed_time = timer.time() - self.starting_time
+    print(&#34;\nElapsed_time:&#34;, elapsed_time, &#34;\n&#34;)
+    if self.print_hdf5_and_gnuplot_files:
+        self.decomposed_volume_file.close()
+        self.temperature_alpha_file.close()
+        self.time_alpha_file.close()
+        self.PrintDecomposedVolumeEvolution()</code></pre>
+</details>
+<div class="desc"><p>This function finalizes the PythonSolver
+Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.FinalizeSolutionStep"><code class="name flex">
+<span>def <span class="ident">FinalizeSolutionStep</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def FinalizeSolutionStep(self):
+    super().FinalizeSolutionStep()
+    if self.print_hdf5_and_gnuplot_files:
+        decomp_vol = self.MonitorDecomposedVolume()
+        decomp_vol *= 1e9  # To convert mm3 into um3
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.decomposed_volume_file.write(str(current_time) + &#34; &#34; + str(decomp_vol) + &#34;\n&#34;)
+        for elem in self.main_model_part.Elements:
+            if elem.Id == self.element_id_to_study:
+                temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
+                thermal_decomposition = elem.GetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION)
+                self.temperature_alpha_file.write(str(temperature) + &#34; &#34; + str(thermal_decomposition) + &#34;\n&#34;)
+                self.time_alpha_file.write(str(current_time) + &#34; &#34; + str(thermal_decomposition) + &#34;\n&#34;)
+                break
+    self.UpdateLaserRelatedParameters()
+    self.ComputePulseHoleAndAddToTotalHole()</code></pre>
+</details>
+<div class="desc"><p>This function performs all the required operations that should be executed
+(for each step) AFTER solving the solution step.</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.IdentifyInitialSurfaceNodes"><code class="name flex">
+<span>def <span class="ident">IdentifyInitialSurfaceNodes</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def IdentifyInitialSurfaceNodes(self):
+    # TODO: Why are they called &#39;decomposed&#39; in this function?
+    list_of_decomposed_nodes_ids = []
+    list_of_decomposed_elements_ids = []
+    list_of_decomposed_nodes_coords_X = []
+    list_of_decomposed_nodes_coords_Y = []
+
+    for elem in self.main_model_part.Elements:
+        for node in elem.GetNodes():
+            # TODO: extremely ad-hoc!
+            if node.X &lt; 0.0000001 and node.Y &lt;= self.r_ast_max:
+                list_of_decomposed_nodes_ids.append(node.Id)
+                list_of_decomposed_elements_ids.append(elem.Id)
+                list_of_decomposed_nodes_coords_X.append(node.X)
+                list_of_decomposed_nodes_coords_Y.append(node.Y)
+
+    self.list_of_decomposed_nodes_ids = np.array(list(set(list_of_decomposed_nodes_ids)))
+    self.list_of_decomposed_elements_ids = np.array(list(set(list_of_decomposed_elements_ids)))
+    self.list_of_decomposed_nodes_coords_X = np.array(list_of_decomposed_nodes_coords_X)
+    self.list_of_decomposed_nodes_coords_Y = np.array(list_of_decomposed_nodes_coords_Y)
+
+    if not self.main_model_part.HasSubModelPart(&#34;BoundaryPart&#34;):
+        self.main_model_part.CreateSubModelPart(&#34;BoundaryPart&#34;)
+        self.boundary_part = self.main_model_part.GetSubModelPart(&#34;BoundaryPart&#34;)
+
+    self.boundary_part.AddElements(self.list_of_decomposed_elements_ids)
+    self.boundary_part.AddNodes(self.list_of_decomposed_nodes_ids)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeLaserDeltaTemperature"><code class="name flex">
+<span>def <span class="ident">ImposeLaserDeltaTemperature</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ImposeLaserDeltaTemperature(self):
+    &#34;&#34;&#34;
+    Calls a function that applies the temperature increase due to the laser pulse.
+    Depending on the parameters of the simulation, it decides which function to call.
+    For example, it chooses between applying the pulse with or without refraction.
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    &#34;&#34;&#34;
+    # TODO: Is there any advantage to writing the conditional in this way, instead of
+    # having the clause not be negated?
+    if not self.consider_material_refraction:
+        self.ImposeTemperatureIncreaseDueToLaser()
+    else:
+        self.ImposeTemperatureIncreaseDueToLaserWithRefraction()</code></pre>
+</details>
+<div class="desc"><p>Calls a function that applies the temperature increase due to the laser pulse.
+Depending on the parameters of the simulation, it decides which function to call.
+For example, it chooses between applying the pulse with or without refraction.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>None</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueTo1DConduction"><code class="name flex">
+<span>def <span class="ident">ImposeTemperatureIncreaseDueTo1DConduction</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ImposeTemperatureIncreaseDueTo1DConduction(self):
+    X = self.list_of_decomposed_nodes_coords_X
+    Y = self.list_of_decomposed_nodes_coords_Y
+    self.minimum_characteristic_Z = 1e6
+    self.maximum_characteristic_Z = -1e6
+    for node in self.main_model_part.Nodes:
+        radius = node.Y
+        &#34;&#34;&#34; if not self.ablation_energy_fraction:
+            distance_to_surface = 0.0
+        else: &#34;&#34;&#34;
+        F = interp1d(Y, X, bounds_error=False, fill_value=0.0)
+        distance_to_surface = F(radius)
+        z = node.X - distance_to_surface
+        if radius &lt;= self.r_ast_max:
+            delta_temp = self.TemperatureVariationInZDueToLaser1D(radius, z)
+            old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            new_temp = old_temp + delta_temp
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
+    # print(&#34;\nResidual heat fraction:&#34;, self.ionization_alpha)
+    # print(&#34;\nMaximum characteristic depth:&#34;, self.maximum_characteristic_Z)
+    # problem_characteristic_time_minimum_depth = self.minimum_characteristic_Z**2 / self.kappa
+    # problem_characteristic_time_maximum_depth = self.maximum_characteristic_Z**2 / self.kappa
+    # minimum_time_step_for_minimum_depth = 0.1 * problem_characteristic_time_minimum_depth
+    # minimum_time_step_for_maximum_depth = 0.1 * problem_characteristic_time_maximum_depth
+    # print(&#34;\nThermal problem characteristic time for maximum depth:&#34;, problem_characteristic_time_maximum_depth)
+    # print(&#34;\nNecessary time step for maximum depth:&#34;, minimum_time_step_for_maximum_depth, &#39;\n&#39;)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueToLaser"><code class="name flex">
+<span>def <span class="ident">ImposeTemperatureIncreaseDueToLaser</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def ImposeTemperatureIncreaseDueToLaser(self):
+    &#34;&#34;&#34;
+    Increases the temperature as an effect of the energy deposition by the laser pulse.
+    Does not take into account the refraction of the ray at the boundary air-solid.
+    Must be implemented by child classes.
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<div class="desc"><p>Increases the temperature as an effect of the energy deposition by the laser pulse.
+Does not take into account the refraction of the ray at the boundary air-solid.
+Must be implemented by child classes.</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueToLaserWithRefraction"><code class="name flex">
+<span>def <span class="ident">ImposeTemperatureIncreaseDueToLaserWithRefraction</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def ImposeTemperatureIncreaseDueToLaserWithRefraction(self):
+    &#34;&#34;&#34;
+    Increases the temperature as an effect of the energy deposition by the laser pulse.
+    Takes into account the refraction of the ray at the boundary air-solid.
+    Must be implemented by child classes.
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<div class="desc"><p>Increases the temperature as an effect of the energy deposition by the laser pulse.
+Takes into account the refraction of the ray at the boundary air-solid.
+Must be implemented by child classes.</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.InitialThermalConductionTime"><code class="name flex">
+<span>def <span class="ident">InitialThermalConductionTime</span></span>(<span>self, radius)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def InitialThermalConductionTime(self, radius):
+    # TODO: This is never called. Also, it has radius as a parameter but it is unused. In addition, it does nothing, it just returns a variable that is calculated in SetParameters
+
+    # This function returns the characteristic time required for the initial heat distribution from the surface to the interior
+    # 4.0 (2**2) in numerator due to equation (4c) in Weber, 2014. &#39;Heat accumulation during pulsed laser materials processing&#39;
+    # C = 4.0 / (4.0 * np.pi * self.rho**2 * self.kappa * self.cp**2 * (self.T_e - self.T0)**2)
+    # t = C * self.EnergyPerUnitArea1D(radius)**2
+    return self.thermal_penetration_time</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.Initialize"><code class="name flex">
+<span>def <span class="ident">Initialize</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Initialize(self):
+    super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).Initialize()
+    self.starting_time = timer.time()
+
+    self.AllocateKratosMemory()
+
+    self.SetParameters()
+
+    # TODO: change python arrays into numpy arrays?
+    # TODO: Explain what these are
+    self.list_of_decomposed_nodes_coords = []
+    self.list_of_decomposed_nodes_coords_X = []
+    self.list_of_decomposed_nodes_coords_Y = []
+    self.list_of_lists_of_decomposed_nodes_X = []
+    self.list_of_lists_of_decomposed_nodes_Y = []
+    self.full_list_of_ablated_nodes_coords_X = []
+    self.full_list_of_ablated_nodes_coords_Y = []
+
+    if self.print_hdf5_and_gnuplot_files:
+        self.SetUpResultsFiles()
+
+    # TODO: Initial condition, ambient temperature. Do this using GUI!
+    for node in self.main_model_part.Nodes:
+        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.T0)
+        # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
+
+    self.IdentifyInitialSurfaceNodes()
+
+    self.ResidualHeatStage()
+
+    if self.print_hdf5_and_gnuplot_files:
+        self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)</code></pre>
+</details>
+<div class="desc"><p>Perform initialization after adding nodal variables and dofs to the main model part.</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.InitializeSolutionStep"><code class="name flex">
+<span>def <span class="ident">InitializeSolutionStep</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def InitializeSolutionStep(self):
+    super().InitializeSolutionStep()
+
+    self.delta_time = self.main_model_part.ProcessInfo[
+        KratosMultiphysics.DELTA_TIME
+    ]  # TODO: Make delta_time a local variable
+
+    self.jump_between_pulses_counter += self.delta_time
+    error_in_delta_time = abs(self.jump_between_pulses_counter - self.time_jump_between_pulses)
+
+    numerical_error = 1e-16  # TODO: Make it global or a parameter?
+    if self.jump_between_pulses_counter &gt;= self.time_jump_between_pulses or error_in_delta_time &lt; numerical_error:
+        self.jump_between_pulses_counter = 0
+        self.pulse_number += 1
+        self.ResetTemperatureField()
+
+        if self.print_debug_info:
+            initial_system_energy = self.MonitorEnergy()
+            print(&#34;\n\nEnergy before laser:&#34;, initial_system_energy, &#34;J&#34;)
+
+        self.ImposeLaserDeltaTemperature()
+
+        if self.print_debug_info:
+            print(&#34;self.Q:&#34;, self.Q, &#34;J&#34;)
+            expected_energy_after_laser = initial_system_energy + self.Q
+            system_energy = self.MonitorEnergy()
+            print(&#34;Expected energy after laser:&#34;, expected_energy_after_laser, &#34;J&#34;)
+            print(&#34;Actual energy after laser:&#34;, system_energy, &#34;J&#34;)
+            relative_error = 100.0 * (system_energy - expected_energy_after_laser) / expected_energy_after_laser
+            print(&#34;Relative error in energy (%):&#34;, relative_error, &#34;\n\n&#34;)
+
+        self.RemoveElementsByAblation()
+        self.AdjustTemperatureFieldAfterAblation()
+        self.ResidualHeatStage()</code></pre>
+</details>
+<div class="desc"><p>This function performs all the required operations that should be executed
+(for each step) BEFORE solving the solution step.</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.MonitorDecomposedVolume"><code class="name flex">
+<span>def <span class="ident">MonitorDecomposedVolume</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def MonitorDecomposedVolume(self):
+    &#34;&#34;&#34;
+    Tallies up the volume of the decomposed elements
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    The sum of DECOMPOSED_ELEMENTAL_VOLUME
+    &#34;&#34;&#34;
+    decomposed_volume = 0.0
+    for elem in self.main_model_part.Elements:
+        out = elem.CalculateOnIntegrationPoints(
+            LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo
+        )
+        decomposed_volume += out[0]
+    return decomposed_volume</code></pre>
+</details>
+<div class="desc"><p>Tallies up the volume of the decomposed elements</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>None</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>The sum</code> of <code>DECOMPOSED_ELEMENTAL_VOLUME</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.MonitorEnergy"><code class="name flex">
+<span>def <span class="ident">MonitorEnergy</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def MonitorEnergy(self):
+    &#34;&#34;&#34;
+    Tallies up the energy of the (not decomposed) elements
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    The sum of THERMAL_ENERGY over all ACTIVE elements
+    &#34;&#34;&#34;
+    energy = 0.0
+    for elem in self.main_model_part.Elements:
+        if elem.Is(KratosMultiphysics.ACTIVE):
+            # NOTE: Here out is an std::vector with all components containing the same elemental thermal energy
+            out = elem.CalculateOnIntegrationPoints(
+                LaserDrillingApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo
+            )
+            energy += out[0]
+    return energy</code></pre>
+</details>
+<div class="desc"><p>Tallies up the energy of the (not decomposed) elements</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>None</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>The sum</code> of <code>THERMAL_ENERGY over all ACTIVE elements</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.PenetrationDepthEstimation"><code class="name flex">
+<span>def <span class="ident">PenetrationDepthEstimation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def PenetrationDepthEstimation(self):
+    # TODO: this function is never called. Should we remove it?
+    # TODO: where does this formula come from?
+    F_th = self.F_th
+    # TODO: make this into a parameter
+    V = 4.72e-7  # mm3. Approximate ablated volume for 1 pulses (experimental) and 3W power. For 5 pulses it should be around 2.36e-6
+    R_th = self.radius_th
+    l_s = V / (np.pi * (0.5 * R_th**2 * np.log(self.C / F_th) - 0.25 * self.K * R_th**4))
+    return l_s</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.PrintDecomposedVolumeEvolution"><code class="name flex">
+<span>def <span class="ident">PrintDecomposedVolumeEvolution</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def PrintDecomposedVolumeEvolution(self):
+    import matplotlib.pyplot as plt
+
+    file = open(os.path.expanduser(&#34;decomposed_volume_evolution.txt&#34;))
+    lines = file.readlines()
+    x, y = [], []
+    for line in lines:
+        x.append(line.split()[0])
+        y.append(line.split()[1])
+    file.close()
+    plt.plot(x, y)
+    plt.show()</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.RemoveElementsByAblation"><code class="name flex">
+<span>def <span class="ident">RemoveElementsByAblation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def RemoveElementsByAblation(self):
+    # TODO: make this method abstract? It is overridden by LaserDrillingTransientSolverAblationPlusThermal.RemoveElementsByAblation
+    if self.ablation_energy_fraction:
+        X = self.list_of_decomposed_nodes_coords_X
+        Y = self.list_of_decomposed_nodes_coords_Y
+
+        for elem in self.main_model_part.Elements:
+            X_centroid = elem.GetGeometry().Center().X
+            Y_centroid = elem.GetGeometry().Center().Y
+            # if self.pulse_number == 1:
+            #     X_interp = 0
+            # else:
+            F = interp1d(Y, X, bounds_error=False)
+            X_interp = F(Y_centroid)
+            DeltaX = X_centroid - X_interp
+            d_ev = self.EvaporationDepth(Y_centroid)
+            if DeltaX &lt;= d_ev:  # and Y_centroid &lt;= self.radius_th:
+                elem.Set(KratosMultiphysics.ACTIVE, False)
+                for node in elem.GetNodes():
+                    node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
+        for elem in self.main_model_part.Elements:
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                number_of_decomposed_nodes = 0
+                for node in elem.GetNodes():
+                    if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
+                        number_of_decomposed_nodes += 1
+                if number_of_decomposed_nodes == 3:
+                    elem.Set(KratosMultiphysics.ACTIVE, False)
+        self.AddDecomposedNodesToSurfaceList()
+        self.list_of_ablated_nodes_coords_X = self.list_of_decomposed_nodes_coords_X
+        self.list_of_ablated_nodes_coords_Y = self.list_of_decomposed_nodes_coords_Y
+        &#34;&#34;&#34;print(&#39;\nR_far:&#39;, self.R_far)
+        print(&#39;\nRadius_th:&#39;, self.radius_th)
+        print(&#34;\nDecomposed volume:&#34;, self.MonitorDecomposedVolume())&#34;&#34;&#34;</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.RemoveElementsByEvaporation"><code class="name flex">
+<span>def <span class="ident">RemoveElementsByEvaporation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def RemoveElementsByEvaporation(self):
+    evap_elements_centers_Y = []
+    evap_elements_volumes = []
+    delta_temp_elements = []
+    uncapped_delta_temp_elements = []
+    self.some_elements_are_above_the_evap_temp = False
+    for elem in self.boundary_part.Elements:
+        if elem.Is(KratosMultiphysics.ACTIVE):
+            temp = elem.CalculateOnIntegrationPoints(
+                KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo
+            )
+            element_temperature = temp[0]
+            if element_temperature &gt; self.T_e:
+                pre_evap_temp = elem.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE)
+                delta_temp = self.T_e - pre_evap_temp
+                uncapped_delta_temp = element_temperature - pre_evap_temp
+                delta_temp_elements.append(delta_temp)
+                uncapped_delta_temp_elements.append(uncapped_delta_temp)
+                self.some_elements_are_above_the_evap_temp = True
+                elem.Set(KratosMultiphysics.ACTIVE, False)
+                vol = elem.CalculateOnIntegrationPoints(
+                    LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo
+                )
+                elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, vol[0])
+                element_volume = elem.GetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME)
+                Y_centroid = elem.GetGeometry().Center().Y
+                evap_elements_centers_Y.append(Y_centroid)
+                evap_elements_volumes.append(element_volume)
+                for node in elem.GetNodes():
+                    node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
+
+    number_of_problematic_elements = 0
+    for elem in self.main_model_part.Elements:
+        if elem.Is(KratosMultiphysics.ACTIVE):
+            number_of_decomposed_nodes = 0
+            temp = elem.CalculateOnIntegrationPoints(
+                KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo
+            )
+            element_temperature = temp[0]
+            for node in elem.GetNodes():
+                if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
+                    number_of_decomposed_nodes += 1
+            if number_of_decomposed_nodes == 3:
+                elem.Set(KratosMultiphysics.ACTIVE, False)
+                elem.CalculateOnIntegrationPoints(
+                    LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo
+                )
+                element_volume = elem.GetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME)
+                Y_centroid = elem.GetGeometry().Center().Y
+                pre_evap_temp = elem.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE)
+                delta_temp = self.T_e - pre_evap_temp
+                # delta_temp_elements.append(delta_temp)
+                uncapped_delta_temp = element_temperature - pre_evap_temp
+                # uncapped_delta_temp_elements.append(uncapped_delta_temp)
+                # evap_elements_centers_Y.append(Y_centroid)
+                # evap_elements_volumes.append(element_volume)
+                number_of_problematic_elements += 1
+    print(&#34;Number_of_problematic_elements:&#34;, number_of_problematic_elements)
+    evap_elements_centers_Y = np.array(evap_elements_centers_Y)
+    evap_elements_volumes = np.array(evap_elements_volumes)
+    self.evap_elements_centers_Y = evap_elements_centers_Y[evap_elements_centers_Y.argsort()]
+    self.evap_elements_volumes = evap_elements_volumes[evap_elements_centers_Y.argsort()]
+    # print(&#34;self.evap_elements_centers_Y:&#34;, self.evap_elements_centers_Y)
+    # print(&#34;self.evap_elements_volumes:&#34;, self.evap_elements_volumes)
+
+    delta_temp_elements = np.array(delta_temp_elements)
+    self.delta_temp_elements = delta_temp_elements[evap_elements_centers_Y.argsort()]
+    uncapped_delta_temp_elements = np.array(uncapped_delta_temp_elements)
+    self.uncapped_delta_temp_elements = uncapped_delta_temp_elements[evap_elements_centers_Y.argsort()]
+
+    # Total enthalpy: Energy consumed for the material to vaporize plus the energy for heating up the material to the vaporization temperature.
+    # Equation (8) in Wang, 2019. &#39;Thermal effect of femtosecond laser polystyrene processing&#39;
+    self.evap_elements_enthalpies = (
+        self.evap_elements_volumes * self.rho * (self.H_ev + self.cp * self.delta_temp_elements)
+    )
+
+    # print(&#34;evap_elements_volumes:&#34;, evap_elements_volumes)
+    # print(&#34;delta_temp_elements:&#34;, delta_temp_elements)
+    # print(&#34;self.evap_elements_enthalpies:&#34;, self.evap_elements_enthalpies)
+
+    self.support_elements = [[] for i in range(self.n_surface_elements + 1)]
+
+    if not self.some_elements_are_above_the_evap_temp:
+        return
+
+    import matplotlib.pyplot as plt
+
+    figure, axis = plt.subplots(2, 2, figsize=(15, 8))
+    label_size = 13
+    numbers_size = 11
+    axis[0][0].grid()
+    axis[0][0].plot(self.evap_elements_centers_Y, self.evap_elements_volumes, color=&#34;red&#34;, marker=&#34;+&#34;)
+    axis[0][0].set_xlabel(&#34;radius (mm)&#34;)
+    axis[0][0].set_ylabel(&#34;Volumes (mm3)&#34;, fontsize=label_size)
+    axis[1][0].grid()
+    axis[1][0].plot(self.evap_elements_centers_Y, self.delta_temp_elements, color=&#34;blue&#34;, marker=&#34;o&#34;)
+    # axis[1][0].set_ylim(bottom=0, top=None)
+    axis[1][0].set_xlabel(&#34;radius (mm)&#34;)
+    axis[1][0].set_ylabel(&#34;Delta temps (K)&#34;, fontsize=label_size)
+    axis[0][1].grid()
+    axis[0][1].plot(self.evap_elements_centers_Y, self.evap_elements_enthalpies, color=&#34;black&#34;, marker=&#34;x&#34;)
+    axis[0][1].set_xlabel(&#34;radius (mm)&#34;)
+    axis[0][1].set_ylabel(&#34;Enthalpies (J)&#34;, fontsize=label_size)
+    axis[1][1].grid()
+    axis[1][1].plot(self.evap_elements_centers_Y, self.uncapped_delta_temp_elements, color=&#34;green&#34;, marker=&#34;*&#34;)
+    # axis[1][1].set_ylim(bottom=0, top=None)
+    axis[1][1].set_xlabel(&#34;radius (mm)&#34;)
+    axis[1][1].set_ylabel(&#34;Uncapped delta temps (K)&#34;, fontsize=label_size)
+    # figure.show()
+
+    print(&#34;\nEvaporating layer number&#34;, self.vaporisation_layer_number, &#34;...&#34;)
+    self.vaporisation_layer_number += 1
+
+    if not self.sparse_option:
+        self.projector.FillUpMassMatrix()
+    else:
+        self.projector.FillUpSparseMassMatrix()
+    self.projector.AssignDeltasToTestFunctionSupports(self.evap_elements_centers_Y, self.support_elements)
+    self.projector.FillUpDeltasRHS(
+        self.evap_elements_centers_Y, self.support_elements, self.evap_elements_enthalpies
+    )
+    self.u = self.projector.Project()
+
+    total_energy = self.projector.CalculateEnergyOfFEMFunction(self.u)
+
+    print(&#34;Total energy expected =&#34;, sum(self.evap_elements_enthalpies))
+    print(&#34;Total energy calculated =&#34;, total_energy)
+
+    import matplotlib.pyplot as plt
+
+    _, axis = plt.subplots(1, 2, figsize=(20, 5))
+    axis[0].grid()
+    axis[0].plot(self.projector.X, self.q_interp, color=&#34;red&#34;, marker=&#34;+&#34;)
+    axis[0].plot(self.projector.X, self.u, color=&#34;blue&#34;, marker=&#34;o&#34;)
+
+    self.q_interp -= self.u
+
+    # TODO: rethink this!
+    for i, q in enumerate(self.q_interp):
+        if q &lt; 0.0:
+            self.q_interp[i] = 0.0
+
+    axis[0].tick_params(axis=&#34;both&#34;, which=&#34;major&#34;, labelsize=numbers_size)
+    axis[0].tick_params(axis=&#34;both&#34;, which=&#34;minor&#34;, labelsize=numbers_size)
+    plt.subplots_adjust(left=0.1, bottom=None, right=0.9, top=None, wspace=0.22, hspace=None)
+    axis[0].plot(self.projector.X, self.q_interp, color=&#34;black&#34;, marker=&#34;*&#34;)
+    axis[0].set_ylim(bottom=0.0, top=0.0036)
+    axis[0].legend(
+        [&#34;fluence (interpolated)&#34;, &#34;fluence (lost)&#34;, &#34;fluence (remaining)&#34;],
+        loc=&#34;upper right&#34;,
+        fontsize=label_size,
+    )
+    axis[0].set_xlabel(&#34;radius (mm)&#34;, fontsize=label_size)
+    axis[0].set_ylabel(&#34;Energies (J/mm2)&#34;, fontsize=label_size)
+
+    self.AddDecomposedNodesToSurfaceList()
+    self.first_evaporation_stage_done = True
+
+    X = self.list_of_decomposed_nodes_coords_X
+    Y = self.list_of_decomposed_nodes_coords_Y
+
+    if not self.ablation_only_legend_added:
+        if self.ablation_energy_fraction:
+            self.full_list_of_ablated_nodes_coords_X.append(self.list_of_ablated_nodes_coords_X)
+            self.full_list_of_ablated_nodes_coords_Y.append(self.list_of_ablated_nodes_coords_Y)
+        else:
+            self.full_list_of_ablated_nodes_coords_X.append(0.0 * Y)
+            self.full_list_of_ablated_nodes_coords_Y.append(Y)
+        self.ablation_only_legend_added = True
+
+    self.list_of_lists_of_decomposed_nodes_X.append(X)
+    self.list_of_lists_of_decomposed_nodes_Y.append(Y)
+
+    axis[1].grid()
+    list_of_legends = []
+    p = 1
+    axis[1].tick_params(axis=&#34;both&#34;, which=&#34;major&#34;, labelsize=numbers_size)
+    axis[1].tick_params(axis=&#34;both&#34;, which=&#34;minor&#34;, labelsize=numbers_size)
+    for list_X, list_Y in zip(self.full_list_of_ablated_nodes_coords_X, self.full_list_of_ablated_nodes_coords_Y):
+        axis[1].plot(list_Y, -list_X, color=&#34;black&#34;)
+        axis[1].set_ylim(bottom=-0.0023, top=None)
+        converted_num = &#34;Ablation number #&#34; + str(p)
+        list_of_legends.append(converted_num)
+        p += 1
+    i = 1
+    for list_X, list_Y in zip(self.list_of_lists_of_decomposed_nodes_X, self.list_of_lists_of_decomposed_nodes_Y):
+        axis[1].plot(list_Y, -list_X)
+        axis[1].set_ylim(bottom=-0.0023, top=0)
+        converted_num = &#34;Evap. layer #&#34; + str(i)
+        list_of_legends.append(converted_num)
+        i += 1
+    axis[1].legend(list_of_legends, loc=&#34;lower right&#34;, fontsize=11)
+    axis[1].set_xlabel(&#34;radius (mm)&#34;, fontsize=label_size)
+    axis[1].set_ylabel(&#34;Ablation plus evaporation (mm)&#34;, fontsize=label_size)
+
+    if self.plot_progressive_hole_figures:
+        plt.show()
+
+    if self.vaporisation_layer_number &lt;= self.max_vaporisation_layers:
+        self.RetrievePreEvaporationTemperatureState()</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ResetTemperatureField"><code class="name flex">
+<span>def <span class="ident">ResetTemperatureField</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ResetTemperatureField(self):
+    if self.adjust_T_field_after_ablation:
+        reference_temp = self.reference_T_after_laser
+        for node in self.main_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, reference_temp)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, reference_temp)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.ResidualHeatStage"><code class="name flex">
+<span>def <span class="ident">ResidualHeatStage</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ResidualHeatStage(self):
+    &#34;&#34;&#34;
+    TODO: Currently, unused. It is overriden by LaserDrillingTransienSolverAblationPlusThermal.ResidualHeatStage
+    &#34;&#34;&#34;
+    if self.evaporation_energy_fraction:
+        self.projector = SurfaceFEMProjector(
+            self.n_surface_elements, self.R_far, self.sparse_option
+        )  # , delta_coefficients)
+        self.q_interp = self.projector.InterpolateFunctionAndNormalize(self.EnergyPerUnitArea1D)  # , 1.0)
+        if self.compute_vaporisation:
+            self.first_evaporation_stage_done = False
+            self.max_vaporisation_layers = 50
+            # if self.pulse_number == 1:
+            #     self.max_vaporisation_layers = 1
+            self.vaporisation_layer_number = 1
+            self.some_elements_are_above_the_evap_temp = True
+            print(&#34;Removing elements by evaporation...&#34;)
+            print(&#34;Pulse number:&#34;, self.pulse_number)
+            self.last_evaporation_layer_applied = False
+            self.StorePreEvaporationTemperature()
+            self.ablation_only_legend_added = False
+
+            while self.some_elements_are_above_the_evap_temp:
+                if self.vaporisation_layer_number &gt; self.max_vaporisation_layers:
+                    if not self.max_vaporisation_layers:
+                        self.ImposeTemperatureIncreaseDueTo1DConduction()
+                    print(&#34;******************************MAXIMUM ITERATIONS EXCEEDED!!!&#34;)
+                    break
+                self.ImposeTemperatureIncreaseDueTo1DConduction()
+                self.RemoveElementsByEvaporation()
+
+            print(&#34;Done!&#34;)
+        else:
+            self.ImposeTemperatureIncreaseDueTo1DConduction()</code></pre>
+</details>
+<div class="desc"><p>TODO: Currently, unused. It is overriden by LaserDrillingTransienSolverAblationPlusThermal.ResidualHeatStage</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.RetrievePreEvaporationTemperatureState"><code class="name flex">
+<span>def <span class="ident">RetrievePreEvaporationTemperatureState</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def RetrievePreEvaporationTemperatureState(self):
+    for node in self.main_model_part.Nodes:
+        node.SetSolutionStepValue(
+            KratosMultiphysics.TEMPERATURE,
+            node.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE),
+        )
+        node.SetSolutionStepValue(
+            KratosMultiphysics.TEMPERATURE,
+            1,
+            node.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE),
+        )
+    for elem in self.main_model_part.Elements:
+        elem.SetValue(
+            KratosMultiphysics.TEMPERATURE,
+            elem.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE),
+        )</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.SetParameters"><code class="name flex">
+<span>def <span class="ident">SetParameters</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def SetParameters(self):
+    # TODO: - Utilitzar GUI de GiD de la LaserDrilling Application per a generar un cas amb 2 materials i
+    #         revisar si pots llegir-los utilitzant les funcions del solver base ja existents:
+    #         ConvectionDiffusionTransientSolver -&gt; ConvectionDiffusionSolver -&gt; PrepareModelPart() -&gt; self.import_materials()
+    #         (applications\ConvectionDiffusionApplication\python_scripts\convection_diffusion_solver.py)
+    #         Si no funcinoa, pots provar la GUI de GiD de la ConvectionDiffusion Application per a generar un cas amb 2 materials
+    #       - Segurament hauras de generalitzar aquesta funcio per a mes d&#39;1 material: tot el que es llegeixi de self.material_settings
+    #         hauria de llegir-se del json de materials (LaserDrillingMaterials.json)
+
+    self.some_elements_are_above_the_evap_temp = False
+    self.jump_between_pulses_counter = 0
+    self.pulse_number = 0
+    self.print_hdf5_and_gnuplot_files = False  # TODO: Make into a parameter
+
+    materials_filename = self.settings[&#34;material_import_settings&#34;][&#34;materials_filename&#34;].GetString()
+
+    with open(materials_filename, &#34;r&#34;) as parameter_file:
+        materials = KratosMultiphysics.Parameters(parameter_file.read())
+
+    self.material_settings = materials[&#34;properties&#34;][0][&#34;Material&#34;]
+
+    with open(&#34;ProjectParameters.json&#34;, &#34;r&#34;) as project_parameters_file:
+        self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
+
+    &#34;&#34;&#34; 
+    TODO: instead of hardcoding default values for the parameters, wouldn&#39;t it be better if when a parameter is not defined the program failed?
+    In this way, we would ensure that the user is sure that they want to set a specific value for a variable. And they
+    would not be able to accidentally run a case with values that were not chosen by them
+    &#34;&#34;&#34;
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;average_laser_power&#34;):
+        self.average_laser_power = 18
+    else:
+        self.average_laser_power = self.project_parameters[&#34;problem_data&#34;][&#34;average_laser_power&#34;].GetDouble()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;pulse_frequency&#34;):
+        self.pulse_frequency = 2e5
+    else:
+        self.pulse_frequency = self.project_parameters[&#34;problem_data&#34;][&#34;pulse_frequency&#34;].GetDouble()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;beam_waist_diameter&#34;):
+        self.beam_waist_diameter = 0.0179
+    else:
+        self.beam_waist_diameter = self.project_parameters[&#34;problem_data&#34;][&#34;beam_waist_diameter&#34;].GetDouble()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;Rayleigh_length&#34;):
+        self.rayleigh_length = 0.409
+    else:
+        self.rayleigh_length = self.project_parameters[&#34;problem_data&#34;][&#34;Rayleigh_length&#34;].GetDouble()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;focus_Z_offset&#34;):
+        self.focus_z_offset = 0.4
+    else:
+        self.focus_z_offset = self.project_parameters[&#34;problem_data&#34;][&#34;focus_Z_offset&#34;].GetDouble()
+
+    self.z_ast_max = 0.0
+
+    # self.spot_diameter = self.ComputeSpotDiameter()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;vaporisation_temperature&#34;):
+        self.T_e = 1000.0
+    else:
+        self.T_e = self.project_parameters[&#34;problem_data&#34;][&#34;vaporisation_temperature&#34;].GetDouble()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;compute_vaporisation&#34;):
+        self.compute_vaporisation = False
+    else:
+        self.compute_vaporisation = self.project_parameters[&#34;problem_data&#34;][&#34;compute_vaporisation&#34;].GetBool()
+
+    if not self.material_settings[&#34;Variables&#34;].Has(&#34;IONIZATION_ALPHA&#34;):
+        self.ionization_alpha = 1.0  # 0.95
+    else:
+        self.ionization_alpha = 1.0  # self.material_settings[&#39;Variables&#39;][&#39;IONIZATION_ALPHA&#39;].GetDouble()
+
+    if not self.material_settings[&#34;Variables&#34;].Has(&#34;PENETRATION_DEPTH&#34;):
+        self.l_s = 0.002148  # mm.
+    else:
+        self.l_s = self.material_settings[&#34;Variables&#34;][&#34;PENETRATION_DEPTH&#34;].GetDouble()
+
+    if not self.material_settings[&#34;Variables&#34;].Has(&#34;ABLATION_THRESHOLD&#34;):
+        self.F_th = 0.010667  # J/mm2
+    else:
+        self.F_th = self.material_settings[&#34;Variables&#34;][&#34;ABLATION_THRESHOLD&#34;].GetDouble()
+
+    if not self.material_settings[&#34;Variables&#34;].Has(&#34;THERMAL_DEPTH&#34;):
+        self.l_th = 0.0007  # mm.
+    else:
+        self.l_th = self.material_settings[&#34;Variables&#34;][&#34;THERMAL_DEPTH&#34;].GetDouble()
+
+    if not self.material_settings[&#34;Variables&#34;].Has(&#34;ENTHALPY&#34;):
+        self.H_ev = (
+            4e5  # J/Kg. Value found on the internet for a given epoxy resin. # TODO: find an actual source ffs
+        )
+    else:
+        self.H_ev = self.material_settings[&#34;Variables&#34;][&#34;ENTHALPY&#34;].GetDouble()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;mesh_size&#34;):
+        self.mesh_size = &#34;coarse&#34;
+    else:
+        self.mesh_size = self.project_parameters[&#34;problem_data&#34;][&#34;mesh_size&#34;].GetString()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;mesh_type&#34;):
+        self.mesh_type = &#34;unstructured&#34;
+    else:
+        self.mesh_type = self.project_parameters[&#34;problem_data&#34;][&#34;mesh_type&#34;].GetString()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;print_hole_geometry_files&#34;):
+        self.print_hole_geometry_files = False
+    else:
+        self.print_hole_geometry_files = self.project_parameters[&#34;problem_data&#34;][
+            &#34;print_hole_geometry_files&#34;
+        ].GetBool()
+
+    self.Q = self.average_laser_power / self.pulse_frequency  # Energy per pulse
+    self.time_jump_between_pulses = 1.0 / self.pulse_frequency  # TODO: rename to something like pulse_period?
+    self.cp = self.material_settings[&#34;Variables&#34;][&#34;SPECIFIC_HEAT&#34;].GetDouble()
+    self.conductivity = self.material_settings[&#34;Variables&#34;][&#34;CONDUCTIVITY&#34;].GetDouble()
+    self.rho = self.material_settings[&#34;Variables&#34;][&#34;DENSITY&#34;].GetDouble()
+    self.T0 = self.settings[&#34;ambient_temperature&#34;].GetDouble()
+    self.kappa = self.conductivity / (self.rho * self.cp)
+    self.ablation_energy_fraction = self.ionization_alpha
+    self.evaporation_energy_fraction = 1.0 - self.ionization_alpha
+
+    ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
+    ## Laser data
+    self.omega_0 = 0.5 * self.ComputeSpotDiameter()  # self.R_far # mm
+    import numpy as np
+
+    y_limit = 2.0 * self.omega_0
+    self.hole_theoretical_Y_coords = np.linspace(0.0, float(y_limit), 101)
+    self.hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
+    self.one_pulse_hole_theoretical_Y_coords = np.linspace(0.0, 0.0, 101)
+    self.one_pulse_hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
+    self.F_p = self.ComputePeakFluence()
+
+    ## Material calibration using experiments
+    if not self.material_settings[&#34;Variables&#34;].Has(&#34;OPTICAL_PENETRATION_DEPTH&#34;):
+        self.delta_pen = 5e-4  # mm
+    else:
+        self.delta_pen = self.material_settings[&#34;Variables&#34;][&#34;OPTICAL_PENETRATION_DEPTH&#34;].GetDouble()
+
+    if not self.material_settings[&#34;Variables&#34;].Has(&#34;ENERGY_PER_VOLUME_THRESHOLD&#34;):
+        self.q_ast = 10.0  # J/mm3
+    else:
+        self.q_ast = self.material_settings[&#34;Variables&#34;][&#34;ENERGY_PER_VOLUME_THRESHOLD&#34;].GetDouble()
+
+    if not self.material_settings[&#34;Variables&#34;].Has(&#34;REFRACTIVE_INDEX&#34;):
+        self.refractive_index_n = 1.5
+    else:
+        self.refractive_index_n = self.material_settings[&#34;Variables&#34;][&#34;REFRACTIVE_INDEX&#34;].GetDouble()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;consider_material_refraction&#34;):
+        self.consider_material_refraction = False
+    else:
+        self.consider_material_refraction = self.project_parameters[&#34;problem_data&#34;][
+            &#34;consider_material_refraction&#34;
+        ].GetBool()
+
+    if self.material_settings[&#34;compute_optical_penetration_depth_using_refractive_index&#34;].GetBool():
+        self.ComputeOpticalPenetrationDepth()  # TODO: Better to return the value instead of modifying a global?
+        self.delta_pen = self.l_s
+
+    if self.material_settings[&#34;compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization&#34;].GetBool():
+        self.ionizarion_energy_per_volume_threshold = self.ComputeIonizationEnergyPerUnitVolumeThreshold()
+        # TODO: typo &#34;ionizaRion&#34;?
+        self.use_enthalpy_and_ionization = True
+    else:
+        self.use_enthalpy_and_ionization = False
+
+    self.decomposed_nodes_coords_filename = (
+        &#34;hole_coords_q_ast=&#34;
+        + str(self.q_ast)
+        + &#34;_delta_pen=&#34;
+        + str(self.delta_pen)
+        + &#34;_&#34;
+        + self.mesh_type
+        + &#34;_&#34;
+        + self.mesh_size
+        + &#34;.txt&#34;
+    )
+
+    self.r_ast_max = self.ComputeMaximumAblationRadius()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;adjust_T_field_after_ablation&#34;):
+        self.adjust_T_field_after_ablation = False
+    else:
+        self.adjust_T_field_after_ablation = self.project_parameters[&#34;problem_data&#34;][
+            &#34;adjust_T_field_after_ablation&#34;
+        ].GetBool()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;reference_T_after_laser&#34;):
+        self.reference_T_after_laser = 298.15
+    else:
+        self.reference_T_after_laser = self.project_parameters[&#34;problem_data&#34;][
+            &#34;reference_T_after_laser&#34;
+        ].GetDouble()
+
+    if not self.project_parameters[&#34;problem_data&#34;].Has(&#34;print_debug_info&#34;):
+        self.print_debug_info = False
+    else:
+        self.print_debug_info = self.project_parameters[&#34;problem_data&#34;][&#34;print_debug_info&#34;].GetBool()
+
+    self.analytical_ablated_volume_in_n_pulses = 0.0
+
+    for properties, i in enumerate(materials[&#34;properties&#34;]):
+        full_material_part_name_i = i[&#34;model_part_name&#34;].GetString()
+        prefix = &#34;ThermalModelPart.&#34;
+        material_part_name_i = full_material_part_name_i.removeprefix(prefix)
+
+        material_part_i = self.main_model_part.GetSubModelPart(material_part_name_i)
+        material_settings_i = i[&#34;Material&#34;]
+        thermal_energy_per_volume_i = material_settings_i[&#34;Variables&#34;][&#34;ENERGY_PER_VOLUME_THRESHOLD&#34;].GetDouble()
+        for elem in material_part_i.Elements:
+            elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, thermal_energy_per_volume_i)
+
+    # self.sigma = 0.5 * self.R_far
+    # self.K = 1 / (2 * self.sigma**2)
+    # import math
+    # self.C = self.ablation_energy_fraction * self.Q * self.K / (np.pi * (1 - math.exp(-self.K * self.R_far**2)))
+    # self.irradiated_surface_area = np.pi * self.R_far**2
+
+    # if self.ablation_energy_fraction:
+    # Find F_th_fraction multiplying F_th so Radius_th = R_far
+    # This gives a F_th_fraction of 0.313, a little too flat (maximum not captured)
+    # F_th_fraction = self.C * np.exp(-self.K * self.R_far**2) / (self.ablation_energy_fraction * self.Q / A)
+
+    ####################################
+    # Calibrated for:                  #
+    # residual heat fraction   = 0.05  #
+    # Vaporisation temperature = 1000K #
+    # Power                    = 3W    #
+    ####################################
+
+    # self.F_th = 0.009667 # J/mm2 #F_th_fraction * self.ablation_energy_fraction * self.Q / self.irradiated_surface_area
+    # self.radius_th = math.sqrt(math.log(self.C / self.F_th) / self.K)
+
+    # self.l_s = self.PenetrationDepthEstimation() #0.001 # 5 pulses, with evaporation
+
+    # self.l_s = 0.002048
+    # self.l_th = 0.33 # micrometers # Thermal depth, assumed
+
+    l_th_in_meters = self.l_th * 1e-3
+    kappa_in_square_meters = self.kappa * 1e-6
+    self.thermal_penetration_time = l_th_in_meters**2 / kappa_in_square_meters
+
+    # Finite Elements
+    # self.n_surface_elements = 10 # number of elements
+    # self.sparse_option = True
+    # self.surface_nodes_Y_values = np.linspace(0.0, self.R_far, self.n_surface_elements + 1)
+    # self.surface_element_size = self.R_far / self.n_surface_elements
+
+    # Debug
+    self.plot_progressive_hole_figures = False</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpGNUPlotFiles"><code class="name flex">
+<span>def <span class="ident">SetUpGNUPlotFiles</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def SetUpGNUPlotFiles(self):
+    if os.path.exists(&#34;temperature_alpha.txt&#34;):
+        os.remove(&#34;temperature_alpha.txt&#34;)
+    self.temperature_alpha_file = open(&#34;temperature_alpha.txt&#34;, &#34;a&#34;)
+    if os.path.exists(&#34;time_alpha.txt&#34;):
+        os.remove(&#34;time_alpha.txt&#34;)
+    self.time_alpha_file = open(&#34;time_alpha.txt&#34;, &#34;a&#34;)
+    if os.path.exists(&#34;decomposed_volume_evolution.txt&#34;):
+        os.remove(&#34;decomposed_volume_evolution.txt&#34;)
+    self.decomposed_volume_file = open(&#34;decomposed_volume_evolution.txt&#34;, &#34;a&#34;)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpHDF5Files"><code class="name flex">
+<span>def <span class="ident">SetUpHDF5Files</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def SetUpHDF5Files(self):
+    radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
+    self.near_field_nodes = [node for node in self.main_model_part.Nodes if radius_2(node) &lt; self.R_far**2]
+    self.radii = np.sqrt(np.array([radius_2(node) for node in self.near_field_nodes]))
+    self.results_filename = &#34;results.h5&#34;
+    self.CreateResultsFile(self.results_filename)
+    self.temperature_increments = np.array(
+        [node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes]
+    )</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpResultsFiles"><code class="name flex">
+<span>def <span class="ident">SetUpResultsFiles</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def SetUpResultsFiles(self):
+    self.SetUpGNUPlotFiles()
+    self.SetUpHDF5Files()</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.SolveSolutionStep"><code class="name flex">
+<span>def <span class="ident">SolveSolutionStep</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def SolveSolutionStep(self):
+    super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
+    # TODO: Perhaps the following fits better in FinalizeSolutionStep?
+    if self.print_hdf5_and_gnuplot_files:
+        self.temperature_increments = np.array(
+            [node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes]
+        )
+        self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)</code></pre>
+</details>
+<div class="desc"><p>This function solves the current step.
+It can be called multiple times within one solution step
+Returns whether the problem is converged</p></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.StorePreEvaporationTemperature"><code class="name flex">
+<span>def <span class="ident">StorePreEvaporationTemperature</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def StorePreEvaporationTemperature(self):
+    for node in self.main_model_part.Nodes:
+        pre_evaporation_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+        node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
+        # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
+    for elem in self.main_model_part.Elements:
+        elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
+        pre_evaporation_temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
+        elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.TemperatureVariationInZDueToLaser1D"><code class="name flex">
+<span>def <span class="ident">TemperatureVariationInZDueToLaser1D</span></span>(<span>self, radius, z)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def TemperatureVariationInZDueToLaser1D(self, radius, z):
+    # q = self.EnergyPerUnitArea1D(radius)
+    q = self.projector.EvaluateFEMFunction(self.q_interp, radius)
+    t_penetration = self.InitialThermalConductionTime(radius)
+    # 2.0 in numerator due to equation (4c) in Weber, 2014. &#39;Heat accumulation during pulsed laser materials processing&#39;
+    C = 2.0 * q / (self.rho * self.cp * 2.0 * np.sqrt(np.pi * self.kappa * t_penetration))
+    delta_temp = C * np.exp(-(z**2) / (4.0 * self.kappa * t_penetration))
+    characteristic_Z = np.sqrt(4.0 * self.kappa * t_penetration)
+    if characteristic_Z &lt;= self.minimum_characteristic_Z:
+        self.minimum_characteristic_Z = characteristic_Z
+    if characteristic_Z &gt;= self.maximum_characteristic_Z:
+        self.maximum_characteristic_Z = characteristic_Z
+    return delta_temp</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.UpdateLaserRelatedParameters"><code class="name flex">
+<span>def <span class="ident">UpdateLaserRelatedParameters</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def UpdateLaserRelatedParameters(self):
+    self.z_ast_max = self.ComputeMaximumDepth()
+    # TODO: Maybe implement a function ComputeWaist that does this? For code clarity and
+    # so we don&#39;t forget to multiply by 0.5
+    self.omega_0 = 0.5 * self.ComputeSpotDiameter()
+    self.F_p = self.ComputePeakFluence()
+    self.r_ast_max = self.ComputeMaximumAblationRadius()</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.WriteResults"><code class="name flex">
+<span>def <span class="ident">WriteResults</span></span>(<span>self, filename, process_info)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def WriteResults(self, filename, process_info):
+    step = process_info[KratosMultiphysics.STEP]
+    time = step = process_info[KratosMultiphysics.TIME]
+    # Open the HDF5 file.
+    with h5py.File(filename, &#34;a&#34;) as f:
+        assert self.radii.shape == self.temperature_increments.shape
+        # Create a dataset to store the radii and temperatures data.
+        dataset = f[&#34;/temperature_increments&#34;].create_dataset(
+            str(step), self.temperature_increments.shape, dtype=self.temperature_increments.dtype
+        )
+        # Write the radii and temperatures data to the dataset. TODO: the radii is not being written, I believe
+        dataset[:] = self.temperature_increments
+        # Add a time label to the dataset.
+        dataset.attrs[&#34;time&#34;] = time</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="laserdrilling_transient_solver.LaserDrillingTransientSolver.sortSecond"><code class="name flex">
+<span>def <span class="ident">sortSecond</span></span>(<span>self, val)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sortSecond(self, val):
+    &#34;&#34;&#34;
+    Helper function used, for instance, as a key for sorting a list. Returns the second element of the list.
+
+    Parameters
+    ----------
+    val: list
+         The list.
+
+    Returns
+    -------
+    The second element of the list
+    &#34;&#34;&#34;
+
+    return val[1]</code></pre>
+</details>
+<div class="desc"><p>Helper function used, for instance, as a key for sorting a list. Returns the second element of the list.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>val</code></strong> :&ensp;<code>list</code></dt>
+<dd>The list.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>The second element</code> of <code>the list</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="laserdrilling_transient_solver.CreateSolver" href="#laserdrilling_transient_solver.CreateSolver">CreateSolver</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver">LaserDrillingTransientSolver</a></code></h4>
+<ul class="">
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.AddDecomposedNodesToSurfaceList" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.AddDecomposedNodesToSurfaceList">AddDecomposedNodesToSurfaceList</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.AdjustTemperatureFieldAfterAblation" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.AdjustTemperatureFieldAfterAblation">AdjustTemperatureFieldAfterAblation</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.AllocateKratosMemory" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.AllocateKratosMemory">AllocateKratosMemory</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeIonizationEnergyPerUnitVolumeThreshold" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeIonizationEnergyPerUnitVolumeThreshold">ComputeIonizationEnergyPerUnitVolumeThreshold</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeMaximumAblationRadius" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeMaximumAblationRadius">ComputeMaximumAblationRadius</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeMaximumDepth" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeMaximumDepth">ComputeMaximumDepth</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeOpticalPenetrationDepth" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeOpticalPenetrationDepth">ComputeOpticalPenetrationDepth</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputePeakFluence" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputePeakFluence">ComputePeakFluence</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputePulseHoleAndAddToTotalHole" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputePulseHoleAndAddToTotalHole">ComputePulseHoleAndAddToTotalHole</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeSpotDiameter" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ComputeSpotDiameter">ComputeSpotDiameter</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.CountActiveElements" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.CountActiveElements">CountActiveElements</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.CreateResultsFile" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.CreateResultsFile">CreateResultsFile</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.EnergyPerUnitArea1D" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.EnergyPerUnitArea1D">EnergyPerUnitArea1D</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.EvaporationDepth" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.EvaporationDepth">EvaporationDepth</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.Finalize" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.Finalize">Finalize</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.FinalizeSolutionStep" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.FinalizeSolutionStep">FinalizeSolutionStep</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.GetDefaultParameters" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.GetDefaultParameters">GetDefaultParameters</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.IdentifyInitialSurfaceNodes" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.IdentifyInitialSurfaceNodes">IdentifyInitialSurfaceNodes</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeLaserDeltaTemperature" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeLaserDeltaTemperature">ImposeLaserDeltaTemperature</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueTo1DConduction" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueTo1DConduction">ImposeTemperatureIncreaseDueTo1DConduction</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueToLaser" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueToLaser">ImposeTemperatureIncreaseDueToLaser</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueToLaserWithRefraction" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ImposeTemperatureIncreaseDueToLaserWithRefraction">ImposeTemperatureIncreaseDueToLaserWithRefraction</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.InitialThermalConductionTime" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.InitialThermalConductionTime">InitialThermalConductionTime</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.Initialize" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.Initialize">Initialize</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.InitializeSolutionStep" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.InitializeSolutionStep">InitializeSolutionStep</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.MonitorDecomposedVolume" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.MonitorDecomposedVolume">MonitorDecomposedVolume</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.MonitorEnergy" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.MonitorEnergy">MonitorEnergy</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.PenetrationDepthEstimation" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.PenetrationDepthEstimation">PenetrationDepthEstimation</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.PrintDecomposedVolumeEvolution" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.PrintDecomposedVolumeEvolution">PrintDecomposedVolumeEvolution</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.RemoveElementsByAblation" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.RemoveElementsByAblation">RemoveElementsByAblation</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.RemoveElementsByEvaporation" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.RemoveElementsByEvaporation">RemoveElementsByEvaporation</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ResetTemperatureField" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ResetTemperatureField">ResetTemperatureField</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.ResidualHeatStage" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.ResidualHeatStage">ResidualHeatStage</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.RetrievePreEvaporationTemperatureState" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.RetrievePreEvaporationTemperatureState">RetrievePreEvaporationTemperatureState</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.SetParameters" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.SetParameters">SetParameters</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpGNUPlotFiles" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpGNUPlotFiles">SetUpGNUPlotFiles</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpHDF5Files" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpHDF5Files">SetUpHDF5Files</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpResultsFiles" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.SetUpResultsFiles">SetUpResultsFiles</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.SolveSolutionStep" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.SolveSolutionStep">SolveSolutionStep</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.StorePreEvaporationTemperature" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.StorePreEvaporationTemperature">StorePreEvaporationTemperature</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.TemperatureVariationInZDueToLaser1D" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.TemperatureVariationInZDueToLaser1D">TemperatureVariationInZDueToLaser1D</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.UpdateLaserRelatedParameters" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.UpdateLaserRelatedParameters">UpdateLaserRelatedParameters</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.WriteResults" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.WriteResults">WriteResults</a></code></li>
+<li><code><a title="laserdrilling_transient_solver.LaserDrillingTransientSolver.sortSecond" href="#laserdrilling_transient_solver.LaserDrillingTransientSolver.sortSecond">sortSecond</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>
