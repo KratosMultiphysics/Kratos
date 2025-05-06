@@ -25,8 +25,8 @@ using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
-Vector CalculateMappedStressVector(Vector&                       rCauchyStressVector,
-                                   ConstitutiveLaw::Parameters&  rParameters,
+Vector CalculateMappedStressVector(Vector&                                rCauchyStressVector,
+                                   ConstitutiveLaw::Parameters&           rParameters,
                                    InterfaceMohrCoulombWithTensionCutOff& rLaw)
 {
     Vector strain_vector = ZeroVector(2);
