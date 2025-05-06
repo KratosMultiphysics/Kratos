@@ -159,14 +159,11 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
 }
 
 Vector InterfaceMohrCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
-                                                                           double rNormalStiffness,
-                                                                           double rShearStiffness) const
+                                                                           double NormalStiffness,
+                                                                           double ShearStiffness) const
 {
-    auto constitutive_matrix  = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
-    constitutive_matrix(0, 0) = rNormalStiffness;
-    constitutive_matrix(1, 1) = rShearStiffness;
-    return mTractionVectorFinalized +
-           prod(constitutive_matrix, rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
+    return mTractionVectorFinalized + prod(MakeConstitutiveMatrix(NormalStiffness, ShearStiffness),
+                                           rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
 }
 
 void InterfaceMohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)

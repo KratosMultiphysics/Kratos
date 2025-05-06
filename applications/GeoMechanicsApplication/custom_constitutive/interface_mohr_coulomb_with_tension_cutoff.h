@@ -61,8 +61,8 @@ private:
     bool                mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
-                                                      double        YoungsModulus,
-                                                      double        PoissonsRatio) const;
+                                                      double        NormalStiffness,
+                                                      double        ShearStiffness) const;
     [[nodiscard]] Matrix MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const;
 
     friend class Serializer;
