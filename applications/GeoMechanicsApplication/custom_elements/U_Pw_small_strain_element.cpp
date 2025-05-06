@@ -602,9 +602,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         });
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
         try {
-        OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
+            OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
+        } catch (...) {
+            std::fill(rOutput.begin(), rOutput.end(), 0.0);
         }
-        catch (...){ std::fill(rOutput.begin(), rOutput.end(), 0.0); }
     } else if (r_properties.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
         std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
@@ -1048,8 +1049,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     }
 
     if (rCurrentProcessInfo[TIME] > 0.0 && CalculateResidualVectorFlag) {
-        const auto f_ext = -mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) *
-                                                         rCurrentProcessInfo[TIME];
+        auto relative_time = (rCurrentProcessInfo[TIME] - rCurrentProcessInfo[START_TIME]) /
+                             (rCurrentProcessInfo[END_TIME] - rCurrentProcessInfo[START_TIME]);
+        const auto f_ext = -mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) * relative_time;
+
         // KRATOS_INFO("f_ext") << f_ext << std::endl;
         // KRATOS_INFO("total_external_forces") << total_external_forces << std::endl;
         // KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;
