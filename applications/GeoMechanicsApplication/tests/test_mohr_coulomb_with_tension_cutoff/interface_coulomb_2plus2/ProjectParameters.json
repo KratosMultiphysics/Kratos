@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "Neumann_Dirichlet_interface_Coulomb",
+        "problem_name":         "interface_Coulomb",
         "start_time":           0.0,
         "end_time":             4.0,
         "echo_level":           1,
@@ -73,7 +73,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "Neumann_Dirichlet_interface_Coulomb",
+                "output_name": "interface_Coulomb",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
