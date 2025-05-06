@@ -97,6 +97,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
                 LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
             )
             elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume[0])
+
             enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(
                 LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
             )
@@ -233,18 +234,33 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             for elem in self.main_model_part.Elements:
                 q_energy_per_volume = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME)
                 enthalpy_energy_per_volume = elem.GetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME)
-                # TODO: I think it makes sense to move the computation of energy_threshold elsewhere.
+
+                # Choose the energy threshold
+                """ 
+                TODO: I think it makes sense to move the computation of energy_threshold elsewhere. However,
+                why does the MATERIAL_THERMAL_ENERGY_PER_VOLUME depend on the element? Is it so that 
+                different materials with different MATERIAL_THERMAL_ENERGY_PER_VOLUME can be treated 
+                in the same way, without needing the code to know to which material each element belongs?
+                """
                 if self.use_enthalpy_and_ionization:
                     ionization_energy_per_volume_threshold = self.ionizarion_energy_per_volume_threshold  # TODO: there's a typo on "ionizaRion" I think, but it never crashes, so it must be unused or be misspelled everywhere
                     energy_threshold = min(enthalpy_energy_per_volume, ionization_energy_per_volume_threshold)
                 else:
                     energy_threshold = elem.GetValue(
                         LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME
-                    )  # self.q_ast # TODO: rename MATERIAL_THERMAL_ENERGY_PER_VOLUME to something more descriptive (see Woodfield 2024)
+                    )  # self.q_ast # TODO: rename MATERIAL_THERMAL_ENERGY_PER_VOLUME to something more descriptive (see Woodfield 2024 for the definition of q_ast)
+
+                # If the energy threshold is exceeded, deactivate the element
                 if q_energy_per_volume >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     for node in elem.GetNodes():
                         node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
+
+            # TODO: Check that the following comment is correct
+            # If all the elements surrounding a "center" element with which they share some nodes have been deactivated (ablated),
+            # the center element is also deactivated (ablated)
+            # TODO: Instead of checking whether all nodes are inactive, maybe it is faster to check whether at least one node is active
+            # to consider the element to still be active
             for elem in self.main_model_part.Elements:
                 if elem.Is(KratosMultiphysics.ACTIVE):
                     number_of_decomposed_nodes = 0
@@ -253,6 +269,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
                             number_of_decomposed_nodes += 1
                     if number_of_decomposed_nodes == 3:
                         elem.Set(KratosMultiphysics.ACTIVE, False)
+
             self.AddDecomposedNodesToSurfaceList()
             self.list_of_ablated_nodes_coords_X = self.list_of_decomposed_nodes_coords_X
             self.list_of_ablated_nodes_coords_Y = self.list_of_decomposed_nodes_coords_Y
