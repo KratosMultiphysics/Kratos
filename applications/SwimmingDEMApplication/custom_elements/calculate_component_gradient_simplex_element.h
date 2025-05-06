@@ -176,6 +176,20 @@ public:
         return Element::Pointer(new ComputeComponentGradientSimplex(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
+    /// Create a new element of this type
+    /**
+     * Returns a pointer to a new ComputeComponentGradientSimplex element, created using given input
+     * @param NewId: the ID of the new element
+     * @param pGeom: geometry of the new geom
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
+                            PropertiesType::Pointer pProperties) const override
+    {
+        return Element::Pointer(new ComputeComponentGradientSimplex(NewId, pGeom, pProperties));
+    }
+
     /// Calculate the element's local contribution to the system for the current step.
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
