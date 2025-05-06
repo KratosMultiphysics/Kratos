@@ -178,9 +178,9 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     auto trial_sigma_tau =
         StressStrainUtilities::TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
 
-    while (!ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(
+    while (!ConstitutiveLawUtilities::IsAdmissibleSigmaTauStressState(
         trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
-        trial_sigma_tau = ConstitutiveLawUtilities::MapStressesInMorhCoulomb(
+        trial_sigma_tau = ConstitutiveLawUtilities::ReturnMappingToCoulombWithTensionCutOff(
             r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
         principal_trial_stress_vector = StressStrainUtilities::TransformSigmaAndTauToPrincipalStresses(
             trial_sigma_tau, principal_trial_stress_vector);

@@ -152,10 +152,10 @@ double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rPr
                : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
 }
 
-Vector ConstitutiveLawUtilities::MapStressesInMorhCoulomb(const Properties& r_prop,
-                                                          Vector&           rSigmaTau,
-                                                          const CoulombYieldSurface& rCoulombYieldSurface,
-                                                          const TensionCutoff& rTensionCutOff)
+Vector ConstitutiveLawUtilities::ReturnMappingToCoulombWithTensionCutOff(const Properties& r_prop,
+                                                                         Vector& rSigmaTau,
+                                                                         const CoulombYieldSurface& rCoulombYieldSurface,
+                                                                         const TensionCutoff& rTensionCutOff)
 {
     Vector     mapped_sigma_tau;
     const auto apex =
@@ -180,9 +180,9 @@ Vector ConstitutiveLawUtilities::MapStressesInMorhCoulomb(const Properties& r_pr
     return mapped_sigma_tau;
 }
 
-bool ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(const Vector& rSigmaTau,
-                                                                const CoulombYieldSurface& rCoulombYieldSurface,
-                                                                const TensionCutoff& rTensionCutOff)
+bool ConstitutiveLawUtilities::IsAdmissibleSigmaTauStressState(const Vector& rSigmaTau,
+                                                               const CoulombYieldSurface& rCoulombYieldSurface,
+                                                               const TensionCutoff& rTensionCutOff)
 {
     constexpr auto tolerance              = 1.0e-10;
     const auto     coulomb_yield_function = rCoulombYieldSurface.YieldFunctionValue(rSigmaTau);

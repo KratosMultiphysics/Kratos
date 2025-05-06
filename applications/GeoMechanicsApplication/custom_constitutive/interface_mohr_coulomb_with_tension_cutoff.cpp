@@ -147,9 +147,9 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
         rParameters.GetStrainVector(), r_prop[INTERFACE_NORMAL_STIFFNESS], r_prop[INTERFACE_SHEAR_STIFFNESS]);
     trial_sigma_tau[1] = std::abs(trial_sigma_tau[1]);
 
-    if (!ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(
+    if (!ConstitutiveLawUtilities::IsAdmissibleSigmaTauStressState(
             trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
-        trial_sigma_tau = ConstitutiveLawUtilities::MapStressesInMorhCoulomb(
+        trial_sigma_tau = ConstitutiveLawUtilities::ReturnMappingToCoulombWithTensionCutOff(
             r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
     }
 
