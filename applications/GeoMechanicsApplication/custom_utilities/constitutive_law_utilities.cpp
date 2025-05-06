@@ -37,14 +37,6 @@ double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int
     return rProperties[UMAT_PARAMETERS][index - 1];
 }
 
-Vector TransformPrincipalStressesToSigmaAndTau(const Vector& rPrincipalStresses)
-{
-    auto result = Vector(2);
-    result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
-    result[1]   = 0.5 * (rPrincipalStresses[0] - rPrincipalStresses[2]);
-    return result;
-}
-
 double CalculateApex(double FrictionAngle, double Cohesion)
 {
     return Cohesion / std::tan(FrictionAngle);
