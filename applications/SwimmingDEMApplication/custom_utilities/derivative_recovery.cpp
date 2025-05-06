@@ -9,6 +9,7 @@
 #include "linear_solvers/amgcl_solver.h"
 #include "swimming_DEM_application.h"
 #include "swimming_dem_application_variables.h"
+#include "custom_utilities/fields/ethier_flow_field.h"
 #include "omp.h"
 
 namespace Kratos
@@ -230,6 +231,200 @@ void DerivativeRecovery<TDim>::ConstructMassMatrixStructure(ModelPart& r_model_p
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim>
+void DerivativeRecovery<TDim>::CalculateFieldL2Projection(ModelPart& r_model_part,
+                                                                 VelocityField::Pointer flow_field,
+                                                                 Variable<array_1d<double, 3> >& vector_container,
+                                                                 Variable<array_1d<double, 3> >& vector_rate_container,
+                                                                 Variable<array_1d<double, 3> >& material_derivative_container)
+{
+    KRATOS_INFO("SwimmingDEM") << "Constructing the material derivative for a given flow field..." << std::endl;
+
+    // System size
+    const unsigned number_of_elements = r_model_part.NumberOfElements();
+    const unsigned number_of_nodes = r_model_part.NumberOfNodes();
+    const unsigned number_of_dofs = TDim;  // vx, vy, vz (vi,j for i, j = 0, ..., TDim - 1)
+    const SizeType system_size = number_of_nodes * number_of_dofs;
+
+    // Map the ids of the nodes to their position in the model part
+    std::map <std::size_t, unsigned int> id_to_position;
+    unsigned int node_pos = 0;
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        noalias(inode->FastGetSolutionStepValue(material_derivative_container)) = ZeroVector(3);
+        id_to_position[inode->Id()] = node_pos;
+        ++node_pos;
+    }
+
+    // Compute the mass matrix of the system (only once)
+    if(!mMassMatrixAlreadyComputed)
+    {
+        // Map of local dof position to global dof position
+        std::vector<std::map<unsigned, unsigned>> elements_id_map(number_of_elements);
+        for (unsigned int e = 0; e < number_of_elements; e++)
+        {
+            ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
+            Geometry<Node>& r_geometry = it_elem->GetGeometry();
+
+            std::map<unsigned, unsigned> element_map;
+            for(unsigned n = 0; n < r_geometry.size(); n++)
+            {
+                const SizeType node_pos = id_to_position[r_geometry[n].Id()];
+                for (unsigned i = 0; i < number_of_dofs; i++)
+                {
+                    unsigned local_dof_position = n * number_of_dofs + i;  // Each node has a local position in the element
+                    unsigned global_dof_position = node_pos * number_of_dofs + i;  // Each DOF in the model part has a unique position (we assume the nodes in r_geometry are always at the same order)
+                    element_map[local_dof_position] = global_dof_position;  // This maps the local DOF position of the element to the global position of this DOF
+                }
+            }
+            elements_id_map[e] = element_map;
+        }
+
+        // Construct the structure of the sparse mass matrix
+        ConstructMassMatrixStructure(r_model_part, system_size, elements_id_map, m_global_mass_matrix);
+
+        // #pragma omp parallel
+        // {
+        Matrix local_lhs;
+        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+        // #pragma omp for schedule(guided)
+        for (unsigned e = 0; e < number_of_elements; e++){
+            ModelPart::ElementsContainerType::iterator it_elem = el_begin + e;
+            // Node id to global index map
+            CalculateLocalMassMatrix(number_of_dofs, it_elem, local_lhs);
+            AssembleMassMatrix(m_global_mass_matrix, local_lhs, elements_id_map[e]);
+            local_lhs = ZeroMatrix(local_lhs.size1(), local_lhs.size2());
+        }
+        // }
+
+        mMassMatrixAlreadyComputed = true;
+    }
+
+    // Compute the projection of grad(u_j) for each j (RHS)
+    // unsigned num_threads = omp_get_num_threads();
+
+    unsigned num_threads = omp_get_max_threads();
+    std::vector<SparseSpaceType::VectorType> thread_local_rhs(num_threads, ZeroVector(system_size));
+    SparseSpaceType::VectorType ProjectionRHS = ZeroVector(system_size);
+    SparseSpaceType::VectorType ProjectionCoefficients = ZeroVector(system_size);
+    for(unsigned j = 0; j < TDim; j++)
+    {
+        // Reset thread local rhs
+        for(unsigned t = 0; t < num_threads; t++)
+            thread_local_rhs[t] = ZeroVector(system_size);
+        ProjectionRHS = ZeroVector(system_size);
+        ProjectionCoefficients = ZeroVector(system_size);
+
+        // for (unsigned int e = 0; e < number_of_elements; e++)
+        #pragma omp parallel
+        {
+            // Parallel variables
+            auto& rLocalMesh = r_model_part.GetCommunicator().LocalMesh();
+            ModelPart::ElementIterator elements_begin = rLocalMesh.ElementsBegin();
+
+            unsigned tid = omp_get_thread_num();
+            auto& local_rhs = thread_local_rhs[tid];
+
+            #pragma omp for
+            for(unsigned e = 0; e<static_cast<int>(rLocalMesh.NumberOfElements()); ++e)
+            {
+                const ModelPart::ElementIterator it_elem = elements_begin + e;
+                // ModelPart::ElementsContainerType::iterator it_elem = r_model_part.ElementsBegin() + e;
+
+                Geometry<Node>& r_geometry = it_elem->GetGeometry();
+                unsigned int NumNodes = r_geometry.size();
+                GeometryData::IntegrationMethod integration_method = it_elem->GetIntegrationMethod();
+                const std::vector<IntegrationPoint<3>> r_integrations_points = r_geometry.IntegrationPoints( integration_method );
+                unsigned int r_number_integration_points = r_geometry.IntegrationPointsNumber(integration_method);
+                Vector detJ_vector(r_number_integration_points);
+                r_geometry.DeterminantOfJacobian(detJ_vector, integration_method);
+                Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
+                DenseVector<Matrix> shape_derivatives;
+                r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, detJ_vector, integration_method);
+
+                for (unsigned int g = 0; g < r_number_integration_points; g++)
+                {
+                    double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
+
+                    // Calculate the gauss global coordinates
+                    array_1d<double, 3> gauss_coords = ZeroVector(3);
+                    for(unsigned n = 0; n < NumNodes; n++)
+                    {
+                        Vector node_coords = r_geometry[n].Coordinates();
+                        double shape_function_at_gauss_point = NContainer(g, n);
+                        for(unsigned d = 0; d < TDim; d++)
+                        {
+                            gauss_coords[d] += node_coords[d] * shape_function_at_gauss_point;
+                        }
+                    }
+
+                    // Calculate the exact gradient at x = xg
+                    array_1d<array_1d<double, 3>, 3> grad_exact;
+                    flow_field->CalculateGradient(0.0, gauss_coords, grad_exact, omp_get_thread_num());
+                    for (unsigned int a = 0; a < NumNodes; ++a){
+                        double shape_function_at_gauss_point = NContainer(g, a);
+                        for (unsigned d = 0; d < TDim; d++)
+                        {
+                            unsigned int a_global = TDim * id_to_position[r_geometry[a].Id()] + d;
+                            double projection_rhs_value = Weight * grad_exact[j][d] * shape_function_at_gauss_point;
+                            local_rhs[a_global] += projection_rhs_value;
+                        }
+                    }
+                }
+            }
+        }
+        // Reduction outside the parallel region
+        for (unsigned tid = 0; tid < num_threads; tid++)
+        {
+            for (int i = 0; i < system_size; ++i) {
+                ProjectionRHS[i] += thread_local_rhs[tid][i];
+            }
+        }
+
+        // Invert mass matrix
+        AMGCLSolver<SparseSpaceType, DenseSpaceType> LinearSolver;
+        LinearSolver.Solve(m_global_mass_matrix, ProjectionCoefficients, ProjectionRHS);
+
+        // Add values of material derivatives
+        #pragma omp parallel for
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin() + i;
+            array_1d <double, 3>& material_derivative_node = inode->FastGetSolutionStepValue(material_derivative_container);
+            array_1d <double, 3>& elemental_values = inode->FastGetSolutionStepValue(vector_container);
+            for (unsigned int d = 0; d < TDim; d++)
+            {
+                unsigned int index = TDim * id_to_position[inode->Id()] + d;
+                material_derivative_node[j] += elemental_values[d] * ProjectionCoefficients[index];
+
+                // Store the gradient of u_j, i.e. \partial_d u_j, d = 0, 1, 2
+                if (mStoreFullGradient)
+                {
+                    if (j == 0)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                        gradient[d] = ProjectionCoefficients[index];
+                    } else if (j == 1)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+                        gradient[d] = ProjectionCoefficients[index];
+                    } else if (j == 2)
+                    {
+                        array_1d<double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+                        gradient[d] = ProjectionCoefficients[index];
+                    }
+                }
+            }
+        }
+
+        // Reset variables
+        // ProjectionRHS = ZeroVector(system_size);
+        // ProjectionCoefficients = ZeroVector(system_size);
+    }
+    KRATOS_INFO("SwimmingDEM") << "Finished constructing the material derivative for a given flow field." << std::endl;
+
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(ModelPart& r_model_part,
                                                                  Variable<array_1d<double, 3> >& vector_container,
                                                                  Variable<array_1d<double, 3> >& vector_rate_container,
@@ -298,6 +493,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
 
     // Compute the projection of grad(u_j) for each j (RHS)
     // unsigned num_threads = omp_get_num_threads();
+
     unsigned num_threads = omp_get_max_threads();
     std::vector<SparseSpaceType::VectorType> thread_local_rhs(num_threads, ZeroVector(system_size));
     SparseSpaceType::VectorType ProjectionRHS = ZeroVector(system_size);
@@ -337,12 +533,11 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                 DenseVector<Matrix> shape_derivatives;
                 r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, detJ_vector, integration_method);
 
-                // Compute the mass matrix
-                // if(!mass_matrix_computed)
-                // {
                 for (unsigned int g = 0; g < r_number_integration_points; g++)
                 {
                     double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
+
+                    // Use nodal values
                     for (unsigned int a = 0; a < NumNodes; ++a){
                         for (unsigned int b = 0; b < NumNodes; ++b){
                             for (unsigned int d = 0; d < TDim; d++)
@@ -351,7 +546,6 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeExactL2Parallel(
                                 unsigned int a_global = TDim * id_to_position[r_geometry[a].Id()] + d;
                                 double nodal_value_j = r_geometry[b].FastGetSolutionStepValue(vector_container)[j];
                                 double projection_rhs_value = Weight * nodal_value_j * NContainer(g, a) * shape_derivatives[g](b, d);
-                                // ProjectionRHS[a_global] += projection_rhs_value;
                                 local_rhs[a_global] += projection_rhs_value;
                             }
                         }

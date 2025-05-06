@@ -29,6 +29,7 @@
 #include "spaces/ublas_space.h"
 #include "spatial_containers/spatial_containers.h"
 #include "custom_utilities/search/point_point_search.h"
+#include "custom_utilities/fields/velocity_field.h"
 
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
@@ -158,6 +159,8 @@ void ComputeNonZeroMassMatrixIndex(ModelPart&, const std::vector<std::map<unsign
 void ConstructMassMatrixStructure(ModelPart&, const unsigned&, const std::vector<std::map<unsigned, unsigned>>&, SparseSpaceType::MatrixType&);
 
 void AssembleMassMatrix(SparseSpaceType::MatrixType& global_matrix, const Matrix& local_lhs, std::map<unsigned, unsigned>&);
+
+void CalculateFieldL2Projection(ModelPart&, VelocityField::Pointer flow_field, Variable<array_1d<double, 3> >&, Variable<array_1d<double, 3> >&, Variable<array_1d<double, 3> >&);
 
 void CalculateVectorMaterialDerivativeExactL2Parallel(ModelPart&, Variable<array_1d<double, 3> >&, Variable<array_1d<double, 3> >&, Variable<array_1d<double, 3> >&);
 
