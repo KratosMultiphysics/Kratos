@@ -287,7 +287,6 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                 id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-            std::vector<int> list_id_closest_condition(geometries.size());
             this->CreateConditions(
                 geometries.ptr_begin(), geometries.ptr_end(),
                 rModelPart, name, id, PropertiesPointerType());
