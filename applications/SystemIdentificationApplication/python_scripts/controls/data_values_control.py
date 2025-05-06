@@ -11,6 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import IntervalBounder
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
@@ -44,7 +45,7 @@ class DataValuesControl(Control):
         clamper_type = KratosSI.ConditionSmoothClamper
         data_location = Kratos.Globals.DataLocation.Condition
         expression_type = Kratos.Expression.ConditionExpression
-        
+
         def ReadExpression(self, exp, var):
             Kratos.Expression.VariableExpressionIO.Read(exp, var)
 
@@ -63,9 +64,9 @@ class DataValuesControl(Control):
             Kratos.Expression.VariableExpressionIO.Write(exp, var, False)
 
     class __NodalHistoricalValueControlHelper:
-        clamper_type = KratosSI.NodeSmoothClamper 
-        data_location = Kratos.Globals.DataLocation.NodeHistorical 
-        expression_type = Kratos.Expression.NodalExpression  
+        clamper_type = KratosSI.NodeSmoothClamper
+        data_location = Kratos.Globals.DataLocation.NodeHistorical
+        expression_type = Kratos.Expression.NodalExpression
 
         def ReadExpression(self, exp, var):
             Kratos.Expression.VariableExpressionIO.Read(exp, var, True)
@@ -115,7 +116,7 @@ class DataValuesControl(Control):
         if control_variable_type != "Double":
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
         self.controlled_physical_variable: SupportedSensitivityFieldVariableTypes = Kratos.KratosGlobals.GetVariable(control_variable_name)
-        
+
         controlled_model_part_names: 'list[Kratos.Parameters]' = parameters["model_part_names"].values()
         if len(controlled_model_part_names) == 0:
             raise RuntimeError(f"No model parts were provided for DataValuesControl. [ control name = \"{self.GetName()}\"]")
@@ -144,7 +145,10 @@ class DataValuesControl(Control):
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
-        self.clamper = self.container_type_helper.clamper_type(control_variable_bounds[0], control_variable_bounds[1])
+
+        # use the clamper in the unit interval
+        self.interval_bounder = IntervalBounder(control_variable_bounds)
+        self.clamper = self.container_type_helper.clamper_type(0, 1)
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -157,12 +161,12 @@ class DataValuesControl(Control):
         physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.ProjectBackward(physical_field)
+        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedExpression(physical_field))
 
         # compute the control phi field
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
 
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -227,14 +231,14 @@ class DataValuesControl(Control):
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
 
         # project forward the filtered thickness field to get clamped physical field
-        physical_field = self.clamper.ProjectForward(self.physical_phi_field)
+        physical_field = self.interval_bounder.GetUnboundedExpression(self.clamper.ProjectForward(self.physical_phi_field))
 
         # now update physical field
         self.container_type_helper.WriteExpression(physical_field, self.controlled_physical_variable)
-        
+
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
