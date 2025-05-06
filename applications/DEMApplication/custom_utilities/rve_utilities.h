@@ -31,8 +31,8 @@ namespace Kratos
             // Public attributes
             int         mEvalFreq;               // RVE evaluation frequency in time steps (input parameter)
             int         mWriteFreq;              // Results printing frequency in time steps (input parameter)
-            std::string mConsolidationCriterion; // Creterion to stop consolidation phase (input parameter)
-            double      mConsolidationLimit;     // Limit value used by the consolidation creterion (input parameter)
+            std::string mConsolidationCriterion; // Criterion to stop consolidation phase (input parameter)
+            double      mConsolidationLimit;     // Limit value used by the consolidation criterion (input parameter)
             double      mInnerVolOffset;         // Offset wrt to boundaries and relative to the average particle radius of the inner RVE volume (input parameter)
 
             bool   mIsMoving;          // Flag for moving boundaries in current step

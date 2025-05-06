@@ -257,8 +257,8 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Read forces between neighbohrs saved from previous analyses.
-    // File format for line i: particle id #neighbohrs neighb-1_fx neighb-1_fy neighb-1_fz ... neighb-j_fx neighb-j_fy neighb-j_fz
+    // Read forces between neighbors saved from previous analyses.
+    // File format for line i: particle id #neighbors neighbor-1_fx neighbor-1_fy neighbor-1_fz ... neighbor-j_fx neighbor-j_fy neighbor-j_fz
     void RVEUtilities::ReadOldForces(void) {
         // Open old force files with pre-defined names
         std::fstream f_old_elastic_forces_pp;

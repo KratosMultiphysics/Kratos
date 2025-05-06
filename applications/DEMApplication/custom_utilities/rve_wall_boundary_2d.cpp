@@ -522,7 +522,7 @@ namespace Kratos
                         // Area of triangle formed by the vertex and intersection points
                         double area_triangle = ComputeAreaTriangle(xa,xb,xc,ya,yb,yc);
 
-                        // Area of circle sector formed by the intersection points and circunference
+                        // Area of circle sector formed by the intersection points and circumference
                         double xt = (xb+xc)/2.0, yt = (yb+yc)/2.0;            // Middle coordinates of the chord between intersection points (xb,yb)->(xc,yc)
                         double d1 = std::sqrt((xt-x)*(xt-x) + (yt-y)*(yt-y)); // Distance: circle center - chord middle
                         double d2 = std::sqrt((xa-x)*(xa-x) + (ya-y)*(ya-y)); // Distance: circle center - vertex
