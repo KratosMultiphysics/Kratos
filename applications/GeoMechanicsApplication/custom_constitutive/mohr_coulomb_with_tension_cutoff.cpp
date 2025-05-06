@@ -130,7 +130,8 @@ void MohrCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMateria
                                                       const Vector&)
 {
     mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]), rMaterialProperties[GEO_COHESION],
+        ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties),
+        ConstitutiveLawUtilities::GetCohesion(rMaterialProperties),
         MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
         rMaterialProperties[GEO_TENSILE_STRENGTH]};
 }
@@ -188,7 +189,6 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
     mStressVector = StressStrainUtilities::RotatePrincipalStresses(
         principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
-
     rParameters.GetStressVector() = mStressVector;
 }
 
