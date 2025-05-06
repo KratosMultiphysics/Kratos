@@ -223,17 +223,17 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<double> mpc_penalty_factor(1);
         PointerVector<Condition> MaterialPointConditions;
 
-        const unsigned int id_number_conditions=0;
-        const unsigned int id_number_elements = rBackgroundGridModelPart.GetRootModelPart().Elements().back().Id();
-        const unsigned int id_number_nodes = rBackgroundGridModelPart.GetRootModelPart().Nodes().back().Id();
-        
+        // Determine condition index: This convention is done in order for the purpose of visualization in GiD
+        const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
+        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements() + rMPMModelPart.NumberOfElements();
+        const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
         unsigned int condition_id;
-        if (id_number_elements > id_number_conditions && id_number_elements > id_number_conditions)
-            condition_id = id_number_elements+1;
-        else if (id_number_nodes > id_number_elements && id_number_nodes > id_number_conditions)
-            condition_id = id_number_nodes+1;
+        if (number_elements > number_nodes && number_elements > number_conditions)
+            condition_id = number_elements+1;
+        else if (number_nodes > number_elements && number_nodes > number_conditions)
+            condition_id = number_nodes+1;
         else
-            condition_id = id_number_conditions+1;
+            condition_id = number_conditions+1;
 
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
