@@ -79,7 +79,7 @@ class KratosGeoMechanicsMohrCoulombWithTensionTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('test_mohr_coulomb_with_tension_cutoff', test_name))
         simulation = test_helper.run_kratos(file_path)
         reaction = test_helper.get_nodal_variable(simulation, Kratos.REACTION)
-        self.assertAlmostEqual(-176.1686911267587877808, reaction[0][0])
+        self.assertAlmostEqual(176.1686911267587877808, reaction[0][0])
         
 if __name__ == '__main__':
     KratosUnittest.main()
