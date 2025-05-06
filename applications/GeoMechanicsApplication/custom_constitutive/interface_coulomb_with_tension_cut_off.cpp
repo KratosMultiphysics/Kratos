@@ -21,6 +21,7 @@
 #include "geo_mechanics_application_variables.h"
 
 #include <cmath>
+#include <optional>
 
 namespace
 {
@@ -50,8 +51,7 @@ ConstitutiveLaw::Pointer InterfaceMohrCoulombWithTensionCutOff::Clone() const
     p_result->mTractionVector = mTractionVector;
     p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
-    p_result->mCoulombYieldSurface                 = mCoulombYieldSurface;
-    p_result->mTensionCutOff                       = mTensionCutOff;
+    p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
     return p_result;
 }
 
@@ -122,11 +122,6 @@ void InterfaceMohrCoulombWithTensionCutOff::InitializeMaterial(const Properties&
         MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]), rMaterialProperties[GEO_COHESION],
         MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
         rMaterialProperties[GEO_TENSILE_STRENGTH]};
-    mCoulombYieldSurface =
-        CoulombYieldSurface(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]),
-                            rMaterialProperties[GEO_COHESION],
-                            MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
-    mTensionCutOff = TensionCutoff(rMaterialProperties[GEO_TENSILE_STRENGTH]);
 
     mRelativeDisplacementVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
@@ -206,8 +201,6 @@ void InterfaceMohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("TractionVector", mTractionVector);
     rSerializer.save("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
-    rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
-    rSerializer.save("TensionCutOff", mTensionCutOff);
     rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
 }
@@ -218,8 +211,6 @@ void InterfaceMohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("TractionVector", mTractionVector);
     rSerializer.load("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
-    rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
-    rSerializer.load("TensionCutOff", mTensionCutOff);
     rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
 }

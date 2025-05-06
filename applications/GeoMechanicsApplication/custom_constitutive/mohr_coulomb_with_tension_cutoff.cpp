@@ -21,6 +21,7 @@
 #include "geo_mechanics_application_variables.h"
 
 #include <cmath>
+#include <optional>
 
 namespace
 {
@@ -55,11 +56,10 @@ MohrCoulombWithTensionCutOff::MohrCoulombWithTensionCutOff(std::unique_ptr<Const
 ConstitutiveLaw::Pointer MohrCoulombWithTensionCutOff::Clone() const
 {
     auto p_result = std::make_shared<MohrCoulombWithTensionCutOff>(mpConstitutiveDimension->Clone());
-    p_result->mStressVector          = mStressVector;
-    p_result->mStressVectorFinalized = mStressVectorFinalized;
-    p_result->mStrainVectorFinalized = mStrainVectorFinalized;
-    p_result->mCoulombYieldSurface   = mCoulombYieldSurface;
-    p_result->mTensionCutOff         = mTensionCutOff;
+    p_result->mStressVector                 = mStressVector;
+    p_result->mStressVectorFinalized        = mStressVectorFinalized;
+    p_result->mStrainVectorFinalized        = mStrainVectorFinalized;
+    p_result->mCoulombWithTensionCutOffImpl = mCoulombWithTensionCutOffImpl;
     return p_result;
 }
 
@@ -133,11 +133,6 @@ void MohrCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMateria
         MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]), rMaterialProperties[GEO_COHESION],
         MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
         rMaterialProperties[GEO_TENSILE_STRENGTH]};
-    mCoulombYieldSurface =
-        CoulombYieldSurface(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]),
-                            rMaterialProperties[GEO_COHESION],
-                            MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
-    mTensionCutOff = TensionCutoff(rMaterialProperties[GEO_TENSILE_STRENGTH]);
 }
 
 void MohrCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& rValues)
@@ -219,8 +214,6 @@ void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
-    rSerializer.save("TensionCutOff", mTensionCutOff);
     rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
 }
@@ -232,8 +225,6 @@ void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("StressVector", mStressVector);
     rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
-    rSerializer.load("TensionCutOff", mTensionCutOff);
     rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
 }

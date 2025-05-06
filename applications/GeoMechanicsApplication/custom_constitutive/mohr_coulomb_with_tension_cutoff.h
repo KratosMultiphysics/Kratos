@@ -14,13 +14,7 @@
 
 #pragma once
 
-// System includes
-#include <optional>
-
-// Project includes
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
-#include "custom_constitutive/coulomb_yield_surface.h"
-#include "custom_constitutive/tension_cutoff.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -71,8 +65,6 @@ private:
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
     Vector                                    mStrainVectorFinalized;
-    CoulombYieldSurface                       mCoulombYieldSurface;
-    TensionCutoff                             mTensionCutOff;
     CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
 
