@@ -46,19 +46,19 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer InterfaceMohrCoulombWithTensionCutOff::Clone() const
 {
-    auto p_result           = std::make_shared<InterfaceMohrCoulombWithTensionCutOff>(*this);
-    p_result->mStressVector = mStressVector;
-    p_result->mStressVectorFinalized = mStressVectorFinalized;
-    p_result->mStrainVectorFinalized = mStrainVectorFinalized;
-    p_result->mCoulombYieldSurface   = mCoulombYieldSurface;
-    p_result->mTensionCutOff         = mTensionCutOff;
+    auto p_result             = std::make_shared<InterfaceMohrCoulombWithTensionCutOff>(*this);
+    p_result->mTractionVector = mTractionVector;
+    p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
+    p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
+    p_result->mCoulombYieldSurface                 = mCoulombYieldSurface;
+    p_result->mTensionCutOff                       = mTensionCutOff;
     return p_result;
 }
 
 Vector& InterfaceMohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-        rValue = mStressVector;
+        rValue = mTractionVector;
     } else {
         rValue = ConstitutiveLaw::GetValue(rThisVariable, rValue);
     }
@@ -70,7 +70,7 @@ void InterfaceMohrCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVa
                                                      const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        mStressVector = rValue;
+        mTractionVector = rValue;
     } else {
         KRATOS_ERROR << "Can't set value of " << rVariable.Name() << ": unsupported variable\n";
     }
@@ -124,18 +124,18 @@ void InterfaceMohrCoulombWithTensionCutOff::InitializeMaterial(const Properties&
                             MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
     mTensionCutOff = TensionCutoff(rMaterialProperties[GEO_TENSILE_STRENGTH]);
 
-    mStrainVectorFinalized =
+    mRelativeDisplacementVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
-    mStressVectorFinalized =
+    mTractionVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStressVector() : ZeroVector{GetStrainSize()};
 }
 
 void InterfaceMohrCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
     if (!mIsModelInitialized) {
-        mStressVectorFinalized = rValues.GetStressVector();
-        mStrainVectorFinalized = rValues.GetStrainVector();
-        mIsModelInitialized    = true;
+        mTractionVectorFinalized             = rValues.GetStressVector();
+        mRelativeDisplacementVectorFinalized = rValues.GetStrainVector();
+        mIsModelInitialized                  = true;
     }
 }
 
@@ -143,7 +143,7 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
 {
     const auto& r_prop = rParameters.GetMaterialProperties();
 
-    auto trial_sigma_tau = CalculateTrialStressVector(
+    auto trial_sigma_tau = CalculateTrialTractionVector(
         rParameters.GetStrainVector(), r_prop[INTERFACE_NORMAL_STIFFNESS], r_prop[INTERFACE_SHEAR_STIFFNESS]);
     trial_sigma_tau[1] = std::abs(trial_sigma_tau[1]);
 
@@ -153,25 +153,26 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
             r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
     }
 
-    mStressVector = trial_sigma_tau;
+    mTractionVector = trial_sigma_tau;
 
-    rParameters.GetStressVector() = mStressVector;
+    rParameters.GetStressVector() = mTractionVector;
 }
 
-Vector InterfaceMohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
-                                                                         double rNormalStiffness,
-                                                                         double rShearStiffness) const
+Vector InterfaceMohrCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
+                                                                           double rNormalStiffness,
+                                                                           double rShearStiffness) const
 {
     auto constitutive_matrix  = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
     constitutive_matrix(0, 0) = rNormalStiffness;
     constitutive_matrix(1, 1) = rShearStiffness;
-    return mStressVectorFinalized + prod(constitutive_matrix, rStrainVector - mStrainVectorFinalized);
+    return mTractionVectorFinalized +
+           prod(constitutive_matrix, rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
 }
 
 void InterfaceMohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    mStrainVectorFinalized = rValues.GetStrainVector();
-    mStressVectorFinalized = mStressVector;
+    mRelativeDisplacementVectorFinalized = rValues.GetStrainVector();
+    mTractionVectorFinalized             = mTractionVector;
 }
 
 Matrix& InterfaceMohrCoulombWithTensionCutOff::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
@@ -200,9 +201,9 @@ Matrix InterfaceMohrCoulombWithTensionCutOff::MakeConstitutiveMatrix(double Norm
 void InterfaceMohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    rSerializer.save("StressVector", mStressVector);
-    rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
-    rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
+    rSerializer.save("TractionVector", mTractionVector);
+    rSerializer.save("TractionVectorFinalized", mTractionVectorFinalized);
+    rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
@@ -211,9 +212,9 @@ void InterfaceMohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
 void InterfaceMohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    rSerializer.load("StressVector", mStressVector);
-    rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
-    rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
+    rSerializer.load("TractionVector", mTractionVector);
+    rSerializer.load("TractionVectorFinalized", mTractionVectorFinalized);
+    rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);

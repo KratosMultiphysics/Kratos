@@ -53,16 +53,16 @@ public:
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
 private:
-    Vector              mStressVector;
-    Vector              mStressVectorFinalized;
-    Vector              mStrainVectorFinalized;
+    Vector              mTractionVector;
+    Vector              mTractionVectorFinalized;
+    Vector              mRelativeDisplacementVectorFinalized;
     CoulombYieldSurface mCoulombYieldSurface;
     TensionCutoff       mTensionCutOff;
     bool                mIsModelInitialized = false;
 
-    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
-                                                    double        YoungsModulus,
-                                                    double        PoissonsRatio) const;
+    [[nodiscard]] Vector CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
+                                                      double        YoungsModulus,
+                                                      double        PoissonsRatio) const;
     [[nodiscard]] Matrix MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const;
 
     friend class Serializer;
