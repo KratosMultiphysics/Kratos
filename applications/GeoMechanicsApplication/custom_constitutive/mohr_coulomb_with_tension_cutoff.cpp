@@ -40,20 +40,6 @@ void CheckProperty(const Properties&       rMaterialProperties,
         << (MaxValue ? std::to_string(*MaxValue) + "]" : "->") << std::endl;
 }
 
-Vector TransformPrincipalStressesToSigmaAndTau(const Vector& rPrincipalStresses)
-{
-    auto result = Vector(2);
-    result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
-    result[1]   = 0.5 * (rPrincipalStresses[0] - rPrincipalStresses[2]);
-    return result;
-}
-
-void TransformSigmaAndTauToPrincipalStresses(const Vector& rSigmaTau, Vector& rPrincipalStresses)
-{
-    rPrincipalStresses[0] = rSigmaTau[0] + rSigmaTau[1];
-    rPrincipalStresses[2] = rSigmaTau[0] - rSigmaTau[1];
-}
-
 bool IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex)
 {
     return TensileStrength < Apex && rTrialSigmaTau[0] - rTrialSigmaTau[1] - TensileStrength > 0.0;
@@ -205,16 +191,19 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     StressStrainUtilities::CalculatePrincipalStresses(
         trail_stress_vector, principal_trial_stress_vector, rotation_matrix);
 
-    auto trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
+    auto trial_sigma_tau =
+        StressStrainUtilities::TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
 
     while (!ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(
         trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff)) {
         trial_sigma_tau = ConstitutiveLawUtilities::MapStressesInMorhCoulomb(
             r_prop, trial_sigma_tau, mCoulombYieldSurface, mTensionCutOff);
-        TransformSigmaAndTauToPrincipalStresses(trial_sigma_tau, principal_trial_stress_vector);
+        principal_trial_stress_vector = StressStrainUtilities::TransformSigmaAndTauToPrincipalStresses(
+            trial_sigma_tau, principal_trial_stress_vector);
 
         StressStrainUtilities::ReorderEigenValuesAndVectors(principal_trial_stress_vector, rotation_matrix);
-        trial_sigma_tau = TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
+        trial_sigma_tau =
+            StressStrainUtilities::TransformPrincipalStressesToSigmaAndTau(principal_trial_stress_vector);
     }
 
     mStressVector = StressStrainUtilities::RotatePrincipalStresses(
