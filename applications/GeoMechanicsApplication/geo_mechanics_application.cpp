@@ -366,6 +366,9 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Geo_IncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombWithTensionCutOff2D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombWithTensionCutOff3D)
+
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(DT_PRESSURE_COEFFICIENT)
@@ -598,5 +601,7 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE(INTERFACE_NORMAL_STIFFNESS)
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
+
+    KRATOS_REGISTER_VARIABLE(GEO_SHEAR_CAPACITY)
 }
 } // namespace Kratos.

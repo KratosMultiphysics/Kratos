@@ -13,15 +13,15 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 
+#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/plane_strain_stress_state.h"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/three_dimensional_stress_state.h"
 #include "element_setup_utilities.h"
-#include <custom_elements/U_Pw_small_strain_element.hpp>
-#include <custom_elements/plane_strain_stress_state.h>
-#include <custom_elements/small_strain_U_Pw_diff_order_element.hpp>
-#include <custom_elements/three_dimensional_stress_state.h>
-#include <geometries/tetrahedra_3d_10.h>
-#include <geometries/tetrahedra_3d_4.h>
-#include <geometries/triangle_2d_3.h>
-#include <geometries/triangle_2d_6.h>
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
 
 namespace
 {
@@ -171,7 +171,7 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
 
     auto element = make_intrusive<SmallStrainUPwDiffOrderElement>(
         1, Kratos::make_shared<Triangle2D6<Node>>(node_pointers), r_result.CreateNewProperties(0),
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 
     r_result.AddElement(element);
 
@@ -195,7 +195,7 @@ ModelPart& CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel)
 
     auto element = make_intrusive<SmallStrainUPwDiffOrderElement>(
         1, Kratos::make_shared<Tetrahedra3D10<Node>>(node_pointers),
-        r_result.CreateNewProperties(0), std::make_unique<ThreeDimensionalStressState>());
+        r_result.CreateNewProperties(0), std::make_unique<ThreeDimensionalStressState>(), nullptr);
 
     r_result.AddElement(element);
 

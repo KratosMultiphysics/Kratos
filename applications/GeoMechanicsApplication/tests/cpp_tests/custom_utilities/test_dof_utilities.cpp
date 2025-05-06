@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenExtractingNonExistingDofsFromNodes, Kra
 
     auto p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(
         1, Kratos::make_shared<Triangle2D3<Node>>(nodes), r_model_part.CreateNewProperties(0),
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
     r_model_part.AddElement(p_element);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
     const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
     auto       p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(
         1, Kratos::make_shared<Triangle2D3<Node>>(nodes), r_model_part.CreateNewProperties(0),
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
     r_model_part.AddElement(p_element);
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X);

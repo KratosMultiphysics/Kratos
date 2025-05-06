@@ -2253,6 +2253,10 @@ void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactFo
     bond->mGlobalContactForce[0] = GlobalContactForce[0];
     bond->mGlobalContactForce[1] = GlobalContactForce[1];
     bond->mGlobalContactForce[2] = GlobalContactForce[2];
+
+    bond->GetValue(GLOBAL_CONTACT_FORCE)[0] = GlobalContactForce[0];
+    bond->GetValue(GLOBAL_CONTACT_FORCE)[1] = GlobalContactForce[1];
+    bond->GetValue(GLOBAL_CONTACT_FORCE)[2] = GlobalContactForce[2];
         
     KRATOS_CATCH("")
 }

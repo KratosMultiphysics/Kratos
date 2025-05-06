@@ -72,23 +72,41 @@ public:
     void Execute() override;
 
     /**
+     * @brief This method checks which kind of load is being applied in the model in the current time
+     */
+    void MonotonicOrCyclicLoad();
+
+    /**
      * @brief This method computes the cycle time period per integration point
      * @param rCycleFound Bool variable indicating that a cycle has overcome at some integration point
      */
     void CyclePeriodPerIntegrationPoint(bool& rCycleFound);
 
     /**
+     * @brief This method computes the damage and plastic dissipation acumulated per cycle per integration point
+     * @param rMaximumDamageIncrement Double variable indicating the maximum damage accumulation along the model for each cycle
+     * @param rMaximumPlasticDissipationIncrement Double variable indicating the maximum plastic dissipation accumulation along the model for each cycle
+     */
+    void NoLinearitiesInitiationAndAccumulation(double& rMaximumDamageIncrement, double& rMaximumPlasticDissipationIncrement);
+
+    /**
      * @brief This method stablishes if stable conditions have been reached for initiating the advance strategy
      * @param rAdvancingStrategy Bool variable indicating weather advancing strategy will start or not
-     * @param DamageIndicator Bool variable indicating that damage has iniciated at some point
+     * @param NoLinearityIndicator Bool variable indicating that plasticity and/or damage has iniciated at some point
      */
-    void StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool DamageIndicator);
+    void StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool NoLinearityIndicator);
 
     /**
      * @brief This method computes the time increment to be applied as an output of the advancing strategy
      * @param rIncrement Double variable corresponding to the time increment to apply
      */
-    void TimeIncrement(double& rIncrement);
+    void TimeIncrementBlock1(double& rIncrement);
+
+    /**
+     * @brief This method computes the time increment to be applied as an output of the advancing strategy
+     * @param rIncrement Double variable corresponding to the time increment to apply
+     */
+    void TimeIncrementBlock2(double& rIncrement);
 
     /**
      * @brief This method properly applies the time increment in terms of cycle increment to all the integration points of the model

@@ -1141,7 +1141,7 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
 
 
-    //for writting purposes
+    //for writing purposes
     ArrayType CurrentStepRotationVector = GetGeometry()[0].FastGetSolutionStepValue(STEP_ROTATION);
     CurrentStepRotationVector = MapToInitialLocalFrame(CurrentStepRotationVector);
     ArrayType CurrentDisplacementVector = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
