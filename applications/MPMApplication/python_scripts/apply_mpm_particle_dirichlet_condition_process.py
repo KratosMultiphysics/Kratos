@@ -134,7 +134,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.SetValue(KratosMPM.IS_EQUAL_DISTRIBUTED, self.is_equal_distributed)
                 condition.SetValue(KratosMPM.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(KratosMPM.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
-                              
+
                 ### Set necessary essential BC variables
                 if self.boundary_condition_type==1 or self.boundary_condition_type==2 or self.boundary_condition_type==3:
                     condition.SetValue(KratosMPM.PENALTY_FACTOR, self.penalty_factor)

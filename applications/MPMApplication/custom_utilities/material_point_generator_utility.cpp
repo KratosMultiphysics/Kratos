@@ -404,7 +404,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // Check Normal direction
                         if (flip_normal_direction) mpc_normal *= -1.0;
-                        
+
                         // Create Material Point Point Load Condition
                         if (condition_type_name == "MPMParticlePointLoadCondition" ){
                             // create point load condition
