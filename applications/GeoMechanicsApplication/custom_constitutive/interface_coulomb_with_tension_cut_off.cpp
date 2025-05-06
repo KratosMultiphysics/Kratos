@@ -13,7 +13,7 @@
 //
 
 // Application includes
-#include "custom_constitutive/interface_mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.h"
@@ -150,7 +150,7 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
     auto trial_sigma_tau = CalculateTrialTractionVector(
         rParameters.GetStrainVector(), r_prop[INTERFACE_NORMAL_STIFFNESS], r_prop[INTERFACE_SHEAR_STIFFNESS]);
     const auto negative = std::signbit(trial_sigma_tau[1]);
-    trial_sigma_tau[1] = std::abs(trial_sigma_tau[1]);
+    trial_sigma_tau[1]  = std::abs(trial_sigma_tau[1]);
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         trial_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau);

@@ -11,7 +11,7 @@
 //                   Mohamed Nabi
 //
 
-#include "custom_constitutive/interface_mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"

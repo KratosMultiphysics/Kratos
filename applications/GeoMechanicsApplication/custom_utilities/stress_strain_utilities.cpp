@@ -219,7 +219,7 @@ Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalSt
     return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
-Vector StressStrainUtilities::TransformPrincipalStressesToSigmaAndTau(const Vector& rPrincipalStresses)
+Vector StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses)
 {
     auto result = Vector{2};
     result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
@@ -227,8 +227,8 @@ Vector StressStrainUtilities::TransformPrincipalStressesToSigmaAndTau(const Vect
     return result;
 }
 
-Vector StressStrainUtilities::TransformSigmaAndTauToPrincipalStresses(const Vector& rSigmaTau,
-                                                                      const Vector& rPrincipalStresses)
+Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau,
+                                                                   const Vector& rPrincipalStresses)
 {
     auto result = Vector{3};
     result[0]   = rSigmaTau[0] + rSigmaTau[1];
