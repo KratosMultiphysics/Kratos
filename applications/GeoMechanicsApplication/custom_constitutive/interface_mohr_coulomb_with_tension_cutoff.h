@@ -18,6 +18,7 @@
 #include <optional>
 
 // Project includes
+#include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
 #include "includes/constitutive_law.h"
@@ -53,12 +54,13 @@ public:
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
 private:
-    Vector              mTractionVector;
-    Vector              mTractionVectorFinalized;
-    Vector              mRelativeDisplacementVectorFinalized;
-    CoulombYieldSurface mCoulombYieldSurface;
-    TensionCutoff       mTensionCutOff;
-    bool                mIsModelInitialized = false;
+    Vector                       mTractionVector;
+    Vector                       mTractionVectorFinalized;
+    Vector                       mRelativeDisplacementVectorFinalized;
+    CoulombYieldSurface          mCoulombYieldSurface;
+    TensionCutoff                mTensionCutOff;
+    CoulombWithTensionCutOffImpl mCoulombWithTensionCutOffImpl;
+    bool                         mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
                                                       double        NormalStiffness,

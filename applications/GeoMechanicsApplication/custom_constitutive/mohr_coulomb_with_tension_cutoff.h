@@ -18,6 +18,7 @@
 #include <optional>
 
 // Project includes
+#include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
 #include "includes/constitutive_law.h"
@@ -72,6 +73,7 @@ private:
     Vector                                    mStrainVectorFinalized;
     CoulombYieldSurface                       mCoulombYieldSurface;
     TensionCutoff                             mTensionCutOff;
+    CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
