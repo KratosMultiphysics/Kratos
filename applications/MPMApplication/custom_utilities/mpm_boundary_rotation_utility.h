@@ -209,7 +209,7 @@ public:
                     const double mu = rGeometry[itNode].GetValue(FRICTION_COEFFICIENT);
                     const double tangential_penalty_factor = rGeometry[itNode].GetValue(TANGENTIAL_PENALTY_FACTOR);
 
-                    if (mu > 0 && tangential_penalty_factor > 0) { // Friction active	
+                    if (mu > 0 && tangential_penalty_factor > 0) { // Friction active
                         array_1d<double,3> & r_stick_force = rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE);
 
                         // accumulate normal forces (RHS vector) for subsequent re-determination of friction state
@@ -423,54 +423,54 @@ public:
     // Sets FRICTION_STATE for a SLIP node to indicate its stick/sliding state and stores the friction force in REACTION
     void ComputeFrictionAndResetFlags(ModelPart& rModelPart) const {
         const bool is_initial_loop = !rModelPart.GetProcessInfo()[INITIAL_LOOP_COMPLETE];
-	
-		block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
+
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
         {
-			const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
 
-			int& r_friction_state = rNode.FastGetSolutionStepValue(FRICTION_STATE, 0);
-			const double mu = rConstNode.GetValue(FRICTION_COEFFICIENT);
+            int& r_friction_state = rNode.FastGetSolutionStepValue(FRICTION_STATE, 0);
+            const double mu = rConstNode.GetValue(FRICTION_COEFFICIENT);
 
-			array_1d<double, 3>& r_friction_force = rNode.FastGetSolutionStepValue(REACTION);
+            array_1d<double, 3>& r_friction_force = rNode.FastGetSolutionStepValue(REACTION);
 
-			// Limit tangential forces for friction
-			if (mu > 0) {
-				// obtain normal and tangent forces assoc. with node at the desired timestep
-				const double normal_force = rNode.FastGetSolutionStepValue(STICK_FORCE_X, 1);
-				const double tangent_force1 = rNode.FastGetSolutionStepValue(STICK_FORCE_Y, 0);
-				const double tangent_force2 = rNode.FastGetSolutionStepValue(STICK_FORCE_Z, 0);
+            // Limit tangential forces for friction
+            if (mu > 0) {
+                // obtain normal and tangent forces assoc. with node at the desired timestep
+                const double normal_force = rNode.FastGetSolutionStepValue(STICK_FORCE_X, 1);
+                const double tangent_force1 = rNode.FastGetSolutionStepValue(STICK_FORCE_Y, 0);
+                const double tangent_force2 = rNode.FastGetSolutionStepValue(STICK_FORCE_Z, 0);
 
-				// forces unmodified in normal direction
-				r_friction_force[0] = normal_force;
+                // forces unmodified in normal direction
+                r_friction_force[0] = normal_force;
 
-				// [note: no friction if normal component < 0 [direction chosen to be consistent with contact algo]]
-				// [since normal point away from the boundary/interface, a normal component < 0 indicates a force
-				//  pulling towards the normal (i.e. tensile force)]
-				const double normal_force_norm = fmax(normal_force, 0.0);
+                // [note: no friction if normal component < 0 [direction chosen to be consistent with contact algo]]
+                // [since normal point away from the boundary/interface, a normal component < 0 indicates a force
+                //  pulling towards the normal (i.e. tensile force)]
+                const double normal_force_norm = fmax(normal_force, 0.0);
 
-				const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
-				const double max_tangent_force_norm = normal_force_norm * mu;
+                const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
+                const double max_tangent_force_norm = normal_force_norm * mu;
 
-				// special treatment for initial loop
-				if (is_initial_loop) {
-					if (rConstNode.GetValue(HAS_INITIAL_MOMENTUM)) {
-						r_friction_state = SLIDING;
-					}
-					else {
-						r_friction_state = STICK;
-					}
-				} else {
-					r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
-				}
+                // special treatment for initial loop
+                if (is_initial_loop) {
+                    if (rConstNode.GetValue(HAS_INITIAL_MOMENTUM)) {
+                        r_friction_state = SLIDING;
+                    }
+                    else {
+                        r_friction_state = STICK;
+                    }
+                } else {
+                    r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
+                }
 
-				if (r_friction_state == SLIDING) {
-					double tangent_force_dir1 = 0.0;
-					double tangent_force_dir2 = 0.0;
+                if (r_friction_state == SLIDING) {
+                    double tangent_force_dir1 = 0.0;
+                    double tangent_force_dir2 = 0.0;
 
-					if (tangent_force_norm > std::numeric_limits<double>::epsilon()) {
-						tangent_force_dir1 = tangent_force1 / tangent_force_norm;
-						tangent_force_dir2 = tangent_force2 / tangent_force_norm;
-					}
+                    if (tangent_force_norm > std::numeric_limits<double>::epsilon()) {
+                        tangent_force_dir1 = tangent_force1 / tangent_force_norm;
+                        tangent_force_dir2 = tangent_force2 / tangent_force_norm;
+                    }
 
                     r_friction_force[1] = tangent_force_dir1 * max_tangent_force_norm;
                     r_friction_force[2] = tangent_force_dir2 * max_tangent_force_norm;

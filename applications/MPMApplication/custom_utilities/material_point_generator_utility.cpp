@@ -380,7 +380,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                         const bool is_contact = r_cond.Is(CONTACT);
                         const bool is_interface = r_cond.Is(INTERFACE);
                         const bool flip_normal_direction = r_cond.Is(MODIFIED);
-                       
+
                         std::string condition_type_name;
 
                         // If dirichlet boundary or coupling interface
