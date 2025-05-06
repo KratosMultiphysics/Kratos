@@ -509,8 +509,8 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
                     //// Assemble 3rd order stabilization term -> sigma-gradP
                     // rLeftHandSideMatrix(i * BlockSize + dim2, j * BlockSize + mDim) -= tempMatrix_pressure_term2(i * mDim + dim2, j); ///////// ATTENTION!!
                     
-                    //// Assemble 2nd order stabilization term -> gradQ-sigma
-                    rLeftHandSideMatrix(j * BlockSize + mDim, i * BlockSize + dim2) -= tempMatrix_pressure_term(i * mDim + dim2, j);
+                    //// Assemble 2nd order stabilization term -> gradQ-sigma // this one
+                    // rLeftHandSideMatrix(j * BlockSize + mDim, i * BlockSize + dim2) -= tempMatrix_pressure_term(i * mDim + dim2, j);
                     
                     for (IndexType dim1 = 0; dim1 < mDim; ++dim1)
                     {
@@ -1126,11 +1126,14 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
     // double yielded_state = 0.0;
+    // const double sigma_y = 0;
 
-    const double sigma_y = 5;
-    // const double sigma_y = 1086;
+    // const double sigma_y = 500;
+
+    // const double sigma_y = 395;
     // const double sigma_y = 790;
-    // const double sigma_y = 987.5;
+    const double sigma_y = 987.5;
+    // const double sigma_y = 1086;
     // const double sigma_y = 1145.5;
     Vector& StressVector = this_constitutive_variables.StressVector;
 
@@ -1165,7 +1168,7 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
         if (output_file.is_open()) {
         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
         output_file << rOutput_vel_x << " " << rOutput_vel_y << " " << rOutput_pressure << " " 
-                    << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " " << integration_points[0].Weight()  << " " << tau << std::endl;
+                    << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " " << integration_points[0].Weight() << std::endl;
         output_file.close();
         }   
 
@@ -1174,7 +1177,7 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
         if (yield_output_file.is_open()) {
             yield_output_file << std::scientific << std::setprecision(14); // Precisione 10^-14
             yield_output_file << yielded_state << " "
-                              << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << std::endl;
+                              << r_geometry.Center().X() << " " << r_geometry.Center().Y() << std::endl;
             yield_output_file.close();
         }
 

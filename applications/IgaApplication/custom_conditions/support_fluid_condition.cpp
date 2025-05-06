@@ -149,6 +149,18 @@ void SupportFluidCondition::CalculateAll(
     sigma_block(1, 0) = r_stress_vector[2];      sigma_block(1, 1) = r_stress_vector[1];         
     Vector traction_current_iteration = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
 
+
+    // // To be cancelled
+    // Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
+    // Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
+    // for (IndexType i = 0; i < number_of_nodes; ++i)
+    // {
+    //     for (IndexType idim = 0; idim < dim; idim++) {
+    //         DN_dot_n(0, i)   += DN_DX(i, idim) * normal_physical_space[idim];           
+    //         DN_dot_n_vec(i)  += DN_DX(i, idim) * normal_physical_space[idim];
+    //     } 
+    // }
+
     for (IndexType i = 0; i < number_of_nodes; i++) {
         for (IndexType j = 0; j < number_of_nodes; j++) {
             for (IndexType idim = 0; idim < 2; idim++) {
@@ -176,8 +188,10 @@ void SupportFluidCondition::CalculateAll(
                     // rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0,j)*(
                     //         DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] ) * integration_weight;
                 
-                    // // Nitsche term --> With Constitutive law
-                    // rLeftHandSideMatrix(3*j+jdim, 3*i+idim) -= Guglielmo_innovation * H(0, i) * traction(idim) * integration_weight;
+                    // Nitsche term --> With Constitutive law
+                    rLeftHandSideMatrix(3*j+jdim, 3*i+idim) += Guglielmo_innovation * H(0, i) * traction(idim) * integration_weight;
+                    // Without the C:
+                    // rLeftHandSideMatrix(3*j+jdim, 3*i+idim) -= Guglielmo_innovation * H(0, i) * DN_dot_n(0,i) * integration_weight;
 
                 }
 
@@ -196,21 +210,48 @@ void SupportFluidCondition::CalculateAll(
             // integration by parts PRESSURE
             rRightHandSideVector(3*i+idim) -= pressure_current_iteration * ( H(0,i) * normal_parameter_space[idim] ) * integration_weight;
             
-            // // Nitsche term --> With Constitutive law
-            // Matrix sigma_block = ZeroMatrix(2, 2); // Extract the 2x2 block for the control point i from the sigma matrix.
-            // sigma_block(0, 0) = sigmaVoigt(0, 2*i+idim); 
-            // sigma_block(0, 1) = sigmaVoigt(2, 2*i+idim); 
-            // sigma_block(1, 0) = sigmaVoigt(2, 2*i+idim);
-            // sigma_block(1, 1) = sigmaVoigt(1, 2*i+idim); 
-            // // Compute the traction vector: sigma * n.
-            // Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
-            // rRightHandSideVector(3*i+idim) += Guglielmo_innovation * velocity_current_iteration[idim] * traction(idim) * integration_weight;
+            // Nitsche term --> With Constitutive law
+            Matrix sigma_block = ZeroMatrix(2, 2); // Extract the 2x2 block for the control point i from the sigma matrix.
+            sigma_block(0, 0) = sigmaVoigt(0, 2*i+idim); 
+            sigma_block(0, 1) = sigmaVoigt(2, 2*i+idim); 
+            sigma_block(1, 0) = sigmaVoigt(2, 2*i+idim);
+            sigma_block(1, 1) = sigmaVoigt(1, 2*i+idim); 
+            // Compute the traction vector: sigma * n.
+            Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
+            rRightHandSideVector(3*i+idim) -= Guglielmo_innovation * velocity_current_iteration[idim] * traction(idim) * integration_weight;
         }
     }
             
     Vector u_D = ZeroVector(2); 
     u_D[0] = this->GetValue(VELOCITY_X);
     u_D[1] = this->GetValue(VELOCITY_Y);
+
+    // if (GetGeometry().Center().X()<0.0000001 || GetGeometry().Center().X()>2.99999999 ) {
+    //     // Define the parameters for the Bingham fluid
+    //     double delta_p = 2000.0;  // Pressure difference in Pa
+    //     double mu = 1.0;          // Dynamic viscosity in Pa·s
+    //     double L = 3.0;           // Channel length in meters
+    //     double height = 1.0;           // Half-height of the channel in meters
+    //     double tau_0 = 20.0;     // Yield stress in Pa
+    //     // Get the y-coordinate of the element center
+    //     double y = GetGeometry().Center().Y();
+    //     // Compute the analytical velocity using the Bingham solution
+    //     double grad_p = std::abs(delta_p / L);  // Compute pressure gradient magnitude
+    //     double h1 = -tau_0 / grad_p;  // Lower yield limit
+    //     double h2 = tau_0 / grad_p;   // Upper yield limit
+    //     double u_x = 0.0;  // Default velocity (in case y is out of range)
+    //     // Apply the analytical formula
+    //     if (-height / 2.0 <= y && y < h1) {
+    //         u_x = (1.0 / (2.0 * mu)) * grad_p * (((h1 + height / 2.0) * (h1 + height / 2.0)) - ((h1 - y) * (h1 - y)));
+    //     } else if (h1 <= y && y < h2) {
+    //         u_x = (1.0 / (2.0 * mu)) * grad_p * ((h1 + height / 2.0) * (h1 + height / 2.0));
+    //     } else if (h2 <= y && y <= height / 2.0) {
+    //         u_x = (1.0 / (2.0 * mu)) * grad_p * (((height / 2.0 - h2) * (height / 2.0 - h2)) - ((y - h2) * (y - h2)));
+    //     }
+    //     // Set the velocity vector
+    //     u_D[0] = u_x;  // Set computed velocity in x-direction
+    //     u_D[1] = 0.0;  // No velocity in y-direction
+    // }
 
 
     for (IndexType i = 0; i < number_of_nodes; i++) {
@@ -222,17 +263,17 @@ void SupportFluidCondition::CalculateAll(
             // // Without constitutive -> Nitsche
             // rRightHandSideVector[3*i+idim] -= u_D[idim] * (DN_DX(i, 0) * normal_parameter_space[0] + DN_DX(i, 1) * normal_parameter_space[1] ) *  integration_weight;
 
-            // // Extract the 2x2 block for the control point i from the sigma matrix.
-            // Matrix sigma_block = ZeroMatrix(2, 2);
+            // Extract the 2x2 block for the control point i from the sigma matrix.
+            Matrix sigma_block = ZeroMatrix(2, 2);
 
-            // sigma_block(0, 0) = sigmaVoigt(0, 2*i+idim);      // sigma(4 * j + 2*jdim, 0);     // sigma_xx for control point i.
-            // sigma_block(0, 1) = sigmaVoigt(2, 2*i+idim);      // sigma(4 * j + 2*jdim, 1);     // sigma_xy for control point i.
-            // sigma_block(1, 0) = sigmaVoigt(2, 2*i+idim);      // sigma(4 * j + 2*jdim + 1, 0); // sigma_yx (symmetric) for control point i.
-            // sigma_block(1, 1) = sigmaVoigt(1, 2*i+idim);      // sigma(4 * j + 2*jdim + 1, 1); // sigma_yy for control point i.
-            // // Compute the traction vector: sigma * n.
-            // Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
-            // // Nitsche term --> With Constitutive law
-            // rRightHandSideVector[3*i+idim] -= Guglielmo_innovation * u_D[idim] * traction(idim) * integration_weight;
+            sigma_block(0, 0) = sigmaVoigt(0, 2*i+idim);      // sigma(4 * j + 2*jdim, 0);     // sigma_xx for control point i.
+            sigma_block(0, 1) = sigmaVoigt(2, 2*i+idim);      // sigma(4 * j + 2*jdim, 1);     // sigma_xy for control point i.
+            sigma_block(1, 0) = sigmaVoigt(2, 2*i+idim);      // sigma(4 * j + 2*jdim + 1, 0); // sigma_yx (symmetric) for control point i.
+            sigma_block(1, 1) = sigmaVoigt(1, 2*i+idim);      // sigma(4 * j + 2*jdim + 1, 1); // sigma_yy for control point i.
+            // Compute the traction vector: sigma * n.
+            Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
+            // Nitsche term --> With Constitutive law
+            rRightHandSideVector[3*i+idim] += Guglielmo_innovation * u_D[idim] * traction(idim) * integration_weight;
 
         }
     }

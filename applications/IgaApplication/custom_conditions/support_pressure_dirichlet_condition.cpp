@@ -212,15 +212,15 @@ void SupportPressureDirichletCondition::CalculateAll(
         // double gamma = std::abs(2*sin(x)*sin(y));
         double gamma = std::abs(2*sinh(x)*sinh(y));
 
-        double result = 2 * (1 + (1 - std::exp(-10 * gamma)) * 5 / gamma);
+        double result = 2 * (1 + (1 - std::exp(-1000 * gamma)) * 5 / gamma);
         // t_N[0] = ((2*x)*normal_parameter_space[0] + (-2*y)*normal_parameter_space[1]) * result; 
         // t_N[1] = ((-2*y)*normal_parameter_space[0] + (-2*x)*normal_parameter_space[1]) * result; 
 
         // t_N[0] = ((-sin(x)*sin(y))*normal_parameter_space[0] + ( 0.0 )*normal_parameter_space[1]) * result; 
         // t_N[1] = ((0.0)*normal_parameter_space[0] + (sin(x)*sin(y))*normal_parameter_space[1]) * result; 
 
-        t_N[0] = ((sinh(x)*sinh(y))*normal_parameter_space[0] + ( 0.0 )*normal_parameter_space[1]) * result; 
-        t_N[1] = ((0.0)*normal_parameter_space[0] + (-sinh(x)*sinh(y))*normal_parameter_space[1]) * result; 
+        // t_N[0] = ((sinh(x)*sinh(y))*normal_parameter_space[0] + ( 0.0 )*normal_parameter_space[1]) * result; 
+        // t_N[1] = ((0.0)*normal_parameter_space[0] + (-sinh(x)*sinh(y))*normal_parameter_space[1]) * result; 
 
         // CUBIC -> constitutive law
         // t_N[0] = ((6*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
@@ -233,8 +233,8 @@ void SupportPressureDirichletCondition::CalculateAll(
         // t_N[0] = 2 * ((3*x*x)*normal_parameter_space[0] + (-3*y*y-6*x*y)*normal_parameter_space[1]); 
         // t_N[1] = 2 * ((-3*y*y-6*x*y)*normal_parameter_space[0] + (-3*x*x)*normal_parameter_space[1]); 
 
-        // t_N[0] = 0.0; 
-        // t_N[1] = 0.0; 
+        t_N[0] = 0.0; 
+        t_N[1] = 0.0; 
 
         for (IndexType idim = 0; idim < 2; idim++) {
             rRightHandSideVector(3*j+idim) += theta * N(0,j) * t_N[idim] * integration_weight;

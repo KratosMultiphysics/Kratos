@@ -276,13 +276,16 @@ class IGAFluidSolver(navier_stokes_monolithic_solver.NavierStokesMonolithicSolve
             #     node.Fix(KratosMultiphysics.PRESSURE)
             # if (node.X == 0):
 
-            # for cavity problem
+            # # for cavity problem
             # if (node.X == 0.0 and node.Y == 0.0):
             #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
             #     node.Fix(KratosMultiphysics.PRESSURE)
+            # if (node.X == 1.0 and node.Y == 0.0):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0.0)
+            #     node.Fix(KratosMultiphysics.PRESSURE)
 
-            # if (node.X == 2.0 and node.Y == 0.0):
-            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , node.X**2 + node.Y**2)
+            # if (node.X == 3.0 and node.Y == -0.5):
+            #     node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 0)
             #     node.Fix(KratosMultiphysics.PRESSURE)
             
             # if (node.X == 1.0 and node.Y == 1.0):
