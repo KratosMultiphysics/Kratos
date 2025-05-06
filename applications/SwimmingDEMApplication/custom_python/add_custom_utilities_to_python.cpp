@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
 #include "custom_utilities/fields/poiseuille_torus_flow_field.h"
+#include "custom_utilities/fields/quadratic_steady_real_field.h"
 #include "custom_utilities/fields/product_of_sines_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field_2D.h"
@@ -261,6 +262,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<const double, const double, const double>())
         ;
 
+    py::class_<QuadraticSteadyRealFlowField, QuadraticSteadyRealFlowField::Pointer, VelocityField > (m, "QuadraticSteadyRealFlowField")
+        .def(py::init<const array_1d<double, 9>&, const array_1d<double, 9>&, const array_1d<double, 9>&, const array_1d<double, 3>&>())
+        ;
+
     py::class_<PouliotFlowField, PouliotFlowField::Pointer, VelocityField > (m, "PouliotFlowField")
         .def(py::init<>())
         ;
@@ -437,6 +442,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateVectorMaterialDerivative", &DerivativeRecovery <3>::CalculateVectorMaterialDerivative)
         .def("CalculateVectorMaterialDerivativeExactL2", &DerivativeRecovery <3>::CalculateVectorMaterialDerivativeExactL2)
         .def("CalculateVectorMaterialDerivativeExactL2Parallel", &DerivativeRecovery <3>::CalculateVectorMaterialDerivativeExactL2Parallel)
+        .def("CalculateFieldL2Projection", &DerivativeRecovery <3>::CalculateFieldL2Projection)
         .def("RecoverLagrangianAcceleration", &DerivativeRecovery <3>::RecoverLagrangianAcceleration)
         .def("CalculateVectorLaplacian", &DerivativeRecovery <3>::CalculateVectorLaplacian)
         .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <3>::CalculateVelocityLaplacianRate)
