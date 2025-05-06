@@ -261,8 +261,13 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
         }
 
         // We update the strain rate history
-        mStrainRateHistory[1] = mStrainRateHistory[0];
-        mStrainRateHistory[0] = inner_prod(predictive_stress_vector, r_strain_vector - mPreviousStrain) / (equivalent_stress * rValues.GetProcessInfo()[DELTA_TIME]);
+        if (mIsRateHistoryComputed == false) {
+            mStrainRateHistory[1] = mStrainRateHistory[0];
+            mStrainRateHistory[0] = inner_prod(predictive_stress_vector, r_strain_vector - mPreviousStrain) / (equivalent_stress * rValues.GetProcessInfo()[DELTA_TIME]);
+            if (std::abs(mStrainRateHistory[0]) > 0.0 && std::abs(mStrainRateHistory[1]) > 0.0) {
+                mIsRateHistoryComputed = true;
+            }
+        }
         noalias(mPreviousStrain) = r_strain_vector;
     }
 }

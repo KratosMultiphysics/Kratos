@@ -208,6 +208,7 @@ protected:
     double mViscousTime = 0.0;
     array_1d<double, 2> mStrainRateHistory = ZeroVector(2);
     Vector mPreviousStrain = ZeroVector(VoigtSize);
+    bool mIsRateHistoryComputed = false;
 
     ///@}
     ///@name Private Operators
@@ -238,6 +239,7 @@ protected:
         rSerializer.save("ViscousTime", mViscousTime);
         rSerializer.save("StrainRateHistory", mStrainRateHistory);
         rSerializer.save("PreviousStrain", mPreviousStrain);
+        rSerializer.save("IsRateHistoryComputed", mIsRateHistoryComputed);
     }
 
     void load(Serializer &rSerializer) override
@@ -246,6 +248,7 @@ protected:
         rSerializer.load("ViscousTime", mViscousTime);
         rSerializer.load("StrainRateHistory", mStrainRateHistory);
         rSerializer.load("PreviousStrain", mPreviousStrain);
+        rSerializer.load("IsRateHistoryComputed", mIsRateHistoryComputed);
     }
 
     ///@}
