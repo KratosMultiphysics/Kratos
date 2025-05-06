@@ -37,6 +37,7 @@ public:
 
     static double GetCohesion(const Properties& rProperties);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
+
     static Vector MapStressesInMorhCoulomb(const Properties&          rProperties,
                                            Vector&                    rSigmaTau,
                                            const CoulombYieldSurface& rCoulombYieldSurface,
@@ -45,6 +46,7 @@ public:
                                                    const CoulombYieldSurface& rCoulombYieldSurface,
                                                    const TensionCutoff&       rTensionCutOff);
 
+    static double GetFrictionAngleInRadians(const Properties& rProperties);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

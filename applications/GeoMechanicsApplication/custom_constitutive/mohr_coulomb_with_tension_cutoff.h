@@ -77,7 +77,6 @@ private:
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
                                                     double        YoungsModulus,
                                                     double        PoissonsRatio) const;
-
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;

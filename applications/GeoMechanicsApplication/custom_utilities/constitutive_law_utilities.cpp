@@ -13,6 +13,7 @@
 
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "utilities/math_utils.h"
 
 namespace
 {
@@ -197,6 +198,11 @@ bool ConstitutiveLawUtilities::IsAdmissiblePrincipalStressState(const Vector& rS
     const auto     coulomb_tolerance      = tolerance * (1.0 + std::abs(coulomb_yield_function));
     const auto     tension_tolerance      = tolerance * (1.0 + std::abs(tension_yield_function));
     return coulomb_yield_function < coulomb_tolerance && tension_yield_function < tension_tolerance;
+}
+
+double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rProperties)
+{
+    return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
 } // namespace Kratos

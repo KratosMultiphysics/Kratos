@@ -51,7 +51,8 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                         PropertiesType::Pointer pProperties) const
 {
     return make_intrusive<SmallStrainUPwDiffOrderElement>(NewId, pGeom, pProperties,
-                                                          this->GetStressStatePolicy().Clone());
+                                                          this->GetStressStatePolicy().Clone(),
+                                                          this->CloneIntegrationCoefficientModifier());
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -1472,9 +1473,12 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
         GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
 
     for (unsigned int GPoint = 0; GPoint < rDeformationGradients.size(); ++GPoint) {
+        // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a pointer
+        // to an implicitly converted object
+        const auto shape_function_values = Vector{row(rNuContainer, GPoint)};
         ConstitutiveLawUtilities::SetConstitutiveParameters(
             rConstitutiveParameters, rStrainVectors[GPoint], rConstitutiveMatrices[GPoint],
-            row(rNuContainer, GPoint), rDNu_DXContainer[GPoint], rDeformationGradients[GPoint],
+            shape_function_values, rDNu_DXContainer[GPoint], rDeformationGradients[GPoint],
             determinants_of_deformation_gradients[GPoint]);
         rConstitutiveParameters.SetStressVector(rStressVectors[GPoint]);
 
