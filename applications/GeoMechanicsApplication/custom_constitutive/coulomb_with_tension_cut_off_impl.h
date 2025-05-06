@@ -21,6 +21,8 @@
 namespace Kratos
 {
 
+class Properties;
+
 class CoulombWithTensionCutOffImpl
 {
 public:
@@ -28,6 +30,7 @@ public:
     CoulombWithTensionCutOffImpl(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad, double TensileStrength);
 
     [[nodiscard]] bool IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
+    [[nodiscard]] Vector DoReturnMapping(const Properties& rProperties, const Vector& rTrialSigmaTau) const;
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;

@@ -37,12 +37,6 @@ public:
 
     static double GetCohesion(const Properties& rProperties);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
-
-    static Vector ReturnMappingToCoulombWithTensionCutOff(const Properties& rProperties,
-                                                          Vector&           rSigmaTau,
-                                                          const CoulombYieldSurface& rCoulombYieldSurface,
-                                                          const TensionCutoff& rTensionCutOff);
-
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 }; /* Class ConstitutiveLawUtilities*/
 
