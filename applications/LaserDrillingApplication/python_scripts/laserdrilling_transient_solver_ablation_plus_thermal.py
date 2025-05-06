@@ -121,7 +121,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             """
             Translate each node towards the surface, i.e., in the negative x direction
             by an amount equal to the hole's depth at the node's Y coord (Y = radius).
-            In essence, shift all nodes along the x axis to fill the hole.
+            In essence, shift all nodes along the x axis to the left to fill the hole.
             """
             radius = node.Y
             distance_to_surface = F(radius)
