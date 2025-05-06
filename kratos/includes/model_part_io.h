@@ -763,6 +763,22 @@ private:
         ModelPart &rMainModelPart,
         ModelPart &rSubModelPart);
 
+    /**
+     * @brief Reads and processes the SubModelPartMasterSlaveConstraints block from the input stream.
+     * @details This function reads geometry IDs from the input stream until it detects the end of the
+     * "SubModelPartMasterSlaveConstraints" block. The read geometry IDs are stored in a vector,
+     * which is then sorted in ascending order. Finally, the sorted IDs are used to add master-slave
+     * constraints to the provided sub-model part.
+     * @param rMainModelPart The main model part used for context during the parsing process.
+     * @param rSubModelPart The sub-model part that will have the master-slave constraints added.
+     * @note The function relies on the correctness of the stream data and may throw exceptions
+     *       if an error occurs during the reading or processing of the block.
+     */
+     void ReadSubModelPartMasterSlaveConstraintsBlock(
+        ModelPart &rMainModelPart,
+        ModelPart &rSubModelPart
+        );
+
     void DivideInputToPartitionsImpl(
         OutputFilesContainerType& rOutputFiles,
         SizeType NumberOfPartitions,
