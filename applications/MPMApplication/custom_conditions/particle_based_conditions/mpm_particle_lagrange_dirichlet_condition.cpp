@@ -164,16 +164,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     bool apply_constraints = true;
 
-    // deactivate condition if not connected to material
-    int counter = 0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <std::numeric_limits<double>::epsilon() )
-            counter+=1;
-    }
-    // if (counter == number_of_nodes)
-    //     this->Reset(ACTIVE);   
-
     auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
     if (mp_counter < 1 )
         this->Reset(ACTIVE);  
@@ -208,23 +198,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
                     
             }
-            // // Stabilization for elements containing conditions but no material points
-            // auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
-            // if (mp_counter < 1 ){
-            //     double young_modulus = 0.0;
-            //     // if (GetProperties().Has(YOUNG_MODULUS) )
-            //     //     young_modulus = GetProperties()[YOUNG_MODULUS];
-            //     //     KRATOS_WATCH(young_modulus)
-            //     auto mpc_counter = r_geometry.GetGeometryParent(0).GetValue(MPC_COUNTER);
-            //     // auto volume = r_geometry.GetGeometryParent(0).Volume();
-            //     for (unsigned int k = 0; k < dimension; k++)
-            //     {
-            //         // ToDo: check stabilization
-            //         // KRATOS_WATCH(young_modulus / mpc_counter /  this->GetIntegrationWeight() * volume)
-            //         // lagrange_matrix(i* dimension+k, i* dimension+k) = young_modulus / mpc_counter /  this->GetIntegrationWeight() / this->GetIntegrationWeight() * volume ; 
-            //         lagrange_matrix(i* dimension+k, i* dimension+k) = 10000000 / mpc_counter /  this->GetIntegrationWeight() / this->GetIntegrationWeight() ; 
-            //     }
-            // }
         }
          
         // Calculate LHS Matrix and RHS Vector
