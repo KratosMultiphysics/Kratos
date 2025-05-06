@@ -430,29 +430,32 @@ namespace Kratos
                 ConstitutiveLaw::StressMeasure_PK2,
                 PatchType::Slave);
 
-            //Prestress component
-            array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
-            array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
-            array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
-
-            Matrix T_pre_master = ZeroMatrix(3, 3);
-            Matrix T_pre_slave = ZeroMatrix(3, 3);
-
-            if (Has(LOCAL_PRESTRESS_AXIS_1)) //for anisotropic prestress case
+            //Prestress component (for prestressed membrane element)
+            if(this->GetProperties().Has(PRESTRESS))
             {
-                CalculateTransformationPrestress(T_pre_master, kinematic_variables_master);
-                CalculateTransformationPrestress(T_pre_slave, kinematic_variables_slave);
-                transformed_prestress_master = prod(T_pre_master, prestress_master);
-                transformed_prestress_slave = prod(T_pre_slave, prestress_slave);
+                array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
+                array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
+                array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
+
+                Matrix T_pre_master = ZeroMatrix(3, 3);
+                Matrix T_pre_slave = ZeroMatrix(3, 3);
+
+                if (Has(LOCAL_PRESTRESS_AXIS_1)) //for anisotropic prestress case
+                {
+                    CalculateTransformationPrestress(T_pre_master, kinematic_variables_master);
+                    CalculateTransformationPrestress(T_pre_slave, kinematic_variables_slave);
+                    transformed_prestress_master = prod(T_pre_master, prestress_master);
+                    transformed_prestress_slave = prod(T_pre_slave, prestress_slave);
+                }
+                else //for isotropic prestress case
+                {
+                    transformed_prestress_master = prestress_master;
+                    transformed_prestress_slave = prestress_slave;
+                }
+                
+                constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
+                constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
             }
-            else //for isotropic prestress case
-            {
-                transformed_prestress_master = prestress_master;
-                transformed_prestress_slave = prestress_slave;
-            }
-            
-            constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
-            constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
 
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;
@@ -814,29 +817,32 @@ namespace Kratos
                 ConstitutiveLaw::StressMeasure_PK2,
                 PatchType::Slave);
 
-            //Prestress component
-            array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
-            array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
-            array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
-
-            Matrix T_pre_master = ZeroMatrix(3, 3);
-            Matrix T_pre_slave = ZeroMatrix(3, 3);
-
-            if (Has(LOCAL_PRESTRESS_AXIS_1)) //for anisotropic prestress case
+            //Prestress component (for prestressed membrane element)
+            if(this->GetProperties().Has(PRESTRESS))
             {
-                CalculateTransformationPrestress(T_pre_master, kinematic_variables_master);
-                CalculateTransformationPrestress(T_pre_slave, kinematic_variables_slave);
-                transformed_prestress_master = prod(T_pre_master, prestress_master);
-                transformed_prestress_slave = prod(T_pre_slave, prestress_slave);
+                array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
+                array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
+                array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
+
+                Matrix T_pre_master = ZeroMatrix(3, 3);
+                Matrix T_pre_slave = ZeroMatrix(3, 3);
+
+                if (Has(LOCAL_PRESTRESS_AXIS_1)) //for anisotropic prestress case
+                {
+                    CalculateTransformationPrestress(T_pre_master, kinematic_variables_master);
+                    CalculateTransformationPrestress(T_pre_slave, kinematic_variables_slave);
+                    transformed_prestress_master = prod(T_pre_master, prestress_master);
+                    transformed_prestress_slave = prod(T_pre_slave, prestress_slave);
+                }
+                else //for isotropic prestress case
+                {
+                    transformed_prestress_master = prestress_master;
+                    transformed_prestress_slave = prestress_slave;
+                }
+                
+                constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
+                constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
             }
-            else //for isotropic prestress case
-            {
-                transformed_prestress_master = prestress_master;
-                transformed_prestress_slave = prestress_slave;
-            }
-            
-            constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
-            constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
 
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;

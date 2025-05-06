@@ -33,14 +33,9 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""{
             "model_part_condition_name" : "",
             "eigen_system_settings" : {
-                    "solver_type"           : "feast",
+                    "solver_type"           : "spectra_sym_g_eigs_shift",
                     "echo_level"            : 0,
-                    "tolerance"             : 1e-10,
-                    "symmetric"             : true,
-                    "e_min"                 : 0.0,
-                    "e_max"                 : 1.0e20,
-                    "number_of_eigenvalues" : 1,
-                    "subspace_size"         : 1
+                    "number_of_eigenvalues" : 1
             },
             "number_of_conditions" : 1
         }""")
@@ -60,28 +55,28 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         self.model_part = self.model.GetModelPart("IgaModelPart").GetSubModelPart("Nitsche_Stabilization_" + self.params["model_part_condition_name"].GetString()[13:])
 
         # Define the eigenvalue size for FEAST solver
-        eigenvalue_nitsche_stabilization_size = self.model_part.ProcessInfo.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_SIZE)
-        self.params["eigen_system_settings"]["subspace_size"].SetInt(eigenvalue_nitsche_stabilization_size)
-        self.params["eigen_system_settings"]["number_of_eigenvalues"].SetInt(eigenvalue_nitsche_stabilization_size)
+        # eigenvalue_nitsche_stabilization_size = self.model_part.ProcessInfo.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_SIZE)
+        # self.params["eigen_system_settings"]["subspace_size"].SetInt(eigenvalue_nitsche_stabilization_size)
+        # self.params["eigen_system_settings"]["number_of_eigenvalues"].SetInt(eigenvalue_nitsche_stabilization_size)
 
-    def ExecuteInitializeSolutionStep(self):
-        # Get the model parts which divide the problem
-        current_process_info = self.model_part.ProcessInfo
+    # def ExecuteInitializeSolutionStep(self):
+    #     # Get the model parts which divide the problem
+    #     current_process_info = self.model_part.ProcessInfo
 
-        # Compute the eigen values
-        eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.params["eigen_system_settings"])
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
-        eigen_scheme = IGA.EigensolverNitscheStabilizationScheme()
-        eigen_solver = IGA.EigensolverNitscheStabilizationStrategy(self.model_part, eigen_scheme, builder_and_solver)
-        eigen_solver.Solve()
+    #     # Compute the eigen values
+    #     eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.params["eigen_system_settings"])
+    #     builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
+    #     eigen_scheme = IGA.EigensolverNitscheStabilizationScheme()
+    #     eigen_solver = IGA.EigensolverNitscheStabilizationStrategy(self.model_part, eigen_scheme, builder_and_solver)
+    #     eigen_solver.Solve()
 
-        # Compute the Nitsche stabilization factor
-        eigenvalue_nitsche_stabilization_vector = current_process_info.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
-        nitsche_stabilization_factor= eigenvalue_nitsche_stabilization_vector[eigenvalue_nitsche_stabilization_vector.Size()-1]*4*self.params["number_of_conditions"].GetInt()
+    #     # Compute the Nitsche stabilization factor
+    #     eigenvalue_nitsche_stabilization_vector = current_process_info.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
+    #     nitsche_stabilization_factor= eigenvalue_nitsche_stabilization_vector[eigenvalue_nitsche_stabilization_vector.Size()-1]*4*self.params["number_of_conditions"].GetInt()
 
-        # Set the Nitsche stabilization factor
-        for prop in self.model_part_condition.Properties:
-            prop.SetValue(IGA.NITSCHE_STABILIZATION_FACTOR, nitsche_stabilization_factor)
+    #     # Set the Nitsche stabilization factor
+    #     for prop in self.model_part_condition.Properties:
+    #         prop.SetValue(IGA.NITSCHE_STABILIZATION_FACTOR, nitsche_stabilization_factor)
 
-        # Reset BUILD_LEVEL to calculate the continuity enforcement matrix in coupling Nitsche condition
-        self.model_part_condition.ProcessInfo.SetValue(IGA.BUILD_LEVEL,0)
+    #     # Reset BUILD_LEVEL to calculate the continuity enforcement matrix in coupling Nitsche condition
+    #     self.model_part_condition.ProcessInfo.SetValue(IGA.BUILD_LEVEL,0)
