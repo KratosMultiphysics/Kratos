@@ -720,7 +720,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                     (*mpStream) << "\t" << variables_names[i];
                 }
                 (*mpStream) << "\n";
-                (*mpStream) << "\t" << rMasterSlaveConstraintContainer.begin()->Id() << "\t";
+                (*mpStream) << "\t" << it_const_current->Id() << "\t";
                 for (IndexType i = 0; i < number_of_master_dofs; ++i) {
                     (*mpStream) << master_dofs[i]->Id() << "\t";
                 }
