@@ -188,7 +188,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.focus_z_offset = self.project_parameters["problem_data"]["focus_Z_offset"].GetDouble()
 
-        self.z_ast_max = 0.0
+        self.z_ast_max = 0.0  # TODO: Parameter? Remove, since the spot_diameter is unused?
 
         # self.spot_diameter = self.ComputeSpotDiameter()
 
@@ -394,6 +394,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         return maximum_depth
 
     def ComputeOpticalPenetrationDepth(self):
+        # TODO: Find a source for this
         # TODO: Shouldn't this be a parameter read from the JSON parameters?
         light_lambda = 550e-6  # mm, light wavelength
 
@@ -562,6 +563,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     def ResidualHeatStage(self):
         """
         TODO: Currently, unused. It is overriden by LaserDrillingTransienSolverAblationPlusThermal.ResidualHeatStage
+        Idea of what it does (WIP): after having applied the laser pulse and having ablated those elements whose energy
+        is higher than a threshold (Woodfield model), the remaining elements are hot and need to thermalise. Woodfield simply
+        propagates the heat, regardless of whether the temperature of an element is above or below the vaporisation temperature.
+        In contrast, this function finds elements where the temperature is above the vaporisation temperature of the material
+        and evaporates them.
         """
         if self.evaporation_energy_fraction:
             self.projector = SurfaceFEMProjector(
@@ -815,8 +821,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     def ImposeTemperatureIncreaseDueTo1DConduction(self):
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
+        # TODO: why these values?
         self.minimum_characteristic_Z = 1e6
         self.maximum_characteristic_Z = -1e6
+
         for node in self.main_model_part.Nodes:
             radius = node.Y
             """ if not self.ablation_energy_fraction:
