@@ -25,21 +25,11 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-#include "utilities/math_utils.h"
 
 namespace
 {
 
 using namespace Kratos;
-
-void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
-{
-    block_for_each(rElements, [Whether](Element& rElement) {
-        auto pLinearElasticLaw =
-            dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
-        if (pLinearElasticLaw) pLinearElasticLaw->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
-    });
-}
 
 } // namespace
 
