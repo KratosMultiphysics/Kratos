@@ -268,8 +268,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_Serialization, K
     p_law->CalculateMaterialResponseCauchy(parameters);
     const auto calculated_traction_vector = parameters.GetStressVector();
 
-    const auto scoped_registration_law =
-        ScopedSerializerRegistration{"InterfaceMohrCoulombWithTensionCutOff"s, InterfaceMohrCoulombWithTensionCutOff{}};
+    const auto scoped_registration_law = ScopedSerializerRegistration{
+        "InterfaceMohrCoulombWithTensionCutOff"s, InterfaceMohrCoulombWithTensionCutOff{}};
     auto serializer = StreamSerializer{};
 
     // Act
@@ -286,6 +286,12 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_Serialization, K
     // Check whether the finalized traction and relative displacement have been restored properly
     p_loaded_law->CalculateMaterialResponseCauchy(parameters);
     KRATOS_EXPECT_VECTOR_EQ(parameters.GetStressVector(), calculated_traction_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_WorkingSpaceDimensionIsAlways2D,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KRATOS_EXPECT_EQ(InterfaceMohrCoulombWithTensionCutOff{}.WorkingSpaceDimension(), N_DIM_2D);
 }
 
 } // namespace Kratos::Testing

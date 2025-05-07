@@ -18,6 +18,7 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
 
 #include <cmath>
@@ -76,7 +77,7 @@ void InterfaceMohrCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVa
     }
 }
 
-SizeType InterfaceMohrCoulombWithTensionCutOff::WorkingSpaceDimension() { return 2; }
+SizeType InterfaceMohrCoulombWithTensionCutOff::WorkingSpaceDimension() { return N_DIM_2D; }
 
 int InterfaceMohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
                                                  const GeometryType& rElementGeometry,
