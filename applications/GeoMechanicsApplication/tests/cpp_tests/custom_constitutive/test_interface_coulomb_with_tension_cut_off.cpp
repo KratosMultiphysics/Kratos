@@ -293,4 +293,82 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_WorkingSpaceDimensio
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.WorkingSpaceDimension(), N_DIM_2D);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto                        law = InterfaceCoulombWithTensionCutOff{};
+    ConstitutiveLaw::Parameters parameters;
+    Properties                  properties(3);
+    parameters.SetMaterialProperties(properties);
+    const auto element_geometry = Geometry<Node>{};
+    const auto process_info     = ProcessInfo{};
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: GEO_COHESION is not defined for property 3")
+    properties.SetValue(GEO_COHESION, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: value of GEO_COHESION for property 3 is out of range: -1 is not in [0.0, ->")
+    properties.SetValue(GEO_COHESION, 1.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: GEO_FRICTION_ANGLE is not defined for property 3")
+    properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: value of GEO_FRICTION_ANGLE for property 3 is out of range: -30 is not in [0.0, ->")
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: GEO_DILATANCY_ANGLE is not defined for property 3")
+    properties.SetValue(GEO_DILATANCY_ANGLE, -30.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: value of GEO_DILATANCY_ANGLE for property 3 is out "
+        "of range: -30 is not in [0.0, 30.000000]")
+    properties.SetValue(GEO_DILATANCY_ANGLE, 40.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: value of GEO_DILATANCY_ANGLE for property 3 is out "
+        "of range: 40 is not in [0.0, 30.000000]")
+    properties.SetValue(GEO_DILATANCY_ANGLE, 30.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: GEO_TENSILE_STRENGTH is not defined for property 3")
+    properties.SetValue(GEO_TENSILE_STRENGTH, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: value of GEO_TENSILE_STRENGTH for property 3 is out "
+        "of range: -1 is not in [0.0, 1.732051]")
+    properties.SetValue(GEO_TENSILE_STRENGTH, 2.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: value of GEO_TENSILE_STRENGTH for property 3 is out "
+        "of range: 2 is not in [0.0, 1.732051]")
+    properties.SetValue(GEO_TENSILE_STRENGTH, 1.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: INTERFACE_NORMAL_STIFFNESS is not defined for property 3")
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "Error: value of INTERFACE_NORMAL_STIFFNESS for property 3 is out of range: -1 is not in [0.0, ->")
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
+        "Error: INTERFACE_SHEAR_STIFFNESS is not defined for property 3")
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "Error: value of INTERFACE_SHEAR_STIFFNESS for property 3 is out of range: -1 is not in [0.0, ->")
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 1.0);
+
+    KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
+}
+
 } // namespace Kratos::Testing
