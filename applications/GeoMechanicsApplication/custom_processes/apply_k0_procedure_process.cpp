@@ -16,7 +16,10 @@
 #include <ostream>
 
 #include "containers/flags.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/linear_elastic_law.h"
+#include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
@@ -50,8 +53,17 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Paramete
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
-    if (UseStandardProcedure())
-        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), true);
+    if (UseStandardProcedure()) {
+        block_for_each(mrModelPart.Elements(), [](Element& rElement) {
+            if (rElement.GetGeometry().WorkingSpaceDimension() == 3)
+                return;
+            auto p_law = std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
+            p_law->SetConsiderDiagonalEntriesOnlyAndNoShear(true);
+            rElement.GetProperties().SetValue(CONSTITUTIVE_LAW, p_law);
+            rElement.GetProperties().SetValue(YOUNG_MODULUS, 1.0);
+            rElement.GetProperties().SetValue(POISSON_RATIO, 0.0);
+        });
+    }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
