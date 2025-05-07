@@ -147,25 +147,37 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = InterfaceMohrCoulombWithTensionCutOff{};
-    Properties properties;
+    auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
-    ConstitutiveLaw::Parameters parameters;
-    parameters.SetMaterialProperties(properties);
-    const auto dummy_element_geometry      = Geometry<Node>{};
-    const auto dummy_shape_function_values = Vector{};
-    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
-    // Act and Assert
-    Vector cauchy_stress_vector(2);
-    cauchy_stress_vector <<= 10.0, 4.0;
+    auto parameters = ConstitutiveLaw::Parameters{};
+    parameters.SetMaterialProperties(properties);
+    auto traction_vector = Vector{ZeroVector{2}};
+    parameters.SetStressVector(traction_vector);
+    auto relative_displacement_vector = Vector{ZeroVector{2}};
+    parameters.SetStrainVector(relative_displacement_vector);
+
+    auto p_initial_state         = make_intrusive<InitialState>();
+    auto initial_traction_vector = Vector{2};
+    initial_traction_vector <<= 10.0, 4.0;
+    p_initial_state->SetInitialStressVector(initial_traction_vector);
+    p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
+
+    auto law = InterfaceMohrCoulombWithTensionCutOff{};
+    law.SetInitialState(p_initial_state);
+    InitializeLawMaterial(law, properties);
+
+    // Act
+    law.CalculateMaterialResponseCauchy(parameters);
+
+    // Assert
     Vector expected_cauchy_stress_vector(2);
     expected_cauchy_stress_vector <<= 8.0, 2.0;
-    KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedTractionVector(cauchy_stress_vector, parameters, law),
-                              expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
+                              Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
