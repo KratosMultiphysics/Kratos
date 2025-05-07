@@ -46,6 +46,7 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    using ConstitutiveLaw::CalculateValue;
 
 private:
     Vector                       mTractionVector;
