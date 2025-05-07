@@ -102,6 +102,18 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     // Assert
     expected_traction_vector <<= 5.0, 4.0;
     KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_traction_vector, Defaults::absolute_tolerance);
+
+    // Arrange: set elastic tensile state (reverse shear)
+    traction_vector <<= 5.0, -2.0;
+    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, dummy_process_info);
+    law.FinalizeMaterialResponseCauchy(parameters);
+
+    // Act
+    law.CalculateMaterialResponseCauchy(parameters);
+
+    // Assert
+    expected_traction_vector <<= 5.0, -2.0;
+    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_traction_vector, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
@@ -412,6 +424,33 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
     properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 1.0);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiveMatrix,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0E8);
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 5.0E7);
+
+    auto parameters = ConstitutiveLaw::Parameters{};
+    parameters.SetMaterialProperties(properties);
+
+    auto law = InterfaceCoulombWithTensionCutOff{};
+    InitializeLawMaterial(law, properties);
+
+    // Act
+    auto constitutive_matrix = Matrix{ZeroMatrix{2, 2}};
+    law.CalculateValue(parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
+
+    // Assert
+    auto expected_constitutive_matrix = Matrix{2, 2};
+    // clang-format off
+    expected_constitutive_matrix <<= 1.0E8, 0.0,
+                                     0.0,   5.0E7;
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
