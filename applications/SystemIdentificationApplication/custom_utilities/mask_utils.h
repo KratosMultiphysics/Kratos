@@ -185,6 +185,25 @@ public:
         const IndexType RequiredMinimumRedundancy = 1);
 
     /**
+     * @brief Fills the given model part with the entities where the pClusterMask has minimum value of RequiredMinimumRedundancy.
+     * @details This method will fill the given model part with the elements where the pClusterMask has the value for
+     *          corresponding entity greater than or equal to the RequiredMinimumRedundancy.
+     *
+     *          In the case of TContainerType = ModelPart::ElementsContainerType or ModelPart::ConditionsContainerType,
+     *          then corresponding nodes of those valid elements or conditions will also be added to the model part.
+     *
+     * @throws if the model part is not empty.
+     * @tparam TContainerType       Container type of the cluster expression.
+     * @param rModelPart            Model part to be filled with the cluster entities.
+     * @param pClusterMask          Cluster mask.
+     */
+    template<class TContainerType>
+    static void FillModelPartUsingClusterMask(
+        ModelPart& rModelPart,
+        const ContainerExpression<TContainerType>& rClusterMask,
+        const IndexType RequiredMinimumRedundancy = 1);
+
+    /**
      * @brief Get the Masks Dividing Reference Mask.
      *
      * This method returns indices of masks which can divide the given rReferenceMask.

@@ -417,6 +417,32 @@ std::vector<IndexType> MaskUtils::GetMasksDividingReferenceMask(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+void MaskUtils::FillModelPartUsingClusterMask(
+    ModelPart& rModelPart,
+    const ContainerExpression<TContainerType>& rClusterMask,
+    const IndexType RequiredMinimumRedundancy)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rModelPart.NumberOfNodes() == 0 || rModelPart.NumberOfElements() == 0 || rModelPart.NumberOfConditions())
+        << "The " << rModelPart.FullName() << " is not empty.\n";
+
+    KRATOS_ERROR_IF_NOT(rClusterMask.GetItemComponentCount() == 1)
+        << "Cluster mask can only be with a scalar value for every entity. [ rClusterMask = " << rClusterMask << " ].\n";
+
+    const auto number_of_entities = rClusterMask.GetContainer().size();
+
+    for (IndexType i_entity = 0; i_entity < number_of_entities; ++i_entity) {
+        const auto value = rClusterMask.GetExpression().Evaluate(i_entity, i_entity, 0);
+        if (value >= RequiredMinimumRedundancy) {
+
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_SI_APP_MASK_UTILS_INSTANTIATION
 #define KRATOS_SI_APP_MASK_UTILS_INSTANTIATION(CONTAINER_TYPE)                                                                                                                             \
@@ -448,7 +474,11 @@ std::vector<IndexType> MaskUtils::GetMasksDividingReferenceMask(
     template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) std::vector<IndexType> MaskUtils::GetMasksDividingReferenceMask(                                                                \
         const ContainerExpression<CONTAINER_TYPE> &,                                                                                                                                       \
         const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer> &,                                                                                                        \
-        const IndexType);
+        const IndexType);                                                                                                                                                                  \
+    template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void MaskUtils::FillModelPartUsingClusterMask(                                                                                  \
+        ModelPart&,                                                                                                                                                                        \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                                                             \
+        const IndexType);                                                                                                                                                                  \
 
 #endif
 

@@ -19,10 +19,10 @@
 
 // Application includes
 #include "custom_responses/measurement_residual_response_function.h"
-#include "custom_utilities/response/sensor_coverage_response_utils.h"
-#include "custom_utilities/response/sensor_localization_response_utils.h"
-#include "custom_utilities/response/sensor_isolation_response_utils.h"
-#include "custom_utilities/response/sensor_inverse_distance_summation_response_utils.h"
+#include "custom_responses/sensor_coverage_response_utils.h"
+#include "custom_responses/sensor_localization_response_utils.h"
+#include "custom_responses/sensor_isolation_response_utils.h"
+#include "custom_responses/sensor_inverse_distance_summation_response_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_responses_to_python.h"

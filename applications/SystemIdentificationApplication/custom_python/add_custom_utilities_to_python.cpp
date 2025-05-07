@@ -77,6 +77,7 @@ void AddMaskUtilsToPython(pybind11::module& m)
     m.def("Scale", &MaskUtils::Scale<TContainerType>, py::arg((lower_prefix + "_scalar_expression").c_str()), py::arg((lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
     m.def("ClusterMasks", &MaskUtils::ClusterMasks<TContainerType>, py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
     m.def("GetMasksDividingReferenceMask", &MaskUtils::GetMasksDividingReferenceMask<TContainerType>, py::arg(("reference_" + lower_prefix + "_mask_expression").c_str()), py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
+    m.def("FillModelPartUsingClusterMask", &MaskUtils::FillModelPartUsingClusterMask<TContainerType>, py::arg("empty_output_model_part"), py::arg(("cluster_" + lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
 }
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
