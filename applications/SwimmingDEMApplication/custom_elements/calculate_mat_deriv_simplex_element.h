@@ -57,7 +57,7 @@ namespace Kratos
 /**
  */
 template< unsigned int TDim,
-          unsigned int TNumNodes = TDim + 1 >
+          unsigned int TNumNodes>
 class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeMaterialDerivativeSimplex : public Element
 {
 public:
@@ -169,6 +169,20 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         return Element::Pointer(new ComputeMaterialDerivativeSimplex(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    }
+
+    /**
+     * @brief It creates a new element pointer
+     * @param NewId the ID of the new element
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(IndexType NewId,
+                           GeometryType::Pointer pGeom,
+                           PropertiesType::Pointer pProperties) const override
+    {
+        return Element::Pointer(new ComputeMaterialDerivativeSimplex(NewId, pGeom, pProperties));
     }
 
     /// Calculate the element's local contribution to the system for the current step.
@@ -372,17 +386,17 @@ private:
 
 
 /// input stream function
-template< unsigned int TDim >
+template< unsigned int TDim, unsigned int TNumNodes >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 ComputeMaterialDerivativeSimplex<TDim>& rThis)
+                                 ComputeMaterialDerivativeSimplex<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim >
+template< unsigned int TDim, unsigned int TNumNodes >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const ComputeMaterialDerivativeSimplex<TDim>& rThis)
+                                 const ComputeMaterialDerivativeSimplex<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -91,4 +91,5 @@ void ComputeLaplacianSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContributio
 // Explicit instantiations
 template class ComputeLaplacianSimplex<2, 3>;
 template class ComputeLaplacianSimplex<3, 4>;
+template class ComputeLaplacianSimplex<3, 10>;
 } // namespace Kratos

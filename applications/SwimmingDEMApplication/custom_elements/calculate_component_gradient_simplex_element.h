@@ -58,7 +58,7 @@ namespace Kratos
 /**
  */
 template< unsigned int TDim,
-          unsigned int TNumNodes = TDim + 1 >
+          unsigned int TNumNodes>
 class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeComponentGradientSimplex : public ComputeMaterialDerivativeSimplex<TDim, TNumNodes>
 {
 public:
@@ -364,17 +364,17 @@ private:
 
 
 /// input stream function
-template< unsigned int TDim >
+template< unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator >>(std::istream& rIStream,
-                                 ComputeComponentGradientSimplex<TDim>& rThis)
+                                 ComputeComponentGradientSimplex<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim >
+template< unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const ComputeComponentGradientSimplex<TDim>& rThis)
+                                 const ComputeComponentGradientSimplex<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

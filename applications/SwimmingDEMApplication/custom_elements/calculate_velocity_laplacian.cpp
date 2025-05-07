@@ -104,4 +104,5 @@ void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::AddIntegrationPointRHSCon
 // Explicit instantiations
 template class ComputeVelocityLaplacianSimplex<2, 3>;
 template class ComputeVelocityLaplacianSimplex<3, 4>;
+template class ComputeVelocityLaplacianSimplex<3, 10>;
 } // namespace Kratos

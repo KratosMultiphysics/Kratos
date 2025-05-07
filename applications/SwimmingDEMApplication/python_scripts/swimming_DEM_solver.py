@@ -145,7 +145,7 @@ class SwimmingDEMSolver(PythonSolver):
         if not project_parameters["processes"].Has('non_optional_solver_processes'):
             project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
 
-        else: # reconstruct non_optional_solver_processes list making sure calculate_nodal_area_process is not added twice
+        else:  # reconstruct non_optional_solver_processes list making sure calculate_nodal_area_process is not added twice
             non_optional_processes_list = list(project_parameters["processes"]["non_optional_solver_processes"])
             project_parameters["processes"].Remove("non_optional_solver_processes")
             project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
@@ -156,7 +156,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         non_optional_solver_processes = project_parameters["processes"]["non_optional_solver_processes"]
         non_optional_solver_processes.Append(default_processes_settings)
-        nodal_area_process_parameters = non_optional_solver_processes[non_optional_solver_processes.size() -1]["Parameters"]
+        nodal_area_process_parameters = non_optional_solver_processes[non_optional_solver_processes.size() - 1]["Parameters"]
         nodal_area_process_parameters["model_part_name"].SetString(self.fluid_solver.main_model_part.Name)
         nodal_area_process_parameters["domain_size"].SetInt(self.fluid_domain_dimension)
         the_mesh_moves = False
@@ -194,38 +194,44 @@ class SwimmingDEMSolver(PythonSolver):
         self.first_DEM_iteration = True
         self.SetHistoryForceOptions()
         self.ConstructStationarityTool()
-        self.ConstructDerivativeRecoverer()
+        # self.ConstructDerivativeRecoverer()  # This must be called AFTER filling the fluid model part for the L2 recoverer!
         self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
         super().__init__(model, project_parameters)
 
+    def Initialize(self):
+        super().Initialize()
+
+        # This must be outside the solver's constructor when we recover using the L2 projection,
+        # as this recovery needs to be initialized with a non-empty model fluid model part
+        self.ConstructDerivativeRecoverer()  # This must be called after filling the fluid model part for the L2 recoverer!
 
     def ConstructStationarityTool(self):
         self.stationarity = False
         self.stationarity_counter = self.GetStationarityCounter()
         self.stationarity_tool = SDEM.FlowStationarityCheck(self.fluid_solver.main_model_part,
-            self.project_parameters["stationarity"]["tolerance"].GetDouble()
-            )
+                                                            self.project_parameters["stationarity"]["tolerance"].GetDouble()
+                                                            )
 
     def _ConstructProjectionModule(self):
         # creating a projection module for the fluid-DEM coupling
-        self.h_min = 0.01 #TODO: this must be set from interface and the method must be checked for 2D
+        self.h_min = 0.01  # TODO: this must be set from interface and the method must be checked for 2D
         n_balls = 1
         fluid_volume = 10
         # the variable n_particles_in_depth is only relevant in 2D problems
         self.project_parameters.AddEmptyValue("n_particles_in_depth").SetInt(int(math.sqrt(n_balls / fluid_volume)))
 
         projection_module = CFD_DEM_coupling.ProjectionModule(
-        self.fluid_solver.main_model_part,
-        self.dem_solver.spheres_model_part,
-        self.dem_solver.all_model_parts.Get("RigidFacePart"),
-        self.project_parameters,
-        self.vars_man.coupling_dem_vars,
-        self.vars_man.coupling_fluid_vars,
-        self.vars_man.time_filtered_vars,
-        self.fluid_model_type,
-        flow_field=self.field_utility,
-        domain_size=self.fluid_domain_dimension
+            self.fluid_solver.main_model_part,
+            self.dem_solver.spheres_model_part,
+            self.dem_solver.all_model_parts.Get("RigidFacePart"),
+            self.project_parameters,
+            self.vars_man.coupling_dem_vars,
+            self.vars_man.coupling_fluid_vars,
+            self.vars_man.time_filtered_vars,
+            self.fluid_model_type,
+            flow_field=self.field_utility,
+            domain_size=self.fluid_domain_dimension
         )
 
         projection_module.UpdateDatabase(self.h_min)
@@ -235,7 +241,7 @@ class SwimmingDEMSolver(PythonSolver):
     def SetHistoryForceOptions(self):
         self.history_force_on = False
         self.MAE_parameters = Parameters("{}")
-        for prop in self.project_parameters["properties"].values(): #TODO: now it only works for one property!
+        for prop in self.project_parameters["properties"].values():  # TODO: now it only works for one property!
             self.history_force_on = (PT.RecursiveFindParametersWithCondition(
                                      self.project_parameters["properties"], 'history_force_parameters',
                                      condition=lambda value: value['name'].GetString() != 'default'))
@@ -243,7 +249,6 @@ class SwimmingDEMSolver(PythonSolver):
                 self.MAE_parameters = prop["hydrodynamic_law_parameters"]["history_force_parameters"]["mae_parameters"]
             break
         self.do_use_mae = PT.RecursiveFindTrueBoolInParameters(self.MAE_parameters, 'do_use_mae')
-
 
     def ConstructDerivativeRecoverer(self):
         self.derivative_recovery_counter = self.GetRecoveryCounter()
@@ -273,7 +278,7 @@ class SwimmingDEMSolver(PythonSolver):
     def GetHistoryForceQuadratureCounter(self):
         for prop in self.project_parameters["properties"].values():
             if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
-                history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+                history_force_parameters = prop["hydrodynamic_law_parameters"]["history_force_parameters"]
                 if history_force_parameters.Has("time_steps_per_quadrature_step"):
                     time_steps_per_quadrature_step = history_force_parameters["time_steps_per_quadrature_step"].GetInt()
 
@@ -291,7 +296,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         return self.time
 
-    def UpdateALEMeshMovement(self, time): # TODO: move to derived solver
+    def UpdateALEMeshMovement(self, time):  # TODO: move to derived solver
         if self.project_parameters["custom_fluid"]["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_solver.main_model_part, time)
             self._GetProjectionModule().UpdateDatabase(self.CalculateMinElementSize())
@@ -333,25 +338,6 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ApplyForwardCoupling(self, alpha='None'):
         self._GetProjectionModule().ApplyForwardCoupling(alpha)
-    
-        # rad = self.physical_params["rad"]
-        # v0 = self.physical_params["v0"]
-        # nodes = [node for node in self.dem_solver.spheres_model_part.Nodes]
-        # for i, node in enumerate(nodes):
-        #     x, y, z = node.X, node.Y, node.Z
-        #     if x <= self.x_min_analytical:
-        #         r_coord = np.sqrt(y * y + z * z) / rad
-        #         phi_coords = np.array([np.arctan2(y, z)])
-
-        #         r_coords = np.array([r_coord])
-        #         v_exact = [v0 * (1. - pow(r_coord, 2)), 0., 0.]
-        #         rho_exact = self.analytical_solution.compute_solution_at_points(x, r_coords, phi_coords)
-        #     else:
-        #         rho_exact = self.analytical_solution.get_initial_solution(z / rad)
-
-        #     print(f"computed {i + 1} for {len(nodes)}")
-        #     node.SetSolutionStepValue(Kratos.FLUID_VEL_PROJECTED, v_exact)
-        #     node.SetSolutionStepValue(SDEM.NODAL_DENSITY_PROJECTED, rho_exact)
 
     def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, alpha=None):
         self._GetProjectionModule().ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)
@@ -382,7 +368,6 @@ class SwimmingDEMSolver(PythonSolver):
         # Solving the disperse-phase component
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
         self.SolveDEM()
-        # exit(1)
 
         return True
 
@@ -390,7 +375,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_solver.SolveSolutionStep()
         if self.move_mesh_flag:
             self._GetProjectionModule().UpdateDatabase(self.CalculateMinElementSize())
-        else: # stationarity can only checked for fixed meshes for the moment
+        else:  # stationarity can only checked for fixed meshes for the moment
             # Check for stationarity: this is useful for steady-state problems, so that
             # the calculation stops after reaching the solution.
             if self.stationarity_counter.Tick():
@@ -400,7 +385,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.dem_solver.SolveSolutionStep()
 
     def SolveDEM(self):
-        #self.PerformEmbeddedOperations() TO-DO: it's crashing
+        # self.PerformEmbeddedOperations() TO-DO: it's crashing
 
         it_is_time_to_forward_couple = (self.time >= self.interaction_start_time
                                         and self.coupling_level_type)
@@ -408,8 +393,8 @@ class SwimmingDEMSolver(PythonSolver):
         alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
 
         if (not self.move_mesh_flag
-            and (it_is_time_to_forward_couple or self.first_DEM_iteration)):
-                self.ApplyForwardCoupling(alpha)
+                and (it_is_time_to_forward_couple or self.first_DEM_iteration)):
+            self.ApplyForwardCoupling(alpha)
 
         if self.quadrature_counter.Tick():
             self.AppendValuesForTheHistoryForce()
@@ -423,7 +408,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         # Performing the time integration of the DEM part
         if (self.move_mesh_flag
-            and (it_is_time_to_forward_couple or self.first_DEM_iteration)):
+                and (it_is_time_to_forward_couple or self.first_DEM_iteration)):
             self.ApplyForwardCoupling(alpha)
 
         if self.do_solve_dem:
@@ -437,7 +422,7 @@ class SwimmingDEMSolver(PythonSolver):
         else:
             self.basset_force_tool.AppendIntegrands(self.dem_solver.spheres_model_part)
 
-    def ImportModelPart(self): # TODO: implement this
+    def ImportModelPart(self):  # TODO: implement this
         pass
 
     def GetComputingModelPart(self):

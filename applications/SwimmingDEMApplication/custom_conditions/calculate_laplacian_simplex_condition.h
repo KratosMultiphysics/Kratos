@@ -60,7 +60,7 @@ namespace Kratos
 
 /// Implements a wall condition for the laplacian recovery.
 
-template< unsigned int TDim, unsigned int TNumNodes = TDim >
+template< unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeLaplacianSimplexCondition : public Condition
 {
 public:

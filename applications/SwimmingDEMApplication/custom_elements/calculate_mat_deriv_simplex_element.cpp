@@ -10,7 +10,9 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateLocalSystem(Mat
                                   VectorType& rRightHandSideVector,
                                   const ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
+    const unsigned int NumNodes = this->GetGeometry().size();
+    const unsigned int LocalSize = TDim * NumNodes;
+    // const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
 
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
@@ -33,7 +35,9 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateLocalSystem(Mat
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
 
-    const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
+    const unsigned int NumNodes = this->GetGeometry().size();
+    const unsigned int LocalSize = TDim * NumNodes;
+    // const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
     unsigned int LocalIndex = 0;
     unsigned int local_position = this->GetGeometry()[0].GetDofPosition(MATERIAL_ACCELERATION_X);
 
@@ -50,7 +54,9 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::EquationIdVector(Equatio
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
-    const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
+    const unsigned int NumNodes = this->GetGeometry().size();
+    const unsigned int LocalSize = TDim * NumNodes;
+    // const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
 
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
@@ -255,4 +261,5 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::AddIntegrationPointRHSCo
 // Explicit instantiations
 template class ComputeMaterialDerivativeSimplex<2, 3>;
 template class ComputeMaterialDerivativeSimplex<3, 4>;
+template class ComputeMaterialDerivativeSimplex<3, 10>;
 } // namespace Kratos

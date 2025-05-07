@@ -86,30 +86,35 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
   mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
   mMonolithicDEMCoupledWeak3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeMaterialDerivativeSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeMaterialDerivativeSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeLaplacianSimplex2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeLaplacianSimplex3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeLaplacianSimplex3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
+  mComputeMaterialDerivativeSimplex2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeMaterialDerivativeSimplex3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeMaterialDerivativeSimplex3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
   mComputeFluidFractionGradient2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
   mComputeFluidFractionGradient2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
   mComputeFluidFractionGradient2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node >(Element::GeometryType::PointsArrayType(9)))),
   mComputeFluidFractionGradient3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
   mComputeFluidFractionGradient3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
   mComputeFluidFractionGradient3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node >(Element::GeometryType::PointsArrayType(27)))),
-  mComputeComponentGradientSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeComponentGradientSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeComponentGradientSimplex2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeComponentGradientSimplex3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeComponentGradientSimplex3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
   mComputeGradientPouliot20122DEdge(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
   mComputeGradientPouliot20123DEdge(0, Element::GeometryType::Pointer(new Line3D2<Node >(Element::GeometryType::PointsArrayType(2)))),
   mComputeGradientPouliot20122D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
   mComputeGradientPouliot20123D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
   mComputeVelocityLaplacianComponentSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
   mComputeVelocityLaplacianComponentSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-  mComputeVelocityLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-  mComputeVelocityLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeVelocityLaplacianSimplex2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+  mComputeVelocityLaplacianSimplex3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+  mComputeVelocityLaplacianSimplex3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node >(Element::GeometryType::PointsArrayType(10)))),
   mMonolithicDEMCoupledWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node >( Element::GeometryType::PointsArrayType(2)))),
   mMonolithicDEMCoupledWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node >( Element::GeometryType::PointsArrayType(3)))),
-  mComputeLaplacianSimplexCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node >( Element::GeometryType::PointsArrayType(2)))),
-  mComputeLaplacianSimplexCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node >( Element::GeometryType::PointsArrayType(3)))),
+  mComputeLaplacianSimplexCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node >( Element::GeometryType::PointsArrayType(2)))),
+  mComputeLaplacianSimplexCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node >( Element::GeometryType::PointsArrayType(3)))),
+  mComputeLaplacianSimplexCondition3D6N(0, Element::GeometryType::Pointer(new Triangle3D6<Node >( Element::GeometryType::PointsArrayType(6)))),
   mRigidShellElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
   mSphericSwimmingParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1)))),
   mSwimmingNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1)))),
@@ -169,36 +174,41 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupled3D", mMonolithicDEMCoupled3D)
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak2D", mMonolithicDEMCoupledWeak2D)
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak3D", mMonolithicDEMCoupledWeak3D)
-  KRATOS_REGISTER_ELEMENT("ComputeLaplacianSimplex2D", mComputeLaplacianSimplex2D)
-  KRATOS_REGISTER_ELEMENT("ComputeLaplacianSimplex3D", mComputeLaplacianSimplex3D)
+  KRATOS_REGISTER_ELEMENT("ComputeLaplacianSimplex2D3N", mComputeLaplacianSimplex2D3N)
+  KRATOS_REGISTER_ELEMENT("ComputeLaplacianSimplex3D4N", mComputeLaplacianSimplex3D4N)
+  KRATOS_REGISTER_ELEMENT("ComputeLaplacianSimplex3D10N", mComputeLaplacianSimplex3D10N)
   KRATOS_REGISTER_ELEMENT("RigidShellElement", mRigidShellElement)
   KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingNanoParticle3D", mSwimmingNanoParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingAnalyticParticle3D", mSwimmingAnalyticParticle3D)
-  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex2D", mComputeMaterialDerivativeSimplex2D)
-  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex3D", mComputeMaterialDerivativeSimplex3D)
+  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex2D3N", mComputeMaterialDerivativeSimplex2D3N)
+  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex3D4N", mComputeMaterialDerivativeSimplex3D4N)
   KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient2D3N", mComputeFluidFractionGradient2D3N)
   KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient2D4N", mComputeFluidFractionGradient2D4N)
   KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient2D9N", mComputeFluidFractionGradient2D9N)
   KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient3D4N", mComputeFluidFractionGradient3D4N)
   KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient3D8N", mComputeFluidFractionGradient3D8N)
   KRATOS_REGISTER_ELEMENT("ComputeFluidFractionGradient3D27N", mComputeFluidFractionGradient3D27N)
-  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex2D", mComputeMaterialDerivativeSimplex2D)
-  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex3D", mComputeMaterialDerivativeSimplex3D)
-  KRATOS_REGISTER_ELEMENT("ComputeComponentGradientSimplex2D", mComputeComponentGradientSimplex2D)
-  KRATOS_REGISTER_ELEMENT("ComputeComponentGradientSimplex3D", mComputeComponentGradientSimplex3D)
+  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex2D3N", mComputeMaterialDerivativeSimplex2D3N)
+  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex3D4N", mComputeMaterialDerivativeSimplex3D4N)
+  KRATOS_REGISTER_ELEMENT("ComputeMaterialDerivativeSimplex3D10N", mComputeMaterialDerivativeSimplex3D10N)
+  KRATOS_REGISTER_ELEMENT("ComputeComponentGradientSimplex2D3N", mComputeComponentGradientSimplex2D3N)
+  KRATOS_REGISTER_ELEMENT("ComputeComponentGradientSimplex3D4N", mComputeComponentGradientSimplex3D4N)
+  KRATOS_REGISTER_ELEMENT("ComputeComponentGradientSimplex3D10N", mComputeComponentGradientSimplex3D10N)
   KRATOS_REGISTER_ELEMENT("ComputeGradientPouliot20122DEdge", mComputeGradientPouliot20122DEdge)
   KRATOS_REGISTER_ELEMENT("ComputeGradientPouliot20123DEdge", mComputeGradientPouliot20123DEdge)
   KRATOS_REGISTER_ELEMENT("ComputeGradientPouliot20122D", mComputeGradientPouliot20122D)
   KRATOS_REGISTER_ELEMENT("ComputeGradientPouliot20123D", mComputeGradientPouliot20123D)
   KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianComponentSimplex2D", mComputeVelocityLaplacianComponentSimplex2D)
   KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianComponentSimplex3D", mComputeVelocityLaplacianComponentSimplex3D)
-  KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex2D", mComputeVelocityLaplacianSimplex2D)
-  KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex3D", mComputeVelocityLaplacianSimplex3D)
+  KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex2D3N", mComputeVelocityLaplacianSimplex2D3N)
+  KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex3D4N", mComputeVelocityLaplacianSimplex3D4N)
+  KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex3D10N", mComputeVelocityLaplacianSimplex3D10N)
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition2D", mMonolithicDEMCoupledWallCondition2D)
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition3D",mMonolithicDEMCoupledWallCondition3D)
-  KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition2D",  mComputeLaplacianSimplexCondition2D)
-  KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition3D", mComputeLaplacianSimplexCondition3D)
+  KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition2D2N", mComputeLaplacianSimplexCondition2D2N)
+  KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition3D3N", mComputeLaplacianSimplexCondition3D3N)
+  KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition3D6N", mComputeLaplacianSimplexCondition3D6N)
 }
 
 }  // namespace Kratos.

@@ -85,4 +85,5 @@ void ComputeLaplacianSimplexCondition<3,3>::CalculateNormal(array_1d<double,3>& 
 // Explicit instantiations
 template class ComputeLaplacianSimplexCondition<2, 2>;
 template class ComputeLaplacianSimplexCondition<3, 3>;
+template class ComputeLaplacianSimplexCondition<3, 6>;
 } // namespace Kratos

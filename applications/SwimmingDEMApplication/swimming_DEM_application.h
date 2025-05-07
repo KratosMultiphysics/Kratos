@@ -118,11 +118,13 @@ private:
     /// 3D instance of the MonolithicDEMCoupledWeak element
     const MonolithicDEMCoupledWeak<3> mMonolithicDEMCoupledWeak3D;
 
-    const ComputeLaplacianSimplex<2> mComputeLaplacianSimplex2D;
-    const ComputeLaplacianSimplex<3> mComputeLaplacianSimplex3D;
+    const ComputeLaplacianSimplex<2, 3> mComputeLaplacianSimplex2D3N;
+    const ComputeLaplacianSimplex<3, 4> mComputeLaplacianSimplex3D4N;
+    const ComputeLaplacianSimplex<3, 10> mComputeLaplacianSimplex3D10N;
 
-    const ComputeMaterialDerivativeSimplex<2> mComputeMaterialDerivativeSimplex2D;
-    const ComputeMaterialDerivativeSimplex<3> mComputeMaterialDerivativeSimplex3D;
+    const ComputeMaterialDerivativeSimplex<2, 3> mComputeMaterialDerivativeSimplex2D3N;
+    const ComputeMaterialDerivativeSimplex<3, 4> mComputeMaterialDerivativeSimplex3D4N;
+    const ComputeMaterialDerivativeSimplex<3, 10> mComputeMaterialDerivativeSimplex3D10N;
 
     const ComputeFluidFractionGradient<2,3> mComputeFluidFractionGradient2D3N;
     const ComputeFluidFractionGradient<2,4> mComputeFluidFractionGradient2D4N;
@@ -131,8 +133,9 @@ private:
     const ComputeFluidFractionGradient<3,8> mComputeFluidFractionGradient3D8N;
     const ComputeFluidFractionGradient<3,27> mComputeFluidFractionGradient3D27N;
 
-    const ComputeComponentGradientSimplex<2> mComputeComponentGradientSimplex2D;
-    const ComputeComponentGradientSimplex<3> mComputeComponentGradientSimplex3D;
+    const ComputeComponentGradientSimplex<2, 3> mComputeComponentGradientSimplex2D3N;
+    const ComputeComponentGradientSimplex<3, 4> mComputeComponentGradientSimplex3D4N;
+    const ComputeComponentGradientSimplex<3, 10> mComputeComponentGradientSimplex3D10N;
 
     const ComputeGradientPouliot2012Edge<2> mComputeGradientPouliot20122DEdge;
     const ComputeGradientPouliot2012Edge<3> mComputeGradientPouliot20123DEdge;
@@ -143,14 +146,16 @@ private:
     const ComputeVelocityLaplacianComponentSimplex<2> mComputeVelocityLaplacianComponentSimplex2D;
     const ComputeVelocityLaplacianComponentSimplex<3> mComputeVelocityLaplacianComponentSimplex3D;
 
-    const ComputeVelocityLaplacianSimplex<2> mComputeVelocityLaplacianSimplex2D;
-    const ComputeVelocityLaplacianSimplex<3> mComputeVelocityLaplacianSimplex3D;
+    const ComputeVelocityLaplacianSimplex<2, 3> mComputeVelocityLaplacianSimplex2D3N;
+    const ComputeVelocityLaplacianSimplex<3, 4> mComputeVelocityLaplacianSimplex3D4N;
+    const ComputeVelocityLaplacianSimplex<3, 10> mComputeVelocityLaplacianSimplex3D10N;
 
     const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
     const  MonolithicDEMCoupledWallCondition<3,3> mMonolithicDEMCoupledWallCondition3D;
 
-    const  ComputeLaplacianSimplexCondition<2,2> mComputeLaplacianSimplexCondition2D;
-    const  ComputeLaplacianSimplexCondition<3,3> mComputeLaplacianSimplexCondition3D;
+    const  ComputeLaplacianSimplexCondition<2,2> mComputeLaplacianSimplexCondition2D2N;
+    const  ComputeLaplacianSimplexCondition<3,3> mComputeLaplacianSimplexCondition3D3N;
+    const  ComputeLaplacianSimplexCondition<3,6> mComputeLaplacianSimplexCondition3D6N;
 
     const ShellRigid mRigidShellElement;
 

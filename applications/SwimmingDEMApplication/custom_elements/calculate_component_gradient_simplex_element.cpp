@@ -126,4 +126,5 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::AddIntegrationPointRHSCon
 // Explicit instantiations
 template class ComputeComponentGradientSimplex<2, 3>;
 template class ComputeComponentGradientSimplex<3, 4>;
+template class ComputeComponentGradientSimplex<3, 10>;
 } // namespace Kratos
