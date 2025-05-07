@@ -31,6 +31,15 @@ namespace
 
 using namespace Kratos;
 
+void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
+{
+    block_for_each(rElements, [Whether](Element& rElement) {
+        auto pLinearElasticLaw =
+            dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
+        if (pLinearElasticLaw) pLinearElasticLaw->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
+    });
+}
+
 } // namespace
 
 namespace Kratos
@@ -60,7 +69,9 @@ void ApplyK0ProcedureProcess::SaveConstitutiveLaws()
 void ApplyK0ProcedureProcess::SwitchConstitutiveLawsToLinearElastic()
 {
     block_for_each(mrModelPart.Elements(), [](Element& rElement) {
-        if (dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get()) == nullptr) {
+        if (auto original_law = dynamic_cast<GeoLinearElasticLaw*>(
+                rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
+            original_law == nullptr) {
             if (rElement.GetProperties().GetValue(CONSTITUTIVE_LAW)->WorkingSpaceDimension() == 3)
                 return;
 
@@ -71,6 +82,8 @@ void ApplyK0ProcedureProcess::SwitchConstitutiveLawsToLinearElastic()
                 rElement.GetProperties().SetValue(YOUNG_MODULUS, 1.0);
             if (!rElement.GetProperties().Has(POISSON_RATIO))
                 rElement.GetProperties().SetValue(POISSON_RATIO, 0.0);
+        } else {
+            original_law->SetConsiderDiagonalEntriesOnlyAndNoShear(true);
         }
     });
 }
@@ -79,6 +92,7 @@ void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
     if (UseStandardProcedure()) {
         RestoreConstitutiveLaws();
+        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), false);
     }
     mConstitutiveLaws.clear();
 }
