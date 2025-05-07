@@ -58,9 +58,13 @@ namespace Kratos
                 // Check for valid existing contact
                 if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end() ||
                     particle.mBallToRigidFaceStoredInfo[id2].indentation <= 0.0 ||
-                    particle.mNeighborInContact == false ||
-                    particle.CheckAdiabaticNeighbor())
+                    particle.mNeighborInContact == false)
                     continue;
+
+                // Increment number of contacts
+                is_inner_particle = false;
+                mAvgCoordNum++;
+                mNumContacts++;
 
                 // Normal vector
                 const double d  = r1 - particle.mBallToRigidFaceStoredInfo[id2].indentation;
@@ -68,11 +72,6 @@ namespace Kratos
                 const double ny = -particle.mBallToRigidFaceStoredInfo[id2].local_coord_system[2][1];
                 std::vector<double> normal = {nx, ny};
                 std::vector<double> branch = {d * nx, d * ny};
-
-                // Increment number of contacts
-                is_inner_particle = false;
-                mAvgCoordNum++;
-                mNumContacts++;
 
                 // Update rose diagram
                 AddContactToRoseDiagram(mRoseDiagram, normal);
@@ -123,8 +122,7 @@ namespace Kratos
                 // Check for valid existing contact
                 if (particle.mBallToBallStoredInfo.find(id2) == particle.mBallToBallStoredInfo.end() ||
                     particle.mBallToBallStoredInfo[id2].indentation <= 0.0 ||
-                    particle.mNeighborInContact == false ||
-                    particle.CheckAdiabaticNeighbor())
+                    particle.mNeighborInContact == false)
                     continue;
 
                 // Normal vector

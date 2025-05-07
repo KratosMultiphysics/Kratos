@@ -326,9 +326,10 @@ namespace Kratos
                 std::vector<double> coords2 = {x2, y2};
 
                 // Check for valid existing contact
-                if (particle.mBallToBallStoredInfo.find(id2) == particle.mBallToBallStoredInfo.end()) continue;
                 const double indent = particle.mBallToBallStoredInfo[id2].indentation;
-                if (indent <= 0.0) continue;
+                if (particle.mBallToBallStoredInfo.find(id2) == particle.mBallToBallStoredInfo.end() ||
+                    indent <= 0.0)
+                    continue;
 
                 // Normal vector
                 const double d  = r1 + r2 - indent;
@@ -479,10 +480,10 @@ namespace Kratos
         else {
             // Circle cut by one or more edges, but with no vertex inside
             if (dv1 >= r && dv2 >= r && dv3 >= r && dv4 >= r) {
-                double a1 = (de1 < r) ? ComputeAreaCircleSector(r,de1) : 0.0;
-                double a2 = (de2 < r) ? ComputeAreaCircleSector(r,de2) : 0.0;
-                double a3 = (de3 < r) ? ComputeAreaCircleSector(r,de3) : 0.0;
-                double a4 = (de4 < r) ? ComputeAreaCircleSector(r,de4) : 0.0;
+                double a1 = (de1 < r) ? ComputeAreaCircleSegment(r,de1) : 0.0;
+                double a2 = (de2 < r) ? ComputeAreaCircleSegment(r,de2) : 0.0;
+                double a3 = (de3 < r) ? ComputeAreaCircleSegment(r,de3) : 0.0;
+                double a4 = (de4 < r) ? ComputeAreaCircleSegment(r,de4) : 0.0;
                 if (is_inside)
                     vol = ComputeVolumeParticle(particle) - (a1+a2+a3+a4);
                 else
@@ -522,20 +523,20 @@ namespace Kratos
                         // Area of triangle formed by the vertex and intersection points
                         double area_triangle = ComputeAreaTriangle(xa,xb,xc,ya,yb,yc);
 
-                        // Area of circle sector formed by the intersection points and circumference
+                        // Area of circle segment formed by the intersection points and circumference
                         double xt = (xb+xc)/2.0, yt = (yb+yc)/2.0;            // Middle coordinates of the chord between intersection points (xb,yb)->(xc,yc)
                         double d1 = std::sqrt((xt-x)*(xt-x) + (yt-y)*(yt-y)); // Distance: circle center - chord middle
                         double d2 = std::sqrt((xa-x)*(xa-x) + (ya-y)*(ya-y)); // Distance: circle center - vertex
                         double dot = (xa-x)*(xt-x) + (ya-y)*(yt-y);           // Dot product between colinear vectors (circle center)->(vertex) and (circle center)->(chord middle)
 
-                        double area_sector;
+                        double area_segment;
                         if (dot > 0.0 && d2 > d1)
-                            area_sector = ComputeVolumeParticle(particle) - ComputeAreaCircleSector(r,d1);
+                        area_segment = ComputeVolumeParticle(particle) - ComputeAreaCircleSegment(r,d1);
                         else
-                            area_sector = ComputeAreaCircleSector(r,d1);
+                        area_segment = ComputeAreaCircleSegment(r,d1);
 
                         // Total area delimited by the edges
-                        vol = area_triangle + area_sector;
+                        vol = area_triangle + area_segment;
                         break;
                     }
                 }
@@ -855,9 +856,14 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Compute the area of a sector of a circle with radius r cut by a line whose distance from the circle center is d.
-    double RVEWallBoundary2D::ComputeAreaCircleSector(double r, double d) {
-        return (r*r * acos(d/r)) - (d * sqrt(r*r - d*d));
+    // Compute the area of a segment of a circle with radius r cut by a line whose distance from the circle center is d.
+    double RVEWallBoundary2D::ComputeAreaCircleSegment(double r, double d) {
+        if (d < 0.0 || d > r) {
+            return 0.0;
+        }
+        else {
+            return (r*r * acos(d/r)) - (d * sqrt(r*r - d*d));
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -908,7 +914,11 @@ namespace Kratos
             double ya = vertices[i][1];
             double xb = vertices[(i+1)%4][0];
             double yb = vertices[(i+1)%4][1];
-            if (((ya>y) != (yb>y)) && ( x < (xb-xa)*(y-ya)/(yb-ya)+xa)) count++;
+            double denom = yb - ya;
+            if (denom != 0.0 && ((ya > y) != (yb > y))) {
+                double x_intersect = (xb - xa) * (y - ya) / denom + xa;
+                if (x < x_intersect) count++;
+            }
         }
         return count % 2 == 1;
     }
@@ -936,7 +946,7 @@ namespace Kratos
 
         // Variance  (from normalized values)
         double var = 0.0;
-        for (int i = 0; i < len; i++) var += pow(norm[i] - mean, 2.0);
+        for (int i = 0; i < len; i++) var += (norm[i]-mean) * (norm[i]-mean);
         var /= len;
 
         // Standard deviation
