@@ -44,31 +44,47 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Paramete
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (UseStandardProcedure()) {
-        for (const auto& r_element : mrModelPart.Elements()) {
-            mConstitutiveLaws[r_element.Id()] = r_element.GetProperties().GetValue(CONSTITUTIVE_LAW);
-        }
-        block_for_each(mrModelPart.Elements(), [](Element& rElement) {
-            if (rElement.GetProperties().GetValue(CONSTITUTIVE_LAW)->WorkingSpaceDimension() == 3)
-                return;
-
-            auto p_law = std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
-            p_law->SetConsiderDiagonalEntriesOnlyAndNoShear(true);
-            rElement.GetProperties().SetValue(CONSTITUTIVE_LAW, p_law);
-            rElement.GetProperties().SetValue(YOUNG_MODULUS, 1.0);
-            rElement.GetProperties().SetValue(POISSON_RATIO, 0.0);
-        });
+        SaveConstitutiveLaws();
+        SwitchConstitutiveLawsToLinearElastic();
     }
+}
+
+void ApplyK0ProcedureProcess::SaveConstitutiveLaws()
+{
+    // This cannot be a block_for_each, since a member is changed within it.
+    for (const auto& r_element : mrModelPart.Elements()) {
+        mConstitutiveLaws[r_element.Id()] = r_element.GetProperties().GetValue(CONSTITUTIVE_LAW);
+    }
+}
+
+void ApplyK0ProcedureProcess::SwitchConstitutiveLawsToLinearElastic()
+{
+    block_for_each(mrModelPart.Elements(), [](Element& rElement) {
+        if (rElement.GetProperties().GetValue(CONSTITUTIVE_LAW)->WorkingSpaceDimension() == 3)
+            return;
+
+        auto p_law = std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
+        p_law->SetConsiderDiagonalEntriesOnlyAndNoShear(true);
+        rElement.GetProperties().SetValue(CONSTITUTIVE_LAW, p_law);
+        rElement.GetProperties().SetValue(YOUNG_MODULUS, 1.0);
+        rElement.GetProperties().SetValue(POISSON_RATIO, 0.0);
+    });
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
     if (UseStandardProcedure()) {
-        for (const auto& [key, value] : mConstitutiveLaws)    {
-            auto& r_element = mrModelPart.GetElement(key);
-            r_element.GetProperties().SetValue(CONSTITUTIVE_LAW, value);
-        }
+        RestoreConstitutiveLaws();
     }
     mConstitutiveLaws.clear();
+}
+
+void ApplyK0ProcedureProcess::RestoreConstitutiveLaws()
+{
+    for (const auto& [key, value] : mConstitutiveLaws) {
+        auto& r_element = mrModelPart.GetElement(key);
+        r_element.GetProperties().SetValue(CONSTITUTIVE_LAW, value);
+    }
 }
 
 int ApplyK0ProcedureProcess::Check()

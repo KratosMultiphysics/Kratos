@@ -29,6 +29,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyK0ProcedureProcess);
 
     ApplyK0ProcedureProcess(ModelPart& model_part, Parameters rK0Settings);
+
     ~ApplyK0ProcedureProcess() override = default;
 
     void ExecuteInitialize() override;
@@ -48,9 +49,12 @@ private:
     static void CheckPhi(const Properties& rProperties, IndexType ElementId);
     static void CheckPoissonUnloadingReloading(const Properties& rProperties, IndexType ElementId);
     static void CheckSufficientMaterialParameters(const Properties& rProperties, IndexType ElementId);
+    void SaveConstitutiveLaws();
+    void SwitchConstitutiveLawsToLinearElastic();
+    void RestoreConstitutiveLaws();
 
-    ModelPart&       mrModelPart;
-    const Parameters mSettings;
+    ModelPart&                                    mrModelPart;
+    const Parameters                              mSettings;
     std::map<IndexType, ConstitutiveLaw::Pointer> mConstitutiveLaws;
 };
 
