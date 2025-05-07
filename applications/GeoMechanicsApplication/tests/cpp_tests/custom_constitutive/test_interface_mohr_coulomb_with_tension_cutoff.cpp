@@ -28,23 +28,6 @@ namespace
 
 using namespace Kratos;
 
-Vector CalculateMappedTractionVector(Vector&                                rTractionVector,
-                                     ConstitutiveLaw::Parameters&           rParameters,
-                                     InterfaceMohrCoulombWithTensionCutOff& rLaw)
-{
-    Vector strain_vector = ZeroVector(2);
-    rParameters.SetStrainVector(strain_vector);
-    rParameters.SetStressVector(rTractionVector);
-    const auto dummy_process_info = ProcessInfo{};
-    rLaw.SetValue(CAUCHY_STRESS_VECTOR, rTractionVector, dummy_process_info);
-    rLaw.FinalizeMaterialResponseCauchy(rParameters);
-    rLaw.CalculateMaterialResponseCauchy(rParameters);
-
-    Vector result;
-    rLaw.GetValue(CAUCHY_STRESS_VECTOR, result);
-    return result;
-}
-
 void InitializeLawMaterial(ConstitutiveLaw& rLaw, const Properties& rProperties)
 {
     const auto dummy_element_geometry      = Geometry<Node>{};
