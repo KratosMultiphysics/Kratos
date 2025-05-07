@@ -58,7 +58,7 @@ bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau, double DilatancyAn
     return rTrialSigmaTau[0] - rCornerPoint[0] - (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
 }
 
-Vector ReturnStressAtTensionApexReturnZone(const Vector& rSigmaTau, double TensileStrength)
+Vector ReturnStressAtTensionApexReturnZone(double TensileStrength)
 {
     Vector result{2};
     result[0] = TensileStrength;
@@ -127,7 +127,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
         ConstitutiveLawUtilities::GetCohesion(rProperties), rProperties[GEO_TENSILE_STRENGTH]);
 
     if (IsStressAtTensionApexReturnZone(rTrialSigmaTau, rProperties[GEO_TENSILE_STRENGTH], apex)) {
-        return ReturnStressAtTensionApexReturnZone(rTrialSigmaTau, rProperties[GEO_TENSILE_STRENGTH]);
+        return ReturnStressAtTensionApexReturnZone(rProperties[GEO_TENSILE_STRENGTH]);
     }
 
     if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau, rProperties[GEO_TENSILE_STRENGTH], apex, corner_point)) {
