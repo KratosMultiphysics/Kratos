@@ -1,9 +1,17 @@
-import json
+import sys
 import os
+import json
 import numpy as np
+
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import GeoMechanicsAnalysis
-import test_helper
+
+tests_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'tests'))
+if os.path.exists(tests_folder_path):
+    sys.path.append(tests_folder_path)
+    import test_helper
+else:
+    raise ImportError(f"Tests folder not found at: {tests_folder_path}")
 
 
 class TriaxialTest:
