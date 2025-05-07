@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/model_part_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "expression/literal_expression.h"
@@ -433,11 +434,37 @@ void MaskUtils::FillModelPartUsingClusterMask(
 
     const auto number_of_entities = rClusterMask.GetContainer().size();
 
+    TContainerType temp;
+    temp.reserve(number_of_entities);
     for (IndexType i_entity = 0; i_entity < number_of_entities; ++i_entity) {
         const auto value = rClusterMask.GetExpression().Evaluate(i_entity, i_entity, 0);
         if (value >= RequiredMinimumRedundancy) {
-
+            temp.insert(temp.end(), *(rClusterMask.GetContainer().ptr_begin() + i_entity));
         }
+    }
+
+    if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        rModelPart.AddElements(temp.begin(), temp.end());
+        std::vector<ModelPart::NodeType::Pointer> nodes;
+        for (auto& r_element : temp) {
+            for (auto itr_p_node_begin = r_element.GetGeometry().ptr_begin(); itr_p_node_begin != r_element.GetGeometry().ptr_end(); ++itr_p_node_begin) {
+                nodes.push_back(*itr_p_node_begin);
+            }
+        }
+        rModelPart.AddNodes(nodes.begin(), nodes.end());
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        rModelPart.AddConditions(temp.begin(), temp.end());
+        std::vector<ModelPart::NodeType::Pointer> nodes;
+        for (auto& r_condition : temp) {
+            for (auto itr_p_node_begin = r_condition.GetGeometry().ptr_begin(); itr_p_node_begin != r_condition.GetGeometry().ptr_end(); ++itr_p_node_begin) {
+                nodes.push_back(*itr_p_node_begin);
+            }
+        }
+        rModelPart.AddNodes(nodes.begin(), nodes.end());
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        rModelPart.AddNodes(temp.begin(), temp.end());
+    } else {
+        static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported TContainerType.");
     }
 
     KRATOS_CATCH("");
