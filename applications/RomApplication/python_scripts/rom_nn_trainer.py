@@ -142,9 +142,9 @@ class RomNeuralNetworkTrainer(object):
 
         return Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor
 
-    def _GetEvaluationData(self, model_properties):
+    def _GetEvaluationData(self, mu_set, model_properties):
 
-        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
+        S_val = self.data_base.get_snapshots_matrix_from_database(mu_set, table_name=f'FOM')
 
         n_inf = model_properties['modes'][0]
         n_sup = model_properties['modes'][1]
@@ -278,13 +278,22 @@ class RomNeuralNetworkTrainer(object):
 
         self._SaveWeightsKratosFormat(network, str(model_path)+"/model_weights.npy")
 
-    def EvaluateNetwork(self):
+    def EvaluateNetwork(self, mu_eval=None, custom_model_path=None):
 
-        model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
-        model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
+        self.using_manual_model_path = False
+        
+        if custom_model_path is None:
+            model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
+            model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
+            with open(str(model_path)+'/train_config.json', "r") as config_file:
+                model_properties = json.load(config_file)
+        else:
+            self.using_manual_model_path = True
+            model_path=pathlib.Path(custom_model_path)
+            with open(pathlib.Path(model_path / 'train_config_kratos_format.json'), "r") as config_file:
+                model_properties = json.load(config_file)
 
-        with open(str(model_path)+'/train_config.json', "r") as config_file:
-            model_properties = json.load(config_file)
+        print("Getting model weights and config from: ", model_path)
 
         n_inf = model_properties['modes'][0]
         n_sup = model_properties['modes'][1]
@@ -295,9 +304,14 @@ class RomNeuralNetworkTrainer(object):
 
         network.load_weights(str(model_path)+'/model.weights.h5')
 
-        S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup = self._GetEvaluationData(model_properties)
+        if mu_eval is None:
+            mu_eval = self.mu_validation
 
-        print('RECONSTRUCTION RESULTS, VALIDATION DATASET:')
+        print('Number of tested samples: ', len(mu_eval))
+
+        S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup = self._GetEvaluationData(mu_eval, model_properties)
+
+        print('RECONSTRUCTION RESULTS:')
         print(' - Relative Frobenius error:')
 
         S_recons_val = phisig_sup@network(Q_inf_val).numpy().T+phisig_inf@Q_inf_val.T
@@ -315,7 +329,8 @@ class RomNeuralNetworkTrainer(object):
         sample_l2_err_list=[]
         for i in range(S_recons_val.shape[1]):
             sample_l2_err_list.append(np.linalg.norm(S_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
-        print('     ANN-PROM: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
+        print('     ANN-PROM: ', np.exp(np.mean(np.log(sample_l2_err_list))))
+        # print('     ANN-PROM: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
 
         sample_l2_err_list_pod_sup=[]
         for i in range(S_pod_sup_recons_val.shape[1]):

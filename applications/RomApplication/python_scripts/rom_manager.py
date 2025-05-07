@@ -38,7 +38,7 @@ class RomManager(object):
         self.SetupErrorsDictionaries()
 
     # def Fit(self, mu_train=[None],mu_validation=[None], mu_init_train=[None], mu_init_validation=[None]):
-    def Fit(self, mu_train=[None],mu_validation=[None], start_from_closest_mu=False):
+    def Fit(self, mu_train=[None],mu_validation=[None], start_from_closest_mu=False, filter_nan = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
@@ -52,7 +52,7 @@ class RomManager(object):
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
+                    self._LaunchROM(mu_train, mu_train = mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
@@ -79,7 +79,7 @@ class RomManager(object):
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_train, nn_rom_interface=nn_rom_interface)
+                    self._LaunchROM(mu_train, mu_train = mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
@@ -122,7 +122,13 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.ComputeErrors(mu_train)
+        if type_of_decoder =="ann_enhanced":
+            if nn_rom_interface.get_using_manual_model_path():
+                self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan, mu_aux=None, nn_model_name=nn_rom_interface.get_nn_model_name())
+            else:
+                self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan, mu_aux=mu_train)
+        else:
+            self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan)
 
     def TrainAnnEnhancedROM(self, mu_train, mu_validation):
         counter = 0
@@ -139,14 +145,20 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
-    def TestNeuralNetworkReconstruction(self, mu_train, mu_validation):
-        self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
+    def TestNeuralNetworkReconstruction(self, mu_train, mu_validation, mu_test):
+        custom_model_path = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["custom_model_path"].GetString()
+        if custom_model_path == '':
+            custom_model_path = None
+        self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation, mu_test, custom_model_path)
 
 
-    def Test(self, mu_test=[None], mu_train=[None], start_from_closest_mu=False):
+    def Test(self, mu_test=[None], mu_train=[None], start_from_closest_mu=False, filter_nan=False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        custom_model_path = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["custom_model_path"].GetString()
+        if custom_model_path == '':
+            custom_model_path = None
 
         #######################
         ######  Galerkin ######
@@ -154,11 +166,10 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 if any(item == "ROM" for item in testing_stages):
                     self._LoadSolutionBasis(mu_train)
-                    print('SDADASDSADAS')
                     self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
+                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base, custom_model_path=custom_model_path)
+                    self._LaunchROM(mu_test, mu_train = mu_train, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
@@ -183,8 +194,8 @@ class RomManager(object):
                     self._LoadSolutionBasis(mu_train)
                     self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
+                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base, custom_model_path=custom_model_path)
+                    self._LaunchROM(mu_test, mu_train = mu_train, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
             elif type_of_decoder =="linear":
@@ -219,7 +230,13 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.ComputeErrors(mu_test, 'Test')
+        if type_of_decoder =="ann_enhanced":
+            if nn_rom_interface.get_using_manual_model_path():
+                self.ComputeErrors(mu_test, case='Test', filter_nan=filter_nan, mu_aux=None, nn_model_name=nn_rom_interface.get_nn_model_name())
+            else:
+                self.ComputeErrors(mu_test, case='Test', filter_nan=filter_nan, mu_aux=mu_train)
+        else:
+            self.ComputeErrors(mu_test, case='Test', filter_nan=filter_nan)
 
 
     def RunFOM(self, mu_run=[None]):
@@ -229,6 +246,10 @@ class RomManager(object):
     def RunROM(self, mu_run=[None], mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
+        custom_model_path = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["custom_model_path"].GetString()
+        if custom_model_path == "":
+            custom_model_path = None
+
         nn_rom_interface = None
         self._LoadSolutionBasis(mu_train)
         #######################
@@ -236,7 +257,7 @@ class RomManager(object):
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base, custom_model_path=custom_model_path)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
         #######################################
@@ -244,7 +265,7 @@ class RomManager(object):
         elif chosen_projection_strategy == "lspg":
             if type_of_decoder =="ann_enhanced":
                 self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base, custom_model_path=custom_model_path)
             elif type_of_decoder =="linear":
                 self._ChangeRomFlags(simulation_to_run = "lspg")
         ##########################
@@ -299,8 +320,8 @@ class RomManager(object):
 
 
 
-    def ComputeErrors(self, mu_list, case="Fit"):
-        fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'FOM')
+    def ComputeErrors(self, mu_list, case="Fit", filter_nan = False, mu_aux = None, nn_model_name = None):
+        fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, mu_aux = mu_aux, table_name=f'FOM', nn_model_name=nn_model_name)
         if case=="Fit":
             stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         elif case=="Test":
@@ -309,19 +330,40 @@ class RomManager(object):
         rom_snapshots = None
         hrom_snapshots = None
         if "ROM" in stages:
-            rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
-            error_rom_fom = np.linalg.norm(fom_snapshots - rom_snapshots) / np.linalg.norm(fom_snapshots)
-            self.ROMvsFOM[case] = error_rom_fom
+            rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, mu_aux = mu_aux, table_name=f'ROM', nn_model_name=nn_model_name)
+            nan_cols_ROM = np.unique(np.argwhere(np.isnan(rom_snapshots))[:,1])
+            self.ROM_non_converged_samples[case]=nan_cols_ROM.shape[0]
+            filter_ROM = nan_cols_ROM if filter_nan else None
+            self.ROMvsFOM[case] = self._GetGeometricMeanError(rom_snapshots, fom_snapshots, filter = filter_ROM)
+            # error_rom_fom = np.linalg.norm(fom_snapshots - rom_snapshots) / np.linalg.norm(fom_snapshots)
+            # self.ROMvsFOM[case] = error_rom_fom
         if "HROM" in stages:
             if rom_snapshots is None:  # Only fetch if not already fetched
-                rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
-            hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM')
-            error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
-            error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
-            self.ROMvsHROM[case] = error_rom_hrom
-            self.FOMvsHROM[case] = error_fom_hrom
+                rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, mu_aux = mu_aux, table_name=f'ROM', nn_model_name=nn_model_name)
+                nan_cols_ROM = np.unique(np.argwhere(np.isnan(rom_snapshots))[:,1])
+                self.ROM_non_converged_samples[case]=nan_cols_ROM.shape[0]
+                filter_ROM = nan_cols_ROM if filter_nan else None
+            hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, mu_aux = mu_aux, table_name=f'HROM', nn_model_name=nn_model_name)
+            nan_cols_HROM = np.unique(np.argwhere(np.isnan(hrom_snapshots))[:,1])
+            self.HROM_non_converged_samples[case]=nan_cols_HROM.shape[0]
+            filter_HROM = nan_cols_HROM if filter_nan else None
+            self.ROMvsHROM[case] = self._GetGeometricMeanError(hrom_snapshots, rom_snapshots, filter = filter_ROM) # This should be the union between filter_ROM nad filter_HROM
+            self.FOMvsHROM[case] = self._GetGeometricMeanError(hrom_snapshots, fom_snapshots, filter = filter_HROM)
+            # error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+            # error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
+            # self.ROMvsHROM[case] = error_rom_hrom
+            # self.FOMvsHROM[case] = error_fom_hrom
 
+    def _GetGeometricMeanError(self, approx_snapshots, true_snapshots, filter = None):
+        if filter is not None:
+            approx_snapshots = np.delete(approx_snapshots, filter, axis=1)
+            true_snapshots = np.delete(true_snapshots, filter, axis=1)
 
+        N=true_snapshots.shape[1]
+        err_numer=np.linalg.norm(true_snapshots-approx_snapshots, ord=2, axis=0)
+        err_denom=np.linalg.norm(true_snapshots, ord=2, axis=0)
+        return np.exp(np.sum(np.log(err_numer/err_denom))/N)
+    
 
     def PrintErrors(self):
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
@@ -333,16 +375,22 @@ class RomManager(object):
         # Check in Fit
         if "ROM" in training_set:
             self.aux_print_errors(self.ROMvsFOM['Fit'], 'train', 'FOM vs ROM')
+            self.aux_print_non_converged(self.ROM_non_converged_samples['Fit'], 'train', 'ROM')
         if "HROM" in training_set:
             self.aux_print_errors(self.ROMvsHROM['Fit'], 'train', 'ROM vs HROM')
             self.aux_print_errors(self.FOMvsHROM['Fit'], 'train', 'FOM vs HROM')
+            self.aux_print_non_converged(self.ROM_non_converged_samples['Fit'], 'train', 'ROM')
+            self.aux_print_non_converged(self.HROM_non_converged_samples['Fit'], 'train', 'HROM')
 
         # Check in Test
         if "ROM" in testing_set:
             self.aux_print_errors(self.ROMvsFOM['Test'], 'test', 'FOM vs ROM')
+            self.aux_print_non_converged(self.ROM_non_converged_samples['Test'], 'test', 'ROM')
         if "HROM" in testing_set:
             self.aux_print_errors(self.ROMvsHROM['Test'], 'test', 'ROM vs HROM')
             self.aux_print_errors(self.FOMvsHROM['Test'], 'test', 'FOM vs HROM')
+            self.aux_print_non_converged(self.ROM_non_converged_samples['Test'], 'test', 'ROM')
+            self.aux_print_non_converged(self.HROM_non_converged_samples['Test'], 'test', 'HROM')
 
     def aux_print_errors(self, error, train_or_test, comparison_in_string):
         message = f"approximation error in {train_or_test} set {comparison_in_string}"
@@ -351,10 +399,20 @@ class RomManager(object):
         else:
             print(f"{message}: {error}")
 
+    def aux_print_non_converged(self, number_of_non_converged, train_or_test, snapshot_type):
+        message = f"Number of non-converged samples in {train_or_test} set {snapshot_type}"
+        if number_of_non_converged is None:
+            print(f"{message}: not computed")
+        else:
+            print(f"{message}: {number_of_non_converged}")
+
+
     def SetupErrorsDictionaries(self):
         self.ROMvsFOM = {'Fit': None, 'Test': None}
         self.ROMvsHROM = {'Fit': None, 'Test': None}
         self.FOMvsHROM = {'Fit': None, 'Test': None}
+        self.ROM_non_converged_samples = {'Fit': None, 'Test': None}
+        self.HROM_non_converged_samples = {'Fit': None, 'Test': None}
 
 
     # def _LaunchTrainROM(self, mu_train, mu_init_train):
@@ -477,15 +535,21 @@ class RomManager(object):
 
 
 
-    def _LaunchROM(self, mu_train, gid_and_vtk_name='ROM_Fit', nn_rom_interface = None):
+    def _LaunchROM(self, mu_run, mu_train = None, gid_and_vtk_name='ROM_Fit', nn_rom_interface = None):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
-        for Id, mu in enumerate(mu_train):
-            in_database, _ = self.data_base.check_if_in_database("ROM", mu)
+        if nn_rom_interface.get_using_manual_model_path():
+            mu_train = None
+            nn_model_name = nn_rom_interface.get_nn_model_name()
+        else:
+            nn_model_name = None
+        for Id, mu in enumerate(mu_run):
+            print('Launching ROM for ', mu)
+            in_database, _ = self.data_base.check_if_in_database("ROM", mu, mu_aux = mu_train, nn_model_name = nn_model_name)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
@@ -497,12 +561,12 @@ class RomManager(object):
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
 
                 simulation.Run()
-                self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
+                self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData(), mu_aux = mu_train, nn_model_name = nn_model_name)
                 for process in simulation._GetListOfOutputProcesses():
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                self.data_base.add_to_database("ROM", mu, SnapshotsMatrix )
+                self.data_base.add_to_database("ROM", mu, SnapshotsMatrix, mu_aux = mu_train, nn_model_name = nn_model_name)
 
         self.GenerateDatabaseSummary()
 
@@ -697,10 +761,10 @@ class RomManager(object):
         rom_nn_trainer.EvaluateNetwork()
 
 
-    def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
+    def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation, mu_test, custom_model_path = None):
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        rom_nn_trainer.EvaluateNetwork()
+        rom_nn_trainer.EvaluateNetwork(mu_eval = mu_test, custom_model_path = custom_model_path)
 
     def InitializeDummySimulationForBasisOutputProcess(self):
         with open(self.project_parameters_name,'r') as parameter_file:
@@ -1024,7 +1088,8 @@ class RomManager(object):
                         "retrain_if_exists" : false  // If false only one model will be trained for each the mu_train and NN hyperparameters combination
                     },
                     "online":{
-                        "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched
+                        "model_number": 0,   // out of the models existing for the same parameters, this is the model that will be lauched
+                        "custom_model_path": ""
                     }
                 }
             },
@@ -1219,13 +1284,14 @@ class RomManager(object):
             raise Exception(err_msg)
         
 
-    def GenerateFOMSnapshotsMatrix(self, mu_list):
+    def GenerateOrderedFOMSnapshotsMatrix(self, mu_list):
         for Id, mu in enumerate(mu_list):
             in_database, _ = self.data_base.check_if_in_database("FOM", mu)
             if not in_database:
-                err_msg = f'Missinf FOM simulation for mu: {mu}'
+                err_msg = f'Missing FOM simulation for mu: {mu}'
                 raise Exception(err_msg)
             
-        snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name='FOM')
+        snapshots_matrix = self.data_base.get_ordered_snapshots_matrix_from_database(mu_list, table_name='FOM')
+        # snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name='FOM')
         return snapshots_matrix
         

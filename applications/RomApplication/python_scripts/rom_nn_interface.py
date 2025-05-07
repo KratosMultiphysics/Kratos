@@ -6,24 +6,39 @@ import KratosMultiphysics
 
 
 class NN_ROM_Interface():
-    def __init__(self, mu_train, data_base):
+    def __init__(self, mu_train, data_base, custom_model_path=None):
 
-        model_name, _ = data_base.get_hashed_file_name_for_table("Neural_Network", mu_train)
-        model_path=pathlib.Path(data_base.database_root_directory / 'saved_nn_models' / model_name)
+        self.using_manual_model_path = False
+        
+        if custom_model_path is None:
+            model_name, _ = data_base.get_hashed_file_name_for_table("Neural_Network", mu_train)
+            self.model_path=pathlib.Path(data_base.database_root_directory / 'saved_nn_models' / model_name)
+            with open(pathlib.Path(self.model_path / 'train_config.json'), "r") as config_file:
+                model_config = json.load(config_file)
+        else:
+            self.using_manual_model_path = True
+            self.model_path=pathlib.Path(custom_model_path)
+            with open(pathlib.Path(self.model_path / 'train_config_kratos_format.json'), "r") as config_file:
+                model_config = json.load(config_file)
 
-        with open(pathlib.Path(model_path / 'train_config.json'), "r") as config_file:
-            model_config = json.load(config_file)
+        print("Getting model weights and config from: ", self.model_path)
 
         self.n_inf = int(model_config["modes"][0])
         self.n_sup = int(model_config["modes"][1])
                                                   
-        self.network_weights_path = pathlib.Path(model_path / 'model_weights.npy')
+        self.network_weights_path = pathlib.Path(self.model_path / 'model_weights.npy')
 
         _, hash_basis = data_base.check_if_in_database("RightBasis", mu_train)
         self.phi = data_base.get_single_numpy_from_database(hash_basis)
         _, hash_sigma = data_base.check_if_in_database("SingularValues_Solution", mu_train)
         self.sigma =  data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(mu_train))
         self.ref_snapshot = np.zeros(self.phi.shape[0])
+    
+    def get_nn_model_name(self):
+        return self.model_path
+
+    def get_using_manual_model_path(self):
+        return self.using_manual_model_path
 
     def get_encode_function(self):
 

@@ -123,7 +123,7 @@ class RomDatabase(object):
         params_str = '_'.join(str(arg) if isinstance(arg, str) else f"{arg:.10f}" if isinstance(arg, float) else str(arg) for arg in args)
         return hashlib.sha256(params_str.encode()).hexdigest()
 
-    def get_hashed_file_name_for_table(self, table_name, mu):
+    def get_hashed_file_name_for_table(self, table_name, mu, mu_train=None, nn_model_name = None):
         """
         Generate a hashed file name based on the table name and parameters.
 
@@ -144,18 +144,44 @@ class RomDatabase(object):
         else:
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
+        
         tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, non_converged_fom_14_bool = self.get_curret_params()
+        
+        def serialize_mu_train(mu_train):
+            assert mu_train is not None
+            type_of_list = self.identify_list_type(mu_train)
+            if type_of_list=="mu":
+                serialized_mu_train = self.serialize_mu(self.make_mu_dictionary(mu_train))
+            elif type_of_list=="complete_mu":
+                serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+            elif type_of_list=="Empty list":
+                serialized_mu_train = 'No mu provided, running single case as described by the ProjectParameters.json'
+            else:
+                err_msg = f'Error: {self.identify_list_type(mu_train)}'
+                raise Exception(err_msg)
+            return serialized_mu_train
+        
         if table_name == 'FOM':
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == 'ROM':
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
+                if nn_model_name is not None:
+                    # We save based on model name, instead of model parameters
+                    ann_params = nn_model_name
+                else:
+                    serialized_mu_train = serialize_mu_train(mu_train)
+                    ann_params = self.hash_parameters(serialized_mu_train, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, ann_params ,non_converged_fom_14_bool,table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
         elif table_name == 'HROM':
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
+                if nn_model_name is not None:
+                    # We save based on model name, instead of model parameters
+                    ann_params = nn_model_name
+                else:
+                    serialized_mu_train = serialize_mu_train(mu_train)
+                    ann_params = self.hash_parameters(serialized_mu_train, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, ann_params, non_converged_fom_14_bool, table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, table_name)
@@ -190,13 +216,21 @@ class RomDatabase(object):
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == "QoI_ROM":
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
+                if nn_model_name is not None:
+                    ann_params = nn_model_name
+                else:
+                    serialized_mu_train = serialize_mu_train(mu_train)
+                    ann_params = self.hash_parameters(serialized_mu_train, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol,projection_type,decoder_type, ann_params, non_converged_fom_14_bool, table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol,projection_type,decoder_type, non_converged_fom_14_bool, table_name)
         elif table_name == "QoI_HROM":
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
+                if nn_model_name is not None:
+                    ann_params = nn_model_name
+                else:
+                    serialized_mu_train = serialize_mu_train(mu_train)
+                    ann_params = self.hash_parameters(serialized_mu_train, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res,projection_type,decoder_type, ann_params, non_converged_fom_14_bool,table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res,projection_type,decoder_type, non_converged_fom_14_bool,table_name)
@@ -238,7 +272,7 @@ class RomDatabase(object):
 
 
 
-    def check_if_in_database(self, table_name, mu):
+    def check_if_in_database(self, table_name, mu, mu_aux = None, nn_model_name = None):
         """
         Check if a given set of parameters is already in the specified table.
 
@@ -249,7 +283,7 @@ class RomDatabase(object):
         Returns:
             tuple: Boolean indicating existence and file name.
         """
-        file_name, _ = self.get_hashed_file_name_for_table(table_name, mu)
+        file_name, _ = self.get_hashed_file_name_for_table(table_name, mu, mu_train=mu_aux, nn_model_name=nn_model_name)
         with sqlite3.connect(self.database_name) as conn:
             cursor = conn.cursor()
             cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
@@ -257,7 +291,7 @@ class RomDatabase(object):
         return count > 0, file_name
 
 
-    def add_to_database(self, table_name, mu, numpy_array):
+    def add_to_database(self, table_name, mu, numpy_array, mu_aux = None, nn_model_name = None):
         """
         Add a numpy array and its metadata to the specified table in the database.
 
@@ -266,7 +300,7 @@ class RomDatabase(object):
             mu: Parameters associated with the data.
             numpy_array: Numpy array to store.
         """
-        file_name, serialized_mu = self.get_hashed_file_name_for_table(table_name, mu)
+        file_name, serialized_mu = self.get_hashed_file_name_for_table(table_name, mu, mu_train=mu_aux, nn_model_name=nn_model_name)
         tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, non_converged_fom_14_bool = self.get_curret_params()
 
         queries = {
@@ -428,7 +462,7 @@ class RomDatabase(object):
         return dict(zip(self.mu_names , mu))
 
 
-    def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM', QoI = None):
+    def get_snapshots_matrix_from_database(self, mu_list, mu_aux = None, table_name='FOM', QoI = None, nn_model_name = None):
         """
         Retrieve a matrix of snapshots from the database based on the given parameters.
 
@@ -450,7 +484,7 @@ class RomDatabase(object):
         with sqlite3.connect(self.database_name) as conn:
             cursor = conn.cursor()
             for mu in mu_list_unique:
-                hash_mu, _ = self.get_hashed_file_name_for_table(table_name, mu)
+                hash_mu, _ = self.get_hashed_file_name_for_table(table_name, mu, mu_train=mu_aux, nn_model_name=nn_model_name)
                 cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
                 result = cursor.fetchone()
                 if result:
@@ -465,6 +499,41 @@ class RomDatabase(object):
         if unavailable_cases:
             print(f"Retrieved snapshots matrix for {table_name} does not contain {len(unavailable_cases)} cases: {unavailable_cases}")
 
+        return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
+
+    def get_ordered_snapshots_matrix_from_database(self, mu_list, table_name='FOM', QoI = None, mu_aux = None, nn_model_name=None):
+        """
+        Retrieve a matrix of snapshots from the database based on the given parameters.
+
+        Args:
+            mu_list: List of parameter sets.
+            table_name: Name of the database table.
+            QoI: Quantity of Interest, optional.
+
+        Returns:
+            np.array: Matrix of snapshots.
+        """
+        SnapshotsMatrix = []
+        unavailable_cases = []
+        with sqlite3.connect(self.database_name) as conn:
+            cursor = conn.cursor()
+            for mu in mu_list:
+                hash_mu, _ = self.get_hashed_file_name_for_table(table_name, mu, mu_train=mu_aux, nn_model_name=nn_model_name)
+                cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
+                result = cursor.fetchone()
+                if result:
+                    file_name = result[0]
+                    if QoI is not None:
+                        file_name += QoI
+                    SnapshotsMatrix.append(self.get_single_numpy_from_database(file_name))
+                else:
+                    print(f"No entry found for hash {hash_mu}")
+                    unavailable_cases.append(mu)
+
+        if unavailable_cases:
+            print(f"Retrieved snapshots matrix for {table_name} does not contain {len(unavailable_cases)} cases: {unavailable_cases}")
+
+        print(mu_list)
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
     
 
