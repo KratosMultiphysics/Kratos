@@ -55,7 +55,7 @@ void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (UseStandardProcedure()) {
         block_for_each(mrModelPart.Elements(), [](Element& rElement) {
-            if (rElement.GetGeometry().WorkingSpaceDimension() == 3)
+            if (rElement.GetProperties().GetValue(CONSTITUTIVE_LAW)->WorkingSpaceDimension() == 3)
                 return;
             auto p_law = std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
             p_law->SetConsiderDiagonalEntriesOnlyAndNoShear(true);

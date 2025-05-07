@@ -125,6 +125,9 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
 
     Parameters k0_settings; // 'use_standard_procedure' is not defined, assume it to be true
 
+    auto mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
+    r_model_part.Elements()[0].GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
+    EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(2));
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
@@ -138,7 +141,9 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings{R"({"use_standard_procedure": true})"};
-
+    auto mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
+    r_model_part.Elements()[0].GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
+    EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(2));
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
@@ -164,9 +169,10 @@ KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecuti
 {
     Model model;
     auto& r_model_part = PrepareTestModelPart(model);
-
+    auto mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
+    r_model_part.Elements()[0].GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
+    EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(2));
     Parameters k0_settings{R"({"use_standard_procedure": true})"};
-
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize(); // start considering diagonal entries only and no shear
     process.ExecuteFinalize();   // stop considering diagonal entries only and no shear
