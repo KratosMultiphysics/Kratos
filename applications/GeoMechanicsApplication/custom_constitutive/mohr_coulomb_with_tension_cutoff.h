@@ -50,7 +50,7 @@ public:
                                                               const Vector&         rShapeFunctionsValues) override;
     void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
     void    GetLawFeatures(Features& rFeatures) override;
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;

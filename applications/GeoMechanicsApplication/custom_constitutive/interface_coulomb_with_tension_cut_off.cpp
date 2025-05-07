@@ -55,12 +55,12 @@ ConstitutiveLaw::Pointer InterfaceMohrCoulombWithTensionCutOff::Clone() const
     return p_result;
 }
 
-Vector& InterfaceMohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+Vector& InterfaceMohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
-    if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
         rValue = mTractionVector;
     } else {
-        rValue = ConstitutiveLaw::GetValue(rThisVariable, rValue);
+        rValue = ConstitutiveLaw::GetValue(rVariable, rValue);
     }
     return rValue;
 }
@@ -173,15 +173,15 @@ void InterfaceMohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(Const
 }
 
 Matrix& InterfaceMohrCoulombWithTensionCutOff::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                                              const Variable<Matrix>& rThisVariable,
+                                                              const Variable<Matrix>& rVariable,
                                                               Matrix&                 rValue)
 {
-    if (rThisVariable == CONSTITUTIVE_MATRIX) {
+    if (rVariable == CONSTITUTIVE_MATRIX) {
         const auto& r_properties = rParameterValues.GetMaterialProperties();
         rValue                   = MakeConstitutiveMatrix(r_properties[INTERFACE_NORMAL_STIFFNESS],
                                                           r_properties[INTERFACE_SHEAR_STIFFNESS]);
     } else {
-        KRATOS_ERROR << "Can't calculate value of " << rThisVariable.Name() << ": unsupported variable\n";
+        KRATOS_ERROR << "Can't calculate value of " << rVariable.Name() << ": unsupported variable\n";
     }
 
     return rValue;

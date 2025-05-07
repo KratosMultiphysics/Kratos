@@ -36,7 +36,7 @@ public:
                                                               const Geometry<Node>& rElementGeometry,
                                                               const Vector&         rShapeFunctionsValues) override;
     void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
@@ -45,7 +45,7 @@ public:
                             const ProcessInfo&  rCurrentProcessInfo) const override;
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rVariable, Matrix& rValue) override;
     using ConstitutiveLaw::CalculateValue;
 
 private:

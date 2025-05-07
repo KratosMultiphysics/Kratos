@@ -63,12 +63,12 @@ ConstitutiveLaw::Pointer MohrCoulombWithTensionCutOff::Clone() const
     return p_result;
 }
 
-Vector& MohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+Vector& MohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
-    if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
         rValue = mStressVector;
     } else {
-        rValue = ConstitutiveLaw::GetValue(rThisVariable, rValue);
+        rValue = ConstitutiveLaw::GetValue(rVariable, rValue);
     }
     return rValue;
 }
