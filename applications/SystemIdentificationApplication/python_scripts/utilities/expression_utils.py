@@ -44,7 +44,7 @@ def GetContainerExpression(model_part: Kratos.ModelPart, data_location: Expressi
     return expression
 
 class IntervalBounder:
-    def __init__(self, bounds: list[float]) -> None:
+    def __init__(self, bounds: "list[float]") -> None:
         if len(bounds) != 2:
             raise RuntimeError(f"The bounds should be of size 2. [bounds = {bounds}]")
         self.bounds = sorted(bounds)
