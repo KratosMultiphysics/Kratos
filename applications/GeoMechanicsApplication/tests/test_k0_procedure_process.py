@@ -483,6 +483,42 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         integration_point = (2, 0)  # far right
         self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-22084, expected_horizontal_stress=-11042, rel_tol=0.02)
 
+    def test_k0_procedure_with_tilted_layers_standard_procedure_with_udsm(self):
+        """
+        Test to check whether the effective stress distribution is in line with results from
+        comparative software. To this end, we test the horizontal, vertical and shear stresses at a selection
+        of integration points (defined as pairs of element IDs and integration point indices).
+        """
+        test_path = test_helper.get_file_path(os.path.join("test_k0_procedure_process", "test_k0_procedure_with_tilted_layers_standard_procedure_with_udsm"))
+        simulation = test_helper.run_kratos(test_path)
+
+        cauchy_stress_tensors = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
+
+        # Check the stresses at a few integration points near the bottom of the _bottom_ layer
+        integration_point = (253, 0)  # far left
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-94979, expected_horizontal_stress=-47489, rel_tol=0.02)
+        integration_point = (247, 0)  # middle
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-80352, expected_horizontal_stress=-40176, rel_tol=0.02)
+        integration_point = (240, 0)  # far right
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-63946, expected_horizontal_stress=-31973, rel_tol=0.02)
+
+        # Check the stresses at a few integration points near the bottom of the _middle_ layer
+        integration_point = (161, 0)  # far left
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-76569, expected_horizontal_stress=-38285, rel_tol=0.02)
+        integration_point = (212, 0)  # middle
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-62864, expected_horizontal_stress=-31432, rel_tol=0.02)
+        integration_point = (167, 0)  # far right
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-54782, expected_horizontal_stress=-27391, rel_tol=0.02)
+
+        # Check the stresses at a few integration points near the bottom of the _top_ layer
+        integration_point = (20, 0)  # far left
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-64851, expected_horizontal_stress=-32425, rel_tol=0.02)
+        integration_point = (10, 0)  # middle
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-43083, expected_horizontal_stress=-21542, rel_tol=0.02)
+        integration_point = (2, 0)  # far right
+        self.assert_stresses_at_integration_point(cauchy_stress_tensors, integration_point, expected_vertical_stress=-22084, expected_horizontal_stress=-11042, rel_tol=0.02)
+
+
     def test_k0_procedure_for_3d(self):
         """
         Test to check whether the effective stress distribution is in line with regression data.
