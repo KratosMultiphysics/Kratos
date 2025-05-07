@@ -60,14 +60,18 @@ void ApplyK0ProcedureProcess::SaveConstitutiveLaws()
 void ApplyK0ProcedureProcess::SwitchConstitutiveLawsToLinearElastic()
 {
     block_for_each(mrModelPart.Elements(), [](Element& rElement) {
-        if (rElement.GetProperties().GetValue(CONSTITUTIVE_LAW)->WorkingSpaceDimension() == 3)
-            return;
+        if (dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get()) == nullptr) {
+            if (rElement.GetProperties().GetValue(CONSTITUTIVE_LAW)->WorkingSpaceDimension() == 3)
+                return;
 
-        auto p_law = std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
-        p_law->SetConsiderDiagonalEntriesOnlyAndNoShear(true);
-        rElement.GetProperties().SetValue(CONSTITUTIVE_LAW, p_law);
-        rElement.GetProperties().SetValue(YOUNG_MODULUS, 1.0);
-        rElement.GetProperties().SetValue(POISSON_RATIO, 0.0);
+            auto p_law = std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
+            p_law->SetConsiderDiagonalEntriesOnlyAndNoShear(true);
+            rElement.GetProperties().SetValue(CONSTITUTIVE_LAW, p_law);
+            if (!rElement.GetProperties().Has(YOUNG_MODULUS))
+                rElement.GetProperties().SetValue(YOUNG_MODULUS, 1.0);
+            if (!rElement.GetProperties().Has(POISSON_RATIO))
+                rElement.GetProperties().SetValue(POISSON_RATIO, 0.0);
+        }
     });
 }
 
