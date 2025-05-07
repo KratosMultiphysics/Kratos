@@ -301,7 +301,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateNodalReactions(const Proces
     KRATOS_TRY
         
     GeometryType& r_geometry = GetGeometry();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().size();
 
     GeneralVariables Variables;
