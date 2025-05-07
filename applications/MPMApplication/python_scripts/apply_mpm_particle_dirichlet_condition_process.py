@@ -61,10 +61,10 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.boundary_condition_type = 1
             self.penalty_factor = settings["penalty_factor"].GetDouble()
-        elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
+        elif (self.imposition_type == "lagrange"):
             self.boundary_condition_type = 2
             self.penalty_factor = 0.0
-        elif (self.imposition_type == "perturbed_lagrange" or self.imposition_type == "Perturbed_Lagrange"):
+        elif (self.imposition_type == "perturbed_lagrange"):
             self.boundary_condition_type = 3
             self.penalty_factor = settings["penalty_factor"].GetDouble()
         else:
