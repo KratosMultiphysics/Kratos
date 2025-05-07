@@ -43,9 +43,9 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
--DUSE_MPI=OFF                                                       \
--DUSE_EIGEN_MKL=OFF                                                 \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -Wno-dev    \
+-DUSE_MPI=OFF                                                                   \
+-DUSE_EIGEN_MKL=OFF                                                             \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 # Build
