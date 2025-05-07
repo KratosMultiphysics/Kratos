@@ -41,6 +41,20 @@ void InitializeLawMaterial(ConstitutiveLaw& rLaw, const Properties& rProperties)
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto original_law = InterfaceCoulombWithTensionCutOff{};
+
+    // Act
+    auto p_cloned_law = original_law.Clone();
+
+    // Assert
+    KRATOS_EXPECT_NE(p_cloned_law.get(), nullptr);
+    KRATOS_EXPECT_NE(p_cloned_law.get(), &original_law);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceCoulombWithTensionCutOff*>(p_cloned_law.get()), nullptr);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
