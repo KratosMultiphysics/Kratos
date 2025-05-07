@@ -11,7 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import IntervalBounder
+from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionBoundingManager
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
@@ -147,7 +147,7 @@ class DataValuesControl(Control):
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
         # use the clamper in the unit interval
-        self.interval_bounder = IntervalBounder(control_variable_bounds)
+        self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
         self.clamper = self.container_type_helper.clamper_type(0, 1)
 
     def Initialize(self) -> None:
