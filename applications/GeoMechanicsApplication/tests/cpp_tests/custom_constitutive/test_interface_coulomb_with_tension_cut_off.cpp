@@ -41,7 +41,7 @@ void InitializeLawMaterial(ConstitutiveLaw& rLaw, const Properties& rProperties)
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: set elastic compressive state
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceMohrCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
     KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_traction_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -113,7 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceMohrCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZone,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceMohrCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -164,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -187,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceMohrCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceMohrCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -238,7 +238,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto properties = Properties{};
@@ -260,8 +260,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_Serialization, K
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto p_law =
-        std::unique_ptr<ConstitutiveLaw>{std::make_unique<InterfaceMohrCoulombWithTensionCutOff>()};
+    auto p_law = std::unique_ptr<ConstitutiveLaw>{std::make_unique<InterfaceCoulombWithTensionCutOff>()};
     p_law->SetInitialState(p_initial_state);
     InitializeLawMaterial(*p_law, properties);
 
@@ -269,7 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_Serialization, K
     const auto calculated_traction_vector = parameters.GetStressVector();
 
     const auto scoped_registration_law = ScopedSerializerRegistration{
-        "InterfaceMohrCoulombWithTensionCutOff"s, InterfaceMohrCoulombWithTensionCutOff{}};
+        "InterfaceCoulombWithTensionCutOff"s, InterfaceCoulombWithTensionCutOff{}};
     auto serializer = StreamSerializer{};
 
     // Act
@@ -288,10 +287,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_Serialization, K
     KRATOS_EXPECT_VECTOR_EQ(parameters.GetStressVector(), calculated_traction_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_WorkingSpaceDimensionIsAlways2D,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_WorkingSpaceDimensionIsAlways2D,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceMohrCoulombWithTensionCutOff{}.WorkingSpaceDimension(), N_DIM_2D);
+    KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.WorkingSpaceDimension(), N_DIM_2D);
 }
 
 } // namespace Kratos::Testing

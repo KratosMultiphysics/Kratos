@@ -22,7 +22,7 @@ namespace Kratos
 
 class ConstitutiveLawDimension;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceMohrCoulombWithTensionCutOff : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombWithTensionCutOff : public ConstitutiveLaw
 {
 public:
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;

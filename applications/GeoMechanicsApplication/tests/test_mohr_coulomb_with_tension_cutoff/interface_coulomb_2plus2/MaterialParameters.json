@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "GeoInterfaceMohrCoulombWithTensionCutOff"
+              "name"             :  "GeoInterfaceCoulombWithTensionCutOff"
           },
           "Variables": {
               "INTERFACE_NORMAL_STIFFNESS"       : 30000000,

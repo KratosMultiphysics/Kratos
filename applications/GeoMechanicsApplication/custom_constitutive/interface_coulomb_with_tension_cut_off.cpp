@@ -46,17 +46,17 @@ void CheckProperty(const Properties&       rMaterialProperties,
 
 namespace Kratos
 {
-ConstitutiveLaw::Pointer InterfaceMohrCoulombWithTensionCutOff::Clone() const
+ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
 {
-    auto p_result             = std::make_shared<InterfaceMohrCoulombWithTensionCutOff>(*this);
-    p_result->mTractionVector = mTractionVector;
-    p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
+    auto p_result                      = std::make_shared<InterfaceCoulombWithTensionCutOff>(*this);
+    p_result->mTractionVector          = mTractionVector;
+    p_result->mTractionVectorFinalized = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
     p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
     return p_result;
 }
 
-Vector& InterfaceMohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
+Vector& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
     if (rVariable == CAUCHY_STRESS_VECTOR) {
         rValue = mTractionVector;
@@ -66,9 +66,9 @@ Vector& InterfaceMohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& 
     return rValue;
 }
 
-void InterfaceMohrCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVariable,
-                                                     const Vector&           rValue,
-                                                     const ProcessInfo&      rCurrentProcessInfo)
+void InterfaceCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVariable,
+                                                 const Vector&           rValue,
+                                                 const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == CAUCHY_STRESS_VECTOR) {
         mTractionVector = rValue;
@@ -77,11 +77,11 @@ void InterfaceMohrCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVa
     }
 }
 
-SizeType InterfaceMohrCoulombWithTensionCutOff::WorkingSpaceDimension() { return N_DIM_2D; }
+SizeType InterfaceCoulombWithTensionCutOff::WorkingSpaceDimension() { return N_DIM_2D; }
 
-int InterfaceMohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
-                                                 const GeometryType& rElementGeometry,
-                                                 const ProcessInfo&  rCurrentProcessInfo) const
+int InterfaceCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
+                                             const GeometryType& rElementGeometry,
+                                             const ProcessInfo&  rCurrentProcessInfo) const
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
@@ -96,28 +96,28 @@ int InterfaceMohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialPr
     return result;
 }
 
-ConstitutiveLaw::StressMeasure InterfaceMohrCoulombWithTensionCutOff::GetStressMeasure()
+ConstitutiveLaw::StressMeasure InterfaceCoulombWithTensionCutOff::GetStressMeasure()
 {
     return ConstitutiveLaw::StressMeasure_Cauchy;
 }
 
-SizeType InterfaceMohrCoulombWithTensionCutOff::GetStrainSize() const
+SizeType InterfaceCoulombWithTensionCutOff::GetStrainSize() const
 {
     return VOIGT_SIZE_2D_INTERFACE;
 }
 
-ConstitutiveLaw::StrainMeasure InterfaceMohrCoulombWithTensionCutOff::GetStrainMeasure()
+ConstitutiveLaw::StrainMeasure InterfaceCoulombWithTensionCutOff::GetStrainMeasure()
 {
     return ConstitutiveLaw::StrainMeasure_Infinitesimal;
 }
 
-bool InterfaceMohrCoulombWithTensionCutOff::IsIncremental() { return true; }
+bool InterfaceCoulombWithTensionCutOff::IsIncremental() { return true; }
 
-bool InterfaceMohrCoulombWithTensionCutOff::RequiresInitializeMaterialResponse() { return true; }
+bool InterfaceCoulombWithTensionCutOff::RequiresInitializeMaterialResponse() { return true; }
 
-void InterfaceMohrCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMaterialProperties,
-                                                               const Geometry<Node>&,
-                                                               const Vector&)
+void InterfaceCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMaterialProperties,
+                                                           const Geometry<Node>&,
+                                                           const Vector&)
 {
     mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{
         MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]), rMaterialProperties[GEO_COHESION],
@@ -130,7 +130,7 @@ void InterfaceMohrCoulombWithTensionCutOff::InitializeMaterial(const Properties&
         HasInitialState() ? GetInitialState().GetInitialStressVector() : ZeroVector{GetStrainSize()};
 }
 
-void InterfaceMohrCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& rValues)
+void InterfaceCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
     if (!mIsModelInitialized) {
         mTractionVectorFinalized             = rValues.GetStressVector();
@@ -139,7 +139,7 @@ void InterfaceMohrCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Par
     }
 }
 
-void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
+void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     const auto& r_prop = rParameters.GetMaterialProperties();
 
@@ -159,23 +159,23 @@ void InterfaceMohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Cons
     rParameters.GetStressVector() = mTractionVector;
 }
 
-Vector InterfaceMohrCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
-                                                                           double NormalStiffness,
-                                                                           double ShearStiffness) const
+Vector InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
+                                                                       double NormalStiffness,
+                                                                       double ShearStiffness) const
 {
     return mTractionVectorFinalized + prod(MakeConstitutiveMatrix(NormalStiffness, ShearStiffness),
                                            rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
 }
 
-void InterfaceMohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void InterfaceCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mRelativeDisplacementVectorFinalized = rValues.GetStrainVector();
     mTractionVectorFinalized             = mTractionVector;
 }
 
-Matrix& InterfaceMohrCoulombWithTensionCutOff::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                                              const Variable<Matrix>& rVariable,
-                                                              Matrix&                 rValue)
+Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                                                          const Variable<Matrix>& rVariable,
+                                                          Matrix&                 rValue)
 {
     if (rVariable == CONSTITUTIVE_MATRIX) {
         const auto& r_properties = rParameterValues.GetMaterialProperties();
@@ -188,7 +188,7 @@ Matrix& InterfaceMohrCoulombWithTensionCutOff::CalculateValue(ConstitutiveLaw::P
     return rValue;
 }
 
-Matrix InterfaceMohrCoulombWithTensionCutOff::MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const
+Matrix InterfaceCoulombWithTensionCutOff::MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const
 {
     auto result  = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
     result(0, 0) = NormalStiffness;
@@ -196,7 +196,7 @@ Matrix InterfaceMohrCoulombWithTensionCutOff::MakeConstitutiveMatrix(double Norm
     return result;
 }
 
-void InterfaceMohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
+void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
     rSerializer.save("TractionVector", mTractionVector);
@@ -206,7 +206,7 @@ void InterfaceMohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
 }
 
-void InterfaceMohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
+void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
     rSerializer.load("TractionVector", mTractionVector);
