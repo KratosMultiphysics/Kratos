@@ -66,11 +66,11 @@ class DamageDetectionResponse(ResponseFunction):
 
         evaluated_model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
         if len(evaluated_model_part_names) == 0:
-            raise RuntimeError(f"No model parts were provided for DamageDetectionResponse. [ response name = \"{self.GetName()}\"]")
+            raise RuntimeError(f"No model parts were provided for {self._GetResponsePrefix()}. [ response name = \"{self.GetName()}\"]")
 
         # reading test analsis list
         self.list_of_test_analysis_data: 'list[tuple[ExecutionPolicyDecorator, DataIO, str, float]]' = []
-        for params in parameters["test_analysis_list"]:
+        for params in parameters["test_analysis_list"].values():
             params.ValidateAndAssignDefaults(default_settings["test_analysis_list"][0])
             primal_analysis_name = params["primal_analysis_name"].GetString()
             sensor_measurement_data_file_name = params["sensor_measurement_csv_file"].GetString()
@@ -121,7 +121,7 @@ class DamageDetectionResponse(ResponseFunction):
 
     def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         if self.analysis_model_part is None:
-            raise RuntimeError("Please call DamageDetectionResponse::Initialize first.")
+            raise RuntimeError(f"Please call {self._GetResponsePrefix()}::Initialize first.")
         return self.analysis_model_part
 
     def CalculateValue(self) -> float:
@@ -133,7 +133,7 @@ class DamageDetectionResponse(ResponseFunction):
             self._SetSensorMeasuredValue(sensor_measurement_data_file_name)
 
             result += test_case_weight * self.damage_response_function.CalculateValue(exec_policy.GetAnalysisModelPart())
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Computed \"{exec_policy.GetName()}\".")
+            Kratos.Logger.PrintInfo(self._GetResponsePrefix(), f"Computed \"{exec_policy.GetName()}\".")
 
         return result
 
@@ -178,6 +178,8 @@ class DamageDetectionResponse(ResponseFunction):
                 measured_value = float(measured_row[measured_value_index])
                 self.__GetSensor(measured_sensor_name).GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, measured_value)
 
+    def _GetResponsePrefix(self) -> str:
+        return "DamageDetectionResponse"
 
     def __str__(self) -> str:
-        return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
+        return f"Response [type = {self._GetResponsePrefix()}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"

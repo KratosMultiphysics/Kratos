@@ -34,11 +34,13 @@ class GeoMechanicsAnalysis(AnalysisStage):
 
         solver_settings = project_parameters["solver_settings"]
         self.delta_time          = min(solver_settings["time_stepping"]["time_step"].GetDouble(), self.end_time - self.start_time)
+        self.initial_delta_time  = self.delta_time
         self.reduction_factor    = solver_settings["reduction_factor"].GetDouble()
         self.increase_factor     = solver_settings["increase_factor"].GetDouble()
         self.min_iterations      = solver_settings["min_iterations"].GetInt()
         self.max_delta_time_factor = solver_settings["time_stepping"]["max_delta_time_factor"].GetDouble() if solver_settings["time_stepping"].Has("max_delta_time_factor") else 1000.0
         self.max_delta_time      = self.delta_time * self.max_delta_time_factor
+        self.min_delta_time      = solver_settings["time_stepping"]["minimum_allowable_value"].GetDouble() if solver_settings["time_stepping"].Has("minimum_allowable_value") else None
         self.number_cycles       = solver_settings["number_cycles"].GetInt()
         self.max_iterations      = solver_settings["max_iterations"].GetInt()
         self.solution_type       = solver_settings["solution_type"].GetString()
@@ -70,7 +72,15 @@ class GeoMechanicsAnalysis(AnalysisStage):
         super().FinalizeSolutionStep()
 
         if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations:
-            raise Exception("max_number_of_iterations_exceeded")
+            raise RuntimeError("max_number_of_iterations_exceeded")
+
+    def _CheckDeltaTimeSize(self):
+        min_delta_time = self._GetMinDeltaTimeValueOrDefault()
+        if self.delta_time < min_delta_time:
+            origin_of_value = "given" if self.min_delta_time is not None else "default"
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), f"The time step {self.delta_time} is smaller than a {origin_of_value} minimum value of {min_delta_time}")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check settings in Project Parameters and Materials files.")
+            raise RuntimeError('The time step is too small!')
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
@@ -82,7 +92,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
             old_total_displacements = [node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT)
                                        for node in self._GetSolver().GetComputingModelPart().Nodes]
 
-        self._GetSolver().solver.SetRebuildLevel(self.rebuild_level)
+        self._GetSolver().solving_strategy.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
             # check against max_delta_time should only be necessary here when the very first increment exceeds the maximum increment.
@@ -96,11 +106,12 @@ class GeoMechanicsAnalysis(AnalysisStage):
             new_time        = t + self.delta_time
 
             # avoid very small remaining time steps
-            small_time_increment = 1.E-3 * self.delta_time
-            if self.end_time - new_time < small_time_increment:
+            if self.end_time - new_time < self._GetMinDeltaTimeValueOrDefault():
                 new_time = self.end_time
                 self.delta_time = new_time - t
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling to reach end_time without small increments: ", self.delta_time)
+
+            self._CheckDeltaTimeSize()
 
             # start the new step
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -125,7 +136,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 self.InitializeSolutionStep()
                 self._GetSolver().Predict()
                 converged = self._GetSolver().SolveSolutionStep()
-                self._GetSolver().solver.SetStiffnessMatrixIsBuilt(True)
+                self._GetSolver().solving_strategy.SetStiffnessMatrixIsBuilt(True)
 
                 if converged:
                     # scale next step if desired
@@ -146,6 +157,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                     # scale down step and restart
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                     self.delta_time *= self.reduction_factor
+                    self._CheckDeltaTimeSize()
                     # Reset displacements to the initial
                     KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
                     for node in self._GetSolver().GetComputingModelPart().Nodes:
@@ -153,7 +165,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, dold)
 
             if not converged:
-                raise Exception('The maximum number of cycles is reached without convergence!')
+                raise RuntimeError('The maximum number of cycles is reached without convergence!')
 
             if self._GetSolver().settings["reset_displacements"].GetBool():
                 for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
@@ -195,10 +207,14 @@ class GeoMechanicsAnalysis(AnalysisStage):
     def _GetOrderOfProcessesInitialization(self):
         return ["constraints_process_list",
                 "loads_process_list",
-                "auxiliar_process_list"]
+                "auxiliary_process_list"]
 
     def _GetSimulationName(self):
         return "GeoMechanics Analysis"
+
+    def _GetMinDeltaTimeValueOrDefault(self):
+        delta_time_as_fraction_of_time_span = 0.0001
+        return self.min_delta_time if self.min_delta_time is not None else min(self.initial_delta_time, delta_time_as_fraction_of_time_span * (self.end_time - self.start_time))
 
 if __name__ == '__main__':
     from sys import argv
@@ -210,7 +226,7 @@ if __name__ == '__main__':
         err_msg += '    "python geomechanics_analysis.py"\n'
         err_msg += '- With custom parameter file:\n'
         err_msg += '    "python geomechanics_analysis.py <my-parameter-file>.json"\n'
-        raise Exception(err_msg)
+        raise TypeError(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]

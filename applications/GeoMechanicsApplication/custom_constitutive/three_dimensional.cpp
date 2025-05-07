@@ -60,4 +60,14 @@ std::size_t ThreeDimensional::GetNumberOfNormalComponents() const { return 3; }
 
 Flags ThreeDimensional::GetSpatialType() const { return ConstitutiveLaw::THREE_DIMENSIONAL_LAW; }
 
+void ThreeDimensional::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void ThreeDimensional::load(Serializer&)
+{
+    // No data members to be saved (yet)
+}
+
 } // namespace Kratos

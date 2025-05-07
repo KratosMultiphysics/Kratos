@@ -76,6 +76,9 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
+class MixedUEElementTest(StructuralMechanicsTestFactory):
+    file_name = "mixed_u_E_test/mixed_u_E_element_test"
+
 class LinearTruss2D2NTest(StructuralMechanicsTestFactory):
     file_name = "LinearTruss2D/2D2N/linear_truss_2d2N_test"
 
@@ -84,6 +87,9 @@ class LinearTruss2D3NTest(StructuralMechanicsTestFactory):
 
 class LinearTruss3DTest(StructuralMechanicsTestFactory):
     file_name = "LinearTruss3D/linear_3d_truss_test"
+
+class TimoshenkoBeam3D2NTest(StructuralMechanicsTestFactory):
+    file_name = "TimoshenkoBeams/3D2N_straight/timoshenko_beam_3d2N_test"
 
 class TimoshenkoBeam2D2NTest(StructuralMechanicsTestFactory):
     file_name = "TimoshenkoBeams/2D2N/timoshenko_beam_2d2N_test"
