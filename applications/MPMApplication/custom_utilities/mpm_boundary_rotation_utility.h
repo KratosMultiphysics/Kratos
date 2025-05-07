@@ -543,7 +543,7 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 			{
 				NeedRotation[i] = true;
 				rotations_needed++;
-				LocalRotationOperatorPure(rRot[i],rGeometry[i]);
+				this->LocalRotationOperatorPure(rRot[i],rGeometry[i]);
 				if constexpr (TRevertRotation)
 				{
 					noalias(tmp) = trans(rRot[i]);
@@ -558,7 +558,7 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 			{
 				NeedRotation[i] = true;
 				rotations_needed++;
-				LocalRotationOperatorPure(rRot[i],*pBoundaryParticle);
+				this->LocalRotationOperatorPure(rRot[i],*pBoundaryParticle);
 				if constexpr (TRevertRotation)
 				{
 					noalias(tmp) = trans(rRot[i]);
