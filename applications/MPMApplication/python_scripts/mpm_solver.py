@@ -237,7 +237,6 @@ class MPMSolver(PythonSolver):
             # Generate MP Element and Condition
             KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
             KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
-
         else:
             # TODO: Revert this temporary fix once PR #13376 is merged
             _SetProcessInfo(self.grid_model_part, self.material_point_model_part.ProcessInfo)

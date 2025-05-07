@@ -35,7 +35,6 @@
             "input_filename" : "beam_tests/hyperelastic_cantilever_beam/penalty_self_weight_load_2D_quad_test_Grid"
         },
         "pressure_dofs"                      : false,
-        "lagrange_dofs": true,
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_lu"
         },
