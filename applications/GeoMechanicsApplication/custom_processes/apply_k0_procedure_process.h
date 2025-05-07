@@ -51,6 +51,7 @@ private:
 
     ModelPart&       mrModelPart;
     const Parameters mSettings;
+    std::map<IndexType, ConstitutiveLaw::Pointer> mConstitutiveLaws;
 };
 
 } // namespace Kratos

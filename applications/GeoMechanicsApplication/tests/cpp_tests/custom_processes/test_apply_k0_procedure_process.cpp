@@ -132,6 +132,9 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     process.ExecuteInitialize();
 
     KRATOS_EXPECT_TRUE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
+    KRATOS_EXPECT_NE(dynamic_cast<GeoIncrementalLinearElasticLaw*>(
+                         r_model_part.Elements()[0].GetProperties().GetValue(CONSTITUTIVE_LAW).get()),
+                     nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUsingStandardProcedure,
@@ -141,13 +144,16 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings{R"({"use_standard_procedure": true})"};
-    auto mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
+    auto       mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
     r_model_part.Elements()[0].GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
     EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(2));
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize();
 
     KRATOS_EXPECT_TRUE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
+    KRATOS_EXPECT_NE(dynamic_cast<GeoIncrementalLinearElasticLaw*>(
+                         r_model_part.Elements()[0].GetProperties().GetValue(CONSTITUTIVE_LAW).get()),
+                     nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhenNotUsingStandardProcedure,
@@ -168,16 +174,18 @@ KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecuti
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_model_part = PrepareTestModelPart(model);
-    auto mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
+    auto& r_model_part          = PrepareTestModelPart(model);
+    auto  mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
     r_model_part.Elements()[0].GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
     EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(2));
-    Parameters k0_settings{R"({"use_standard_procedure": true})"};
+    Parameters              k0_settings{R"({"use_standard_procedure": true})"};
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
     process.ExecuteInitialize(); // start considering diagonal entries only and no shear
     process.ExecuteFinalize();   // stop considering diagonal entries only and no shear
 
     KRATOS_EXPECT_FALSE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
+    KRATOS_EXPECT_NE(dynamic_cast<MockConstitutiveLaw*>(r_model_part.Elements()[0].GetProperties().GetValue(CONSTITUTIVE_LAW).get()),
+                 nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMechanicsFastSuiteWithoutKernel)

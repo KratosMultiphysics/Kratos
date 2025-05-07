@@ -54,9 +54,13 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Paramete
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (UseStandardProcedure()) {
+        for (const auto& r_element : mrModelPart.Elements()) {
+            mConstitutiveLaws[r_element.Id()] = r_element.GetProperties().GetValue(CONSTITUTIVE_LAW);
+        }
         block_for_each(mrModelPart.Elements(), [](Element& rElement) {
             if (rElement.GetProperties().GetValue(CONSTITUTIVE_LAW)->WorkingSpaceDimension() == 3)
                 return;
+
             auto p_law = std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
             p_law->SetConsiderDiagonalEntriesOnlyAndNoShear(true);
             rElement.GetProperties().SetValue(CONSTITUTIVE_LAW, p_law);
@@ -68,8 +72,13 @@ void ApplyK0ProcedureProcess::ExecuteInitialize()
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
-    if (UseStandardProcedure())
-        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), false);
+    if (UseStandardProcedure()) {
+        for (const auto& [key, value] : mConstitutiveLaws)    {
+            auto& r_element = mrModelPart.GetElement(key);
+            r_element.GetProperties().SetValue(CONSTITUTIVE_LAW, value);
+        }
+    }
+    mConstitutiveLaws.clear();
 }
 
 int ApplyK0ProcedureProcess::Check()
