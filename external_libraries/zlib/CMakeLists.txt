@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.4.4)
+cmake_minimum_required(VERSION 3.24.0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 set(SKIP_INSTALL_HEADERS 1)
