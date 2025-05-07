@@ -18,6 +18,11 @@ class TestMaskUtils(UnitTest.TestCase):
             node.SetValue(Kratos.DENSITY, node.Id % 5)
             node.SetValue(Kratos.HEAT_FLUX, 2 * (node.Id % 2))
 
+        prop = cls.model_part.CreateNewProperties(1)
+        for i in range(cls.n-1):
+            cls.model_part.CreateNewElement("Element3D2N", i+1, [i+1, i+2], prop).SetValue(Kratos.DENSITY, i % 2)
+            cls.model_part.CreateNewCondition("LineCondition3D2N", i+1, [i+1, i+2], prop).SetValue(Kratos.DENSITY, i % 2)
+
     def test_Union(self):
         mask_1 = Kratos.Expression.NodalExpression(self.model_part)
         mask_2 = Kratos.Expression.NodalExpression(self.model_part)
@@ -79,7 +84,6 @@ class TestMaskUtils(UnitTest.TestCase):
         Kratos.Expression.VariableExpressionIO.Write(mask, Kratos.TEMPERATURE, False)
 
         mask_threshold = KratosSI.MaskUtils.GetMaskThreshold(values)
-        print(mask_threshold)
         mask_1 = KratosSI.MaskUtils.GetMask(values, mask_threshold)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mask - mask_1), 0.0)
 
@@ -151,6 +155,30 @@ class TestMaskUtils(UnitTest.TestCase):
         indices = KratosSI.MaskUtils.GetMasksDividingReferenceMask(ref_mask_exp, masks_list)
 
         self.assertEqual(indices, [1,2,3])
+
+    def test_FillModelPartUsingClusterMask_Nodes(self):
+        exp = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(exp, Kratos.DENSITY, False)
+        nodes_mp = self.model_part.CreateSubModelPart("nodal_cluster")
+        KratosSI.MaskUtils.FillModelPartUsingClusterMask(nodes_mp, exp)
+
+        for node in self.model_part.Nodes:
+            self.assertEqual(nodes_mp.HasNode(node.Id), node.GetValue(Kratos.DENSITY) >= 1.0)
+
+    def test_FillModelPartUsingClusterMask_Elements(self):
+        exp = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(exp, Kratos.DENSITY)
+        element_mp = self.model_part.CreateSubModelPart("element_cluster")
+        KratosSI.MaskUtils.FillModelPartUsingClusterMask(element_mp, exp)
+
+        for element in self.model_part.Elements:
+            if element.GetValue(Kratos.DENSITY) >= 1.0:
+                self.assertTrue(element_mp.HasElement(element.Id))
+                for node in element.GetGeometry():
+                    self.assertTrue(element_mp.HasNode(node.Id))
+            else:
+                self.assertFalse(element_mp.HasElement(element.Id))
+
 
 if __name__ == '__main__':
     UnitTest.main()
