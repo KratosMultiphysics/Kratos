@@ -26,7 +26,7 @@ namespace
 
 using namespace Kratos;
 
-class MockConstitutiveLaw : public GeoIncrementalLinearElasticLaw
+class MockConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     MOCK_METHOD(std::size_t, WorkingSpaceDimension, (), (override));
