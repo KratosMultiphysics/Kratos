@@ -15,6 +15,7 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -235,6 +236,56 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
     expected_cauchy_stress_vector <<= -5.0, 11.059402624645148377;
     KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+
+    auto parameters = ConstitutiveLaw::Parameters{};
+    parameters.SetMaterialProperties(properties);
+    auto traction_vector = Vector{ZeroVector{2}};
+    parameters.SetStressVector(traction_vector);
+    auto relative_displacement_vector = Vector{ZeroVector{2}};
+    parameters.SetStrainVector(relative_displacement_vector);
+
+    auto p_initial_state         = make_intrusive<InitialState>();
+    auto initial_traction_vector = Vector{2};
+    initial_traction_vector <<= -2.0, 8.0;
+    p_initial_state->SetInitialStressVector(initial_traction_vector);
+    p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
+
+    auto p_law =
+        std::unique_ptr<ConstitutiveLaw>{std::make_unique<InterfaceMohrCoulombWithTensionCutOff>()};
+    p_law->SetInitialState(p_initial_state);
+    InitializeLawMaterial(*p_law, properties);
+
+    p_law->CalculateMaterialResponseCauchy(parameters);
+    const auto calculated_traction_vector = parameters.GetStressVector();
+
+    const auto scoped_registration_law =
+        ScopedSerializerRegistration{"InterfaceMohrCoulombWithTensionCutOff"s, InterfaceMohrCoulombWithTensionCutOff{}};
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_law);
+    auto p_loaded_law = std::unique_ptr<ConstitutiveLaw>();
+    serializer.load("test_tag"s, p_loaded_law);
+
+    ASSERT_NE(p_loaded_law.get(), nullptr);
+
+    auto loaded_calculated_traction_vector = Vector{};
+    p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_traction_vector);
+    KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_traction_vector, calculated_traction_vector);
+
+    // Check whether the finalized traction and relative displacement have been restored properly
+    p_loaded_law->CalculateMaterialResponseCauchy(parameters);
+    KRATOS_EXPECT_VECTOR_EQ(parameters.GetStressVector(), calculated_traction_vector);
 }
 
 } // namespace Kratos::Testing
