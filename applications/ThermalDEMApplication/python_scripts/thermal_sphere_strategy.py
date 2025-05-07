@@ -164,7 +164,7 @@ class ExplicitStrategy(BaseStrategy):
         self.porosity_method           = self.thermal_settings["porosity_method"].GetString()
 
         self.heat_generation_model = []
-        for model in self.thermal_settings["heat_generation_model"]:
+        for model in self.thermal_settings["heat_generation_model"].values():
             self.heat_generation_model.append(model.GetString())
 
         # Active heat transfer mechanisms
