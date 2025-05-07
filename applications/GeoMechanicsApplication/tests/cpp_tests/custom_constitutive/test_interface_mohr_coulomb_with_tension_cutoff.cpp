@@ -45,6 +45,13 @@ Vector CalculateMappedTractionVector(Vector&                                rTra
     return result;
 }
 
+void InitializeLawMaterial(ConstitutiveLaw& rLaw, const Properties& rProperties)
+{
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    rLaw.InitializeMaterial(rProperties, dummy_element_geometry, dummy_shape_function_values);
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -54,30 +61,28 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: set elastic compressive state
-    Properties properties;
+    auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    auto traction_vector = Vector{ZeroVector{2}};
+    parameters.SetStressVector(traction_vector);
+    auto relative_displacement_vector = Vector{ZeroVector{2}};
+    parameters.SetStrainVector(relative_displacement_vector);
 
     auto p_initial_state         = make_intrusive<InitialState>();
     auto initial_traction_vector = Vector{2};
     initial_traction_vector <<= -6.0, 8.0;
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
+
     auto law = InterfaceMohrCoulombWithTensionCutOff{};
     law.SetInitialState(p_initial_state);
-
-    auto traction_output_vector = Vector{ZeroVector{2}};
-    parameters.SetStressVector(traction_output_vector);
-    auto relative_displacement_vector = Vector{ZeroVector{2}};
-    parameters.SetStrainVector(relative_displacement_vector);
-
-    const auto dummy_element_geometry      = Geometry<Node>{};
-    const auto dummy_shape_function_values = Vector{};
-    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+    InitializeLawMaterial(law, properties);
 
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
@@ -85,12 +90,12 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
     // Assert
     auto expected_traction_vector = Vector{2};
     expected_traction_vector <<= -6.0, 8.0;
-    KRATOS_EXPECT_VECTOR_NEAR(traction_output_vector, expected_traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_traction_vector, Defaults::absolute_tolerance);
 
     // Arrange: set elastic tensile state
-    traction_output_vector <<= 5.0, 4.0;
+    traction_vector <<= 5.0, 4.0;
     const auto dummy_process_info = ProcessInfo{};
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_output_vector, dummy_process_info);
+    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, dummy_process_info);
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
@@ -98,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMateria
 
     // Assert
     expected_traction_vector <<= 5.0, 4.0;
-    KRATOS_EXPECT_VECTOR_NEAR(traction_output_vector, expected_traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_traction_vector, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceMohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
