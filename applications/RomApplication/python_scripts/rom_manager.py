@@ -542,11 +542,11 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
-        if nn_rom_interface.get_using_manual_model_path():
-            mu_train = None
-            nn_model_name = nn_rom_interface.get_nn_model_name()
-        else:
-            nn_model_name = None
+        nn_model_name = None
+        if nn_rom_interface is not None:
+            if nn_rom_interface.get_using_manual_model_path():
+                mu_train = None
+                nn_model_name = nn_rom_interface.get_nn_model_name()
         for Id, mu in enumerate(mu_run):
             print('Launching ROM for ', mu)
             in_database, _ = self.data_base.check_if_in_database("ROM", mu, mu_aux = mu_train, nn_model_name = nn_model_name)
