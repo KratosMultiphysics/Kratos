@@ -13,11 +13,10 @@
 
 #pragma once
 
-// Project includes
 #include "containers/variable.h"
-#include "custom_constitutive/coulomb_yield_surface.h"
-#include "custom_constitutive/tension_cutoff.h"
 #include "includes/constitutive_law.h"
+
+#include <optional>
 
 namespace Kratos
 {
@@ -38,6 +37,10 @@ public:
     static double GetCohesion(const Properties& rProperties);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
+
+    static void CheckProperty(const Properties&       rMaterialProperties,
+                              const Variable<double>& rVariable,
+                              std::optional<double>   MaxValue = std::nullopt);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

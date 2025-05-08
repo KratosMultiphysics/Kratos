@@ -86,4 +86,17 @@ double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rPr
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
+void ConstitutiveLawUtilities::CheckProperty(const Properties&       rMaterialProperties,
+                                             const Variable<double>& rVariable,
+                                             std::optional<double>   MaxValue)
+{
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable))
+        << rVariable.Name() << " is not defined for property " << rMaterialProperties.Id() << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[rVariable] < 0.0 ||
+                    (MaxValue.has_value() && rMaterialProperties[rVariable] > MaxValue.value()))
+        << "value of " << rVariable.Name() << " for property " << rMaterialProperties.Id()
+        << " is out of range: " << rMaterialProperties[rVariable] << " is not in [0.0, "
+        << (MaxValue ? std::to_string(*MaxValue) + "]" : "->") << std::endl;
+}
+
 } // namespace Kratos

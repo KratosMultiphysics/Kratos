@@ -21,30 +21,10 @@
 #include "geo_mechanics_application_variables.h"
 
 #include <cmath>
-#include <optional>
-
-namespace
-{
-
-using namespace Kratos;
-
-void CheckProperty(const Properties&       rMaterialProperties,
-                   const Variable<double>& rVariable,
-                   std::optional<double>   MaxValue = std::nullopt)
-{
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable))
-        << rVariable.Name() << " is not defined for property " << rMaterialProperties.Id() << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[rVariable] < 0.0 ||
-                    (MaxValue.has_value() && rMaterialProperties[rVariable] > MaxValue.value()))
-        << "value of " << rVariable.Name() << " for property " << rMaterialProperties.Id()
-        << " is out of range: " << rMaterialProperties[rVariable] << " is not in [0.0, "
-        << (MaxValue ? std::to_string(*MaxValue) + "]" : "->") << std::endl;
-}
-
-} // namespace
 
 namespace Kratos
 {
+
 MohrCoulombWithTensionCutOff::MohrCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
@@ -95,14 +75,16 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    CheckProperty(rMaterialProperties, GEO_COHESION);
-    CheckProperty(rMaterialProperties, GEO_FRICTION_ANGLE);
-    CheckProperty(rMaterialProperties, GEO_DILATANCY_ANGLE, rMaterialProperties[GEO_FRICTION_ANGLE]);
-    CheckProperty(rMaterialProperties, GEO_TENSILE_STRENGTH,
-                  rMaterialProperties[GEO_COHESION] /
-                      std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
-    CheckProperty(rMaterialProperties, YOUNG_MODULUS);
-    CheckProperty(rMaterialProperties, POISSON_RATIO, 0.5);
+    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_COHESION);
+    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_FRICTION_ANGLE);
+    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_DILATANCY_ANGLE,
+                                            rMaterialProperties[GEO_FRICTION_ANGLE]);
+    ConstitutiveLawUtilities::CheckProperty(
+        rMaterialProperties, GEO_TENSILE_STRENGTH,
+        rMaterialProperties[GEO_COHESION] /
+            std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
+    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, YOUNG_MODULUS);
+    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, POISSON_RATIO, 0.5);
     return result;
 }
 
