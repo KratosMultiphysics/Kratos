@@ -7,4 +7,4 @@ def Factory(settings, model):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
 
     model_part = model[settings["Parameters"]["model_part_name"].GetString()]
-    return Geo.ResetDisplacementProcess(model_part, settings["Parameters"])
+    return Geo.ApplyFinalStressesOfPreviousStageToInitialState(model_part, settings["Parameters"])

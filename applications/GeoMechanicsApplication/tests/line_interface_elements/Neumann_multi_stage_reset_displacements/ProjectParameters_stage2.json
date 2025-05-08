@@ -12,7 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "rest"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "../common/MaterialParameters.json"
@@ -122,9 +122,9 @@
                 "table":           0
             }
         },{
-            "python_module" : "reset_displacement_process",
+            "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
             "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-            "process_name"  : "ResetDisplacementProcess",
+            "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
             "Parameters"    : {
                 "model_part_name": "PorousDomain.Interfaces"
             }

@@ -22,18 +22,18 @@ class ModelPart;
 class Parameters;
 class Element;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ResetDisplacementProcess : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyFinalStressesOfPreviousStageToInitialState : public Process
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(ResetDisplacementProcess);
-    ResetDisplacementProcess(ModelPart& rModelPart, const Parameters&);
-    ~ResetDisplacementProcess() override = default;
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyFinalStressesOfPreviousStageToInitialState);
+    ApplyFinalStressesOfPreviousStageToInitialState(ModelPart& rModelPart, const Parameters&);
+    ~ApplyFinalStressesOfPreviousStageToInitialState() override = default;
 
-    ResetDisplacementProcess(const ResetDisplacementProcess&)            = delete;
-    ResetDisplacementProcess& operator=(const ResetDisplacementProcess&) = delete;
+    ApplyFinalStressesOfPreviousStageToInitialState(const ApplyFinalStressesOfPreviousStageToInitialState&) = delete;
+    ApplyFinalStressesOfPreviousStageToInitialState& operator=(const ApplyFinalStressesOfPreviousStageToInitialState&) = delete;
 
     void ExecuteInitialize() override;
-    int  Check() override;
+    void ExecuteBeforeSolutionLoop() override;
 
 private:
     ModelPart& mrModelPart;
@@ -41,6 +41,8 @@ private:
     static void CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
                                           const std::vector<Vector>& rStressesOnIntegrationPoints,
                                           IndexType                  ElementId);
+
+    std::map<IndexType, std::vector<Vector>> mStressesByElementId;
 };
 
 } // namespace Kratos
