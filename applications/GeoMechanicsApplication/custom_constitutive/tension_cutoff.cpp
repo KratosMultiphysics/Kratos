@@ -12,6 +12,7 @@
 //
 
 #include "custom_constitutive/tension_cutoff.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "includes/serializer.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -22,14 +23,15 @@ TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileS
 
 double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
 {
-    return rSigmaTau[0] + rSigmaTau[1] - mTensileStrength;
+    auto principal_stress_vector = Vector{ZeroVector{3}};
+    principal_stress_vector =
+        StressStrainUtilities::TransformSigmaTauToPrincipalStresses(rSigmaTau, principal_stress_vector);
+    return principal_stress_vector[0] - mTensileStrength;
 }
 
-Vector TensionCutoff::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
+Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
 {
-    Vector result(2);
-    result <<= 1.0, 1.0;
-    return result;
+    return Vector{ScalarVector{2, 1.0}};
 }
 
 void TensionCutoff::save(Serializer& rSerializer) const

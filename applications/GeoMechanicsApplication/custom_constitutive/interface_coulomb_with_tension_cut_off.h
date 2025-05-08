@@ -20,8 +20,6 @@
 namespace Kratos
 {
 
-class ConstitutiveLawDimension;
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombWithTensionCutOff : public ConstitutiveLaw
 {
 public:

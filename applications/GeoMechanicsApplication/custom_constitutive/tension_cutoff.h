@@ -29,7 +29,7 @@ public:
     explicit TensionCutoff(double TensileStrength);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
 
 private:
     friend class Serializer;
