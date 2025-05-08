@@ -124,7 +124,6 @@ public:
 				RotateLagrangeCondition<2>(rLocalMatrix,rLocalVector,rGeometry);
 			else if (this->GetDomainSize() == 3)
 				RotateLagrangeCondition<3>(rLocalMatrix,rLocalVector,rGeometry);
-			
 		}
 		else // mixed formulation case
 		{
@@ -594,13 +593,10 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 									mat_block(k,l) = 0.0;
 							}
 						}
-
 						this->WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
-						
 					}
 				}
 
-				
 				for(unsigned int k=0; k<TDim; k++)
 					aux[k] = rLocalVector[i*TDim+k];
 
