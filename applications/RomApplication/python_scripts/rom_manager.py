@@ -145,6 +145,29 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
+    def FinetuneANNOnResidual(self, mu_train, mu_validation):
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        parameters_copy = parameters.Clone()
+        model = KratosMultiphysics.Model()
+        analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+        simulation = analysis_stage_class(model,parameters_copy)
+
+        counter = 0
+        self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].SetInt(counter)
+        in_database, _ = self.data_base.check_if_in_database("Neural_Network_Residual", mu_train)
+        if not in_database:
+            self._LaunchTrainNeuralNetworkResidual(mu_train,mu_validation)
+        elif in_database and self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
+            while in_database:
+                counter+=1
+                self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].SetInt(counter)
+                #using Fit(), the model launched will be the one trained last.
+                #For Test() or Run() methods, it is the one privided in "model_number"
+                in_database, _ = self.data_base.check_if_in_database("Neural_Network_Residual", mu_train)
+            self._LaunchTrainNeuralNetworkResidual(mu_train,mu_validation)
+
     def TestNeuralNetworkReconstruction(self, mu_train, mu_validation, mu_test):
         custom_model_path = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["custom_model_path"].GetString()
         if custom_model_path == '':
@@ -760,6 +783,12 @@ class RomManager(object):
         self.data_base.add_to_database("Neural_Network", mu_train , None)
         rom_nn_trainer.EvaluateNetwork()
 
+    def _LaunchTrainNeuralNetworkResidual(self, mu_train, mu_validation):
+        RomNeuralNetworkTrainerResidual = self._TryImportNNTrainerResidual()
+        rom_nn_trainer_residual = RomNeuralNetworkTrainerResidual(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
+        rom_nn_trainer_residual.TrainNetwork()
+        self.data_base.add_to_database("Neural_Network_Residual", mu_train , None)
+        rom_nn_trainer_residual.EvaluateNetwork()
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation, mu_test, custom_model_path = None):
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()
@@ -1281,6 +1310,14 @@ class RomManager(object):
             return RomNeuralNetworkTrainer
         except ImportError:
             err_msg = f'Failed to import the RomNeuralNetworkTrainer class. Make sure TensorFlow is properly installed.'
+            raise Exception(err_msg)
+        
+    def _TryImportNNTrainerResidual(self):
+        try:
+            from KratosMultiphysics.RomApplication.rom_nn_trainer_residual import RomNeuralNetworkTrainerResidual
+            return RomNeuralNetworkTrainerResidual
+        except ImportError:
+            err_msg = f'Failed to import the RomNeuralNetworkTrainerResidual class. Make sure TensorFlow is properly installed.'
             raise Exception(err_msg)
         
 
