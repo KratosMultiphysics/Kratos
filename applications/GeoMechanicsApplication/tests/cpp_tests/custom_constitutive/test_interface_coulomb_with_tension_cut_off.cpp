@@ -12,7 +12,6 @@
 //
 
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
-#include "custom_constitutive/plane_strain.h"
 #include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/stream_serializer.h"
@@ -92,8 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     // Arrange: set elastic tensile state
     traction_vector <<= 5.0, 4.0;
-    const auto dummy_process_info = ProcessInfo{};
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, dummy_process_info);
+    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, ProcessInfo{});
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
@@ -105,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     // Arrange: set elastic tensile state (reverse shear)
     traction_vector <<= 5.0, -2.0;
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, dummy_process_info);
+    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, ProcessInfo{});
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
@@ -313,24 +311,24 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
     KRATOS_EXPECT_VECTOR_EQ(parameters.GetStressVector(), calculated_traction_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_WorkingSpaceDimensionIsAlways2D,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Has2DWorkingSpaceDimension,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.WorkingSpaceDimension(), N_DIM_2D);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_StressMeasureIsAlwaysCauchy,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasCauchyStressMeasure,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_StrainSizeIsAlways2, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_StrainSizeEqualsTwo, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStrainSize(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_StrainMeasureIsAlwaysInfinitesimal,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasInfinitesimalStrainMeasure,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStrainMeasure(),
