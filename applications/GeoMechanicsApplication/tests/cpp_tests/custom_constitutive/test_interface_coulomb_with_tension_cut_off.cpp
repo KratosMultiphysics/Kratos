@@ -317,8 +317,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Has2DWorkingSpaceDim
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.WorkingSpaceDimension(), N_DIM_2D);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasCauchyStressMeasure,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
 }

@@ -821,9 +821,9 @@ private:
     const UPwFaceLoadCondition<3, 4> mUPwFaceLoadCondition3D4N{
         0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
     const UPwFaceLoadCondition<3, 6> mUPwFaceLoadCondition3D6N{
-        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6)) };
+        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6))};
     const UPwFaceLoadCondition<3, 8> mUPwFaceLoadCondition3D8N{
-        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8)) };
+        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
 
     const UPwNormalFaceLoadCondition<2, 2> mUPwNormalFaceLoadCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
@@ -952,9 +952,9 @@ private:
     const UPwLysmerAbsorbingCondition<3, 4> mUPwLysmerAbsorbingCondition3D4N{
         0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
     const UPwLysmerAbsorbingCondition<3, 6> mUPwLysmerAbsorbingCondition3D6N{
-    0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6)) };
+        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6))};
     const UPwLysmerAbsorbingCondition<3, 8> mUPwLysmerAbsorbingCondition3D8N{
-        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8)) };
+        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
 
     const GeoTNormalFluxCondition<2, 2> mGeoTNormalFluxCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};

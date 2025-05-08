@@ -42,9 +42,7 @@ public:
                               const Variable<double>& rVariable,
                               std::optional<double>   MaxValue = std::nullopt);
 
-    static Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double NormalStiffness,
-                                                                            double ShearStiffness,
-                                                                            std::size_t TractionSize);
+    static Matrix MakeInterfaceConstitutiveMatrix(double NormalStiffness, double ShearStiffness, std::size_t TractionSize);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
