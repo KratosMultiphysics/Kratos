@@ -1737,15 +1737,9 @@ public:
         return mpProcessInfo;
     }
 
-    void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
-    {
-        mpProcessInfo = pNewProcessInfo;
-    }
+    void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo);
 
-    void SetProcessInfo(ProcessInfo& NewProcessInfo)
-    {
-        *mpProcessInfo = NewProcessInfo;
-    }
+    void SetProcessInfo(ProcessInfo& NewProcessInfo);
 
     SizeType NumberOfMeshes()
     {
