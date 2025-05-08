@@ -184,8 +184,9 @@ KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecuti
     process.ExecuteFinalize();   // stop considering diagonal entries only and no shear
 
     KRATOS_EXPECT_FALSE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
-    KRATOS_EXPECT_NE(dynamic_cast<MockConstitutiveLaw*>(r_model_part.Elements()[0].GetProperties().GetValue(CONSTITUTIVE_LAW).get()),
-                 nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<MockConstitutiveLaw*>(
+                         r_model_part.Elements()[0].GetProperties().GetValue(CONSTITUTIVE_LAW).get()),
+                     nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMechanicsFastSuiteWithoutKernel)
