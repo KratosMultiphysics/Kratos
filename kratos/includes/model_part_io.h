@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -17,15 +17,11 @@
 // System includes
 #include <filesystem>
 #include <fstream>
-#include <string>
-#include <unordered_set>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/io.h"
-#include "containers/flags.h"
 
 namespace Kratos
 {
@@ -52,7 +48,8 @@ namespace Kratos
 /// An IO class for reading and writing a modelpart
 /** This class reads and writes all modelpart data including the meshes.
 */
-class KRATOS_API(KRATOS_CORE) ModelPartIO : public IO
+class KRATOS_API(KRATOS_CORE) ModelPartIO 
+    : public IO
 {
 public:
     ///@name Type Definitions
@@ -61,20 +58,40 @@ public:
     /// Pointer definition of ModelPartIO
     KRATOS_CLASS_POINTER_DEFINITION(ModelPartIO);
 
-    typedef IO                                    BaseType;
+    /// Alias for the base IO type.
+    using BaseType = IO;
 
-    typedef BaseType::NodeType                    NodeType;
-    typedef BaseType::MeshType                    MeshType;
-    typedef BaseType::NodesContainerType          NodesContainerType;
-    typedef BaseType::PropertiesContainerType     PropertiesContainerType;
-    typedef BaseType::ElementsContainerType       ElementsContainerType;
-    typedef BaseType::ConditionsContainerType     ConditionsContainerType;
-    typedef BaseType::ConnectivitiesContainerType ConnectivitiesContainerType;
+    /// Alias for the node type.
+    using NodeType = BaseType::NodeType;
 
-    typedef std::vector<std::ostream*>            OutputFilesContainerType;
-    typedef std::size_t                           SizeType;
+    /// Alias for the mesh type.
+    using MeshType = BaseType::MeshType;
 
-    // Prevents this class from hiding IO::WriteProperties(Properties)
+    /// Alias for the nodes container type.
+    using NodesContainerType = BaseType::NodesContainerType;
+
+    /// Alias for the properties container type.
+    using PropertiesContainerType = BaseType::PropertiesContainerType;
+
+    /// Alias for the elements container type.
+    using ElementsContainerType = BaseType::ElementsContainerType;
+
+    /// Alias for the conditions container type.
+    using ConditionsContainerType = BaseType::ConditionsContainerType;
+
+    /// Alias for the master-slave constraints container type.
+    using MasterSlaveConstraintContainerType = BaseType::MasterSlaveConstraintContainerType;
+
+    /// Alias for the connectivities container type.
+    using ConnectivitiesContainerType = BaseType::ConnectivitiesContainerType;
+
+    /// Alias for the output files container type.
+    using OutputFilesContainerType = std::vector<std::ostream*>;
+
+    /// Alias for the size type.
+    using SizeType = std::size_t;
+
+    /// Prevents this class from hiding IO::WriteProperties(Properties)
     using BaseType::WriteProperties;
 
     ///@}
@@ -91,22 +108,18 @@ public:
         Kratos::shared_ptr<std::iostream> Stream,
         const Flags Options = IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
-
     /// Constructor with filenames.
     // ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename)
     //     : mNumberOfLines(0), mInput(std::ifstream(InputFilename.c_str())), mOutput(std::ofstream(OutputFilename.c_str()))
     // {
     // }
 
-
     /// Destructor.
     ~ModelPartIO() override;
-
 
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -216,7 +229,7 @@ public:
      * @param rElementsConnectivities The elements connectivities
      * @return The number of elements
      */
-    std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
+    std::size_t ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
 
     /**
      * @brief This method writes an array of elements
@@ -241,13 +254,40 @@ public:
      * @param rConditionsConnectivities The conditions connectivities
      * @return The number of conditions
      */
-    std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
+    std::size_t ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
     /**
      * @brief This method writes an array of conditions
      * @param rThisConditions The array of conditions to be written
      */
     void WriteConditions(ConditionsContainerType const& rThisConditions) override;
+
+    /**
+     * @brief Reads the master-slave constraints from an input source.
+     * @details This method is intended to be overridden by derived classes to implement
+     * the specific logic for reading master-slave constraints into the provided
+     * container. The base class implementation throws an error, indicating that
+     * the method must be implemented in the derived class.
+     * @param rThisNodes The nodes to be used for associating the master-slave constraints.
+     * @param rMasterSlaveConstraintContainer The container where the master-slave
+     *        constraints will be stored. This container is expected to be populated
+     *        by the derived class implementation.
+     */
+    void ReadMasterSlaveConstraints(
+        NodesContainerType& rThisNodes,
+        MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
+        ) override;
+
+    /**
+     * @brief Writes the master-slave constraints to the output.
+     * @details This method is intended to be overridden by derived classes to provide
+     * specific functionality for writing master-slave constraints. The base
+     * class implementation throws an error, indicating that the method must
+     * be implemented in the derived class.
+     * @param rMasterSlaveConstraintContainer The container holding the master-slave
+     *        constraints to be written.
+     */
+    void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rMasterSlaveConstraintContainer) override;
 
     /**
      * @brief This method reads the initial values of the model part
@@ -359,54 +399,74 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-  	virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
-  	virtual ModelPartIO::SizeType ReorderedGeometryId(ModelPartIO::SizeType GeometryId);
-  	virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
-  	virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
+    /**
+     * @brief Returns the reordered node ID.
+     * @param NodeId The original node ID.
+     * @return The reordered node ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
+
+    /**
+     * @brief Returns the reordered geometry ID.
+     * @param GeometryId The original geometry ID.
+     * @return The reordered geometry ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedGeometryId(ModelPartIO::SizeType GeometryId);
+
+    /**
+     * @brief Returns the reordered element ID.
+     * @param ElementId The original element ID.
+     * @return The reordered element ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
+
+    /**
+     * @brief Returns the reordered condition ID.
+     * @param ConditionId The original condition ID.
+     * @return The reordered condition ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
+
+    /**
+     * @brief Returns the reordered master-slave constraint ID.
+     * @param ConstraintId The original constraint ID.
+     * @return The reordered constraint ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedMasterSlaveConstraintId(ModelPartIO::SizeType ConstraintId);
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -419,11 +479,9 @@ private:
 
     Kratos::shared_ptr<std::iostream> mpStream;
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -435,9 +493,9 @@ private:
 
     bool CheckEndBlock(std::string const& BlockName, std::string& rWord);
 
-    void ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
+    void ReadModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart=false);
 
-    void WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
+    void WriteModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart=false);
 
     template<class TablesContainerType>
     void ReadTableBlock(TablesContainerType& rTables);
@@ -465,50 +523,181 @@ private:
 
     void ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements);
 
-
     void ReadConditionsBlock(ModelPart& rModelPart);
 
     void ReadConditionsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions);
 
+    /**
+     * @brief Reads the master-slave constraints block from the input file.
+     * @details This function is responsible for parsing and loading the master-slave 
+     * constraints defined in the input file into the provided ModelPart. 
+     * Master-slave constraints are used to define relationships between 
+     * degrees of freedom in the model.
+     * @param rModelPart Reference to the ModelPart where the constraints will be added.
+     */
+    void ReadMasterSlaveConstraintsBlock(ModelPart& rModelPart);
 
+    /**
+     * @brief Reads a block of master-slave constraints from the input.
+     * @details This function processes and reads the master-slave constraint data
+     * from the input file, associating it with the provided nodes and
+     * storing the constraints in the specified container.
+     * @param rThisNodes A reference to the container of nodes to be used
+     *                   for associating the master-slave constraints.
+     * @param rMasterSlaveConstraints A reference to the container where
+     *                                the read master-slave constraints
+     *                                will be stored.
+     */
+    void ReadMasterSlaveConstraintsBlock(
+        NodesContainerType& rThisNodes,
+        MasterSlaveConstraintContainerType& rMasterSlaveConstraints
+        );
+
+    /**
+     * @brief Reads nodal data block from the input stream into the given model part.
+     * @param rThisModelPart Reference to the model part whose nodal data will be read.
+     */
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
 
+    /**
+     * @brief Writes nodal data block from the given model part to the output stream.
+     * @param rThisModelPart Reference to the model part whose nodal data will be written.
+     */
     void WriteNodalDataBlock(ModelPart& rThisModelPart);
 
+    /**
+     * @brief Reads nodal DOF variable data from the input stream into the provided nodes.
+     * @tparam TVariableType Type of the variable to be read.
+     * @param rThisNodes Reference to the container of nodes.
+     * @param rVariable The variable to be read.
+     */
     template<class TVariableType>
     void ReadNodalDofVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable);
 
-
+    /**
+     * @brief Reads nodal flags from the input stream and assigns them to the provided nodes.
+     * @param rThisNodes Reference to the container of nodes.
+     * @param rFlags Flags to be read and applied.
+     */
     void ReadNodalFlags(NodesContainerType& rThisNodes, Flags const& rFlags);
 
+    /**
+     * @brief Reads scalar variable data for each node in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisNodes Reference to the container of nodes.
+     * @param rVariable The scalar variable to read.
+     */
     template<class TVariableType>
     void ReadNodalScalarVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable);
 
-
-
+    /**
+     * @brief Reads vectorial variable data for each node in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisNodes Reference to the container of nodes.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
     template<class TVariableType, class TDataType>
     void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable, TDataType Dummy);
 
+    /**
+     * @brief Reads elemental data block from the input stream into the given elements container.
+     * @param rThisElements Reference to the container of elements.
+     */
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
-    template<class TObjectsContainerType>
-    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
-    template<class TVariableType, class TObjectsContainerType>
-    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName);
 
+    /**
+     * @brief Reads scalar variable data for each element in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisElements Reference to the container of elements.
+     * @param rVariable The scalar variable to read.
+     */
     template<class TVariableType>
     void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable);
 
-
+    /**
+     * @brief Reads vectorial variable data for each element in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisElements Reference to the container of elements.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
     template<class TVariableType, class TDataType>
     void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable, TDataType Dummy);
+
+    /**
+     * @brief Reads conditional data block from the input stream into the given conditions container.
+     * @param rThisConditions Reference to the container of conditions.
+     */
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
 
+    /**
+     * @brief Reads scalar variable data for each condition in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisConditions Reference to the container of conditions.
+     * @param rVariable The scalar variable to read.
+     */
     template<class TVariableType>
     void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable);
 
-
+    /**
+     * @brief Reads vectorial variable data for each condition in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisConditions Reference to the container of conditions.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
     template<class TVariableType, class TDataType>
     void ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable, TDataType Dummy);
+
+    /**
+     * @brief Reads master-slave constraint data block from the input stream into the given constraints container.
+     * @param rThisConstraints Reference to the container of master-slave constraints.
+     */
+    void ReadMasterSlaveConstraintDataBlock(MasterSlaveConstraintContainerType& rThisConstraints);
+
+    /**
+     * @brief Reads scalar variable data for each constraint in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisConstraints Reference to the container of constraints.
+     * @param rVariable The scalar variable to read.
+     */
+    template<class TVariableType>
+    void ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable);
+
+    /**
+     * @brief Reads vectorial variable data for each constraint in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisConstraints Reference to the container of constraints.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
+    template<class TVariableType, class TDataType>
+    void ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable, TDataType Dummy);
+
+    /**
+     * @brief Writes a data block for the specified object container.
+     * @tparam TObjectsContainerType Type of the object container.
+     * @param rThisObjectContainer Reference to the container of objects.
+     * @param rObjectName Name of the object group to write.
+     */
+    template<class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
+
+    /**
+     * @brief Writes a data block for the specified variable in the object container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TObjectsContainerType Type of the object container.
+     * @param rThisObjectContainer Reference to the container of objects.
+     * @param rVariable Pointer to the variable data to write.
+     * @param rObjectName Name of the object group to write.
+     */
+    template<class TVariableType, class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const VariableData* rVariable, const std::string& rObjectName);
 
     SizeType ReadGeometriesConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
@@ -538,16 +727,13 @@ private:
 
     void ReadCommunicatorLocalNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
-
     void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
     void ReadMeshBlock(ModelPart& rModelPart);
 
     void WriteMeshBlock(ModelPart& rModelPart);
 
-
     void ReadMeshDataBlock(MeshType& rMesh);
-
 
     void ReadMeshNodesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
@@ -576,6 +762,22 @@ private:
     void ReadSubModelPartGeometriesBlock(
         ModelPart &rMainModelPart,
         ModelPart &rSubModelPart);
+
+    /**
+     * @brief Reads and processes the SubModelPartMasterSlaveConstraints block from the input stream.
+     * @details This function reads geometry IDs from the input stream until it detects the end of the
+     * "SubModelPartMasterSlaveConstraints" block. The read geometry IDs are stored in a vector,
+     * which is then sorted in ascending order. Finally, the sorted IDs are used to add master-slave
+     * constraints to the provided sub-model part.
+     * @param rMainModelPart The main model part used for context during the parsing process.
+     * @param rSubModelPart The sub-model part that will have the master-slave constraints added.
+     * @note The function relies on the correctness of the stream data and may throw exceptions
+     *       if an error occurs during the reading or processing of the block.
+     */
+     void ReadSubModelPartMasterSlaveConstraintsBlock(
+        ModelPart &rMainModelPart,
+        ModelPart &rSubModelPart
+        );
 
     void DivideInputToPartitionsImpl(
         OutputFilesContainerType& rOutputFiles,
