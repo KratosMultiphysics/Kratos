@@ -34,15 +34,6 @@ namespace Kratos
             ~RVEWallBoundary2D() {}
 
         protected:
-            // Column widths for printing result files
-            static const int WIDTH_DEFAULT = 10;
-            static const int WIDTH_FLOAT15 = 20;
-            static const int WIDTH_FLOAT12 = 18;
-            static const int WIDTH_FLOAT10 = 16; 
-            static const int WIDTH_FLOAT06 = 12;
-            static const int WIDTH_FLOAT05 = 10;
-            static const int WIDTH_FLOAT03 = 8;
-
             // Protected methods
             void   AssembleWallElementVectors      (void) override;
             void   SetVertexCoordinates            (void) override;

@@ -616,59 +616,56 @@ namespace Kratos
     //------------------------------------------------------------------------------------------------------------
     // Write file headers for selected results.
     void RVEWallBoundary2D::WriteFileHeadersGlobalResults(void) {
-        mFileGlobalResults << "      STEP"
-                           << "          TIME"
-                           << "  MOVING"
-                           << "  EQ_STEPS"
-                           << "           VERTEX_1_X           VERTEX_1_Y           VERTEX_2_X           VERTEX_2_Y           VERTEX_3_X           VERTEX_3_Y           VERTEX_4_X           VERTEX_4_Y"
-                           << "  #PARTICLES"
-                           << "  #PARTICLES_INN"
-                           << "  #CONTACTS"
-                           << "  #CONTACTS_INN"
-                           << "  AVG_COORD"
-                           << "  AVG_COORD_INN"
-                           << "  AVG_RADIUS_ALL"
-                           << "       VOL_TOT"
-                           << "   VOL_TOT_INN"
-                           << "     VOL_SOLID"
-                           << "  VOL_SOLID_INN"
-                           << "  POROSITY"
-                           << "  POROSITY_INN"
+        mFileGlobalResults << "STEP       "
+                           << "TIME          "
+                           << "MOVING  "
+                           << "EQ_STEPS  "
+                           << "VERTEX_1_X           VERTEX_1_Y           VERTEX_2_X           VERTEX_2_Y           VERTEX_3_X           VERTEX_3_Y           VERTEX_4_X           VERTEX_4_Y           "
+                           << "#PARTICLES  "
+                           << "#PARTICLES_INN  "
+                           << "#CONTACTS  "
+                           << "#CONTACTS_INN  "
+                           << "AVG_COORD  "
+                           << "AVG_COORD_INN  "
+                           << "AVG_RADIUS_ALL  "
+                           << "VOL_TOT       "
+                           << "VOL_TOT_INN   "
+                           << "VOL_SOLID     "
+                           << "VOL_SOLID_INN  "
+                           << "POROSITY  "
+                           << "POROSITY_INN  "
                            << std::endl;
     }
     void RVEWallBoundary2D::WriteFileHeadersParticleResults(void) {
-        mFileParticleResults << "      STEP"
-                             << "          TIME"
-                             << "      ID"
-                             << "                RADIUS"
-                             << "               COORD_X"
-                             << "               COORD_Y"
-                             << "  #CONTACTS_PP"
-                             << "  #CONTACTS_PW"
-                             << "   FX FY (EACH PP, EACH PW)"
-                             << std::endl;
+        mFileParticleResults << "PARTICLE_ID  "
+                             << "RADIUS               "
+                             << "COORD_X              "
+                             << "COORD_Y              "
+                             << "#CONTACTS_PP  "
+                             << "#CONTACTS_PW   "
+                             << "FX FY (EACH PP, EACH PW)"
+                             << std::endl << std::endl;
     }
     void RVEWallBoundary2D::WriteFileHeadersContactResults(void) {
-        mFileContactResults << "      STEP"
-                            << "          TIME"
-                            << "              COORD_X1"
-                            << "              COORD_Y1"
-                            << "              COORD_X2"
-                            << "              COORD_Y2"
-                            << "                    FORCE_X"
-                            << "                    FORCE_Y"
-                            << std::endl;
+        mFileContactResults << "CONTACT_NUM  "
+                            << "COORD_X1             "
+                            << "COORD_Y1             "
+                            << "COORD_X2             "
+                            << "COORD_Y2                 "
+                            << "FORCE_X                  "
+                            << "FORCE_Y"
+                            << std::endl << std::endl;
     }
     void RVEWallBoundary2D::WriteFileHeadersTensorResults(void) {
-        mFileTensorResults << "Rj -> C1-C4: [F11 F12 F21 F22] | C5: FABRIC_INDEX | C6: ANISOTROPY (ALL CONTACTS)" << std::endl;
-        mFileTensorResults << "Rk -> C1-C4: [F11 F12 F21 F22] | C5: FABRIC_INDEX | C6: ANISOTROPY (INN CONTACTS)" << std::endl;
-        mFileTensorResults << "Rl -> C1-C4: [S11 S12 S21 S22] | C5: VOL STRESS | C6: DEV STRESS  | C7: WALL STRESS (ALL CONTACTS)" << std::endl;
-        mFileTensorResults << "Rm -> C1-C4: [S11 S12 S21 S22] | C5: VOL STRESS | C6: DEV STRESS (INN CONTACTS)" << std::endl;
+        mFileTensorResults << "ROW 1: [F11 F12 F21 F22], FABRIC_INDEX, ANISOTROPY - ALL CONTACTS" << std::endl;
+        mFileTensorResults << "ROW 2: [F11 F12 F21 F22], FABRIC_INDEX, ANISOTROPY - INN CONTACTS" << std::endl;
+        mFileTensorResults << "ROW 3: [S11 S12 S21 S22], VOL STRESS, DEV STRESS, WALL STRESS - ALL CONTACTS" << std::endl;
+        mFileTensorResults << "ROW 4: [S11 S12 S21 S22], VOL STRESS, DEV STRESS - INN CONTACTS" << std::endl;
     }
     void RVEWallBoundary2D::WriteFileHeadersRoseDiagram(void) {
-        mFileRoseDiagram << "      STEP"
-                         << "          TIME"
-                         << "    [BIN VALUES] ROSE_UNIFORMITY (ALL, INNER)"
+        mFileRoseDiagram << "STEP       "
+                         << "TIME          "
+                         << "[BIN VALUES] ROSE_UNIFORMITY (ALL, INNER)"
                          << std::endl;
     }
 
@@ -677,151 +674,149 @@ namespace Kratos
     void RVEWallBoundary2D::WriteResultFilesGlobalResults(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
 
-        mFileGlobalResults << std::setw(10) << r_process_info[TIME_STEPS] << " "
-                           << std::setw(13) << std::scientific << std::setprecision(6) << r_process_info[TIME] << " ";
+        mFileGlobalResults << std::setw(11) << std::left << r_process_info[TIME_STEPS]
+                           << std::setw(14) << std::left << std::scientific << std::setprecision(6) << r_process_info[TIME];
 
-        mFileGlobalResults << std::setw(7) << std::noboolalpha << static_cast<int>(mIsMoving) << " "
-                           << std::setw(9) << mEquilibriumSteps << " "
-                           << std::setw(20) << std::fixed << std::setprecision(16) << mVertexCoords(0,0) << " "
-                           << std::setw(20) << std::fixed << std::setprecision(16) << mVertexCoords(1,0) << " "
-                           << std::setw(20) << std::fixed << std::setprecision(16) << mVertexCoords(0,1) << " "
-                           << std::setw(20) << std::fixed << std::setprecision(16) << mVertexCoords(1,1) << " "
-                           << std::setw(20) << std::fixed << std::setprecision(16) << mVertexCoords(0,2) << " "
-                           << std::setw(20) << std::fixed << std::setprecision(16) << mVertexCoords(1,2) << " "
-                           << std::setw(20) << std::fixed << std::setprecision(16) << mVertexCoords(0,3) << " "
-                           << std::setw(20) << std::fixed << std::setprecision(16) << mVertexCoords(1,3) << " "
-                           << std::setw(11) << mNumParticles << " "
-                           << std::setw(15) << mNumParticlesInner << " "
-                           << std::setw(10) << mNumContacts << " "
-                           << std::setw(14) << mNumContactsInner << " "
-                           << std::setw(10) << std::fixed << std::setprecision(6) << mAvgCoordNum << " "
-                           << std::setw(14) << std::fixed << std::setprecision(6) << mAvgCoordNumInner << " "
-                           << std::setw(15) << std::scientific << std::setprecision(6) << mAvgRadius << " "
-                           << std::setw(13) << std::scientific << std::setprecision(6) << mVolTotal << " "
-                           << std::setw(13) << std::scientific << std::setprecision(6) << mVolInner << " "
-                           << std::setw(13) << std::scientific << std::setprecision(6) << mVolSolid << " "
-                           << std::setw(14) << std::scientific << std::setprecision(6) << mVolSolidInner << " "
-                           << std::setw(9) << std::fixed << std::setprecision(6) << mPorosity << " "
-                           << std::setw(13) << std::fixed << std::setprecision(6) << mPorosityInner << " ";
+        mFileGlobalResults << std::setw(8)  << std::left << std::noboolalpha << static_cast<int>(mIsMoving)
+                           << std::setw(10) << std::left << mEquilibriumSteps
+                           << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(0,0)
+                           << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(1,0)
+                           << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(0,1)
+                           << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(1,1)
+                           << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(0,2)
+                           << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(1,2)
+                           << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(0,3)
+                           << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(1,3)
+                           << std::setw(12) << std::left << mNumParticles
+                           << std::setw(16) << std::left << mNumParticlesInner
+                           << std::setw(11) << std::left << mNumContacts
+                           << std::setw(15) << std::left << mNumContactsInner
+                           << std::setw(11) << std::left << std::fixed << std::setprecision(6) << mAvgCoordNum
+                           << std::setw(15) << std::left << std::fixed << std::setprecision(6) << mAvgCoordNumInner
+                           << std::setw(16) << std::left << std::scientific << std::setprecision(6) << mAvgRadius
+                           << std::setw(14) << std::left << std::scientific << std::setprecision(6) << mVolTotal
+                           << std::setw(14) << std::left << std::scientific << std::setprecision(6) << mVolInner
+                           << std::setw(14) << std::left << std::scientific << std::setprecision(6) << mVolSolid
+                           << std::setw(15) << std::left << std::scientific << std::setprecision(6) << mVolSolidInner
+                           << std::setw(10) << std::left << std::fixed << std::setprecision(6) << mPorosity
+                           << std::setw(13) << std::left << std::fixed << std::setprecision(6) << mPorosityInner;
 
         mFileGlobalResults << std::endl; 
     }
     void RVEWallBoundary2D::WriteResultFilesParticleResults(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
 
+        mFileParticleResults << "STEP: " << r_process_info[TIME_STEPS] << std::endl
+                             << "TIME: " << std::scientific << std::setprecision(6) << r_process_info[TIME] << std::endl;
+        
         for (unsigned int i = 0; i < mNumParticles; i++) {
             ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
             SphericParticle& particle = dynamic_cast<SphericParticle&>(*it);
             const int neighbors_p = particle.mNeighbourElements.size();
             const int neighbors_w = particle.mNeighbourRigidFaces.size();
 
-            mFileParticleResults << std::setw(10) << r_process_info[TIME_STEPS] << " "
-                                 << std::setw(13) << std::scientific << std::setprecision(6) << r_process_info[TIME] << " ";
-
-            mFileParticleResults << std::setw(7) << particle.Id() << " "
-                                 << std::setw(21) << std::fixed << std::setprecision(16) << particle.GetRadius() << " "
-                                 << std::setw(21) << std::fixed << std::setprecision(16) << particle.GetGeometry()[0][0] << " "
-                                 << std::setw(21) << std::fixed << std::setprecision(16) << particle.GetGeometry()[0][1] << " "
-                                 << std::setw(13) << neighbors_p << " "
-                                 << std::setw(13) << neighbors_w << " ";
+            mFileParticleResults << std::setw(13) << std::left << particle.Id()
+                                 << std::setw(21) << std::left << std::fixed << std::setprecision(16) << particle.GetRadius()
+                                 << std::setw(21) << std::left << std::fixed << std::setprecision(16) << particle.GetGeometry()[0][0]
+                                 << std::setw(21) << std::left << std::fixed << std::setprecision(16) << particle.GetGeometry()[0][1]
+                                 << std::setw(14) << std::left << neighbors_p
+                                 << std::setw(12) << std::left << neighbors_w;
 
             for (unsigned int j = 0; j < neighbors_p; j++) {
                 array_1d<double, 3> force = particle.mNeighbourElasticContactForces[j];
-                mFileParticleResults << "  ";
+                mFileParticleResults << "   ";
                 mFileParticleResults << std::fixed << std::setprecision(16) << force[0] << " "
                                      << std::fixed << std::setprecision(16) << force[1] << " ";
             }
             for (unsigned int j = 0; j < neighbors_w; j++) {
                 array_1d<double, 3> force = particle.mNeighbourRigidFacesElasticContactForce[j];
-                mFileParticleResults << "  ";
+                mFileParticleResults << "   ";
                 mFileParticleResults << std::fixed << std::setprecision(16) << force[0] << " "
                                      << std::fixed << std::setprecision(16) << force[1] << " ";
             }
             mFileParticleResults << std::endl;
         }
-        mFileParticleResults << std::endl;
     }
     void RVEWallBoundary2D::WriteResultFilesContactResults(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
 
-        for (int i = 0; i < mContactChain.size(); i+=9) {
-            mFileContactResults << std::setw(10) << r_process_info[TIME_STEPS] << " "
-                                << std::setw(13) << std::scientific << std::setprecision(6) << r_process_info[TIME] << " ";
+        mFileContactResults << "STEP: " << r_process_info[TIME_STEPS] << std::endl
+                            << "TIME: " << std::scientific << std::setprecision(6) << r_process_info[TIME] << std::endl;
 
-            mFileContactResults << std::setw(21) << std::fixed << std::setprecision(16) << mContactChain[i+0] << " " // X1
-                                << std::setw(21) << std::fixed << std::setprecision(16) << mContactChain[i+1] << " " // Y1
-                                << std::setw(21) << std::fixed << std::setprecision(16) << mContactChain[i+3] << " " // X2
-                                << std::setw(21) << std::fixed << std::setprecision(16) << mContactChain[i+4] << " " // Y2
-                                << std::setw(26) << std::fixed << std::setprecision(16) << mContactChain[i+6] << " " // FX
-                                << std::setw(26) << std::fixed << std::setprecision(16) << mContactChain[i+7] << " " // FY
+        int count = 0;
+        for (int i = 0; i < mContactChain.size(); i+=9) {
+            mFileContactResults << std::setw(13) << std::left << ++count
+                                << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mContactChain[i+0] // X1
+                                << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mContactChain[i+1] // Y1
+                                << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mContactChain[i+3] // X2
+                                << std::setw(25) << std::left << std::fixed << std::setprecision(16) << mContactChain[i+4] // Y2
+                                << std::setw(25) << std::left << std::fixed << std::setprecision(16) << mContactChain[i+6] // FX
+                                << std::setw(25) << std::left << std::fixed << std::setprecision(16) << mContactChain[i+7] // FY
                                 << std::endl;
         }
-        mFileContactResults << std::endl;
     }
     void RVEWallBoundary2D::WriteResultFilesTensorResults(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
 
-        mFileTensorResults << std::setw(WIDTH_DEFAULT) << std::defaultfloat << r_process_info[TIME_STEPS] << " "
-                           << std::setw(WIDTH_DEFAULT) << std::defaultfloat << r_process_info[TIME]       << " "
-                           << std::endl;
-
-        mFileTensorResults << "[ " 
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mFabricTensor(0,0) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mFabricTensor(0,1) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mFabricTensor(1,0) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mFabricTensor(1,1) << " "
-                           << "] "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mFidx              << " "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mAnisotropy        << " "
-                           << std::endl;
-
-        mFileTensorResults << "[ " 
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mFabricTensorInner(0,0) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mFabricTensorInner(0,1) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mFabricTensorInner(1,0) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mFabricTensorInner(1,1) << " "
-                           << "] "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mFidxInner              << " "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mAnisotropyInner        << " "
-                           << std::endl;
-
-        mFileTensorResults << "[ " 
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mStressTensor(0,0) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mStressTensor(0,1) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mStressTensor(1,0) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mStressTensor(1,1) << " "
-                           << "] "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mEffStress         << " "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mDevStress         << " "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mWallStress        << " "
-                           << std::endl;
-
-        mFileTensorResults << "[ " 
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mStressTensorInner(0,0) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mStressTensorInner(0,1) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mStressTensorInner(1,0) << " "
-                           << std::setw(WIDTH_FLOAT10) << std::fixed << std::setprecision(10) << mStressTensorInner(1,1) << " "
-                           << "] "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mEffStressInner         << " "
-                           << std::setw(WIDTH_FLOAT06) << std::fixed << std::setprecision(6)  << mDevStressInner         << " "
-                           << std::endl;
-
         mFileTensorResults << std::endl;
+
+        mFileTensorResults << "STEP: " << r_process_info[TIME_STEPS] << std::endl
+                           << "TIME: " << std::scientific << std::setprecision(6) << r_process_info[TIME] << std::endl;
+
+        mFileTensorResults << "[" 
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFabricTensor(0,0)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFabricTensor(0,1)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFabricTensor(1,0)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFabricTensor(1,1)
+                           << "]  "
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFidx
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mAnisotropy
+                           << std::endl;
+
+        mFileTensorResults << "[" 
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFabricTensorInner(0,0)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFabricTensorInner(0,1)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFabricTensorInner(1,0)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFabricTensorInner(1,1)
+                           << "]  "
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mFidxInner
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mAnisotropyInner
+                           << std::endl;
+
+        mFileTensorResults << "[" 
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mStressTensor(0,0)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mStressTensor(0,1)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mStressTensor(1,0)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mStressTensor(1,1)
+                           << "]  "
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mEffStress
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mDevStress
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mWallStress
+                           << std::endl;
+
+        mFileTensorResults << "[" 
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mStressTensorInner(0,0)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mStressTensorInner(0,1)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mStressTensorInner(1,0)
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mStressTensorInner(1,1)
+                           << "]  "
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mEffStressInner
+                           << std::setw(18) << std::left << std::fixed << std::setprecision(10) << mDevStressInner;
     }
     void RVEWallBoundary2D::WriteResultFilesRoseDiagram(void) {
         ProcessInfo& r_process_info = mDemModelPart->GetProcessInfo();
 
-        mFileRoseDiagram << std::setw(10) << r_process_info[TIME_STEPS] << " "
-                         << std::setw(13) << std::scientific << std::setprecision(6) << r_process_info[TIME] << " ";
+        mFileRoseDiagram << std::setw(11) << std::left << r_process_info[TIME_STEPS]
+                         << std::setw(14) << std::left << std::scientific << std::setprecision(6) << r_process_info[TIME];
 
-        mFileRoseDiagram << "   [";
-        for (int i = 0; i < mRoseDiagram.size(); i++) mFileRoseDiagram << std::setw(3) << mRoseDiagram[i] << " ";
-        mFileRoseDiagram << "]";
-        mFileRoseDiagram << std::setw(10) << std::fixed << std::setprecision(6) << mRoseUnif;
-        mFileRoseDiagram << "    [";
-        for (int i = 0; i < mRoseDiagramInner.size(); i++) mFileRoseDiagram << std::setw(3) << mRoseDiagramInner[i] << " ";
-        mFileRoseDiagram << "]";
-        mFileRoseDiagram << std::setw(10) << std::fixed << std::setprecision(6) << mRoseUnifInner;
+        mFileRoseDiagram << "[";
+        for (int i = 0; i < mRoseDiagram.size(); i++) mFileRoseDiagram << std::setw(3) << std::left << mRoseDiagram[i];
+        mFileRoseDiagram << "]  ";
+        mFileRoseDiagram << std::setw(14) << std::left << std::scientific << std::setprecision(6) << mRoseUnif;
+        mFileRoseDiagram << "[";
+        for (int i = 0; i < mRoseDiagramInner.size(); i++) mFileRoseDiagram << std::setw(3) << std::left << mRoseDiagramInner[i];
+        mFileRoseDiagram << "]  ";
+        mFileRoseDiagram << std::setw(14) << std::left << std::scientific << std::setprecision(6) << mRoseUnifInner;
         mFileRoseDiagram << std::endl;
     }
 
