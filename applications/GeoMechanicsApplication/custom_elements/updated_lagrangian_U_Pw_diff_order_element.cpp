@@ -33,7 +33,8 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType         
                                                               PropertiesType::Pointer pProperties) const
 {
     return make_intrusive<UpdatedLagrangianUPwDiffOrderElement>(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone());
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+        this->CloneIntegrationCoefficientModifier());
 }
 
 void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,

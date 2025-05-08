@@ -2,9 +2,10 @@
 import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
+    return SetAbsorbingBoundaryParametersProcess(model, settings["Parameters"])
 
     default_settings = KratosMultiphysics.Parameters("""
             {
@@ -20,14 +21,14 @@ def Factory(settings, Model):
     boundary_settings.ValidateAndAssignDefaults(default_settings)
 
 
-    return SetAbsorbingBoundaryParametersProcess(Model, boundary_settings)
+    return SetAbsorbingBoundaryParametersProcess(model, boundary_settings)
 
 
 class SetAbsorbingBoundaryParametersProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    def __init__(self, model, settings):
         KratosMultiphysics.Process.__init__(self)
 
-        model_part = Model[settings["model_part_name"].GetString()]
+        model_part = model[settings["model_part_name"].GetString()]
 
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
