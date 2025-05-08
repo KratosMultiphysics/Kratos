@@ -24,21 +24,22 @@ namespace
 
 using namespace Kratos;
 
-double CalculateApex(double FrictionAngle, double Cohesion)
+double CalculateApex(double FrictionAngleInRadians, double Cohesion)
 {
-    return Cohesion / std::tan(FrictionAngle);
+    return Cohesion / std::tan(FrictionAngleInRadians);
 }
 
-Vector CalculateCornerPoint(double FrictionAngle, double Cohesion, double TensileStrength)
+Vector CalculateCornerPoint(double FrictionAngleInRadians, double Cohesion, double TensileStrength)
 {
     // Check whether the tension cut-off lies beyond the apex
     auto result = Vector{ZeroVector(2)};
-    result[0]   = CalculateApex(FrictionAngle, Cohesion);
+    result[0]   = CalculateApex(FrictionAngleInRadians, Cohesion);
     if (TensileStrength > result[0]) return result;
 
-    result[0] = (TensileStrength - Cohesion * std::cos(FrictionAngle)) / (1.0 - std::sin(FrictionAngle));
-    result[1] = (Cohesion * std::cos(FrictionAngle) - TensileStrength * std::sin(FrictionAngle)) /
-                (1.0 - std::sin(FrictionAngle));
+    result[0] = (TensileStrength - Cohesion * std::cos(FrictionAngleInRadians)) /
+                (1.0 - std::sin(FrictionAngleInRadians));
+    result[1] = (Cohesion * std::cos(FrictionAngleInRadians) - TensileStrength * std::sin(FrictionAngleInRadians)) /
+                (1.0 - std::sin(FrictionAngleInRadians));
     return result;
 }
 
@@ -53,16 +54,17 @@ bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau, double Tens
            rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
 }
 
-bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau, double DilatancyAngle, const Vector& rCornerPoint)
+bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau, double DilatancyAngleInRadians, const Vector& rCornerPoint)
 {
-    return rTrialSigmaTau[0] - rCornerPoint[0] - (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
+    return rTrialSigmaTau[0] - rCornerPoint[0] -
+               (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngleInRadians) >=
+           0.0;
 }
 
 Vector ReturnStressAtTensionApexReturnZone(double TensileStrength)
 {
-    Vector result{2};
-    result[0] = TensileStrength;
-    result[1] = 0.0;
+    auto result = Vector{ZeroVector{2}};
+    result[0]   = TensileStrength;
     return result;
 }
 
@@ -91,11 +93,12 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
 
 namespace Kratos
 {
-CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(double FrictionAngleInRad,
+CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(double FrictionAngleInRadians,
                                                            double Cohesion,
-                                                           double DilatationAngleInRad,
+                                                           double DilatancyAngleInRadians,
                                                            double TensileStrength)
-    : mCoulombYieldSurface{FrictionAngleInRad, Cohesion, DilatationAngleInRad}, mTensionCutOff{TensileStrength}
+    : mCoulombYieldSurface{FrictionAngleInRadians, Cohesion, DilatancyAngleInRadians},
+      mTensionCutOff{TensileStrength}
 {
 }
 
@@ -111,17 +114,16 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
 
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperties, const Vector& rTrialSigmaTau) const
 {
-    Vector result;
     const auto apex = CalculateApex(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
                                     ConstitutiveLawUtilities::GetCohesion(rProperties));
-    const auto corner_point = CalculateCornerPoint(
-        ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
-        ConstitutiveLawUtilities::GetCohesion(rProperties), rProperties[GEO_TENSILE_STRENGTH]);
 
     if (IsStressAtTensionApexReturnZone(rTrialSigmaTau, rProperties[GEO_TENSILE_STRENGTH], apex)) {
         return ReturnStressAtTensionApexReturnZone(rProperties[GEO_TENSILE_STRENGTH]);
     }
 
+    const auto corner_point = CalculateCornerPoint(
+        ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
+        ConstitutiveLawUtilities::GetCohesion(rProperties), rProperties[GEO_TENSILE_STRENGTH]);
     if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau, rProperties[GEO_TENSILE_STRENGTH], apex, corner_point)) {
         return ReturnStressAtTensionCutoffReturnZone(
             rTrialSigmaTau, mTensionCutOff.DerivativeOfFlowFunction(rTrialSigmaTau),
