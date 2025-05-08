@@ -65,6 +65,9 @@ public:
 	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::Rotate;
     using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::RevertRotate;
 
+	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::WriteBlockMatrix;
+	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::ReadBlockMatrix;
+	
 	typedef Node NodeType;
 
 	typedef Geometry< Node > GeometryType;
@@ -580,7 +583,7 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 				{
 					if(NeedRotation[i] == true)
 					{	
-						this->ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
+						ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
 						noalias(tmp) = prod(mat_block,trans(rRot[j]));
 						noalias(mat_block) = prod(rRot[i],tmp);
 						
@@ -593,7 +596,7 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 									mat_block(k,l) = 0.0;
 							}
 						}
-						this->WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
+						WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
 					}
 				}
 
