@@ -185,6 +185,10 @@ public:
         return Element::Pointer(new ComputeMaterialDerivativeSimplex(NewId, pGeom, pProperties));
     }
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -316,6 +320,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    unsigned mInterpolationOrder = 1;
 
     ///@}
     ///@name Serialization

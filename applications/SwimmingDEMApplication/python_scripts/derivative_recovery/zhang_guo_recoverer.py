@@ -32,7 +32,7 @@ class ZhangGuoMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecove
     # def RecoverMaterialAcceleration(self):
         # self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
     def RecoverMaterialAcceleration(self):
-        self.RecoverGradientOfVelocity()
+        # self.RecoverGradientOfVelocity()  # This is already called by the strategy!
         self.RecoverMaterialAccelerationFromGradient()
 
 class ZhangGuoDirectLaplacianRecoverer(recoverer.LaplacianRecoverer):

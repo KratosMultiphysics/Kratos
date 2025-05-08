@@ -21,17 +21,21 @@ class StandardGradientRecoverer(recoverer.GradientRecoverer):
         self.RecoverGradientOfScalar(Kratos.PRESSURE, Fluid.RECOVERED_PRESSURE_GRADIENT)
 
 
-class StandardMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer):
+class StandardMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer, StandardGradientRecoverer):
     def __init__(self, project_parameters, model_part):
         recoverer.MaterialAccelerationRecoverer.__init__(self, project_parameters, model_part)
         self.compute_exact_L2 = project_parameters['compute_exact_L2'].GetBool()
+        self.store_full_gradient = project_parameters["store_full_gradient_option"].GetBool()
 
     def RecoverMaterialAcceleration(self):
         if self.compute_exact_L2:
             # self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeExactL2(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
             self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeExactL2Parallel(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
         else:
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
+            if not self.store_full_gradient:
+                self.RecoverMaterialAccelerationFromGradient()
+            else:
+                self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, Kratos.VELOCITY, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
 
 
 class StandardLaplacianRecoverer(recoverer.LaplacianRecoverer):

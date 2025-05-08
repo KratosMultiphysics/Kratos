@@ -4,6 +4,30 @@
 namespace Kratos
 {
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    if(TDim == 2){
+        if (TNumNodes == 9 || TNumNodes == 6)
+            mInterpolationOrder = 2;
+    }
+    else if(TDim == 3){
+        if (TNumNodes == 10 || TNumNodes == 27)
+            mInterpolationOrder = 2;
+    }
+
+    const unsigned int number_of_gauss_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+GeometryData::IntegrationMethod ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::GetIntegrationMethod() const
+{
+    if(mInterpolationOrder == 1)
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    else
+        return GeometryData::IntegrationMethod::GI_GAUSS_3;
+}
+
 /// Calculate the element's local contribution to the system for the current step.
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -153,13 +177,15 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateMassMatrix(Matr
     rMassMatrix = ZeroMatrix(LocalSize, LocalSize);
 
     // Get the element's geometric parameters
-    double Area;
-    array_1d<double, TNumNodes> N;
-    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+    // double Area;
+    // array_1d<double, TNumNodes> N;
+    // BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+    // GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
     // Add 'classical' mass matrix (lumped)
     if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){
+        const GeometryType& rGeom = this->GetGeometry();
+        double Area = rGeom.Area();
         double Coeff = Area / TNumNodes; //Optimize!
         this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
     }
@@ -184,10 +210,10 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateRHS(VectorType& F, const ProcessInfo& rCurrentProcessInfo)
 {
     // Get the element's geometric parameters
-    double Area;
-    array_1d<double, TNumNodes> N;
-    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+    // double Area;
+    // array_1d<double, TNumNodes> N;
+    // BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+    // GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
     MatrixType NContainer;
     ShapeFunctionDerivativesArrayType DN_DXContainer;
@@ -198,9 +224,8 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateRHS(VectorType&
     for (SizeType g = 0; g < NumGauss; g++){
         const double GaussWeight = GaussWeights[g];
         const ShapeFunctionsType& Ng = row(NContainer, g);
-        this->AddIntegrationPointRHSContribution(F, Ng, DN_DX, GaussWeight);
+        this->AddIntegrationPointRHSContribution(F, Ng, DN_DXContainer[g], GaussWeight);
     }
-
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -209,14 +234,16 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateWeights(ShapeFu
         Vector& rGaussWeights)
 {
     const GeometryType& rGeom = this->GetGeometry();
+    const GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
+
     Vector DetJ;
-    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_2);
-    rNContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, integration_method);
+    rNContainer = rGeom.ShapeFunctionsValues(integration_method);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(integration_method);
 
-    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2), false);
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(integration_method), false);
 
-    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(integration_method); g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 

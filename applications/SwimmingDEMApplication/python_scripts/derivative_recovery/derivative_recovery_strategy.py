@@ -148,10 +148,10 @@ class DerivativeRecoveryStrategy:
 
     def Recover(self):
         # Some of the following may be empty, and some may do the work of others for efficiency.
+        self.velocity_grad_tool.RecoverGradientOfVelocity()
         self.mat_deriv_tool.RecoverMaterialAcceleration()
         # standard = standard_recoverer.StandardMaterialAccelerationRecoverer(self.parameters, self.fluid_model_part)
         # standard.cplusplus_recovery_tool.SmoothVectorField(self.fluid_model_part, MATERIAL_ACCELERATION, VELOCITY_COMPONENT_GRADIENT)
-        self.velocity_grad_tool.RecoverGradientOfVelocity()
         self.pressure_grad_tool.RecoverPressureGradient()
         self.vorticity_tool.RecoverVorticityFromGradient()
         self.fluid_fraction_grad_tool.RecoverFluidFractionGradient()
