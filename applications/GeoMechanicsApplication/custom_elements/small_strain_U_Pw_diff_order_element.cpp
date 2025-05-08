@@ -511,7 +511,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         if (rVariable == CONFINED_STIFFNESS) {
             variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX) : static_cast<size_t>(INDEX_3D_XX);
         } else {
-            // rVariable == SHEAR_STIFFNESS
             variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY) : static_cast<size_t>(INDEX_3D_XZ);
         }
 
