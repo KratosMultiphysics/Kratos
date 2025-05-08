@@ -169,6 +169,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("PrepareContactElementsForPrinting", &ExplicitSolverStrategy::PrepareContactElementsForPrinting)
         .def("AttachSpheresToStickyWalls", &ExplicitSolverStrategy::AttachSpheresToStickyWalls)
         .def("ComputeCoordinationNumber", &ExplicitSolverStrategy::ComputeCoordinationNumber)
+        .def("SetSpSearch", &ExplicitSolverStrategy::SetSpSearch)
         ;
 
     py::class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
@@ -178,6 +179,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("HealAllBonds", &ContinuumExplicitSolverStrategy::HealAllBonds)
         .def("ComputeSkin", &ContinuumExplicitSolverStrategy::ComputeSkin)
         .def("RebuildListOfContinuumSphericParticles", &ContinuumExplicitSolverStrategy::RebuildListOfContinuumSphericParticles)
+        .def("SetSpSearchContinuum", &ContinuumExplicitSolverStrategy::SetSpSearchContinuum)
         ;
 
     py::class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")

@@ -259,6 +259,7 @@ namespace Kratos {
         void SynchronizeRHS(ModelPart& r_model_part);
         void Check_MPI(bool& has_mpi);
         virtual double ComputeCoordinationNumber(double& standard_dev);
+        void SetSpSearch(SpatialSearch::Pointer& pSpSearch);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}

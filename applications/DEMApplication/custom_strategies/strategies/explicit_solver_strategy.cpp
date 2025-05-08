@@ -1441,7 +1441,7 @@ namespace Kratos {
         typedef std::map<SphericParticle*,std::vector<SphericParticle*>> ConnectivitiesMap;
         std::vector<ConnectivitiesMap> thread_maps_of_connectivities;
         thread_maps_of_connectivities.resize(ParallelUtilities::GetNumThreads());
-
+        
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->mNeighbourElements.clear();
@@ -1890,5 +1890,15 @@ namespace Kratos {
         return 0.0;
 
         KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::SetSpSearch(SpatialSearch::Pointer& pSpSearch) {
+        
+        KRATOS_TRY
+
+        mpSpSearch = pSpSearch;
+
+        KRATOS_CATCH("")
+
     }
 }

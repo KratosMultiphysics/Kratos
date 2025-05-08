@@ -107,6 +107,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                   self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, self.solver_settings)
+    
+    def UpdateCPlusPlusStrategy(self):     
+        self.cplusplus_strategy.SetSpSearchContinuum(self.search_strategy)
 
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
