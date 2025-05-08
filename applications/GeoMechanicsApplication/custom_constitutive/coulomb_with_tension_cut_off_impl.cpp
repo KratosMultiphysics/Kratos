@@ -75,14 +75,6 @@ Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau,
     return rSigmaTau + lambda * rDerivativeOfFlowFunction;
 }
 
-Vector ReturnStressAtCornerReturnZone(const Vector& rCornerPoint)
-{
-    Vector result{2};
-    result[0] = rCornerPoint[0];
-    result[1] = rCornerPoint[1];
-    return result;
-}
-
 Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
                                         const Vector& rDerivativeOfFlowFunction,
                                         double        FrictionAngleInRadians,
@@ -138,7 +130,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
 
     if (IsStressAtCornerReturnZone(
             rTrialSigmaTau, MathUtils<>::DegreesToRadians(rProperties[GEO_DILATANCY_ANGLE]), corner_point)) {
-        return ReturnStressAtCornerReturnZone(corner_point);
+        return corner_point;
     }
 
     // Regular failure region
