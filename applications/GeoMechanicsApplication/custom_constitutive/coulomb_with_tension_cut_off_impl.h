@@ -22,6 +22,7 @@ namespace Kratos
 {
 
 class Properties;
+class Serializer;
 
 class CoulombWithTensionCutOffImpl
 {
