@@ -32,6 +32,7 @@ ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
     p_result->mTractionVectorFinalized = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
     p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
+    p_result->mIsModelInitialized                  = mIsModelInitialized;
     return p_result;
 }
 
@@ -56,7 +57,11 @@ void InterfaceCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVariab
     }
 }
 
-SizeType InterfaceCoulombWithTensionCutOff::WorkingSpaceDimension() { return N_DIM_2D; }
+SizeType InterfaceCoulombWithTensionCutOff::WorkingSpaceDimension()
+{
+    // Note that this implementation assumes line interface elements. It needs to be modified when planar interface elements become available.
+    return N_DIM_2D;
+}
 
 int InterfaceCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
                                              const GeometryType& rElementGeometry,
@@ -84,6 +89,7 @@ ConstitutiveLaw::StressMeasure InterfaceCoulombWithTensionCutOff::GetStressMeasu
 
 SizeType InterfaceCoulombWithTensionCutOff::GetStrainSize() const
 {
+    // Note that this implementation assumes line interface elements. It needs to be modified when planar interface elements become available.
     return VOIGT_SIZE_2D_INTERFACE;
 }
 
@@ -122,15 +128,16 @@ void InterfaceCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Paramet
 
 void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
-    const auto& r_prop = rParameters.GetMaterialProperties();
+    const auto& r_properties = rParameters.GetMaterialProperties();
 
-    auto trial_sigma_tau = CalculateTrialTractionVector(
-        rParameters.GetStrainVector(), r_prop[INTERFACE_NORMAL_STIFFNESS], r_prop[INTERFACE_SHEAR_STIFFNESS]);
-    const auto negative = std::signbit(trial_sigma_tau[1]);
-    trial_sigma_tau[1]  = std::abs(trial_sigma_tau[1]);
+    auto       trial_sigma_tau = CalculateTrialTractionVector(rParameters.GetStrainVector(),
+                                                              r_properties[INTERFACE_NORMAL_STIFFNESS],
+                                                              r_properties[INTERFACE_SHEAR_STIFFNESS]);
+    const auto negative        = std::signbit(trial_sigma_tau[1]);
+    trial_sigma_tau[1]         = std::abs(trial_sigma_tau[1]);
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
-        trial_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau);
+        trial_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(r_properties, trial_sigma_tau);
     }
 
     if (negative) trial_sigma_tau[1] *= -1.0;
@@ -144,7 +151,8 @@ Vector InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vec
                                                                        double NormalStiffness,
                                                                        double ShearStiffness) const
 {
-    return mTractionVectorFinalized + prod(MakeConstitutiveMatrix(NormalStiffness, ShearStiffness),
+    return mTractionVectorFinalized + prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+                                               NormalStiffness, ShearStiffness, GetStrainSize()),
                                            rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
 }
 
@@ -160,21 +168,13 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(ConstitutiveLaw::Param
 {
     if (rVariable == CONSTITUTIVE_MATRIX) {
         const auto& r_properties = rParameterValues.GetMaterialProperties();
-        rValue                   = MakeConstitutiveMatrix(r_properties[INTERFACE_NORMAL_STIFFNESS],
-                                                          r_properties[INTERFACE_SHEAR_STIFFNESS]);
+        rValue                   = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+            r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS], GetStrainSize());
     } else {
         KRATOS_ERROR << "Can't calculate value of " << rVariable.Name() << ": unsupported variable\n";
     }
 
     return rValue;
-}
-
-Matrix InterfaceCoulombWithTensionCutOff::MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const
-{
-    auto result  = Matrix{ZeroMatrix{GetStrainSize(), GetStrainSize()}};
-    result(0, 0) = NormalStiffness;
-    result(1, 1) = ShearStiffness;
-    return result;
 }
 
 void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const

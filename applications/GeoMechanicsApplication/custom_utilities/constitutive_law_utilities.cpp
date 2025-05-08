@@ -99,4 +99,14 @@ void ConstitutiveLawUtilities::CheckProperty(const Properties&       rMaterialPr
         << (MaxValue ? std::to_string(*MaxValue) + "]" : "->") << std::endl;
 }
 
+Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+                                                                 double      ShearStiffness,
+                                                                 std::size_t TractionSize)
+{
+    auto result  = Matrix{ZeroMatrix{TractionSize, TractionSize}};
+    result(0, 0) = NormalStiffness;
+    result(1, 1) = ShearStiffness;
+    return result;
+}
+
 } // namespace Kratos

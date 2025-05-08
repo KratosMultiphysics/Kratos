@@ -58,7 +58,6 @@ private:
     [[nodiscard]] Vector CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
                                                       double        NormalStiffness,
                                                       double        ShearStiffness) const;
-    [[nodiscard]] Matrix MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
