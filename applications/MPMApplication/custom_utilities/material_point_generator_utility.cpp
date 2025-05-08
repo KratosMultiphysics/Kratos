@@ -385,7 +385,10 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
-                            condition_type_name = "MPMParticlePenaltyDirichletCondition";
+                            if(boundary_condition_type==1)
+                                condition_type_name = "MPMParticlePenaltyDirichletCondition";
+                            else if(boundary_condition_type==2 || boundary_condition_type==3)
+                                condition_type_name = "MPMParticleLagrangeDirichletCondition";
                         }
                         else{
                             if(r_cond.Has( POINT_LOAD ) ){
@@ -517,7 +520,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                                     // Mark as boundary condition
                                     p_condition->Set(BOUNDARY, true);
 
-                                    if (boundary_condition_type == 1)
+                                    if (boundary_condition_type == 1 || boundary_condition_type == 2 || boundary_condition_type == 3)
                                     {
                                         p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
                                     }
@@ -990,6 +993,28 @@ namespace Kratos::MaterialPointGeneratorUtility
         }
     }
 
+    void GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart)
+    {
+        for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i)
+        {
+            auto element_itr = (rBackgroundGridModelPart.ElementsBegin() + i);
+            auto coord = element_itr->GetGeometry().Center();
+            const int id = rBackgroundGridModelPart.GetRootModelPart().Nodes().back().Id();
+            auto p_new_node = rBackgroundGridModelPart.CreateNewNode(id + 1, coord[0], coord[1], coord[2]);
+
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
+
+            p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
+            p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
+            p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+            element_itr->GetGeometry().SetValue(MPC_LAGRANGE_NODE, p_new_node);
+            element_itr->GetGeometry().SetValue(MPC_COUNTER, 0);
+            element_itr->GetGeometry().SetValue(MP_COUNTER, 0);
+        }
+    }
     //
     // Specializing the functions for the templates
     //
