@@ -92,14 +92,19 @@ class TrilinosMechanicalSolver(MechanicalSolver):
             guess_row_size = 15
         else:
             guess_row_size = 45
-        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+
+        builder_and_solver_type: str = self.settings["builder_and_solver_settings"]["type"].GetString()
+        if builder_and_solver_type == "block":
             builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(epetra_communicator,
                                                                                    guess_row_size,
                                                                                    linear_solver)
-        else:
+        elif builder_and_solver_type == "elimination":
             builder_and_solver = TrilinosApplication.TrilinosEliminationBuilderAndSolver(epetra_communicator,
                                                                                          guess_row_size,
                                                                                          linear_solver)
+        else:
+            raise ValueError(f"Unsupported builder and solver type '{builder_and_solver_type}'. Options are 'block', 'elimination'.")
+
         return builder_and_solver
 
     def _create_linear_strategy(self):
