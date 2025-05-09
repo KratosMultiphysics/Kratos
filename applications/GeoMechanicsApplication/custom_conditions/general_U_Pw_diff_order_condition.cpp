@@ -104,15 +104,6 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix&            rLeft
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR << "GeneralUPwDiffOrderCondition::CalculateLeftHandSide is not implemented" << std::endl;
-
-    KRATOS_CATCH("")
-}
-
 void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector&            rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
