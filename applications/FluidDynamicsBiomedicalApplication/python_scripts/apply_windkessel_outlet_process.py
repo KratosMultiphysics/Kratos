@@ -30,6 +30,7 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
             "resistance1"        : 0.0,
             "resistance2"        : 0.0,
             "compliance"         : 0.0,
+            "venous_pressure"    : 0.0,
             "initial_pressure"   : 0.0,
             "pressure_in_mmHg"   : true,
             "echo_level"         : 0
@@ -54,6 +55,7 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
         pres_settings.RemoveValue("resistance2")
         pres_settings.RemoveValue("compliance")
         pres_settings.RemoveValue("initial_pressure")
+        pres_settings.RemoveValue("venous_pressure")
         pres_settings.RemoveValue("echo_level")
 
         # Create a copy of the PRESSURE settings to set the EXTERNAL_PRESSURE
@@ -81,14 +83,17 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
         self.R2      = settings["resistance2"].GetDouble()
         self.C       = settings["compliance"].GetDouble()
         p0_mmHg      = settings["initial_pressure"].GetDouble()
+        pv_mmHg      = settings["venous_pressure"].GetDouble()
         self.echo    = settings["echo_level"].GetInt()
         self.pressure_in_mmHg = settings["pressure_in_mmHg"].GetBool()
 
         self.conv = 13.545*9.81 # Pressure conversion factor. It is used if pressure is provided in mmHg
         if self.pressure_in_mmHg is True:
+            self.pv = pv_mmHg*self.conv
             p0 = p0_mmHg*self.conv
         else:
-            p0 = p0_mmHg   # The pressure variable passed from the json file is given in Pa
+            self.pv = pv_mmHg
+            p0      = p0_mmHg   # The pressure variable passed from the json file is given in Pa
 
 
         self.previous_q1 = 0.0
@@ -109,7 +114,7 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
 
         self.current_q1 = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRate(self.outlet_model_part)
 
-        self.modified_p1 = (1/self.C*(self.current_q1*( 1 + self.R1/self.R2) + self.R1*self.C*(self.current_q1 - self.previous_q1)/delta_t - self.current_p1/self.R2))*delta_t + self.current_p1
+        self.modified_p1 = (1/self.C*(self.current_q1*( 1 + self.R1/self.R2) + self.R1*self.C*(self.current_q1 - self.previous_q1)/delta_t - (self.current_p1 - self.pv)/self.R2))*delta_t + self.current_p1
 
         if self.echo > 0:
             print('Current flow rate', self.current_q1)
