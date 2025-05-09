@@ -359,7 +359,7 @@ namespace Kratos
 				}
 			}
 
-			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separeted elements in the water front
+			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separated elements in the water front
 			if (longDamBreak)
 				ControlForLongDamBreakProblems2D(eElement, inletElement, inside_nodes_removed, nodes_removed_inlet_zone);
 
