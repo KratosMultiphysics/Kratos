@@ -487,7 +487,7 @@ namespace Kratos
                 if (is_inside)
                     vol = ComputeVolumeParticle(particle) - (a1+a2+a3+a4);
                 else
-                    vol = std::max({a1,a2,a3,a4}) - std::max(std::min({a1,a2,a3,a4}), 0.0);
+                    vol = std::max({a1,a2,a3,a4}); // If outside, only one edge can cut the circle (the only non-zero ai)
             }
             // Circle with vertex inside (no more than 1)
             else {
@@ -501,13 +501,13 @@ namespace Kratos
                         // Other edge end coordinates
                         double xe1, ye1;
                         double xe2, ye2;
-                        if (i == 1) {
-                            xe1 = xv[2]; ye1 = yv[2];
-                            xe2 = xv[4]; ye2 = yv[4];
-                        }
-                        else if (i == 4) {
+                        if (i == 0) {
                             xe1 = xv[1]; ye1 = yv[1];
                             xe2 = xv[3]; ye2 = yv[3];
+                        }
+                        else if (i == 3) {
+                            xe1 = xv[0]; ye1 = yv[0];
+                            xe2 = xv[2]; ye2 = yv[2];
                         }
                         else {
                             xe1 = xv[i-1]; ye1 = yv[i-1];
@@ -525,15 +525,8 @@ namespace Kratos
 
                         // Area of circle segment formed by the intersection points and circumference
                         double xt = (xb+xc)/2.0, yt = (yb+yc)/2.0;            // Middle coordinates of the chord between intersection points (xb,yb)->(xc,yc)
-                        double d1 = std::sqrt((xt-x)*(xt-x) + (yt-y)*(yt-y)); // Distance: circle center - chord middle
-                        double d2 = std::sqrt((xa-x)*(xa-x) + (ya-y)*(ya-y)); // Distance: circle center - vertex
-                        double dot = (xa-x)*(xt-x) + (ya-y)*(yt-y);           // Dot product between colinear vectors (circle center)->(vertex) and (circle center)->(chord middle)
-
-                        double area_segment;
-                        if (dot > 0.0 && d2 > d1)
-                        area_segment = ComputeVolumeParticle(particle) - ComputeAreaCircleSegment(r,d1);
-                        else
-                        area_segment = ComputeAreaCircleSegment(r,d1);
+                        double dt = std::sqrt((xt-x)*(xt-x) + (yt-y)*(yt-y)); // Distance: circle center - chord middle
+                        double area_segment = ComputeAreaCircleSegment(r,dt);
 
                         // Total area delimited by the edges
                         vol = area_triangle + area_segment;
@@ -880,7 +873,7 @@ namespace Kratos
             return 0.0;
         }
         else {
-            return (r*r * acos(d/r)) - (d * sqrt(r*r - d*d));
+            return std::max(0.0, (r*r * acos(d/r)) - (d * sqrt(r*r - d*d))); // safeguard to avoid negative values due to numerical issues
         }
     }
 
@@ -913,10 +906,15 @@ namespace Kratos
     void RVEWallBoundary2D::ComputeIntersectionCircleSegment(double r, double x, double y, double xa, double ya, double xb, double yb, double& xc, double& yc) {
         double dx = xb - xa;
         double dy = yb - ya;
-        double A = dx*dx + dy*dy;
-        double B = 2.0 * ((xa-x)*dx + (ya-y)*dy);
-        double C = (xa-x) * (xa-x) + (ya-y) * (ya-y) - r*r;
-        double t = (-B - std::sqrt(B*B-4*A*C)) / (2*A);
+        double A = dx * dx + dy * dy;
+        double B = 2.0 * ((xa - x) * dx + (ya - y) * dy);
+        double C = (xa - x) * (xa - x) + (ya - y) * (ya - y) - r * r;
+        double sqrt_disc = std::sqrt(B * B - 4 * A * C);
+
+        double t1 = (-B - sqrt_disc) / (2 * A);
+        double t2 = (-B + sqrt_disc) / (2 * A);
+        double t = (t1 >= 0.0 && t1 <= 1.0) ? t1 : t2;
+
         xc = xa + t * dx;
         yc = ya + t * dy;
     }
