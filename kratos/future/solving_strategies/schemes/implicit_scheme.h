@@ -64,14 +64,14 @@ namespace Kratos::Future
  * Thread Local Storage container to be used in the parallel assembly of implicit problems
  * @tparam DataType data type of the problem to be solved
  */
-template<class DataType = double >
+template<class TDataType = double >
 struct ImplicitThreadLocalStorage
 {
     // Local LHS contribution
-    DenseMatrix<DataType> LocalMatrix;
+    DenseMatrix<TDataType> LocalMatrix;
 
     // Local RHS constribution
-    DenseVector<DataType> LocalVector;
+    DenseVector<TDataType> LocalVector;
 
     // Vector containing the localization in the system of the different terms
     Element::EquationIdVectorType LocalEqIds;
@@ -92,13 +92,11 @@ struct ImplicitThreadLocalStorage
  */
 //TODO: Think about the template parameters
 
-//TODO: Make base classes:
-// scheme.h --> pure virtual!
-// implicit_scheme.h --> the one we have in here
 template<class TSparseMatrixType, class TSparseVectorType, class TSparseGraphType>
 class ImplicitScheme
 {
 public:
+
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
     // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSparseVectorType)
@@ -226,25 +224,41 @@ public:
     }
 
     /**
-     * @brief Function called once at the beginning of each solution step.
-     * @details The basic operations to be carried in there are the following:
-     * - managing variables to be kept constant over the time step (for example time-Scheme constants depending on the actual time step)
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @brief Function called once at the beginning of each solution step
+     * The basic operations to be carried out in here are the following:
+     * 1) Set up the DOF array from the element and conditions DOFs (SetUpDofArray)
+     * 2) Set up the system ids (i.e., the DOFs equation id) for the element and condition DOF array
+     * 3) Construct the master slave constraints structure (this includes the effective DOF array, the effective DOF id map and the relation and constant arrays)
+     * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
+     * 5) Call the InitializeSolutionStep of all entities
+     * Further operations might be required depending on the time integration scheme
+     * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
+     * @param rEffectiveDofIdMap A map relating each effective DOF to its effective id
+     * @param rpA The system left hand side matrix
+     * @param rpEffectiveLhs The effective left hand side matrix
+     * @param rpB The system right hand side vector
+     * @param rpEffectiveRhs The effective right hand side vector
+     * @param rpDx The solution update vector
+     * @param rpEffectiveDx The effective solution update vector
+     * @param rConstraintsRelationMatrix The assembled constraints relation matrix (i.e. T)
+     * @param rConstraintsConstantVector The assembled constraints constant vector
+     * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
      */
     virtual void InitializeSolutionStep(
         DofsArrayType& rDofSet,
         DofsArrayType& rEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         typename TSparseMatrixType::Pointer& rpA,
+        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpB,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpEffectiveDx,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector,
-        const bool ReformDofSet = true)
+        const bool ReformDofSets = true)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'InitializeSolutionStep\' method. Call derived class one." << std::endl;
     }
@@ -345,8 +359,10 @@ public:
     virtual void ResizeAndInitializeVectors(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        typename TSparseMatrixType::Pointer& rpLHS,
-        typename TSparseVectorType::Pointer& rpRHS,
+        typename TSparseMatrixType::Pointer& rpLhs,
+        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
+        typename TSparseVectorType::Pointer& rpRhs,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpEffectiveDx,
         const bool CalculateReactions = false)
@@ -355,7 +371,7 @@ public:
 
         // Call the assembly helper to allocate and initialize the required vectors
         // Note that this also allocates the required reaction vectors (e.g., elimination build)
-        (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpLHS, rpRHS, rpDx, rpEffectiveDx, CalculateReactions);
+        (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rpDx, rpEffectiveDx, CalculateReactions);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
 
@@ -429,7 +445,7 @@ public:
 
     virtual void Build(TSparseVectorType& rRHS)
     {
-        Timer::Start("Build");
+        Timer::Start("BuildRightHandSide");
 
         const auto timer = BuiltinTimer();
 
@@ -466,10 +482,10 @@ public:
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
         r_assembly_helper.AssembleRightHandSide(rRHS, aux_tls);
 
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build time (RightHandSide only): " << timer << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building (RightHandSide only)" << std::endl;
 
-        Timer::Stop("Build");
+        Timer::Stop("BuildRightHandSide");
     }
 
     virtual void Build(TSparseMatrixType& rLHS)
@@ -487,7 +503,7 @@ public:
         //TODO: IMPLEMENTATION
     }
 
-    virtual void BuildConstraints(
+    virtual void BuildMasterSlaveConstraints(
         const DofsArrayType& rDofSet,
         const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
@@ -499,10 +515,6 @@ public:
             const auto timer_constraints = BuiltinTimer();
 
             const auto const_func = [](ModelPart::MasterSlaveConstraintConstantIteratorType ItConst, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-                // // Get the positions in the global system
-                // // Note that we always do this in order to treat inactive constraints as standard DOFs while assembling
-                // ItConst->EquationIdVector(rTLS.SlaveEqIds, rTLS.MasterEqIds, rProcessInfo);
-
                 if (ItConst->Is(ACTIVE)) {
                     // Calculate local relation matrix and constant vector contributions
                     ItConst->CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
@@ -532,7 +544,7 @@ public:
         }
     }
 
-    virtual void ApplyConstraints(
+    virtual void ApplyMasterSlaveConstraints(
         typename TSparseMatrixType::Pointer& rpLhs,
         typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpRhs,
@@ -557,6 +569,33 @@ public:
             // If there are no constraints the effective arrays are the same as the input ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
             rpEffectiveLhs = rpLhs;
+            rpEffectiveRhs = rpRhs;
+            rpEffectiveDx = rpDx;
+        }
+    }
+
+    virtual void ApplyMasterSlaveConstraints(
+        typename TSparseVectorType::Pointer& rpRhs,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
+        typename TSparseVectorType::Pointer& rpDx,
+        typename TSparseVectorType::Pointer& rpEffectiveDx,
+        const TSparseMatrixType& rConstraintsRelationMatrix,
+        const TSparseVectorType& rConstraintsConstantVector)
+    {
+        if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
+            Timer::Start("ApplyConstraintsRightHandSide");
+
+            const auto timer_constraints = BuiltinTimer();
+
+            auto& r_assembly_helper = GetAssemblyHelper();
+            r_assembly_helper.ApplyMasterSlaveConstraints(rpRhs, *rpEffectiveRhs, *rpDx, *rpEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
+
+            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints apply time (RightHandSide only): " << timer_constraints << std::endl;
+
+            Timer::Stop("ApplyConstraintsRightHandSide");
+        } else {
+            // If there are no constraints the effective arrays are the same as the input ones
+            // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
             rpEffectiveRhs = rpRhs;
             rpEffectiveDx = rpDx;
         }
@@ -738,6 +777,8 @@ public:
 
         // Reset initialization flags
         mSchemeIsInitialized = false;
+
+        mSchemeSolutionStepIsInitialized = false;
 
         // Clear the assembly helper
         GetAssemblyHelper().Clear();

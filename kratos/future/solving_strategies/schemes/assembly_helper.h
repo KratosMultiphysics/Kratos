@@ -165,8 +165,10 @@ public:
     virtual void ResizeAndInitializeVectors(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        typename TSparseMatrixType::Pointer& rpLHS,
-        typename TSparseVectorType::Pointer& rpRHS,
+        typename TSparseMatrixType::Pointer& rpLhs,
+        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
+        typename TSparseVectorType::Pointer& rpRhs,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpEffectiveDx,
         const bool ReactionVector = false)
@@ -179,16 +181,25 @@ public:
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
         auto p_lhs = Kratos::make_shared<TSparseMatrixType>(sparse_graph);
-        rpLHS.swap(p_lhs);
+        rpLhs.swap(p_lhs);
 
         auto p_dx = Kratos::make_shared<TSparseVectorType>(sparse_graph);
         rpDx.swap(p_dx);
 
-        auto p_eff_dx = Kratos::make_shared<TSparseVectorType>(rEffectiveDofSet.size());
-        rpEffectiveDx.swap(p_eff_dx);
-
         auto p_rhs = Kratos::make_shared<TSparseVectorType>(sparse_graph);
-        rpRHS.swap(p_rhs);
+        rpRhs.swap(p_rhs);
+
+        // Set the effective arrays
+        // In a standard case we only need to allocate the effective solution update to avoid the first Predict() call to crash
+        if (rDofSet == rEffectiveDofSet) {
+            // If there are no constraints, the effective DOF set matches the standard one and the effective arrays are the same as the input ones
+            // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
+            rpEffectiveDx = rpDx;
+        } else {
+            // Note that we only need to allocate the effective solution vector as the effective LHS and RHS would be allocated when applying the constraints
+            auto p_eff_dx = Kratos::make_shared<TSparseVectorType>(rEffectiveDofSet.size());
+            rpEffectiveDx.swap(p_eff_dx);
+        }
 
         //TODO: Maybe we can avoid this if we rebuild the RHS for the reactions calculation --> Check it in the future
         // For the elimination build, also allocate the auxiliary reactions vector
@@ -219,6 +230,7 @@ public:
     {
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Current equation system size is 0. Sparse graph cannot be set (call \'SetUpSystemIds\' first)." << std::endl;
 
+        //TODO: This is always thrown as the mEquationSystemSize is already in the graph. I'd use the move (not implemented constructor)
         if (!rSparseGraph.IsEmpty()) {
             KRATOS_WARNING("AssemblyHelper") << "Provided sparse graph is not empty and will be cleared." << std::endl;
             rSparseGraph.Clear();
@@ -353,6 +365,24 @@ public:
             ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpLhs, rpEffectiveLhs, rpRhs, rEffectiveRhs, rDx, rEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
         } else if (mBuildType == BuildType::Elimination) {
             ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpLhs, rpEffectiveLhs, rpRhs, rEffectiveRhs, rDx, rEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
+        } else {
+            KRATOS_ERROR << "Build type not supported." << std::endl;
+        }
+    }
+
+    virtual void ApplyMasterSlaveConstraints(
+        typename TSparseVectorType::Pointer& rpRhs,
+        TSparseVectorType& rEffectiveRhs,
+        TSparseVectorType& rDx,
+        TSparseVectorType& rEffectiveDx,
+        const TSparseMatrixType& rConstraintsRelationMatrix,
+        const TSparseVectorType& rConstraintsConstantVector)
+    {
+        //TODO: Do it as the other assembly functions
+        if (mBuildType == BuildType::Block) {
+            ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpRhs, rEffectiveRhs, rDx, rEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
+        } else if (mBuildType == BuildType::Elimination) {
+            ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpRhs, rEffectiveRhs, rDx, rEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
         } else {
             KRATOS_ERROR << "Build type not supported." << std::endl;
         }
@@ -965,6 +995,8 @@ private:
         rEffectiveDofSet.clear();
         rEffectiveDofIdMap.clear();
 
+        //FIXME: Do the IsActiveConstraints in here and set a flag that stays "forever"
+
         // Check if there are constraints to build the effective DOFs map and the corresponding arrays
         const SizeType n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
         if (n_constraints) {
@@ -1013,7 +1045,7 @@ private:
             std::sort(
                 ordered_eff_dofs_vector.begin(),
                 ordered_eff_dofs_vector.end(),
-                [](typename DofType::Pointer pA, typename DofType::Pointer pB){return *pA > *pB;});
+                [](const typename DofType::Pointer& pA, const typename DofType::Pointer& pB){return *pA > *pB;});
 
             // Fill the effective DOFs PVS with the sorted effective DOFs container
             rEffectiveDofSet = std::move(DofsArrayType(ordered_eff_dofs_vector));
@@ -1279,7 +1311,53 @@ private:
         } else {
             static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
         }
+    }
 
+    template <BuildType TBuildType>
+    void ApplyMasterSlaveConstraintsImplementation(
+        typename TSparseVectorType::Pointer& rpRhs,
+        TSparseVectorType& rEffectiveRhs,
+        TSparseVectorType& rDx,
+        TSparseVectorType& rEffectiveDx,
+        const TSparseMatrixType& rConstraintsRelationMatrix,
+        const TSparseVectorType& rConstraintsConstantVector)
+    {
+        if constexpr (TBuildType == BuildType::Block) {
+            // Get the effective size as the number of master DOFs
+            // Note that this matches the number of columns in the constraints relation matrix
+            const SizeType n_master = rConstraintsRelationMatrix.size2();
+
+            // Initialize the effective RHS
+            if (rEffectiveRhs.size() != n_master) {
+                rEffectiveRhs = std::move(TSparseVectorType(n_master));
+            }
+            rEffectiveRhs.SetValue(0.0);
+
+            // Initialize the effective solution vector
+            if (rEffectiveDx.size() != n_master) {
+                rEffectiveDx = std::move(TSparseVectorType(n_master));
+            }
+            rEffectiveDx.SetValue(0.0);
+
+            // Apply constraints to RHS
+            rConstraintsRelationMatrix.TransposeSpMV(*rpRhs, rEffectiveRhs);
+
+            // // Compute the scale factor value
+            // //TODO: think on how to make this user-definable
+            // const double scale_factor = rpEffectiveLhs->NormDiagonal();
+
+            // // Apply diagonal values on slave DOFs
+            // IndexPartition<IndexType>(mSlaveIds.size()).for_each([&](IndexType Index){
+            //     const IndexType slave_eq_id = mSlaveIds[Index];
+            //     if (mInactiveSlaveDofs.find(slave_eq_id) == mInactiveSlaveDofs.end()) {
+            //         rEffectiveRhs[slave_eq_id] = 0.0;
+            //     }
+            // });
+        } else if (TBuildType == BuildType::Elimination) {
+
+        } else {
+            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
+        }
     }
 
     ///@}

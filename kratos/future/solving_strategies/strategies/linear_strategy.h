@@ -184,8 +184,8 @@ public:
 
             // Build the local system and apply the Dirichlet conditions
             p_scheme->Build(*p_lhs, *p_rhs);
-            p_scheme->BuildConstraints(r_dof_set, r_eff_dof_map, r_T, r_b);
-            p_scheme->ApplyConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
+            p_scheme->BuildMasterSlaveConstraints(r_dof_set, r_eff_dof_map, r_T, r_b);
+            p_scheme->ApplyMasterSlaveConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
             p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_lhs, *p_eff_rhs);
             this->SetStiffnessMatrixIsBuilt(true);
         } else {
@@ -195,7 +195,7 @@ public:
 
             // Build the RHS and apply the Dirichlet conditions
             p_scheme->Build(*p_rhs);
-            p_scheme->ApplyConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b); //TODO: In here we should apply them to the RHS-only!
+            p_scheme->ApplyMasterSlaveConstraints(p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
             p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_rhs);
         }
 
@@ -219,6 +219,8 @@ public:
         if (this->GetComputeReactions()) {
             p_scheme->CalculateReactions(r_dof_set, *p_rhs);
         }
+
+        //FIXME: Free the effective arrays memory if p_lhs != p_eff_lhs
 
         return true;
     }

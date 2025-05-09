@@ -188,12 +188,14 @@ KRATOS_TEST_CASE_IN_SUITE(StaticScheme, KratosCoreFastSuite)
     CsrMatrix<> T;
     SystemVector<> b;
     auto p_lhs = Kratos::make_shared<CsrMatrix<>>();
-    auto p_rhs = Kratos::make_shared<SystemVector<>>();
+    auto p_eff_lhs = Kratos::make_shared<CsrMatrix<>>();
     auto p_dx = Kratos::make_shared<SystemVector<>>();
     auto p_eff_dx = Kratos::make_shared<SystemVector<>>();
+    auto p_rhs = Kratos::make_shared<SystemVector<>>();
+    auto p_eff_rhs = Kratos::make_shared<SystemVector<>>();
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(dof_set, eff_dof_set, eff_dof_map, p_lhs, p_rhs, p_dx, p_eff_dx, T, b);
+    p_scheme->InitializeSolutionStep(dof_set, eff_dof_set, eff_dof_map, p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, T, b);
 
     // Call the build
     p_scheme->Build(*p_lhs, *p_rhs);
@@ -568,26 +570,21 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraint, KratosCor
     const double elem_size = 1.0;
     SetUpTestSchemesModelPart(num_elems, elem_size, r_test_model_part);
 
-    // Create the nodes to apply the rigid body motion constraint
-    auto p_node_5 = r_test_model_part.CreateNewNode(5, 0.0, 0.0, 0.0);
-    p_node_5->AddDof(DISTANCE);
-
-    // Mesh:  x    x ---- x ---- x ---- x
-    // DOFs: u_5  u_1 -- u_2 -- u_3 -- u_4
-    // Create an average constraint to remove the rigid body motions as 0.25*u_1 + 0.25*u_2 + 0.25*u_3 + 0.25*u_4 = u_5
-    typename LinearMasterSlaveConstraint::DofPointerVectorType slave_dofs;
-    slave_dofs.push_back(r_test_model_part.GetNode(1).pGetDof(DISTANCE));
-    slave_dofs.push_back(r_test_model_part.GetNode(2).pGetDof(DISTANCE));
-    slave_dofs.push_back(r_test_model_part.GetNode(3).pGetDof(DISTANCE));
-    slave_dofs.push_back(r_test_model_part.GetNode(4).pGetDof(DISTANCE));
-    typename LinearMasterSlaveConstraint::DofPointerVectorType master_dofs;
-    master_dofs.push_back(p_node_5->pGetDof(DISTANCE));
-    Matrix relation_matrix(4,1);
-    relation_matrix(0,0) = 0.25;
-    relation_matrix(1,0) = 0.25;
-    relation_matrix(2,0) = 0.25;
-    relation_matrix(3,0) = 0.25;
-    Vector constant_vector = ZeroVector(4);
+    // Mesh:  x ---- x ---- x ---- x
+    // DOFs: u_1 -- u_2 -- u_3 -- u_4
+    // Create an average constraint to enforce the average solution to be zero (i.e., no rigid body motion)
+    // We do this as u_4 = - u_1 - u_2 - u_3 as u_1 + u_2 + u_3 + u_4 = u_1 + u_2 + u_3 + (- u_1 - u_2 - u_3) = 0
+    typename LinearMasterSlaveConstraint::DofPointerVectorType slave_dofs(1);
+    slave_dofs[0] = r_test_model_part.GetNode(4).pGetDof(DISTANCE);
+    typename LinearMasterSlaveConstraint::DofPointerVectorType master_dofs(3);
+    master_dofs[0] = r_test_model_part.GetNode(1).pGetDof(DISTANCE);
+    master_dofs[1] = r_test_model_part.GetNode(2).pGetDof(DISTANCE);
+    master_dofs[2] = r_test_model_part.GetNode(3).pGetDof(DISTANCE);
+    Matrix relation_matrix(1,3);
+    relation_matrix(0,0) = -1.0;
+    relation_matrix(0,1) = -1.0;
+    relation_matrix(0,2) = -1.0;
+    Vector constant_vector = ZeroVector(1);
     auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, master_dofs, slave_dofs, relation_matrix, constant_vector);
     p_const_1->Set(ACTIVE, true);
@@ -612,10 +609,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraint, KratosCor
     })");
     auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
-    // Apply Dirichlet BC to remove the average body motion
-    p_node_5->FastGetSolutionStepValue(DISTANCE, 0) = 0.0;
-    p_node_5->Fix(DISTANCE);
-
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
@@ -626,10 +619,10 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraint, KratosCor
     p_strategy->Clear();
 
     // Check results
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
-    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), -0.125, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 0.125, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 0.125, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), -0.125, 1.0e-12);
 #else
     true;
 #endif

@@ -197,7 +197,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mDofSet, mEffectiveDofSet, mEffectiveDofIdMap, mpA, mpb, mpdx, mpEffectiveDx, mConstraintsRelationMatrix, mConstraintsConstantVector, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mDofSet, mEffectiveDofSet, mEffectiveDofIdMap, mpA, mpEffectiveLhs, mpb, mpEffectiveRhs, mpdx, mpEffectiveDx, mConstraintsRelationMatrix, mConstraintsConstantVector, mReformDofsAtEachStep);
 
         KRATOS_CATCH("")
     }
@@ -738,22 +738,16 @@ private:
 
     EffectiveDofsMapType mEffectiveDofIdMap; /// The pointer to ids map containing the effective DOFs of the system
 
-    //TODO: Should these be unique_ptr?
     SystemVectorPointerType mpdx = nullptr; /// The incremement in the solution //TODO: use naming convention
 
-    //TODO: Should these be unique_ptr?
     SystemVectorPointerType mpb = nullptr; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
 
-    //TODO: Should these be unique_ptr?
     SystemMatrixPointerType mpA = nullptr; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
 
-    //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same matrix)
     SystemMatrixPointerType mpEffectiveLhs = Kratos::make_shared<TMatrixType>(); /// The LHS matrix of the system of equations
 
-    //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same vector)
     SystemVectorPointerType mpEffectiveRhs = Kratos::make_shared<TVectorType>(); /// The RHS vector of the system of equations
 
-    //TODO: Should these be unique_ptr? --> This we cannot for the case without constraints (effective and original point to the same vector)
     SystemVectorPointerType mpEffectiveDx = Kratos::make_shared<TVectorType>(); /// The effective solution increment for the constrained system
 
     SystemMatrixType mConstraintsRelationMatrix; // Constraints relation matrix

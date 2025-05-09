@@ -177,17 +177,43 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
+
+    /**
+     * @brief Function called once at the beginning of each solution step
+     * The basic operations to be carried out in here are the following:
+     * 1) Set up the DOF array from the element and conditions DOFs (SetUpDofArray)
+     * 2) Set up the system ids (i.e., the DOFs equation id) for the element and condition DOF array
+     * 3) Construct the master slave constraints structure (this includes the effective DOF array, the effective DOF id map and the relation and constant arrays)
+     * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
+     * 5) Call the InitializeSolutionStep of all entities
+     * Further operations might be required depending on the time integration scheme
+     * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
+     * @param rEffectiveDofIdMap A map relating each effective DOF to its effective id
+     * @param rpA The system left hand side matrix
+     * @param rpEffectiveLhs The effective left hand side matrix
+     * @param rpB The system right hand side vector
+     * @param rpEffectiveRhs The effective right hand side vector
+     * @param rpDx The solution update vector
+     * @param rpEffectiveDx The effective solution update vector
+     * @param rConstraintsRelationMatrix The assembled constraints relation matrix (i.e. T)
+     * @param rConstraintsConstantVector The assembled constraints constant vector
+     * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
+     */
     void InitializeSolutionStep(
         DofsArrayType& rDofSet,
         DofsArrayType& rEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         typename TSparseMatrixType::Pointer& rpA,
+        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
         typename TSparseVectorType::Pointer& rpB,
+        typename TSparseVectorType::Pointer& rpEffectiveRhs,
         typename TSparseVectorType::Pointer& rpDx,
         typename TSparseVectorType::Pointer& rpEffectiveDx,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector,
-        const bool ReformDofSet = true) override
+        const bool ReformDofSets = true) override
     {
         KRATOS_TRY
 
@@ -195,7 +221,7 @@ public:
         if (!this->GetSchemeSolutionStepIsInitialized()) {
             // Set up the system
             BuiltinTimer system_construction_time;
-            if (!(this->GetDofSetIsInitialized()) || ReformDofSet) {
+            if (!(this->GetDofSetIsInitialized()) || ReformDofSets) {
                 // Setting up the DOFs list to be solved
                 BuiltinTimer setup_dofs_time;
                 this->SetUpDofArray(rDofSet);
@@ -214,18 +240,15 @@ public:
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
-                this->ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpA, rpB, rpDx, rpEffectiveDx);
+                this->ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpA, rpEffectiveLhs, rpB, rpEffectiveRhs, rpDx, rpEffectiveDx);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
 
             } else {
-                // Set up the equation ids (note that this needs to be always done)
+                // Set up the equation ids (note that this needs to be always done as the fixity may have changed and this can affect some build types)
                 BuiltinTimer setup_system_time;
                 const SizeType eq_system_size = this->SetUpSystemIds(rDofSet);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
-
-                //TODO: Check if the constraints need to be also set in here!!!!!!
-                //TODO: If a constraint gets active/inactive we need to reset it
             }
             KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 
