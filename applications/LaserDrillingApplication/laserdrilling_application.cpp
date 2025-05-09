@@ -64,6 +64,8 @@ void KratosLaserDrillingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(ENTHALPY_ENERGY_PER_VOLUME)
     KRATOS_REGISTER_VARIABLE(IONIZATION_ENERGY_PER_VOLUME)
     KRATOS_REGISTER_VARIABLE(REFRACTIVE_INDEX)
+    KRATOS_REGISTER_VARIABLE(VAPORISATION_TEMPERATURE)
+
 
     // Registering elements and conditions here
     KRATOS_REGISTER_ELEMENT("LaserAxisymmetricEulerianConvectionDiffusion2D3N", mLaserAxisymmetricEulerianConvectionDiffusion2D3N);
