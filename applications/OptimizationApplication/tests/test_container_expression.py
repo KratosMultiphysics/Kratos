@@ -43,7 +43,7 @@ class TestContainerExpression(ABC):
             element.SetValue(Kratos.PRESSURE, id+5)
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
 
-    def test_ContaienrDataAdd(self):
+    def test_ContainerDataAdd(self):
         a = self._GetContainerExpression()
         b = self._GetContainerExpression()
 

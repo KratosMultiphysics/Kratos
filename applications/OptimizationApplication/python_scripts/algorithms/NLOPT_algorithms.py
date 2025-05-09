@@ -21,7 +21,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class NLOPTAlgorithms(Algorithm):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        A classical steepest descent algorithm to solve unconstrained optimization problems.
     """
 
     @classmethod
@@ -142,7 +142,7 @@ class NLOPTAlgorithms(Algorithm):
         # set nlopt verbosity
         self.nlopt_optimizer.set_param("verbosity",self.nlopt_verbosity)
 
-        # assign objectives and constarints
+        # assign objectives and constraints
         self.nlopt_optimizer.set_min_objective(self.__objective.CalculateStandardizedValueAndGradients)
         for constraint in self.__constraints:
             if constraint.IsEqualityType():
