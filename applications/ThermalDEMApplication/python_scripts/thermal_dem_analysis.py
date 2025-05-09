@@ -70,7 +70,7 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
 
     def GetRVEUtility(self):
         if self.DEM_parameters["Dimension"].GetInt() == 2:
-            return RVEWallBoundaryThermal2D(self.rve_evaluation_frequency, self.rve_write_frequency, self.rve_consolidation_stop_criterion, self.rve_consolidation_limit_value, self.rve_inner_volume_offset)
+            return RVEWallBoundaryThermal2D(self.rve_evaluation_frequency, self.rve_write_frequency, self.rve_consolidation_velocity, self.rve_consolidation_stop_criterion, self.rve_consolidation_limit_value, self.rve_inner_volume_offset)
         else:
             raise Exception('Error: The selected RVE utility is not implemented')
 

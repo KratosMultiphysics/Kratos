@@ -136,6 +136,7 @@ def GetDefaultInputParameters():
                 "RVEAnalysis"                      : false,
                 "RVEEvaluationFrequency"           : 0,
                 "RVEWriteFrequency"                : 0,
+                "RVEConsolidationVelocity"         : [0.0,0.0,0.0],
                 "RVEConsolidationStopCriterion"    : "time",
                 "RVEConsolidationLimitValue"       : 0.0,
                 "RVEInnerVolumeOffset"             : 0.7

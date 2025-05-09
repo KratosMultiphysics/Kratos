@@ -31,6 +31,7 @@ namespace Kratos
             // Public attributes
             int         mEvalFreq;               // RVE evaluation frequency in time steps (input parameter)
             int         mWriteFreq;              // Results printing frequency in time steps (input parameter)
+            std::vector<double> mCompressVel;    // Compression velocity of boundaries (Vx,Vy,Vz)
             std::string mConsolidationCriterion; // Criterion to stop consolidation phase (input parameter)
             double      mConsolidationLimit;     // Limit value used by the consolidation criterion (input parameter)
             double      mInnerVolOffset;         // Offset wrt to boundaries and relative to the average particle radius of the inner RVE volume (input parameter)
@@ -95,8 +96,8 @@ namespace Kratos
 
             // Public methods
             RVEUtilities() {}
-            RVEUtilities(int eval_freq, int write_freq, const std::string& consolidation_criterion, double consolidation_limit, double inner_vol_offset):
-            mEvalFreq(eval_freq), mWriteFreq(write_freq), mConsolidationCriterion(consolidation_criterion), mConsolidationLimit(consolidation_limit), mInnerVolOffset(inner_vol_offset) {}
+            RVEUtilities(int eval_freq, int write_freq, std::vector<double> consolidation_velocity, const std::string& consolidation_criterion, double consolidation_limit, double inner_vol_offset):
+            mEvalFreq(eval_freq), mWriteFreq(write_freq), mCompressVel(consolidation_velocity), mConsolidationCriterion(consolidation_criterion), mConsolidationLimit(consolidation_limit), mInnerVolOffset(inner_vol_offset) {}
             ~RVEUtilities() {}
             
             void Initialize           (ModelPart& dem_model_part, ModelPart& fem_model_part);
@@ -112,6 +113,7 @@ namespace Kratos
             virtual void   InitializeVariables             (ModelPart& dem_model_part, ModelPart& fem_model_part);
             virtual double ComputeAverageRadius            (void);
             virtual void   AssembleWallElementVectors      (void) {}
+            virtual void   SetCompressionVelocity          (void) {}
             virtual void   SetVertexCoordinates            (void) {}
             virtual void   SetVertexCoordinatesInner       (void) {}
             virtual void   PreProcessGlobalResults         (void);

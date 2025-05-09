@@ -15,6 +15,7 @@ namespace Kratos
             return;
         InitializeVariables(dem_model_part, fem_model_part);
         AssembleWallElementVectors();
+        SetCompressionVelocity();
         ReadOldForces();
         OpenResultFiles();
         WriteFileHeaders();
@@ -50,7 +51,6 @@ namespace Kratos
         mAvgRadius         = ComputeAverageRadius();
         mVertexCoords      = ZeroMatrix(mDim,4*(mDim-1));
         mVertexCoordsInner = ZeroMatrix(mDim,4*(mDim-1));
-        mIsMoving          = true;
         mIsEquilibrium     = false;
         mEquilibriumSteps  = 0;
     }

@@ -136,6 +136,73 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
+    // Set input compression velocity to RVE walls.
+    void RVEWallBoundary2D::SetCompressionVelocity(void) {
+        double vx = mCompressVel[0];
+        double vy = mCompressVel[1];
+        mIsMoving = (vx != 0.0 || vy != 0.0);
+
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = mFemModelPart->SubModelPartsBegin(); sub_model_part != mFemModelPart->SubModelPartsEnd(); ++sub_model_part) {
+            ModelPart &submp = *sub_model_part;
+            ModelPart::ConditionsContainerType &r_conditions = submp.GetCommunicator().LocalMesh().Conditions();
+            array_1d<double, 3> &linear_velocity = submp[LINEAR_VELOCITY];
+            linear_velocity[2] = 0.0;
+
+            for (auto it_cond = r_conditions.begin(); it_cond != r_conditions.end(); ++it_cond) {
+                if (&(*it_cond) == mWallXMin[0]) {
+                    linear_velocity[0] = vx;
+                    linear_velocity[1] = 0.0;
+                    break;
+                }
+                if (&(*it_cond) == mWallXMax[0]) {
+                    linear_velocity[0] = -vx;
+                    linear_velocity[1] = 0.0;
+                    break;
+                }
+                if (&(*it_cond) == mWallYMin[0]) {
+                    linear_velocity[0] = 0.0;
+                    linear_velocity[1] = vy;
+                    break;
+                }
+                if (&(*it_cond) == mWallYMax[0]) {
+                    linear_velocity[0] = 0.0;
+                    linear_velocity[1] = -vy;
+                    break;
+                }
+            }
+        }
+
+        for (unsigned int i = 0; i < mWallXMin.size(); i++) {
+            DEMWall *p_wall = mWallXMin[i];
+            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+                array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+                noalias(wall_velocity) = array_1d<double, 3>({vx, 0.0, 0.0});
+            }
+        }
+        for (unsigned int i = 0; i < mWallXMax.size(); i++) {
+            DEMWall *p_wall = mWallXMax[i];
+            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+                array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+                noalias(wall_velocity) = array_1d<double, 3>({-vx, 0.0, 0.0});
+            }
+        }
+        for (unsigned int i = 0; i < mWallYMin.size(); i++) {
+            DEMWall *p_wall = mWallYMin[i];
+            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+                array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+                noalias(wall_velocity) = array_1d<double, 3>({0.0, vy, 0.0});
+            }
+        }
+        for (unsigned int i = 0; i < mWallYMax.size(); i++) {
+            DEMWall *p_wall = mWallYMax[i];
+            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+                array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+                noalias(wall_velocity) = array_1d<double, 3>({0.0, -vy, 0.0});
+            }
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------
     // Identify and store the updated coordinates of RVE vertices in counterclockwise order.
     // TODO: THIS FUNCTION ONLY WORKS FOR SQUARE AND SHEARED RVEs WITH INCLINED LATERAL WALLS. IT SHOULD BE ADAPTED TO CONSIDER ANY SHAPE.
     void RVEWallBoundary2D::SetVertexCoordinates(void) {

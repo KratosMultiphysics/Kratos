@@ -221,6 +221,11 @@ class DEMAnalysisStage(AnalysisStage):
         self.rve_consolidation_stop_criterion = rve_settings["RVEConsolidationStopCriterion"].GetString()
         self.rve_consolidation_limit_value    = rve_settings["RVEConsolidationLimitValue"].GetDouble()
         self.rve_inner_volume_offset          = rve_settings["RVEInnerVolumeOffset"].GetDouble()
+
+        self.rve_consolidation_velocity = []
+        for vel in rve_settings["RVEConsolidationVelocity"].values():
+            self.rve_consolidation_velocity.append(vel.GetDouble())
+
         self.spheres_model_part.ProcessInfo.SetValue(RVE_ANALYSIS, self.rve_analysis)
         
         if not self.rve_analysis:
@@ -230,7 +235,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def GetRVEUtility(self):
         if self.DEM_parameters["Dimension"].GetInt() == 2:
-            return RVEWallBoundary2D(self.rve_evaluation_frequency, self.rve_write_frequency, self.rve_consolidation_stop_criterion, self.rve_consolidation_limit_value, self.rve_inner_volume_offset)
+            return RVEWallBoundary2D(self.rve_evaluation_frequency, self.rve_write_frequency, self.rve_consolidation_velocity, self.rve_consolidation_stop_criterion, self.rve_consolidation_limit_value, self.rve_inner_volume_offset)
         else:
             raise Exception('Error: The selected RVE utility is not implemented')
 

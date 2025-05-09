@@ -70,7 +70,7 @@ namespace Kratos
 
       py::class_<RVEWallBoundaryThermal2D, RVEWallBoundaryThermal2D::Pointer, RVEUtilities>(m, "RVEWallBoundaryThermal2D")
         .def(py::init<>())
-        .def(py::init<int, int, std::string, double, double>())
+        .def(py::init<int, int, std::vector<double>, std::string, double, double>())
         .def("Initialize", &RVEWallBoundaryThermal2D::Initialize)
         .def("FinalizeSolutionStep", &RVEWallBoundaryThermal2D::FinalizeSolutionStep)
         .def("Finalize", &RVEWallBoundaryThermal2D::Finalize);
