@@ -48,6 +48,9 @@ public:
                                           const Matrix& rRotationMatrix,
                                           std::size_t   StressVectorSize);
 
+    static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
+    static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
+
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians);
     static double CalculateDenominator(const Vector& rStressVector, double PhiInRadians);
