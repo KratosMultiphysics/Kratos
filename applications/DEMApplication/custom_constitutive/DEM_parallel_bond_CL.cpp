@@ -802,9 +802,9 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                                 ViscoLocalRotationalMoment, 
                                 equiv_poisson, 
                                 indentation);
-    }
-    
-    CalculateBondRotationalDamping(element, neighbor, LocalCoordSystem, ViscoLocalRotationalMoment);                 
+
+        CalculateBondRotationalDamping(element, neighbor, LocalCoordSystem, ViscoLocalRotationalMoment);     
+    }            
 
     DemContact::ComputeParticleContactMoments(normalLocalContactForce,
                                              GlobalContactForce,
