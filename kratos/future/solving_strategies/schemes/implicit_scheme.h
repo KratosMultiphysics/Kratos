@@ -270,6 +270,7 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
+    //TODO: Think on the arguments of this one (I'd pass all in order to provide maximum flexibility in derived classes)
     virtual void FinalizeSolutionStep(
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
@@ -296,6 +297,7 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
+    //TODO: Think on the arguments of this one (I'd pass all in order to provide maximum flexibility in derived classes)
     virtual void InitializeNonLinIteration(
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
@@ -316,6 +318,7 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
+    //TODO: Think on the arguments of this one (I'd pass all in order to provide maximum flexibility in derived classes)
     virtual void FinalizeNonLinIteration(
         TSparseMatrixType& A,
         TSparseVectorType& Dx,
@@ -410,10 +413,17 @@ public:
 
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The element is active and is to be assembled
+                return true;
             } else {
-                rTLS.LocalEqIds.resize(0, false);
-                rTLS.LocalVector.resize(0, false);
-                rTLS.LocalMatrix.resize(0, 0, false);
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalVector.clear();
+                rTLS.LocalMatrix.clear();
+
+                // The element is inactive and is not to be assembled
+                return false;
             }
         };
 
@@ -424,10 +434,17 @@ public:
 
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The condition is active and is to be assembled
+                return true;
             } else {
-                rTLS.LocalEqIds.resize(0, false);
-                rTLS.LocalVector.resize(0, false);
-                rTLS.LocalMatrix.resize(0, 0, false);
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalVector.clear();
+                rTLS.LocalMatrix.clear();
+
+                // The condition is inactive and is not to be assembled
+                return false;
             }
         };
 
@@ -435,7 +452,7 @@ public:
         auto& r_assembly_helper = GetAssemblyHelper();
         r_assembly_helper.SetElementAssemblyFunction(elem_func);
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        r_assembly_helper.AssembleLocalSystem(rLHS, rRHS, aux_tls);
+        r_assembly_helper.Assemble(rLHS, rRHS, aux_tls);
 
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build time: " << timer << std::endl;
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
@@ -451,28 +468,41 @@ public:
 
         const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
             if (ItElem->Is(ACTIVE)) {
-                // Calculate the RHS contributions
+                // Calculate the RHS contribution
                 ItElem->CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
 
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The element is active and is to be assembled
+                return true;
             } else {
-                rTLS.LocalEqIds.resize(0, false);
-                rTLS.LocalVector.resize(0, false);
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalVector.clear();
+
+                // The element is inactive and is not to be assembled
+                return false;
             }
         };
 
         const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
             if (ItCond->Is(ACTIVE)) {
-                // Calculate the RHS contributions
+                // Calculate the RHS contribution
                 ItCond->CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
 
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The condition is active and is to be assembled
+                return true;
             } else {
-                rTLS.LocalEqIds.resize(0, false);
-                rTLS.LocalVector.resize(0, false);
-                rTLS.LocalMatrix.resize(0, 0, false);
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalVector.clear();
+
+                // The condition is inactive and is not to be assembled
+                return false;
             }
         };
 
@@ -480,7 +510,7 @@ public:
         auto& r_assembly_helper = GetAssemblyHelper();
         r_assembly_helper.SetElementAssemblyFunction(elem_func);
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        r_assembly_helper.AssembleRightHandSide(rRHS, aux_tls);
+        r_assembly_helper.Assemble(rRHS, aux_tls);
 
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build time (RightHandSide only): " << timer << std::endl;
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building (RightHandSide only)" << std::endl;
@@ -490,17 +520,176 @@ public:
 
     virtual void Build(TSparseMatrixType& rLHS)
     {
-        //TODO: IMPLEMENTATION
+        Timer::Start("BuildLeftHandSide");
+
+        const auto timer = BuiltinTimer();
+
+        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
+            if (ItElem->Is(ACTIVE)) {
+                // Calculate local LHS contribution
+                ItElem->CalculateLeftHandSide(rTLS.LocalMatrix, rProcessInfo);
+
+                // Get the positions in the global system
+                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The element is active and is to be assembled
+                return true;
+            } else {
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalMatrix.clear();
+
+                // The element is inactive and is not to be assembled
+                return false;
+            }
+        };
+
+        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
+            if (ItCond->Is(ACTIVE)) {
+                // Calculate local LHS contribution
+                ItCond->CalculateLeftHandSide(rTLS.LocalMatrix, rProcessInfo);
+
+                // Get the positions in the global system
+                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The condition is active and is to be assembled
+                return true;
+            } else {
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalMatrix.clear();
+
+                // The condition is inactive and is not to be assembled
+                return false;
+            }
+        };
+
+        TLSType aux_tls;
+        auto& r_assembly_helper = GetAssemblyHelper();
+        r_assembly_helper.SetElementAssemblyFunction(elem_func);
+        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
+        r_assembly_helper.Assemble(rLHS, aux_tls);
+
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build time (LeftHandSide only): " << timer << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building (LeftHandSide only)" << std::endl;
+
+        Timer::Stop("BuildLeftHandSide");
     }
 
     virtual void BuildMassMatrix(TSparseMatrixType& rMassMatrix)
     {
-        //TODO: IMPLEMENTATION
+        Timer::Start("BuildMassMatrix");
+
+        const auto timer = BuiltinTimer();
+
+        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
+            if (ItElem->Is(ACTIVE)) {
+                // Calculate local mass matrix contribution
+                ItElem->CalculateMassMatrix(rTLS.LocalMatrix, rProcessInfo);
+
+                // Get the positions in the global system
+                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The element is active and is to be assembled
+                return true;
+            } else {
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalMatrix.clear();
+
+                // The element is inactive and is not to be assembled
+                return false;
+            }
+        };
+
+        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
+            if (ItCond->Is(ACTIVE)) {
+                // Calculate local mass matrix contribution
+                ItCond->CalculateMassMatrix(rTLS.LocalMatrix, rProcessInfo);
+
+                // Get the positions in the global system
+                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The condition is active and is to be assembled
+                return true;
+            } else {
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalMatrix.clear();
+
+                // The condition is inactive and is not to be assembled
+                return false;
+            }
+        };
+
+        TLSType aux_tls;
+        auto& r_assembly_helper = GetAssemblyHelper();
+        r_assembly_helper.SetElementAssemblyFunction(elem_func);
+        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
+        r_assembly_helper.Assemble(rMassMatrix, aux_tls);
+
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build mass matrix time: " << timer << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished mass matrix parallel building" << std::endl;
+
+        Timer::Stop("BuildMassMatrix");
     }
 
     virtual void BuildDampingMatrix(TSparseMatrixType& rDampingMatrix)
     {
-        //TODO: IMPLEMENTATION
+        Timer::Start("BuildDampingMatrix");
+
+        const auto timer = BuiltinTimer();
+
+        const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
+            if (ItElem->Is(ACTIVE)) {
+                // Calculate local damping matrix contribution
+                ItElem->CalculateDampingMatrix(rTLS.LocalMatrix, rProcessInfo);
+
+                // Get the positions in the global system
+                ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The element is active and is to be assembled
+                return true;
+            } else {
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalMatrix.clear();
+
+                // The element is inactive and is not to be assembled
+                return false;
+            }
+        };
+
+        const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
+            if (ItCond->Is(ACTIVE)) {
+                // Calculate local damping matrix contribution
+                ItCond->CalculateDampingMatrix(rTLS.LocalMatrix, rProcessInfo);
+
+                // Get the positions in the global system
+                ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The condition is active and is to be assembled
+                return true;
+            } else {
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalMatrix.clear();
+
+                // The condition is inactive and is not to be assembled
+                return false;
+            }
+        };
+
+        TLSType aux_tls;
+        auto& r_assembly_helper = GetAssemblyHelper();
+        r_assembly_helper.SetElementAssemblyFunction(elem_func);
+        r_assembly_helper.SetConditionAssemblyFunction(cond_func);
+        r_assembly_helper.Assemble(rDampingMatrix, aux_tls);
+
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build damping matrix time: " << timer << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished damping matrix parallel building" << std::endl;
+
+        Timer::Stop("BuildDampingMatrix");
     }
 
     virtual void BuildMasterSlaveConstraints(
@@ -526,7 +715,7 @@ public:
                     rTLS.LocalVector.resize(0, false);
                     rTLS.LocalMatrix.resize(0, 0, false);
 
-                    // The constraint is active and is not to be assembled
+                    // The constraint is inactive and is not to be assembled
                     return false;
                 }
             };
@@ -631,9 +820,16 @@ public:
 
                 // Get the positions in the global system
                 ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The element is active and is to be assembled
+                return true;
             } else {
-                rTLS.LocalEqIds.resize(0, false);
-                rTLS.LocalVector.resize(0, false);
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalVector.clear();
+
+                // The element is inactive and is not to be assembled
+                return false;
             }
         };
 
@@ -644,10 +840,16 @@ public:
 
                 // Get the positions in the global system
                 ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
+
+                // The condition is active and is to be assembled
+                return true;
             } else {
-                rTLS.LocalEqIds.resize(0, false);
-                rTLS.LocalVector.resize(0, false);
-                rTLS.LocalMatrix.resize(0, 0, false);
+                // Clear current TLS values
+                rTLS.LocalEqIds.clear();
+                rTLS.LocalVector.clear();
+
+                // The condition is inactive and is not to be assembled
+                return false;
             }
         };
 

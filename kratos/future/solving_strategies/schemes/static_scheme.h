@@ -238,6 +238,10 @@ public:
                 this->ConstructMasterSlaveConstraintsStructure(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
 
+                //TODO: I think we should compute the sparse graph in here (separate it from the ResizeAndInitializeVectors and pass it downstream)
+                //TODO: Then we have a method to initialize all the standard arrays from it. In here we can make also initializations of the mass and damping matrix with the same graph
+                //TODO: Then we initialize the effective ones by passing the effective DOF set and effective DOFIdMap.
+
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
                 this->ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpA, rpEffectiveLhs, rpB, rpEffectiveRhs, rpDx, rpEffectiveDx);
