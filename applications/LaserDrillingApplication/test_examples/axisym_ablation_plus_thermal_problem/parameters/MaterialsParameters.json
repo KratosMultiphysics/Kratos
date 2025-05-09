@@ -16,7 +16,8 @@
                 "ENTHALPY": 4e5,
                 "OPTICAL_PENETRATION_DEPTH": 5e-4,
                 "ENERGY_PER_VOLUME_THRESHOLD": 10.0,
-                "REFRACTIVE_INDEX": 1.5
+                "REFRACTIVE_INDEX": 1.5,
+                "VAPORISATION_TEMPERATURE" : 1000.0
             },
             "Tables" : null
         }

@@ -5,6 +5,7 @@ if __name__ == "__main__":
     from sys import argv
 
     if len(argv) > 2:
+        # TODO: Revise these instructions
         err_msg = "Too many input arguments!\n"
         err_msg += "Use this script in the following way:\n"
         err_msg += '- With default ProjectParameters (read from "ProjectParameters.json"):\n'

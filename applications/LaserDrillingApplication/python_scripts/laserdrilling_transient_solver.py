@@ -149,6 +149,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.print_hdf5_and_gnuplot_files = False  # TODO: Make into a parameter
 
         # Load the material parameters file
+        # self.settings is the "solver_settings" section of ProjectParameters.json
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
 
         with open(materials_filename, "r") as parameter_file:
@@ -164,6 +165,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.environment_settings = environment["properties"][0]["Material"]
 
+        # Load the laser parameters file
+        laser_filename = self.settings["material_import_settings"]["laser_filename"].GetString()
+
+        with open(laser_filename, "r") as parameter_file:
+            laser = KratosMultiphysics.Parameters(parameter_file.read())
+
+        self.laser_settings = laser["properties"][0]["Material"]
+
         # Load the Project parameters file TODO: Read from the self.settings which file (filename) to load
         with open("parameters/ProjectParameters.json", "r") as project_parameters_file:
             self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
@@ -173,44 +182,56 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         In this way, we would ensure that the user is sure that they want to set a specific value for a variable. And they
         would not be able to accidentally run a case with values that were not chosen by them
         """
-        if not self.project_parameters["problem_data"].Has("average_laser_power"):
+        # Laser parameters
+        if not self.laser_settings["Variables"].Has("average_laser_power"):
             self.average_laser_power = 18
         else:
-            self.average_laser_power = self.project_parameters["problem_data"]["average_laser_power"].GetDouble()
+            self.average_laser_power = self.laser_settings["Variables"]["average_laser_power"].GetDouble()
 
-        if not self.project_parameters["problem_data"].Has("pulse_frequency"):
+        # pulse frequency = repetition rate
+        if not self.laser_settings["Variables"].Has("pulse_frequency"):
             self.pulse_frequency = 2e5
         else:
-            self.pulse_frequency = self.project_parameters["problem_data"]["pulse_frequency"].GetDouble()
+            self.pulse_frequency = self.laser_settings["Variables"]["pulse_frequency"].GetDouble()
 
-        if not self.project_parameters["problem_data"].Has("beam_waist_diameter"):
+        if not self.laser_settings["Variables"].Has("beam_waist_diameter"):
             self.beam_waist_diameter = 0.0179
         else:
-            self.beam_waist_diameter = self.project_parameters["problem_data"]["beam_waist_diameter"].GetDouble()
+            self.beam_waist_diameter = self.laser_settings["Variables"]["beam_waist_diameter"].GetDouble()
 
-        if not self.project_parameters["problem_data"].Has("Rayleigh_length"):
+        if not self.laser_settings["Variables"].Has("Rayleigh_length"):
             self.rayleigh_length = 0.409
         else:
-            self.rayleigh_length = self.project_parameters["problem_data"]["Rayleigh_length"].GetDouble()
+            self.rayleigh_length = self.laser_settings["Variables"]["Rayleigh_length"].GetDouble()
 
-        if not self.project_parameters["problem_data"].Has("focus_Z_offset"):
+        if not self.laser_settings["Variables"].Has("focus_Z_offset"):
             self.focus_z_offset = 0.4
         else:
-            self.focus_z_offset = self.project_parameters["problem_data"]["focus_Z_offset"].GetDouble()
+            self.focus_z_offset = self.laser_settings["Variables"]["focus_Z_offset"].GetDouble()
+
+        if not self.laser_settings["Variables"].Has("reference_T_after_laser"):
+            self.reference_T_after_laser = 298.15
+        else:
+            self.reference_T_after_laser = self.laser_settings["Variables"]["reference_T_after_laser"].GetDouble()
 
         self.z_ast_max = 0.0  # TODO: Parameter? Remove, since the spot_diameter is unused?
 
         # self.spot_diameter = self.ComputeSpotDiameter()
 
-        if not self.project_parameters["problem_data"].Has("vaporisation_temperature"):
+        if not self.material_settings["Variables"].Has("VAPORISATION_TEMPERATURE"):
             self.T_e = 1000.0
         else:
-            self.T_e = self.project_parameters["problem_data"]["vaporisation_temperature"].GetDouble()
+            self.T_e = self.material_settings["Variables"]["VAPORISATION_TEMPERATURE"].GetDouble()
 
-        if not self.project_parameters["problem_data"].Has("compute_vaporisation"):
+        """
+        TODO: either properly add compute_vaporisation to the default parameters or remove it and
+        whatever depends on it altogether
+        if not self.settings["solver_settings"].Has("compute_vaporisation"):
             self.compute_vaporisation = False
         else:
-            self.compute_vaporisation = self.project_parameters["problem_data"]["compute_vaporisation"].GetBool()
+            self.compute_vaporisation = self.settings["solver_settings"]["compute_vaporisation"].GetBool() 
+        """
+        self.compute_vaporisation = False
 
         if not self.material_settings["Variables"].Has("IONIZATION_ALPHA"):
             self.ionization_alpha = 1.0  # 0.95
@@ -249,12 +270,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.mesh_type = self.project_parameters["problem_data"]["mesh_type"].GetString()
 
-        if not self.project_parameters["problem_data"].Has("print_hole_geometry_files"):
+        """
+        TODO: see compute_vaporisation
+        if not self.settings["solver_settings"].Has("print_hole_geometry_files"):
             self.print_hole_geometry_files = False
         else:
-            self.print_hole_geometry_files = self.project_parameters["problem_data"][
-                "print_hole_geometry_files"
-            ].GetBool()
+            self.print_hole_geometry_files = self.settings["solver_settings"]["print_hole_geometry_files"].GetBool()
+        """
+        self.print_hole_geometry_files = False
 
         self.Q = self.average_laser_power / self.pulse_frequency  # Energy per pulse
         self.time_jump_between_pulses = 1.0 / self.pulse_frequency  # TODO: rename to something like pulse_period?
@@ -263,10 +286,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.rho = self.material_settings["Variables"]["DENSITY"].GetDouble()
 
         # Environment data
-        if not self.environment_settings["Variables"].Has("AMBIENT_TEMPERATURE"):
+        if not self.environment_settings["Variables"].Has("ambient_temperature"):
             self.ambient_temperature = 298.15
         else:
-            self.ambient_temperature = self.environment_settings["Variables"]["AMBIENT_TEMPERATURE"].GetDouble()
+            self.ambient_temperature = self.environment_settings["Variables"]["ambient_temperature"].GetDouble()
 
         self.T0 = self.ambient_temperature  # The initial temperature is equal to that of the ambient (?)
 
@@ -340,18 +363,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.adjust_T_field_after_ablation = self.project_parameters["problem_data"][
                 "adjust_T_field_after_ablation"
             ].GetBool()
-
-        if not self.project_parameters["problem_data"].Has("reference_T_after_laser"):
-            self.reference_T_after_laser = 298.15
-        else:
-            self.reference_T_after_laser = self.project_parameters["problem_data"][
-                "reference_T_after_laser"
-            ].GetDouble()
-
-        if not self.project_parameters["problem_data"].Has("print_debug_info"):
+        """
+        TODO: see compute_vaporisation
+        if not self.settings["solver_settings"].Has("print_debug_info"):
             self.print_debug_info = False
         else:
-            self.print_debug_info = self.project_parameters["problem_data"]["print_debug_info"].GetBool()
+            self.print_debug_info = self.settings["solver_settings"]["print_debug_info"].GetBool()
+        """
+        self.print_debug_info = False
 
         self.analytical_ablated_volume_in_n_pulses = 0.0
 

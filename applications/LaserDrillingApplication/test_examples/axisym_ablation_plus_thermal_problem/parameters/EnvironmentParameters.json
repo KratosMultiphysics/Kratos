@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "Variables" : {
-                "AMBIENT_TEMPERATURE" : 298.15
+                "ambient_temperature" : 298.15
             },
             "Tables" : null
         }
