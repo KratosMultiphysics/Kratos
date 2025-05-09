@@ -317,7 +317,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_WithoutApproximation, Krat
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_NothingFound, KratosMappingApplicationSerialTestSuite)
 {
-    // here no search-results are being processed, therfore nothing is found
+    // here no search-results are being processed, therefore nothing is found
     const Point coords(1.0, 2.45, -23.8);
 
     const std::size_t source_local_sys_idx = 123;
