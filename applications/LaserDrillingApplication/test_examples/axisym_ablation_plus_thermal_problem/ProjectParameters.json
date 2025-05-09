@@ -32,7 +32,8 @@
             "input_filename" : "axisym_ablation_plus_thermal_problem"
         },
         "material_import_settings"           : {
-            "materials_filename" : "LaserDrillingMaterials.json"
+            "materials_filename" : "LaserDrillingMaterials.json",
+            "environment_filename" : "EnvironmentParameters.json"
         },
         "line_search"                        : false,
         "echo_level"                         : 1,
@@ -48,7 +49,6 @@
             "dynamic_tau": 0.0,
             "theta"    : 1.0
         },
-        "ambient_temperature" : 298.15,
         "time_stepping"                      : {
             "time_step" : 5e-6
         },

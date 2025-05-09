@@ -1,0 +1,12 @@
+{
+    "properties" : [{
+        "model_part_name" : "",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables" : {
+                "AMBIENT_TEMPERATURE" : 298.15
+            },
+            "Tables" : null
+        }
+    }]
+}

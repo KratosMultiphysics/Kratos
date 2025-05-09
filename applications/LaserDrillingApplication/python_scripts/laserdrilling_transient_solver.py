@@ -148,6 +148,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.pulse_number = 0
         self.print_hdf5_and_gnuplot_files = False  # TODO: Make into a parameter
 
+        # Load the material parameters file
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
 
         with open(materials_filename, "r") as parameter_file:
@@ -155,6 +156,15 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.material_settings = materials["properties"][0]["Material"]
 
+        # Load the environment parameters file
+        environment_filename = self.settings["material_import_settings"]["environment_filename"].GetString()
+
+        with open(environment_filename, "r") as parameter_file:
+            environment = KratosMultiphysics.Parameters(parameter_file.read())
+
+        self.environment_settings = environment["properties"][0]["Material"]
+
+        # Load the Project parameters file TODO: Read from the self.settings which file (filename) to load
         with open("ProjectParameters.json", "r") as project_parameters_file:
             self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
 
@@ -251,7 +261,15 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.cp = self.material_settings["Variables"]["SPECIFIC_HEAT"].GetDouble()
         self.conductivity = self.material_settings["Variables"]["CONDUCTIVITY"].GetDouble()
         self.rho = self.material_settings["Variables"]["DENSITY"].GetDouble()
-        self.T0 = self.settings["ambient_temperature"].GetDouble()
+
+        # Environment data
+        if not self.environment_settings["Variables"].Has("AMBIENT_TEMPERATURE"):
+            self.ambient_temperature = 298.15
+        else:
+            self.ambient_temperature = self.environment_settings["Variables"]["AMBIENT_TEMPERATURE"].GetDouble()
+
+        self.T0 = self.ambient_temperature  # The initial temperature is equal to that of the ambient (?)
+
         self.kappa = self.conductivity / (self.rho * self.cp)
         self.ablation_energy_fraction = self.ionization_alpha
         self.evaporation_energy_fraction = 1.0 - self.ionization_alpha
