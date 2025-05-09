@@ -309,20 +309,20 @@ namespace Kratos
     // Open files to write selected results.
     void RVEUtilities::OpenResultFiles(void) {
         if (mWriteFreq != 0) {
-            mFileGlobalResults.open("rve_global_results.txt", std::ios::out);
-            KRATOS_ERROR_IF_NOT(mFileGlobalResults) << "Could not open file rve_global_results.txt!" << std::endl;
+            mFileGlobalResults.open("rve_results_global.txt", std::ios::out);
+            KRATOS_ERROR_IF_NOT(mFileGlobalResults) << "Could not open file rve_results_global.txt!" << std::endl;
             
-            mFileParticleResults.open("rve_particles_results.txt", std::ios::out);
-            KRATOS_ERROR_IF_NOT(mFileParticleResults) << "Could not open file rve_particles_results.txt!" << std::endl;
+            mFileParticleResults.open("rve_results_particles.txt", std::ios::out);
+            KRATOS_ERROR_IF_NOT(mFileParticleResults) << "Could not open file rve_results_particles.txt!" << std::endl;
 
-            mFileContactResults.open("rve_contacts_results.txt", std::ios::out);
-            KRATOS_ERROR_IF_NOT(mFileContactResults) << "Could not open file rve_contacts_results.txt!" << std::endl;
+            mFileContactResults.open("rve_results_contacts.txt", std::ios::out);
+            KRATOS_ERROR_IF_NOT(mFileContactResults) << "Could not open file rve_results_contacts.txt!" << std::endl;
 
-            mFileTensorResults.open("rve_tensors_results.txt", std::ios::out);
-            KRATOS_ERROR_IF_NOT(mFileTensorResults) << "Could not open file rve_tensors_results.txt!" << std::endl;
+            mFileTensorResults.open("rve_results_tensors.txt", std::ios::out);
+            KRATOS_ERROR_IF_NOT(mFileTensorResults) << "Could not open file rve_results_tensors.txt!" << std::endl;
 
-            mFileRoseDiagram.open("rve_rose_diagram.txt", std::ios::out);
-            KRATOS_ERROR_IF_NOT(mFileRoseDiagram) << "Could not open file rve_rose_diagram.txt!" << std::endl;
+            mFileRoseDiagram.open("rve_results_rose.txt", std::ios::out);
+            KRATOS_ERROR_IF_NOT(mFileRoseDiagram) << "Could not open file rve_results_rose.txt!" << std::endl;
         }
     }
 
