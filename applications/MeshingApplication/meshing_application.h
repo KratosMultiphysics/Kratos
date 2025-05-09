@@ -42,7 +42,7 @@ namespace Kratos
 ///@{
 
     /**
-     * @brief This enum defines the type of MMG libray used
+     * @brief This enum defines the type of MMG library used
      */
     enum class MMGLibrary
     {
@@ -52,7 +52,7 @@ namespace Kratos
     };
 
     /**
-     * @brief This enum defines the type of PMMG libray used
+     * @brief This enum defines the type of PMMG library used
      */
     enum class PMMGLibrary
     {
