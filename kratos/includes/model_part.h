@@ -1719,22 +1719,22 @@ public:
 
     ProcessInfo& GetProcessInfo()
     {
-        return *mpProcessInfo;
+        return *this->pGetProcessInfo();
     }
 
     ProcessInfo const& GetProcessInfo() const
     {
-        return *mpProcessInfo;
+        return this->GetProcessInfo();
     }
 
     ProcessInfo::Pointer pGetProcessInfo()
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
-        return mpProcessInfo;
+        return this->pGetProcessInfo();
     }
 
     void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo);
