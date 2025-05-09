@@ -26,7 +26,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   CamClayHardeningRule& CamClayHardeningRule::operator=(CamClayHardeningRule const& rOther)
