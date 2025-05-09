@@ -275,7 +275,7 @@ class DamThermoMechanicSolver(object):
         self.Thermal_Solver.Solve()
         self.Mechanical_Solver.Solve()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def InitializeStrategy(self):
         if self.settings["thermal_solver_settings"]["clear_storage"].GetBool():
@@ -302,7 +302,7 @@ class DamThermoMechanicSolver(object):
         self.Thermal_Solver.FinalizeSolutionStep()
         self.Mechanical_Solver.FinalizeSolutionStep()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def SetEchoLevel(self, level):
         self.Thermal_Solver.SetEchoLevel(level)

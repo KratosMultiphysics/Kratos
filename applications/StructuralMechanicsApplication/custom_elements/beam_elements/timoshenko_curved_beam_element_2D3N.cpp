@@ -384,6 +384,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     KRATOS_TRY;
     const auto &r_props    = GetProperties();
     const auto &r_geometry = GetGeometry();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
         rLHS.resize(SystemSize, SystemSize, false);
@@ -402,11 +403,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double area = r_props[CROSS_AREA];
+    const double area = GetCrossArea();
 
     // Let's initialize the constitutive law values
-    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
-    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -492,6 +493,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLeftHandSide(
     KRATOS_TRY;
     const auto &r_props    = GetProperties();
     const auto &r_geometry = GetGeometry();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
         rLHS.resize(SystemSize, SystemSize, false);
@@ -506,8 +508,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLeftHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     // Let's initialize the constitutive law values
-    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
-    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -580,6 +582,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     KRATOS_TRY;
     const auto &r_props    = GetProperties();
     const auto &r_geometry = GetGeometry();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rRHS.size() != SystemSize) {
         rRHS.resize(SystemSize, false);
@@ -593,11 +596,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    const double area = r_props[CROSS_AREA];
+    const double area = GetCrossArea();
 
     // Let's initialize the constitutive law values
-    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
-    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -674,8 +677,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     rOutput.resize(r_integration_points.size());
 
     if (rVariable == AXIAL_FORCE || rVariable == BENDING_MOMENT || rVariable == SHEAR_FORCE) {
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-        VectorType strain_vector(StrainSize), stress_vector(StrainSize);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
         StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
 
         for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
@@ -694,8 +698,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             }
         }
     } else if (rVariable == AXIAL_STRAIN || rVariable == BENDING_STRAIN || rVariable == SHEAR_STRAIN) {
-
-        VectorType strain_vector(StrainSize);
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        VectorType strain_vector(strain_size);
 
         for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
 
@@ -712,6 +716,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
@@ -722,8 +729,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     rOutput.resize(r_integration_points.size());
 
     if (rVariable == PK2_STRESS_VECTOR) {
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-        VectorType strain_vector(StrainSize), stress_vector(StrainSize);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
         StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
 
         for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
@@ -733,12 +741,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
 
             rOutput[integration_point] = cl_values.GetStressVector();
-            if ( this->GetProperties().Has(BEAM_PRESTRESS_PK2)) {
-                rOutput[integration_point] += this->GetProperties()[BEAM_PRESTRESS_PK2];
-            }
         }
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 Vector LinearTimoshenkoCurvedBeamElement2D3N::CalculateStrainVector(double Xi)
 {
@@ -760,6 +768,7 @@ Vector LinearTimoshenkoCurvedBeamElement2D3N::CalculateStrainVector(double Xi)
     BoundedVector<double, 2> gamma = prod(prod(frenet_serret, aux_B_s), nodal_values);
 
     Vector strain_vector(3);
+    strain_vector.clear();
     strain_vector[0] = gamma[0]; // axial strain
     strain_vector[2] = gamma[1]; // shear strain
     strain_vector[1] = inner_prod(dN_theta, nodal_values); // curvature
@@ -820,6 +829,17 @@ void LinearTimoshenkoCurvedBeamElement2D3N::load(Serializer& rSerializer)
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+double LinearTimoshenkoCurvedBeamElement2D3N::GetCrossArea()
+{
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const auto& r_props = GetProperties();
+    return (strain_size == 3) ? r_props[CROSS_AREA] : r_props[THICKNESS];
 }
 
 /***********************************************************************************/

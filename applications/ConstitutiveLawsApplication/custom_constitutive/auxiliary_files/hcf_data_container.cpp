@@ -66,25 +66,9 @@ double HCFDataContainer::CalculateReversionFactor(const double MaxStress, const 
 void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables)
 {
     const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
-    double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
-    const double yield_stress = ultimate_stress;
-
-    // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
-    // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
-    const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-    const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
-    if (softening_type == curve_by_points) {
-        const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
-        const SizeType curve_points = stress_damage_curve.size() - 1;
-
-        ultimate_stress = 0.0;
-        for (IndexType i = 1; i <= curve_points; ++i) {
-            ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i-1]);
-        }
-    }
 
     //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-    const double Se = r_fatigue_coefficients[0] * ultimate_stress;
+    const double Se = r_fatigue_coefficients[0] * rFatigueVariables.UltimateStress;
     const double STHR1 = r_fatigue_coefficients[1];
     const double STHR2 = r_fatigue_coefficients[2];
     const double ALFAF = r_fatigue_coefficients[3];
@@ -93,21 +77,17 @@ void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialPar
     const double AUXR2 = r_fatigue_coefficients[6];
 
     if (std::abs(rFatigueVariables.ReversionFactor) < 1.0) {
-        rFatigueVariables.Sth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * rFatigueVariables.ReversionFactor), STHR1);
+        rFatigueVariables.Sth = Se + (rFatigueVariables.UltimateStress - Se) * std::pow((0.5 + 0.5 * rFatigueVariables.ReversionFactor), STHR1);
         rFatigueVariables.Alphat = ALFAF + (0.5 + 0.5 * rFatigueVariables.ReversionFactor) * AUXR1;
     } else {
-        rFatigueVariables.Sth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / rFatigueVariables.ReversionFactor), STHR2);
+        rFatigueVariables.Sth = Se + (rFatigueVariables.UltimateStress - Se) * std::pow((0.5 + 0.5 / rFatigueVariables.ReversionFactor), STHR2);
         rFatigueVariables.Alphat = ALFAF - (0.5 + 0.5 / rFatigueVariables.ReversionFactor) * AUXR2;
     }
 
     const double square_betaf = std::pow(BETAF, 2.0);
-    if (rFatigueVariables.MaxStress > rFatigueVariables.Sth && rFatigueVariables.MaxStress <= ultimate_stress) {
-        rFatigueVariables.CyclesToFailure = std::pow(10.0,std::pow(-std::log((rFatigueVariables.MaxStress - rFatigueVariables.Sth) / (ultimate_stress - rFatigueVariables.Sth))/rFatigueVariables.Alphat,(1.0/BETAF)));
-        rFatigueVariables.B0 = -(std::log(rFatigueVariables.MaxStress / ultimate_stress) / std::pow((std::log10(rFatigueVariables.CyclesToFailure)), square_betaf));
-
-        if (softening_type == curve_by_points) {
-            rFatigueVariables.CyclesToFailure = std::pow(rFatigueVariables.CyclesToFailure, std::pow(std::log(rFatigueVariables.MaxStress / yield_stress) / std::log(rFatigueVariables.MaxStress / ultimate_stress), 1.0 / square_betaf));
-        }
+    if (rFatigueVariables.MaxStress > rFatigueVariables.Sth && rFatigueVariables.MaxStress <= rFatigueVariables.UltimateStress) {
+        rFatigueVariables.CyclesToFailure = std::pow(10.0,std::pow(-std::log((rFatigueVariables.MaxStress - rFatigueVariables.Sth) / (rFatigueVariables.UltimateStress - rFatigueVariables.Sth))/rFatigueVariables.Alphat,(1.0/BETAF)));
+        rFatigueVariables.B0 = -(std::log(rFatigueVariables.MaxStress / rFatigueVariables.UltimateStress) / std::pow((std::log10(rFatigueVariables.CyclesToFailure)), square_betaf));
     } else {
         rFatigueVariables.CyclesToFailure = std::numeric_limits<double>::infinity();
     }
@@ -126,13 +106,15 @@ void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Prop
                                                                                     rFatigueVariables.Sth,
                                                                                     rFatigueVariables.Alphat,
                                                                                     rFatigueVariables.FatigueReductionFactor,
-                                                                                    rFatigueVariables.WohlerStress);
+                                                                                    rFatigueVariables.WohlerStress,
+                                                                                    rFatigueVariables.UltimateStress,
+                                                                                    rFatigueVariables.CFactor);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HCFDataContainer::InitializeFatigueVariables(HCFDataContainer::FatigueVariables &rFatigueVariables)
+void HCFDataContainer::InitializeFatigueVariables(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables)
 {
     rFatigueVariables.MaxStress = mMaxStress;
     rFatigueVariables.MinStress = mMinStress;
@@ -150,6 +132,16 @@ void HCFDataContainer::InitializeFatigueVariables(HCFDataContainer::FatigueVaria
     rFatigueVariables.NewCycle = false;
     rFatigueVariables.Sth = mThresholdStress;
     rFatigueVariables.CyclesToFailure = mCyclesToFailure;
+    rFatigueVariables.UltimateStress = UltimateStressDamage(rMaterialParameters);
+    rFatigueVariables.CFactor = mCFactor;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double HCFDataContainer::UltimateStressDamage(const Properties& rMaterialParameters)
+{
+    return HighCycleFatigueLawIntegrator<6>::UltimateStressDamage(rMaterialParameters);
 }
 
 /***********************************************************************************/
@@ -172,6 +164,7 @@ void HCFDataContainer::UpdateFatigueVariables(HCFDataContainer::FatigueVariables
     mThresholdStress = rFatigueVariables.Sth;
     mReversionFactorRelativeError = rFatigueVariables.ReversionFactorRelativeError;
     mMaxStressRelativeError = rFatigueVariables.MaxStressRelativeError;
+    mCFactor = rFatigueVariables.CFactor;
 }
 
 /***********************************************************************************/

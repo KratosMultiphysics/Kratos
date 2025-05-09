@@ -78,7 +78,7 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
+        if (std::abs(Variables.N[i]) > std::numeric_limits<double>::epsilon())
         {
             auto r_geometry = GetGeometry();
             
@@ -89,6 +89,7 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
             {
                 mpc_force += Variables.N[i] * nodal_force * this->GetIntegrationWeight() / nodal_area;
             }
+            KRATOS_WARNING_IF( "NODAL_AREA", nodal_area < std::numeric_limits<double>::epsilon() ) << "Node " << r_geometry[i].Id() << " of condition " <<this->Id()<< " has zero value for NODAL_AREA " << std::endl;
         }
     }
 
@@ -100,7 +101,7 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            mpc_force = 1.0 * normal_force * m_normal;
+            mpc_force = normal_force * m_normal;
         else
             mpc_force = ZeroVector(3);
     }
@@ -119,8 +120,7 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     std::vector<bool>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != 1)
-        rValues.resize(1);
+    rValues.resize(1);
 
     if (rVariable == MPC_CALCULATE_NODAL_REACTIONS) {
         this->CalculateNodalReactions(rCurrentProcessInfo);

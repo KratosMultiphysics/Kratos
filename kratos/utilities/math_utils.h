@@ -19,6 +19,7 @@
 // System includes
 #include <cmath>
 #include <type_traits>
+#include <numeric>
 
 // External includes
 
@@ -697,19 +698,17 @@ public:
      * @param rSecondVector Second input vector
      * @return The resulting norm
      */
-    static inline double Dot(
-        const Vector& rFirstVector,
-        const Vector& rSecondVector
+    template<class TVector1, class TVector2>
+    static inline TDataType Dot(
+        const TVector1& rFirstVector,
+        const TVector2& rSecondVector
         )
     {
-        Vector::const_iterator i = rFirstVector.begin();
-        Vector::const_iterator j = rSecondVector.begin();
-        double temp = 0.0;
-        while(i != rFirstVector.end()) {
-            temp += *i++ * *j++;
+        TDataType temp {};
+        for (std::size_t i=0; i<rFirstVector.size(); ++i){
+            temp += rFirstVector[i] * rSecondVector[i];
         }
         return temp;
-        //return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), 0.0);
     }
 
     /**
@@ -1917,7 +1916,7 @@ public:
     }
 
 
-    static double DegreesToRadians(double AngleInDegrees)
+    constexpr static double DegreesToRadians(double AngleInDegrees)
     {
         return (AngleInDegrees * Globals::Pi) / 180.0;
     }

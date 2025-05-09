@@ -269,7 +269,7 @@ public:
 
 
         //calculate reactions if required
-        if (mCalculateReactionsFlag == true){
+        if (this->mCalculateReactionsFlag == true){
             // due to the assembly procedure the friction related values need to be reset
             if (friction_active){
                 for (Node &curr_node : BaseType::GetModelPart().Nodes()){
@@ -311,7 +311,7 @@ public:
                 if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
             }
 
-            if (mCalculateReactionsFlag == true){
+            if (this->mCalculateReactionsFlag == true){
                 // due to the assembly procedure the friction related values need to be reset
                 if (friction_active){
                     for (Node &curr_node : BaseType::GetModelPart().Nodes()){

@@ -18,7 +18,6 @@
 // Application includes
 #include "custom_conditions/U_Pw_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_condition.hpp"
-#include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -34,11 +33,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     // Default constructor
     UPwLysmerAbsorbingCondition() : UPwFaceLoadCondition<TDim, TNumNodes>() {}
@@ -78,21 +74,21 @@ public:
      * @param rRightHandSideVector global right hand side vector
      * @param rCurrentProcessInfo Current process information
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculates LHS stiffness part of absorbing boundary
      * @param rLeftHandSideMatrix Global left hand side matrix
      * @param rCurrentProcessInfo Current process information
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculates LHS Damping part of absorbing boundary
      * @param rDampingMatrix Global damping matrix
      * @param rCurrentProcessInfo Current process information
      */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(Matrix& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Calculates LHS and RHS stiffness part of absorbing boundary
@@ -100,9 +96,7 @@ public:
      * @param rRightHandSideVector Global right hand side vector
      * @param rCurrentProcessInfo Current process information
      */
-    void CalculateLocalSystem(MatrixType&        rLhsMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(Matrix& rLhsMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     std::string Info() const override;
 
@@ -139,14 +133,14 @@ protected:
      * @param rLeftHandSideMatrix Global Left hand side
      * @param rUUMatrix LHS displacement matrix of the current condition
      */
-    void AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUUMatrix);
+    void AddLHS(Matrix& rLeftHandSideMatrix, const ElementMatrixType& rUUMatrix);
 
     /**
      * @brief Calculates and adds terms to the RHS
      * @param rRigtHandSideVector Global Right hand side
      * @param rStiffnessMatrix condition stiffness matrix
      */
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, const MatrixType& rStiffnessMatrix);
+    void CalculateAndAddRHS(Vector& rRightHandSideVector, const Matrix& rStiffnessMatrix);
 
     /**
      * @brief Calculates the rotation matrix of the current condition
@@ -202,6 +196,20 @@ private:
      * @param rGeom geometry of the current condition
      */
     void CalculateRotationMatrix2DLine(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
+
+    /**
+    * @brief Calculates the rotation matrix of the current condition for 3D triangle conditions
+    * @param rRotationMatrix rotation matrix of the current condition
+    * @param rGeom geometry of the current condition
+    */
+    void CalculateRotationMatrix3DTriangle(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
+
+    /**
+    * @brief Calculates the rotation matrix of the current condition for 3D quad conditions
+    * @param rRotationMatrix rotation matrix of the current condition
+    * @param rGeom geometry of the current condition
+    */
+    void CalculateRotationMatrix3DQuad(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
 
     /**
      * @brief Calculates the stiffness matrix for the current condition

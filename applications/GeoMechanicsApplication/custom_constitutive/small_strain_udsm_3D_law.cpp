@@ -14,7 +14,7 @@
 #include <algorithm>
 
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
 #include "windows.hpp"
@@ -46,9 +46,9 @@ namespace Kratos
 // calling convention (__cdecl, __stdcall, ...)
 // __stdcall is the convention used by the WinAPI
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-typedef void(__stdcall* f_GetParamCount)(int*, int*);
-typedef void(__stdcall* f_GetStateVarCount)(int*, int*);
-typedef void(__stdcall* f_UserMod)(int*,
+using f_GetParamCount    = void(__stdcall*)(int*, int*);
+using f_GetStateVarCount = void(__stdcall*)(int*, int*);
+using f_UserMod          = void(__stdcall*)(int*,
                                    int*,
                                    int*,
                                    int*,
@@ -82,39 +82,39 @@ typedef void(__stdcall* f_UserMod)(int*,
 #endif
 
 #ifdef KRATOS_COMPILED_IN_LINUX
-typedef void (*f_GetParamCount)(int*, int*);
-typedef void (*f_GetStateVarCount)(int*, int*);
-typedef void (*f_UserMod)(int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          double*,
-                          double*,
-                          double*,
-                          double*,
-                          double*,
-                          const double*,
-                          double*,
-                          double*,
-                          double*,
-                          double*,
-                          double**,
-                          double*,
-                          double*,
-                          double*,
-                          double*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*,
-                          int*);
+using f_GetParamCount    = void (*)(int*, int*);
+using f_GetStateVarCount = void (*)(int*, int*);
+using f_UserMod          = void (*)(int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           double*,
+                           double*,
+                           double*,
+                           double*,
+                           double*,
+                           const double*,
+                           double*,
+                           double*,
+                           double*,
+                           double*,
+                           double**,
+                           double*,
+                           double*,
+                           double*,
+                           double*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*,
+                           int*);
 #endif
 
 using SizeType = std::size_t;
@@ -898,26 +898,22 @@ double& SmallStrainUDSM3DLaw::GetValue(const Variable<double>& rThisVariable, do
     return rValue;
 }
 
-void SmallStrainUDSM3DLaw::SetValue(const Variable<double>& rThisVariable,
-                                    const double&           rValue,
-                                    const ProcessInfo&      rCurrentProcessInfo)
+void SmallStrainUDSM3DLaw::SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rThisVariable);
+    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
-        << "GetValue: Variable: " << rThisVariable
+        << "GetValue: Variable: " << rVariable
         << " does not exist in UDSM. Requested index: " << index << std::endl;
 
     mStateVariablesFinalized[index] = rValue;
 }
 
-void SmallStrainUDSM3DLaw::SetValue(const Variable<Vector>& rThisVariable,
-                                    const Vector&           rValue,
-                                    const ProcessInfo&      rCurrentProcessInfo)
+void SmallStrainUDSM3DLaw::SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    if ((rThisVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
+    if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == mStressVectorFinalized.size())) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == mStressVectorFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStressVectorFinalized.begin());
     }
 }

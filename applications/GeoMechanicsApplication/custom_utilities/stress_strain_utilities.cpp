@@ -12,6 +12,8 @@
 //
 
 #include "stress_strain_utilities.h"
+#include "custom_utilities/generic_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "utilities/math_utils.h"
 #include <cmath>
@@ -21,7 +23,7 @@ namespace Kratos
 
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVector)
 {
-    const Matrix LocalStressTensor =
+    const auto LocalStressTensor =
         MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
 
     Matrix StressTensor(3, 3); // 3D stress tensor
@@ -32,7 +34,7 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVecto
         }
     }
 
-    const double SigmaEquivalent =
+    const auto SigmaEquivalent =
         0.5 * ((StressTensor(0, 0) - StressTensor(1, 1)) * (StressTensor(0, 0) - StressTensor(1, 1)) +
                (StressTensor(1, 1) - StressTensor(2, 2)) * (StressTensor(1, 1) - StressTensor(2, 2)) +
                (StressTensor(2, 2) - StressTensor(0, 0)) * (StressTensor(2, 2) - StressTensor(0, 0)) +
@@ -64,49 +66,56 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
 
-    const double p                   = CalculateMeanStress(rStressVector);
-    const double q                   = CalculateVonMisesStress(rStressVector);
-    const Matrix local_stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
-    Matrix       sigma_princi;
-    Matrix       eigen_vectors;
-    MathUtils<double>::GaussSeidelEigenSystem(local_stress_tensor, eigen_vectors, sigma_princi, 1.0e-16, 20);
-    const double numerator = (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
-    if (std::abs(numerator) < 1.0E-12) return 0.;
-    return std::asin((-27. / 2.) * numerator / (q * q * q)) / 3.0;
+    const auto q = CalculateVonMisesStress(rStressVector);
+    if (constexpr auto tolerance = 1.0E-12; q < tolerance) return 0.0;
+
+    Matrix sigma_princi;
+    Matrix eigen_vectors;
+    MathUtils<>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rStressVector),
+                                        eigen_vectors, sigma_princi, 1.0e-16, 20);
+    const auto p = CalculateMeanStress(rStressVector);
+    const auto numerator = (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
+    // Avoid a domain error when computing the arc sine (which results in a NaN value)
+    const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / (q * q * q), -1.0, 1.0);
+
+    return std::asin(arg_to_asin) / 3.0;
 }
 
-double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double Phi)
+double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
-
-    const double q_mc = CalculateQMohrCoulomb(rStressVector, C, Phi);
-    const double q    = CalculateVonMisesStress(rStressVector);
+    KRATOS_ERROR_IF(PhiInRadians < 0.0 || PhiInRadians > Globals::Pi / 2.0)
+        << "Friction angle must be in the range [0, 90] (degrees) : " << PhiInRadians * 180.0 / Globals::Pi
+        << std::endl;
+    const auto q_mc = CalculateQMohrCoulomb(rStressVector, C, PhiInRadians);
+    if (q_mc < 1e-10) return 1.0;
+    const auto q = CalculateVonMisesStress(rStressVector);
 
     return q / q_mc;
 }
 
-double StressStrainUtilities::CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi)
+double StressStrainUtilities::CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians)
 {
-    const double denominator = CalculateDenominator(rStressVector, Phi);
-    const double p           = -CalculateMeanStress(rStressVector);
-    return 3. * (p * std::sin(Phi) + C * std::cos(Phi)) / denominator;
+    const auto denominator = CalculateDenominator(rStressVector, PhiInRadians);
+    const auto p           = -CalculateMeanStress(rStressVector);
+    return 3. * (p * std::sin(PhiInRadians) + C * std::cos(PhiInRadians)) / denominator;
 }
 
-double StressStrainUtilities::CalculateDenominator(const Vector& rStressVector, double Phi)
+double StressStrainUtilities::CalculateDenominator(const Vector& rStressVector, double PhiInRadians)
 {
-    const double lode_angle = CalculateLodeAngle(rStressVector);
-    return std::sqrt(3.) * std::cos(lode_angle) - std::sin(lode_angle) * std::sin(Phi);
+    const auto lode_angle = CalculateLodeAngle(rStressVector);
+    return std::sqrt(3.) * std::cos(lode_angle) - std::sin(lode_angle) * std::sin(PhiInRadians);
 }
 
-double StressStrainUtilities::CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double Phi)
+double StressStrainUtilities::CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double PhiInRadians)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
 
-    const double denominator = CalculateDenominator(rStressVector, Phi);
-    const double q_mc        = CalculateQMohrCoulomb(rStressVector, C, Phi);
-    const double q           = CalculateVonMisesStress(rStressVector);
+    const auto denominator = CalculateDenominator(rStressVector, PhiInRadians);
+    const auto q_mc        = CalculateQMohrCoulomb(rStressVector, C, PhiInRadians);
+    const auto q           = CalculateVonMisesStress(rStressVector);
 
-    return 3. * std::sin(Phi) * (q_mc - q) / denominator;
+    return 3. * std::sin(PhiInRadians) * (q_mc - q) / denominator;
 }
 
 double StressStrainUtilities::CalculateVonMisesStrain(const Vector& rStrainVector)
@@ -165,6 +174,7 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
                                                             std::size_t   VoigtSize)
 {
     std::vector<Vector> result;
+    result.reserve(rDeformationGradients.size());
     std::transform(
         rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
         [&rDisplacements, UseHenckyStrain, VoigtSize](const auto& rDeformationGradient, const auto& rB) {
@@ -173,6 +183,40 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     });
 
     return result;
+}
+
+void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStressVector,
+                                                       Vector&       rPrincipalStressVector,
+                                                       Matrix&       rEigenVectorsMatrix)
+{
+    Matrix principal_stress_matrix;
+    MathUtils<>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rCauchyStressVector),
+                                        rEigenVectorsMatrix, principal_stress_matrix, 1.0e-16, 20);
+    rPrincipalStressVector = GeoMechanicsMathUtilities::DiagonalOfMatrixToVector(principal_stress_matrix);
+    ReorderEigenValuesAndVectors(rPrincipalStressVector, rEigenVectorsMatrix);
+}
+
+void StressStrainUtilities::ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix)
+{
+    std::vector<std::size_t> indices(rPrincipalStressVector.size());
+    std::iota(indices.begin(), indices.end(), std::size_t{0});
+    std::sort(indices.begin(), indices.end(), [&rPrincipalStressVector](auto i, auto j) {
+        return rPrincipalStressVector[j] < rPrincipalStressVector[i];
+    });
+
+    rPrincipalStressVector = GenericUtilities::PermutedVector(rPrincipalStressVector, indices);
+    rEigenVectorsMatrix = GenericUtilities::MatrixWithPermutedColumns(rEigenVectorsMatrix, indices);
+}
+
+Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalStressVector,
+                                                      const Matrix& rRotationMatrix,
+                                                      std::size_t   StressVectorSize)
+{
+    const auto principal_stress_matrix =
+        GeoMechanicsMathUtilities::VectorToDiagonalMatrix(rPrincipalStressVector);
+    const auto rotated_stress_matrix =
+        GeoMechanicsMathUtilities::RotateSecondOrderTensor(principal_stress_matrix, rRotationMatrix);
+    return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
 } // namespace Kratos
