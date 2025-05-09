@@ -155,7 +155,7 @@ public:
     {
         KRATOS_TRY
 
-        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), GetGeometry().LocalSpaceDimension()==1?"Length":std::optional<std::string>{});
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
@@ -209,6 +209,15 @@ private:
         CheckProperty(DYNAMIC_VISCOSITY);
         CheckProperty(BIOT_COEFFICIENT);
         CheckProperty(PERMEABILITY_XX);
+        if (GetGeometry().LocalSpaceDimension()>1) {
+            CheckProperty(PERMEABILITY_YY);
+            CheckProperty(PERMEABILITY_XY);
+            if constexpr (TDim > 2) {
+                CheckProperty(PERMEABILITY_ZZ);
+                CheckProperty(PERMEABILITY_YZ);
+                CheckProperty(PERMEABILITY_ZX);
+            }
+        }
     }
 
     void CheckProperty(const Kratos::Variable<double>& rVariable, std::optional<double> MaxValue = std::nullopt) const
