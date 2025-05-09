@@ -117,24 +117,24 @@ void InterfaceCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMa
         HasInitialState() ? GetInitialState().GetInitialStressVector() : ZeroVector{GetStrainSize()};
 }
 
-void InterfaceCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& rValues)
+void InterfaceCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
 {
     if (!mIsModelInitialized) {
-        mTractionVectorFinalized             = rValues.GetStressVector();
-        mRelativeDisplacementVectorFinalized = rValues.GetStrainVector();
+        mTractionVectorFinalized             = rConstitutiveLawParameters.GetStressVector();
+        mRelativeDisplacementVectorFinalized = rConstitutiveLawParameters.GetStrainVector();
         mIsModelInitialized                  = true;
     }
 }
 
-void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
+void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
 {
-    const auto& r_properties = rParameters.GetMaterialProperties();
+    const auto& r_properties = rConstitutiveLawParameters.GetMaterialProperties();
 
-    auto       trial_sigma_tau = CalculateTrialTractionVector(rParameters.GetStrainVector(),
-                                                              r_properties[INTERFACE_NORMAL_STIFFNESS],
-                                                              r_properties[INTERFACE_SHEAR_STIFFNESS]);
-    const auto negative        = std::signbit(trial_sigma_tau[1]);
-    trial_sigma_tau[1]         = std::abs(trial_sigma_tau[1]);
+    auto trial_sigma_tau = CalculateTrialTractionVector(rConstitutiveLawParameters.GetStrainVector(),
+                                                        r_properties[INTERFACE_NORMAL_STIFFNESS],
+                                                        r_properties[INTERFACE_SHEAR_STIFFNESS]);
+    const auto negative = std::signbit(trial_sigma_tau[1]);
+    trial_sigma_tau[1]  = std::abs(trial_sigma_tau[1]);
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         trial_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(r_properties, trial_sigma_tau);
@@ -142,9 +142,8 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Constitu
 
     if (negative) trial_sigma_tau[1] *= -1.0;
 
-    mTractionVector = trial_sigma_tau;
-
-    rParameters.GetStressVector() = mTractionVector;
+    mTractionVector                              = trial_sigma_tau;
+    rConstitutiveLawParameters.GetStressVector() = mTractionVector;
 }
 
 Vector InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
@@ -156,18 +155,18 @@ Vector InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vec
                                            rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
 }
 
-void InterfaceCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void InterfaceCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
 {
-    mRelativeDisplacementVectorFinalized = rValues.GetStrainVector();
+    mRelativeDisplacementVectorFinalized = rConstitutiveLawParameters.GetStrainVector();
     mTractionVectorFinalized             = mTractionVector;
 }
 
-Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitutiveLawParameters,
                                                           const Variable<Matrix>& rVariable,
                                                           Matrix&                 rValue)
 {
     if (rVariable == CONSTITUTIVE_MATRIX) {
-        const auto& r_properties = rParameterValues.GetMaterialProperties();
+        const auto& r_properties = rConstitutiveLawParameters.GetMaterialProperties();
         rValue                   = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
             r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS], GetStrainSize());
     } else {

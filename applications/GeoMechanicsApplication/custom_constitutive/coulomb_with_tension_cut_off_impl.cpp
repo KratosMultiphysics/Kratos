@@ -82,10 +82,10 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
                                         double        FrictionAngleInRadians,
                                         double        Cohesion)
 {
-    const auto cof1      = std::sin(FrictionAngleInRadians);
-    const auto cof2      = Cohesion * std::cos(FrictionAngleInRadians);
-    const auto numerator = cof1 * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
-    const auto lambda    = (cof2 - rSigmaTau[0] * cof1 - rSigmaTau[1]) / numerator;
+    const auto sin_phi   = std::sin(FrictionAngleInRadians);
+    const auto numerator = sin_phi * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
+    const auto lambda =
+        (Cohesion * std::cos(FrictionAngleInRadians) - rSigmaTau[0] * sin_phi - rSigmaTau[1]) / numerator;
     return rSigmaTau + lambda * rDerivativeOfFlowFunction;
 }
 

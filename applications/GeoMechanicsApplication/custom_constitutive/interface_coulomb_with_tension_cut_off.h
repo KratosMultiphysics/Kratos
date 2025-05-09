@@ -23,17 +23,17 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombWithTensionCutOff : public ConstitutiveLaw
 {
 public:
-    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
-    SizeType                               WorkingSpaceDimension() override;
-    bool                                   IsIncremental() override;
-    bool                                   RequiresInitializeMaterialResponse() override;
-    StressMeasure                          GetStressMeasure() override;
-    [[nodiscard]] SizeType                 GetStrainSize() const override;
-    StrainMeasure                          GetStrainMeasure() override;
-    void                                   InitializeMaterial(const Properties&     rMaterialProperties,
-                                                              const Geometry<Node>& rElementGeometry,
-                                                              const Vector&         rShapeFunctionsValues) override;
-    void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
+    [[nodiscard]] Pointer  Clone() const override;
+    SizeType               WorkingSpaceDimension() override;
+    bool                   IsIncremental() override;
+    bool                   RequiresInitializeMaterialResponse() override;
+    StressMeasure          GetStressMeasure() override;
+    [[nodiscard]] SizeType GetStrainSize() const override;
+    StrainMeasure          GetStrainMeasure() override;
+    void                   InitializeMaterial(const Properties&     rMaterialProperties,
+                                              const Geometry<Node>& rElementGeometry,
+                                              const Vector&         rShapeFunctionsValues) override;
+    void    InitializeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
@@ -41,9 +41,11 @@ public:
     [[nodiscard]] int Check(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const ProcessInfo&  rCurrentProcessInfo) const override;
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rVariable, Matrix& rValue) override;
+    void    CalculateMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
+    void    FinalizeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
+    Matrix& CalculateValue(Parameters&             rConstitutiveLawParameters,
+                           const Variable<Matrix>& rVariable,
+                           Matrix&                 rValue) override;
     using ConstitutiveLaw::CalculateValue;
 
 private:
