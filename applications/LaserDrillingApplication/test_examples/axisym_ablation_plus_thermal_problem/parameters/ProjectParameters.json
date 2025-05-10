@@ -7,9 +7,6 @@
         "start_time"    : 0.0,
         "end_time"      : 15e-6,
         
-        "consider_material_refraction": true,
-        "adjust_T_field_after_ablation" : true,
-
         "mesh_size" : "coarse",
         "mesh_type" : "unstructured",
         
@@ -53,7 +50,11 @@
             "element_name" : "LaserAxisymmetricEulerianConvectionDiffusion",
             "condition_name" : "AxisymmetricThermalFace"
         },
-        "compute_vaporisation"              : false
+        "compute_vaporisation"              : false,
+        "consider_material_refraction"      : true,
+        "adjust_T_field_after_ablation"     : false,
+        "print_hole_geometry_files"         : false,
+        "print_debug_info"                  : false
     },
     "processes"        : {
         "initial_conditions_process_list" : [],

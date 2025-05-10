@@ -40,7 +40,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters(r"""{
-            "compute_vaporisation" : false
+            "compute_vaporisation"          : false,
+            "consider_material_refraction"  : false,
+            "adjust_T_field_after_ablation" : false,
+            "print_hole_geometry_files"     : false,
+            "print_debug_info"              : false
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -223,8 +227,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.compute_vaporisation = self.settings["compute_vaporisation"].GetBool()
 
-        # self.compute_vaporisation = False
-
         if not self.material_settings["Variables"].Has("IONIZATION_ALPHA"):
             self.ionization_alpha = 1.0  # 0.95
         else:
@@ -262,14 +264,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.mesh_type = self.project_parameters["problem_data"]["mesh_type"].GetString()
 
-        """
-        TODO: see compute_vaporisation
-        if not self.settings["solver_settings"].Has("print_hole_geometry_files"):
+        if not self.settings.Has("print_hole_geometry_files"):
             self.print_hole_geometry_files = False
         else:
-            self.print_hole_geometry_files = self.settings["solver_settings"]["print_hole_geometry_files"].GetBool()
-        """
-        self.print_hole_geometry_files = False
+            self.print_hole_geometry_files = self.settings["print_hole_geometry_files"].GetBool()
 
         self.Q = self.average_laser_power / self.pulse_frequency  # Energy per pulse
         self.time_jump_between_pulses = 1.0 / self.pulse_frequency  # TODO: rename to something like pulse_period?
@@ -317,12 +315,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.refractive_index_n = self.material_settings["Variables"]["REFRACTIVE_INDEX"].GetDouble()
 
-        if not self.project_parameters["problem_data"].Has("consider_material_refraction"):
+        if not self.settings.Has("consider_material_refraction"):
             self.consider_material_refraction = False
         else:
-            self.consider_material_refraction = self.project_parameters["problem_data"][
-                "consider_material_refraction"
-            ].GetBool()
+            self.consider_material_refraction = self.settings["consider_material_refraction"].GetBool()
 
         if self.material_settings["compute_optical_penetration_depth_using_refractive_index"].GetBool():
             self.ComputeOpticalPenetrationDepth()  # TODO: Better to return the value instead of modifying a global?
@@ -349,20 +345,15 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.r_ast_max = self.ComputeMaximumAblationRadius()
 
-        if not self.project_parameters["problem_data"].Has("adjust_T_field_after_ablation"):
+        if not self.settings.Has("adjust_T_field_after_ablation"):
             self.adjust_T_field_after_ablation = False
         else:
-            self.adjust_T_field_after_ablation = self.project_parameters["problem_data"][
-                "adjust_T_field_after_ablation"
-            ].GetBool()
-        """
-        TODO: see compute_vaporisation
-        if not self.settings["solver_settings"].Has("print_debug_info"):
+            self.adjust_T_field_after_ablation = self.settings["adjust_T_field_after_ablation"].GetBool()
+
+        if not self.settings.Has("print_debug_info"):
             self.print_debug_info = False
         else:
-            self.print_debug_info = self.settings["solver_settings"]["print_debug_info"].GetBool()
-        """
-        self.print_debug_info = False
+            self.print_debug_info = self.settings["print_debug_info"].GetBool()
 
         self.analytical_ablated_volume_in_n_pulses = 0.0
 
