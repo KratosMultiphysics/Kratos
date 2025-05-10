@@ -592,7 +592,18 @@ namespace Kratos {
             
             int contact_mesh_option = r_process_info[CONTACT_MESH_OPTION];
             //if (contact_mesh_option == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
-            if (contact_mesh_option == 1 && i < (int)mNeighbourElements.size() && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
+            if (contact_mesh_option == 1 && i < (int)mNeighbourElements.size() && this->Id() < neighbour_iterator_id && r_process_info[IS_TIME_TO_PRINT]) {
+                if (i < (int)mContinuumInitialNeighborsSize) {
+                    double total_local_elastic_contact_force[3] = {0.0};
+                    total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
+                    total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
+                    total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
+                    double bond_volume = GetInitialBondVolume(neighbour_iterator_id);
+                    CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce, bond_volume);
+                } else {
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                }
+            } else if (contact_mesh_option == 1 && i < (int)mNeighbourElements.size() && this->Id() < neighbour_iterator_id && r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT]) {
                 if (i < (int)mContinuumInitialNeighborsSize) {
                     double total_local_elastic_contact_force[3] = {0.0};
                     total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
@@ -1051,10 +1062,6 @@ namespace Kratos {
         bond->mGlobalContactForce[0] = GlobalContactForce[0];
         bond->mGlobalContactForce[1] = GlobalContactForce[1];
         bond->mGlobalContactForce[2] = GlobalContactForce[2];
-
-        bond->GetValue(GLOBAL_CONTACT_FORCE)[0] = GlobalContactForce[0];
-        bond->GetValue(GLOBAL_CONTACT_FORCE)[1] = GlobalContactForce[1];
-        bond->GetValue(GLOBAL_CONTACT_FORCE)[2] = GlobalContactForce[2];
 
         if ((time_steps == 0) || (acumulated_damage > bond->mUnidimendionalDamage)) {
             bond->mUnidimendionalDamage = acumulated_damage;

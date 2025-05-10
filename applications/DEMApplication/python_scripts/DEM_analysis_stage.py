@@ -519,6 +519,11 @@ class DEMAnalysisStage(AnalysisStage):
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
+    def UpdateContactElementForServo(self):
+        if self.bounding_box_servo_loading_option:
+            if self.update_contact_in_this_step:
+                self._GetSolver().PrepareContactElementsForPrinting()
+
     def SolverSolve(self):
         self._GetSolver().SolveSolutionStep()
 
@@ -557,14 +562,15 @@ class DEMAnalysisStage(AnalysisStage):
                 time_step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
                 if bounding_box_servo_loading_option:
                     NStepSearch = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFrequency"].GetInt()
-                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                    if (time_step - 1) % NStepSearch == 0 and (time_step > 1):
+                        #self._GetSolver().PrepareContactElementsForPrinting()
                         measured_global_stress = self.MeasureSphereForGettingGlobalStressTensor()
                         self.CalculateBoundingBoxMoveVelocity(measured_global_stress)
                         self.UpdateSearchStartegyAndCPlusPlusStrategy(self.bounding_box_move_velocity)
                         self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, self.bounding_box_move_velocity)
                 else:
                     NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
-                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                    if (time_step - 1) % NStepSearch == 0 and (time_step > 1):
                         bounding_box_move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetVector()
                         self.UpdateSearchStartegyAndCPlusPlusStrategy(bounding_box_move_velocity)
                         self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, bounding_box_move_velocity)
@@ -680,11 +686,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
 
     def UpdateIsTimeToUpdateContactElementForServo(self, is_time_to_update_contact_element):
+        self.update_contact_in_this_step = is_time_to_update_contact_element
         self.spheres_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
         self.cluster_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
         self.dem_inlet_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
         self.rigid_face_model_part.ProcessInfo[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] = is_time_to_update_contact_element
-        self.time_old_update_contact_element = self.time
+        if is_time_to_update_contact_element:
+            self.time_old_update_contact_element = self.time
 
     def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
@@ -717,6 +725,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
         self.BeforePrintingOperations(self.time)
         self.PrintResults()
+        self.UpdateContactElementForServo()
 
         for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():

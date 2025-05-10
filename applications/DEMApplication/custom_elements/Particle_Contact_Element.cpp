@@ -50,6 +50,9 @@ void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
     mUnidimendionalDamage = 0.0;
+    mGlobalContactForce[0] = 0.0;
+    mGlobalContactForce[1] = 0.0;
+    mGlobalContactForce[2] = 0.0;
     mContactFailure = 0.0;
     mContactSigma = 0.0;
     mContactTau = 0.0;
