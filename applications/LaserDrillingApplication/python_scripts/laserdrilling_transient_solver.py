@@ -1087,6 +1087,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         list_of_decomposed_nodes_coords.sort(key=self.sortSecond)
         self.list_of_decomposed_nodes_coords_X = np.array([coord[0] for coord in list_of_decomposed_nodes_coords])
         self.list_of_decomposed_nodes_coords_Y = np.array([coord[1] for coord in list_of_decomposed_nodes_coords])
+
+        # TODO: move elsewhere
+        # Export a list of the decomposed nodes
         if os.path.exists(self.decomposed_nodes_coords_filename):
             os.remove(self.decomposed_nodes_coords_filename)
 
