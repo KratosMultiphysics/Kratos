@@ -37,6 +37,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # Construct the base solver and validate the settings in base class
         super().__init__(model, custom_settings)
 
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters(r"""{
+            "compute_vaporisation" : false
+        }""")
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
+
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
@@ -71,19 +79,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.RemoveElementsByAblation()
             self.AdjustTemperatureFieldAfterAblation()
             self.ResidualHeatStage()
-
-    @classmethod
-    def GetDefaultParameters(cls):
-        this_defaults = KratosMultiphysics.Parameters(r"""{
-            "time_integration_method" : "implicit",
-            "transient_parameters" : {
-                "dynamic_tau": 1.0,
-                "theta"    : 0.5
-            },
-            "ambient_temperature" : 0.0
-        }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
-        return this_defaults
 
     def AllocateKratosMemory(self):
         # Set element counter variable to zero
@@ -223,15 +218,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.T_e = self.material_settings["Variables"]["VAPORISATION_TEMPERATURE"].GetDouble()
 
-        """
-        TODO: either properly add compute_vaporisation to the default parameters or remove it and
-        whatever depends on it altogether
-        if not self.settings["solver_settings"].Has("compute_vaporisation"):
+        if not self.settings.Has("compute_vaporisation"):
             self.compute_vaporisation = False
         else:
-            self.compute_vaporisation = self.settings["solver_settings"]["compute_vaporisation"].GetBool() 
-        """
-        self.compute_vaporisation = False
+            self.compute_vaporisation = self.settings["compute_vaporisation"].GetBool()
+
+        # self.compute_vaporisation = False
 
         if not self.material_settings["Variables"].Has("IONIZATION_ALPHA"):
             self.ionization_alpha = 1.0  # 0.95

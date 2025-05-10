@@ -52,7 +52,8 @@
         "element_replace_settings" : {
             "element_name" : "LaserAxisymmetricEulerianConvectionDiffusion",
             "condition_name" : "AxisymmetricThermalFace"
-        }
+        },
+        "compute_vaporisation"              : false
     },
     "processes"        : {
         "initial_conditions_process_list" : [],
