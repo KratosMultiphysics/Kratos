@@ -40,11 +40,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters(r"""{
-            "compute_vaporisation"          : false,
-            "consider_material_refraction"  : false,
-            "adjust_T_field_after_ablation" : false,
-            "print_hole_geometry_files"     : false,
-            "print_debug_info"              : false
+            "compute_vaporisation"             : false,
+            "consider_material_refraction"     : false,
+            "adjust_T_field_after_ablation"    : false,
+            "print_hole_geometry_files"        : false,
+            "print_debug_info"                 : false,
+            "decomposed_nodes_coords_filename" : "hole_coords_q_ast=q_ast+delta_pen+mesh_type+mesh_size.txt"
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -172,9 +173,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.laser_settings = laser["properties"][0]["Material"]
 
+        """
         # Load the Project parameters file TODO: Read from the self.settings which file (filename) to load
         with open("parameters/ProjectParameters.json", "r") as project_parameters_file:
             self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
+        """
 
         """ 
         TODO: instead of hardcoding default values for the parameters, wouldn't it be better if when a parameter is not defined the program failed?
@@ -254,6 +257,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.H_ev = self.material_settings["Variables"]["ENTHALPY"].GetDouble()
 
+        """
+        TODO: remove
         if not self.project_parameters["problem_data"].Has("mesh_size"):
             self.mesh_size = "coarse"
         else:
@@ -263,6 +268,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.mesh_type = "unstructured"
         else:
             self.mesh_type = self.project_parameters["problem_data"]["mesh_type"].GetString()
+        """
 
         if not self.settings.Has("print_hole_geometry_files"):
             self.print_hole_geometry_files = False
@@ -331,6 +337,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.use_enthalpy_and_ionization = False
 
+        """
+        TODO: see the ToDo list
         self.decomposed_nodes_coords_filename = (
             "hole_coords_q_ast="
             + str(self.q_ast)
@@ -342,6 +350,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             + self.mesh_size
             + ".txt"
         )
+        """
+
+        if not self.settings.Has("decomposed_nodes_coords_filename"):
+            self.decomposed_nodes_coords_filename = "hole_coords_q_ast=q_ast+delta_pen+mesh_type+mesh_size.txt"
+        else:
+            self.decomposed_nodes_coords_filename = self.settings["decomposed_nodes_coords_filename"].GetString()
 
         self.r_ast_max = self.ComputeMaximumAblationRadius()
 
