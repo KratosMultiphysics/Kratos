@@ -39,7 +39,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Explicit Solution Buider and Solver base class
+/** @brief Explicit Solution Builder and Solver base class
  *  @details This is the explicit builder and solver
  */
 template<class TSparseSpace,

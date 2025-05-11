@@ -39,7 +39,7 @@ LinearIsotropicKinematicHardeningLaw::LinearIsotropicKinematicHardeningLaw()
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 LinearIsotropicKinematicHardeningLaw& LinearIsotropicKinematicHardeningLaw::operator=(LinearIsotropicKinematicHardeningLaw const& rOther)

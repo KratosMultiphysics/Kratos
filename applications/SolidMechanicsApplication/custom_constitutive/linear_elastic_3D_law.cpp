@@ -311,7 +311,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
         this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
 
 
-	//LARGE STRAINS OBJECTIVE MESURE KIRCHHOFF MATERIAL:
+	//LARGE STRAINS OBJECTIVE MEASURE KIRCHHOFF MATERIAL:
 
 	// Kirchhoff model is set with S = CE
 	this->CalculateMaterialResponsePK2 (rValues);

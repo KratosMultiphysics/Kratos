@@ -52,7 +52,7 @@ Imposition of the dirichlet conditions is naturally dealt with as the residual a
  */
 
 
-/** @brief Solution Buider and Solver base class
+/** @brief Solution Builder and Solver base class
  *  @details This is the base class for the building and solving the solution system
  */
 template<class TSparseSpace,
@@ -122,7 +122,7 @@ public:
 
   /**
    * @brief Function to perform the building of the LHS,
-   * @details Depending on the implementation choosen the size of the matrix could be
+   * @details Depending on the implementation chosen the size of the matrix could be
    * @details equal to the total number of Dofs or to the number of non constrained dofs
    */
   virtual void BuildLHS(SchemePointerType pScheme,
@@ -189,9 +189,9 @@ public:
   /**
    * @brief applies the dirichlet conditions.
    * @details This operation may be very heavy or completely
-   * @details unexpensive depending on the implementation choosen and on how the System Matrix
+   * @details unexpensive depending on the implementation chosen and on how the System Matrix
    * @details is built. For explanation of how it works for a particular implementation the user
-   * @details should refer to the particular Builder And Solver choosen
+   * @details should refer to the particular Builder And Solver chosen
    */
   virtual void ApplyDirichletConditions(SchemePointerType pScheme,
                                         ModelPart& rModelPart,
@@ -235,7 +235,7 @@ public:
 
   /**
    * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-   * @details The list of dofs is stores insde the SolutionBuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+   * @details The list of dofs is stores inside the SolutionBuilderAndSolver as it is closely connected to the way the matrix and RHS are built
   */
   virtual void SetUpDofSet(SchemePointerType pScheme,
                            ModelPart& rModelPart)
@@ -382,9 +382,9 @@ public:
    * @details
    * {
    * 0 -> Mute... no echo at all
-   * 1 -> Printing time and basic informations
+   * 1 -> Printing time and basic information
    * 2 -> Printing linear solver data
-   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+   * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
    * }
    */
   virtual void SetEchoLevel(const int Level)

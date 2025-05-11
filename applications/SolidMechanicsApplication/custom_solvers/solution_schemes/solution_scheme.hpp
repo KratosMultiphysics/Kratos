@@ -121,7 +121,7 @@ class SolutionScheme : public Flags
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
       : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
 
-  /// Copy contructor.
+  /// Copy constructor.
   SolutionScheme(SolutionScheme& rOther) : mOptions(rOther.mOptions)
                                          , mProcesses(rOther.mProcesses)
   {
@@ -844,7 +844,7 @@ class SolutionScheme : public Flags
     KRATOS_TRY
 
     if( this->IsNot(LocalFlagType::ELEMENTS_INITIALIZED) )
-      KRATOS_ERROR << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
+      KRATOS_ERROR << "Before initializing Conditions, initialize Elements FIRST" << std::endl;
 
     if( this->IsNot(LocalFlagType::CONDITIONS_INITIALIZED) ){
 

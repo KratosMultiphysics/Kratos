@@ -56,7 +56,7 @@ LargeDisplacementVElement::LargeDisplacementVElement( LargeDisplacementVElement 
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 LargeDisplacementVElement&  LargeDisplacementVElement::operator=(LargeDisplacementVElement const& rOther)

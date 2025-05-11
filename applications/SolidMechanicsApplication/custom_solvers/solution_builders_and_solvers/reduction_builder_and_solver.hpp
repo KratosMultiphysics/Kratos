@@ -124,7 +124,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
   /**
    * @brief Function to perform the building of the LHS,
-   * @details Depending on the implementation choosen the size of the matrix could be
+   * @details Depending on the implementation chosen the size of the matrix could be
    * @details equal to the total number of Dofs or to the number of non constrained dofs
    */
   void BuildLHS(SchemePointerType pScheme,
@@ -392,7 +392,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     else
       TSparseSpace::SetToZero(rDx);
 
-    //prints informations about the current time
+    //prints information about the current time
     if (this->GetEchoLevel() > 1)
     {
       KRATOS_INFO("linear_solver") << *(this->mpLinearSystemSolver) << std::endl;
@@ -470,9 +470,9 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   /**
    * @brief applies the dirichlet conditions.
    * @details This operation may be very heavy or completely
-   * @details unexpensive depending on the implementation choosen and on how the System Matrix
+   * @details unexpensive depending on the implementation chosen and on how the System Matrix
    * @details is built. For explanation of how it works for a particular implementation the user
-   * @details should refer to the particular Builder And Solver choosen
+   * @details should refer to the particular Builder And Solver chosen
    */
   void ApplyDirichletConditions(SchemePointerType pScheme,
                                 ModelPart& rModelPart,
@@ -484,7 +484,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
   /**
    * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-   * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+   * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
   */
   void SetUpDofSet(SchemePointerType pScheme,
                    ModelPart& rModelPart) override
@@ -931,7 +931,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
       KRATOS_WARNING("RHS") << "ATTENTION! setting the RHS to zero!" << std::endl;
     }
 
-    //prints informations about the current time
+    //prints information about the current time
     if (this->GetEchoLevel() > 1)
     {
       KRATOS_INFO("LinearSolver") << *(this->mpLinearSystemSolver) << std::endl;

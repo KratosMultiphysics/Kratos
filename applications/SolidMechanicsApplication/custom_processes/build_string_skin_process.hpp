@@ -1269,7 +1269,7 @@ private:
       CleanElementNeighbours();
 
 
-      //*************  Neigbours of nodes  ************//
+      //*************  Neighbours of nodes  ************//
       //add the neighbour elements to all the nodes in the mesh
       for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
       {
@@ -1300,7 +1300,7 @@ private:
       }
 
 
-      //*************  Neigbours of elements  *********//
+      //*************  Neighbours of elements  *********//
       //add the neighbour elements to all the elements in the mesh
 
       //loop over faces

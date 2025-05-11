@@ -66,7 +66,7 @@ SolidElement::SolidElement( SolidElement const& rOther)
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 SolidElement&  SolidElement::operator=(SolidElement const& rOther)
@@ -1405,7 +1405,7 @@ double& SolidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    //Compute the Volume Change acumulated:
+    //Compute the Volume Change accumulated:
     ElementDataType Variables;
     this->InitializeElementData(Variables,rCurrentProcessInfo);
 
@@ -1419,7 +1419,7 @@ double& SolidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 	//compute element kinematic variables
 	this->CalculateKinematics(Variables,PointNumber);
 
-	//getting informations for integration
+	//getting information for integration
         Variables.IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume changes
@@ -1473,7 +1473,7 @@ Vector& SolidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementDataTyp
 
     for ( SizeType j = 0; j < number_of_nodes; j++ )
     {
-      if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
+      if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the beginning only
 	array_1d<double, 3 >& VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 	for( SizeType i = 0; i < dimension; i++ )
 	  rVolumeForce[i] += rVariables.N[j] * VolumeAcceleration[i] ;
@@ -1810,7 +1810,7 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const Pro
     noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
 
-    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //1.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) ){
       alpha = GetProperties()[RAYLEIGH_ALPHA];

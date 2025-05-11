@@ -120,7 +120,7 @@ namespace Kratos
     //Set Shape Functions Values for this integration point
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     Vector Jacobian(3);

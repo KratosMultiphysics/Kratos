@@ -806,7 +806,7 @@ void ShellThickElement3D4N::CalculateMassMatrix(
 
   double lump_area = referenceCoordinateSystem.Area() / 4.0;
 
-  // Calculate avarage mass per unit area
+  // Calculate average mass per unit area
   double av_mass_per_unit_area = 0.0;
   for (size_t i = 0; i < 4; i++)
     av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
@@ -1084,7 +1084,7 @@ void ShellThickElement3D4N::CalculateBMatrix(double xi, double eta,
   row(BN, 1) *= Temp2;
 
   // transform the strain-displacement matrix from natural
-  // to local coordinate system taking into account the element distorsion
+  // to local coordinate system taking into account the element distortion
 
   project(B, slice(7, -1, 2), slice::all()) =
       prod(mitc_params.Transformation, BN);

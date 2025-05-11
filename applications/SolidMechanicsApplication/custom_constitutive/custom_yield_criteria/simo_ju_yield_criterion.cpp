@@ -38,7 +38,7 @@ SimoJuYieldCriterion::SimoJuYieldCriterion(HardeningLawPointer pHardeningLaw)
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 SimoJuYieldCriterion& SimoJuYieldCriterion::operator=(SimoJuYieldCriterion const& rOther)

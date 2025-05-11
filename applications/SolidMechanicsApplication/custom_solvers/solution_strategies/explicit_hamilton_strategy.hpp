@@ -101,12 +101,12 @@ public:
                                  new ExplicitHamiltonBuilderAndSolver <TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
                              );
 
-        //set flags to start correcty the calculations
+        //set flags to start correctly the calculations
         mSolutionStepIsInitialized  = false;
 
         mInitializeWasPerformed     = false;
 
-        //set EchoLevel to the deffault value (only time is displayed)
+        //set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
 
 	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
@@ -190,9 +190,9 @@ public:
 
     //level of echo for the solving strategy
     // 0 -> mute... no echo at all
-    // 1 -> printing time and basic informations
+    // 1 -> printing time and basic information
     // 2 -> printing linear solver data
-    // 3 -> Print of debug informations:
+    // 3 -> Print of debug information:
     //    Echo of stiffness matrix, Dx, b...
 
     void SetEchoLevel(int Level)
@@ -260,7 +260,7 @@ public:
 	}
 
 	// if(BaseType::GetModelPart().GetProcessInfo()[TIME]<=BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]){
-	//   std::cout<<" INITIAL CONDITIONS:: initial exernal forces "<<std::endl;
+	//   std::cout<<" INITIAL CONDITIONS:: initial external forces "<<std::endl;
 	//   pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb); //fills FORCE_RESIDUAL and MOMENT_RESIDUAL nodal variables
 	//   //Position_Momentum and Rotation_Momentum Update (assign nodal contributions):
 	//   DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
@@ -302,7 +302,7 @@ public:
         if(mInitializeWasPerformed == false)
             Initialize();
 
-        //prints informations about the current time
+        //prints information about the current time
         if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << " " << std::endl;

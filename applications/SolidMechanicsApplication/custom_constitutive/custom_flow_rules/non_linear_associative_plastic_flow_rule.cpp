@@ -37,7 +37,7 @@ NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule(YieldCr
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 NonLinearAssociativePlasticFlowRule& NonLinearAssociativePlasticFlowRule::operator=(NonLinearAssociativePlasticFlowRule const& rOther)

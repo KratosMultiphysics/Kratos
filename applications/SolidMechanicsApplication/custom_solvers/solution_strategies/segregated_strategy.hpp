@@ -149,7 +149,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     if(this->mOptions.Is(LocalFlagType::IMPLEX))
       this->GetModelPart().GetProcessInfo().SetValue(IMPLEX, true);
 
-    //prints informations about the current time
+    //prints information about the current time
     //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
 
     int counter = 0;
@@ -197,7 +197,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   {
     KRATOS_TRY
 
-    //initializing the parameters of the Newton-Raphson cicle
+    //initializing the parameters of the Newton-Raphson cycle
     unsigned int iteration_number = 1;
 
     //setting the iteration number
@@ -320,9 +320,9 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
    * @details
    * {
    * 0 -> Mute... no echo at all
-   * 1 -> Printing time and basic informations
+   * 1 -> Printing time and basic information
    * 2 -> Printing linear solver data
-   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+   * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
    * }
    */
   void SetEchoLevel(const int Level) override

@@ -302,7 +302,7 @@ protected:
 
 
     /**
-      * Calculation of the Tangent Intertia Matrix
+      * Calculation of the Tangent Inertia Matrix
       */
     void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementDataType& rVariables,

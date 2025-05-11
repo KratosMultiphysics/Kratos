@@ -500,7 +500,7 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, const Pr
 
   double lump_area = referenceCoordinateSystem.Area() / 3.0;
 
-  // Calculate avarage mass per unit area
+  // Calculate average mass per unit area
   double av_mass_per_unit_area = 0.0;
   for(size_t i = 0; i < OPT_NUM_GP; i++)
     av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
@@ -697,9 +697,9 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
   const double LL32 = x32*x32 + y32*y32;
   const double LL13 = x13*x13 + y13*y13;
 
-  // Note: here we compute the avarage thickness,
+  // Note: here we compute the average thickness,
   // since L is constant over the element.
-  // Now it is not necessary to compute the avarage
+  // Now it is not necessary to compute the average
   // because the current implementation of the cross section
   // doesn't have a variable thickness
   // (for example as a function of the spatial coordinates...).
@@ -720,7 +720,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
   // it is dArea because it will
   // multiply section stress resultants
   // and section constitutive matrices
-  // that already take into accout the
+  // that already take into account the
   // thickness
 
   data.dA = A / (double)OPT_NUM_GP;

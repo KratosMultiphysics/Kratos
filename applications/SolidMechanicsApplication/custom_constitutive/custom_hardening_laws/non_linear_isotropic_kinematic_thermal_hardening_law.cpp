@@ -33,7 +33,7 @@ NonLinearIsotropicKinematicThermalHardeningLaw::NonLinearIsotropicKinematicTherm
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 NonLinearIsotropicKinematicThermalHardeningLaw& NonLinearIsotropicKinematicThermalHardeningLaw::operator=(NonLinearIsotropicKinematicThermalHardeningLaw const& rOther)

@@ -734,7 +734,7 @@ namespace Kratos
 
     //Axis Local E1
     rInertiaDyadic(0,0) = rSection.Rotational_Inertia; //beam axis
-    rInertiaDyadic(1,1) = rSection.Inertia_y; //vertial axis
+    rInertiaDyadic(1,1) = rSection.Inertia_y; //vertical axis
     rInertiaDyadic(2,2) = rSection.Inertia_z; //horizontal axis
 
 
@@ -817,7 +817,7 @@ namespace Kratos
 
 	//Axis local E1
 	rConstitutiveMatrix( 0, 0 ) = YoungModulus * rVariables.Section.Area;          //local beam axis
-	rConstitutiveMatrix( 1, 1 ) = ShearModulus * rVariables.Section.Area;          //local vertial axis
+	rConstitutiveMatrix( 1, 1 ) = ShearModulus * rVariables.Section.Area;          //local vertical axis
 	rConstitutiveMatrix( 2, 2 ) = ShearModulus * rVariables.Section.Area;          //local horizontal axis
 
 	rConstitutiveMatrix( 3, 3 ) = ShearModulus * rVariables.Section.Polar_Inertia; //local torsion

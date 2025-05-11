@@ -14,7 +14,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import CoreTests
 # SMALL TESTS
 import SmallTests
-# NIGTHLY TESTS
+# NIGHTLY TESTS
 import NightTests
 # VALIDATION TESTS
 import ValidationTests

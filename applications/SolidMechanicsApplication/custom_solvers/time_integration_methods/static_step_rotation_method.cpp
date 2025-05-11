@@ -29,7 +29,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
   }
 
-  // specilization to array_1d
+  // specialization to array_1d
   template<>
   void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode)
   {

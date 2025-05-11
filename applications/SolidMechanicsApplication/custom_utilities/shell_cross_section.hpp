@@ -558,7 +558,7 @@ public:
 
   /**
    * Returns the string containing a detailed description of this object.
-   * @return the string with informations
+   * @return the string with information
    */
   virtual std::string GetInfo()const;
 
@@ -1014,10 +1014,10 @@ public:
   }
 
   /**
-   * Calculates the avarage mass density of this cross section.
-   * @return the avarage mass density
+   * Calculates the average mass density of this cross section.
+   * @return the average mass density
    */
-  inline double CalculateAvarageDensity()const
+  inline double CalculateAverageDensity()const
   {
     return CalculateMassPerUnitArea() / mThickness;
   }
@@ -1194,7 +1194,7 @@ public:
 
 };
 
-///@name Input/Output funcitons
+///@name Input/Output functions
 ///@{
 
 inline std::istream & operator >> (std::istream & rIStream, ShellCrossSection & rThis);

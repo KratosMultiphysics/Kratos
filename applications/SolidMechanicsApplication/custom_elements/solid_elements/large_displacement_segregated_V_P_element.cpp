@@ -58,7 +58,7 @@ LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( Larg
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 LargeDisplacementSegregatedVPElement&  LargeDisplacementSegregatedVPElement::operator=(LargeDisplacementSegregatedVPElement const& rOther)

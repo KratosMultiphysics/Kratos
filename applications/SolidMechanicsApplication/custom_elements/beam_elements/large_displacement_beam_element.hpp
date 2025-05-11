@@ -124,7 +124,7 @@ public:
 
 
     /**
-     * Called at the end of eahc solution step
+     * Called at the end of each solution step
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -372,7 +372,7 @@ protected:
 
 
     /**
-      * Calculation of the Tangent Intertia Matrix
+      * Calculation of the Tangent Inertia Matrix
       */
     void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementDataType& rVariables,

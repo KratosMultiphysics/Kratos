@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-  // specilization to array_1d
+  // specialization to array_1d
   template<class TVariableType, class TValueType>
   void SimoStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
   {

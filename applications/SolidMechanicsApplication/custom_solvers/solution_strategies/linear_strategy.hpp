@@ -171,7 +171,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     if(this->IsNot(LocalFlagType::INITIALIZED))
       this->Initialize();
 
-    //prints informations about the current time
+    //prints information about the current time
     //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
 
     //set up the system
@@ -336,9 +336,9 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
    * @details
    * {
    * 0 -> Mute... no echo at all
-   * 1 -> Printing time and basic informations
+   * 1 -> Printing time and basic information
    * 2 -> Printing linear solver data
-   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+   * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
    * }
    */
   void SetEchoLevel(const int Level) override
@@ -427,7 +427,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
   typename SchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
   typename BuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employed
 
-  SystemVectorPointerType mpDx; /// The incremement in the solution
+  SystemVectorPointerType mpDx; /// The increment in the solution
   SystemVectorPointerType mpb; /// The RHS vector of the system of equations
   SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations
 
@@ -476,7 +476,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
   /**
    * @brief Here the database is updated
    * @param A The LHS matrix of the system of equations
-   * @param Dx The incremement in the solution
+   * @param Dx The increment in the solution
    * @param b The RHS vector of the system of equations
    * @param MoveMesh The flag that allows to move the mesh
    */

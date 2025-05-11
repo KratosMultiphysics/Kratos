@@ -57,7 +57,7 @@ SmallDisplacementElement::SmallDisplacementElement( SmallDisplacementElement con
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 SmallDisplacementElement&  SmallDisplacementElement::operator=(SmallDisplacementElement const& rOther)
@@ -183,7 +183,7 @@ void SmallDisplacementElement::CalculateKinematics(ElementDataType& rVariables, 
 {
     KRATOS_TRY
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();

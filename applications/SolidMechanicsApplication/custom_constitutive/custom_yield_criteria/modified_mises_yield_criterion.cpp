@@ -38,7 +38,7 @@ ModifiedMisesYieldCriterion::ModifiedMisesYieldCriterion(HardeningLawPointer pHa
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 ModifiedMisesYieldCriterion& ModifiedMisesYieldCriterion::operator=(ModifiedMisesYieldCriterion const& rOther)

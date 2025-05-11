@@ -156,7 +156,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     // reference coordinate system
     ShellT3_LocalCoordinateSystem a( CreateReferenceCoordinateSystem() );
 
-    // current coordinate system using the 1-2 side alignement
+    // current coordinate system using the 1-2 side alignment
     ShellT3_LocalCoordinateSystem b( geom[0], geom[1], geom[2] );
 
     double aX1 = a.X1(); double aY1 = a.Y1();
@@ -417,7 +417,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
 
         iNode[j] += pert; // apply perturbation
 
-        ShellT3_LocalCoordinateSystem b( nodes[0], nodes[1], nodes[2] ); // perturbed coordinate system (1-2 side alignement)
+        ShellT3_LocalCoordinateSystem b( nodes[0], nodes[1], nodes[2] ); // perturbed coordinate system (1-2 side alignment)
 
         double bX1 = b.X1(); double bY1 = b.Y1();
         double bX2 = b.X2(); double bY2 = b.Y2();
@@ -518,7 +518,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
 
         iNode[j] += pert; // apply perturbation
 
-        ShellT3_LocalCoordinateSystem b( nodes[0], nodes[1], nodes[2] ); // perturbed coordinate system (1-2 side alignement)
+        ShellT3_LocalCoordinateSystem b( nodes[0], nodes[1], nodes[2] ); // perturbed coordinate system (1-2 side alignment)
 
         // save the (numerical) rotation gradient
 

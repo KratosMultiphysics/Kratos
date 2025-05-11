@@ -118,7 +118,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       ;
 
 
-  // Hyperelastic Plastic J2 specilization laws
+  // Hyperelastic Plastic J2 specialization laws
 
   py::class_<HyperElasticPlasticJ23DLaw, typename HyperElasticPlasticJ23DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElasticPlasticJ23DLaw").def(py::init<>() )
@@ -132,7 +132,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       (m, "HyperElasticPlasticJ2Axisym2DLaw").def(py::init<>() )
       ;
 
-  // Hyperelastic Plastic J2 specilization laws U-P
+  // Hyperelastic Plastic J2 specialization laws U-P
 
   py::class_<HyperElasticPlasticUPJ23DLaw, typename HyperElasticPlasticUPJ23DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElasticPlasticUPJ23DLaw").def(py::init<>() )
