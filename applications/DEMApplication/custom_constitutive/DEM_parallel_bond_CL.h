@@ -199,6 +199,7 @@ namespace Kratos{
         double mBondedLocalContactForce[3] = {0.0};
         double mBondedLocalElasticContactForce2 = 0.0;
         double mBondedScalingFactor[3] = {0.0};
+        double mUnBondedScalingFactor[3] = {0.0};
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
         double mInitialIndentationForBondedPart = 0.0;

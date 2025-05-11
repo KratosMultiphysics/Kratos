@@ -402,7 +402,7 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
                             sliding,
                             r_process_info);
 
-    if (element1->Id() == 1119) {
+    /*if (element1->Id() == 1119) {
         KRATOS_INFO("LocalElasticContactForce[0]: ") << LocalElasticContactForce[0] << std::endl;
         KRATOS_INFO("LocalElasticContactForce[1]: ") << LocalElasticContactForce[1] << std::endl;
         KRATOS_INFO("LocalElasticContactForce[2]: ") << LocalElasticContactForce[2] << std::endl;
@@ -411,7 +411,7 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
         KRATOS_INFO("ViscoDampingLocalContactForce[0]: ") << ViscoDampingLocalContactForce[0] << std::endl;
         KRATOS_INFO("ViscoDampingLocalContactForce[1]: ") << ViscoDampingLocalContactForce[1] << std::endl;
         KRATOS_INFO("ViscoDampingLocalContactForce[2]: ") << ViscoDampingLocalContactForce[2] << std::endl << std::endl;
-    }
+    }*/
     
     KRATOS_CATCH("") 
 }
@@ -575,6 +575,14 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
         CalculateUnbondedViscoDampingForce(LocalRelVel, mUnbondedViscoDampingLocalContactForce, element1, element2);
     }
 
+    /*
+    if (element1->Id() == 1119) {
+        KRATOS_INFO("mUnbondedViscoDampingLocalContactForce[0]: ") << mUnbondedViscoDampingLocalContactForce[0] << std::endl;
+        KRATOS_INFO("mUnbondedViscoDampingLocalContactForce[1]: ") << mUnbondedViscoDampingLocalContactForce[1] << std::endl;
+        KRATOS_INFO("mUnbondedViscoDampingLocalContactForce[2]: ") << mUnbondedViscoDampingLocalContactForce[2] << std::endl << std::endl;
+    }
+    */
+
     if (!failure_id) {
         mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
@@ -585,6 +593,13 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
     ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] + mBondedViscoDampingLocalContactForce[1];
     ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] + mBondedViscoDampingLocalContactForce[2];
 
+    /*
+    if (element1->Id() == 1119) {
+        KRATOS_INFO("ViscoDampingLocalContactForce[0]: ") << ViscoDampingLocalContactForce[0] << std::endl;
+        KRATOS_INFO("ViscoDampingLocalContactForce[1]: ") << ViscoDampingLocalContactForce[1] << std::endl;
+        KRATOS_INFO("ViscoDampingLocalContactForce[2]: ") << ViscoDampingLocalContactForce[2] << std::endl << std::endl;
+    }*/
+    
     double unbonded_normal_contact_force = mUnbondedLocalElasticContactForce2 + mUnbondedViscoDampingLocalContactForce[2];
 
     if (unbonded_normal_contact_force < 0.0) {
@@ -669,8 +684,8 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         //ViscoDampingLocalContactForce[1] = 0.0;
     } else {
         // Here, unBondedScalingFactor[] = 1 - mBondedScalingFactor[]
-        OldUnbondedLocalElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * OldLocalElasticContactForce[0];
-        OldUnbondedLocalElasticContactForce[1] = (1 - mBondedScalingFactor[1]) * OldLocalElasticContactForce[1];
+        OldUnbondedLocalElasticContactForce[0] = mUnBondedScalingFactor[0] * OldLocalElasticContactForce[0];
+        OldUnbondedLocalElasticContactForce[1] = mUnBondedScalingFactor[1] * OldLocalElasticContactForce[1];
 
         UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         UnbondedLocalElasticContactForce[1] = OldUnbondedLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
@@ -755,14 +770,18 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
     // Here, we only calculate the BondedScalingFactor and [unBondedScalingFactor = 1 - BondedScalingFactor].
     if (LocalElasticContactForce[0]) {
         mBondedScalingFactor[0] = BondedLocalElasticContactForce[0] / LocalElasticContactForce[0]; 
+        mUnBondedScalingFactor[0] = UnbondedLocalElasticContactForce[0] / LocalElasticContactForce[0];
     } else {
-        mBondedScalingFactor[0] = 0.0;
+        mBondedScalingFactor[0] = 0.0; //TODO: check if this is correct
+        mUnBondedScalingFactor[0] = 0.0;
     }
 
     if (LocalElasticContactForce[1]) { 
         mBondedScalingFactor[1] = BondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
+        mUnBondedScalingFactor[1] = UnbondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
     } else {
         mBondedScalingFactor[1] = 0.0;
+        mUnBondedScalingFactor[1] = 0.0;
     }
 
     current_tangential_force_module = sqrt((BondedLocalElasticContactForce[0] + mBondedViscoDampingLocalContactForce[0])
@@ -1042,8 +1061,8 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             failure_type = 4; // failure in tension
             contact_sigma = 0.0;
             contact_tau = 0.0;
-            LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
-            LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
+            LocalElasticContactForce[0] *= mUnBondedScalingFactor[0];      
+            LocalElasticContactForce[1] *= mUnBondedScalingFactor[1];      
             LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2;
             ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
             ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
@@ -1064,8 +1083,8 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             contact_sigma = 0.0;
             contact_tau = 0.0;
             //If bond break in shear, the normal compressive force should still be there like before
-            LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
-            LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
+            LocalElasticContactForce[0] *= mUnBondedScalingFactor[0];      
+            LocalElasticContactForce[1] *= mUnBondedScalingFactor[1];      
             LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2; 
             ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
             ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
