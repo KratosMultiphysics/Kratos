@@ -1735,8 +1735,7 @@ public:
     }
 
     /**
-     * @brief Get pointer to the ProcessInfo of root model part.
-     * @return Pointer to the ProcessInfo object.
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
      */
     ProcessInfo::Pointer pGetProcessInfo()
     {
