@@ -30,7 +30,7 @@ namespace Kratos
         PreProcessGlobalResults();
         ProcessGlobalResults();
         PostProcessGlobalResults();
-        CheckEquilibrium(mEffStress, prev_eff_stress, 1.0E-10, 10);
+        CheckEquilibrium(mEffStress, prev_eff_stress, 1.0E-8, 5);
         StopCompress();
         WriteResultFiles();
     }
