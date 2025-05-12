@@ -14,6 +14,8 @@ import KratosMultiphysics.DropletDynamicsApplication as KratosDroplet
 
 from pathlib import Path
 
+import math
+
 def CreateSolver(model, custom_settings):
     return DropletDynamicsSolver(model, custom_settings)
 
@@ -88,7 +90,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
             "distance_smoothing_coefficient": 1.0,
             "distance_modification_settings": {
                 "model_part_name": "",
-                "distance_threshold": 1e-5,
+                "distance_threshold": 1e-7,
                 "continuous_distance": true,
                 "check_at_each_time_step": true,
                 "avoid_almost_empty_elements": false,
@@ -240,6 +242,13 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         #self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.PRESSURE_STAR)                  # Last known pressure
         # self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.PRESSURE_GRADIENT_AUX)          # Pressure gradient on positive and negative sides
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_VELOCITY)
+        #####
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.VELOCITY_X_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.VELOCITY_Y_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.VELOCITY_Z_GRADIENT)      
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.DISTANCE_GRADIENT_DIVERGENCE)           
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.DISTANCE_GRADIENT_SIZE_GRADIENT)        
+        #####
 
     def PrepareModelPart(self):
         # Restarting the simulation is OFF (needs a careful implementation)
@@ -345,6 +354,93 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
+        # INTERSECTION LENGTH CALCULATION - CORRECT VERSION
+        timestamp = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        points_filename = f"intersection_points_{timestamp:.6f}.txt"
+        combined_filename = f"intersection_data_{timestamp:.6f}.txt"
+        averaged_normals_filename = f"averaged_normals_{timestamp:.6f}.txt"
+
+        # Step 1: Clear and collect intersection points
+        KratosDroplet.IntersectionPointsUtility.ClearIntersectionPoints()
+        for element in self.main_model_part.Elements:
+            KratosDroplet.IntersectionPointsUtility.CollectElementIntersectionPoints(element)
+
+        # Step 2: Save intersection points to file
+        # KratosDroplet.IntersectionPointsUtility.SaveIntersectionPointsToFile(points_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Saved intersection points to {points_filename}")
+
+        # Step 3: Calculate and store element intersection lengths
+        num_elements = KratosDroplet.CalculateAndStoreElementIntersectionLengths(self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+                                            f"Calculated and stored intersection lengths for {num_elements} elements")
+
+        # Step 4: Calculate interface averages
+        KratosDroplet.InterfaceAveragesUtility.ClearInterfaceAverages()
+        KratosDroplet.InterfaceAveragesUtility.ComputeModelPartInterfaceAverages(self.main_model_part)
+
+        # Step 5: Collect intersection data with normals
+        num_elements = KratosDroplet.CollectIntersectionDataWithNormal(self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+                                            f"Collected {num_elements} elements with intersection data and normals")
+
+        # Step 6: Save the collected data to file
+        # KratosDroplet.SaveIntersectionDataWithNormalToFile(combined_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+        #                                     f"Saved intersection data with normals to {combined_filename}")
+
+        # Step 7: Set cut normals on elements
+        num_elements_with_normals = KratosDroplet.SetElementCutNormals(self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
+                                           f"Set cut normals for {num_elements_with_normals} elements")
+        
+        # Step 8: Compute averaged normals with 1 neighbor level
+        num_elements_averaged = KratosDroplet.ComputeAndStoreAveragedNormals(
+            self.main_model_part, 2, "ELEMENT_CUT_NORMAL_AVERAGED")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
+            f"Computed averaged normals for {num_elements_averaged} elements")
+    
+        # Step 9: Save the averaged normals to file with timestamped filename
+        # KratosDroplet.SaveAveragedNormalsToFile(self.main_model_part, averaged_normals_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
+        #     f"Saved averaged normals to {averaged_normals_filename}")
+        ###############################
+        # Step 4: Read the intersection lengths from elements and save to file
+        # Create a map to pass to SaveIntersectionLengthsToFile
+        intersection_lengths = {}
+        for element in self.main_model_part.Elements:
+            length = KratosDroplet.GetElementIntersectionLength(element)
+            if length > 0.0:  # Only save elements that have a valid intersection length
+                intersection_lengths[element.Id] = length
+    
+        # # Save to file
+        # KratosDroplet.SaveIntersectionLengthsToFile(intersection_lengths, lengths_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+        #                                    f"Saved {len(intersection_lengths)} intersection lengths to {lengths_filename}")
+        
+
+        # # Save element average normals to file
+        # normals_filename = f"element_normals_{timestamp:.6f}.txt"
+        # KratosDroplet.SaveElementAverageNormalsToFile(self.main_model_part, normals_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+        #                                     f"Saved element average normals to {normals_filename}")
+        
+        # # Clear any existing intersection points from previous steps
+        # KratosDroplet.IntersectionPointsUtility.ClearIntersectionPoints()
+    
+        # # Collect intersection points from all elements
+        # for element in self.main_model_part.Elements:
+        #     KratosDroplet.IntersectionPointsUtility.CollectElementIntersectionPoints(element)
+        
+        # # # Run diagnostic to check how many elements are split by the level-set
+        # # KratosDroplet.IntersectionPointsUtility.DiagnosticOutput(self.main_model_part)
+    
+        # # Get all intersection points
+        # points = KratosDroplet.IntersectionPointsUtility.GetIntersectionPoints()
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Collected {len(points)} intersection points.")
+    
+        # # Save intersection points to file
+        # KratosDroplet.IntersectionPointsUtility.SaveIntersectionPointsToFile("intersection_points.txt")
+
         # filtering noises is necessary for curvature calculation
         # distance gradient is used as a boundary condition for smoothing process
         self._GetDistanceGradientProcess().Execute()
@@ -353,6 +449,173 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
         # distance gradient is called again to comply with the smoothed/modified DISTANCE
         self._GetDistanceGradientProcess().Execute()
+
+        # for node in self.main_model_part.Nodes:
+        #     gx = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
+        #     gy = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+        #     gz = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z)
+        #     g = (gx**2+gy**2+gz**2)**0.5
+        #     gx /= g
+        #     gy /= g
+        #     gz /= g
+        #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
+        #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
+        #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz)
+        #     if node.Y == 0.0:
+        #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,-0.17365)
+        #         if node.X < 0.015:
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X, -0.9848)
+        #         elif node.X > 0.015:
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,0.9848)
+        contact_angle = 0
+        for node in self.main_model_part.Nodes:
+            if node.GetSolutionStepValue(KratosDroplet.CONTACT_ANGLE_MICRO,0) != 0.0:
+                contact_angle = node.GetSolutionStepValue(KratosDroplet.CONTACT_ANGLE_MICRO,0)
+
+        diff = abs(contact_angle - 100)
+        if diff < 1:
+            beta = 1
+        elif diff > 9:
+            beta = 0
+        else:
+            beta = 0.5*(1+math.cos(3.1416*(diff-1.0)/8))
+        print("beta=",beta)
+
+        for node in self.main_model_part.Nodes:
+            gx = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
+            gy = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+            gz = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z)
+            g = (gx**2+gy**2+gz**2)**0.5
+            gx /= g
+            gy /= g
+            gz /= g
+            # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
+            # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
+            # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz)
+            if node.Y == 0.0:
+                if beta > 0.0:
+                    gy = math.cos(contact_angle*3.1416/180) + beta*(math.cos(100.0*3.1416/180)- math.cos(contact_angle*3.1416/180))
+                    if node.X > 0.015:
+                        gx = math.sin(contact_angle*3.1416/180) + beta*(math.sin(100.0*3.1416/180)- math.sin(contact_angle*3.1416/180))
+                    elif node.X < 0.015:
+                        gx = -(math.sin(contact_angle*3.1416/180) + beta*(math.sin(100.0*3.1416/180)- math.sin(contact_angle*3.1416/180)))
+
+                    g = (gx**2+gy**2+gz**2)**0.5
+
+                    # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx/g)
+                    # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy/g)
+                    # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz/g)
+
+
+            # if node.Y == 0.0:
+            #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,0.50754)
+            #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,0.0)
+            #     if node.X < 0.015:
+            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,-0.86163)
+            #     elif node.X > 0.015:
+            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,0.86163)
+
+        # nx1=-1
+        # nx2=1
+        # ny1=ny2=0
+        # for node in self.main_model_part.Nodes:
+        #     nx=ny=0
+        #     if node.Is(KratosMultiphysics.BOUNDARY):
+        #         nx = node.GetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_X)
+        #         ny = node.GetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_Y)
+        #         diss = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+        #         if -0.001<diss <0.001 and 0.5 < (nx**2 + ny**2)**0.5:
+        #             gx = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
+        #             gy = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+        #             if node.X < 0.015:
+        #                 nx1 = nx
+        #                 ny1 = ny
+        #                 if node.Is(KratosMultiphysics.BOUNDARY):
+        #                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,0)
+        #                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,0)
+        #                 else:
+        #                     nx1 = (3*nx1-gx)/2
+        #                     ny1 = (3*ny1-gy)/2
+        #             elif node.X > 0.015:
+        #                 nx2 = nx
+        #                 ny2 = ny
+        #                 if node.Is(KratosMultiphysics.BOUNDARY):
+        #                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,0)
+        #                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,0)
+        #                 else:
+        #                     nx2 = (3*nx2-gx)/2
+        #                     ny2 = (3*ny2-gy)/2
+
+
+        
+        # for node in self.main_model_part.Nodes:
+        #     if node.Is(KratosMultiphysics.BOUNDARY):
+        #         if node.Y == 0.0:
+        #             if node.X < 0.015:
+        #                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,nx1)
+        #                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,ny1)
+        #             elif node.X > 0.015:
+        #                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,nx2)
+        #                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,ny2)
+        #################################################################################################
+
+
+        # for node in self.main_model_part.Nodes:
+        #     if node.Is(KratosMultiphysics.BOUNDARY):
+        #         gx = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
+        #         gy = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+        #         if gx > 0.0:
+        #             nx = 0.9848
+        #         elif gx < 0.0:
+        #             nx = -0.9848
+        #         if gy > 0.0:
+        #             ny = 0.1736
+        #         elif gy < 0.0:
+        #             ny = -0.1736
+        #         if gx != 0.0 or gy != 0.0:
+        #             g = (gx**2+gy**2)**(0.5)
+        #             gx = nx * g
+        #             gy = ny *g
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
+
+        # nx1=-1
+        # nx2=1
+        # ny1=ny2=0
+        # for node in self.main_model_part.Nodes:
+        #     nx=ny=0
+        #     if node.Is(KratosMultiphysics.BOUNDARY):
+        #         nx = node.GetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_X)
+        #         ny = node.GetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_Y)
+        #         diss = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+        #         if -0.001<diss <0.001 and 0.5<=(nx**2 + ny**2)**0.5:
+        #             if node.X < 0.015:
+        #                 nx1 = nx
+        #                 ny1 = ny
+        #             elif node.X > 0.015:
+        #                 nx2 = nx
+        #                 ny2 = ny
+
+        # for node in self.main_model_part.Nodes:
+        #     if node.Is(KratosMultiphysics.BOUNDARY):
+        #         if node.Y == 0.0:
+        #             gx = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
+        #             gy = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
+        #             g = (gx**2+gy**2)**(0.5)
+        #             diss = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+        #             if node.X < 0.015 and -0.001 < diss < 0.001:
+        #                 gx = nx1 * g
+        #                 gy = ny1 *g
+        #                 node.SetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_X,nx1)
+        #                 node.SetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_Y,ny1)
+        #             elif node.X > 0.015 and -0.001 < diss < 0.001:
+        #                 gx = nx2 * g
+        #                 gy = ny2 *g
+        #                 node.SetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_X,nx2)
+        #                 node.SetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_Y,ny2)
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
+
         # curvature is calculated using nodal distance gradient
         self._GetDistanceCurvatureProcess().Execute()
 

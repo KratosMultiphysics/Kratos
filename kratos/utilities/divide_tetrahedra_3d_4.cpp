@@ -225,10 +225,10 @@ namespace Kratos
                     this->mNegativeSubdivisions.push_back(p_aux_partition);
                 }
             }
-            std::cout << "this->mNegativeSubdivisions.size(): " << this->mNegativeSubdivisions.size() << std::endl;
-            std::cout << "this->mNegativeSubdivisions: " << this->mNegativeSubdivisions << std::endl;
-            std::cout << "this->mPositiveSubdivisions.size(): " << this->mPositiveSubdivisions.size() << std::endl;
-            std::cout << "this->mPositiveSubdivisions: " << this->mPositiveSubdivisions << std::endl;
+            //std::cout << "this->mNegativeSubdivisions.size(): " << this->mNegativeSubdivisions.size() << std::endl;
+            //std::cout << "this->mNegativeSubdivisions: " << this->mNegativeSubdivisions << std::endl;
+            //std::cout << "this->mPositiveSubdivisions.size(): " << this->mPositiveSubdivisions.size() << std::endl;
+            //std::cout << "this->mPositiveSubdivisions: " << this->mPositiveSubdivisions << std::endl;
             //std::cout << "this->mNegativeSubdivisions: " << this->GetNegativeSubdivisions() << std::endl;
 
             //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") << "Contact Line Nodes: " << contact_line_node_ids << std::endl;
@@ -344,8 +344,8 @@ namespace Kratos
                         this->mNegativeInterfacesParentIds.push_back(i_subdivision);
 
                         //////////
-                        KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactFace.size=" << this->mContactFace.size() << std::endl;
-                        KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactLine.size" << this->mContactLine.size() << std::endl;
+                        //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactFace.size=" << this->mContactFace.size() << std::endl;
+                        //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactLine.size" << this->mContactLine.size() << std::endl;
                         //////////
 
                         // if (mContactFace.size() > 0){
@@ -357,25 +357,25 @@ namespace Kratos
                                 // const unsigned int contact_node_i = ((mContactLine[i_contact])->Points())[0].Id();//mContactLineNodeIds[2*i_contact];
                                 // const unsigned int contact_node_j = ((mContactLine[i_contact])->Points())[1].Id();//mContactLineNodeIds[2*i_contact + 1];
                                 //////////
-                                KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "((this->mContactLine[i_contact])->Points())[0].Id()" << ((this->mContactLine[i_contact])->Points())[0].Id() << std::endl;
-                                KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "((this->mContactLine[i_contact])->Points())[1].Id()" << ((this->mContactLine[i_contact])->Points())[1].Id() << std::endl;
+                                //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "((this->mContactLine[i_contact])->Points())[0].Id()" << ((this->mContactLine[i_contact])->Points())[0].Id() << std::endl;
+                                //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "((this->mContactLine[i_contact])->Points())[1].Id()" << ((this->mContactLine[i_contact])->Points())[1].Id() << std::endl;
                                 //////////
                                 const unsigned int contact_node_i = ((this->mContactLine[i_contact])->Points())[0].Id();//mContactLineNodeIds[2*i_contact];
                                 const unsigned int contact_node_j = ((this->mContactLine[i_contact])->Points())[1].Id();//mContactLineNodeIds[2*i_contact + 1];
-                                KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "edges.size()" << edges.size() << std::endl;
+                                //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "edges.size()" << edges.size() << std::endl;
 
                                 for (unsigned int i_edge = 0; i_edge < edges.size(); i_edge++){
                                     const IndexedPointGeometryType& edgei = edges[i_edge];
-                                    KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "edgei[0].Id()=" << edgei[0].Id() << "edgei[1].Id()="<< edgei[1].Id()<<std::endl;
+                                    //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "edgei[0].Id()=" << edgei[0].Id() << "edgei[1].Id()="<< edgei[1].Id()<<std::endl;
                                     if ( (edgei[0].Id() == contact_node_i && edgei[1].Id() == contact_node_j) 
                                         || (edgei[0].Id() == contact_node_j && edgei[1].Id() == contact_node_i) ){
 
                                         this->mContactInterface.push_back( this->mNegativeInterfaces.size() - 1 );
-                                        KRATOS_INFO("this->mNegativeInterfaces.size()") <<  this->mNegativeInterfaces.size() << std::endl;
+                                        //KRATOS_INFO("this->mNegativeInterfaces.size()") <<  this->mNegativeInterfaces.size() << std::endl;
                                         this->mContactEdge.push_back( i_edge );  
                                     }
                                 }
-                                KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactInterface.size()=" << this->mContactInterface.size() << "mContactEdge.size()="<< this->mContactEdge.size()<<std::endl;
+                                //KRATOS_INFO("DivideTetrahedra3D4::GenerateDivision()") <<  "mContactInterface.size()=" << this->mContactInterface.size() << "mContactEdge.size()="<< this->mContactEdge.size()<<std::endl;
                             } 
                         }
 

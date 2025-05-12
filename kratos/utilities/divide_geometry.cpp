@@ -192,6 +192,32 @@ namespace Kratos
         return mContactPoint;
     }
 
+    template<class TPointType>
+    std::vector<typename DivideGeometry<TPointType>::IndexedPointPointerType> DivideGeometry<TPointType>::GetInterfacePoints() const
+    {
+        std::vector<typename DivideGeometry<TPointType>::IndexedPointPointerType> mIntersectionPoint;
+        for (const auto& point : mAuxPointsContainer) {
+            if (point.Id() >= 3) {
+            mIntersectionPoint.push_back(std::make_shared<Kratos::IndexedPoint>(point));} 
+        }
+        return mIntersectionPoint;
+    }
+// template<class TPointType>
+// void DivideGeometry<TPointType>::CollectInterfacePoints(unsigned int elementId) const
+// {
+//     // Add intersection points to the container
+//     for (const auto& point : mAuxPointsContainer) {
+//         // point is an object, not a pointer
+//         if (point.Id() >= 3) { // Only consider intersection points
+//             IntersectionPointData data;
+//             data.elementId = elementId;
+//             data.pointId = point.Id();
+//             data.coordinates = point.Coordinates();
+//             KratosDropletDynamics::g_IntersectionPointsContainer.push_back(data);
+//         }
+//     }
+// }
+
     template class DivideGeometry<Node>;
     template class DivideGeometry<IndexedPoint>;
 };

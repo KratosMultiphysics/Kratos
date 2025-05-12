@@ -24,6 +24,7 @@
 #include "geometries/geometry_data.h"
 #include "includes/indexed_object.h"
 #include "containers/pointer_vector_set.h"
+//#include "intersection_points_container.h"
 
 namespace Kratos
 {
@@ -291,6 +292,14 @@ public:
      * @return std::vector<IndexedPointPointerType> A vector containing pointers to the contact point(s)
      */
     std::vector<IndexedPointPointerType> GetContactPoint() const;
+
+    /**
+     * @brief Get the Intersection Point object
+     * This method returns the container with the intersection points
+     * @return std::vector<IndexedPointPointerType> A vector containing pointers to the intersection point(s)
+     */
+    std::vector<IndexedPointPointerType> GetInterfacePoints() const;
+    // void CollectInterfacePoints(unsigned int elementId) const;
 
     ///@}
     ///@name Inquiry
