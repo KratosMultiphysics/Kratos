@@ -33,6 +33,6 @@ In this test case, the Mohr-Coulomb model with tension cutoff is applied to the 
 
 <img src="interface_element.svg" width="600">
 
-An increasing normal load of 600 Pa is applied over 2 seconds. This is followed by an increasing compressive deformation of 0.1 m in the $\tau$ direction, applied over the next 2 seconds.
+The normal load increases linearly from $`0 \mathrm{Pa}`$ at $`t = 0 \mathrm{s}`$ to $`600 \mathrm{Pa}`$ at $`t = 2 \mathrm{s}`$.  For $`t > 2 \mathrm{s}`$, the normal load remains at $`600 \mathrm{Pa}`$. This is followed by an increasing shear deformation $`u`$ of 0.1 m in the $t$ direction, applied over the next 2 seconds.
 
-Initially, the stresses lie within the admissible zone. As the deformation increases, the trial stresses move into the inadmissible zone. These stresses are then correctly projected back onto the yield envelope.
+Initially, the stresses lie within the elastic zone. As the deformation increases, the trial stresses move into the inadmissible zone. These stresses are then correctly projected back onto the yield surface.
