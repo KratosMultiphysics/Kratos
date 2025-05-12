@@ -85,9 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     law.CalculateMaterialResponseCauchy(parameters);
 
     // Assert
-    auto expected_traction_vector = Vector{2};
-    expected_traction_vector <<= -6.0, 8.0;
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), initial_traction_vector, Defaults::absolute_tolerance);
 
     // Arrange: set elastic tensile state
     traction_vector <<= 5.0, 4.0;
@@ -98,8 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     law.CalculateMaterialResponseCauchy(parameters);
 
     // Assert
-    expected_traction_vector <<= 5.0, 4.0;
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), traction_vector, Defaults::absolute_tolerance);
 
     // Arrange: set elastic tensile state (reverse shear)
     traction_vector <<= 5.0, -2.0;
@@ -110,8 +107,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     law.CalculateMaterialResponseCauchy(parameters);
 
     // Assert
-    expected_traction_vector <<= 5.0, -2.0;
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), traction_vector, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
