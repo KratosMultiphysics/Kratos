@@ -1743,8 +1743,7 @@ public:
     }
 
     /**
-     * @brief Get const pointer to the ProcessInfo of root model part.
-     * @return Const pointer to the ProcessInfo object.
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
      */
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
