@@ -1,3 +1,18 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Jordi Cotela
+//                   Carlos Roig
+//                   Vicente Mataix Ferrandiz
+//
+
 #pragma once
 
 // External includes
@@ -183,6 +198,13 @@ protected:
                        const IO::ConnectivitiesContainerType& rElemConnectivities,
                        std::vector<idxtype>& rElemPartition);
 
+    /// Partition the geometries such that boundary geometries are always assigned the majority partition.
+    void PartitionGeometriesSynchronous(
+        const std::vector<idxtype>& rNodePartition,
+        const IO::ConnectivitiesContainerType& rGeometryConnectivities,
+        std::vector<idxtype>& rGeometryPartition
+        );
+
     /// Partition the elements such that boundary elements are always assigned the majority partition.
     void PartitionElementsSynchronous(std::vector<idxtype> const& NodePartition,
                        const IO::ConnectivitiesContainerType& rElemConnectivities,
@@ -194,6 +216,8 @@ protected:
 			     const IO::ConnectivitiesContainerType& rCondConnectivities,
 			     const IO::ConnectivitiesContainerType& rElemConnectivities,
 			     std::vector<idxtype>& rCondPartition);
+
+    // TODO add constraints 
 
     void RedistributeHangingNodes(
             std::vector<idxtype>& rNodePartition,

@@ -10,6 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //                   Jordi Cotela
 //                   Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -26,78 +27,111 @@ namespace Kratos {
 
 void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo& rPartitioningInfo)
 {
-    SizeType NumNodes;
-    std::vector<idxtype> NodePartition;
-    GetNodesPartitions(NodePartition, NumNodes);
+    SizeType number_of_nodes;
+    std::vector<idxtype> node_partition;
+    GetNodesPartitions(node_partition, number_of_nodes);
+
+    // Partition geometries
+    IO::ConnectivitiesContainerType geometry_connectivities;
+    SizeType number_of_geometries = mrIO.ReadGeometriesConnectivities(geometry_connectivities);
+    if (number_of_geometries != geometry_connectivities.size()) {
+        std::stringstream Msg;
+        Msg << std::endl;
+        Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
+        Msg << "Read " << number_of_geometries << " geometries, but geometry list has " << geometry_connectivities.size() << " entries." << std::endl;
+        Msg << "Geometries are most likely not correlatively numbered." << std::endl;
+        KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
+    }
+
+    std::vector<idxtype> geometry_partition;
+
+    if (mSynchronizeConditions)
+        PartitionElementsSynchronous(node_partition,geometry_connectivities, geometry_partition);
+    else
+        PartitionMesh(node_partition, geometry_connectivities, geometry_partition);
 
     // Partition elements
-    IO::ConnectivitiesContainerType ElementConnectivities;
-    SizeType NumElements =  mrIO.ReadElementsConnectivities(ElementConnectivities);
-    if (NumElements != ElementConnectivities.size())
-    {
+    IO::ConnectivitiesContainerType element_connectivities;
+    SizeType number_of_elements =  mrIO.ReadElementsConnectivities(element_connectivities);
+    if (number_of_elements != element_connectivities.size()) {
         std::stringstream Msg;
         Msg << std::endl;
         Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
-        Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
+        Msg << "Read " << number_of_elements << " elements, but element list has " << element_connectivities.size() << " entries." << std::endl;
         Msg << "Elements are most likely not correlatively numbered." << std::endl;
-
         KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
     }
 
-    std::vector<idxtype> ElementPartition;
+    std::vector<idxtype> element_partition;
 
     if (mSynchronizeConditions)
-        PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
+        PartitionElementsSynchronous(node_partition,element_connectivities, element_partition);
     else
-        PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
+        PartitionMesh(node_partition, element_connectivities, element_partition);
 
     // Partition conditions
-    IO::ConnectivitiesContainerType ConditionConnectivities;
-    SizeType NumConditions = mrIO.ReadConditionsConnectivities(ConditionConnectivities);
-    if (NumConditions != ConditionConnectivities.size())
-    {
+    IO::ConnectivitiesContainerType condition_connectivities;
+    SizeType number_of_conditions = mrIO.ReadConditionsConnectivities(condition_connectivities);
+    if (number_of_conditions != condition_connectivities.size()) {
         std::stringstream Msg;
         Msg << std::endl;
         Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
-        Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
+        Msg << "Read " << number_of_conditions << " conditions, but condition list has " << condition_connectivities.size() << " entries." << std::endl;
         Msg << "Conditions are most likely not correlatively numbered." << std::endl;
-
         KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
     }
-
-    std::vector<idxtype> ConditionPartition;
-
+    std::vector<idxtype> condition_partition;
     if (mSynchronizeConditions)
-        PartitionConditionsSynchronous(NodePartition,ElementPartition,ConditionConnectivities,ElementConnectivities,ConditionPartition);
+        PartitionConditionsSynchronous(node_partition,element_partition,condition_connectivities,element_connectivities,condition_partition);
     else
-        PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
+        PartitionMesh(node_partition,condition_connectivities,condition_partition);
+
+    // Partition master-slave constraints // TODO
+    IO::ConnectivitiesContainerType master_slave_constraints_connectivities;
+    SizeType number_of_master_slave_constraints = mrIO.ReadMasterSlaveConstraintsConnectivities(master_slave_constraints_connectivities);
+    if (number_of_master_slave_constraints != master_slave_constraints_connectivities.size()) {
+        std::stringstream Msg;
+        Msg << std::endl;
+        Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
+        Msg << "Read " << number_of_master_slave_constraints << " master-slave constraints, but constraint list has " << master_slave_constraints_connectivities.size() << " entries." << std::endl;
+        Msg << "Master-slave constraints are most likely not correlatively numbered." << std::endl;
+        KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
+    }
+    std::vector<idxtype> master_slave_constraints_partition;
+    // TODO
+    // if (mSynchronizeMasterSlaveConstraints)
+    //     PartitionMasterSlaveConstraintsSynchronous(node_partition,element_partition,master_slave_constraints_connectivities,condition_connectivities,master_slave_constraints_partition);
+    // else
+    //     PartitionMesh(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
 
     // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
     // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
-    RedistributeHangingNodes(NodePartition,ElementPartition,ElementConnectivities,ConditionPartition,ConditionConnectivities);
+    RedistributeHangingNodes(node_partition,element_partition,element_connectivities,condition_partition,condition_connectivities);
 
     // Coloring
     GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
-    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
-    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
+    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,number_of_elements,element_connectivities,node_partition,element_partition);
+    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,number_of_conditions,condition_connectivities,node_partition,condition_partition);
 
-    int NumColors;
-    GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.Graph,NumColors).Execute();
+    int number_of_colors;
+    GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.Graph,number_of_colors).Execute();
 
-    KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0) << "Number of colors: " << NumColors << std::endl;
+    KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0) << "Number of colors: " << number_of_colors << std::endl;
 
     KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 2) << "Graph: " << rPartitioningInfo.Graph << std::endl;
 
     // Write partition info into separate input files
     // Create lists containing all nodes/elements/conditions known to each partition
-    LegacyPartitioningUtilities::DividingNodes(rPartitioningInfo.NodesAllPartitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
-    LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, ElementPartition);
-    LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, ConditionPartition);
+    LegacyPartitioningUtilities::DividingNodes(rPartitioningInfo.NodesAllPartitions, element_connectivities, condition_connectivities, node_partition, element_partition, condition_partition);
+    LegacyPartitioningUtilities::DividingGeometries(rPartitioningInfo.GeometriesAllPartitions, geometry_partition);
+    LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, element_partition);
+    LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, condition_partition);
+    LegacyPartitioningUtilities::DividingMasterSlaveConstraints(rPartitioningInfo.MasterSlaveConstraintsAllPartitions, master_slave_constraints_partition);
 
     if (mVerbosity > 1) {
         auto& r_nodes_all_partitions = rPartitioningInfo.NodesAllPartitions;
         std::cout << "Final list of nodes known by each partition" << std::endl;
-        for(SizeType i = 0 ; i < NumNodes ; i++) {
+        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
             std::cout << "Node #" << i+1 << "->";
             for(std::vector<std::size_t>::iterator j = r_nodes_all_partitions[i].begin() ; j != r_nodes_all_partitions[i].end() ; j++)
                 std::cout << *j << ",";
@@ -105,14 +139,15 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
         }
     }
 
-    rPartitioningInfo.NodesPartitions.assign(NodePartition.begin(), NodePartition.end());
-    rPartitioningInfo.ElementsPartitions.assign(ElementPartition.begin(), ElementPartition.end());
-    rPartitioningInfo.ConditionsPartitions.assign(ConditionPartition.begin(), ConditionPartition.end());
+    rPartitioningInfo.NodesPartitions.assign(node_partition.begin(), node_partition.end());
+    rPartitioningInfo.GeometriesPartitions.assign(geometry_partition.begin(), geometry_partition.end());
+    rPartitioningInfo.ElementsPartitions.assign(element_partition.begin(), element_partition.end());
+    rPartitioningInfo.ConditionsPartitions.assign(condition_partition.begin(), condition_partition.end());
+    rPartitioningInfo.MasterSlaveConstraints.assign(master_slave_constraints_partition.begin(), master_slave_constraints_partition.end());
 }
 
 void MetisDivideHeterogeneousInputProcess::Execute()
 {
-
     PartitioningInfo part_info;
 
     ExecutePartitioning(part_info);
@@ -298,6 +333,77 @@ void MetisDivideHeterogeneousInputProcess::PartitionMesh(std::vector<idxtype> co
 
     PrintDebugData("Mesh Partition",rElemPartition);
 
+}
+
+void MetisDivideHeterogeneousInputProcess::PartitionGeometriesSynchronous(
+    const std::vector<idxtype>& rNodePartition,
+    const IO::ConnectivitiesContainerType& rGeomConnectivities,
+    std::vector<idxtype>& rGeomPartition
+    )
+{
+    const SizeType number_of_geometries = rGeomConnectivities.size();
+
+    // initialize Geometry Partition
+    rGeomPartition.resize(number_of_geometries, -1);
+
+    // Geometries where all nodes belong to the same partition always go to that partition
+    auto it_geom = rGeomConnectivities.begin();
+    for (auto it_part = rGeomPartition.begin(); it_part != rGeomPartition.end(); it_part++) {
+        const int my_partition = rNodePartition[(*it_geom)[0] - 1]; // Node Ids start from 1
+        SizeType neighbour_nodes = 1; // Nodes in the same partition
+        for (auto it_node = it_geom->begin() + 1; it_node != it_geom->end(); ++it_node) {
+            if (rNodePartition[*it_node - 1] == my_partition)
+                ++neighbour_nodes;
+            else
+                break;
+        }
+
+        if (neighbour_nodes == it_geom->size()) {
+            *it_part = my_partition;
+        }
+
+        // Advance to next geometry in the connectivities array
+        it_geom++;
+    }
+
+    // Now distribute boundary geometries
+    it_geom = rGeomConnectivities.begin();
+    for (auto it_part = rGeomPartition.begin(); it_part != rGeomPartition.end(); it_part++) {
+        if (*it_part == -1) { // If geometry is still unassigned
+            SizeType found_neighbours = 0;
+            SizeType nodes_in_geom = it_geom->size();
+            std::vector<int> neighbour_partitions(nodes_in_geom, -1);
+            std::vector<int> neighbour_weights(nodes_in_geom, 0);
+
+            for (auto it_node = it_geom->begin(); it_node != it_geom->end(); ++it_node) {
+                // Check if the node's partition was already found in this geometry
+                const int my_partition = rNodePartition[*it_node - 1]; // This node's partition
+                SizeType i = 0;
+                for (i = 0; i < found_neighbours; i++) {
+                    if (my_partition == neighbour_partitions[i]) {
+                        neighbour_weights[i]++;
+                        break;
+                    }
+                }
+
+                // If this is the first node in this partition, add the partition to the candidate list
+                if (i == found_neighbours) {
+                    neighbour_weights[i] = 1;
+                    neighbour_partitions[i] = my_partition;
+                    found_neighbours++;
+                }
+            }
+
+            // Determine the partition that owns the most nodes
+            const int majority_partition = neighbour_partitions[FindMax(found_neighbours, neighbour_weights)];
+            *it_part = majority_partition;
+        }
+
+        // Advance to next geometry in the connectivities array
+        it_geom++;
+    }
+
+    PrintDebugData("Geometry Partition", rGeomPartition);
 }
 
 void MetisDivideHeterogeneousInputProcess::PartitionElementsSynchronous(std::vector<idxtype> const& NodePartition,
