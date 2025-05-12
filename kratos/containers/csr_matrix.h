@@ -173,9 +173,10 @@ public:
         });
     }
 
-    //move constructor
+    /// Move constructor
     CsrMatrix(CsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
     {
+        mpComm = rOtherMatrix.mpComm;
         mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
         rOtherMatrix.mIsOwnerOfData=false;
 
@@ -205,7 +206,7 @@ public:
     /// Assignment operator.
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
 
-    //move assignement operator
+    /// Move assignment operator
     CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
     {
         mpComm = rOtherMatrix.mpComm;

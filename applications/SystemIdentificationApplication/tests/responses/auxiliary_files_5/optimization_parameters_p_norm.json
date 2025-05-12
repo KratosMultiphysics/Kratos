@@ -24,6 +24,15 @@
                     }
                 ]
             }
+        },
+        {
+            "type": "sensor_model_part_controller",
+            "module": "KratosMultiphysics.SystemIdentificationApplication.sensor_io",
+            "settings": {
+                "sensor_group_name": "sensors",
+                "domain_model_part_name": "AdjointStructure",
+                "@include_json": "auxiliary_files_5/sensor_data.json"
+            }
         }
     ],
     "analyses": [
@@ -48,6 +57,8 @@
             "type": "pressure_detection_response",
             "module": "KratosMultiphysics.SystemIdentificationApplication.responses",
             "settings": {
+                "sensor_group_name": "sensors",
+                "p_coefficient": 4,
                 "evaluated_model_part_names": [
                     "AdjointStructure"
                 ],

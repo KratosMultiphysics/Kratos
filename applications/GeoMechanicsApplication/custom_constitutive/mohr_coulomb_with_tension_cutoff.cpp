@@ -102,6 +102,22 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rPrincipalTrialStressVecto
     return rPrincipalTrialStressVector + lambda * rDerivativeOfFlowFunction;
 }
 
+bool IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex)
+{
+    return TensileStrength < Apex && rTrialSigmaTau[0] - rTrialSigmaTau[1] - TensileStrength > 0.0;
+}
+
+bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex, const Vector& rCornerPoint)
+{
+    return TensileStrength < Apex &&
+           rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
+}
+
+bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau, double DilatancyAngle, const Vector& rCornerPoint)
+{
+    return rTrialSigmaTau[0] - rCornerPoint[0] - (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
+}
+
 } // namespace
 
 namespace Kratos
@@ -209,12 +225,13 @@ void MohrCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& 
 
 void MohrCoulombWithTensionCutOff::GetLawFeatures(Features& rFeatures)
 {
-    rFeatures.SetOptions(mpConstitutiveDimension->GetSpatialType());
-    rFeatures.SetOptions(INFINITESIMAL_STRAINS);
-    rFeatures.SetOptions(ISOTROPIC);
+    auto options = Flags{};
+    options.Set(mpConstitutiveDimension->GetSpatialType());
+    options.Set(ConstitutiveLaw::INFINITESIMAL_STRAINS);
+    options.Set(ConstitutiveLaw::ISOTROPIC);
+    rFeatures.SetOptions(options);
 
     rFeatures.SetStrainMeasure(StrainMeasure_Infinitesimal);
-
     rFeatures.SetStrainSize(GetStrainSize());
     rFeatures.SetSpaceDimension(WorkingSpaceDimension());
 }
@@ -222,6 +239,11 @@ void MohrCoulombWithTensionCutOff::GetLawFeatures(Features& rFeatures)
 void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     const auto& r_prop = rParameters.GetMaterialProperties();
+
+    if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        rParameters.GetConstitutiveMatrix() =
+            mpConstitutiveDimension->CalculateElasticMatrix(r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
+    }
 
     const auto trail_stress_vector = CalculateTrialStressVector(
         rParameters.GetStrainVector(), r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
@@ -277,29 +299,6 @@ bool MohrCoulombWithTensionCutOff::IsAdmissiblePrincipalStressState(const Vector
     const auto coulomb_tolerance      = tolerance * (1.0 + std::abs(coulomb_yield_function));
     const auto tension_tolerance      = tolerance * (1.0 + std::abs(tension_yield_function));
     return coulomb_yield_function < coulomb_tolerance && tension_yield_function < tension_tolerance;
-}
-
-bool MohrCoulombWithTensionCutOff::IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau,
-                                                                   double        TensileStrength,
-                                                                   double        Apex) const
-{
-    return TensileStrength < Apex && rTrialSigmaTau[0] - rTrialSigmaTau[1] - TensileStrength > 0.0;
-}
-
-bool MohrCoulombWithTensionCutOff::IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau,
-                                                                     double        TensileStrength,
-                                                                     double        Apex,
-                                                                     const Vector& rCornerPoint) const
-{
-    return TensileStrength < Apex &&
-           rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
-}
-
-bool MohrCoulombWithTensionCutOff::IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
-                                                              double        DilatancyAngle,
-                                                              const Vector& rCornerPoint)
-{
-    return rTrialSigmaTau[0] - rCornerPoint[0] - (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngle) >= 0.0;
 }
 
 Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
