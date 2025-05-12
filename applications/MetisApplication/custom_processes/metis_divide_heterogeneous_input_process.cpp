@@ -98,11 +98,10 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
         KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
     }
     std::vector<idxtype> master_slave_constraints_partition;
-    // TODO
-    // if (mSynchronizeMasterSlaveConstraints)
-    //     PartitionMasterSlaveConstraintsSynchronous(node_partition,element_partition,master_slave_constraints_connectivities,condition_connectivities,master_slave_constraints_partition);
-    // else
-    //     PartitionMesh(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
+    if (mSynchronizeMasterSlaveConstraints)
+        PartitionMasterSlaveConstraintsSynchronous(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
+    else
+        PartitionMesh(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
 
     // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
     // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
@@ -571,6 +570,85 @@ void MetisDivideHeterogeneousInputProcess::PartitionConditionsSynchronous(const 
 
     PrintDebugData("Condition Partition",rCondPartition);
 
+}
+
+void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchronous(std::vector<idxtype> const& NodePartition,
+                    const IO::ConnectivitiesContainerType& rMasterSlaveConstraintConnectivities,
+                    std::vector<idxtype>& rMasterSlaveConstraintPartition)
+{
+    SizeType NumMasterSlaveConstraints = rMasterSlaveConstraintConnectivities.size();
+
+    // initialize MasterSlaveConstraintPartition
+    mNodeConnectivities = std::vector<std::unordered_set<std::size_t>>(mNumNodes,std::unordered_set<std::size_t>());
+    rMasterSlaveConstraintPartition.resize(NumMasterSlaveConstraints,-1);
+
+    // Fill the node Connectivities
+    for(std::size_t i = 0; i < NumMasterSlaveConstraints; i++) {
+        for (auto it_node = rMasterSlaveConstraintConnectivities[i].begin(); it_node != rMasterSlaveConstraintConnectivities[i].end(); ++it_node) {
+            mNodeConnectivities[*it_node-1].insert(i);
+        }
+    }
+
+    // MasterSlaveConstraints where all nodes belong to the same partition always go to that partition
+    IO::ConnectivitiesContainerType::const_iterator it_master_slave_constraint = rMasterSlaveConstraintConnectivities.begin();
+    for (auto it_part = rMasterSlaveConstraintPartition.begin(); it_part != rMasterSlaveConstraintPartition.end(); it_part++) {
+        const int my_partition = NodePartition[ (*it_master_slave_constraint)[0] - 1 ]; // Node Ids start from 1
+        SizeType neighbour_nodes = 1; // Nodes in the same partition
+        for (auto it_node = it_master_slave_constraint->begin()+1; it_node != it_master_slave_constraint->end(); ++it_node) {
+            if ( NodePartition[ *it_node - 1 ] == my_partition )
+                ++neighbour_nodes;
+            else
+                break;
+        }
+
+        if ( neighbour_nodes == it_master_slave_constraint->size() ) {
+            *it_part = my_partition;
+        }
+
+        // Advance to next constraint in connectivities array
+        it_master_slave_constraint++;
+    }
+
+    // Now distribute boundary constraints
+    it_master_slave_constraint = rMasterSlaveConstraintConnectivities.begin();
+    for (auto it_part = rMasterSlaveConstraintPartition.begin(); it_part != rMasterSlaveConstraintPartition.end(); it_part++) {
+        if (*it_part == -1) // If constraint is still unassigned {
+            SizeType found_neighbours = 0;
+            SizeType nodes_in_master_slave_constraint = it_master_slave_constraint->size();
+            std::vector<int> neighbour_partitions(nodes_in_master_slave_constraint,-1);
+            std::vector<int> neighbour_weights(nodes_in_master_slave_constraint,0);
+
+            for (auto it_node = it_master_slave_constraint->begin(); it_node != it_master_slave_constraint->end(); ++it_node) {
+                // Check if the node's partition was already found in this constraint
+                const int my_partition = NodePartition[ *it_node - 1 ]; // This node's partition
+                SizeType i=0;
+                for (i = 0; i < found_neighbours; i++) {
+                    if (my_partition == neighbour_partitions[i]) {
+                        neighbour_weights[i]++;
+                        break;
+                    }
+                }
+
+                // If this is the first node in this partition, add the partition to the candidate partition list
+                if (i == found_neighbours) {
+                    neighbour_weights[i] = 1;
+                    neighbour_partitions[i] = my_partition;
+                    found_neighbours++;
+                }
+            }
+
+            // Determine the partition that owns the most nodes, and try to assign the constraint to that partition
+            const int majority_partitition = neighbour_partitions[ FindMax(found_neighbours,neighbour_weights) ];
+            {
+                *it_part = majority_partitition;
+            }
+        }
+
+        // Advance to next constraint in connectivities array
+        it_master_slave_constraint++;
+    }
+
+    PrintDebugData("MasterSlaveConstraint Partition",rMasterSlaveConstraintPartition);
 }
 
 void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(

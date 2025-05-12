@@ -217,7 +217,12 @@ protected:
 			     const IO::ConnectivitiesContainerType& rElemConnectivities,
 			     std::vector<idxtype>& rCondPartition);
 
-    // TODO add constraints 
+    /// Partition the constraint such that boundary constraints are always assigned the majority partition.
+    void PartitionMasterSlaveConstraintsSynchronous(
+        const std::vector<idxtype>& NodePartition,
+        const IO::ConnectivitiesContainerType& rMasterSlaveConstraintConnectivities,
+        std::vector<idxtype>& rMasterSlaveConstraintPartition
+        );
 
     void RedistributeHangingNodes(
             std::vector<idxtype>& rNodePartition,
