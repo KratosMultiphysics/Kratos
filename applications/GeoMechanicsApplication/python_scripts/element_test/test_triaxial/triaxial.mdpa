@@ -1,0 +1,119 @@
+Begin Table 1 TIME NORMAL_CONTACT_STRESS
+  -1.0 0.0
+  0.0 $initial_effective_cell_pressure
+  $end_time $initial_effective_cell_pressure
+End Table
+
+Begin Table 2 TIME DISPLACEMENT_Y
+  -1.0 0.0
+  0.0 0.0
+  $first_timestep 0.0
+  $end_time $maximum_strain
+End Table
+
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   1.0000000000   0.0000000000
+    2   0.5000000000   1.0000000000   0.0000000000
+    3   0.0000000000   0.5000000000   0.0000000000
+    4   0.5000000000   0.5000000000   0.0000000000
+    5   0.0000000000   0.0000000000   0.0000000000
+    6   1.0000000000   1.0000000000   0.0000000000
+    7   1.0000000000   0.5000000000   0.0000000000
+    8   0.5000000000   0.0000000000   0.0000000000
+    9   1.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N// GUI group identifier: Soil
+        1          0     1     5     9     3     8     4 
+        2          0     9     6     1     7     2     4 
+End Elements
+
+Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N// GUI group identifier: Lateral_load
+    1 0 9 6 7
+End Conditions
+
+Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N// GUI group identifier: Top_load
+    2 0 6 1 2
+End Conditions
+
+Begin SubModelPart Fixed_base // Group Fixed_base // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            5
+            8
+            9
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart Fixed_side // Group Fixed_side // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            3
+            5
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart Soil // Group Soil // Subtree Parts_Soil
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart Lateral_load // Group Lateral_load // Subtree Lateral_load
+    Begin SubModelPartTables
+            1
+    End SubModelPartTables
+    Begin SubModelPartNodes
+            6
+            7
+            9
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            1
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Top_load // Group Top_load // Subtree Top_load
+    Begin SubModelPartTables
+    1
+    End SubModelPartTables
+    Begin SubModelPartNodes
+            1
+            2
+            6
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            2
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Water_pressure // Group Water_pressure // Subtree Water_pressure
+    Begin SubModelPartNodes
+            5
+            8
+            9
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart Top_displacement // Group Top_displacement // Subtree DISPLACEMENT
+    Begin SubModelPartTables
+            2
+    End SubModelPartTables
+    Begin SubModelPartNodes
+            1
+            2
+            6
+    End SubModelPartNodes
+End SubModelPart
