@@ -1766,11 +1766,6 @@ public:
         this->GetRootModelPart().mpProcessInfo = pNewProcessInfo;
     }
 
-    void SetProcessInfo(ProcessInfo& NewProcessInfo)
-    {
-        this->GetProcessInfo() = NewProcessInfo;
-    }
-
     SizeType NumberOfMeshes()
     {
         return mMeshes.size();
