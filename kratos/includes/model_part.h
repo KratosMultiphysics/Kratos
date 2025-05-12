@@ -1724,7 +1724,7 @@ public:
 
     ProcessInfo const& GetProcessInfo() const
     {
-        return this->GetProcessInfo();
+        return *this->pGetProcessInfo();
     }
 
     ProcessInfo::Pointer pGetProcessInfo()
@@ -1734,12 +1734,18 @@ public:
 
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
-        return this->pGetProcessInfo();
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
-    void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo);
+    void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
+    {
+        this->GetRootModelPart().mpProcessInfo = pNewProcessInfo;
+    }
 
-    void SetProcessInfo(ProcessInfo& NewProcessInfo);
+    void SetProcessInfo(ProcessInfo& NewProcessInfo)
+    {
+        this->GetProcessInfo() = NewProcessInfo;
+    }
 
     SizeType NumberOfMeshes()
     {

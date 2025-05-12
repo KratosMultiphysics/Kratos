@@ -2130,44 +2130,6 @@ std::vector<std::string> ModelPart::GetSubModelPartNames() const
     return SubModelPartsNames;
 }
 
-void ModelPart::SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
-{
-    std::stack<ModelPart*> model_part_stack;
-    model_part_stack.push(&this->GetRootModelPart());
-
-    while (!model_part_stack.empty())
-    {
-        ModelPart* currentModelPart = model_part_stack.top();
-        model_part_stack.pop();
-
-        currentModelPart->mpProcessInfo = pNewProcessInfo;
-
-        for (auto& subModelPart : currentModelPart->mSubModelParts)
-        {
-            model_part_stack.push(&subModelPart);
-        }
-    }
-}
-
-void ModelPart::SetProcessInfo(ProcessInfo& rNewProcessInfo)
-{
-    std::stack<ModelPart*> model_part_stack;
-    model_part_stack.push(&this->GetRootModelPart());
-
-    while (!model_part_stack.empty())
-    {
-        ModelPart* currentModelPart = model_part_stack.top();
-        model_part_stack.pop();
-
-        *currentModelPart->mpProcessInfo = rNewProcessInfo;
-
-        for (auto& subModelPart : currentModelPart->mSubModelParts)
-        {
-            model_part_stack.push(&subModelPart);
-        }
-    }
-}
-
 void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 {
     KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
