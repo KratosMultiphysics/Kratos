@@ -17,13 +17,12 @@
 
 namespace Kratos::Testing {
 
-class KratosMeshingFastSuite : public KratosCoreFastSuite {
-public:
-  KratosMeshingFastSuite();
+class KratosMeshingApplicationFastSuite : public KratosCoreFastSuite {
+  public:
+    KratosMeshingApplicationFastSuite();
 
-private:
-  KratosMeshingApplication::Pointer mpMeshingApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+  private:
+    KratosMeshingApplication::Pointer mpMeshingApp;
 };
 
 } // namespace Kratos::Testing

@@ -13,9 +13,11 @@
 // System includes
 
 // Project includes
-#include "testing/testing.h"
 #include "includes/stream_serializer.h"
+
+// Application includes
 #include "custom_utilities/closest_points.h"
+#include "tests/cpp_tests/mapping_fast_suite.h"
 
 namespace Kratos::Testing {
 

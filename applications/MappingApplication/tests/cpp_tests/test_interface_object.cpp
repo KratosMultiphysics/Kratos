@@ -11,9 +11,11 @@
 //
 
 // Project includes
-#include "testing/testing.h"
 #include "geometries/quadrilateral_2d_4.h"
+
+// Application includes
 #include "custom_searching/interface_object.h"
+#include "tests/cpp_tests/mapping_fast_suite.h"
 
 namespace Kratos::Testing {
 
