@@ -100,7 +100,7 @@ public:
     CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This function calculates the original nodal postion for the transformation matrix
+     * @brief This function calculates the original nodal position for the transformation matrix
      * @param rReferenceCoordinates The original coordinates
      */
     void WriteTransformationCoordinates(
