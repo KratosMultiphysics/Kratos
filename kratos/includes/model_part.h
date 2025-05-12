@@ -1719,9 +1719,7 @@ public:
     
 
     /**
-     * @brief Get reference to the ProcessInfo of root model part.
-     * @details calls pGetProcessInfo and dereference it
-     * @return reference to the ProcessInfo object.
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
      */
     ProcessInfo& GetProcessInfo()
     {
@@ -1729,9 +1727,7 @@ public:
     }
 
     /**
-     * @brief Get const reference to the ProcessInfo of root model part.
-     * @details Calls pGetProcessInfo and dereference it
-     * @return Const reference to the ProcessInfo object.
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
      */
     ProcessInfo const& GetProcessInfo() const
     {
@@ -1739,8 +1735,7 @@ public:
     }
 
     /**
-     * @brief Get pointer to the ProcessInfo of root model part.
-     * @return Pointer to the ProcessInfo object.
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
      */
     ProcessInfo::Pointer pGetProcessInfo()
     {
@@ -1748,8 +1743,7 @@ public:
     }
 
     /**
-     * @brief Get const pointer to the ProcessInfo of root model part.
-     * @return Const pointer to the ProcessInfo object.
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
      */
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
@@ -1757,9 +1751,8 @@ public:
     }
 
     /**
-     * @brief Set the ProcessInfo of root model part.
-     * @details Finds the root modelpart and set the the ProcessInfo pointer to the given NewProcessInfo pointer.
-     * @param pNewProcessInfo pointer to the new ProcessInfo object.
+     * @brief Set the @ref ProcessInfo associated with the current @ref ModelPart tree.
+     * @param pNewProcessInfo pointer to the new @ref ProcessInfo object.
      */
     void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
     {
