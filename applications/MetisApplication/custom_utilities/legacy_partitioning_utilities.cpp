@@ -8,13 +8,12 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "legacy_partitioning_utilities.h"
@@ -104,6 +103,21 @@ void LegacyPartitioningUtilities::DividingNodes(
         std::sort(node_partitions.begin(), node_partitions.end()); // TODO: Add parallel sort from STL lib
         IO::PartitionIndicesContainerType::value_type::iterator new_end = std::unique(node_partitions.begin(), node_partitions.end());
         node_partitions.resize(new_end - node_partitions.begin());
+    }
+}
+
+void LegacyPartitioningUtilities::DividingGeometries(
+    IO::PartitionIndicesContainerType& rGeometriesAllPartitions,
+    const PartitionIndicesType& rGeometriesPartitions
+    )
+{
+    const SizeType number_of_geometries = rGeometriesPartitions.size();
+
+    rGeometriesAllPartitions.resize(number_of_geometries);
+
+    // Adding the geometry partition to their array of partitions
+    for(IndexType i_geometry = 0 ; i_geometry < number_of_geometries ; i_geometry++) {
+        rGeometriesAllPartitions[i_geometry].push_back(rGeometriesPartitions[i_geometry]);
     }
 }
 

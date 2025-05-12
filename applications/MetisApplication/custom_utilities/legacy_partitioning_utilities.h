@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
+//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -38,6 +39,7 @@ namespace Kratos {
  * such as calculating domain graphs, dividing nodes, elements, and conditions among partitions,
  * and converting Kratos format connectivities to CSR format.
  * @note The new implementation of these functionalities is part of the MetisPartitioningUtilities.
+ * @author Philipp Bucher
  */
 class KRATOS_API(METIS_APPLICATION) LegacyPartitioningUtilities
 {
@@ -119,6 +121,16 @@ public:
         const PartitionIndicesType& rNodesPartitions,
         const PartitionIndicesType& rElementsPartitions,
         const PartitionIndicesType& rConditionsPartitions
+        );
+
+    /**
+     * @brief Divides elements among partitions.
+     * @param rGeometriesAllPartitions The resulting geometries for all partitions.
+     * @param rGeometriesPartitions The geometry partitions.
+     */
+    static void DividingGeometries(
+        IO::PartitionIndicesContainerType& rGeometriesAllPartitions,
+        const PartitionIndicesType& rGeometriesPartitions
         );
 
     /**
