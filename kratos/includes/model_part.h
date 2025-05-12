@@ -1727,9 +1727,7 @@ public:
     }
 
     /**
-     * @brief Get const reference to the ProcessInfo of root model part.
-     * @details Calls pGetProcessInfo and dereference it
-     * @return Const reference to the ProcessInfo object.
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
      */
     ProcessInfo const& GetProcessInfo() const
     {
