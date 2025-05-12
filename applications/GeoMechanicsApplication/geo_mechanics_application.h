@@ -120,6 +120,7 @@
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
+#include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
@@ -820,9 +821,9 @@ private:
     const UPwFaceLoadCondition<3, 4> mUPwFaceLoadCondition3D4N{
         0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
     const UPwFaceLoadCondition<3, 6> mUPwFaceLoadCondition3D6N{
-        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6)) };
+        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6))};
     const UPwFaceLoadCondition<3, 8> mUPwFaceLoadCondition3D8N{
-        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8)) };
+        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
 
     const UPwNormalFaceLoadCondition<2, 2> mUPwNormalFaceLoadCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
@@ -951,9 +952,9 @@ private:
     const UPwLysmerAbsorbingCondition<3, 4> mUPwLysmerAbsorbingCondition3D4N{
         0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
     const UPwLysmerAbsorbingCondition<3, 6> mUPwLysmerAbsorbingCondition3D6N{
-    0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6)) };
+        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6))};
     const UPwLysmerAbsorbingCondition<3, 8> mUPwLysmerAbsorbingCondition3D8N{
-        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8)) };
+        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
 
     const GeoTNormalFluxCondition<2, 2> mGeoTNormalFluxCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
@@ -1023,6 +1024,9 @@ private:
 
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
+
+    const InterfaceCoulombWithTensionCutOff mInterfaceCoulombWithTensionCutOff;
+
     ///@}
 
 }; // Class KratosGeoMechanicsApplication
