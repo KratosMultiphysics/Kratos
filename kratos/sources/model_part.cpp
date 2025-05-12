@@ -193,8 +193,8 @@ void ModelPart::Reset()
     // construct a new variable list and process info. Old data ptrs is not destroyed
     // since, same data may be shared with some other model parts as well.
     mpVariablesList = Kratos::make_intrusive<VariablesList>();
-    mpProcessInfo = Kratos::make_shared<ProcessInfo>();
-    mBufferSize = 0;
+            mpProcessInfo = Kratos::make_shared<ProcessInfo>();
+        mBufferSize = 0;
 
     KRATOS_CATCH("");
 }
@@ -220,9 +220,9 @@ ModelPart::IndexType ModelPart::CloneSolutionStep()
         node_iterator->CloneSolutionStepData();
     }
 
-    mpProcessInfo->CloneSolutionStepInfo();
+    GetProcessInfo().CloneSolutionStepInfo();
 
-    mpProcessInfo->ClearHistory(mBufferSize);
+    GetProcessInfo().ClearHistory(mBufferSize);
 
     return 0;
 }
@@ -234,7 +234,7 @@ ModelPart::IndexType ModelPart::CloneTimeStep()
         << GetRootModelPart().Name() << std::endl;
 
     IndexType new_index = CloneSolutionStep();
-    mpProcessInfo->SetAsTimeStepInfo();
+    GetProcessInfo().SetAsTimeStepInfo();
 
     return new_index;
 }
@@ -247,7 +247,7 @@ ModelPart::IndexType ModelPart::CreateTimeStep(double NewTime)
         << GetRootModelPart().Name() << std::endl;
 
     IndexType new_index = CreateSolutionStep();
-    mpProcessInfo->SetAsTimeStepInfo(NewTime);
+    GetProcessInfo().SetAsTimeStepInfo(NewTime);
 
     return new_index;
 }
@@ -259,7 +259,7 @@ ModelPart::IndexType ModelPart::CloneTimeStep(double NewTime)
         << GetRootModelPart().Name() << std::endl;
 
     IndexType new_index = CloneSolutionStep();
-    mpProcessInfo->SetAsTimeStepInfo(NewTime);
+    GetProcessInfo().SetAsTimeStepInfo(NewTime);
 
     return new_index;
 }
@@ -2218,7 +2218,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
         if (IsDistributed()) {
             rOStream << "    Distributed; Communicator has " << mpCommunicator->TotalProcesses() << " total processes" << std::endl;
         }
-        mpProcessInfo->PrintData(rOStream);
+        GetProcessInfo().PrintData(rOStream);
     }
     rOStream << std::endl;
     rOStream << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
@@ -2262,7 +2262,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
     rOStream << PrefixString << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
 
     if (!IsSubModelPart()) {
-        mpProcessInfo->PrintData(rOStream);
+        GetProcessInfo().PrintData(rOStream);
     }
     rOStream << std::endl;
     rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
@@ -2294,7 +2294,9 @@ void ModelPart::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     rSerializer.save("Name", mName);
     rSerializer.save("Buffer Size", mBufferSize);
-    rSerializer.save("ProcessInfo", mpProcessInfo);
+    if (!IsSubModelPart()) {
+        rSerializer.save("ProcessInfo", mpProcessInfo);
+    }
     rSerializer.save("Tables", mTables);
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
@@ -2320,7 +2322,9 @@ void ModelPart::load(Serializer& rSerializer)
         << "trying to load a model part called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
 
     rSerializer.load("Buffer Size", mBufferSize);
-    rSerializer.load("ProcessInfo", mpProcessInfo);
+    if (!IsSubModelPart()) {
+        rSerializer.load("ProcessInfo", mpProcessInfo);
+    }
     rSerializer.load("Tables", mTables);
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
