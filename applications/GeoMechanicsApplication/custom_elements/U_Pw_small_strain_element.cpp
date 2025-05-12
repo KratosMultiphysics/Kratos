@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
@@ -33,7 +34,8 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainElement(NewId, this->GetGeometry().Create(ThisNodes),
-                                                      pProperties, this->GetStressStatePolicy().Clone()));
+                                                      pProperties, this->GetStressStatePolicy().Clone(),
+                                                      this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -41,8 +43,9 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 GeometryType::Pointer pGeom,
                                                                 PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new UPwSmallStrainElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new UPwSmallStrainElement(NewId, pGeom, pProperties,
+                                                      this->GetStressStatePolicy().Clone(),
+                                                      this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -57,8 +60,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geometry   = this->GetGeometry();
 
-    KRATOS_ERROR_IF(r_geometry.DomainSize() < 1.0e-15)
-        << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
     // Verify specific properties
     KRATOS_ERROR_IF_NOT(r_properties.Has(IGNORE_UNDRAINED))
@@ -1530,9 +1532,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
         GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
 
     for (unsigned int integration_point = 0; integration_point < rDeformationGradients.size(); ++integration_point) {
+        // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a pointer
+        // to an implicitly converted object
+        const auto shape_function_values = Vector{row(rNuContainer, integration_point)};
         ConstitutiveLawUtilities::SetConstitutiveParameters(
             rConstitutiveParameters, rStrainVectors[integration_point],
-            rConstitutiveMatrices[integration_point], row(rNuContainer, integration_point),
+            rConstitutiveMatrices[integration_point], shape_function_values,
             rDNu_DXContainer[integration_point], rDeformationGradients[integration_point],
             determinants_of_deformation_gradients[integration_point]);
         rConstitutiveParameters.SetStressVector(rStressVectors[integration_point]);

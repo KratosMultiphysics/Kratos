@@ -720,7 +720,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                     (*mpStream) << "\t" << variables_names[i];
                 }
                 (*mpStream) << "\n";
-                (*mpStream) << "\t" << rMasterSlaveConstraintContainer.begin()->Id() << "\t";
+                (*mpStream) << "\t" << it_const_current->Id() << "\t";
                 for (IndexType i = 0; i < number_of_master_dofs; ++i) {
                     (*mpStream) << master_dofs[i]->Id() << "\t";
                 }
@@ -765,7 +765,7 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
             ReadElementalDataBlock(r_this_elements);
         else if(word == "ConditionalData")
             ReadConditionalDataBlock(r_this_conditions);
-        else if(word == "MasterSlaveConstraintData")
+        else if(word == "MasterSlaveConstraintalData")
             ReadMasterSlaveConstraintDataBlock(r_this_master_slave_constraints);
         else
             SkipBlock(word);
@@ -842,11 +842,11 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             } else {
                 SkipBlock("ConditionalData");
             }
-        } else if (word == "MasterSlaveConstraintData") {
+        } else if (word == "MasterSlaveConstraintalData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadMasterSlaveConstraintDataBlock(rThisModelPart.MasterSlaveConstraints());
             } else {
-                SkipBlock("MasterSlaveConstraintData");
+                SkipBlock("MasterSlaveConstraintalData");
             }
         } else if(word == "CommunicatorData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
@@ -3167,7 +3167,7 @@ void ModelPartIO::ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstra
 
     while(!mpStream->eof()) {
         ReadWord(value); // reading id
-        if(CheckEndBlock("MasterSlaveConstraintData", value)) {
+        if(CheckEndBlock("MasterSlaveConstraintalData", value)) {
             break;
         }
 
@@ -3200,7 +3200,7 @@ void ModelPartIO::ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveCons
 
     while(!mpStream->eof()) {
         ReadWord(value); // reading id
-        if(CheckEndBlock("MasterSlaveConstraintData", value)) {
+        if(CheckEndBlock("MasterSlaveConstraintalData", value)) {
             break;
         }
 
@@ -4280,6 +4280,8 @@ void ModelPartIO::ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rP
             ReadSubModelPartMasterSlaveConstraintsBlock(rMainModelPart, r_sub_model_part);
         } else if (word == "SubModelPartGeometries") {
             ReadSubModelPartGeometriesBlock(rMainModelPart, r_sub_model_part);
+        } else if (word == "SubModelPartMasterSlaveConstraints") {
+            ReadSubModelPartMasterSlaveConstraintsBlock(rMainModelPart, r_sub_model_part);
 //         TODO: Add the following blocks. Pooyan.
 //         } else if (word == "CommunicatorData") {
 //            ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
@@ -4329,33 +4331,38 @@ void ModelPartIO::WriteSubModelPartBlock(
 
         // Submodelpart nodes section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartNodes" << std::endl;
-        NodesContainerType& rThisNodes = r_sub_model_part.Nodes();
-        auto numNodes = rThisNodes.end() - rThisNodes.begin();
-        for(unsigned int i = 0; i < numNodes; i++) {
-            auto itNode = rThisNodes.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << "\n";;
+        for (auto& rNode : r_sub_model_part.Nodes()) {
+            (*mpStream) << InitialTabulation << "\t\t" << rNode.Id() << "\n";
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartNodes" << std::endl;
 
         // Submodelpart elements section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
-        ElementsContainerType& rThisElements = r_sub_model_part.Elements();
-        auto num_elements = rThisElements.end() - rThisElements.begin();
-        for(unsigned int i = 0; i < num_elements; i++) {
-            auto itElem = rThisElements.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << "\n";;
+        for (auto& rElem : r_sub_model_part.Elements()) {
+            (*mpStream) << InitialTabulation << "\t\t" << rElem.Id() << "\n";
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartElements" << std::endl;
 
         // Submodelpart conditions section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartConditions" << std::endl;
-        ConditionsContainerType& rThisConditions= r_sub_model_part.Conditions();
-        auto numConditions = rThisConditions.end() - rThisConditions.begin();
-        for(unsigned int i = 0; i < numConditions; i++) {
-            auto itCond = rThisConditions.begin() + i;
-            (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << "\n";;
+        for (auto& r_cond : r_sub_model_part.Conditions()) {
+            (*mpStream) << InitialTabulation << "\t\t" << r_cond.Id() << "\n";
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartConditions" << std::endl;
+
+        // Submodelpart geometries section
+        (*mpStream) << InitialTabulation << "\tBegin SubModelPartGeometries" << std::endl;
+        for (auto& r_geom : r_sub_model_part.Geometries()) {
+            (*mpStream) << InitialTabulation << "\t\t" << r_geom.Id() << "\n";
+        }
+        (*mpStream) << InitialTabulation << "\tEnd SubModelPartGeometries" << std::endl;
+
+        // Submodelpart MasterSlaveConstraints section
+        (*mpStream) << InitialTabulation << "\tBegin SubModelPartMasterSlaveConstraints" << std::endl;
+        for (auto& r_const : r_sub_model_part.MasterSlaveConstraints()) {
+            (*mpStream) << InitialTabulation << "\t\t" << r_const.Id() << "\n";
+        }
+        (*mpStream) << InitialTabulation << "\tEnd SubModelPartMasterSlaveConstraints" << std::endl;
 
         // Write the subsubmodelparts
         WriteSubModelPartBlock(r_sub_model_part, InitialTabulation+"\t");
@@ -4504,21 +4511,22 @@ void  ModelPartIO::ReadSubModelPartGeometriesBlock(
 
 void ModelPartIO::ReadSubModelPartMasterSlaveConstraintsBlock(
     ModelPart& rMainModelPart,
-    ModelPart& rSubModelPart)
+    ModelPart& rSubModelPart
+    )
 {
     KRATOS_TRY
 
-    SizeType constraint_id;
+    SizeType geometry_id;
     std::string word;
     std::vector<SizeType> ordered_ids;
 
     while (!mpStream->eof()) {
-        ReadWord(word); // Reading the master-slave constraint id or End
+        ReadWord(word); // Reading the geometry id or End
         if (CheckEndBlock("SubModelPartMasterSlaveConstraints", word))
             break;
 
-        ExtractValue(word, constraint_id);
-        ordered_ids.push_back(ReorderedMasterSlaveConstraintId(constraint_id));
+        ExtractValue(word, geometry_id);
+        ordered_ids.push_back(geometry_id);
     }
     std::sort(ordered_ids.begin(), ordered_ids.end());
     rSubModelPart.AddMasterSlaveConstraints(ordered_ids);
@@ -5106,7 +5114,7 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
             index = ReorderedElementId(id);
         } else if (BlockName == "ConditionalData"){
             index = ReorderedConditionId(id);
-        } else if (BlockName == "MasterSlaveConstraintData"){
+        } else if (BlockName == "MasterSlaveConstraintalData"){
             index = ReorderedMasterSlaveConstraintId(id);
         } else{
             KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
@@ -5230,7 +5238,7 @@ void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles
             index = ReorderedElementId(id);
         } else if(BlockName == "ConditionalData") {
             index = ReorderedConditionId(id);
-        } else if(BlockName == "MasterSlaveConstraintData") {
+        } else if(BlockName == "MasterSlaveConstraintalData") {
             index = ReorderedMasterSlaveConstraintId(id);
         } else {
             KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;

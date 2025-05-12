@@ -748,11 +748,6 @@ private:
     template<class TVariableType, class TObjectsContainerType>
     void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const VariableData* rVariable, const std::string& rObjectName);
 
-    /**
-     * @brief Reads the geometries connectivities block from the input stream.
-     * @param rThisConnectivities Reference to the container where the connectivities will be stored.
-     * @return The number of geometries read.
-     */
     SizeType ReadGeometriesConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
     /**
@@ -901,13 +896,19 @@ private:
         ModelPart &rSubModelPart);
 
     /**
-     * @brief Reads the master-slave constraints block of a submodelpart.
-     * @param rMainModelPart Reference to the main model part.
-     * @param rSubModelPart Reference to the submodelpart where the master-slave constraints will be added.
+     * @brief Reads and processes the SubModelPartMasterSlaveConstraints block from the input stream.
+     * @details This function reads geometry IDs from the input stream until it detects the end of the
+     * "SubModelPartMasterSlaveConstraints" block. The read geometry IDs are stored in a vector,
+     * which is then sorted in ascending order. Finally, the sorted IDs are used to add master-slave
+     * constraints to the provided sub-model part.
+     * @param rMainModelPart The main model part used for context during the parsing process.
+     * @param rSubModelPart The sub-model part that will have the master-slave constraints added.
+     * @note The function relies on the correctness of the stream data and may throw exceptions
+     *       if an error occurs during the reading or processing of the block.
      */
-    void ReadSubModelPartMasterSlaveConstraintsBlock(
-        ModelPart& rMainModelPart,
-        ModelPart& rSubModelPart
+     void ReadSubModelPartMasterSlaveConstraintsBlock(
+        ModelPart &rMainModelPart,
+        ModelPart &rSubModelPart
         );
 
     void DivideInputToPartitionsImpl(

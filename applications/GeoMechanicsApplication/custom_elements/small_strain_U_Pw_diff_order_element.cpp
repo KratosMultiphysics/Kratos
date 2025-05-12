@@ -24,6 +24,7 @@
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -50,7 +51,8 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                         PropertiesType::Pointer pProperties) const
 {
     return make_intrusive<SmallStrainUPwDiffOrderElement>(NewId, pGeom, pProperties,
-                                                          this->GetStressStatePolicy().Clone());
+                                                          this->GetStressStatePolicy().Clone(),
+                                                          this->CloneIntegrationCoefficientModifier());
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -61,8 +63,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 
     const auto& r_geom = GetGeometry();
 
-    if (r_geom.DomainSize() < 1.0e-15)
-        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
 
     // check pressure geometry pointer
     KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
@@ -397,7 +398,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geom = GetGeometry();
+    const auto& r_geom       = GetGeometry();
+    const auto&         r_properties = this->GetProperties();
     const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     rOutput.resize(number_of_integration_points);
@@ -501,6 +503,42 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 std::inner_product(shape_function_values.begin(), shape_function_values.end(),
                                    nodal_hydraulic_head.begin(), 0.0);
         }
+    } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
+        KRATOS_ERROR_IF(r_geom.WorkingSpaceDimension() != 2 && r_geom.WorkingSpaceDimension() != 3)
+            << rVariable.Name() << " can not be retrieved for dim "
+            << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
+        size_t variable_index = 0;
+        if (rVariable == CONFINED_STIFFNESS) {
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX) : static_cast<size_t>(INDEX_3D_XX);
+        } else {
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY) : static_cast<size_t>(INDEX_3D_XZ);
+        }
+
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+        const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
+        const auto deformation_gradients = CalculateDeformationGradients();
+        auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_properties, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+        std::vector<Matrix> constitutive_matrices;
+        this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                             Variables.NuContainer, Variables.DNu_DXContainer,
+                                             strain_vectors, mStressVector, constitutive_matrices);
+
+        std::transform(constitutive_matrices.begin(), constitutive_matrices.end(), rOutput.begin(),
+                       [variable_index](const Matrix& constitutive_matrix) {
+            return constitutive_matrix(variable_index, variable_index);
+        });
+    } else if (r_properties.Has(rVariable)) {
+        // Map initial material property to gauss points, as required for the output
+        std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
         OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), GetProperties());
     } else {
@@ -1472,9 +1510,12 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
         GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
 
     for (unsigned int GPoint = 0; GPoint < rDeformationGradients.size(); ++GPoint) {
+        // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a pointer
+        // to an implicitly converted object
+        const auto shape_function_values = Vector{row(rNuContainer, GPoint)};
         ConstitutiveLawUtilities::SetConstitutiveParameters(
             rConstitutiveParameters, rStrainVectors[GPoint], rConstitutiveMatrices[GPoint],
-            row(rNuContainer, GPoint), rDNu_DXContainer[GPoint], rDeformationGradients[GPoint],
+            shape_function_values, rDNu_DXContainer[GPoint], rDeformationGradients[GPoint],
             determinants_of_deformation_gradients[GPoint]);
         rConstitutiveParameters.SetStressVector(rStressVectors[GPoint]);
 
