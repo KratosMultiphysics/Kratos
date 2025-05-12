@@ -25,7 +25,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
             self.model_part.ProcessInfo[Kratos.COMPUTE_LUMPED_MASS_MATRIX] = 0
         self.CreateCPluPlusStrategies()
 
-        self.num_points_element = model_part.GetElement(1).GetGeometry().PointsNumber()
+        self.num_points_element = len(self.model_part.Elements.__iter__().__next__().GetNodes())
         self.num_points_condition = 4 if self.num_points_element == 3 else 6
 
     def FillUpModelPart(self, element_type, condition_type):
@@ -120,7 +120,6 @@ class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, r
         self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionGradientRecoverer.__init__(self, project_parameters, model_part)
         self.store_full_gradient = project_parameters["store_full_gradient_option"].GetBool()
-        print("In constructor of L2ProjectionMaterialAccelerationRecoverer")
 
     def RecoverMaterialAcceleration(self):
         if self.store_full_gradient:
