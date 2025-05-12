@@ -15,7 +15,7 @@ In this file we describe the parameters that appear in the JSON files that deter
 - print_hole_geometry_files (bool): Toggle to print the hole geometry files.
 - print_debug_info (bool):
 - decomposed_nodes_coords_filename (string): the filename of the file where the list of decomposed nodes is exported
-- ~~mesh_size (string): The size of the elements of the mesh of the included .mdpa geometry files. ~~
+- ~~mesh_size (string): The size of the elements of the mesh of the included .mdpa geometry files.~~
 - ~~mesh_type (string): The type (structured or unstructured) of the mesh of the included .mdpa geometry files.~~
 
 

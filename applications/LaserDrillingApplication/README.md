@@ -9,3 +9,6 @@ In essence, it works by distributing the energy of the laser pulse inside of the
 The current model (May 2025), is based on the model proposed by Woodfield et al. using an axisymmetric geometry.
 
 - [Woodfield model](./docs/models/model_woodfield.md)
+
+### Parameters
+See the [parameters document](./docs/doc_parameters.md).
