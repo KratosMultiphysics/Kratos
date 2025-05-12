@@ -28,7 +28,7 @@
 	"rve_analysis_settings" : {
 		"RVEAnalysis"                       : true,
 		"RVEEvaluationFrequency"            : 1,
-		"RVEWriteFrequency"                 : 999999,
+		"RVEWriteFrequency"                 : 0,
 		"RVEConsolidationVelocity"          : [0.0,0.0,0.0],
 		"RVEConsolidationStopCriterion"     : "time",
 		"RVEConsolidationLimitValue"        : 0.0,
