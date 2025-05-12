@@ -1716,27 +1716,51 @@ public:
     ///@}
     ///@name Access
     ///@{
+    
 
+    /**
+     * @brief Get reference to the ProcessInfo of root model part.
+     * @details calls pGetProcessInfo and dereference it
+     * @return reference to the ProcessInfo object.
+     */
     ProcessInfo& GetProcessInfo()
     {
         return *this->pGetProcessInfo();
     }
 
+    /**
+     * @brief Get const reference to the ProcessInfo of root model part.
+     * @details Calls pGetProcessInfo and dereference it
+     * @return Const reference to the ProcessInfo object.
+     */
     ProcessInfo const& GetProcessInfo() const
     {
         return *this->pGetProcessInfo();
     }
 
+    /**
+     * @brief Get pointer to the ProcessInfo of root model part.
+     * @return Pointer to the ProcessInfo object.
+     */
     ProcessInfo::Pointer pGetProcessInfo()
     {
         return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Get const pointer to the ProcessInfo of root model part.
+     * @return Const pointer to the ProcessInfo object.
+     */
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
         return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Set the ProcessInfo of root model part.
+     * @details Finds the root modelpart and set the the ProcessInfo pointer to the given NewProcessInfo pointer.
+     * @param pNewProcessInfo pointer to the new ProcessInfo object.
+     */
     void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
     {
         this->GetRootModelPart().mpProcessInfo = pNewProcessInfo;
