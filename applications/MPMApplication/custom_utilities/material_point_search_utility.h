@@ -208,7 +208,8 @@ namespace Kratos::MPMSearchElementUtility
                     }
                 }
                 int& mp_counter = r_found_geom.GetValue(MP_COUNTER) ; 
-                    mp_counter +=1;
+                #pragma omp atomic
+                mp_counter +=1;
             } else {
                 #pragma omp critical
                 rMissingElements.push_back(&*element_itr);
@@ -355,6 +356,7 @@ namespace Kratos::MPMSearchElementUtility
                     }
                     
                     int& mp_counter = pelem->GetGeometry().GetValue(MP_COUNTER); 
+                    #pragma omp atomic
                     mp_counter +=1;
 
                 } else {
