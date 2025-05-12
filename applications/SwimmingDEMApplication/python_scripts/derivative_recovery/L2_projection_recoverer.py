@@ -11,6 +11,7 @@ import sys
 class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def __init__(self, project_parameters, model_part):
         recoverer.DerivativesRecoverer.__init__(self, project_parameters, model_part)
+
         self.model_part = model_part
         self.recovery_model_part = Kratos.Model().CreateModelPart("PostGradientFluidPart")
         self.custom_functions_tool = SDEM.CustomFunctionsCalculator3D()
@@ -24,7 +25,8 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
             self.model_part.ProcessInfo[Kratos.COMPUTE_LUMPED_MASS_MATRIX] = 0
         self.CreateCPluPlusStrategies()
 
-        self.num_points = model_part.GetElement(1).GetGeometry().PointsNumber()
+        self.num_points_element = model_part.GetElement(1).GetGeometry().PointsNumber()
+        self.num_points_condition = 4 if self.num_points_element == 3 else 6
 
     def FillUpModelPart(self, element_type, condition_type):
         model_part_cloner = Kratos.ConnectivityPreserveModeler()
@@ -76,8 +78,9 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
     def __init__(self, project_parameters, model_part):
         self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
-        self.element_type = f"ComputeComponentGradientSimplex3D{self.num_points}N"
-        self.condition_type = f"ComputeLaplacianSimplexCondition3D{self.num_points}N"
+
+        self.element_type = f"ComputeComponentGradientSimplex3D{self.num_points_element}N"
+        self.condition_type = f"ComputeLaplacianSimplexCondition3D{self.num_points_condition}N"
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (Kratos.VELOCITY_COMPONENT_GRADIENT_X, Kratos.VELOCITY_COMPONENT_GRADIENT_Y, Kratos.VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
@@ -117,6 +120,7 @@ class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, r
         self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionGradientRecoverer.__init__(self, project_parameters, model_part)
         self.store_full_gradient = project_parameters["store_full_gradient_option"].GetBool()
+        print("In constructor of L2ProjectionMaterialAccelerationRecoverer")
 
     def RecoverMaterialAcceleration(self):
         if self.store_full_gradient:
@@ -135,8 +139,8 @@ class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccele
     def __init__(self, project_parameters, model_part):
         self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
-        self.element_type = f"ComputeMaterialDerivativeSimplex3D{self.num_points}N"
-        self.condition_type = f"ComputeLaplacianSimplexCondition3D{self.num_points}N"
+        self.element_type = f"ComputeMaterialDerivativeSimplex3D{self.num_points_element}N"
+        self.condition_type = f"ComputeLaplacianSimplexCondition3D{self.num_points_condition}N"
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (Kratos.MATERIAL_ACCELERATION_X, Kratos.MATERIAL_ACCELERATION_Y, Kratos.MATERIAL_ACCELERATION_Z)
         self.AddDofs(self.DOFs)
@@ -150,11 +154,9 @@ class L2ProjectionFluidFractionGradientRecoverer(L2ProjectionDerivativesRecovere
     def __init__(self, project_parameters, model_part):
         self.use_lumped_mass_matrix = 0
         L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
-        element_num_nodes = self.num_points
-        condition_num_nodes = 2 if self.num_points == 4 else 6
         domain_size = model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        self.element_type = "ComputeFluidFractionGradient" + str(int(domain_size)) + "D" + str(int(element_num_nodes)) + "N"
-        self.condition_type = "MonolithicWallCondition" + str(int(domain_size)) + "D" + str(int(condition_num_nodes)) + "N"
+        self.element_type = "ComputeFluidFractionGradient" + str(int(domain_size)) + "D" + str(int(self.num_points_element)) + "N"
+        self.condition_type = "MonolithicWallCondition" + str(int(domain_size)) + "D" + str(int(self.num_points_condition)) + "N"
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (Kratos.FLUID_FRACTION_GRADIENT_X, Kratos.FLUID_FRACTION_GRADIENT_Y, Kratos.FLUID_FRACTION_GRADIENT_Z)
         self.AddDofs(self.DOFs)
@@ -177,8 +179,8 @@ class L2ProjectionLaplacianRecoverer(L2ProjectionMaterialAccelerationRecoverer, 
     def __init__(self, project_parameters, model_part):
         self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
-        self.element_type = f"ComputeVelocityLaplacianSimplex3D{self.num_points}N"
-        self.condition_type = f"ComputeLaplacianSimplexCondition3D{self.num_points}N"
+        self.element_type = f"ComputeVelocityLaplacianSimplex3D{self.num_points_element}N"
+        self.condition_type = f"ComputeLaplacianSimplexCondition3D{self.num_points_condition}N"
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (Kratos.VELOCITY_LAPLACIAN_X, Kratos.VELOCITY_LAPLACIAN_Y, Kratos.VELOCITY_LAPLACIAN_Z)
         self.AddDofs(self.DOFs)
