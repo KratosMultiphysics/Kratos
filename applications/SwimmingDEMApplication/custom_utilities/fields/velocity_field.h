@@ -153,7 +153,7 @@ virtual void UpdateCoordinates(const double time, const DenseVector<double>& coo
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const override
 {
