@@ -30,7 +30,7 @@ namespace Kratos
         PreProcessGlobalResults();
         ProcessGlobalResults();
         PostProcessGlobalResults();
-        CheckEquilibrium(mEffStress, prev_eff_stress, 1.0E-8, 5);
+        CheckEquilibrium(mEffStress, prev_eff_stress, 1.0E-10, 100);
         StopCompress();
         WriteResultFiles();
     }
@@ -206,11 +206,9 @@ namespace Kratos
 
         if (mEquilibriumSteps >= max_eq_steps) {
             mIsEquilibrium = true;
-            mEquilibriumSteps++;
         }
         else {
             mIsEquilibrium = false;
-            mEquilibriumSteps = 0;
         }
     }
 

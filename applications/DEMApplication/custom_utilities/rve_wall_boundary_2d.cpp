@@ -679,7 +679,7 @@ namespace Kratos
         mFileGlobalResults << "STEP       "
                            << "TIME          "
                            << "MOVING  "
-                           << "EQ_STEPS  "
+                           << "EQ_STEPS   "
                            << "VERTEX_1_X           VERTEX_1_Y           VERTEX_2_X           VERTEX_2_Y           VERTEX_3_X           VERTEX_3_Y           VERTEX_4_X           VERTEX_4_Y           "
                            << "#PARTICLES  "
                            << "#PARTICLES_INN  "
@@ -738,7 +738,7 @@ namespace Kratos
                            << std::setw(14) << std::left << std::scientific << std::setprecision(6) << r_process_info[TIME];
 
         mFileGlobalResults << std::setw(8)  << std::left << std::noboolalpha << static_cast<int>(mIsMoving)
-                           << std::setw(10) << std::left << mEquilibriumSteps
+                           << std::setw(11) << std::left << mEquilibriumSteps
                            << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(0,0)
                            << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(1,0)
                            << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mVertexCoords(0,1)
