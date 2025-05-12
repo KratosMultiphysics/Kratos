@@ -56,6 +56,7 @@ namespace Kratos::Future
  * @author Ruben Zorrilla
  * @author Riccardo Rossi
  */
+//TODO: Check if TSparseGraphType is really needed
 template <class TMatrixType, class TVectorType, class TSparseGraphType>
 class LinearStrategy : public ImplicitStrategy<TMatrixType, TVectorType, TSparseGraphType>
 {
@@ -83,6 +84,8 @@ public:
      * @brief Default constructor
      */
     explicit LinearStrategy() = default;
+
+    //TODO: Create a Model - Parameters constructor
 
     /**
      * @brief Default constructor. (with parameters)

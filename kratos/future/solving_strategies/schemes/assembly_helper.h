@@ -546,10 +546,13 @@ private:
 
     SizeType mEquationSystemSize = 0; /// Number of degrees of freedom of the problem to be solved
 
+    //TODO: study performance if we get rid of the pointer to the assembly function (pass them by argument)
     std::unique_ptr<ElementAssemblyFunctionType> mpElementAssemblyFunction = nullptr; // Pointer to the function to be called in the elements assembly
 
+    //TODO: study performance if we get rid of the pointer to the assembly function (pass them by argument)
     std::unique_ptr<ConditionAssemblyFunctionType> mpConditionAssemblyFunction = nullptr; // Pointer to the function to be called in the conditions assembly
 
+    //TODO: study performance if we get rid of the pointer to the assembly function (pass them by argument)
     std::unique_ptr<ConstraintAssemblyFunctionType> mpConstraintAssemblyFunction = nullptr; // Pointer to the function to be called in the constraints assembly
 
     typename TSparseVectorType::Pointer mpReactionsVector = nullptr; // Auxiliary vector to calculate the reactions in the elimination build
