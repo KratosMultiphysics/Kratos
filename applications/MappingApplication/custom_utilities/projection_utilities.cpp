@@ -97,7 +97,7 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
         FillEquationIdVector(rGeometry, rEquationIds);
 
     } else {
-        // projection is ouside the line, searching the closest point
+        // projection is outside the line, searching the closest point
         pairing_index = PairingIndex::Closest_Point;
         const double dist_1 = rPointToProject.Distance(rGeometry[0]);
         const double dist_2 = rPointToProject.Distance(rGeometry[1]);
