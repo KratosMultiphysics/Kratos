@@ -152,7 +152,7 @@ namespace Kratos
 			//mmaximum_number_of_particles = maximum_number_of_particles;
 
 			//loop in elements to change their ID to their position in the array. Easier to get information later.
-			//DO NOT PARALELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
+			//DO NOT PARALLELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			for(unsigned int  ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
@@ -247,7 +247,7 @@ namespace Kratos
 			}
 
 
-            //matrix containing the position of the 4/15/45 particles that we will seed at the beggining
+            //matrix containing the position of the 4/15/45 particles that we will seed at the beginning
             BoundedMatrix<double, 5*(1+TDim), 3 > pos;
             BoundedMatrix<double, 5*(1+TDim), (1+TDim) > N;
 
@@ -273,7 +273,7 @@ namespace Kratos
 			mpointers_to_particle_pointers_vectors.resize(mnelems);
             KRATOS_INFO("MoveParticleUtilityPfem2") << "About to create particles" << std::endl;
 			//now we seed: LOOP IN ELEMENTS
-			//using loop index, DO NOT paralelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
+			//using loop index, DO NOT parallelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
 
 			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
@@ -554,7 +554,7 @@ namespace Kratos
 									//if (freeparticle<(it_end_particle_model_part-1))
 										freeparticle++;
 									//else
-										//break; //we finished the list and we couldnt find a free space
+										//break; //we finished the list and we couldn't find a free space
 								}
 							}
 
@@ -1399,7 +1399,7 @@ namespace Kratos
 						InvertMatrix( mass_matrix,  inverse_mass_matrix);
 					else
 						InvertMatrix3x3( mass_matrix,  inverse_mass_matrix);
-					//and now compute the elemental contribution to the gobal system:
+					//and now compute the elemental contribution to the global system:
 
 					if(number_of_particles_in_elem>(TDim*3)) //otherwise it's impossible to define a correctly the gradients, therefore the results inside the element are useless.
 					{
@@ -1554,7 +1554,7 @@ namespace Kratos
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET];
 			const int max_results = 1000;
 
-			//tools for the paralelization
+			//tools for the parallelization
 			unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
@@ -1679,7 +1679,7 @@ namespace Kratos
 
 			const double threshold = mass_correction_factor*0.5;
 
-			//TOOLS FOR THE PARALELIZATION
+			//TOOLS FOR THE PARALLELIZATION
 			//int last_id= (mr_linea_model_part.NodesEnd()-1)->Id();
 			unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
 			//KRATOS_WATCH(number_of_threads);
@@ -1701,7 +1701,7 @@ namespace Kratos
 			//ModelPart::NodesContainerType::iterator it_begin_particle_model_part = mr_linea_model_part.NodesBegin();
 			//ModelPart::NodesContainerType::iterator it_end_particle_model_part = mr_linea_model_part.NodesEnd();
 
-			#pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemple everything toghether, remaming particles ids to get consecutive ids
+			#pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemble everything together, remaming particles ids to get consecutive ids
 			{
 				unsigned int reused_particles=0;
 
@@ -1930,7 +1930,7 @@ namespace Kratos
 
 							if (keep_looking)
 							{
-								KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
+								KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDN'T FIND A FREE CELL FOR THE NEW PARTICLE!", "");
 							}
 						    else
 						    {
@@ -2690,7 +2690,7 @@ namespace Kratos
 
 	///this function should find the element into which a given node is located
 	///and return a pointer to the element and the vector containing the
-	///shape functions that define the postion within the element
+	///shape functions that define the position within the element
 	///if "false" is devolved the element is not found
 	bool FindNodeOnMesh( array_1d<double,3>& position,
 						 array_1d<double,TDim+1>& N,
@@ -2805,7 +2805,7 @@ namespace Kratos
 			{
 				pelement = elements_in_trajectory[i].shared_from_this();
 				N=aux_N;
-				check_from_element_number = i+1 ; //now i element matches pelement, so to avoid cheching twice the same element we send the counter to the following element.
+				check_from_element_number = i+1 ; //now i element matches pelement, so to avoid checking twice the same element we send the counter to the following element.
 				return true;
 			}
 
@@ -2891,7 +2891,7 @@ namespace Kratos
 
 	///this function should find the element into which a given node is located
 	///and return a pointer to the element and the vector containing the
-	///shape functions that define the postion within the element
+	///shape functions that define the position within the element
 	///if "false" is devolved the element is not found
 	bool FindNodeOnTopographicMesh( array_1d<double,3>& position,
 						 array_1d<double,TDim+1>& N,
