@@ -290,7 +290,7 @@ public:
 
         this->mEquationSystemSize = BaseType::mDofSet.size();
 
-        //throws an execption if there are no Degrees of freedom involved in the analysis
+        //throws an exception if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
@@ -309,7 +309,7 @@ public:
     {
         KRATOS_TRY
 
-        //assing id to the nodes
+        //assign id to the nodes
         unsigned int index = 0;
         for(typename DofsArrayType::iterator i_dof = BaseType::mDofSet.begin() ; i_dof != BaseType::mDofSet.end() ; ++i_dof)
         {
@@ -529,7 +529,7 @@ public:
             omp_destroy_lock(&lock_array[i]);
         //KRATOS_WATCH("finished parallel building");
 
-        //                        //ensure that all the threads are syncronized here
+        //                        //ensure that all the threads are synchronized here
         //                        #pragma omp barrier
 #endif
 
@@ -972,7 +972,7 @@ public:
             omp_destroy_lock(&lock_array[i]);
         //KRATOS_WATCH("finished parallel building");
 
-        //                        //ensure that all the threads are syncronized here
+        //                        //ensure that all the threads are synchronized here
         //                        #pragma omp barrier
 #endif
 
@@ -1064,7 +1064,7 @@ public:
         std::vector<int>  indices;
         indices.reserve(1000);
 
-        //KRATOS_WATCH("contruct matrix structure Mconsistent 0")
+        //KRATOS_WATCH("construct matrix structure Mconsistent 0")
 
         int total_nnz = 0;
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
@@ -2118,7 +2118,7 @@ public:
         array_1d<double,3> N;
         array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!
 
-        //reset the auxilliary vector
+        //reset the auxiliary vector
 
         for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
         {
@@ -2572,7 +2572,7 @@ public:
         //p_n1=(temp+dp);
 
         //and now we multiply the result with the inverse of the lumped mass matrix
-        //we reutilize the auxilliary matrix temp
+        //we reutilize the auxiliary matrix temp
 
         for (int ii=0; ii<size; ii++)
         {

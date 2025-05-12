@@ -295,7 +295,7 @@ class ULF_FSISolver:
         # self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part, self.domain_size)
         # self.node_erase_process.Execute()
 
-        print("end of remesh fucntion")
+        print("end of remesh function")
     #
 
     def FindNeighbours(self):

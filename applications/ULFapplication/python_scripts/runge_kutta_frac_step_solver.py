@@ -30,7 +30,7 @@ def AddDofs(model_part):
 
         node.AddDof(PRESSURE)
 
-    print("dofs for the the Runge Kutta Frac Step GLS solver added correctly")
+    print("dofs for the Runge Kutta Frac Step GLS solver added correctly")
 
 
 class RungeKuttaFracStepSolver:

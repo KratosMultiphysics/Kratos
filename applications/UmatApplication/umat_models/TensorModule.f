@@ -4,8 +4,8 @@ C     William Fuentes, March 2010
 C     w-fuente@uniandes.edu.co
 C     Prof. Dr-Ing Arcesio Lizcano
 C     alizcano@uniandes.edu.co
-C     Grupo de Investigación de Geotecnia de la Universidad de los Andes
-C     Universitiy Los Andes, Bogotá Colombia
+C     Grupo de Investigaciï¿½n de Geotecnia de la Universidad de los Andes
+C     Universitiy Los Andes, Bogotï¿½ Colombia
 c------------------------------------------------------ 
 c------------------------------------------------------ 
 C     Library for tensorial operation, Fortran.
@@ -661,7 +661,7 @@ c (3) copy result to b()
       b(i,j)= c(i,j+9)
       enddo
       enddo
-      inv=1                    ! inversion successfull
+      inv=1                    ! inversion successful
       do 20 i=1,9     ! switch to tensorial notation
       do 20 j=1,9
   20  b3333(i9(i),j9(i),i9(j),j9(j))=b(i,j)

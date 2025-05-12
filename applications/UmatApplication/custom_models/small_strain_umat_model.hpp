@@ -324,7 +324,7 @@ namespace Kratos
 
          /*
             Create strain_n and incremental strain
-            ( for large strains should be overrided ) 
+            ( for large strains should be overridden ) 
           */
 
          virtual void CreateStrainsVectors( UmatDataType & rVariables, double* & rpStrain, double* & rpIncrementalStrain)
@@ -346,7 +346,7 @@ namespace Kratos
 
          /* 
             Create stress_n
-            ( for large strains should be overrided )
+            ( for large strains should be overridden )
           */
          virtual void CreateStressAtInitialState( UmatDataType & rVariables, double* & rpStressVector)
          {

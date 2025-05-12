@@ -487,7 +487,7 @@ namespace Kratos
 	    /////////////////////////////////
 	    //  second step of Runge Kutta //
 	    ////////////////////////////////
-	    //KRATOS_WATCH("RUNGE KUTTA 2st STEP")
+	    //KRATOS_WATCH("RUNGE KUTTA 2nd STEP")
 	    
 	    //...now the residual will be computed with the intermediate velocity, that was computed at 1st step of R-K
 	    //loop over elements calculating the Right Hand Side, that is stored directly to the node
@@ -1276,7 +1276,7 @@ namespace Kratos
       /*@} */
       /**@name Private Operators*/
       /*@{ */
-      //this funcion is needed to ensure that all the memory is allocated correctly
+      //this function is needed to ensure that all the memory is allocated correctly
 
 
       /*@} */

@@ -228,7 +228,7 @@ private:
     static array_1d<double,3> msN; //dimension = number of nodes
     //static Matrix msDN_DX;
     //static Matrix msMassFactors;
-    static array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
+    static array_1d<double,2> ms_vel_gauss; //dimension coincides with space dimension
     static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
     static array_1d<double,3> ms_u_DN;
 

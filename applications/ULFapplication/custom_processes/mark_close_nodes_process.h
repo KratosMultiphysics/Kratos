@@ -178,7 +178,7 @@ public:
         {
 
         		const double& X0 = in->X();		const double& Y0 = in->Y();
-        		KRATOS_WATCH("ENTERED MARKING CLOSE NODES FUCNTION!");
+        		KRATOS_WATCH("ENTERED MARKING CLOSE NODES FUNCTION!");
 
         		for( GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
         							i != in->GetValue(NEIGHBOUR_NODES).end(); i++)

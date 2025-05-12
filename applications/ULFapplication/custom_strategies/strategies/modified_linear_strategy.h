@@ -163,7 +163,7 @@ public:
                                  new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(mpLinearSolver)
                              );
 
-        //set flag to start correcty the calculations
+        //set flag to start correctly the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -211,7 +211,7 @@ public:
         //setting up the  builder and solver
         mpBuilderAndSolver = pNewBuilderAndSolver;
 
-        //set flag to start correcty the calculations
+        //set flag to start correctly the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -281,9 +281,9 @@ public:
 
     //level of echo for the solving strategy
     // 0 -> mute... no echo at all
-    // 1 -> printing time and basic informations
+    // 1 -> printing time and basic information
     // 2 -> printing linear solver data
-    // 3 -> Print of debug informations:
+    // 3 -> Print of debug information:
     //		Echo of stiffness matrix, Dx, b...
     void SetEchoLevel(int Level)
     {
@@ -351,7 +351,7 @@ public:
             mInitializeWasPerformed = true;
         }
 
-        //prints informations about the current time
+        //prints information about the current time
         if (BaseType::GetEchoLevel()!=0 && rank == 0)
         {
             std::cout << " " << std::endl;
