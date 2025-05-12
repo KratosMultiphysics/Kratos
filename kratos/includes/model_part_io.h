@@ -73,6 +73,9 @@ public:
     /// Alias for the properties container type.
     using PropertiesContainerType = BaseType::PropertiesContainerType;
 
+    /// The geometry map type within ModelPart
+    using GeometriesMapType = BaseType::GeometriesMapType;
+
     /// Alias for the elements container type.
     using ElementsContainerType = BaseType::ElementsContainerType;
 
@@ -729,6 +732,32 @@ private:
     void ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable, TDataType Dummy);
 
     /**
+     * @brief Reads geometry data block from the input stream into the given geometries container.
+     * @param rThisGeometries Reference to the container of geometries.
+     */
+    void ReadGeometryDataBlock(GeometriesMapType& rThisGeometries);
+
+    /**
+     * @brief Reads scalar variable data for each geometry in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisGeometries Reference to the container of geometries.
+     * @param rVariable The scalar variable to read.
+     */
+    template<class TVariableType>
+    void ReadGeometryScalarVariableData(GeometriesMapType& rThisGeometries, const TVariableType& rVariable);
+
+    /**
+     * @brief Reads vectorial variable data for each geometry in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisGeometries Reference to the container of geometries.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
+    template<class TVariableType, class TDataType>
+    void ReadGeometryVectorialVariableData(GeometriesMapType& rThisGeometries, const TVariableType& rVariable, TDataType Dummy);
+
+    /**
      * @brief Writes a data block for the specified object container.
      * @tparam TObjectsContainerType Type of the object container.
      * @param rThisObjectContainer Reference to the container of objects.
@@ -1038,7 +1067,8 @@ private:
         const PartitionIndicesContainerType& rNodesAllPartitions,
         const PartitionIndicesContainerType& rElementsAllPartitions,
         const PartitionIndicesContainerType& rConditionsAllPartitions,
-        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions,
+        const PartitionIndicesContainerType& rGeometriesAllPartitions
         );
 
     void DivideMeshDataBlock(OutputFilesContainerType& OutputFiles);
@@ -1123,17 +1153,56 @@ private:
         const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
         );
 
+    /**
+     * @brief Divides the submodelpart geometries block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param GeometriesAllPartitions The partition indices for all geometries.
+     */
+    void DivideSubModelPartGeometriesBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rGeometriesAllPartitions
+        );
+
 	void WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions);
 
-    void WriteCommunicatorData(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
-                               PartitionIndicesType const& NodesPartitions,
-                               PartitionIndicesType const& ElementsPartitions,
-                               PartitionIndicesType const& ConditionsPartitions,
-                               PartitionIndicesContainerType const& NodesAllPartitions,
-                               PartitionIndicesContainerType const& ElementsAllPartitions,
-                               PartitionIndicesContainerType const& ConditionsAllPartitions);
+    /**
+     * @brief Writes communicator data to output files for partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param NumberOfPartitions The number of partitions.
+     * @param DomainsColoredGraph The graph representing domain connectivity.
+     * @param NodesPartitions The partition indices for nodes.
+     * @param ElementsPartitions The partition indices for elements.
+     * @param ConditionsPartitions The partition indices for conditions.
+     * @param MasterSlaveConstraintsPartitions The partition indices for master-slave constraints.
+     * @param GeometriesPartitions The partition indices for geometries.
+     * @param NodesAllPartitions The partition indices for all nodes.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     * @param MasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     * @param GeometriesAllPartitions The partition indices for all geometries.
+     */
+    void WriteCommunicatorData(
+        OutputFilesContainerType& OutputFiles,
+        SizeType NumberOfPartitions,
+        GraphType const& DomainsColoredGraph,
+        PartitionIndicesType const& NodesPartitions,
+        PartitionIndicesType const& ElementsPartitions,
+        PartitionIndicesType const& ConditionsPartitions,
+        PartitionIndicesType const& MasterSlaveConstraintsPartitions,
+        PartitionIndicesType const& GeometriesPartitions,
+        PartitionIndicesContainerType const& NodesAllPartitions,
+        PartitionIndicesContainerType const& ElementsAllPartitions,
+        PartitionIndicesContainerType const& ConditionsAllPartitions,
+        PartitionIndicesContainerType const& MasterSlaveConstraintsAllPartitions,
+        PartitionIndicesContainerType const& GeometriesAllPartitions
+        );
 
-    void WriteCommunicatorLocalNodes(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, PartitionIndicesType const& NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions);
+    void WriteCommunicatorLocalNodes(
+        OutputFilesContainerType& OutputFiles,
+        SizeType NumberOfPartitions,
+        PartitionIndicesType const& NodesPartitions,
+        PartitionIndicesContainerType const& NodesAllPartitions
+        );
 
     void WriteInAllFiles(OutputFilesContainerType& OutputFiles, std::string const& ThisWord);
 
