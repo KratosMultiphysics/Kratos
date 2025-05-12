@@ -1720,7 +1720,6 @@ public:
 
     /**
      * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
-     * @return reference to the ProcessInfo object.
      */
     ProcessInfo& GetProcessInfo()
     {
