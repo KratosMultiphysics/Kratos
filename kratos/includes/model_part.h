@@ -1720,7 +1720,6 @@ public:
 
     /**
      * @brief Get reference to the ProcessInfo of root model part.
-     * @details calls pGetProcessInfo and dereference it
      * @return reference to the ProcessInfo object.
      */
     ProcessInfo& GetProcessInfo()
