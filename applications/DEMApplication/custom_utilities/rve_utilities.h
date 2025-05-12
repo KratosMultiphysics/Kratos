@@ -128,9 +128,8 @@ namespace Kratos
             virtual double ComputePorosityInner            (void);
             virtual double ComputeSurfaceArea              (void) {return 0.0;}
             virtual double ComputeFabricIndex              (Matrix fabric_tensor) {return 0.0;}
-            virtual bool   Homogenize                      (void);
-            virtual void   HomogenizeFabric                (void);
-            virtual void   HomogenizeStress                (void);
+            virtual bool   HomogenizeTensors               (void);
+            virtual void   HomogenizeOtherTensorComponents (int i, int j) {}
             virtual void   AddContactToRoseDiagram         (std::vector<int>& rose_diagram, std::vector<double>& normal) {}
             virtual void   EvaluateRoseUniformity          (void) {}
             virtual void   CheckEquilibrium                (double curr_val, double prev_val, double tol, int max_eq_steps);

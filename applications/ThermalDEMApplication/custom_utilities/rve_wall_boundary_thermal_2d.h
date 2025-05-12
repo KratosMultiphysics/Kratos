@@ -28,15 +28,14 @@ namespace Kratos
 
         protected:
             // Protected methods
-            void PreProcessGlobalResults       (void) override;
-            void ProcessGlobalResults          (void) override;
-            bool Homogenize                    (void) override;
-            void WriteFileHeadersTensorResults (void) override;
-            void WriteResultFilesTensorResults (void) override;
+            void PreProcessGlobalResults         (void) override;
+            void ProcessGlobalResults            (void) override;
+            void HomogenizeOtherTensorComponents (int i, int j) override;
+            void WriteFileHeadersTensorResults   (void) override;
+            void WriteResultFilesTensorResults   (void) override;
 
         private:
             // Private methods
-            double ComputePipeAreaInner   (std::vector<double>& coords_ref, std::vector<double>& normal, double length, double width, int width_disc);
-            void   HomogenizeConductivity (void);
+            double ComputePipeAreaInner (std::vector<double>& coords_ref, std::vector<double>& normal, double length, double width, int width_disc);
     };
 }

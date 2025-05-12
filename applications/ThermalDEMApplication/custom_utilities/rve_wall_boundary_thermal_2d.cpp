@@ -216,20 +216,10 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    bool RVEWallBoundaryThermal2D::Homogenize(void) {
-        if (!RVEWallBoundary2D::Homogenize()) return false;
-        HomogenizeConductivity();
-        return true;
-    }
-
-    //------------------------------------------------------------------------------------------------------------
-    void RVEWallBoundaryThermal2D::HomogenizeConductivity(void) {
-        for (unsigned int i = 0; i < mDim; i++) {
-            for (unsigned int j = 0; j < mDim; j++) {
-                mConductivityTensor(i,j)      /= mVolTotal;
-                mConductivityTensorInner(i,j) /= mVolInner;
-            }
-        }
+    // Homogenize given indices of thermal conductivity tensor during loop over components.
+    void RVEWallBoundaryThermal2D::HomogenizeOtherTensorComponents(int i, int j) {
+        mConductivityTensor(i,j)      /= mVolTotal;
+        mConductivityTensorInner(i,j) /= mVolInner;
     }
 
     //------------------------------------------------------------------------------------------------------------

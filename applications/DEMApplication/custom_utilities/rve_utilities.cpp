@@ -100,7 +100,7 @@ namespace Kratos
         mPorosity          = ComputePorosity();
         mPorosityInner     = ComputePorosityInner();
         mWallStress        = mWallForces / ComputeSurfaceArea();
-        Homogenize();
+        HomogenizeTensors();
         EvaluateRoseUniformity();
     }
 
@@ -117,49 +117,14 @@ namespace Kratos
     }
 
     //------------------------------------------------------------------------------------------------------------
-    // Perform homogenization procedures on the particle assembly to obtain tensorial variables for upscaling the discrete solution.
-    bool RVEUtilities::Homogenize(void) {
-        if (mNumContacts == 0 || mNumContactsInner == 0) return false;
-        HomogenizeFabric();
-        HomogenizeStress();
-        return true;
-    }
+    // Compute homogenized tensors and their related properties.
+    // Tensors must be already filled with element-to-element interaction dependent components.
+    bool RVEUtilities::HomogenizeTensors(void) {
+        if (mNumContacts == 0 || mNumContactsInner == 0)
+            return false;
 
-    //------------------------------------------------------------------------------------------------------------
-    // Compute fabric tensor and its related properties.
-    // Assumes that fabric tensor is already filled with element-to-element interaction dependent components.
-    void RVEUtilities::HomogenizeFabric(void) {
         double deviatoric_fabric;
         double deviatoric_fabric_inner;
-        double double_dot_product = 0.0;
-        double double_dot_product_inner = 0.0;
-
-        for (unsigned int i = 0; i < mDim; i++) {
-            for (unsigned int j = 0; j < mDim; j++) {
-                mFabricTensor(i,j)      /= mNumContacts;
-                mFabricTensorInner(i,j) /= mNumContactsInner;
-                if (i == j) {
-                    deviatoric_fabric       = 4.0 * (mFabricTensor(i,j)      - (1.0/mDim));
-                    deviatoric_fabric_inner = 4.0 * (mFabricTensorInner(i,j) - (1.0/mDim));
-                }
-                else {
-                    deviatoric_fabric       = 4.0 * mFabricTensor(i,j);
-                    deviatoric_fabric_inner = 4.0 * mFabricTensor(i,j);
-                }
-                double_dot_product       += 0.5 * deviatoric_fabric       * deviatoric_fabric;
-                double_dot_product_inner += 0.5 * deviatoric_fabric_inner * deviatoric_fabric_inner;
-            }
-        }
-        mFidx            = ComputeFabricIndex(mFabricTensor);
-        mFidxInner       = ComputeFabricIndex(mFabricTensorInner);
-        mAnisotropy      = sqrt(double_dot_product);
-        mAnisotropyInner = sqrt(double_dot_product_inner);
-    }
-
-    //------------------------------------------------------------------------------------------------------------
-    // Compute effective stress tensor and its related properties.
-    // Assumes that stress tensor is already filled with element-to-element interaction dependent components.
-    void RVEUtilities::HomogenizeStress(void) {
         double deviatoric_stress;
         double deviatoric_stress_inner;
         double stress_trace = 0.0;
@@ -169,16 +134,34 @@ namespace Kratos
 
         for (unsigned int i = 0; i < mDim; i++) {
             for (unsigned int j = 0; j < mDim; j++) {
+                mFabricTensor(i,j)      /= mNumContacts;
+                mFabricTensorInner(i,j) /= mNumContactsInner;
                 mStressTensor(i,j)      /= mVolTotal;
                 mStressTensorInner(i,j) /= mVolInner;
                 if (i == j) {
+                    deviatoric_fabric       = 4.0 * (mFabricTensor(i,j)      - (1.0/mDim));
+                    deviatoric_fabric_inner = 4.0 * (mFabricTensorInner(i,j) - (1.0/mDim));
                     stress_trace       += mStressTensor(i,j);
                     stress_trace_inner += mStressTensorInner(i,j);
                 }
+                else {
+                    deviatoric_fabric       = 4.0 * mFabricTensor(i,j);
+                    deviatoric_fabric_inner = 4.0 * mFabricTensor(i,j);
+                }
+                double_dot_product       += 0.5 * deviatoric_fabric       * deviatoric_fabric;
+                double_dot_product_inner += 0.5 * deviatoric_fabric_inner * deviatoric_fabric_inner;
+                HomogenizeOtherTensorComponents(i, j);
             }
         }
-        mEffStress      = stress_trace       / mDim;
-        mEffStressInner = stress_trace_inner / mDim;
+
+        mFidx                    = ComputeFabricIndex(mFabricTensor);
+        mFidxInner               = ComputeFabricIndex(mFabricTensorInner);
+        mAnisotropy              = sqrt(double_dot_product);
+        mAnisotropyInner         = sqrt(double_dot_product_inner);
+        mEffStress               = stress_trace       / mDim;
+        mEffStressInner          = stress_trace_inner / mDim;
+        double_dot_product       = 0.0;
+        double_dot_product_inner = 0.0;
 
         for (unsigned int i = 0; i < mDim; i++) {
             for (unsigned int j = 0; j < mDim; j++) {
@@ -188,8 +171,11 @@ namespace Kratos
                 double_dot_product_inner += 0.5 * deviatoric_stress_inner * deviatoric_stress_inner;
             }
         }
+
         mDevStress      = sqrt(double_dot_product);
         mDevStressInner = sqrt(double_dot_product_inner);
+
+        return true;
     }
 
     //------------------------------------------------------------------------------------------------------------
