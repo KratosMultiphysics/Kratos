@@ -71,22 +71,27 @@ class TriaxialTestRunner:
 
     def _collect_results(self):
         stress, mean_stress, von_mises, displacement, strain = [], [], [], [], []
+
         for path in self.output_file_paths:
             output = test_helper.GiDOutputFileReader().read_output_from(path)
             for result_name, items in output["results"].items():
                 for item in items:
-                    values = item["values"]
-                    if result_name == "CAUCHY_STRESS_TENSOR":
-                        stress.append(item)
-                    elif result_name == "MEAN_EFFECTIVE_STRESS" and self._is_tri3(values):
-                        mean_stress.append(item)
-                    elif result_name == "VON_MISES_STRESS" and self._is_tri3(values):
-                        von_mises.append(item)
-                    elif result_name == "DISPLACEMENT":
-                        displacement.append(item)
-                    elif result_name == "ENGINEERING_STRAIN_TENSOR":
-                        strain.append(item)
+                    self._categorize_result(result_name, item, stress, mean_stress, von_mises, displacement, strain)
+
         return stress, mean_stress, von_mises, displacement, strain
+
+    def _categorize_result(self, result_name, item, stress, mean_stress, von_mises, displacement, strain):
+        values = item["values"]
+        if result_name == "CAUCHY_STRESS_TENSOR":
+            stress.append(item)
+        elif result_name == "MEAN_EFFECTIVE_STRESS" and self._is_tri3(values):
+            mean_stress.append(item)
+        elif result_name == "VON_MISES_STRESS" and self._is_tri3(values):
+            von_mises.append(item)
+        elif result_name == "DISPLACEMENT":
+            displacement.append(item)
+        elif result_name == "ENGINEERING_STRAIN_TENSOR":
+            strain.append(item)
 
     def _is_tri3(self, values):
         return isinstance(values, list) and all("value" in v and isinstance(v["value"], list) and len(v["value"]) == 3 for v in values)
