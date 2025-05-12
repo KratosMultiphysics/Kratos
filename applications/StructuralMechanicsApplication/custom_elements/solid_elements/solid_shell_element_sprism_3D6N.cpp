@@ -1565,26 +1565,26 @@ void SolidShellElementSprism3D6N::Initialize(const ProcessInfo& rCurrentProcessI
             switch ( integration_order )
             {
             case 1:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 2:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 3:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
                 break;
             case 4:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             case 5:
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
             default:
                 KRATOS_WARNING("SolidShellElementSprism3D6N") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             }
         } else {
-            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
         }
 
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
