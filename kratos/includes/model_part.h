@@ -1751,9 +1751,8 @@ public:
     }
 
     /**
-     * @brief Set the ProcessInfo of root model part.
-     * @details Finds the root modelpart and set the the ProcessInfo pointer to the given NewProcessInfo pointer.
-     * @param pNewProcessInfo pointer to the new ProcessInfo object.
+     * @brief Set the @ref ProcessInfo associated with the current @ref ModelPart tree.
+     * @param pNewProcessInfo pointer to the new @ref ProcessInfo object.
      */
     void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
     {
