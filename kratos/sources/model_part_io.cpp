@@ -768,9 +768,9 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
             ReadConditionalDataBlock(r_this_conditions);
         else if (word == "MasterSlaveConstraintalData")
             ReadMasterSlaveConstraintDataBlock(r_this_master_slave_constraints);
-        else if (word == "GeometricalData") {
+        else if (word == "GeometricalData")
             ReadGeometryDataBlock(r_this_geometries);
-        } else
+        else
             SkipBlock(word);
     }
     KRATOS_CATCH("")
