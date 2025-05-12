@@ -380,7 +380,7 @@ namespace Kratos
 
 
 		//TOOL TO TRANSFER INFORMATION INITIALLY FROM ONE DOMAIN TO OTHER.
-		void IntializeTransferTool(ModelPart* topographic_model_part, array_1d<double, 3 > initial_domains_offset, bool ovewrite_particle_data)
+		void InitializeTransferTool(ModelPart* topographic_model_part, array_1d<double, 3 > initial_domains_offset, bool ovewrite_particle_data)
 			//mtopographic_model_part(topographic_model_part)
 		{
 			KRATOS_TRY

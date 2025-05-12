@@ -172,7 +172,7 @@ class PFEM2Solver:
 	intial_offset[0]=0.0
 	intial_offset[1]=0.0
 	intial_offset[2]=0.0
-	(self.moveparticles).IntializeTransferTool(self.model_part_topo, intial_offset,overwrite_particle_data);
+	(self.moveparticles).InitializeTransferTool(self.model_part_topo, intial_offset,overwrite_particle_data);
 
 
     #######################################################################
