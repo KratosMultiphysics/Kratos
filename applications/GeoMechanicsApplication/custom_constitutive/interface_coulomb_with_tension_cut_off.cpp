@@ -70,7 +70,15 @@ int InterfaceCoulombWithTensionCutOff::Check(const Properties&   rMaterialProper
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
     ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_COHESION);
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_FRICTION_ANGLE);
+    // Since `CheckProperty` doesn't accept a custom range yet, we have inlined a modified version
+    // of `CheckProperty` to check the friction angle
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(GEO_FRICTION_ANGLE))
+        << GEO_FRICTION_ANGLE.Name() << " is not defined for property " << rMaterialProperties.Id() << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[GEO_FRICTION_ANGLE] <= 0.0 ||
+                    rMaterialProperties[GEO_FRICTION_ANGLE] >= 90.0)
+        << "value of " << GEO_FRICTION_ANGLE.Name() << " for property " << rMaterialProperties.Id()
+        << " is out of range: " << rMaterialProperties[GEO_FRICTION_ANGLE] << " is not in (0.0, 90.0)"
+        << std::endl;
     ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_DILATANCY_ANGLE,
                                             rMaterialProperties[GEO_FRICTION_ANGLE]);
     ConstitutiveLawUtilities::CheckProperty(
