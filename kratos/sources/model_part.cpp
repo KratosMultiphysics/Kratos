@@ -193,8 +193,13 @@ void ModelPart::Reset()
     // construct a new variable list and process info. Old data ptrs is not destroyed
     // since, same data may be shared with some other model parts as well.
     mpVariablesList = Kratos::make_intrusive<VariablesList>();
-            mpProcessInfo = Kratos::make_shared<ProcessInfo>();
-        mBufferSize = 0;
+    if (!IsSubModelPart()) {
+        mpProcessInfo = Kratos::make_shared<ProcessInfo>();
+    }
+    else {
+        mpProcessInfo = nullptr;
+    }
+    mBufferSize = 0;
 
     KRATOS_CATCH("");
 }
@@ -1973,7 +1978,7 @@ ModelPart& ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
         Kratos::shared_ptr<ModelPart> p_model_part(praw); //we need to construct first a raw pointer
         p_model_part->SetParentModelPart(this);
         p_model_part->mBufferSize = this->mBufferSize;
-        p_model_part->mpProcessInfo = this->mpProcessInfo;
+        p_model_part->mpProcessInfo = nullptr;
         mSubModelParts.insert(p_model_part);
         return *p_model_part;
     } else {
