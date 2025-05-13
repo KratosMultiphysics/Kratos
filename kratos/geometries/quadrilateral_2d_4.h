@@ -25,7 +25,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
-#include "integration/quadrilateral_collocation_integration_points.h"
 #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 
 namespace Kratos
