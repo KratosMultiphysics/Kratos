@@ -1343,15 +1343,15 @@ private:
     /**
      * TODO: testing
      */
+    //FIXME: There's something weird in here... they're filling the container with fake empty quadratures
+    //FIXME: Besides, there were using a "0 order" Lobatto quadrature, with the integration points placed in the midplane
+    //FIXME: I guess this was something to hack the integration in this degenerated geometry (note that breaks the static integration mechanism)
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
             }
@@ -1362,15 +1362,15 @@ private:
     /**
      * TODO: testing
      */
+    //FIXME: There's something weird in here... they're filling the container with fake empty quadratures
+    //FIXME: Besides, there were using a "0 order" Lobatto quadrature, with the integration points placed in the midplane
+    //FIXME: I guess this was something to hack the integration in this degenerated geometry (note that breaks the static integration mechanism)
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
-                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 ), //FIXME: Shouldn't this be GI_LOBATTO_1?
                 Matrix(),
                 Matrix()
             }
@@ -1381,14 +1381,16 @@ private:
     /**
      * TODO: testing
      */
+    //FIXME: There's something weird in here... they're filling the container with fake empty quadratures
+    //FIXME: Besides, there were using a "0 order" Lobatto quadrature, with the integration points placed in the midplane
+    //FIXME: I guess this was something to hack the integration in this degenerated geometry (note that breaks the static integration mechanism)
     static const ShapeFunctionsLocalGradientsContainerType
     AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
-                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ), //FIXME: Shouldn't this be GI_LOBATTO_1?
                 ShapeFunctionsGradientsType(),
                 ShapeFunctionsGradientsType(),
             }
