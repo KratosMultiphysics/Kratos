@@ -19,16 +19,20 @@
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "filter_compressibility_calculator.h"
 #include "fluid_body_flow_calculator.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/constitutive_law.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "integration_coefficient_modifier_for_line_element.h"
 #include "permeability_calculator.h"
 #include "stress_state_policy.h"
-#include "includes/constitutive_law.h"
+#include "custom_utilities/variables_utilities.hpp"
+#include "utilities/geometry_utilities.h"
 
 #include <numeric>
 #include <optional>
@@ -71,14 +75,15 @@ public:
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes),
-                                                      pProperties, this->GetStressStatePolicy().Clone(), mContributions,
-                                                      this->CloneIntegrationCoefficientModifier());
+        return make_intrusive<TransientPwLineElement>(
+            NewId, GetGeometry().Create(rThisNodes), pProperties, this->GetStressStatePolicy().Clone(),
+            mContributions, this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), mContributions,
+        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties,
+                                                      this->GetStressStatePolicy().Clone(), mContributions,
                                                       this->CloneIntegrationCoefficientModifier());
     }
 
@@ -94,11 +99,36 @@ public:
 
     void Initialize(const ProcessInfo&) override
     {
+        if (GetGeometry().LocalSpaceDimension() != 1) {
+            mConstitutiveLawVector.resize(GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()));
+            for (auto& constitutive_law : mConstitutiveLawVector) {
+                constitutive_law = nullptr;
+            }
+        }
         mRetentionLawVector.resize(GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()));
 
         for (auto& r_retention_law : mRetentionLawVector) {
             r_retention_law = RetentionLawFactory::Clone(GetProperties());
         }
+    }
+
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+        // Reset hydraulic discharge
+        for (auto& r_node : this->GetGeometry()) {
+            r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) = 0.0;
+        }
+        KRATOS_CATCH("")
+    }
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+     //   this->CalculateHydraulicDischarge(rCurrentProcessInfo);
+
+        KRATOS_CATCH("")
     }
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -155,7 +185,9 @@ public:
     {
         KRATOS_TRY
 
-        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), GetGeometry().LocalSpaceDimension()==1?"Length":std::optional<std::string>{});
+        CheckUtilities::CheckDomainSize(
+            GetGeometry().DomainSize(), Id(),
+            GetGeometry().LocalSpaceDimension() == 1 ? "Length" : std::optional<std::string>{});
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
         CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
@@ -168,16 +200,21 @@ public:
 
         return 0;
     }
-    std::vector<ConstitutiveLaw::Pointer> GetConstitutiveLawVector() const { return mConstitutiveLawVector; }
+
+    std::vector<ConstitutiveLaw::Pointer> GetConstitutiveLawVector() const
+    {
+        return mConstitutiveLawVector;
+    }
+
     std::vector<RetentionLaw::Pointer> GetRetentionLawVector() const { return mRetentionLawVector; }
 
 protected:
     StressStatePolicy& GetStressStatePolicy() const { return *mpStressStatePolicy; }
 
 private:
-    std::vector<CalculationContribution> mContributions;
-    IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
-    std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
+    std::vector<CalculationContribution>  mContributions;
+    IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
+    std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
 
@@ -209,7 +246,7 @@ private:
         CheckProperty(DYNAMIC_VISCOSITY);
         CheckProperty(BIOT_COEFFICIENT);
         CheckProperty(PERMEABILITY_XX);
-        if (GetGeometry().LocalSpaceDimension()>1) {
+        if (GetGeometry().LocalSpaceDimension() > 1) {
             CheckProperty(PERMEABILITY_YY);
             CheckProperty(PERMEABILITY_XY);
             if constexpr (TDim > 2) {
