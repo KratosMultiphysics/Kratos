@@ -648,7 +648,7 @@ public:
      * @param rMasterSlaveConstraintIds Set to store master-slave constraint IDs.
      * @param rGeometriesIds Set to store geometry IDs.
      */
-    virtual void ReadSubModelPartElementsAndConditionsIds(
+    virtual void ReadSubModelPartEntitiesIds(
         std::string const& rModelPartName,
         std::unordered_set<SizeType>& rElementsIds,
         std::unordered_set<SizeType>& rConditionsIds,
