@@ -18,7 +18,7 @@
 
 // Application includes
 #include "symbolic_stokes.h"
-#include "custom_elements/data_containers/stokes/stokes_data.h"
+#include "data_containers/stokes/stokes_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
@@ -224,7 +224,7 @@ void SymbolicStokes<TElementData>::AddBoundaryTraction(
         }
     }
 
-    // Contribution coming fron the shear stress operator
+    // Contribution coming from the shear stress operator
     noalias(rData.lhs) = prod(N_aux_trans, aux_matrix_ACB);
 
     // Contribution coming from the pressure terms

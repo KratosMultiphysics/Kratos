@@ -1,6 +1,6 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![License][license-image]][license] [![C++][c++-image]][c++standard] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![GitHub stars][stars-image]][stars] [![Twitter][twitter-image]][twitter] [![Youtube][youtube-image]][youtube]
+[![License][license-image]][license] [![C++][c++-image]][c++standard] [![DOI][DOI-image]][DOI] [![GitHub stars][stars-image]][stars] [![Twitter][twitter-image]][twitter] [![Youtube][youtube-image]][youtube]
 
 [![Release][release-image]][releases]
 <a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
@@ -36,7 +36,7 @@
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
-**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
+**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt) and can be used even in commercial software as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own proprietary license.
 
 # Main Features
 **Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
@@ -95,43 +95,43 @@ Kratos has been used for simulation of many different problems in a wide variety
 Organizations contributing to Kratos:
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
-</br></br><p>International Center for Numerical Methods in Engineering</p>
+<br><br><p>International Center for Numerical Methods in Engineering</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
-</br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
+<br><p>Chair of Structural Analysis<br>Technical University of Munich </p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
-</br><p>Altair Engineering</p>
+<br><p>Altair Engineering</p>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
-</br><p>Deltares</p>
+<br><p>Deltares</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUBraunschweig_logo.svg" width="128">
-<p>Institute of Structural Analysis</br>Technische Universität Braunschweig</p>
+<p>Institute of Structural Analysis<br>Technische Universität Braunschweig</p>
 
-</br></br>
+<br><br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/logo_UNIPD.svg" width="128">
 <p> University of Padova, Italy </p>
 
-</br></br>
+<br><br>
 
 # Our Users
 Some users of the technologies developed in Kratos are:
 
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
-<p>Airbus Defence and Space</br>Stress Methods & Optimisation Department</p>
+<p>Airbus Defence and Space<br>Stress Methods & Optimisation Department</p>
 </span>
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/siemens_logo.png" width="128">
-<p>Siemens AG</br>Corporate Technology</p>
+<p>Siemens AG<br>Corporate Technology</p>
 </span>
 <span>
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">
@@ -148,6 +148,8 @@ Some users of the technologies developed in Kratos are:
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [ZLib](https://zlib.net/) The compression library
+- [Google Test](https://github.com/google/googletest) for unit testing C++ code
+- [Google Benchmark](https://github.com/google/benchmark) for microbenchmarking and performance testing
 
 ## In applications:
 - [Eigen](http://eigen.tuxfamily.org) For linear solvers used in the [LinearSolversApplication](applications/LinearSolversApplication)

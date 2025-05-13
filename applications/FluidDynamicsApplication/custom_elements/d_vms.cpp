@@ -14,9 +14,9 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
-#include "custom_elements/data_containers/qs_vms/qs_vms_data.h"
-#include "custom_elements/data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
-//#include "custom_elements/data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
+#include "data_containers/qs_vms/qs_vms_data.h"
+#include "data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
+//#include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
@@ -562,9 +562,9 @@ void DVMS<TElementData>::AddMassLHS(
     }
 
     /* Note on OSS and full projection: Riccardo says that adding the terms provided by
-     * AddMassStabilization (and incluiding their corresponding terms in the projeciton)
+     * AddMassStabilization (and including their corresponding terms in the projection)
      * could help reduce the non-linearity of the coupling between projection and u,p
-     * However, leaving them on gives a lot of trouble whith the Bossak scheme:
+     * However, leaving them on gives a lot of trouble with the Bossak scheme:
      * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
      * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
      */
@@ -921,6 +921,7 @@ template class DVMS< QSVMSData<3,4> >;
 
 template class DVMS< QSVMSDEMCoupledData<2,3> >;
 template class DVMS< QSVMSDEMCoupledData<3,4> >;
+template class DVMS< QSVMSDEMCoupledData<3,10> >;
 
 template class DVMS< QSVMSDEMCoupledData<2,4> >;
 template class DVMS< QSVMSDEMCoupledData<2,6> >;

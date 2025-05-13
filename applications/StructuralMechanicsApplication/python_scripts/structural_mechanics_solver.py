@@ -32,7 +32,7 @@ class MechanicalSolver(PythonSolver):
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
 
-    The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
+    The mechanical_solution_strategy, builder_and_solver, etc. should always be retrieved
     using the getter functions _GetSolutionStrategy, get_builder_and_solver,
     etc. from this base class.
 
@@ -127,6 +127,7 @@ class MechanicalSolver(PythonSolver):
             },
             "time_stepping" : { },
             "volumetric_strain_dofs": false,
+            "strain_dofs": false,
             "rotation_dofs": false,
             "pressure_dofs": false,
             "displacement_control": false,
@@ -186,7 +187,7 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         if self.settings["volumetric_strain_dofs"].GetBool():
-            # Add specific variables for the problem (rotation dofs).
+            # Add specific variables for the problem (volumetric strain dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
             #TODO: These are not required in the standard ASGS case
@@ -195,6 +196,23 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_PROJECTION_REACTION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN_PROJECTION_REACTION)
+        if self.settings["strain_dofs"].GetBool():
+            # Add specific variables for the problem (strain Voigt notation components dofs).
+            dim = self.settings["domain_size"].GetInt()
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YY)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YY)
+            if dim == 3:
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_ZZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_ZZ)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XY)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XY)
+            if dim == 3:
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_YZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_YZ)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRAIN_VECTOR_XZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN_VECTOR_XZ)
         if self.settings["displacement_control"].GetBool():
             # Add displacement-control variables
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
@@ -224,6 +242,16 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Y", "DISPLACEMENT_PROJECTION_REACTION_Y"])
             dofs_and_reactions_to_add.append(["DISPLACEMENT_PROJECTION_Z", "DISPLACEMENT_PROJECTION_REACTION_Z"])
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN_PROJECTION", "VOLUMETRIC_STRAIN_PROJECTION_REACTION"])
+        if self.settings["strain_dofs"].GetBool():
+            dim = self.settings["domain_size"].GetInt()
+            dofs_and_reactions_to_add.append(["STRAIN_VECTOR_XX", "REACTION_STRAIN_VECTOR_XX"])
+            dofs_and_reactions_to_add.append(["STRAIN_VECTOR_YY", "REACTION_STRAIN_VECTOR_YY"])
+            if dim == 3:
+                dofs_and_reactions_to_add.append(["STRAIN_VECTOR_ZZ", "REACTION_STRAIN_VECTOR_ZZ"])
+            dofs_and_reactions_to_add.append(["STRAIN_VECTOR_XY", "REACTION_STRAIN_VECTOR_XY"])
+            if dim == 3:
+                dofs_and_reactions_to_add.append(["STRAIN_VECTOR_YZ", "REACTION_STRAIN_VECTOR_YZ"])
+                dofs_and_reactions_to_add.append(["STRAIN_VECTOR_XZ", "REACTION_STRAIN_VECTOR_XZ"])
         if self.settings["displacement_control"].GetBool():
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
@@ -437,6 +465,7 @@ class MechanicalSolver(PythonSolver):
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("volumetric_strain_dofs",self.settings["volumetric_strain_dofs"])
+        conv_params.AddValue("strain_dofs",self.settings["strain_dofs"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])

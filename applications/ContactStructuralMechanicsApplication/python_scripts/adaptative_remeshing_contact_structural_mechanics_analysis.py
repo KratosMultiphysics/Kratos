@@ -175,7 +175,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
 
         # To avoid many prints
         if self.echo_level == 0:
@@ -204,7 +204,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
+                        raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             pass # Already added
         else:

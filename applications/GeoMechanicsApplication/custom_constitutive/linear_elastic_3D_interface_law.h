@@ -52,7 +52,7 @@ public:
     /// The base class ConstitutiveLaw type definition
     using CLBaseType = ConstitutiveLaw;
 
-    /// The base class ElasticIsotropicK03DLaw type definition
+    /// The base class LinearElastic2DInterfaceLaw type definition
     using BaseType = LinearElastic2DInterfaceLaw;
 
     /// The size type definition

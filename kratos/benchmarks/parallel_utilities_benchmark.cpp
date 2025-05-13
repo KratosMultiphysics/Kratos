@@ -60,11 +60,13 @@ static void BM_VectorReduction(benchmark::State& state) {
     std::vector<double> data_vector(nsize, 5.0);
 
     for (auto _ : state) {
-        auto final_sum = BlockPartition<std::vector<double>::iterator>(data_vector.begin(),
-                                                                   data_vector.end()).for_each<SumReduction<double>>(
-        [](double& item){
+        auto final_sum = BlockPartition<std::vector<double>::iterator>(
+            data_vector.begin(), data_vector.end()
+        ).for_each<SumReduction<double>>([](double& item) {
             return item;
         });
+
+        benchmark::DoNotOptimize(final_sum); // <-- Fixes [[nodiscard]] warning
     }
 }
 
@@ -93,12 +95,18 @@ static void BM_ThreadLocalStorage(benchmark::State& state) {
     };
 
     for (auto _ : state) {
-        BlockPartition<std::vector<RHSElementType>::iterator>(elements.begin(),
-                                                          elements.end()).for_each(std::vector<double>(), tls_lambda_manual_reduction);
+        BlockPartition<std::vector<RHSElementType>::iterator>(
+            elements.begin(), elements.end()
+        ).for_each(std::vector<double>(), tls_lambda_manual_reduction);
 
-        const double sum_elem_rhs_vals = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
-        return acc + rElem.GetAccumRHSValue();
-    });
+        const double sum_elem_rhs_vals = std::accumulate(
+            elements.begin(), elements.end(), 0.0,
+            [](double acc, RHSElementType& rElem) {
+                return acc + rElem.GetAccumRHSValue();
+            }
+        );
+
+        benchmark::DoNotOptimize(sum_elem_rhs_vals);
     }
 }
 

@@ -14,7 +14,7 @@
 #include "indirect_conduction_vargas.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   IndirectConductionVargas::IndirectConductionVargas() {}
   IndirectConductionVargas::~IndirectConductionVargas() {}
 

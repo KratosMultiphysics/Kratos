@@ -80,9 +80,18 @@ void Kernel::Initialize() {
             Registry::AddItem<std::string>("libraries.tetgen");
         #endif
 
+            // If tests are built Google Test is available
+        #ifdef KRATOS_BUILD_TESTING
+            Registry::AddItem<std::string>("libraries.googletest");
+        #endif
+
+            // If benchmarks are built, Google Benchmark is available
+        #ifdef KRATOS_BUILD_BENCHMARKING
+            Registry::AddItem<std::string>("libraries.benchmark");
+        #endif
+
             // Add the libraries that are always available
             Registry::AddItem<std::string>("libraries.amgcl");
-            Registry::AddItem<std::string>("libraries.benchmark");
             Registry::AddItem<std::string>("libraries.clipper");
             Registry::AddItem<std::string>("libraries.concurrentqueue");
             Registry::AddItem<std::string>("libraries.ghc");

@@ -23,17 +23,20 @@ PermeabilityCalculator::PermeabilityCalculator(InputProvider InputProvider)
 {
 }
 
-Matrix PermeabilityCalculator::LHSContribution() { return CalculatePermeabilityMatrix(); }
+std::optional<Matrix> PermeabilityCalculator::LHSContribution()
+{
+    return std::make_optional(CalculatePermeabilityMatrix());
+}
 
 Vector PermeabilityCalculator::RHSContribution()
 {
     return RHSContribution(CalculatePermeabilityMatrix());
 }
 
-std::pair<Matrix, Vector> PermeabilityCalculator::LocalSystemContribution()
+std::pair<std::optional<Matrix>, Vector> PermeabilityCalculator::LocalSystemContribution()
 {
     const auto permeability_matrix = CalculatePermeabilityMatrix();
-    return {permeability_matrix, RHSContribution(permeability_matrix)};
+    return {std::make_optional(permeability_matrix), RHSContribution(permeability_matrix)};
 }
 
 Vector PermeabilityCalculator::RHSContribution(const Matrix& rPermeabilityMatrix) const
@@ -63,31 +66,6 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
             relative_permeability, integration_coefficients[integration_point_index]);
     }
     return result;
-}
-
-const Properties& PermeabilityCalculator::InputProvider::GetElementProperties() const
-{
-    return mGetElementProperties();
-}
-
-const std::vector<RetentionLaw::Pointer>& PermeabilityCalculator::InputProvider::GetRetentionLaws() const
-{
-    return mGetRetentionLaws();
-}
-
-Vector PermeabilityCalculator::InputProvider::GetIntegrationCoefficients() const
-{
-    return mGetIntegrationCoefficients();
-}
-
-Vector PermeabilityCalculator::InputProvider::GetNodalValues(const Variable<double>& rVariable) const
-{
-    return mGetNodalValues(rVariable);
-}
-
-Geometry<Node>::ShapeFunctionsGradientsType PermeabilityCalculator::InputProvider::GetShapeFunctionGradients() const
-{
-    return mGetShapeFunctionGradients();
 }
 
 } // namespace Kratos

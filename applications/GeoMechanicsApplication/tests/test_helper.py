@@ -11,9 +11,9 @@ sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
 
-def get_file_path(fileName):
+def get_file_path(filename):
     import os
-    return os.path.join(os.path.dirname(__file__), fileName)
+    return os.path.join(os.path.dirname(__file__), filename)
 
 
 def make_geomechanics_analysis(model, project_parameters_file_path):
@@ -377,9 +377,8 @@ def get_force(simulation):
     model_part = simulation._list_of_output_processes[0].model_part
     elements = model_part.Elements
 
-    Force = [element.CalculateOnIntegrationPoints(
+    return [element.CalculateOnIntegrationPoints(
         Kratos.FORCE, model_part.ProcessInfo)[0] for element in elements]
-    return Force
 
 
 def get_moment(simulation):

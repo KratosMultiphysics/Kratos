@@ -106,7 +106,7 @@ namespace Kratos
       //the numeration and order of the GeneratrixPoints is very important for the interpolation
       unsigned int id = 0; //start with 0;
 
-      //Set auxiliary control points (knots) using reflection at the begining ( 1 extra knot )
+      //Set auxiliary control points (knots) using reflection at the beginning ( 1 extra knot )
       NodesContainerType::iterator nodes_begin = rGeneratrixPoints.begin();
 
       double X = 2.0 * nodes_begin->X() - (nodes_begin + 1)->X();
@@ -331,7 +331,7 @@ namespace Kratos
       KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );
       NewKnotsList.push_back( KnotPoint );
 
-      //first knot //reflection at the begining ( 1 extra knot )
+      //first knot //reflection at the beginning ( 1 extra knot )
       nodes_begin = NewKnotsList.begin() + 1;
 
       X = 2.0 * nodes_begin->X() - (nodes_begin + 1)->X();

@@ -51,13 +51,13 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-# Function for getting the module paths associated with the current interpreter
+# Function for getting the module paths associated with the current interpreter.
 get_site_packages_dir() {
     echo $(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 }
 
-# Utility variables
-# Path to the directory containing this script
+# Utility variables.
+# Path to the directory containing this script.
 # (assumed to be kratos_repo_root/scripts)
 script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
@@ -71,7 +71,7 @@ toolchain_include=""                            # <== directory containing compi
 
 generator_target="Unix Makefiles"               # <== name of the generator program in CMake
 ccache_flag=""                                  # <== sets CXX_COMPILER_LAUNCHER in CMake to ccache if available
-mpi_flag="OFF"                                  # <== MPI flag to pass to CMake via USE_MPI
+mpi_flag="-DUSE_MPI:BOOL=OFF"                   # <== MPI flag to pass to CMake via USE_MPI
 
 # Define default arguments
 build_type="Release".                           # <== passed to CMAKE_BUILD_TYPE
@@ -144,8 +144,8 @@ while getopts ":h C b: i: t: j: a: o:" arg; do
                 cmake_arguments="$cmake_arguments;$OPTARG"
             fi
             ;;
-        \?) # Unrecognized argumnet
-            echo "Error: unrecognized argument: -$OPTARG"
+        \?) # Unrecognized argument
+            echo "Error: unrecognized argument: -${OPTARG}"
             print_help
             exit 1
     esac
@@ -224,7 +224,6 @@ toolchain_root="$(brew --prefix $found_package)"
 toolchain_bin="${toolchain_root}/bin"
 toolchain_lib="${toolchain_root}/lib"
 toolchain_include="${toolchain_root}/include"
-cmake_cxx_flags="-L${toolchain_lib}/c++ -L${toolchain_lib} -lunwind $cmake_cxx_flags"
 
 # Check other required homebrew dependencies
 get_homebrew_package boost
@@ -249,7 +248,7 @@ fi
 
 # Check whether MPI is available
 if command -v mpirun $> /dev/null; then
-    mpi_flag="ON"
+    mpi_flag="-DUSE_MPI:BOOL=ON"
 fi
 
 # Create the build directory if it does not exist yet
@@ -261,7 +260,7 @@ fi
 # instead of copying them. Unset this option if you
 # need multiple versions of Kratos installed at the
 # same time.
-export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+export KRATOS_INSTALL_PYTHON_USING_LINKS="ON"
 
 # Configure
 if ! cmake                                                  \
@@ -275,7 +274,7 @@ if ! cmake                                                  \
     "-DCMAKE_CXX_FLAGS=${cmake_cxx_flags}"                  \
     "-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON"                     \
     "$ccache_flag"                                          \
-    "-DUSE_MPI:BOOL=$mpi_flag"                              \
+    "$mpi_flag"                                             \
     "-DUSE_EIGEN_MKL:BOOL=OFF"                              \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
     "-DKRATOS_ENABLE_PROFILING:BOOL=OFF"                    \
@@ -288,5 +287,3 @@ fi
 if ! cmake --build "$build_dir" --target install -j$job_count; then
     exit 1
 fi
-
-exit 0

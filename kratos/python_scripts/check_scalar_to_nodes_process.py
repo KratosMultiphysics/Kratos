@@ -32,7 +32,6 @@ class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase)
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"            : "This process checks analytically from a function the solution (scalar) in a set of nodes belonging a certain submodelpart",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],
@@ -95,9 +94,6 @@ class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase)
             self.x0[1] = self.settings["local_axes"]["origin"][1].GetDouble()
             self.x0[2] = self.settings["local_axes"]["origin"][2].GetDouble()
 
-        # Getting the mesh
-        self.mesh = self.model_part.GetMesh(self.settings["mesh_id"].GetInt())
-
         # Getting reference configuration
         self.reference_configuration = self.settings["reference_conf"].GetBool()
 
@@ -113,13 +109,13 @@ class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase)
         if(current_time >= self.interval[0] and  current_time<self.interval[1]):
 
             if self.value_is_numeric:
-                for node in self.mesh.Nodes:
+                for node in self.model_part.Nodes:
                     value = node.GetSolutionStepValue(self.variable, 0)
                     self.assertAlmostEqual(self.value, value, self.tolerance_rank)
             else:
                 if self.is_time_function:
                     self.value = self.aux_function.f(0.0,0.0,0.0,current_time)
-                    for node in self.mesh.Nodes:
+                    for node in self.model_part.Nodes:
                         value = node.GetSolutionStepValue(self.variable, 0)
                         self.assertAlmostEqual(self.value, value, self.tolerance_rank)
                 else: #most general case - space varying function (possibly also time varying)

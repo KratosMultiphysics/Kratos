@@ -122,6 +122,31 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
     KRATOS_EXPECT_DOUBLE_EQ(final_sum_short, expected_value);
 }
 
+// Pass a container whose iterator is a raw pointer.
+KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerContiguousContainer, KratosCoreFastSuite)
+{
+    struct TestView
+    {
+        using iterator = int*;
+        using size_type = std::size_t;
+        iterator begin() const noexcept {return mBegin;}
+        iterator end() const noexcept {return mEnd;}
+        size_type size() const noexcept {return std::distance(mBegin, mEnd);}
+        iterator mBegin;
+        iterator mEnd;
+    }; // struct TestView
+
+    std::vector<int> array(1e3);
+    std::iota(array.begin(), array.end(), 0);
+
+    TestView view {array.data(), array.data() + array.size()};
+    block_for_each(view, [](int& r_entry){r_entry += r_entry;});
+
+    for (int i_entry=0; i_entry<static_cast<int>(array.size()); ++i_entry) {
+        KRATOS_EXPECT_EQ(array[i_entry], i_entry + i_entry);
+    }
+}
+
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
 {
@@ -377,26 +402,18 @@ KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 {
-    int nsize = 1e3;
+    const int nsize = 1e3;
     std::vector<double> data_vector(nsize);
     for(int i=0; i<nsize; ++i)
         data_vector[i] = -i;
 
-    double reference_max = std::numeric_limits<double>::lowest();
-    double reference_min = std::numeric_limits<double>::max();
-    double reference_abs_max = std::numeric_limits<double>::lowest();
-    double reference_abs_min = std::numeric_limits<double>::max();
-    double reference_sum = 0.0;
-    double reference_sub = 0.0;
-    for(auto item : data_vector)
-    {
-        reference_max = std::max(reference_max, item);
-        reference_min = std::min(reference_min, item);
-        reference_abs_max = (std::abs(reference_abs_max) < std::abs(item)) ? item : reference_abs_max;
-        reference_abs_min = (std::abs(reference_abs_min) < std::abs(item)) ? reference_abs_min : item;
-        reference_sum += item;
-        reference_sub -= item;
-    }
+    const double reference_max = 0;
+    const double reference_min = -(nsize - 1);
+    const double reference_abs_max = -(nsize - 1);
+    const double reference_abs_min = 0;
+    const double reference_sum = -double((nsize - 1) * nsize / 2);
+    const double reference_sub = -reference_sum;
+
     class CustomReducer{
         public:
             typedef double value_type;
@@ -457,17 +474,11 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
             > MultipleReduction;
 
     //auto reduction_res
-    double sum,min,max,abs_min,abs_max,sub;
-    std::tie(sum,min,max,abs_min,abs_max,sub) = IndexPartition<unsigned int>(data_vector.size()).
+    const auto [sum,min,max,abs_min,abs_max,sub] = IndexPartition<unsigned>(data_vector.size()).
         for_each<MultipleReduction>(
-            [&](unsigned int i){
-                    double to_sum = data_vector[i];
-                    double to_max = data_vector[i];
-                    double to_min = data_vector[i];
-                    double to_abs_max = data_vector[i];
-                    double to_abs_min = data_vector[i];
-                    double to_sub = data_vector[i];
-                    return std::make_tuple( to_sum, to_max, to_min, to_abs_max, to_abs_min, to_sub ); //note that these may have different types
+            [&data_vector](unsigned i){
+                    const auto v = data_vector[i];
+                    return std::make_tuple(v, v, v, v, v, v); //note that these may have different types
                 }
             );
     KRATOS_EXPECT_EQ(sum, reference_sum );

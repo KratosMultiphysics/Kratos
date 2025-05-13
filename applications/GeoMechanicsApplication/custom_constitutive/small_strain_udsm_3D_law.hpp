@@ -43,39 +43,39 @@ namespace Kratos
    void GetStateVarCount(int *IMOD, int *NSTVAR);
 */
 
-typedef void (*pF_GetParamCount)(int*, int*);
-typedef void (*pF_GetStateVarCount)(int*, int*);
-typedef void (*pF_UserMod)(int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           const double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           double**,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*,
-                           int*);
+using pF_GetParamCount    = void (*)(int*, int*);
+using pF_GetStateVarCount = void (*)(int*, int*);
+using pF_UserMod          = void (*)(int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            double*,
+                            double*,
+                            double*,
+                            double*,
+                            double*,
+                            const double*,
+                            double*,
+                            double*,
+                            double*,
+                            double*,
+                            double**,
+                            double*,
+                            double*,
+                            double*,
+                            double*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*,
+                            int*);
 
 ///@addtogroup ConstitutiveModelsApplication
 ///@{
@@ -106,11 +106,8 @@ typedef void (*pF_UserMod)(int*,
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM3DLaw : public ConstitutiveLaw
 {
 public:
-    // The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw BaseType;
-
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_3D;
@@ -133,7 +130,7 @@ public:
     /**
      * @brief Clone method
      */
-    ConstitutiveLaw::Pointer Clone() const override;
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
@@ -162,7 +159,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() const override { return VoigtSize; }
+    [[nodiscard]] SizeType GetStrainSize() const override { return VoigtSize; }
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
@@ -258,9 +255,9 @@ public:
     // @details It is designed to be called only once (or anyway, not often) typically at the beginning
     //          of the calculations, so to verify that nothing is missing from the input or that
     //          no common error is found.
-    int Check(const Properties&   rMaterialProperties,
-              const GeometryType& rElementGeometry,
-              const ProcessInfo&  rCurrentProcessInfo) const override;
+    [[nodiscard]] int Check(const Properties&   rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const ProcessInfo&  rCurrentProcessInfo) const override;
 
     /**
      * This is to be called at the very beginning of the calculation
@@ -289,14 +286,12 @@ public:
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
      */
     void ResetMaterial(const Properties&   rMaterialProperties,
                        const GeometryType& rElementGeometry,
                        const Vector&       rShapeFunctionsValues) override;
 
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-    int&    GetValue(const Variable<int>& rThisVariable, int& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
 
@@ -313,7 +308,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override { return "SmallStrainUDSM3DLaw"; }
+    [[nodiscard]] std::string Info() const override { return "SmallStrainUDSM3DLaw"; }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
@@ -455,8 +450,8 @@ private:
     int GetNumberOfStateVariablesFromUDSM(const Properties& rMaterialProperties);
 
     // get number of MaterialParameters
-    SizeType GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
-    int      GetStateVariableIndex(const Variable<double>& rThisVariable) const;
+    SizeType          GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
+    [[nodiscard]] int GetStateVariableIndex(const Variable<double>& rThisVariable) const;
 
     ///@}
     ///@name Serialization

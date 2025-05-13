@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED )
-#define  KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -165,6 +164,7 @@ protected:
         const Variable<double>* mpAreaVar;
         unsigned int mMaxLevels;
         double mMaxDistance;
+        bool mPreserveInterface;
         bool mCalculateExactDistancesToPlane;
 
 
@@ -222,7 +222,15 @@ private:
 
     void ResetVariables();
 
-    void CalculateExactDistancesOnDividedElements();
+    void SetDistancesOnDividedElements();
+
+    void CalculateExactDistancesOnDividedElements(
+        Geometry<Node>& rGeometry,
+        array_1d<double,TDim+1>& rDist);
+
+    void PreserveDistancesOnDividedElements(
+        Geometry<Node>& rGeometry,
+        const array_1d<double,TDim+1>& rDist);
 
 	void ExtendDistancesByLayer();
 
@@ -283,5 +291,3 @@ inline std::ostream& operator << (
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED  defined
