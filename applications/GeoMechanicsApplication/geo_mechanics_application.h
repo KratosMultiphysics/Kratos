@@ -99,9 +99,9 @@
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/transient_Pw_line_element.h"
+#include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
-#include "custom_elements/transient_thermal_element.h"
 
 // Element policies
 #include "custom_elements/axisymmetric_stress_state.h"
