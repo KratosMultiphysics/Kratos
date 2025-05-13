@@ -39,7 +39,7 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
             std::unordered_set<SizeType> submodelpart_geometries_ids;
             std::vector<idxtype> submodelpart_partition_nodes;
 
-            BaseType::mrIO.ReadSubModelPartElementsAndConditionsIds(
+            BaseType::mrIO.ReadSubModelPartEntitiesIds(
                 submodelpart_name,
                 submodelpart_elements_ids,
                 submodelpart_conditions_ids,
