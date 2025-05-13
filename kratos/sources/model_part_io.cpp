@@ -6530,7 +6530,7 @@ void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
+void ModelPartIO::ReadSubModelPartEntitiesIds(
     std::string const& rModelPartName,
     std::unordered_set<SizeType>& rElementsIds,
     std::unordered_set<SizeType>& rConditionsIds,
