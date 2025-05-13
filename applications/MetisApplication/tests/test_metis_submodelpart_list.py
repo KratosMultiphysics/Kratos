@@ -191,6 +191,6 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
                 self.assertAlmostEqual(results.get(node.Id)[1], node.Y, 7)
                 self.assertAlmostEqual(results.get(node.Id)[2], node.Z, 7)
 
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
