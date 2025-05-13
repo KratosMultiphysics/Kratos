@@ -392,6 +392,16 @@ public:
     }
 
     /**
+     * @brief This method reads the constraints connectivities
+     * @param rConditionsConnectivities The constraints connectivities
+     * @return The number of constraints
+     */
+    virtual std::size_t ReadMasterSlaveConstraintsConnectivities(ConnectivitiesContainerType& rMasterSlaveConstraintsConnectivities)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadMasterSlaveConstraintsConnectivities). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
      * @brief Writes the master-slave constraints to the output.
      * @details This method is intended to be overridden by derived classes to provide
      * specific functionality for writing master-slave constraints. The base
