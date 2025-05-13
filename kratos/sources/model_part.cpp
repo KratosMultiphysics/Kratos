@@ -22,7 +22,6 @@
 #include "includes/model_part.h"
 #include "includes/exception.h"
 #include "utilities/reduction_utilities.h"
-#include <stack>
 
 namespace Kratos
 {
@@ -195,9 +194,6 @@ void ModelPart::Reset()
     mpVariablesList = Kratos::make_intrusive<VariablesList>();
     if (!IsSubModelPart()) {
         mpProcessInfo = Kratos::make_shared<ProcessInfo>();
-    }
-    else {
-        mpProcessInfo = nullptr;
     }
     mBufferSize = 0;
 
