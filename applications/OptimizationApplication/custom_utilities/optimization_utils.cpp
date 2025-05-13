@@ -27,6 +27,57 @@
 namespace Kratos
 {
 
+namespace OptimizationHelperUtils {
+
+Properties::Pointer CloneProperties(
+    IndexType& rPropertiesId,
+    const Properties& rOriginProperties,
+    ModelPart& rModelPart,
+    const bool IsRecursive)
+{
+    KRATOS_TRY
+
+    // first create the base properties
+    auto p_cloned_properties = rModelPart.CreateNewProperties(rPropertiesId);
+    // assign the base property values from the origin properties
+    *p_cloned_properties = rOriginProperties;
+    p_cloned_properties->SetId(rPropertiesId);
+    ++rPropertiesId;
+
+    if (IsRecursive) {
+        const auto& r_origin_sub_properties_list = rOriginProperties.GetSubProperties();
+        for (IndexType i_prop = 0; i_prop < r_origin_sub_properties_list.size(); ++i_prop) {
+            auto& p_cloned_sub_property = *((p_cloned_properties->GetSubProperties().begin() + i_prop).base());
+            p_cloned_sub_property = CloneProperties(
+                rPropertiesId, *(r_origin_sub_properties_list.begin() + i_prop),
+                rModelPart, IsRecursive);
+        }
+    }
+
+    return p_cloned_properties;
+
+    KRATOS_CATCH("");
+}
+
+template<class TDataType>
+void UpdatePropertiesVariableRecursively(
+    Properties& rProperties,
+    const Variable<TDataType>& rVariable,
+    const TDataType& rValue)
+{
+    KRATOS_TRY
+
+    rProperties.SetValue(rVariable, rValue);
+
+    for (auto& r_sub_properties : rProperties.GetSubProperties()) {
+        UpdatePropertiesVariableRecursively(r_sub_properties, rVariable, rValue);
+    }
+
+    KRATOS_CATCH("");
+}
+
+} // namespace OptimizationHelperUtils
+
 template<class TContainerType>
 GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(
     const TContainerType& rContainer,
@@ -89,7 +140,8 @@ bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(
 template<class TContainerType>
 void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
     ModelPart& rModelPart,
-    TContainerType& rContainer)
+    TContainerType& rContainer,
+    const bool IsRecursive)
 {
     KRATOS_TRY
 
@@ -101,16 +153,28 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
         return pProperties->Id();
     });
 
-    properties_id = std::max(element_properties_id, properties_id);
+    properties_id = std::max(element_properties_id, properties_id) + 1;
 
-    // creation of properties is done in serial
     for (auto& r_entity : rContainer) {
-        auto p_properties = rModelPart.CreateNewProperties(++properties_id);
-        const auto& element_properties = r_entity.GetProperties();
-        *p_properties = element_properties;
-        p_properties->SetId(properties_id);
-        r_entity.SetProperties(p_properties);
+        r_entity.SetProperties(OptimizationHelperUtils::CloneProperties(
+            properties_id, r_entity.GetProperties(), rModelPart, IsRecursive));
     }
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType, class TDataType>
+void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively(
+    TContainerType& rContainer,
+    const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY
+
+    block_for_each(rContainer, [&rVariable](auto& rEntity) {
+        auto& r_properties = rEntity.GetProperties();
+        const auto& r_root_value = r_properties[rVariable];
+        OptimizationHelperUtils::UpdatePropertiesVariableRecursively(r_properties, rVariable, r_root_value);
+    });
 
     KRATOS_CATCH("");
 }
@@ -200,11 +264,30 @@ std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelPar
 }
 
 // template instantiations
+#ifndef KRATOS_OPTIMIZATION_UTILS_UPDATE_PROPERTIES_VARIABLE_RECURSIVELY
+#define KRATOS_OPTIMIZATION_UTILS_UPDATE_PROPERTIES_VARIABLE_RECURSIVELY(CONTAINER_TYPE)                                                                                                                                \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, bool>(CONTAINER_TYPE&, const Variable<bool>&);                                   \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, int>(CONTAINER_TYPE&, const Variable<int>&);                                     \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, double>(CONTAINER_TYPE&, const Variable<double>&);                               \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, array_1d<double, 3>>(CONTAINER_TYPE&, const Variable<array_1d<double, 3>>&);     \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, array_1d<double, 4>>(CONTAINER_TYPE&, const Variable<array_1d<double, 4>>&);     \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, array_1d<double, 6>>(CONTAINER_TYPE&, const Variable<array_1d<double, 6>>&);     \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, array_1d<double, 9>>(CONTAINER_TYPE&, const Variable<array_1d<double, 9>>&);     \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, Matrix>(CONTAINER_TYPE&, const Variable<Matrix>&);                               \
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<CONTAINER_TYPE, Vector>(CONTAINER_TYPE&, const Variable<Vector>&);                               \
+
+#endif
+
+KRATOS_OPTIMIZATION_UTILS_UPDATE_PROPERTIES_VARIABLE_RECURSIVELY(ModelPart::ConditionsContainerType);
+KRATOS_OPTIMIZATION_UTILS_UPDATE_PROPERTIES_VARIABLE_RECURSIVELY(ModelPart::ElementsContainerType);
+
+#undef KRATOS_OPTIMIZATION_UTILS_UPDATE_PROPERTIES_VARIABLE_RECURSIVELY
+
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);
 
-template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ConditionsContainerType&);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ElementsContainerType&);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ConditionsContainerType&, const bool);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ElementsContainerType&, const bool);
 
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);

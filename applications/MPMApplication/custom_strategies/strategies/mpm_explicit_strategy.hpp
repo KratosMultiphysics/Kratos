@@ -150,7 +150,7 @@ namespace Kratos
                 mInitializeWasPerformed = true;
             }
 
-            // Prints informations about the current time
+            // Prints information about the current time
             KRATOS_INFO_IF("MPM_Explicit_Strategy", this->GetEchoLevel() == 2) << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
 
             KRATOS_CATCH("")

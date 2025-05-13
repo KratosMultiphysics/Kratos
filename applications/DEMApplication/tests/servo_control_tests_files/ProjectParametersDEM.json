@@ -23,7 +23,8 @@
         "BoundingBoxServoLoadingFrequency" : 10,
         "BoundingBoxServoLoadingVelocityMax": 1.0,
         "MeanParticleDiameterD50"          : 2.1e-4,
-        "ParticleYoungsModulus"            : 3.5e10
+        "ParticleYoungsModulus"            : 3.5e10,
+        "TriaxialLoadingVelocity"          : 0.01
     },
     "dem_inlet_option"               : false,
     "dem_inlets_settings"            : {},
@@ -50,7 +51,6 @@
     "VirtualMassCoefficient"         : 1.0,
     "RollingFrictionOption"          : true,
     "GlobalDamping"                  : 0.0,
-    "GlobalViscousDamping"           : 0.0,
     "ContactMeshOption"              : true,
     "OutputFileType"                 : "Ascii",
     "Multifile"                      : "multiple_files",

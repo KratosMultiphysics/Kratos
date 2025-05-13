@@ -1,0 +1,3 @@
+#,type,name,location_0,location_1,location_2,value
+1,strain_sensor,strain_xx_1,0.2,0.2,0.2,0.0005769055381949457
+2,strain_sensor,strain_xx_2,0.8,0.8,0.2,0.0005769055381949457

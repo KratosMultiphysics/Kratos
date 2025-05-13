@@ -98,7 +98,7 @@ public:
     ///@name Classes
     ///@{
 
-    // TODO: Add Calulation Data
+    // TODO: Add Calculation Data
 
     ///@}
 

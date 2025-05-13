@@ -19,7 +19,7 @@ class ModelPartOperation:
             raise RuntimeError("No operating model part names are provided.")
 
         if suggested_model_part_name.find("#") != -1 or any([mp_name.find("#") != -1 for mp_name in list_of_operation_model_part_full_names]):
-            # find '#' in the model part names which is not allwed.
+            # find '#' in the model part names which is not allowed.
             raise RuntimeError(f"The model part names cannot contain '#' character. Parsed model part names are as followings:\n\t suggested model part name: \"{suggested_model_part_name}\"\n\toperation model part names:\n\t" + "\n\t\t".join(list_of_operation_model_part_full_names))
 
         # set the root model part. This needs to always exist.
@@ -51,7 +51,7 @@ class ModelPartOperation:
 
         # it is not already called for creation. Then put that in the status msg.
         if self.root_model_part.HasSubModelPart(self.suggested_model_part_name):
-            # this means, it already has a model part with suggeted name, but
+            # this means, it already has a model part with suggested name, but
             # it does not match the operation identifier. So throw an error
             raise RuntimeError(f"Found an already existing submodel part named \"{self.suggested_model_part_name}\" in {self.root_model_part.FullName()} without the required operation identifier = \"{status_msg_suffix}\".")
 
