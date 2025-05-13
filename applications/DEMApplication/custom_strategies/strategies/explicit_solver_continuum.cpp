@@ -376,8 +376,11 @@ namespace Kratos {
         {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                //unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
+                unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
                 unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighbourElements.size();
+                if (neighbors_size < continuous_initial_neighbors_size) {
+                    neighbors_size = continuous_initial_neighbors_size;
+                }
                 mListOfSphericContinuumParticles[i]->mBondElements.resize(neighbors_size); //include all the contact
                 for (unsigned int j = 0; j < mListOfSphericContinuumParticles[i]->mBondElements.size(); j++) {
                     mListOfSphericContinuumParticles[i]->mBondElements[j] = NULL;
