@@ -1723,7 +1723,7 @@ public:
      */
     ProcessInfo& GetProcessInfo()
     {
-        return *this->pGetProcessInfo();
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
     /**
@@ -1731,7 +1731,7 @@ public:
      */
     ProcessInfo const& GetProcessInfo() const
     {
-        return *this->pGetProcessInfo();
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
     /**
