@@ -658,16 +658,4 @@ namespace Kratos::Testing {
         r_sub_model_part_4.Nodes().shrink_to_fit();
         KRATOS_EXPECT_EQ(r_sub_model_part_4.Nodes().capacity(), 7);
     }
-
-    void CheckSubModelPartProcessInfo(const ModelPart& model_part, double expected_time)
-    {
-        const ModelPart& root_model_part = model_part.GetRootModelPart();
-        KRATOS_EXPECT_EQ(root_model_part.GetProcessInfo()[TIME], expected_time);
-
-        for (const auto& submodel_part : root_model_part.SubModelParts())
-        {
-            // std::cout << "Checking SubModelPart: " << submodel_part.Name() << std::endl;
-            KRATOS_EXPECT_EQ(submodel_part.GetProcessInfo()[TIME], expected_time);
-        }
-    }
 }  // namespace Kratos::Testing.
