@@ -155,12 +155,12 @@ public:
 
     /**
      * @brief Divides constraints among partitions.
-     * @param rConstraintsAllPartitions The resulting constraints for all partitions.
-     * @param rConstraintsPartitions The constraint partitions.
+     * @param rMasterSlaveConstraintsAllPartitions The resulting constraints for all partitions.
+     * @param rMasterSlaveConstraintsPartitions The constraint partitions.
      */
-    static void DividingConstraints(
-        IO::PartitionIndicesContainerType& rConstraintsAllPartitions,
-        const PartitionIndicesType& rConstraintsPartitions
+    static void DividingMasterSlaveConstraints(
+        IO::PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions,
+        const PartitionIndicesType& rMasterSlaveConstraintsPartitions
         );
 
     /**

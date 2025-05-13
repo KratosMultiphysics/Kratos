@@ -151,18 +151,18 @@ void LegacyPartitioningUtilities::DividingConditions(
     }
 }
 
-void LegacyPartitioningUtilities::DividingConstraints(
-    IO::PartitionIndicesContainerType& rConstraintsAllPartitions,
-    const PartitionIndicesType& rConstraintsPartitions
+void LegacyPartitioningUtilities::DividingMasterSlaveConstraints(
+    IO::PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions,
+    const PartitionIndicesType& MasterSlaveConstraintsPartitions
     )
 {
-    const SizeType number_of_constraints = rConstraintsPartitions.size();
+    const SizeType number_of_constraints = MasterSlaveConstraintsPartitions.size();
 
-    rConstraintsAllPartitions.resize(number_of_constraints);
+    rMasterSlaveConstraintsAllPartitions.resize(number_of_constraints);
 
     // Adding the constraint partition to their array of partitions
     for(IndexType i_constraint = 0 ; i_constraint < number_of_constraints ; i_constraint++) {
-        rConstraintsAllPartitions[i_constraint].push_back(rConstraintsPartitions[i_constraint]);
+        rMasterSlaveConstraintsAllPartitions[i_constraint].push_back(MasterSlaveConstraintsPartitions[i_constraint]);
     }
 }
 
