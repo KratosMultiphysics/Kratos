@@ -24,7 +24,6 @@
 // Project includes
 #include "geometries/line_2d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
-#include "integration/triangle_collocation_integration_points.h"
 #include "integration/triangle_gauss_lobatto_integration_points.h"
 #include "utilities/intersection_utilities.h"
 
