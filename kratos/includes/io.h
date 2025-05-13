@@ -599,7 +599,7 @@ public:
         std::unordered_set<SizeType>& rGeometriesIds
         )
     {
-        KRATOS_WARNING("ReadSubModelPartElementsAndConditionsIds") << " The method ReadSubModelPartElementsAndConditionsIds with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
+        KRATOS_WARNING("IO") << " The method ReadSubModelPartEntitiesIds with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
         return ReadSubModelPartElementsAndConditionsIds(rModelPartName, rElementsIds, rConditionsIds);
     }
 
@@ -638,7 +638,7 @@ public:
         std::unordered_set<SizeType>& rGeometriesIds
         )
     {
-        KRATOS_WARNING("ReadNodalGraphFromEntitiesList") << " The method ReadNodalGraphFromEntitiesList with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
+        KRATOS_WARNING("IO") << " The method ReadNodalGraphFromEntitiesList with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
         return ReadNodalGraphFromEntitiesList(rAuxConnectivities, rElementsIds, rConditionsIds);
     }
 
