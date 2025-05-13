@@ -1318,11 +1318,19 @@ void ModelPartIO::FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(
     MasterSlaveConstraint const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(master_slave_constraint_name);
     SizeType number_of_master_dofs, number_of_slave_dofs;
 
+    // We need to read the number of master and slave dofs
     ReadWord(word);
     ExtractValue(word, number_of_master_dofs);
-
     ReadWord(word);
     ExtractValue(word, number_of_slave_dofs);
+
+    // We need to read the variable names
+    for (SizeType i = 0; i < number_of_master_dofs; i++) {
+        ReadWord(word);
+    }
+    for (SizeType i = 0; i < number_of_slave_dofs; i++) {
+        ReadWord(word);
+    }
 
     ConnectivitiesContainerType::value_type temp_constraint_nodes;
 
