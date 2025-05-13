@@ -78,7 +78,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     // Allocate mapping matrix
     this->mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(n_destination, n_origin);
 
-    // Create the coordinate matrix for the origin nodes
+    // Create the coordinate matrix for the origin and destination nodes
     DenseMatrixType origin_coords(n_origin, 3);
     std::size_t i = 0;
     for (const auto& node : this->GetOriginModelPart().Nodes()) {
@@ -86,6 +86,15 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
             origin_coords(i, dim) = node.Coordinates()[dim];
         }
         ++i;
+    }
+
+    DenseMatrixType destination_coords(n_destination, 3);
+    std::size_t j = 0;
+    for (const auto& node : this->GetDestinationModelPart().Nodes()) {
+        for (unsigned int dim = 0; dim < 3; ++dim) {
+            destination_coords(j, dim) = node.Coordinates()[dim];
+        }
+        ++j;
     }
 
     // Compute shape parameter
@@ -117,28 +126,32 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     Vector solution(origin_interpolation_matrix_size, 0.0);
 
     IndexType dest_idx = 0;
-    for (const auto& destination_node : this->GetDestinationModelPart().Nodes()) {
-        const auto& destination_coords = destination_node.Coordinates();
+    for (IndexType dest_idx = 0; dest_idx < n_destination; ++dest_idx) {
+        // Load destination point from matrix
+        array_1d<double, 3> destination_point;
+        for (unsigned int dim = 0; dim < 3; ++dim) {
+            destination_point[dim] = destination_coords(dest_idx, dim);
+        }
 
+        // Fill RHS vector b
         for (IndexType j = 0; j < n_origin; ++j) {
-            const double r_j = norm_2(destination_coords - row(origin_coords, j));
+            const double r_j = norm_2(destination_point - row(origin_coords, j));
             b[j] = RBFShapeFunctionsUtility::EvaluateRBF(r_j, h, rbf_type);
         }
 
-        const auto destination_poly_vals = EvaluatePolynomialBasis(destination_coords, poly_degree);
+        const auto destination_poly_vals = EvaluatePolynomialBasis(destination_point, poly_degree);
         for (IndexType j = 0; j < n_polynomial; ++j) {
             b[n_origin + j] = destination_poly_vals[j];
         }
 
+        // Solve linear system
         mpLinearSolver->Solve(origin_interpolation_matrix, solution, b);
 
+        // Fill mapping matrix
         for (IndexType j = 0; j < n_origin; ++j) {
             (*this->mpMappingMatrix)(dest_idx, j) = solution[j];
         }
-
-        ++dest_idx;
     }
-    KRATOS_WATCH(this->GetMappingMatrix())
 }
 
 template<class TSparseSpace, class TDenseSpace>
