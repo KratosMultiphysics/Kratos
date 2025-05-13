@@ -105,15 +105,18 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
     // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
     // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
-    RedistributeHangingNodes(node_partition,element_partition,element_connectivities,condition_partition,condition_connectivities);
+    RedistributeHangingNodes(node_partition, geometry_partition, geometry_connectivities,
+                             element_partition, element_connectivities,
+                             condition_partition, condition_connectivities,
+                             master_slave_constraints_partition, master_slave_constraints_connectivities);
 
     // Coloring
     GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
-    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,number_of_elements,element_connectivities,node_partition,element_partition);
-    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,number_of_conditions,condition_connectivities,node_partition,condition_partition);
+    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph, number_of_elements, element_connectivities, node_partition, element_partition);
+    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph, number_of_conditions, condition_connectivities, node_partition, condition_partition);
 
     int number_of_colors;
-    GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.Graph,number_of_colors).Execute();
+    GraphColoringProcess(mNumberOfPartitions, DomainGraph, rPartitioningInfo.Graph, number_of_colors).Execute();
 
     KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0) << "Number of colors: " << number_of_colors << std::endl;
 
@@ -649,80 +652,6 @@ void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchr
     }
 
     PrintDebugData("MasterSlaveConstraint Partition",rMasterSlaveConstraintPartition);
-}
-
-void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
-        std::vector<idxtype>& rNodePartition,
-        std::vector<idxtype> const& rElementPartition,
-        const IO::ConnectivitiesContainerType& rElementConnectivities,
-        std::vector<idxtype> const& rConditionPartition,
-        const IO::ConnectivitiesContainerType& rConditionConnectivities)
-{
-    std::vector<int> NodeUseCounts(rNodePartition.size(),0);
-
-    // Count number of times a node is used locally
-    unsigned int ElemIndex = 0;
-    for (IO::ConnectivitiesContainerType::const_iterator iElem = rElementConnectivities.begin(); iElem != rElementConnectivities.end(); iElem++)
-    {
-        for (std::vector<std::size_t>::const_iterator iNode = iElem->begin(); iNode != iElem->end(); iNode++)
-            if ( rNodePartition[ *iNode-1] == rElementPartition[ ElemIndex ] )
-                NodeUseCounts[ *iNode-1 ]++;
-        ElemIndex++;
-    }
-
-    unsigned int CondIndex = 0;
-    for (IO::ConnectivitiesContainerType::const_iterator iCond = rConditionConnectivities.begin(); iCond != rConditionConnectivities.end(); iCond++)
-    {
-        for (std::vector<std::size_t>::const_iterator iNode = iCond->begin(); iNode != iCond->end(); iNode++)
-            if ( rNodePartition[ *iNode-1] == rConditionPartition[ CondIndex ] )
-                NodeUseCounts[ *iNode-1 ]++;
-        CondIndex++;
-    }
-
-    std::vector<std::size_t> HangingNodes;
-    for (unsigned int i = 0; i < NodeUseCounts.size(); i++)
-        if( NodeUseCounts[i] == 0 )
-            HangingNodes.push_back( i+1 );
-
-    if (mVerbosity > 0)
-    {
-        if (HangingNodes.size() > 0)
-            KRATOS_INFO("MetisDivideHeterogeneousInputProcess") << "Relocating " << HangingNodes.size() << " isolated nodes." << std::endl;
-        else
-            KRATOS_INFO("MetisDivideHeterogeneousInputProcess") << "No isolated nodes found." << std::endl;
-    }
-
-    // Find a new home for hanging nodes
-    for (unsigned int n = 0; n < HangingNodes.size(); n++)
-    {
-        std::vector<int> LocalUseCount(mNumberOfPartitions,0);
-        unsigned int ElemIndex = 0;
-
-        for (IO::ConnectivitiesContainerType::const_iterator iElem = rElementConnectivities.begin(); iElem != rElementConnectivities.end(); iElem++)
-        {
-            for (std::vector<std::size_t>::const_iterator iNode = iElem->begin(); iNode != iElem->end(); iNode++)
-                if ( HangingNodes[n] == *iNode )
-                    LocalUseCount[ rElementPartition[ElemIndex] ]++;
-            ElemIndex++;
-        }
-
-        unsigned int CondIndex = 0;
-        for (IO::ConnectivitiesContainerType::const_iterator iCond = rConditionConnectivities.begin(); iCond != rConditionConnectivities.end(); iCond++)
-        {
-            for (std::vector<std::size_t>::const_iterator iNode = iCond->begin(); iNode != iCond->end(); iNode++)
-                if ( HangingNodes[n] == *iNode )
-                    LocalUseCount[ rConditionPartition[CondIndex] ]++;
-            CondIndex++;
-        }
-
-        SizeType Destination = FindMax(mNumberOfPartitions,LocalUseCount);
-
-        KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0) << "Sending node " << HangingNodes[n] << " to partition " << Destination << std::endl;
-
-        rNodePartition[ HangingNodes[n]-1 ] = Destination;
-    }
-
-    KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0 && HangingNodes.size() > 0)  << "Relocated " << HangingNodes.size() << " isolated nodes." << std::endl;
 }
 
 void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
