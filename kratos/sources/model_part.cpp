@@ -192,6 +192,7 @@ void ModelPart::Reset()
     // construct a new variable list and process info. Old data ptrs is not destroyed
     // since, same data may be shared with some other model parts as well.
     mpVariablesList = Kratos::make_intrusive<VariablesList>();
+    // only reset mpProcessInfo if this is not a sub model part because sub model parts have nullptr
     if (!IsSubModelPart()) {
         mpProcessInfo = Kratos::make_shared<ProcessInfo>();
     }
@@ -2295,6 +2296,7 @@ void ModelPart::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     rSerializer.save("Name", mName);
     rSerializer.save("Buffer Size", mBufferSize);
+    // only serialize mpProcessInfo if this is not a sub model part because sub model parts have nullptr
     if (!IsSubModelPart()) {
         rSerializer.save("ProcessInfo", mpProcessInfo);
     }
@@ -2323,8 +2325,12 @@ void ModelPart::load(Serializer& rSerializer)
         << "trying to load a model part called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
 
     rSerializer.load("Buffer Size", mBufferSize);
+    // only load mpProcessInfo if this is not a sub model part otherwise, set it to nullptr
     if (!IsSubModelPart()) {
         rSerializer.load("ProcessInfo", mpProcessInfo);
+    }
+    else {
+        this->mpProcessInfo = nullptr;
     }
     rSerializer.load("Tables", mTables);
     rSerializer.load("Variables List", mpVariablesList);
