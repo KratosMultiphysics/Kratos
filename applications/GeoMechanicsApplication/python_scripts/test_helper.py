@@ -311,15 +311,21 @@ def get_total_stress_tensor(simulation):
     return total_stress_tensors
 
 
-def get_on_integration_points(simulation, kratos_variable):
+def get_on_integration_points(model_obj, kratos_variable):
     """
     Gets the values of a Kratos variables on all integration points within a model part
 
     :param simulation:
     :return: local stress vector
     """
-    model_part = simulation._list_of_output_processes[0].model_part
+
+    if hasattr(model_obj, "_list_of_output_processes"):
+        model_part = model_obj._list_of_output_processes[0].model_part
+    else:
+        model_part = model_obj
+
     elements = model_part.Elements
+    print(f"Len elements: {len(elements)}")
     results = [element.CalculateOnIntegrationPoints(
         kratos_variable, model_part.ProcessInfo) for element in elements]
     return results
