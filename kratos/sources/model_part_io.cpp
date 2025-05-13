@@ -1114,7 +1114,6 @@ void ModelPartIO::FillNodalConnectivitiesFromGeometryBlockInList(
             break;
 
         ExtractValue(word,id);
-        ReadWord(word); // Reading the properties id;
         temp_geometry_nodes.clear();
         for(SizeType i = 0 ; i < n_nodes_in_elem ; i++) {
             ReadWord(word); // Reading the node id;
