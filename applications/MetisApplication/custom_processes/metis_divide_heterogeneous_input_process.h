@@ -224,12 +224,67 @@ protected:
         std::vector<idxtype>& rMasterSlaveConstraintPartition
         );
 
+    /**
+     * @brief Redistribute hanging nodes among the partitions.
+     * @details This function adjusts the node partitioning by redistributing hanging nodes 
+     * based on the partition information provided for elements and conditions, as well 
+     * as their connectivity data. The redistribution ensures consistent partitioning 
+     * across the computational domain.
+     * @param rNodePartition A reference to the vector storing the partition indices for nodes.
+     *                       The vector will be updated with new partition assignment for hanging nodes.
+     * @param rElementPartition A const reference to the vector holding partition indices for elements.
+     *                          This is used to propagate partitioning information to the nodes.
+     * @param rElementConnectivities A const reference to the container with connectivity 
+     *                               data for elements. This helps determine node associations from elements.
+     * @param rConditionPartition A const reference to the vector containing partition indices for conditions.
+     *                            Condition partitioning is used to manage nodes associated with conditions.
+     * @param rConditionConnectivities A const reference to the container with connectivity data
+     *                                 for conditions. This is used to correctly assign node partitions based on condition connectivity.
+     */
     void RedistributeHangingNodes(
             std::vector<idxtype>& rNodePartition,
             std::vector<idxtype> const& rElementPartition,
             const IO::ConnectivitiesContainerType& rElementConnectivities,
             std::vector<idxtype> const& rConditionPartition,
-            const IO::ConnectivitiesContainerType& rConditionConnectivities);
+            const IO::ConnectivitiesContainerType& rConditionConnectivities
+            );
+
+    /**
+     * @brief Redistribute hanging nodes among the partitions including geometries and master-slave constraints.
+     * @details This function adjusts the node partitioning by redistributing hanging nodes 
+     * based on the partition information provided for elements, conditions, geometries, and master-slave constraints,
+     * as well as their connectivity data. The redistribution ensures consistent partitioning 
+     * across the computational domain.
+     * @param rNodePartition A reference to the vector storing the partition indices for nodes.
+     *                       The vector will be updated with new partition assignment for hanging nodes.
+     * @param rGeometryPartition A const reference to the vector holding partition indices for geometries.
+     *                           This is used to propagate partitioning information from geometries.
+     * @param rGeometryConnectivities A const reference to the container with connectivity data
+     *                                for geometries.
+     * @param rElementPartition A const reference to the vector holding partition indices for elements.
+     *                          This is used to propagate partitioning information to the nodes.
+     * @param rElementConnectivities A const reference to the container with connectivity 
+     *                               data for elements. This helps determine node associations from elements.
+     * @param rConditionPartition A const reference to the vector containing partition indices for conditions.
+     *                            Condition partitioning is used to manage nodes associated with conditions.
+     * @param rConditionConnectivities A const reference to the container with connectivity data
+     *                                 for conditions. This is used to correctly assign node partitions based on condition connectivity.
+     * @param rMasterSlaveConstraintPartition A const reference to the vector holding partition indices for master-slave constraints.
+     *                                          This is used to propagate partitioning information from master-slave constraints.
+     * @param rMasterSlaveConstraintConnectivities A const reference to the container with connectivity data
+     *                                             for master-slave constraints.
+     */
+    void RedistributeHangingNodes(
+            std::vector<idxtype>& rNodePartition,
+            std::vector<idxtype> const& rGeometryPartition,
+            const IO::ConnectivitiesContainerType& rGeometryConnectivities,
+            std::vector<idxtype> const& rElementPartition,
+            const IO::ConnectivitiesContainerType& rElementConnectivities,
+            std::vector<idxtype> const& rConditionPartition,
+            const IO::ConnectivitiesContainerType& rConditionConnectivities,
+            std::vector<idxtype> const& rMasterSlaveConstraintPartition,
+            const IO::ConnectivitiesContainerType& rMasterSlaveConstraintConnectivities
+            );
 
     SizeType FindMax(SizeType NumTerms, const std::vector<int>& rVect);
 

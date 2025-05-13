@@ -687,9 +687,9 @@ void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
     if (mVerbosity > 0)
     {
         if (HangingNodes.size() > 0)
-            std::cout << "Relocating " << HangingNodes.size() << " isolated nodes." << std::endl;
+            KRATOS_INFO("MetisDivideHeterogeneousInputProcess") << "Relocating " << HangingNodes.size() << " isolated nodes." << std::endl;
         else
-            std::cout << "No isolated nodes found." << std::endl;
+            KRATOS_INFO("MetisDivideHeterogeneousInputProcess") << "No isolated nodes found." << std::endl;
     }
 
     // Find a new home for hanging nodes
@@ -717,14 +717,144 @@ void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
 
         SizeType Destination = FindMax(mNumberOfPartitions,LocalUseCount);
 
-        if (mVerbosity > 0)
-            std::cout << "Sending node " << HangingNodes[n] << " to partition " << Destination << std::endl;
+        KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0) << "Sending node " << HangingNodes[n] << " to partition " << Destination << std::endl;
 
         rNodePartition[ HangingNodes[n]-1 ] = Destination;
     }
 
-    if (mVerbosity > 0 && HangingNodes.size() > 0)
-        std::cout << "Relocated " << HangingNodes.size() << " isolated nodes." << std::endl;
+    KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0 && HangingNodes.size() > 0)  << "Relocated " << HangingNodes.size() << " isolated nodes." << std::endl;
+}
+
+void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
+    std::vector<idxtype>& rNodePartition,
+    std::vector<idxtype> const& rGeometryPartition,
+    const IO::ConnectivitiesContainerType& rGeometryConnectivities,
+    std::vector<idxtype> const& rElementPartition,
+    const IO::ConnectivitiesContainerType& rElementConnectivities,
+    std::vector<idxtype> const& rConditionPartition,
+    const IO::ConnectivitiesContainerType& rConditionConnectivities,
+    std::vector<idxtype> const& rMasterSlaveConstraintPartition,
+    const IO::ConnectivitiesContainerType& rMasterSlaveConstraintConnectivities
+    )
+{
+    // Initialize node use counts
+    std::vector<int> node_use_counts(rNodePartition.size(),0);
+
+    // Count number of times a node is used locally in geometries
+    std::size_t geometry_index = 0;
+    for (auto it_geom = rGeometryConnectivities.begin(); it_geom != rGeometryConnectivities.end(); it_geom++) {
+        for (auto it_node = it_geom->begin(); it_node != it_geom->end(); it_node++) {
+            if ( rNodePartition[ *it_node-1] == rGeometryPartition[ geometry_index ] ) {
+                node_use_counts[ *it_node-1 ]++;
+            }
+        }
+        geometry_index++;
+    }
+
+    // Count number of times a node is used locally in elements
+    std::size_t element_index = 0;
+    for (auto it_elem = rElementConnectivities.begin(); it_elem != rElementConnectivities.end(); it_elem++) {
+        for (auto it_node = it_elem->begin(); it_node != it_elem->end(); it_node++) {
+            if ( rNodePartition[ *it_node-1] == rElementPartition[ element_index ] ) {
+                node_use_counts[ *it_node-1 ]++;
+            }
+        }
+        element_index++;
+    }
+
+    // Count number of times a node is used locally in conditions
+    std::size_t condition_index = 0;
+    for (auto it_cond = rConditionConnectivities.begin(); it_cond != rConditionConnectivities.end(); it_cond++) {
+        for (auto it_node = it_cond->begin(); it_node != it_cond->end(); it_node++) {
+            if ( rNodePartition[ *it_node-1] == rConditionPartition[ condition_index ] ) {
+                node_use_counts[ *it_node-1 ]++;
+            }
+        }
+        condition_index++;
+    }
+
+    // Count number of times a node is used locally in master-slave constraints
+    std::size_t constraint_index = 0;
+    for (auto it_const = rMasterSlaveConstraintConnectivities.begin(); it_const != rMasterSlaveConstraintConnectivities.end(); it_const++) {
+        for (auto it_node = it_const->begin(); it_node != it_const->end(); it_node++) {
+            if ( rNodePartition[*it_node-1] == rMasterSlaveConstraintPartition[constraint_index] ) {
+                node_use_counts[*it_node-1]++;
+            }
+        }
+        constraint_index++;
+    }
+
+    std::vector<std::size_t> hanging_nodes;
+    for (std::size_t i = 0; i < node_use_counts.size(); i++) {
+        if( node_use_counts[i] == 0 ) {
+            hanging_nodes.push_back( i+1 );
+        }
+    }
+
+    if (mVerbosity > 0) {
+        if (hanging_nodes.size() > 0) {
+            KRATOS_INFO("MetisDivideHeterogeneousInputProcess") << "Relocating " << hanging_nodes.size() << " isolated nodes." << std::endl;
+        } else {
+            KRATOS_INFO("MetisDivideHeterogeneousInputProcess") << "No isolated nodes found." << std::endl;
+        }
+    }
+
+    // Find a new home for hanging nodes
+    for (std::size_t n = 0; n < hanging_nodes.size(); n++) {
+        std::vector<int> local_use_count(mNumberOfPartitions,0);
+
+        // Count number of times a node is used locally in geometries
+        std::size_t geometry_index = 0;
+        for (auto it_geom = rGeometryConnectivities.begin(); it_geom != rGeometryConnectivities.end(); it_geom++) {
+            for (auto it_node = it_geom->begin(); it_node != it_geom->end(); it_node++) {
+                if ( hanging_nodes[n] == *it_node ) {
+                    local_use_count[rGeometryPartition[geometry_index]]++;
+                }
+            }
+            geometry_index++;
+        }
+
+        // Count number of times a node is used locally in elements
+        std::size_t element_index = 0;
+        for (auto it_elem = rElementConnectivities.begin(); it_elem != rElementConnectivities.end(); it_elem++) {
+            for (auto it_node = it_elem->begin(); it_node != it_elem->end(); it_node++) {
+                if ( hanging_nodes[n] == *it_node ) {
+                    local_use_count[rElementPartition[element_index]]++;
+                }
+            }
+            element_index++;
+        }
+
+        // Count number of times a node is used locally in conditions
+        std::size_t condition_index = 0;
+        for (auto it_cond = rConditionConnectivities.begin(); it_cond != rConditionConnectivities.end(); it_cond++) {
+            for (auto it_node = it_cond->begin(); it_node != it_cond->end(); it_node++) {
+                if ( hanging_nodes[n] == *it_node ) {
+                    local_use_count[rConditionPartition[condition_index]]++;
+                }
+            }
+            condition_index++;
+        }
+
+        // Count number of times a node is used locally in master-slave constraints
+        std::size_t constraint_index = 0;
+        for (auto it_const = rMasterSlaveConstraintConnectivities.begin(); it_const != rMasterSlaveConstraintConnectivities.end(); it_const++) {
+            for (auto it_node = it_const->begin(); it_node != it_const->end(); it_node++) {
+                if ( hanging_nodes[n] == *it_node ) {
+                    local_use_count[rMasterSlaveConstraintPartition[constraint_index]]++;
+                }
+            }
+            constraint_index++;
+        }
+
+        const SizeType destination = FindMax(mNumberOfPartitions,local_use_count);
+
+        KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0) << "Sending node " << hanging_nodes[n] << " to partition " << destination << std::endl;
+
+        rNodePartition[hanging_nodes[n]-1] = destination;
+    }
+
+    KRATOS_INFO_IF("MetisDivideHeterogeneousInputProcess", mVerbosity > 0 && hanging_nodes.size() > 0)  << "Relocated " << hanging_nodes.size() << " isolated nodes." << std::endl;
 }
 
 MetisDivideHeterogeneousInputProcess::SizeType MetisDivideHeterogeneousInputProcess::FindMax(SizeType NumTerms, const std::vector<int>& rVect)
