@@ -33,7 +33,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
     // Partition geometries
     IO::ConnectivitiesContainerType geometry_connectivities;
-    SizeType number_of_geometries = mrIO.ReadGeometriesConnectivities(geometry_connectivities);
+    const SizeType number_of_geometries = mrIO.ReadGeometriesConnectivities(geometry_connectivities);
     if (number_of_geometries != geometry_connectivities.size()) {
         std::stringstream Msg;
         Msg << std::endl;
@@ -52,7 +52,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
     // Partition elements
     IO::ConnectivitiesContainerType element_connectivities;
-    SizeType number_of_elements =  mrIO.ReadElementsConnectivities(element_connectivities);
+    const SizeType number_of_elements =  mrIO.ReadElementsConnectivities(element_connectivities);
     if (number_of_elements != element_connectivities.size()) {
         std::stringstream Msg;
         Msg << std::endl;
@@ -71,7 +71,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
     // Partition conditions
     IO::ConnectivitiesContainerType condition_connectivities;
-    SizeType number_of_conditions = mrIO.ReadConditionsConnectivities(condition_connectivities);
+    const SizeType number_of_conditions = mrIO.ReadConditionsConnectivities(condition_connectivities);
     if (number_of_conditions != condition_connectivities.size()) {
         std::stringstream Msg;
         Msg << std::endl;
@@ -88,7 +88,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
     // Partition master-slave constraints // TODO
     IO::ConnectivitiesContainerType master_slave_constraints_connectivities;
-    SizeType number_of_master_slave_constraints = mrIO.ReadMasterSlaveConstraintsConnectivities(master_slave_constraints_connectivities);
+    const SizeType number_of_master_slave_constraints = mrIO.ReadMasterSlaveConstraintsConnectivities(master_slave_constraints_connectivities);
     if (number_of_master_slave_constraints != master_slave_constraints_connectivities.size()) {
         std::stringstream Msg;
         Msg << std::endl;
@@ -98,7 +98,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
         KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
     }
     std::vector<idxtype> master_slave_constraints_partition;
-    if (mSynchronizeMasterSlaveConstraints)
+    if (mSynchronizeConditions)
         PartitionMasterSlaveConstraintsSynchronous(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
     else
         PartitionMesh(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
@@ -128,7 +128,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
     LegacyPartitioningUtilities::DividingGeometries(rPartitioningInfo.GeometriesAllPartitions, geometry_partition);
     LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, element_partition);
     LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, condition_partition);
-    LegacyPartitioningUtilities::DividingMasterSlaveConstraints(rPartitioningInfo.MasterSlaveConstraintsAllPartitions, master_slave_constraints_partition);
+    LegacyPartitioningUtilities::DividingMasterSlaveConstraints(rPartitioningInfo.ConstraintsAllPartitions, master_slave_constraints_partition);
 
     if (mVerbosity > 1) {
         auto& r_nodes_all_partitions = rPartitioningInfo.NodesAllPartitions;
@@ -145,7 +145,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
     rPartitioningInfo.GeometriesPartitions.assign(geometry_partition.begin(), geometry_partition.end());
     rPartitioningInfo.ElementsPartitions.assign(element_partition.begin(), element_partition.end());
     rPartitioningInfo.ConditionsPartitions.assign(condition_partition.begin(), condition_partition.end());
-    rPartitioningInfo.MasterSlaveConstraints.assign(master_slave_constraints_partition.begin(), master_slave_constraints_partition.end());
+    rPartitioningInfo.ConstraintsPartitions.assign(master_slave_constraints_partition.begin(), master_slave_constraints_partition.end());
 }
 
 void MetisDivideHeterogeneousInputProcess::Execute()
@@ -615,7 +615,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchr
     // Now distribute boundary constraints
     it_master_slave_constraint = rMasterSlaveConstraintConnectivities.begin();
     for (auto it_part = rMasterSlaveConstraintPartition.begin(); it_part != rMasterSlaveConstraintPartition.end(); it_part++) {
-        if (*it_part == -1) // If constraint is still unassigned {
+        if (*it_part == -1) { // If constraint is still unassigned
             SizeType found_neighbours = 0;
             SizeType nodes_in_master_slave_constraint = it_master_slave_constraint->size();
             std::vector<int> neighbour_partitions(nodes_in_master_slave_constraint,-1);
@@ -623,7 +623,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchr
 
             for (auto it_node = it_master_slave_constraint->begin(); it_node != it_master_slave_constraint->end(); ++it_node) {
                 // Check if the node's partition was already found in this constraint
-                const int my_partition = NodePartition[ *it_node - 1 ]; // This node's partition
+                const int my_partition = NodePartition[*it_node - 1]; // This node's partition
                 SizeType i=0;
                 for (i = 0; i < found_neighbours; i++) {
                     if (my_partition == neighbour_partitions[i]) {
