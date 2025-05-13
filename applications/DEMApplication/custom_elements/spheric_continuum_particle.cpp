@@ -230,6 +230,47 @@ namespace Kratos {
         }
 
         bond_contact_area = Globals::Pi * Rbond * Rbond;
+
+        /*
+        if (r_process_info[DO_ADJUST_BOND_CONTACT_AREA]) {
+            const double bond_contact_area_scale_factor = r_process_info[BOND_CONTACT_AREA_SCALE_FACTOR];
+            const double bond_contact_mean_area_old = r_process_info[BOND_CONTACT_MEAN_AREA_OLD];
+            const double bond_contact_mean_area_new = r_process_info[BOND_CONTACT_MEAN_AREA_NEW];
+            bond_contact_area = bond_contact_area_scale_factor * (bond_contact_area - bond_contact_mean_area_old) + bond_contact_mean_area_new;
+            
+            if (bond_contact_area < 0.0) {
+                bond_contact_area *= -1.0;
+            }
+
+            const double bond_contact_area_small_percentage = r_process_info[BOND_CONTACT_AREA_SMALL_PERCENTAGE];
+            const double bond_contact_area_small_minimum = r_process_info[BOND_CONTACT_AREA_SMALL_MINIMUM];
+            const double bond_contact_area_small_maximum = r_process_info[BOND_CONTACT_AREA_SMALL_MAXIMUM];
+
+            if ((static_cast<double>(rand()) / RAND_MAX) < bond_contact_area_small_percentage) {
+                bond_contact_area = static_cast<double>(rand()) / RAND_MAX * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
+            }
+        }*/
+
+        //TODO: temporary code 
+        bool do_adjust_bond_contact_area = false;
+        if (do_adjust_bond_contact_area) {
+            const double bond_contact_area_scale_factor = 1.5;
+            const double bond_contact_mean_area_old = 5736e-12;
+            const double bond_contact_mean_area_new = 2365e-12;
+            bond_contact_area = bond_contact_area_scale_factor * (bond_contact_area - bond_contact_mean_area_old) + bond_contact_mean_area_new;
+            
+            if (bond_contact_area < 0.0) {
+                bond_contact_area *= -1.0;
+            }
+
+            const double bond_contact_area_small_percentage = 0.08;
+            const double bond_contact_area_small_minimum = 1.0e-12;
+            const double bond_contact_area_small_maximum = 5.0e-11;
+
+            if ((static_cast<double>(rand()) / RAND_MAX) < bond_contact_area_small_percentage) {
+                bond_contact_area = static_cast<double>(rand()) / RAND_MAX * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
+            }
+        }
     }
 
     void SphericContinuumParticle::CalculateBondVolume(const double distance,
