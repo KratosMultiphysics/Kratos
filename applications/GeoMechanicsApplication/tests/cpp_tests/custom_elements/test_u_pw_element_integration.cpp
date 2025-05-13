@@ -12,7 +12,6 @@
 
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace Kratos::Testing
 {

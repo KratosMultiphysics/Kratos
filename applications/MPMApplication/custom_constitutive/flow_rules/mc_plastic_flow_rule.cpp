@@ -44,7 +44,7 @@ MCPlasticFlowRule::MCPlasticFlowRule(YieldCriterionPointer pYieldCriterion)
 
 }
 
-//********* ASSIGMENT OPERATOR
+//********* ASSIGNMENT OPERATOR
 MCPlasticFlowRule& MCPlasticFlowRule::operator=(MCPlasticFlowRule const& rOther)
 {
     MPMFlowRule::operator=(rOther);
@@ -429,7 +429,7 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
 
     BoundedVector<double,3> principal_stress = ZeroVector(3);
 
-    // Evalute the Kirchhoff principal stress
+    // Evaluate the Kirchhoff principal stress
     principal_stress = prod(ElasticMatrix, main_strain);
 
     for(unsigned int i=0; i<3; i++)

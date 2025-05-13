@@ -479,7 +479,7 @@ void HelmholtzSurfShapeCondition::CalculateSurfaceStiffnessMatrix(
         noalias(A_dirc) += integration_weight * r_helmholtz * r_helmholtz * prod(DN_DX_t, trans(DN_DX_t));
     }
 
-    //contruct the stifness matrix in all dims
+    //construct the stiffness matrix in all dims
     for(IndexType i=0;i<number_of_nodes;i++)
         for(IndexType j=0;j<dimension;j++)
             for(IndexType k=0;k<number_of_nodes;k++)

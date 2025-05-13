@@ -251,6 +251,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D5N", mUPwFaceLoadCondition2D5N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D3N", mUPwFaceLoadCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D4N", mUPwFaceLoadCondition3D4N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D6N", mUPwFaceLoadCondition3D6N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D8N", mUPwFaceLoadCondition3D8N)
     KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D2N", mUPwNormalFaceLoadCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D3N", mUPwNormalFaceLoadCondition2D3N)
     KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D4N", mUPwNormalFaceLoadCondition2D4N)
@@ -318,6 +320,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition2D3N", mUPwLysmerAbsorbingCondition2D3N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D3N", mUPwLysmerAbsorbingCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D4N", mUPwLysmerAbsorbingCondition3D4N)
+    KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D6N", mUPwLysmerAbsorbingCondition3D6N)
+    KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition3D8N", mUPwLysmerAbsorbingCondition3D8N)
 
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D2N", mGeoTNormalFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition2D3N", mGeoTNormalFluxCondition2D3N)
@@ -365,6 +369,11 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw", mTrussBackboneConstitutiveLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Geo_IncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombWithTensionCutOff2D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombWithTensionCutOff3D)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulombWithTensionCutOff)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)

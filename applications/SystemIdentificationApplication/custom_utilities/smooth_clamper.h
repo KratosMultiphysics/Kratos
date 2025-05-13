@@ -47,6 +47,33 @@ public:
     ///@{
 
     /**
+     * @brief Clamps the given value smoothly.
+     * @details The input value (x) can be in [-infty, +infty] range. But the output (y) will be in
+     *          [Min, Max] range.
+     *
+     * @param X            Value to be clamped.
+     * @return double       Clamped value.
+     */
+    double ProjectForward(const double X) const;
+
+    /**
+     * @brief Compute the derivative dy/dx at given X for clamping.
+     * @details Computes the clamped derivative where clamped value is Y and input is X, and the
+     *          derivative is dY/dX
+     *
+     * @param X            Input value in input space.
+     * @return double       Output with dY/dX.
+     */
+    double CalculateForwardProjectionGradient(const double X) const;
+
+    /**
+     * @brief Computes the X given Y.
+     * @param Y        Input value in clamped space.
+     * @return double  Output value in input space.
+     */
+    double ProjectBackward(const double Y) const;
+
+    /**
      * @brief Clamps the given input expression smoothly.
      * @details The input value (x) can be in [-infty, +infty] range. But the output (y) will be in
      *          [Min, Max] range.
@@ -80,6 +107,8 @@ private:
     const double mMin;
 
     const double mMax;
+
+    const double mDelta;
 
     ///@}
 };

@@ -48,7 +48,7 @@ public:
     int RunStage(const std::filesystem::path&            rWorkingDirectory,
                  const std::filesystem::path&            rProjectParametersFile,
                  const std::function<void(const char*)>& rLogCallback,
-                 const std::function<void(double)>&      rReportProgress,
+                 const std::function<void(double)>&      rProgressDelegate,
                  const std::function<void(const char*)>& rReportTextualProgress,
                  const std::function<bool()>&            rShouldCancel);
 

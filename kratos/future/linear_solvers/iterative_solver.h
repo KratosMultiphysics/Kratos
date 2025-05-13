@@ -59,14 +59,10 @@ namespace Kratos::Future
   right hand sides and their operators.
     - TPreconditionerType  which specify type of the preconditioner to be used.
     - TStopCriteriaType for specifying type of the object which control the stop criteria for iteration loop.
-    - TReordererType which specify type of the Orderer that performs the reordering of matrix to optimize the solution.
 */
 template<
-    class TMatrixType = CsrMatrix<>,
-    class TVectorType = SystemVector<>,
-    class TPreconditionerType = Preconditioner<TMatrixType, TMatrixType>,
-    class TReordererType = Reorderer<TMatrixType, TMatrixType> >
-class IterativeSolver : public Future::LinearSolver<TMatrixType, TVectorType, TReordererType>
+    class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>, class TPreconditionerType = Preconditioner<TMatrixType, TMatrixType>>
+class IterativeSolver : public Future::LinearSolver<TMatrixType, TVectorType>
 {
 public:
     ///@name Type Definitions
@@ -75,7 +71,7 @@ public:
     /// Pointer definition of IterativeSolver
     KRATOS_CLASS_POINTER_DEFINITION(IterativeSolver);
 
-    using BaseType = Future::LinearSolver<TMatrixType, TVectorType, TReordererType>;
+    using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
 
     using SparseMatrixType = TMatrixType;
 
@@ -501,21 +497,19 @@ private:
 
 
 /// input stream function
-template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType,
-         class TReordererType>
-inline std::istream& operator >> (std::istream& IStream,
-                                  IterativeSolver<TSparseSpaceType, TDenseSpaceType,
-                                  TPreconditionerType, TReordererType>& rThis)
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType>
+inline std::istream& operator >> (
+    std::istream& IStream,
+    IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType>& rThis)
 {
     return IStream;
 }
 
 /// output stream function
-template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType,
-         class TReordererType>
-inline std::ostream& operator << (std::ostream& OStream,
-                                  const IterativeSolver<TSparseSpaceType, TDenseSpaceType,
-                                  TPreconditionerType, TReordererType>& rThis)
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType>
+inline std::ostream& operator << (
+    std::ostream& OStream,
+    const IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType>& rThis)
 {
     rThis.PrintInfo(OStream);
     OStream << std::endl;

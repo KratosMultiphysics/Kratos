@@ -17,10 +17,12 @@
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "integration_coefficients_calculator.h"
 
 namespace Kratos
 {
@@ -33,24 +35,32 @@ public:
 
     explicit TransientThermalElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+    TransientThermalElement(IndexType             NewId,
+                            GeometryType::Pointer pGeometry,
+                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : Element(NewId, pGeometry), mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
-    TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+    TransientThermalElement(IndexType               NewId,
+                            GeometryType::Pointer   pGeometry,
+                            PropertiesType::Pointer pProperties,
+                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : Element(NewId, pGeometry, pProperties),
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientThermalElement>(NewId, GetGeometry().Create(rThisNodes), pProperties);
+        return make_intrusive<TransientThermalElement>(NewId, GetGeometry().Create(rThisNodes), pProperties,
+                                                       this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientThermalElement>(NewId, pGeom, pProperties);
+        return make_intrusive<TransientThermalElement>(NewId, pGeom, pProperties,
+                                                       this->CloneIntegrationCoefficientModifier());
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
@@ -85,7 +95,8 @@ public:
                                                                    GetIntegrationMethod());
         }
 
-        const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
+        const auto integration_coefficients = mIntegrationCoefficientsCalculator.Run<Vector>(
+            GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
         const auto conductivity_matrix = CalculateConductivityMatrix(dN_dX_container, integration_coefficients);
         const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
@@ -114,7 +125,7 @@ public:
     {
         KRATOS_TRY
 
-        CheckDomainSize();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckHasSolutionStepsDataFor(TEMPERATURE);
         CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
         CheckHasDofsFor(TEMPERATURE);
@@ -126,13 +137,13 @@ public:
         return 0;
     }
 
-private:
-    void CheckDomainSize() const
+    std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const
     {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
+        return mIntegrationCoefficientsCalculator.CloneModifier();
     }
+
+private:
+    IntegrationCoefficientsCalculator mIntegrationCoefficientsCalculator;
 
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
@@ -219,24 +230,6 @@ private:
         const auto conductivity_vector =
             array_1d<double, TNumNodes>{-prod(rConductivityMatrix, GetNodalValuesOf(TEMPERATURE))};
         rRightHandSideVector += conductivity_vector;
-    }
-
-    Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
-    {
-        const auto& r_properties         = GetProperties();
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-
-        auto result = Vector{r_integration_points.size()};
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < r_integration_points.size(); ++integration_point_index) {
-            result[integration_point_index] = r_integration_points[integration_point_index].Weight() *
-                                              rDetJContainer[integration_point_index];
-            if (GetGeometry().LocalSpaceDimension() == 1) {
-                result[integration_point_index] *= r_properties[CROSS_AREA];
-            }
-        }
-
-        return result;
     }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(
