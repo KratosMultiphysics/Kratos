@@ -46,7 +46,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
     std::vector<idxtype> geometry_partition;
 
     if (mSynchronizeConditions)
-        PartitionElementsSynchronous(node_partition,geometry_connectivities, geometry_partition);
+        PartitionGeometriesSynchronous(node_partition,geometry_connectivities, geometry_partition);
     else
         PartitionMesh(node_partition, geometry_connectivities, geometry_partition);
 
