@@ -84,7 +84,7 @@ SolidShellElementSprism3D6N::~SolidShellElementSprism3D6N()
 {
 }
 
-/********************************** ASSIGMENT OPERATOR *****************************/
+/********************************** ASSIGNMENT OPERATOR ****************************/
 /***********************************************************************************/
 
 SolidShellElementSprism3D6N&  SolidShellElementSprism3D6N::operator=(SolidShellElementSprism3D6N const& rOther)
@@ -503,7 +503,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
 
     noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
 
-    // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    // 1.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0.0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) ) {
         alpha = GetProperties()[RAYLEIGH_ALPHA];
@@ -2088,7 +2088,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
     KRATOS_TRY;
 
     /* Mid-surface vectors */
-    double norm; // TODO: Use the geometry normal when avalaible
+    double norm; // TODO: Use the geometry normal when available
     array_1d<double, 3 > vxe, vye;
     if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) {
         vxe[0] = 0.5 * ((GetGeometry()[2].X0() + GetGeometry()[5].X0()) - (GetGeometry()[1].X0() + GetGeometry()[4].X0()));
