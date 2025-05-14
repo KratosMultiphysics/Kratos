@@ -23,7 +23,6 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
-#include "integration/line_collocation_integration_points.h"
 #include "utilities/intersection_utilities.h"
 #include "utilities/geometry_utilities.h"
 namespace Kratos

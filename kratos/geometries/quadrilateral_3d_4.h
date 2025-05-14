@@ -26,7 +26,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
-#include "integration/quadrilateral_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/geometry_utilities.h"
 

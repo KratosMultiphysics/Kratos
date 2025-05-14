@@ -26,7 +26,6 @@
 #include "geometries/plane_3d.h"
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
-#include "integration/triangle_collocation_integration_points.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/intersection_utilities.h"
@@ -1022,10 +1021,10 @@ public:
             }
             sum_coordinates += rProjectionPointLocalCoordinates[i];
         }
-        
+
         // Clipping to line y=1-x
         if (sum_coordinates>1.0){
-            for(unsigned int i = 0 ; i < 2 ; i++){ 
+            for(unsigned int i = 0 ; i < 2 ; i++){
                 rProjectionPointLocalCoordinates[i] /= sum_coordinates;
             }
         }

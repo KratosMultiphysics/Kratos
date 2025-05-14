@@ -24,7 +24,6 @@
 #include "geometries/geometry.h"
 #include "geometries/line_3d_2.h"
 #include "integration/line_gauss_legendre_integration_points.h"
-#include "integration/line_collocation_integration_points.h"
 #include "utilities/integration_utilities.h"
 #include "utilities/polynomial_utilities.h"
 
