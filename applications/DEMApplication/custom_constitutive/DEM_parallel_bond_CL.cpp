@@ -450,11 +450,11 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         mBondedLocalElasticContactForce2 = kn_el * bonded_indentation;
     } else { //else the bond is broken
         //if the bond is broken, we still calculate the normal compressive force but not the normal tensile force //TODO:If the bond disappears, this will not work
-        //if (bonded_indentation > 0.0){
-        //    mBondedLocalElasticContactForce2 = kn_el * bonded_indentation;
-        //} else {
+        if (bonded_indentation > 0.0){
+            mBondedLocalElasticContactForce2 = kn_el * bonded_indentation;
+        } else {
             mBondedLocalElasticContactForce2 = 0.0;
-        //}
+        }
         //mBondedLocalElasticContactForce2 = 0.0;
     }
 
