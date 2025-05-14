@@ -694,10 +694,6 @@ void  AddMeshToPython(pybind11::module& m)
     .def("ConditionsArray", &MeshType::ConditionsArray, py::return_value_policy::reference_internal)
     .def("NumberOfConditions", &MeshType::NumberOfConditions)
 
-    .def_property("Conditions", &MeshType::pConditions,&MeshType::SetConditions)
-    .def("ConditionsArray", &MeshType::ConditionsArray, py::return_value_policy::reference_internal)
-    .def("NumberOfConditions", &MeshType::NumberOfConditions)
-
     .def_property("MasterSlaveConstraints", &MeshType::pMasterSlaveConstraints,&MeshType::SetMasterSlaveConstraints)
     .def("MasterSlaveConstraintsArray", &MeshType::MasterSlaveConstraintsArray, py::return_value_policy::reference_internal)
     .def("NumberOfMasterSlaveConstraints", &MeshType::NumberOfMasterSlaveConstraints)
