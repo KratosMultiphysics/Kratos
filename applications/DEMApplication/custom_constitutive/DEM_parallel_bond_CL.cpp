@@ -823,8 +823,8 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                                 ViscoLocalRotationalMoment, 
                                 equiv_poisson, 
                                 indentation);
-
-        CalculateBondRotationalDamping(element, neighbor, LocalCoordSystem, ViscoLocalRotationalMoment);     
+        //TODO: use when necessary
+        //CalculateBondRotationalDamping(element, neighbor, LocalCoordSystem, ViscoLocalRotationalMoment);     
     }            
 
     DemContact::ComputeParticleContactMoments(normalLocalContactForce,
@@ -944,6 +944,7 @@ void DEM_parallel_bond::CalculateBondRotationalDamping(SphericContinuumParticle*
                                                 LocalElement1AngularVelocity[2] * LocalElement1AngularVelocity[2]);
 
     if (element1AngularVelocity_modulus){
+        //TODO: not working for periodic boundaries
         array_1d<double, 3> other_to_me_vect;
         noalias(other_to_me_vect) = element->GetGeometry()[0].Coordinates() - neighbor->GetGeometry()[0].Coordinates();
         double bond_center_point_to_element1_mass_center_distance = DEM_MODULUS_3(other_to_me_vect) / 2; //Here, this only works for sphere particles
@@ -1033,6 +1034,9 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
+            //Tips: this clean up operation will be done in next time step
+            // If we do it here, the system will not be balanced, as we used the bond force for the calculation of moments
+            /*
             contact_sigma = 0.0;
             contact_tau = 0.0;
             LocalElasticContactForce[0] *= mUnBondedScalingFactor[0];      
@@ -1050,10 +1054,13 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             mBondedScalingFactor[0] = 0.0;
             mBondedScalingFactor[1] = 0.0;
             mBondedScalingFactor[2] = 0.0;
+            */
         } else if(((std::abs(contact_tau) + bond_rotational_moment_coefficient_tangential * bond_rotational_moment_normal_modulus * bond_radius / J) > bond_current_tau_max) 
             && !(*mpProperties)[IS_UNBREAKABLE])
         { //for tangential 
             failure_type = 2; // failure in shear
+            //Tips: same as above
+            /*
             contact_sigma = 0.0;
             contact_tau = 0.0;
             //If bond break in shear, the normal compressive force should still be there like before
@@ -1072,6 +1079,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             mBondedScalingFactor[0] = 0.0;
             mBondedScalingFactor[1] = 0.0;
             mBondedScalingFactor[2] = 0.0;
+            */
         } 
     }
 
