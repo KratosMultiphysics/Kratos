@@ -165,13 +165,13 @@ void DEM_parallel_bond_bilinear_damage::CalculateNormalForces(double LocalElasti
 
                     if (mDamageNormal > mDamageThresholdTolerance) {
                         failure_type = 4; // failure by tension
-                        mBondedLocalElasticContactForce2 = 0.0;
+                        //mBondedLocalElasticContactForce2 = 0.0;
                         mDamageNormal = 1.0;
                     }
                 } else { // Fully fragile behaviour
 
                     failure_type = 4; // failure by tension
-                    mBondedLocalElasticContactForce2 = 0.0;
+                    //mBondedLocalElasticContactForce2 = 0.0;
                     mDamageNormal = 1.0;
                 }
             }
@@ -339,15 +339,15 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
 
                 if (mDamageTangential > mDamageThresholdTolerance) {
                     failure_type = 2; // failure by shear
-                    BondedLocalElasticContactForce[0] = 0.0;
-                    BondedLocalElasticContactForce[1] = 0.0;
+                    //BondedLocalElasticContactForce[0] = 0.0;
+                    //BondedLocalElasticContactForce[1] = 0.0;
                     mDamageTangential = 1.0;
                 }
             } else { // Fully fragile behaviour
 
                 failure_type = 2; // failure by shear
-                BondedLocalElasticContactForce[0] = 0.0;
-                BondedLocalElasticContactForce[1] = 0.0;
+                //BondedLocalElasticContactForce[0] = 0.0;
+                //BondedLocalElasticContactForce[1] = 0.0;
                 mDamageTangential = 1.0;
             }
         }
