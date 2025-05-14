@@ -81,7 +81,7 @@ MPMUpdatedLagrangian::MPMUpdatedLagrangian( MPMUpdatedLagrangian const& rOther)
 {
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 MPMUpdatedLagrangian&  MPMUpdatedLagrangian::operator=(MPMUpdatedLagrangian const& rOther)
@@ -1272,7 +1272,7 @@ void MPMUpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, c
 
     noalias( rDampingMatrix ) = ZeroMatrix(matrix_size, matrix_size);
 
-    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //1.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) )
     {
