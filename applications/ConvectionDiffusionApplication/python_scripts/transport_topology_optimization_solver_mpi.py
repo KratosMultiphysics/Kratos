@@ -4,6 +4,27 @@ import KratosMultiphysics
 import numpy as np #import the numpy library
 import scipy as sp #import the scipy library
 
+# Auxiliary function to check the parallel type at runtime
+#TODO: Delete this once we come up with the final factory-based design
+def _CheckIsDistributed():
+    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
+        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        return world_data_comm.IsDistributed()
+        
+    else:
+        return False
+# If required, import parallel applications and modules
+if _CheckIsDistributed():
+    import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.MetisApplication as KratosMetis
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
+# Importing factories
+if _CheckIsDistributed():
+    import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
+else:
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+    import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
@@ -14,9 +35,9 @@ import KratosMultiphysics.FluidDynamicsApplication
 
 def CreateSolver(model, custom_settings, isAdjointSolver = False):
     solver_settings = custom_settings["solver_settings"]
-    return TransportTopologyOptimizationSolver(model, solver_settings, is_adjoint_solver=isAdjointSolver)
+    return TransportTopologyOptimizationSolverMpi(model, solver_settings, is_adjoint_solver=isAdjointSolver)
 
-class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
+class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -40,6 +61,7 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         super().__init__(model,custom_settings)
         self._DefineAdjointSolver(is_adjoint_solver)
         self._DefineElementsAndConditions()
+        self._InitializeModelPartImporter()
         # self._InitializePhysicsParameters()
         print_str = "Construction of TransportTopologyOptimizationSolver "
         if self.IsAdjoint():
@@ -54,6 +76,9 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.element_name = "TransportTopologyOptimizationElement"
         self.condition_name = "ThermalFace"
         self.element_integrates_in_time = True
+
+    def _InitializeModelPartImporter(self):
+        self.distributed_model_part_importer = None
 
     def _get_element_condition_replace_settings(self):
         ## Get and check domain size
@@ -81,7 +106,7 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         # DESIGN PARAMETER
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DESIGN_PARAMETER)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DESIGN_PARAMETER_GRADIENT) 
-        # PHYSICS
+        #  PHYSICS
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
@@ -102,9 +127,12 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_DIFFUSION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCD.PDE_FILTER_REACTION)
-        # SUPER CLASS VARIABLES
-        super().AddVariables()
+        # SETTINGS
+        self._DefineSettings()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Transport Topology Optimization T and T_ADJ solver variables added correctly.")
+        
+    def _DefineSettings(self):
+        super().AddVariables()
     
     def _CheckMaterialProperties(self):
         print("--|--> Conductivity:", self.main_model_part.Nodes[1].GetValue(KratosMultiphysics.CONDUCTIVITY))
@@ -129,6 +157,13 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
 
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
             self._set_and_fill_buffer()
+        
+        print("\nPRONTI")
+
+        # Create the MPI communicators
+        if _CheckIsDistributed():
+            self.distributed_model_part_importer.CreateCommunicators()
+        print("\nECCOCI")
 
         if (self.settings["echo_level"].GetInt() > 0):
             KratosMultiphysics.Logger.PrintInfo(self.model)
@@ -210,10 +245,15 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Transport Topology Optimization " + dofs_str + " solver DOFs added correctly.")
 
     def _CreateScheme(self):
-        #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = 1.0
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
-        transport_top_opt_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()
+
+        # As the time integration is managed by the element, we set a "fake" scheme to perform the solution update
+        if not _CheckIsDistributed():
+            transport_top_opt_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        else:
+            transport_top_opt_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticScheme()
         return transport_top_opt_scheme
     
     def SolveSolutionStep(self):
@@ -268,13 +308,20 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         #     input("adjoint solver initialize sol step")
         self._GetSolutionStrategy().InitializeSolutionStep()
 
-    def ImportModelPart(self, model_parts=None):
+    def ImportModelPart(self, model_parts=None, physics_solver_distributed_model_part_importer=None):
         if (self.IsPhysics()):
-            # Call the fluid solver to import the model part from the mdpa
-            self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
+            if not _CheckIsDistributed():
+                self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+            else:
+                self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(
+                    self.main_model_part,
+                    self.settings)
+                self.distributed_model_part_importer.ImportModelPart()
         else:
-            transport_mp = model_parts[0]
-            self.main_model_part = transport_mp
+                transport_mp = model_parts[0]
+                self.main_model_part = transport_mp
+                if _CheckIsDistributed():
+                    self.distributed_model_part_importer = physics_solver_distributed_model_part_importer
     
     def InitializeSolutionStep(self):
         self.is_conductivity_updated = False

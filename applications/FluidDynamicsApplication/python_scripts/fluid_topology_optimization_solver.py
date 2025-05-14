@@ -66,7 +66,14 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
     def AddVariables(self):  
         #Add parent class variables
-        super().AddVariables()    
+        super().AddVariables()   
+        # Add DESIGN PARAMETER
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DESIGN_PARAMETER)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DESIGN_PARAMETER_GRADIENT) 
+        # Add VELOCITY GRADIENT
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z_GRADIENT)
         # Add Adjoint-NS Variables
         # self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ACCELERATION_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.MESH_VELOCITY_ADJ)

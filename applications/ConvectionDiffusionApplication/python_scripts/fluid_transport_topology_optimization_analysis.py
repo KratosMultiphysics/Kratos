@@ -553,9 +553,19 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
                     "volume_constraint_settings": {
                         "fluid_or_solid": "fluid",
                         "max_volume_fraction" : 0.4
+                    },
+                    "WSS_constraint_settings": {
+                        "use_WSS_constraint" : false,
+                        "min_WSS" : 0.5
                     }
                 },
-                "initial_design_value": 0.0
+                "custom_initial_design_settings": {
+                    "use_custom_initial_design": false,
+                    "custom_initial_design": [{
+                        "model_part_name": {},
+                        "initial_value": {}
+                    }]
+                }
             }
         }""")
         default_optimization_settings.AddMissingParameters(super().GetDefaultOptimizationSettings())

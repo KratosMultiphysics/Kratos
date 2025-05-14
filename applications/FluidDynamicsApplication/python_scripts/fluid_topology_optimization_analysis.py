@@ -374,7 +374,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._OptimizationGeometricalPreprocessing()
         self.opt_it = 0
         self._SetDesignParameterChangeTolerance()
-        self.n_optimization_constraints = 1  
+        self.n_optimization_constraints = 0  
         self._InitializeOptimizerSettings()
         self._InitializeConstraints()
         self._InitializeRemeshing()
@@ -390,23 +390,33 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.optimizer_max_outer_it = self.optimizer_settings["max_outer_it"].GetInt()
         self.optimizer_kkt_tolerance = self.optimizer_settings["kkt_tolerance"].GetDouble()
 
-    
-    def _ResetConstraints(self):
-        self.constraints = np.zeros(self.n_optimization_constraints)  
-        self.constraints_derivatives_wrt_design = np.zeros((self.n_optimization_constraints, self.n_opt_design_parameters))
-
     def _InitializeConstraints(self):
         self.constraints_settings = self.optimization_settings["optimization_problem_settings"]["constraints_settings"]
-        self._ResetConstraints()
         self._InitializeVolumeConstraint()
+        self._InitializeWSSConstraint()
+        self._ResetConstraints()
 
     def _InitializeVolumeConstraint(self):
         self.volume_constraint_settings = self.constraints_settings["volume_constraint_settings"]
+        self.volume_constraint_id = self.n_optimization_constraints
+        self.n_optimization_constraints += 1
         if (self.volume_constraint_settings["fluid_or_solid"].GetString().lower() == "solid"):
             self.is_fluid_volume_constraint = False
         else:
             self.is_fluid_volume_constraint = True
         self._SetMaxDomainVolumeFraction()
+
+    def _InitializeWSSConstraint(self):
+        self.wss_constraint_settings = self.constraints_settings["WSS_constraint_settings"]
+        self.use_wss_constraint = self.wss_constraint_settings["use_WSS_constraint"].GetBool()
+        if (self.use_wss_constraint):
+            self.wss_constraint_id = self.n_optimization_constraints
+            self.n_optimization_constraints += 1
+            self.min_wss = self.wss_constraint_settings["min_WSS"].GetDouble()
+
+    def _ResetConstraints(self):
+        self.constraints = np.zeros((self.n_optimization_constraints,1))  
+        self.constraints_derivatives_wrt_design = np.zeros((self.n_optimization_constraints, self.n_opt_design_parameters))
 
     def _InitializeDomainDesign(self):
         print("--|" + self.topology_optimization_stage_str + "| INITIALIZE DOMAIN DESIGN")
@@ -426,16 +436,21 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         The optimization process will update only the value of the nodes belonging to the optimization_domain sub model part
         """
         mask = self._GetOptimizationDomainNodesMask()
-        initial_design_value = self.optimization_settings["optimization_problem_settings"]["initial_design_value"].GetDouble()
-        self.volume_fraction = initial_design_value
-        self.design_parameter = np.zeros(self.n_nodes) 
-        self.design_parameter[mask] = initial_design_value
+        # initial_design_settings = self.optimization_settings["optimization_problem_settings"]["initial_design_settings"]
+        # default_initial_design_value = initial_design_settings["default_initial_design"].GetDouble()
+        self.volume_fraction = self.optimization_domain_initial_value
+        self.design_parameter = np.zeros(self.n_nodes) + self.non_optimization_domain_initial_value
+        self.design_parameter[mask] = self.optimization_domain_initial_value
+        self._SetDesignParameterCustomInitialDesign()
         mp = self._GetComputingModelPart()
         for node in mp.Nodes:
             design = self.design_parameter[node.Id-1]
-            node.SetValue(KratosMultiphysics.DESIGN_PARAMETER, design)
+            node.SetSolutionStepValue(KratosMultiphysics.DESIGN_PARAMETER, design)
             distance = design-self.remeshing_levelset
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, distance)
+
+    def _SetDesignParameterCustomInitialDesign(self):
+        pass
 
     def _OrderNodes(self):
         """
@@ -518,10 +533,18 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         gradient_process.Execute()
 
     def _OptimizationGeometricalPreprocessing(self):
-        self._ComputeNodalOptimizationDomainSizes()
+        self._InitializeOptimizationDomainSettings()
+        self._ComputeNodalOptimizationDomainSizes()   
         self._ComputeOptimizationDomainNodesMask()
         self._ComputeDesignParameterDiffusiveFilterUtilities()
         self._ComputeDesignParameterProjectiveFilterUtilities()
+
+    def _InitializeOptimizationDomainSettings(self):
+        optimization_domain_settings = self.optimization_settings["optimization_domain_settings"]
+        self.optimization_domain_name = optimization_domain_settings["optimization_domain"]["model_part_name"].GetString()
+        self.optimization_domain_initial_value = max(0.0, min(1.0, optimization_domain_settings["optimization_domain"]["initial_value"].GetDouble()))
+        self.non_optimization_domain_name = optimization_domain_settings["non_optimization_domain"]["model_part_name"].GetString()
+        self.non_optimization_domain_initial_value = max(0.0, min(1.0, optimization_domain_settings["non_optimization_domain"]["initial_value"].GetDouble()))
     
     def _ComputeNodalOptimizationDomainSizes(self):
         """
@@ -575,7 +598,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         # self.opt_non_opt_interface_nodes = self.opt_non_opt_interface_nodes[:count_nodes_at_opt_non_opt_interface]
         # self.n_nodes_at_opt_non_opt_interface = len(self.opt_non_opt_interface_nodes)
 
-        # comput the mask to bass between the global domain nodes and the optimization_domain ones
+        # compute the mask to bass between the global domain nodes and the optimization_domain ones
         self.n_opt_design_parameters = self.n_nodes - n_non_opt_nodes
         self.optimization_domain_nodes_mask = np.zeros(self.n_opt_design_parameters, dtype=int)
         count_opt_nodes = 0
@@ -661,7 +684,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         mp = self._GetComputingModelPart()
         for node in mp.Nodes:
             design = self.design_parameter[node.Id-1]
-            node.SetValue(KratosMultiphysics.DESIGN_PARAMETER, design)
+            node.SetSolutionStepValue(KratosMultiphysics.DESIGN_PARAMETER, design)
             distance = design-self.remeshing_levelset
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, distance)
 
@@ -688,6 +711,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._UpdateResistanceVariable()
 
     def _ComputeResistance(self, design_parameter):
+        self._EvaluatePhysicsParameterCurrentValue(self.resistance_parameters)
         return self._ComputePhysicsParameter(self.resistance_parameters, design_parameter)
     
     def _ComputePhysicsParameter(self, physics_parameters, design_parameter):
@@ -747,7 +771,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _LinearInterpolationOverIterations(self, initial_value, final_value, start_it, end_it):
         if (self.opt_it < start_it):
             return initial_value
-        elif (self.opt_it <= end_it):
+        elif (self.opt_it < end_it):
             return initial_value + (final_value-initial_value)*(self.opt_it-start_it)/(end_it-start_it)
         else:
             return final_value
@@ -758,6 +782,38 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         start_it = interpolation_slope_parameters["iterations"][0].GetInt()
         end_it   = interpolation_slope_parameters["iterations"][1].GetInt()
         return slope_initial, slope_final, start_it, end_it
+    
+    def _EvaluatePhysicsParameterCurrentValue(self, physics_parameters):
+        # Adjust void value
+        if (physics_parameters["change_value_void"]["change_value"].GetBool()):
+            start_it      = physics_parameters["change_value_void"]["iterations"][0].GetInt()
+            end_it      = physics_parameters["change_value_void"]["iterations"][1].GetInt()
+            initial_value = physics_parameters["change_value_void"]["initial_value"].GetDouble()
+            final_value = physics_parameters["change_value_void"]["final_value"].GetDouble()
+            if (self.opt_it < self.min_it):
+                current_value = initial_value
+            elif (self.opt_it < end_it):
+                current_value = initial_value + (final_value-initial_value)*(self.opt_it-start_it)/(end_it-start_it)
+            else:
+                current_value = final_value
+            physics_parameters["value_void"].SetDouble(current_value)
+
+        # Adjust full value
+        if (physics_parameters["change_value_full"]["change_value"].GetBool()):
+            start_it      = physics_parameters["change_value_full"]["iterations"][0].GetInt()
+            end_it      = physics_parameters["change_value_full"]["iterations"][1].GetInt()
+            initial_value = physics_parameters["change_value_full"]["initial_value"].GetDouble()
+            final_value = physics_parameters["change_value_full"]["final_value"].GetDouble()
+            if (self.opt_it < start_it):
+                current_value = initial_value
+            elif (self.opt_it < end_it):
+                current_value = initial_value + (final_value-initial_value)*(self.opt_it-start_it)/(end_it-start_it)
+            else:
+                current_value = final_value
+            physics_parameters["value_full"].SetDouble(current_value)
+
+
+
     
     def _UpdateResistanceDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
@@ -900,6 +956,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         print("\n--|EVALUATE OPTIMIZATION PROBLEM|")
         if (len(design_parameter) != 0):
             self._UpdateDesignParameterAndPhysicsParameters(design_parameter)
+            self._EvaluateRequiredGradients()
         self._EvaluateFunctionalAndDerivatives(print_results)
         self._EvaluateConstraintsAndDerivatives()
         if (print_results):
@@ -911,8 +968,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return self.functional, self._ExtractVariableInOptimizationDomain(self.functional_derivatives_wrt_design), self.constraints, self.constraints_derivatives_wrt_design
     
     def _EvaluateConstraintsAndDerivatives(self):
-         print("--|" + self.topology_optimization_stage_str + "| EVALUATE CONSTRAINTS AND DERIVATIVES")
-         self._EvaluateVolumeConstraintAndDerivative()
+        print("--|" + self.topology_optimization_stage_str + "| EVALUATE CONSTRAINTS AND DERIVATIVES")
+        self._EvaluateVolumeConstraintAndDerivative()
+        if (self.use_wss_constraint):
+            self._EvaluateWSSConstraintAndDerivative()
 
     def _EvaluateFunctionalAndDerivatives(self, print_functional=False):
         """
@@ -1058,12 +1117,36 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             volume_constraint_derivatives_wrt_design_base = self.nodal_optimization_domain_sizes / self.optimization_domain_size
         self.volume_constraint = self.volume_fraction - self.max_volume_fraction
         volume_constraint_derivatives_wrt_design_projected = volume_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
-        self.constraints[0] = self.volume_constraint
-        self.constraints_derivatives_wrt_design[0,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected)
+        self.constraints[self.volume_constraint_id] = self.volume_constraint
+        self.constraints_derivatives_wrt_design[self.volume_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected)
 
     def _EvaluateWSSConstraintAndDerivative(self):
-        dumb = 0
-        return dumb
+        """
+        For simplicity of notation we refer to the design parameter gradient as g.
+        g: design parameter gradient
+        gn: design parameter gradient norm 
+        gn_int: integral over the domain of gn, used to normalize gn
+        w: gn / gn_int (integral weights based on design parameter gradient)
+        """
+        mp = self._GetComputingModelPart()
+        g = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        gn = np.linalg.norm(g , axis=1)
+        gn_max = np.max(gn)
+        if (gn_max > 1e-14):
+            gn_int = np.dot(gn, self.nodal_domain_sizes)
+            v_grad = self._AssembleVelocityGradientOnNodes()
+            nodal_tangents_to_g = self._EvaluateOrthogonalBasis(g)
+            # prod = np.einsum('ijk,ik->ij',  nodal_tangents_to_g, g)
+            psi_vect =np.einsum('ijk,ik,ilj->il', v_grad, g, nodal_tangents_to_g)
+            psi =  np.linalg.norm(psi_vect, axis=1)
+            mu = self._GetComputingModelPart().Elements[1].Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            self.wss_value = mu / gn_int * np.dot(psi, self.nodal_domain_sizes)
+            self.wss_constraint = self.min_wss - self.wss_value
+            self.constraints[self.wss_constraint_id] = self.wss_constraint
+        else:
+            self.wss_value = -1
+            self.wss_constraint = -1
+            self.constraints[self.wss_constraint_id] = self.wss_constraint
     
     ## UTILS
     def _SetTopologyOptimizationStage(self, problem_stage):
@@ -1148,7 +1231,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method returns the optimization domain model part for the current solver
         """  
-        opt_domain = self._GetSubModelPart(self._GetMainModelPart(), "GENERIC_domain-optimization_domain")
+        opt_domain = self._GetSubModelPart(self._GetMainModelPart(), self.optimization_domain_name)
         if (opt_domain is None):
             return self._GetMainModelPart()
         else:
@@ -1158,7 +1241,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method returns the non-optimization domain model part for the current solver
         """  
-        return self._GetSubModelPart(self._GetMainModelPart(), "GENERIC_domain-non_optimization_domain")
+        return self._GetSubModelPart(self._GetMainModelPart(), self.non_optimization_domain_name)
 
     def _GetNodes(self):
         """
@@ -1252,10 +1335,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _PrintConstraints(self):
         self._PrintVolumeConstraint()
+        if (self.use_wss_constraint):
+            self._PrintWSSConstraint()
     
     def _PrintVolumeConstraint(self):
         print("--|" + self.topology_optimization_stage_str + "| VOLUME FRACTION:", self.volume_fraction)
         print("--|" + self.topology_optimization_stage_str + "| ---> Volume Constraint:", self.volume_constraint)
+
+    def _PrintWSSConstraint(self):
+        print("--|" + self.topology_optimization_stage_str + "| WSS VALUE:", self.wss_value)
+        print("--|" + self.topology_optimization_stage_str + "| ---> WSS Resistance:", self.resistance_parameters["value_full"].GetDouble())
+        print("--|" + self.topology_optimization_stage_str + "| ---> WSS Constraint:", self.wss_constraint)
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TOTAL STEP: ", self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
@@ -1405,7 +1495,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 
     def _ApplyDiffusiveFilter(self, scalar_variable):
         scalar_variable_in_opt_domain = scalar_variable[self._GetOptimizationDomainNodesMask()]
-        if (self.apply_diffusive_filter):
+        if (self.apply_diffusive_filter and (self.opt_it > 1)):
             if (self.diffusive_filter_type == "pde"):
                 print("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Design Parameter")
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable)
@@ -1449,7 +1539,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         design_parameter = np.zeros(self.n_nodes)
         count = 0
         for node in mp.Nodes:
-            design_parameter[count] = node.GetValue(KratosMultiphysics.DESIGN_PARAMETER)
+            design_parameter[count] = node.GetSolutionStepValue(KratosMultiphysics.DESIGN_PARAMETER)
             count += 1
         return design_parameter
     
@@ -1532,7 +1622,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return [self._GetPhysicsSolver().main_model_part]
     
     def EvaluateFunctionals(self, print_functional):
-        self._EvaluateRequiredGradients()
         if (abs(self.functional_weights[0]) > 1e-10):
             self._EvaluateResistanceFunctional(print_functional)
         if (abs(self.functional_weights[1]) > 1e-10):
@@ -1552,7 +1641,39 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         pass
 
     def _EvaluateRequiredGradients(self):
-        pass
+        self._ComputeScalarVariableNodalGradient(KratosMultiphysics.DESIGN_PARAMETER, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT)
+        if (self.use_wss_constraint):
+            self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_X_GRADIENT)
+            self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Y_GRADIENT)
+            if (self.dim == 3):
+                self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.VELOCITY_Z_GRADIENT)
+
+    def _AssembleVelocityGradientOnNodes(self):
+        mp = self._GetComputingModelPart()
+        gradient_x = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY_X_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        gradient_y = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY_Y_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        gradient = np.zeros((self.n_nodes, self.dim, self.dim))
+        gradient[:,0,:] = gradient_x
+        gradient[:,1,:] = gradient_y
+        if (self.dim == 3):
+            gradient_z = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY_Z_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+            gradient[:,2,:] = gradient_z
+        return gradient
+    
+    def _EvaluateOrthogonalBasis(self, vector_in_nodes):
+        mask = np.linalg.norm(vector_in_nodes, axis=1) > 1e-10 # relevan nodes mask. Avoids division by zero
+        orthogonal_basis = np.zeros((self.n_nodes,self.dim-1,self.dim))
+        orthogonal_basis[mask,0,0] = -vector_in_nodes[mask,1]
+        orthogonal_basis[mask,0,1] =  vector_in_nodes[mask,0]
+        orthogonal_basis_0_norm = np.linalg.norm(orthogonal_basis[:,0,:], axis=1)
+        orthogonal_basis[mask,0,:] /= orthogonal_basis_0_norm[mask, np.newaxis]
+        if (self.dim == 3):
+            orthogonal_basis[mask,1,0] =  -vector_in_nodes[mask,2] + (vector_in_nodes[mask,1]*vector_in_nodes[mask,1]*vector_in_nodes[mask,2]) / (orthogonal_basis_0_norm[mask]**2)
+            orthogonal_basis[mask,1,1] = -(vector_in_nodes[mask,0]*vector_in_nodes[mask,1]*vector_in_nodes[mask,2]) / orthogonal_basis_0_norm[mask]**2
+            orthogonal_basis[mask,1,2] =   vector_in_nodes[mask,0]
+            orthogonal_basis_1_norm = np.linalg.norm(orthogonal_basis[:,1,:], axis=1)
+            orthogonal_basis[mask,1,:] /= orthogonal_basis_1_norm[mask, np.newaxis]
+        return orthogonal_basis
 
     def GetDefaultPhysicsParametersSettings(self):
         ##settings string in json format
@@ -1565,9 +1686,21 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 "interpolation_slope": {
                     "initial_slope": 1.0,
                     "final_slope"  : 1.0,
-                    "iterations"   : [2,50]
+                    "iterations"   : [2,20]
                 },
-                "domain": "all"
+                "change_value_void": {
+                    "change_value": false,
+                    "iterations"  : [2,100],
+                    "initial_value": 0.0,
+                    "final_value"  : 0.0
+                },
+                "change_value_full": {
+                    "change_value": false,
+                    "iterations"  : [2,100],
+                    "initial_value": 1e4,
+                    "final_value"  : 1e4
+                },
+                "domain": ""
             }
         }""")
         default_physics_parameters_settings.AddMissingParameters(self.GetBasePhysicsParametersSettings())
@@ -1618,6 +1751,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 "symmetry": false, 
                 "model_part_name": ""
             },
+            "optimization_domain_settings": {
+                "optimization_domain": {
+                    "model_part_name": "GENERIC_domain-optimization_domain",
+                    "initial_value": 0.0
+                },
+                "non_optimization_domain": {
+                    "model_part_name": "GENERIC_domain-non_optimization_domain",
+                    "initial_value": 0.0
+                }
+            },
             "optimization_problem_settings": {
                 "functional_weights": {
                     "fluid_functionals": {
@@ -1636,9 +1779,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                     "volume_constraint_settings": {
                         "fluid_or_solid": "fluid",
                         "max_volume_fraction" : 0.4
+                    },
+                    "WSS_constraint_settings": {
+                        "use_WSS_constraint" : false,
+                        "min_WSS" : 0.5
                     }
                 },
-                "initial_design_value": 0.0
+                "custom_initial_design_settings": {
+                    "use_custom_initial_design": false,
+                    "custom_initial_design": [{
+                        "model_part_name": {},
+                        "initial_value": {}
+                    }]
+                }
             }
         }""")
         default_optimization_settings.AddMissingParameters(self.GetBaseOptimizationSettings())
