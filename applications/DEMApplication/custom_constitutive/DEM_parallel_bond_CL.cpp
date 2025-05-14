@@ -401,17 +401,6 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
                             i_neighbour_count,
                             sliding,
                             r_process_info);
-
-    /*if (element1->Id() == 1119) {
-        KRATOS_INFO("LocalElasticContactForce[0]: ") << LocalElasticContactForce[0] << std::endl;
-        KRATOS_INFO("LocalElasticContactForce[1]: ") << LocalElasticContactForce[1] << std::endl;
-        KRATOS_INFO("LocalElasticContactForce[2]: ") << LocalElasticContactForce[2] << std::endl;
-        KRATOS_INFO("mBondedLocalElasticContactForce2: ") << mBondedLocalElasticContactForce2 << std::endl;
-        KRATOS_INFO("mUnbondedLocalElasticContactForce2: ") << mUnbondedLocalElasticContactForce2 << std::endl;
-        KRATOS_INFO("ViscoDampingLocalContactForce[0]: ") << ViscoDampingLocalContactForce[0] << std::endl;
-        KRATOS_INFO("ViscoDampingLocalContactForce[1]: ") << ViscoDampingLocalContactForce[1] << std::endl;
-        KRATOS_INFO("ViscoDampingLocalContactForce[2]: ") << ViscoDampingLocalContactForce[2] << std::endl << std::endl;
-    }*/
     
     KRATOS_CATCH("") 
 }
@@ -575,14 +564,6 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
         CalculateUnbondedViscoDampingForce(LocalRelVel, mUnbondedViscoDampingLocalContactForce, element1, element2);
     }
 
-    /*
-    if (element1->Id() == 1119) {
-        KRATOS_INFO("mUnbondedViscoDampingLocalContactForce[0]: ") << mUnbondedViscoDampingLocalContactForce[0] << std::endl;
-        KRATOS_INFO("mUnbondedViscoDampingLocalContactForce[1]: ") << mUnbondedViscoDampingLocalContactForce[1] << std::endl;
-        KRATOS_INFO("mUnbondedViscoDampingLocalContactForce[2]: ") << mUnbondedViscoDampingLocalContactForce[2] << std::endl << std::endl;
-    }
-    */
-
     if (!failure_id) {
         mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
@@ -592,13 +573,6 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
     ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0] + mBondedViscoDampingLocalContactForce[0];
     ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] + mBondedViscoDampingLocalContactForce[1];
     ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] + mBondedViscoDampingLocalContactForce[2];
-
-    /*
-    if (element1->Id() == 1119) {
-        KRATOS_INFO("ViscoDampingLocalContactForce[0]: ") << ViscoDampingLocalContactForce[0] << std::endl;
-        KRATOS_INFO("ViscoDampingLocalContactForce[1]: ") << ViscoDampingLocalContactForce[1] << std::endl;
-        KRATOS_INFO("ViscoDampingLocalContactForce[2]: ") << ViscoDampingLocalContactForce[2] << std::endl << std::endl;
-    }*/
     
     double unbonded_normal_contact_force = mUnbondedLocalElasticContactForce2 + mUnbondedViscoDampingLocalContactForce[2];
 
