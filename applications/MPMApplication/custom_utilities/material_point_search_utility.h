@@ -244,9 +244,6 @@ namespace Kratos::MPMSearchElementUtility
                         condition_itr->pGetGeometry(), local_coordinates,
                         condition_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
 
-                    int& mpc_counter = r_found_geom.GetValue(MPC_COUNTER) ; 
-                    #pragma omp atomic
-                    mpc_counter +=1;
                     condition_itr->Set(ACTIVE);
 
                     #pragma omp critical
@@ -399,9 +396,6 @@ namespace Kratos::MPMSearchElementUtility
                             r_geometry[j].Set(ACTIVE);
                         }
 
-                        int& mpc_counter = pelem->GetGeometry().GetValue(MPC_COUNTER) ; 
-                        #pragma omp atomic
-                        mpc_counter +=1;
                         condition_itr->Set(ACTIVE);
 
                     } else {
@@ -430,10 +424,7 @@ namespace Kratos::MPMSearchElementUtility
                 r_geometry[j].Reset(ACTIVE);
             }
 
-            int& mpc_counter = element_itr->GetValue(MPC_COUNTER) ; 
-            mpc_counter =0;
-            int& mp_counter = element_itr->GetValue(MP_COUNTER); 
-            mp_counter =0;
+            element_itr->GetGeometry().SetValue(MP_COUNTER, 0);
         }
     }
 
