@@ -371,6 +371,23 @@ public:
     }
 
     /**
+     * @brief Reads a new master-slave constraint.
+     * @details This method is intended to be overridden in derived classes. The base class implementation
+     * produces an error message indicating that the derived class should provide its own implementation.
+     * @param rThisNodes The container holding the nodes involved in the constraint.
+     * @param pThisMasterSlaveConstraint A pointer to the master-slave constraint object that will be read.
+     * @note Calling this base class method will trigger an error. Ensure that the method is properly defined
+     *       in any derived class.
+     */
+    virtual void ReadNewMasterSlaveConstraint(
+        NodesContainerType& rThisNodes,
+        MasterSlaveConstraint::Pointer& pThisMasterSlaveConstraint
+        )
+    {
+        KRATOS_ERROR << "Calling base class method (ReadNewMasterSlaveConstraint). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
      * @brief Reads the master-slave constraints from an input source.
      * @details This method is intended to be overridden by derived classes to implement
      * the specific logic for reading master-slave constraints into the provided
@@ -388,7 +405,7 @@ public:
         MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
         )
     {
-        KRATOS_ERROR << "Calling base class method (ReadNewMasterSlaveConstraint). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (ReadMasterSlaveConstraints). Please check the definition of derived class" << std::endl;
     }
 
     /**
