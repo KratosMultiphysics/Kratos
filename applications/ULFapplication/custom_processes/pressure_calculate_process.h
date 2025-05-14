@@ -164,7 +164,6 @@ public:
         {
             im->Calculate(PRESSURE,dummy,proc_info);
         }
-        KRATOS_WATCH("Execute of Pressure Calculate Process");
         /*		//
         		if(mdomain_size == 2)
         		{
