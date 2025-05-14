@@ -52,7 +52,7 @@ namespace Kratos {
         void PrintData(std::ostream& rOStream) const override {}
 
         void CreateContinuumConstitutiveLaws() override;
-        void ContactAreaWeighting() override;
+        void ContactAreaWeighting(const ProcessInfo& r_process_info) override;
         void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) override;
         double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) override;
 

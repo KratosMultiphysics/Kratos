@@ -111,7 +111,7 @@ namespace Kratos
 
 
 
-        virtual void ContactAreaWeighting();
+        virtual void ContactAreaWeighting(const ProcessInfo& r_process_info);
         virtual void CalculateInitialBondContactArea(const double distance,
                                                     const double my_search_radius,
                                                     const double other_search_radius,
@@ -123,7 +123,7 @@ namespace Kratos
                                         const double other_radius,
                                         const double R_bond,
                                         double& V_bond);
-        virtual double EffectiveVolumeRadius();
+        virtual double EffectiveVolumeRadius(const ProcessInfo& r_process_info);
         virtual double GetInitialDelta(int index);
         virtual double GetInitialBondContactArea(int index);
         virtual double GetInitialBondVolume(int index);

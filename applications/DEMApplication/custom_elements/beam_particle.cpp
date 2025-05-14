@@ -55,7 +55,7 @@ namespace Kratos {
         }
     }
 
-    void BeamParticle::ContactAreaWeighting() {}
+    void BeamParticle::ContactAreaWeighting(const ProcessInfo& r_process_info) {}
 
     void BeamParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) {}
 

@@ -50,7 +50,7 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const override {}
 
-      void ContactAreaWeighting() override;
+      void ContactAreaWeighting(const ProcessInfo& r_process_info) override;
 
       void FinalizeStressTensor(const ProcessInfo& r_process_info, double& rRepresentative_Volume) override;
 

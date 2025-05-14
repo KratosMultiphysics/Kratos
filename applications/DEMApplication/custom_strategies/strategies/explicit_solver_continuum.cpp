@@ -953,7 +953,7 @@ namespace Kratos {
 
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericContinuumParticles[i]->ContactAreaWeighting();
+                mListOfSphericContinuumParticles[i]->ContactAreaWeighting(r_process_info);
             }
         }
 

@@ -161,11 +161,11 @@ namespace Kratos {
         }
     }//SetInitialFemContacts
 
-    void SphericContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbors of my neighbors.
+    void SphericContinuumParticle::ContactAreaWeighting(const ProcessInfo& r_process_info) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbors of my neighbors.
     {
         double alpha = 1.0;
         //double external_sphere_area = 4 * Globals::Pi * GetRadius()*GetRadius();
-        double effectiveVolumeRadius = EffectiveVolumeRadius();  //calculateEffectiveVolumeRadius
+        double effectiveVolumeRadius = EffectiveVolumeRadius(r_process_info);  //calculateEffectiveVolumeRadius
         double external_sphere_area = 4 * Globals::Pi * effectiveVolumeRadius * effectiveVolumeRadius;
         double total_equiv_area = 0.0;
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
@@ -311,7 +311,7 @@ namespace Kratos {
         V_bond = V_cylinder - V_ball_cylinder_intersect + V_ball_ball_intersect;
     }
 
-    double SphericContinuumParticle::EffectiveVolumeRadius() {
+    double SphericContinuumParticle::EffectiveVolumeRadius(const ProcessInfo& r_process_info) {
 
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
 
@@ -321,8 +321,20 @@ namespace Kratos {
 
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             double other_radius = neighbour_iterator->GetRadius();
+            auto& central_node = GetGeometry()[0];
+            auto& neighbour_node = neighbour_iterator->GetGeometry()[0];
+            
             array_1d<double, 3> other_to_me_vect;
-            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+            if (!r_process_info[DOMAIN_IS_PERIODIC]){ // default infinite-domain case
+                noalias(other_to_me_vect) = central_node.Coordinates() - neighbour_node.Coordinates();
+            } else { // periodic domain
+                double my_coors[3] = {central_node[0], central_node[1], central_node[2]};
+                double other_coors[3] = {neighbour_node[0], neighbour_node[1], neighbour_node[2]};
+                TransformNeighbourCoorsToClosestInPeriodicDomain(r_process_info, my_coors, other_coors);
+                other_to_me_vect[0] = my_coors[0] - other_coors[0];
+                other_to_me_vect[1] = my_coors[1] - other_coors[1];
+                other_to_me_vect[2] = my_coors[2] - other_coors[2];
+            }
             double distance = DEM_MODULUS_3(other_to_me_vect);
             effectiveVolumeRadiusSum += 0.5 * (distance + GetRadius() - other_radius);
         }
