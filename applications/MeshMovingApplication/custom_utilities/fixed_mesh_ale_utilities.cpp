@@ -91,7 +91,7 @@ namespace Kratos
         mpOriginModelPart = &rOriginModelPart;
 
         // Set the origin process info to the virtual model part
-        mrVirtualModelPart.SetProcessInfo(rOriginModelPart.pGetProcessInfo());
+        mrVirtualModelPart.SetProcessInfo(ProcessInfo::Pointer(new ProcessInfo(*rOriginModelPart.pGetProcessInfo())));
 
         // Add the required varibles to the virtual model part
         mrVirtualModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
