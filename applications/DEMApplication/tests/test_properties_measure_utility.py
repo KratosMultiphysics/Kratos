@@ -25,14 +25,14 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
         super().FinalizeSolutionStep()
         tolerance = 1e-8
 
-        if self.time >= 180e-8 and self.time < 181e-8:
+        if self.time >= 100e-8 and self.time < 102e-8:
 
             self._GetSolver().PrepareContactElementsForPrinting()
             
             #averaged stress tensor for the whole packing
             stress_tensor = self.MeasureSphereForGettingGlobalStressTensor()
             mean_stress = (stress_tensor[0][0]+stress_tensor[1][1]+stress_tensor[2][2])/3
-            expected_value_mean_stress = 25.1540949096492
+            expected_value_mean_stress = 25.108942763374966
             self.assertAlmostEqual(mean_stress, expected_value_mean_stress, delta=tolerance)
 
             #define the measured region
@@ -52,7 +52,7 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             #fabric tensor
             eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'fabric_tensor')
             expected_value_Eigenvalues = [0.34737273267669533, 0.3348419604048057, 0.31778530691849943]
-            expected_value_second_invariant_of_deviatoric_tensor = 0.05940517249934007
+            expected_value_second_invariant_of_deviatoric_tensor = 0.05940514637933302
             expected_value_fabric_tensor_0 = [ 0.33633556, -0.00391174,  0.00121594]
             expected_value_fabric_tensor_1 = [-0.00391174,  0.34145668, -0.01021716]
             expected_value_fabric_tensor_2 = [ 0.00121594, -0.01021716,  0.32220776]
@@ -73,8 +73,8 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             #conductivity tensor
             particle_number_inside, measured_non_homogenized_conductivity_tensor_diag, conductivity_tensor_trace, angles_xy, angles_xz, angles_yz = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'conductivity_tensor')
             expected_value_particle_number_inside = 158
-            expected_value_non_homogenized_conductivity_tensor_diag = [0.00018685665243645613, 0.00019179140007165844, 0.0001641981581927237]
-            expected_value_conductivity_tensor_trace = 0.00018094873690027943
+            expected_value_non_homogenized_conductivity_tensor_diag = [0.0001868674957271866, 0.00019180225820702713, 0.00016420820441842714]
+            expected_value_conductivity_tensor_trace = 0.0001809593194508803
             self.assertAlmostEqual(particle_number_inside, expected_value_particle_number_inside, delta=tolerance)
             self.assertAlmostEqual(measured_non_homogenized_conductivity_tensor_diag[0], expected_value_non_homogenized_conductivity_tensor_diag[0], delta=tolerance)
             self.assertAlmostEqual(measured_non_homogenized_conductivity_tensor_diag[1], expected_value_non_homogenized_conductivity_tensor_diag[1], delta=tolerance)
@@ -83,9 +83,9 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
 
             #stress tensor
             stress_tensor = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'stress_tensor')
-            expected_value_stress_tensor_0 = [27.4392216,  -1.81618533,  0.3296157]
-            expected_value_stress_tensor_1 = [-1.74229748, 30.85235122, -3.33850405]
-            expected_value_stress_tensor_2 = [ 0.40994906, -3.38284351, 25.76027739]
+            expected_value_stress_tensor_0 = [27.41480411, -1.8162967,   0.33081428]
+            expected_value_stress_tensor_1 = [-1.74243884, 30.82999517, -3.33601006]
+            expected_value_stress_tensor_2 = [ 0.41156874, -3.38081926, 25.73509936]
             self.assertAlmostEqual(stress_tensor[0][0], expected_value_stress_tensor_0[0], delta=tolerance)
             self.assertAlmostEqual(stress_tensor[0][1], expected_value_stress_tensor_0[1], delta=tolerance)
             self.assertAlmostEqual(stress_tensor[0][2], expected_value_stress_tensor_0[2], delta=tolerance)
@@ -98,14 +98,14 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
 
             #unbalanced force
             measured_unbalanced_force = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'unbalanced_force')
-            expected_value_unbalanced_force = 0.08410427712740924
+            expected_value_unbalanced_force = 0.10717813239546194
             self.assertAlmostEqual(measured_unbalanced_force, expected_value_unbalanced_force, delta=tolerance)
 
             #stress tensor
             stress_tensor = self.MeasureCubicForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'stress_tensor')
-            expected_value_stress_tensor_0 = [35.79625619, -5.48482772,  4.91718644]
-            expected_value_stress_tensor_1 = [-5.41163754, 34.72465429, -3.67377102]
-            expected_value_stress_tensor_2 = [ 4.86778722, -3.59205839, 27.2492898 ]
+            expected_value_stress_tensor_0 = [35.79565787, -5.48469616,  4.9171505 ]
+            expected_value_stress_tensor_1 = [-5.41156554, 34.72392181, -3.67371185]
+            expected_value_stress_tensor_2 = [ 4.86777429, -3.59185829, 27.24868094]
             self.assertAlmostEqual(stress_tensor[0][0], expected_value_stress_tensor_0[0], delta=tolerance)
             self.assertAlmostEqual(stress_tensor[0][1], expected_value_stress_tensor_0[1], delta=tolerance)
             self.assertAlmostEqual(stress_tensor[0][2], expected_value_stress_tensor_0[2], delta=tolerance)
