@@ -20,15 +20,16 @@
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
 
-#ifdef USE_TETGEN_NONFREE_TPL
+//#ifdef USE_TETGEN_NONFREE_TPL
+    //JJJJJJJJJJJJJJJJJJJJJJJJ
     #include "external_includes/tetgen_pfem_refine.h"
     #include "external_includes/tetgen_pfem_refine_vms.h"
     #include "external_includes/tetgen_pfem_refine_face.h"
     #include "external_includes/tetgen_pfem_contact.h"
     #include "external_includes/tetgen_cdt.h"
-#else
-    #define REAL double
-#endif 
+//#else
+//    #define REAL double
+//#endif 
 
 #if USE_TRIANGLE_NONFREE_TPL
     #include "external_includes/trigen_pfem_refine.h"
@@ -46,18 +47,18 @@ namespace Python
 {
 namespace py = pybind11;
 
-#ifdef USE_TETGEN_NONFREE_TPL
+//#ifdef USE_TETGEN_NONFREE_TPL
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                       //
 //                                            ADAPTIVE 3D MESHER                         //
 //                                                                                       //
 ///////////////////////////////////////////////////////////////////////////////////////////
-
+//JHKLJHLKJLKJKLJKLJKLJKL
 //tetgen pfem refine
 void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, EntitiesEraseProcess<Node>& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
 {
-    Mesher.ReGenerateMesh(rModelPart,
-                          KratosComponents<Element>::Get(ElementName),
+//KKKKKKKKKKKKKK
+    Mesher.ReGenerateMesh(rModelPart, KratosComponents<Element>::Get(ElementName),
                           KratosComponents<Condition>::Get(ConditionName),NodeErase,RemNodes, AddNodes,  AlphaShape, HFactor     );
 }
 
@@ -110,7 +111,7 @@ void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char*
 
 
 }
-#endif
+//#endif
 
 #if USE_TRIANGLE_NONFREE_TPL
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -201,14 +202,15 @@ void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char*
 void  AddMeshersToPython(pybind11::module& m)
 {
     
-#ifdef USE_TETGEN_NONFREE_TPL
+//#ifdef USE_TETGEN_NONFREE_TPL
+    //FFFFFFFFFFFFFF
     // Class that allows 3D adaptive remeshing (inserting and erasing nodes)
     py::class_<TetGenPfemModeler, TetGenPfemModeler::Pointer >(m, "TetGenPfemModeler")
     .def(py::init< >())
     .def("ReGenerateMesh",TetRegenerateMesh)
     .def("ReGenerateMesh",&TetGenPfemModeler::ReGenerateMesh)
     ;
-
+//gggg
     py::class_<TetGenPfemRefineFace, TetGenPfemRefineFace::Pointer >(m, "TetGenPfemRefineFace")
     .def(py::init< >())
     .def("ReGenerateMesh",TetRegenerateMeshWithFace)
@@ -218,7 +220,7 @@ void  AddMeshersToPython(pybind11::module& m)
     .def(py::init< >())
     .def("ReGenerateMesh",TetRegenerateMeshContact)
     ;
-    
+//    ghgjghj
     py::class_<TetGenCDT, TetGenCDT::Pointer >(m, "TetGenCDT")
     .def(py::init< >())
     .def("GenerateCDT",GenerateCDT)
@@ -228,9 +230,10 @@ void  AddMeshersToPython(pybind11::module& m)
     .def(py::init< >())
     .def("ReGenerateMesh",&TetGenPfemModelerVms::ReGenerateMesh)
     ;
-#endif
+//#endif
     
 #if USE_TRIANGLE_NONFREE_TPL
+FFFFFFFFFFFFFF
     // Class that allows 2D adaptive remeshing (inserting and erasing nodes)
     py::class_<TriGenPFEMModeler, TriGenPFEMModeler::Pointer >(m, "TriGenPFEMModeler")
     .def(py::init< >())

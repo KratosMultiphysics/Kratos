@@ -32,10 +32,10 @@
 #include "custom_utilities/local_refine_tetrahedra_mesh_only_on_boundaries.hpp"
 #include "custom_utilities/gradual_variable_interpolation_utility.h"
 
-#ifdef  USE_TETGEN_NONFREE_TPL
+//#ifdef  USE_TETGEN_NONFREE_TPL
     #include "custom_utilities/tetgen_volume_mesher.h"
     #include "custom_utilities/tetrahedra_reconnect_utility.h"
-#endif
+//#endif
 
 #include "custom_utilities/cutting_iso_app.h"
 
@@ -145,7 +145,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("UpdateSolutionStepVariables", &GradualVariableInterpolationUtility::UpdateSolutionStepVariables)
     ;
 
-#ifdef USE_TETGEN_NONFREE_TPL
+//#ifdef USE_TETGEN_NONFREE_TPL
     py::class_<TetgenVolumeMesher >
     (m,"TetgenVolumeMesher")
     .def(py::init<ModelPart&>())
@@ -164,7 +164,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("setBlockSize", &TetrahedraReconnectUtility::setBlockSize)
     .def("isaValidMesh", &TetrahedraReconnectUtility::isaValidMesh)
     ;
-#endif
+//#endif
 
 #ifdef PRAGMATIC_ACTIVATED
     py::class_<PragmaticAdaptor >(m,"PragmaticAdaptor")

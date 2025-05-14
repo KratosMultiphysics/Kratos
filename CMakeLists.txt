@@ -508,13 +508,18 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Compiling the tetgen library
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
     set(TETGEN_ZIP_FILE "tetgen")
-
+    #message("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    #message("hhhhhhhhhhhhhhhhhhhhhhhhhhhola")
     if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
         # Use TetGen from local source
         set(TETGEN_EXT_PATH ${CMAKE_CURRENT_BINARY_DIR}/external_libraries/tetgen)
 
+        
+        
         find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
         message("TETGEN_ROOT: ${TETGEN_ROOT}")
+        
+        
         if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
             file(COPY ${USE_TETGEN_NONFREE_TPL_PATH} DESTINATION ${TETGEN_EXT_PATH})
             find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
@@ -524,6 +529,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
         # Prepare tetgen
         add_definitions(-DTETLIBRARY)
         add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
+        
 
         set(Tetgen_FOUND True)
 

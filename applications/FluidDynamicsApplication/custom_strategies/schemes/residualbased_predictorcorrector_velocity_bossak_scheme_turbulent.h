@@ -329,7 +329,11 @@ namespace Kratos {
                             array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
 
                             noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-                            UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                            
+                            
+                            //UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                            
+                            
                         }
                         else
                         {
@@ -407,7 +411,11 @@ namespace Kratos {
                   if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
 			{
 			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-			    UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+
+
+			    //UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+			    
+			    
 			}
 			else
 			{
