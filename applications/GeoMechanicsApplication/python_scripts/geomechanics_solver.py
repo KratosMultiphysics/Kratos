@@ -490,8 +490,6 @@ class GeoMechanicalSolver(PythonSolver):
                                  f"an increase_factor of 1.0.")
 
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list", self.settings["loads_variable_list"])
 
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
