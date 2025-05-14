@@ -816,12 +816,15 @@ namespace Kratos {
 
         KRATOS_TRY
 
+        ModelPart& r_model_part = GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        
         const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
         int particle_counter = 0.0;
 
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
-            bool result = mListOfSphericContinuumParticles[i]->OverlappedParticleRemoval();
+            bool result = mListOfSphericContinuumParticles[i]->OverlappedParticleRemoval(r_process_info);
 
             if (result == true) {particle_counter += 1;}
         }

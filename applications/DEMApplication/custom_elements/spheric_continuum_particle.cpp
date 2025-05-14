@@ -821,7 +821,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void SphericContinuumParticle::ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& temp_neighbour_elements, ProcessInfo& r_process_info) {
+    void SphericContinuumParticle::ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& temp_neighbour_elements, const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
 
@@ -948,7 +948,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    bool SphericContinuumParticle::OverlappedParticleRemoval() {
+    bool SphericContinuumParticle::OverlappedParticleRemoval(const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
 
@@ -958,7 +958,18 @@ namespace Kratos {
             double other_radius = ini_cont_neighbour_iterator->GetRadius();
 
             array_1d<double, 3> other_to_me_vect;
-            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - mNeighbourElements[i]->GetGeometry()[0].Coordinates();
+            auto& central_node = GetGeometry()[0];
+            auto& neighbour_node = mNeighbourElements[i]->GetGeometry()[0];
+            if (!r_process_info[DOMAIN_IS_PERIODIC]){ // default infinite-domain case
+                noalias(other_to_me_vect) = central_node.Coordinates() - neighbour_node.Coordinates();
+            } else { // periodic domain
+                double my_coors[3] = {central_node[0], central_node[1], central_node[2]};
+                double other_coors[3] = {neighbour_node[0], neighbour_node[1], neighbour_node[2]};
+                TransformNeighbourCoorsToClosestInPeriodicDomain(r_process_info, my_coors, other_coors);
+                other_to_me_vect[0] = my_coors[0] - other_coors[0];
+                other_to_me_vect[1] = my_coors[1] - other_coors[1];
+                other_to_me_vect[2] = my_coors[2] - other_coors[2];
+            }
             double distance = DEM_MODULUS_3(other_to_me_vect);
 
             double alpha = 1.0; // alpha = 1.0 means that the particle is completely inside another

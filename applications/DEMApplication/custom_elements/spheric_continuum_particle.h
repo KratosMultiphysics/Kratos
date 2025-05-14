@@ -86,13 +86,13 @@ namespace Kratos
 
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
-        void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements, ProcessInfo& r_process_info);
+        void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements, const ProcessInfo& r_process_info);
         virtual void UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info);
         virtual void ReorderFEMneighbours();
         virtual void ComputeForceWithNeighbourFinalOperations();
 
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
-        virtual bool OverlappedParticleRemoval();
+        virtual bool OverlappedParticleRemoval(const ProcessInfo& r_process_info);
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual void CalculateOnContinuumContactElements(size_t i_neighbour_count, 
                                                         double LocalElasticContactForce[3],                        
