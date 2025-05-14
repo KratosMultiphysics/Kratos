@@ -594,20 +594,24 @@ void DEM_smooth_joint::CheckFailure(const int i_neighbour_count,
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
+            /*
             contact_sigma = 0.0;
             contact_tau = 0.0;
             LocalElasticContactForce[0] = 0.0;      
             LocalElasticContactForce[1] = 0.0;      
             LocalElasticContactForce[2] = 0.0;
+            */
         }
         else if(( std::abs(contact_tau) > bond_current_tau_max) && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for tangential 
             failure_type = 2; // failure in shear
+            /*
             contact_sigma = 0.0;
             contact_tau = 0.0;
             LocalElasticContactForce[0] = 0.0;
             LocalElasticContactForce[1] = 0.0;
             LocalElasticContactForce[2] = 0.0;
+            */
             /*
             double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                                     + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
