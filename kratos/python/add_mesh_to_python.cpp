@@ -47,13 +47,13 @@ typename TVariableType::Type GetValueHelperFunction(TContainerType& el, const TV
     return el.GetValue(rVar);
 }
 
-typedef Mesh<Node, Properties, Element, Condition> MeshType;
-typedef MeshType::NodeType NodeType;
-typedef MeshType::NodesContainerType NodesContainerType;
-typedef Geometry<Node > GeometryType;
-typedef GeometryType::PointsArrayType NodesArrayType;
-typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-typedef Point::CoordinatesArrayType CoordinatesArrayType;
+using MeshType = Mesh<Node, Properties, Element, Condition>;
+using NodeType = MeshType::NodeType;
+using NodesContainerType = MeshType::NodesContainerType;
+using GeometryType = Geometry<Node>;
+using NodesArrayType = GeometryType::PointsArrayType;
+using IntegrationPointsArrayType = GeometryType::IntegrationPointsArrayType;
+using CoordinatesArrayType = Point::CoordinatesArrayType;
 
 Properties::Pointer GetPropertiesFromElement( Element& pelem )
 {
@@ -693,6 +693,14 @@ void  AddMeshToPython(pybind11::module& m)
     .def_property("Conditions", &MeshType::pConditions,&MeshType::SetConditions)
     .def("ConditionsArray", &MeshType::ConditionsArray, py::return_value_policy::reference_internal)
     .def("NumberOfConditions", &MeshType::NumberOfConditions)
+
+    .def_property("Conditions", &MeshType::pConditions,&MeshType::SetConditions)
+    .def("ConditionsArray", &MeshType::ConditionsArray, py::return_value_policy::reference_internal)
+    .def("NumberOfConditions", &MeshType::NumberOfConditions)
+
+    .def_property("MasterSlaveConstraints", &MeshType::pMasterSlaveConstraints,&MeshType::SetMasterSlaveConstraints)
+    .def("MasterSlaveConstraintsArray", &MeshType::MasterSlaveConstraintsArray, py::return_value_policy::reference_internal)
+    .def("NumberOfMasterSlaveConstraints", &MeshType::NumberOfMasterSlaveConstraints)
 
     .def_property("Properties", &MeshType::pProperties,&MeshType::SetProperties)
     .def("PropertiesArray", &MeshType::PropertiesArray, py::return_value_policy::reference_internal)
