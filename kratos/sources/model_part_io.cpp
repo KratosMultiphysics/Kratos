@@ -437,10 +437,10 @@ void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesConta
     KRATOS_CATCH("")
 }
 
-std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
+std::size_t ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
 {
     KRATOS_TRY
-    std::size_t number_of_elements = 0;
+    std::size_t number_of_conditions = 0;
     ResetInput();
     std::string word;
     while(true)
@@ -450,11 +450,11 @@ std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerTy
             break;
         ReadBlockName(word);
         if(word == "Conditions")
-            number_of_elements += ReadConditionsConnectivitiesBlock(rConditionsConnectivities);
+            number_of_conditions += ReadConditionsConnectivitiesBlock(rConditionsConnectivities);
         else
             SkipBlock(word);
     }
-    return number_of_elements;
+    return number_of_conditions;
     KRATOS_CATCH("")
 }
 
@@ -504,6 +504,14 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
     }
 }
 
+void ModelPartIO::ReadNewMasterSlaveConstraint(
+    NodesContainerType& rThisNodes,
+    MasterSlaveConstraint::Pointer& pThisMasterSlaveConstraint
+    )
+{
+    KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
+}
+
 void ModelPartIO::ReadMasterSlaveConstraints(
     NodesContainerType& rThisNodes,
     MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
@@ -523,6 +531,26 @@ void ModelPartIO::ReadMasterSlaveConstraints(
             SkipBlock(word);
         }
     }
+    KRATOS_CATCH("")
+}
+
+std::size_t ModelPartIO::ReadMasterSlaveConstraintsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
+{
+    KRATOS_TRY
+    std::size_t number_of_constraints = 0;
+    ResetInput();
+    std::string word;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if(word == "MasterSlaveConstraints")
+            number_of_constraints += ReadMasterSlaveConstraintsConnectivitiesBlock(rConditionsConnectivities);
+        else
+            SkipBlock(word);
+    }
+    return number_of_constraints;
     KRATOS_CATCH("")
 }
 
