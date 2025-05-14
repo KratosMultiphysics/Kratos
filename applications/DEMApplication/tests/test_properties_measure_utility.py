@@ -27,6 +27,8 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
 
         if self.time >= 180e-8 and self.time < 181e-8:
 
+            self._GetSolver().PrepareContactElementsForPrinting()
+            
             #averaged stress tensor for the whole packing
             stress_tensor = self.MeasureSphereForGettingGlobalStressTensor()
             mean_stress = (stress_tensor[0][0]+stress_tensor[1][1]+stress_tensor[2][2])/3

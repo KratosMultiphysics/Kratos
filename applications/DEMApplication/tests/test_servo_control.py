@@ -24,11 +24,12 @@ class ServoConrolTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         tolerance = 1e-8
+        self._GetSolver().PrepareContactElementsForPrinting()
         stress_tensor = self.MeasureSphereForGettingGlobalStressTensor()
         mean_stress = (stress_tensor[0][0]+stress_tensor[1][1]+stress_tensor[2][2])/3
 
-        if self.time >= 0.000048 and self.time < 0.000049:
-            expected_value = 0.00034385682998450243
+        if self.time >= 4e-5 and self.time < 4e-5 + 2e-8:
+            expected_value = 0.00034120976706751224
             self.assertAlmostEqual(mean_stress, expected_value, delta=tolerance)
 
     def Finalize(self):

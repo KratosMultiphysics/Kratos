@@ -39,7 +39,7 @@
     "RadiusExpansionRateChangeOption": false,
     "RadiusExpansionAcceleration"    : -4e5,
     "RadiusExpansionRateMin"         : 100.0,
-    "EnergyCalculationOption"        : true,
+    "EnergyCalculationOption"        : false,
     "ComputeStressTensorOption"      : true,
     "solver_settings"                : {
         "RemoveBallsInitiallyTouchingWalls" : false,
