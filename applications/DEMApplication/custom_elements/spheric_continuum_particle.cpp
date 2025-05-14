@@ -851,7 +851,6 @@ namespace Kratos {
                 double other_radius = i_neighbour->GetInteractionRadius();
                 double radius_sum = GetInteractionRadius() + other_radius;
                 array_1d<double, 3> other_to_me_vect;
-                //noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - i_neighbour->GetGeometry()[0].Coordinates();
                 if (!r_process_info[DOMAIN_IS_PERIODIC]){ // default infinite-domain case
                     noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - i_neighbour->GetGeometry()[0].Coordinates();
                 } else { // periodic domain
