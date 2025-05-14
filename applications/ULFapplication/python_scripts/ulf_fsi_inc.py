@@ -325,7 +325,6 @@ class ULF_FSISolver:
         # only for the bladder example, remove next 2 lines otherwise (there I delete lonely nodes)
         # self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part, self.domain_size)
         # self.node_erase_process.Execute()
-        print("end of remesh function")
 
 
     #
