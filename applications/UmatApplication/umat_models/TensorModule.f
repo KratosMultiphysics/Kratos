@@ -4,8 +4,8 @@ C     William Fuentes, March 2010
 C     w-fuente@uniandes.edu.co
 C     Prof. Dr-Ing Arcesio Lizcano
 C     alizcano@uniandes.edu.co
-C     Grupo de Investigaci�n de Geotecnia de la Universidad de los Andes
-C     Universitiy Los Andes, Bogot� Colombia
+C     Grupo de Investigacion de Geotecnia de la Universidad de los Andes
+C     Universitiy Los Andes, Bogota Colombia
 c------------------------------------------------------ 
 c------------------------------------------------------ 
 C     Library for tensorial operation, Fortran.
