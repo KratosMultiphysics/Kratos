@@ -165,7 +165,6 @@ public:
             im->Calculate(NODAL_MASS,dummy,proc_info);
         }
 
-        KRATOS_WATCH("Execute of Mass Calculate Process");
 
 
 
