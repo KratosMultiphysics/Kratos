@@ -459,7 +459,7 @@ namespace Kratos {
         if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
             CreateContactElements();
             InitializeContactElements();
-        }else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
+        } else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
             CreateContactElements();
             InitializeContactElements();
         }

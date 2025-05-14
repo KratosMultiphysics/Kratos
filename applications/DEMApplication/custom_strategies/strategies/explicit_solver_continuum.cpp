@@ -244,7 +244,10 @@ namespace Kratos {
                 r_process_info[SEARCH_CONTROL] = 1;
             }
 
-            if (r_process_info[CONTACT_MESH_OPTION]) {
+            if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
+                CreateContactElements();
+                InitializeContactElements();
+            } else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
                 CreateContactElements();
                 InitializeContactElements();
             }
@@ -337,7 +340,7 @@ namespace Kratos {
 
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericContinuumParticles[i]->ReorderAndRecoverInitialPositionsAndFilter(temp_neighbour_elements);
+                mListOfSphericContinuumParticles[i]->ReorderAndRecoverInitialPositionsAndFilter(temp_neighbour_elements, r_process_info);
                 mListOfSphericContinuumParticles[i]->UpdateContinuumNeighboursVector(r_process_info);
                 mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(temp_neighbours_ids, temp_neighbour_elastic_contact_forces);
             }
