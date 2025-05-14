@@ -912,9 +912,9 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     LocalEffDeltaAngularVelocity[1] = LocalDeltaAngularVelocity[1] * aux;
     LocalEffDeltaAngularVelocity[2] = LocalDeltaAngularVelocity[2] * aux;
 
-    ElasticLocalRotationalMoment[0] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[0] * 0.01;
-    ElasticLocalRotationalMoment[1] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[1] * 0.01;
-    ElasticLocalRotationalMoment[2] = -kt_el / calculation_area * Inertia_J * LocalEffDeltaRotatedAngle[2] * 0.01;
+    ElasticLocalRotationalMoment[0] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[0];
+    ElasticLocalRotationalMoment[1] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[1];
+    ElasticLocalRotationalMoment[2] = -kt_el / calculation_area * Inertia_J * LocalEffDeltaRotatedAngle[2];
 
     /*ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
     ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
