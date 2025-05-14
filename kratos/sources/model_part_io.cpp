@@ -1383,6 +1383,18 @@ void ModelPartIO::FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(
             temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
         }
 
+        // Read the relation matrix
+        for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
+            for (SizeType j = 0; j < number_of_master_dofs; j++) {
+                ReadWord(word); // Reading the relation matrix
+            }
+        }
+
+        // Read the constant vector
+        for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
+            ReadWord(word); // Reading the constant vector
+        }
+
         if (rMasterSlaveConstraintIds.find(ReorderedMasterSlaveConstraintId(id)) != rMasterSlaveConstraintIds.end()) {
             for (SizeType i = 0; i < temp_constraint_nodes.size(); i++) {
                 position = temp_constraint_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
