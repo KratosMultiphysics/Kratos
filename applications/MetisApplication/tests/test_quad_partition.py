@@ -4,7 +4,7 @@ from KratosMultiphysics import KratosUnittest, Model, ModelPartIO, PARTITION_IND
 from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.MetisApplication import MetisDivideHeterogeneousInputProcess
 
-class QuadPartitionTest(KratosUnittest.TestCase):
+class TestQuadPartition(KratosUnittest.TestCase):
 
     def testConditionPartitioning(self):
         test_file = "quads"
