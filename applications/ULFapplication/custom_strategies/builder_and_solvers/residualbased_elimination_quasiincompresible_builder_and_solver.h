@@ -1060,7 +1060,6 @@ public:
         std::vector<int>  indices;
         indices.reserve(1000);
 
-        //KRATOS_WATCH("construct matrix structure Mconsistent 0")
 
         int total_nnz = 0;
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
