@@ -22,7 +22,7 @@ def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingStaticMechanicalSolver(model, custom_settings)
 
 class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
-    """The structural mechanics static solver. (Fot adaptative remeshing)
+    """The structural mechanics static solver. (For adaptative remeshing)
     See structural_mechanics_static_solver.py for more information.
     """
     def __init__(self, model, custom_settings):

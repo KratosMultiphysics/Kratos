@@ -39,9 +39,6 @@ public:
     [[nodiscard]] virtual Matrix CalculateBMatrix(const Matrix&         rDN_DX,
                                                   const Vector&         rN,
                                                   const Geometry<Node>& rGeometry) const = 0;
-    [[nodiscard]] virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                                 double DetJ,
-                                                                 const Geometry<Node>& rGeometry) const = 0;
     [[nodiscard]] virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const = 0;
     [[nodiscard]] virtual std::unique_ptr<StressStatePolicy> Clone() const               = 0;
     [[nodiscard]] virtual const Vector&                      GetVoigtVector() const      = 0;
