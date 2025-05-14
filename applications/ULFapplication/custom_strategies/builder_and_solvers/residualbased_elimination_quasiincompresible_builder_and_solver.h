@@ -529,8 +529,6 @@ public:
             omp_destroy_lock(&lock_array[i]);
         //KRATOS_WATCH("finished parallel building");
 
-        //                        //ensure that all the threads are synchronized here
-        //                        #pragma omp barrier
 #endif
 
         KRATOS_CATCH("")
