@@ -24,11 +24,38 @@
 #include "geometries/triangle_3d_3.h"
 #include "integration/tetrahedron_gauss_legendre_integration_points.h"
 #include "integration/tetrahedron_gauss_lobatto_integration_points.h"
-#include "geometries/plane.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
+
+namespace
+{
+
+/**
+ * @brief Auxiliary data structure to be used in the HasIntersection method
+ * The plane is represented as Dot(N,X) = c where N is a unit-length
+ * normal vector, c is the plane constant, and X is any point on the
+ * plane. The user must ensure that the normal vector is unit length.
+ */
+struct Plane
+{
+    Plane() = default;
+
+    ~Plane() = default;
+
+    double DistanceTo(const array_1d<double, 3>& rPoint)
+    {
+        return  inner_prod(mNormal, rPoint) - mConstant;
+    }
+
+    double mConstant = 0.0;
+
+    array_1d<double, 3> mNormal = ZeroVector(3);
+};
+
+}
+
 /**
  * @class Tetrahedra3D4
  * @ingroup KratosCore
