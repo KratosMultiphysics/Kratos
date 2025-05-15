@@ -3591,6 +3591,14 @@ ModelPartIO::SizeType ModelPartIO::ReadMasterSlaveConstraintsConnectivitiesBlock
     ReadWord(word);
     ExtractValue(word, number_of_slave_dofs);
 
+    // Reading variables for master and slave dofs
+    for (SizeType i = 0; i < number_of_master_dofs; i++) {
+        ReadWord(word);
+    }
+    for (SizeType i = 0; i < number_of_slave_dofs; i++) {
+        ReadWord(word);
+    }
+
     KRATOS_INFO("ModelPartIO") << "  [Reading MasterSlaveConstraints connectivities: " << master_slave_constraint_name << "]" << std::endl;
 
     // Temporary container for the connectivity (list of node IDs)
@@ -3620,6 +3628,18 @@ ModelPartIO::SizeType ModelPartIO::ReadMasterSlaveConstraintsConnectivitiesBlock
             ReadWord(word); // Reading a slave node id
             ExtractValue(word, node_id);
             temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        // Read the relation matrix
+        for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
+            for (SizeType j = 0; j < number_of_master_dofs; j++) {
+                ReadWord(word); // Reading the relation matrix
+            }
+        }
+
+        // Read the constant vector
+        for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
+            ReadWord(word); // Reading the constant vector
         }
 
         // Determine the correct index in the connectivity container
@@ -5046,11 +5066,20 @@ void ModelPartIO::DivideMasterSlaveConstraintsBlock(
     MasterSlaveConstraint const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(master_slave_constraint_name);
     SizeType number_of_master_dofs, number_of_slave_dofs;
 
+    // Reading the number of master and slave dofs
     ReadWord(word);
     ExtractValue(word, number_of_master_dofs);
 
     ReadWord(word);
     ExtractValue(word, number_of_slave_dofs);
+
+    // Reading the master and slave variables dofs
+    for (SizeType i = 0; i < number_of_master_dofs; i++) {
+        ReadWord(word);
+    }
+    for (SizeType i = 0; i < number_of_slave_dofs; i++) {
+        ReadWord(word);
+    }
 
     WriteInAllFiles(rOutputFiles, "Begin MasterSlaveConstraints " +  master_slave_constraint_name);
 
@@ -5084,6 +5113,18 @@ void ModelPartIO::DivideMasterSlaveConstraintsBlock(
             SizeType node_id;
             ExtractValue(word, node_id);
             constraint_data << ReorderedNodeId(node_id) << '\t'; // slave node id
+        }
+
+        // Read the relation matrix
+        for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
+            for (SizeType j = 0; j < number_of_master_dofs; j++) {
+                ReadWord(word); // Reading the relation matrix
+            }
+        }
+
+        // Read the constant vector
+        for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
+            ReadWord(word); // Reading the constant vector
         }
 
         for(SizeType i = 0 ; i < rMasterSlaveConstraintsAllPartitions[ReorderedMasterSlaveConstraintId(id)-1].size() ; i++) {
