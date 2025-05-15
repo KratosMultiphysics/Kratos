@@ -202,10 +202,14 @@ namespace Kratos::MPMSearchElementUtility
                 if (IsExplicitAndNeedsCorrection(element_itr->pGetGeometry(), rBackgroundGridModelPart.GetProcessInfo())) {
                     is_found = false;
                 } else {
+                    #pragma omp critical
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
                         r_found_geom.Points()[j].Set(ACTIVE);
                     }
                 }
+                int& mp_counter = r_found_geom.GetValue(MP_COUNTER) ; 
+                #pragma omp atomic
+                mp_counter +=1;
             } else {
                 #pragma omp critical
                 rMissingElements.push_back(&*element_itr);
@@ -240,6 +244,9 @@ namespace Kratos::MPMSearchElementUtility
                         condition_itr->pGetGeometry(), local_coordinates,
                         condition_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
 
+                    condition_itr->Set(ACTIVE);
+
+                    #pragma omp critical
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
                         r_found_geom[j].Set(ACTIVE);
                     }
@@ -340,9 +347,15 @@ namespace Kratos::MPMSearchElementUtility
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
                     }
                     auto& r_geometry = element_itr->GetGeometry();
+                    #pragma omp critical
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                         r_geometry[j].Set(ACTIVE);
                     }
+                    
+                    int& mp_counter = pelem->GetGeometry().GetValue(MP_COUNTER); 
+                    #pragma omp atomic
+                    mp_counter +=1;
+
                 } else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: "
                         << element_itr->Id() << " is failed. Geometry is cleared." << std::endl;
@@ -377,10 +390,14 @@ namespace Kratos::MPMSearchElementUtility
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
                         auto& r_geometry = condition_itr->GetGeometry();
-
+                        
+                        #pragma omp critical
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                             r_geometry[j].Set(ACTIVE);
                         }
+
+                        condition_itr->Set(ACTIVE);
+
                     } else {
                         KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
                             << " is failed. Geometry is cleared." << std::endl;
@@ -401,9 +418,13 @@ namespace Kratos::MPMSearchElementUtility
             auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
             element_itr->Reset(ACTIVE);
             auto& r_geometry = element_itr->GetGeometry();
+            
+            #pragma omp critical
             for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                 r_geometry[j].Reset(ACTIVE);
             }
+
+            element_itr->GetGeometry().SetValue(MP_COUNTER, 0);
         }
     }
 
