@@ -5074,14 +5074,23 @@ void ModelPartIO::DivideMasterSlaveConstraintsBlock(
     ExtractValue(word, number_of_slave_dofs);
 
     // Reading the master and slave variables dofs
+    std::vector<std::string> master_variables(number_of_master_dofs, "");
     for (SizeType i = 0; i < number_of_master_dofs; i++) {
-        ReadWord(word);
+        ReadWord(master_variables[i]);
     }
+    std::vector<std::string> slave_variables(number_of_slave_dofs, "");
     for (SizeType i = 0; i < number_of_slave_dofs; i++) {
-        ReadWord(word);
+        ReadWord(slave_variables[i]);
     }
 
-    WriteInAllFiles(rOutputFiles, "Begin MasterSlaveConstraints " +  master_slave_constraint_name);
+    std::string header = "Begin MasterSlaveConstraints\t" +  master_slave_constraint_name + "\t" + std::to_string(number_of_master_dofs) + "\t" + std::to_string(number_of_slave_dofs);
+    for (const auto& var : master_variables) {
+        header += "\t" + var;
+    }
+    for (const auto& var : slave_variables) {
+        header += "\t" + var;
+    }
+    WriteInAllFiles(rOutputFiles, header);
 
     SizeType id;
 
