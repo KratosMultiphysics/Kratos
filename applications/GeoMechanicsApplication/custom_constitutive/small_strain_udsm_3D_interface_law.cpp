@@ -46,14 +46,13 @@ void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVecto
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
-    KRATOS_TRY
-    std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
+    auto& r_sig0 = GetSig0();
 
-    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_3D_INTERFACE_ZZ);
-    mStressVectorFinalized[INDEX_3D_YZ] = rStressVector(INDEX_3D_INTERFACE_YZ);
-    mStressVectorFinalized[INDEX_3D_XZ] = rStressVector(INDEX_3D_INTERFACE_XZ);
+    std::fill_n(r_sig0.begin(), StressVectorSize, 0.0);
 
-    KRATOS_CATCH("")
+    r_sig0[INDEX_3D_ZZ] = rStressVector(INDEX_3D_INTERFACE_ZZ);
+    r_sig0[INDEX_3D_YZ] = rStressVector(INDEX_3D_INTERFACE_YZ);
+    r_sig0[INDEX_3D_XZ] = rStressVector(INDEX_3D_INTERFACE_XZ);
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
@@ -106,11 +105,12 @@ Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSM3DLaw::GetValue(rVariable, rValue);
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
-        if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
+        rValue.resize(VoigtSize);
 
-        rValue[INDEX_3D_INTERFACE_ZZ] = mStressVectorFinalized[INDEX_3D_ZZ];
-        rValue[INDEX_3D_INTERFACE_YZ] = mStressVectorFinalized[INDEX_3D_YZ];
-        rValue[INDEX_3D_INTERFACE_XZ] = mStressVectorFinalized[INDEX_3D_XZ];
+        auto& r_sig0                  = GetSig0();
+        rValue[INDEX_3D_INTERFACE_ZZ] = r_sig0[INDEX_3D_ZZ];
+        rValue[INDEX_3D_INTERFACE_YZ] = r_sig0[INDEX_3D_YZ];
+        rValue[INDEX_3D_INTERFACE_XZ] = r_sig0[INDEX_3D_XZ];
     }
     return rValue;
 }

@@ -122,15 +122,14 @@ using SizeType = std::size_t;
 SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw& rOther)
     : ConstitutiveLaw(rOther),
       mStressVector(rOther.mStressVector),
-      mStressVectorFinalized(rOther.mStressVectorFinalized),
       mDeltaStrainVector(rOther.mDeltaStrainVector),
       mStrainVectorFinalized(rOther.mStrainVectorFinalized),
       mIsModelInitialized(rOther.mIsModelInitialized),
       mIsUDSMLoaded(rOther.mIsUDSMLoaded),
       mAttributes(rOther.mAttributes),
       mStateVariables(rOther.mStateVariables),
-      mStateVariablesFinalized(rOther.mStateVariablesFinalized)
-
+      mStateVariablesFinalized(rOther.mStateVariablesFinalized),
+      mSig0(rOther.mSig0)
 {
     KRATOS_TRY
 
@@ -161,9 +160,9 @@ SmallStrainUDSM3DLaw& SmallStrainUDSM3DLaw::operator=(SmallStrainUDSM3DLaw const
     this->mStateVariables          = rOther.mStateVariables;
     this->mStateVariablesFinalized = rOther.mStateVariablesFinalized;
     this->mStressVector            = rOther.mStressVector;
-    this->mStressVectorFinalized   = rOther.mStressVectorFinalized;
     this->mDeltaStrainVector       = rOther.mDeltaStrainVector;
     this->mStrainVectorFinalized   = rOther.mStrainVectorFinalized;
+    this->mSig0                    = rOther.mSig0;
 
     for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
         for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
@@ -279,8 +278,8 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties&   rMaterialProperties
     ResetStateVariables(rMaterialProperties);
 
     // set stress vectors:
-    noalias(mStressVector)          = ZeroVector(mStressVector.size());
-    noalias(mStressVectorFinalized) = ZeroVector(mStressVectorFinalized.size());
+    noalias(mStressVector) = ZeroVector(mStressVector.size());
+    mSig0.clear();
 
     // set strain vectors:
     noalias(mDeltaStrainVector)     = ZeroVector(mDeltaStrainVector.size());
@@ -338,12 +337,12 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
     mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
               &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-              StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
-              &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-              StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+              &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
+              &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
+              &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
+              &nStateVariables, &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
+              &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
+              mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK"
@@ -389,12 +388,12 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
     mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
               &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-              StateVariablesFinalized.data(), &(mDeltaStrainVector.data()[0]), (double**)mMatrixD,
-              &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-              StateVariables.data(), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+              &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
+              &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
+              &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
+              &nStateVariables, &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
+              &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
+              mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK"
@@ -629,9 +628,7 @@ void SmallStrainUDSM3DLaw::SetExternalStressVector(Vector& rStressVector)
 
 void SmallStrainUDSM3DLaw::SetInternalStressVector(const Vector& rStressVector)
 {
-    KRATOS_TRY
-    std::copy_n(rStressVector.begin(), mStressVectorFinalized.size(), mStressVectorFinalized.begin());
-    KRATOS_CATCH("")
+    std::copy(rStressVector.begin(), rStressVector.end(), mSig0.begin());
 }
 
 void SmallStrainUDSM3DLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
@@ -683,6 +680,8 @@ void SmallStrainUDSM3DLaw::CalculateStress(ConstitutiveLaw::Parameters& rValues,
     KRATOS_CATCH("")
 }
 
+array_1d<double, SmallStrainUDSM3DLaw::Sig0Size>& SmallStrainUDSM3DLaw::GetSig0() { return mSig0; }
+
 void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
@@ -719,10 +718,10 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
     const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
     mpUserMod(pIDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
               &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
-              &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious,
-              &(mStateVariablesFinalized.data()[0]), &(mDeltaStrainVector.data()[0]),
-              (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]), &excessPorePressureCurrent,
-              &(mStateVariables.data()[0]), &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
+              &(mSig0.data()[0]), &excessPorePressurePrevious, &(mStateVariablesFinalized.data()[0]),
+              &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
+              &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]),
+              &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
               &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
               &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
@@ -800,7 +799,7 @@ void SmallStrainUDSM3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Param
 {
     UpdateInternalStrainVectorFinalized(rValues);
     mStateVariablesFinalized = mStateVariables;
-    mStressVectorFinalized   = mStressVector;
+    std::copy(mStressVector.begin(), mStressVector.end(), mSig0.begin());
 }
 
 void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
@@ -877,10 +876,8 @@ Vector& SmallStrainUDSM3DLaw::GetValue(const Variable<Vector>& rThisVariable, Ve
 
         noalias(rValue) = mStateVariablesFinalized;
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-        if (rValue.size() != mStressVectorFinalized.size())
-            rValue.resize(mStressVectorFinalized.size());
-
-        noalias(rValue) = mStressVectorFinalized;
+        rValue.resize(StressVectorSize);
+        std::copy_n(mSig0.begin(), StressVectorSize, rValue.begin());
     }
     return rValue;
 }
@@ -913,8 +910,11 @@ void SmallStrainUDSM3DLaw::SetValue(const Variable<Vector>& rVariable, const Vec
 {
     if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == mStressVectorFinalized.size())) {
-        std::copy(rValue.begin(), rValue.end(), mStressVectorFinalized.begin());
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+        KRATOS_ERROR_IF(rValue.size() != StressVectorSize)
+            << "Failed to set stress vector: expected one with " << StressVectorSize
+            << " components, but got one with " << rValue.size() << "components\n";
+        std::copy(rValue.begin(), rValue.end(), mSig0.begin());
     }
 }
 
