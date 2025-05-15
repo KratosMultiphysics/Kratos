@@ -107,6 +107,7 @@ public:
 
     /**
      * @brief Divides nodes among partitions.
+     * @details Legacy version not including geometries and constraints.
      * @param rNodesAllPartitions The resulting nodes for all partitions.
      * @param rElementsConnectivities The connectivities of the elements.
      * @param rConditionsConnectivities The connectivities of the conditions.
@@ -121,6 +122,32 @@ public:
         const PartitionIndicesType& rNodesPartitions,
         const PartitionIndicesType& rElementsPartitions,
         const PartitionIndicesType& rConditionsPartitions
+        );
+
+    /**
+     * @brief Divides nodes among partitions including geometries and constraints.
+     * @param rNodesAllPartitions The resulting nodes for all partitions.
+     * @param rGeometriesAllPartitions The resulting geometries for all partitions.
+     * @param rElementsConnectivities The connectivities of the elements.
+     * @param rConditionsConnectivities The connectivities of the conditions.
+     * @param rMasterSlaveConstraintsAllPartitions The resulting constraints for all partitions.
+     * @param rNodesPartitions The node partitions.
+     * @param rGeometriesPartitions The geometry partitions.
+     * @param rElementsPartitions The element partitions.
+     * @param rConditionsPartitions The condition partitions.
+     * @param rMasterSlaveConstraintsPartitions The constraints partitions.
+     */
+    static void DividingNodes(
+        IO::PartitionIndicesContainerType& rNodesAllPartitions,
+        IO::PartitionIndicesContainerType& rGeometriesAllPartitions,
+        IO::ConnectivitiesContainerType& rElementsConnectivities,
+        IO::ConnectivitiesContainerType& rConditionsConnectivities,
+        IO::PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions,
+        const PartitionIndicesType& rNodesPartitions,
+        const PartitionIndicesType& rGeometriesPartitions,
+        const PartitionIndicesType& rElementsPartitions,
+        const PartitionIndicesType& rConditionsPartitions,
+        const PartitionIndicesType& rMasterSlaveConstraintsPartitions
         );
 
     /**
