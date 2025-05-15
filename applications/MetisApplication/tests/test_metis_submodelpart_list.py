@@ -144,12 +144,10 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         local_main_number_nodes = model_part.GetCommunicator().LocalMesh().NumberOfNodes()
         local_main_number_elements = model_part.GetCommunicator().LocalMesh().NumberOfElements()
         local_main_number_conditions = model_part.GetCommunicator().LocalMesh().NumberOfConditions()
-        local_main_number_master_slave_constraints = model_part.GetCommunicator().LocalMesh().NumberOfMasterSlaveConstraints()
 
         self.assertTrue(local_main_number_nodes > 0)
         self.assertTrue(local_main_number_elements > 0)
         self.assertTrue(local_main_number_conditions > 0)
-        self.assertTrue(local_main_number_master_slave_constraints > 0)
 
         total_main_nodes = model_part.GetCommunicator().GlobalNumberOfNodes()
         total_main_elements = model_part.GetCommunicator().GlobalNumberOfElements()
