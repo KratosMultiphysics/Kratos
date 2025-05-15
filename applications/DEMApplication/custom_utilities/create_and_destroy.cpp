@@ -1555,6 +1555,36 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    void ParticleCreatorDestructor::ShiftAllParticles(ModelPart& r_model_part) {
+        KRATOS_TRY
+
+        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+
+        const double period_0 = mHighPoint[0] - mLowPoint[0];
+        const double period_1 = mHighPoint[1] - mLowPoint[1];
+        const double period_2 = mHighPoint[2] - mLowPoint[2];
+
+        array_1d<double, 3> shift_vector = ZeroVector(3);
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+        shift_vector[0] = dis(gen) * period_0;
+        shift_vector[1] = dis(gen) * period_1;
+        shift_vector[2] = dis(gen) * period_2;
+
+        block_for_each(rNodes, [&](ModelPart::NodeType& rNode) {
+            array_1d<double, 3 >& coor = rNode.Coordinates();
+            array_1d<double, 3 >& displ = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            displ += shift_vector;
+            coor += shift_vector;
+        });
+
+        MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
+
+        KRATOS_CATCH("")
+    }
+    
     //TODO:why we did not call this function anywhere?
     void ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         KRATOS_TRY

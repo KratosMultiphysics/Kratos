@@ -281,6 +281,7 @@ public:
     template<class TParticleType>
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);
     void MoveParticlesOutsideBoundingBoxBackInside(ModelPart& r_model_part);
+    void ShiftAllParticles(ModelPart& r_model_part);
     void DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
     Element::Pointer GetAnalyticReplacement(const Element& sample_element, Geometry<Node >::PointsArrayType nodelist, Element::Pointer p_elem_to_be_replaced, ModelPart& spheres_model_part);
     static double rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius);
