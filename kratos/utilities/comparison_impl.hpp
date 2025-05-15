@@ -38,13 +38,13 @@ struct IntegerComparison
     );
 
     struct Equal {
-        bool operator()(T Left, T Right) const noexcept {
+        constexpr bool operator()(T Left, T Right) const noexcept {
             return Left == Right;
         }
     }; // struct Equal
 
     struct Less {
-        bool operator()(T Left, T Right) const noexcept {
+        constexpr bool operator()(T Left, T Right) const noexcept {
             return Left < Right;
         }
     }; // struct Less
@@ -71,16 +71,16 @@ struct FloatComparison {
 
     class Equal {
     public:
-        Equal() noexcept
+        constexpr Equal() noexcept
             : Equal(static_cast<T>(0), static_cast<T>(0))
         {}
 
-        Equal(T AbsoluteTolerance, T RelativeTolerance) noexcept
+        constexpr Equal(T AbsoluteTolerance, T RelativeTolerance) noexcept
             : mAbsoluteTolerance(AbsoluteTolerance),
               mRelativeTolerance(RelativeTolerance)
         {}
 
-        bool operator()(T Left, T Right) const noexcept {
+        constexpr bool operator()(T Left, T Right) const noexcept {
             const T norm = std::min(std::abs(Left) + std::abs(Right),
                                     std::numeric_limits<T>::max());
             return std::abs(Left - Right) < std::max(mAbsoluteTolerance, mRelativeTolerance * norm);
@@ -92,15 +92,15 @@ struct FloatComparison {
 
     class Less {
     public:
-        Less() noexcept
+        constexpr Less() noexcept
             : Less(static_cast<T>(0), static_cast<T>(0))
         {}
 
-        Less(T AbsoluteTolerance, T RelativeTolerance) noexcept
+        constexpr Less(T AbsoluteTolerance, T RelativeTolerance) noexcept
             : mEqualityComparison(AbsoluteTolerance, RelativeTolerance)
         {}
 
-        bool operator()(T Left, T Right) const noexcept {
+        constexpr bool operator()(T Left, T Right) const noexcept {
             return Left < Right && !mEqualityComparison(Left, Right);
         }
 
