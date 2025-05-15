@@ -713,9 +713,13 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
     int  iAbort                = 0;
     auto nSizeProjectDirectory = static_cast<int>(mProjectDirectory.size());
 
-    const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
+    const auto&    r_given_umat_parameters  = rMaterialProperties[UMAT_PARAMETERS];
+    constexpr auto max_umat_parameters_size = SizeType{50};
+    auto umat_parameters = array_1d<double, max_umat_parameters_size>{max_umat_parameters_size, 0.0};
+    std::copy(r_given_umat_parameters.begin(), r_given_umat_parameters.end(), umat_parameters.begin());
+
     mpUserMod(pIDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
               &(mSig0.data()[0]), &excessPorePressurePrevious, &(mStateVariablesFinalized.data()[0]),
               &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
               &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]),
@@ -729,7 +733,7 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
             << std::to_string(*pIDTask) << "."
             << " UDSM: " << rMaterialProperties[UDSM_NAME]
             << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
-            << " Parameters: " << MaterialParameters << std::endl;
+            << " Parameters: " << r_given_umat_parameters << std::endl;
         KRATOS_ERROR << "the specified UDSM returns an error while call UDSM with IDTASK: "
                      << std::to_string(*pIDTask) << ". UDSM: " << rMaterialProperties[UDSM_NAME]
                      << std::endl;
