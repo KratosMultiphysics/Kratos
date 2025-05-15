@@ -5096,8 +5096,9 @@ void ModelPartIO::DivideMasterSlaveConstraintsBlock(
 
     while(!mpStream->eof()) {
         ReadWord(word); // Reading the master-slave constraint id or End
-        if(CheckEndBlock("MasterSlaveConstraints", word))
+        if(CheckEndBlock("MasterSlaveConstraints", word)) {
             break;
+        }
 
         ExtractValue(word,id);
         if(ReorderedMasterSlaveConstraintId(id) > rMasterSlaveConstraintsAllPartitions.size()) {
@@ -5128,12 +5129,14 @@ void ModelPartIO::DivideMasterSlaveConstraintsBlock(
         for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
             for (SizeType j = 0; j < number_of_master_dofs; j++) {
                 ReadWord(word); // Reading the relation matrix
+                constraint_data << word << '\t'; // relation matrix value
             }
         }
 
         // Read the constant vector
         for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
             ReadWord(word); // Reading the constant vector
+            constraint_data << word << '\t'; // constant vector value
         }
 
         for(SizeType i = 0 ; i < rMasterSlaveConstraintsAllPartitions[ReorderedMasterSlaveConstraintId(id)-1].size() ; i++) {
