@@ -1580,8 +1580,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             coor += shift_vector;
         });
 
-        MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
-
         KRATOS_CATCH("")
     }
     
