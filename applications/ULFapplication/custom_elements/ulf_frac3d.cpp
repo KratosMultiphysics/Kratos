@@ -82,7 +82,7 @@ array_1d<double,6> ms_temp_vec;
 	array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes //
 	array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of space dimensions //
 	array_1d<double,4> ms_aux1 = ZeroVector(4); //dimension = number of nodes //
-	array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension//
+	array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimension coincides with space dimension//
 	array_1d<double,4> msN = ZeroVector(4);//
 }
 using  namespace UlfFrac3D_auxiliaries;
@@ -610,7 +610,7 @@ void UlfFrac3D::PressureStep(MatrixType& rLeftHandSideMatrix, VectorType& rRight
     array_1d<double,4> ms_temp_vec_np;// = ZeroVector(4); //dimension = number of nodes //
     array_1d<double,3> ms_aux0;// = ZeroVector(3); //dimension = number of space dimensions //
     array_1d<double,4> ms_aux1;// = ZeroVector(4); //dimension = number of nodes //
-    array_1d<double,3> ms_vel_gauss;// = ZeroVector(3); //dimesion coincides with space dimension//
+    array_1d<double,3> ms_vel_gauss;// = ZeroVector(3); //dimension coincides with space dimension//
     array_1d<double,4> msN;// = ZeroVector(4);//
 
     if(rRightHandSideVector.size() != 4)
