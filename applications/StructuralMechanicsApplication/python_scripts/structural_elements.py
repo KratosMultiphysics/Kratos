@@ -1,17 +1,24 @@
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import numpy as np
-from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods import HandbookMethods as HM
+from KratosMultiphysics.StructuralMechanicsApplication.handbook_methods import StrengthMethods, StabilityMethods
 import csv
 from abc import ABC, abstractmethod
 
 class StructuralElement(ABC):
 
-    def __init__(self, sub_model_part, origin_node_id: int, corner_node_x_id: int, corner_node_y_id: int, analysis_methods: list[str]):
+    def __init__(self, 
+                 sub_model_part, 
+                 origin_node_id: int, 
+                 corner_node_x_id: int, 
+                 corner_node_y_id: int,
+                 boundary_conditions: list[float], 
+                 analysis_methods: list[str]):
         self.sub_model_part = sub_model_part
         self.origin_node_id: int = origin_node_id
         self.corner_node_x_id: int = corner_node_x_id
         self.corner_node_y_id: int = corner_node_y_id
+        self.boundary_conditions: list[float] = boundary_conditions
         self.analysis_methods: list[str] = analysis_methods
         self.sub_model_part.AddNodes([self.corner_node_x_id, self.corner_node_y_id, self.origin_node_id])
         self.InitializeNodeVectors()
@@ -126,8 +133,14 @@ class StructuralElement(ABC):
 
 class Panel(StructuralElement):
 
-    def __init__(self, sub_model_part, origin_node_id: int, corner_node_x_id: int, corner_node_y_id: int, analysis_methods: list[str]):
-        super().__init__(sub_model_part, origin_node_id, corner_node_x_id, corner_node_y_id, analysis_methods)
+    def __init__(self, 
+                 sub_model_part, 
+                 origin_node_id: int, 
+                 corner_node_x_id: int, 
+                 corner_node_y_id: int,
+                 boundary_conditions: list[float],
+                  analysis_methods: list[str]):
+        super().__init__(sub_model_part, origin_node_id, corner_node_x_id, corner_node_y_id, boundary_conditions, analysis_methods)
         self.GetMaterialData()
         self.ComputeLoad()
         self.ComputeMeasurements()
@@ -144,20 +157,21 @@ class Panel(StructuralElement):
     @classmethod
     def FromKratosParametersObject(cls, sub_model_part, data):
         method_list = [data["analysis_methods"][i].GetString() for i in range(data["analysis_methods"].size())]
+        boundary_conditions = [data["boundary_conditions"][i].GetDouble() for i in range(data["boundary_conditions"].size())]
         return cls(sub_model_part, 
             data["panel_origin_node"].GetInt(),
             data["corner_node_x"].GetInt(),
             data["corner_node_y"].GetInt(),
+            boundary_conditions,
             method_list)
     
     def ComputeMeasurements(self):
-        #TODO: Attribute umbenennen
-        #TODO: Length and width are also depending on the loadcase of the panel. This still has to be implemented here
+        """This function calculates the measurements of the panel in x- and y-direction.
+        """
         length_in_y = np.dot((self.y_node_vector - self.origin_node_vector), self.y_axis_base_vector)
         length_in_x = np.dot((self.x_node_vector - self.origin_node_vector), self.x_axis_base_vector)
-        self.length = length_in_x
-        self.width = length_in_y
-        self.aspect_ratio = self.length/self.width
+        self.x_measurement = length_in_x
+        self.y_measurement = length_in_y
     
     def ComputeLoad(self):
         #TODO: Elementspannungen werden momentan in globalen Koordinaten ausgegeben. Sollten eigentlich in lokalen Koordinaten gegeben werden. 
@@ -206,6 +220,41 @@ class Panel(StructuralElement):
                 bc = node.IsFixed(getattr(KratosMultiphysics, dof))
                 print(f"Is {dof} of {node.Id} fixed:", bc)
 
+    def PrepareStabilityAnalysis(self):
+        if self.xx_panel_stress < 0. and self.yy_panel_stress > 0.:
+            self.buckling_mode = 'uniaxial'
+            self.a = self.x_measurement
+            self.b = self.y_measurement
+            self.buckling_sress = self.xx_panel_stress
+
+        elif self.xx_panel_stress > 0. and self.yy_panel_stress < 0.:
+            self.buckling_mode = 'uniaxial'
+            self.a = self.y_measurement
+            self.b = self.x_measurement
+            self.buckling_sress = self.yy_panel_stress
+
+        elif self.xx_panel_stress < 0. and self.yy_panel_stress < 0.:
+            self.buckling_mode = 'biaxial'
+            #TODO: Look up how to defined measurements. Depending on x>y or x<y ?
+            #TODO: Beta immer <= 1? Mit Fernaß besprechen...
+            self.beta = self.yy_panel_stress/self.xx_panel_stress
+            if self.beta > 1.:
+                self.beta = 1/self.beta
+                self.a = self.y_measurement
+                self.b = self.x_measurement
+                self.buckling_stress = [-1*self.yy_panel_stress, -1*self.xx_panel_stress]
+            else:
+                self.a = self.x_measurement
+                self.b = self.y_measurement
+                self.buckling_stress = [-1*self.xx_panel_stress, -1*self.yy_panel_stress]
+
+        else:
+            self.buckling_mode = None
+            print(f"{self.sub_model_part.Name} is in tension or not stressed. No buckling calculation is needed.")
+
+
+        self.aspect_ratio = self.a/self.b
+
     def RunHandbookMethods(self):
         """This function has also only been implemented for testing purposes so far.
         """
@@ -214,12 +263,22 @@ class Panel(StructuralElement):
         for method in methods:
             match method:
                 case "panel_buckling":
-                    pass
+                    self.PrepareStabilityAnalysis()
+                    if self.buckling_mode == 'uniaxial':
+                        RF = StabilityMethods.UniaxialBuckling(self.E, self.nu, self.thickness, self.a, abs(self.buckling_stress))
+                    elif self.buckling_mode == 'biaxial':
+                        #TODO: Methode für biaxial anpassen
+                        RF = StabilityMethods.BiaxialBuckling(self.E, self.nu, self.a, self.b, self.thickness, self.beta, self.buckling_stress)
+                    elif self.buckling_mode == None:
+                        RF = 8888
+                    with open("buckling.txt", "a") as f:
+                        f.write(f"{self.sub_model_part.Name} : \n \t Buckling Mode: {self.buckling_mode}; \n \t RF: {RF} \n \n")
+                        f.close()
                 case "von_mises":
                     self.RF_von_mises = {}
                     for element in self.sub_model_part.Elements:
                         von_mises_stress = element.CalculateOnIntegrationPoints(SMA.VON_MISES_STRESS_MIDDLE_SURFACE, self.sub_model_part.ProcessInfo)
-                        self.RF_von_mises[element.Id] = HM.von_mises(von_mises_stress[0], 100)
+                        self.RF_von_mises[element.Id] = StrengthMethods.VonMises(235, von_mises_stress[0])
                     with open("von_mises_test.csv", "w", newline="") as f:
                         w = csv.DictWriter(f, self.RF_von_mises.keys())
                         w.writeheader()
