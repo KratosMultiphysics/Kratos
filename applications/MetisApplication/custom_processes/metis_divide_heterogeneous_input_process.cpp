@@ -593,7 +593,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchr
     }
 
     // MasterSlaveConstraints where all nodes belong to the same partition always go to that partition
-    IO::ConnectivitiesContainerType::const_iterator it_master_slave_constraint = rMasterSlaveConstraintConnectivities.begin();
+    auto it_master_slave_constraint = rMasterSlaveConstraintConnectivities.begin();
     for (auto it_part = rMasterSlaveConstraintPartition.begin(); it_part != rMasterSlaveConstraintPartition.end(); it_part++) {
         const int my_partition = NodePartition[ (*it_master_slave_constraint)[0] - 1 ]; // Node Ids start from 1
         SizeType neighbour_nodes = 1; // Nodes in the same partition
