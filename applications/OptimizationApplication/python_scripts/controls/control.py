@@ -6,7 +6,7 @@ class Control(ABC):
     """Base abstract control class.
 
     The base abstract control class has the following responsibilities.
-        1. Initalizes and finalizes the control.
+        1. Initializes and finalizes the control.
         2. Maps physical space gradients to control space gradients, if needed. Otherwise, it passes.
         2. Updating the controlled parts of the model part with new given design.
         3. Retrieve control field.
