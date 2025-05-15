@@ -112,8 +112,10 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
     // Coloring
     GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
+    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph, number_of_geometries, geometry_connectivities, node_partition, geometry_partition);
     LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph, number_of_elements, element_connectivities, node_partition, element_partition);
     LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph, number_of_conditions, condition_connectivities, node_partition, condition_partition);
+    LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph, number_of_master_slave_constraints, master_slave_constraints_connectivities, node_partition, master_slave_constraints_partition);
 
     int number_of_colors;
     GraphColoringProcess(mNumberOfPartitions, DomainGraph, rPartitioningInfo.Graph, number_of_colors).Execute();
@@ -641,7 +643,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchr
             }
 
             // Determine the partition that owns the most nodes, and try to assign the constraint to that partition
-            const int majority_partitition = neighbour_partitions[ FindMax(found_neighbours,neighbour_weights) ];
+            const int majority_partitition = neighbour_partitions[FindMax(found_neighbours,neighbour_weights)];
             {
                 *it_part = majority_partitition;
             }
