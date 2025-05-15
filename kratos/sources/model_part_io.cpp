@@ -3876,15 +3876,20 @@ void ModelPartIO::FillNodalConnectivitiesFromMasterSlaveConstraintBlock(Connecti
         KRATOS_ERROR << buffer.str() << std::endl;
     }
 
-    // Retrieve the constraint (unused in this function, but read for consistency)
-    // MasterSlaveConstraint const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(master_slave_constraint_name);
-
     // Read the number of master and slave dofs
     SizeType number_of_master_dofs, number_of_slave_dofs;
     ReadWord(word);
     ExtractValue(word, number_of_master_dofs);
     ReadWord(word);
     ExtractValue(word, number_of_slave_dofs);
+
+    // We need to read the variable names
+    for (SizeType i = 0; i < number_of_master_dofs; i++) {
+        ReadWord(word);
+    }
+    for (SizeType i = 0; i < number_of_slave_dofs; i++) {
+        ReadWord(word);
+    }
 
     // Temporary container for node IDs in the constraint
     ConnectivitiesContainerType::value_type temp_constraint_nodes;
@@ -3912,6 +3917,18 @@ void ModelPartIO::FillNodalConnectivitiesFromMasterSlaveConstraintBlock(Connecti
             ReadWord(word); // Reading a slave node id
             ExtractValue(word, node_id);
             temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        // Read the relation matrix
+        for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
+            for (SizeType j = 0; j < number_of_master_dofs; j++) {
+                ReadWord(word); // Reading the relation matrix
+            }
+        }
+
+        // Read the constant vector
+        for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
+            ReadWord(word); // Reading the constant vector
         }
 
         // For each node in the constraint, add connectivities to all the other nodes in the same constraint
