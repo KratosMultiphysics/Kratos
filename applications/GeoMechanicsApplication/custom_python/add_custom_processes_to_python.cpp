@@ -33,6 +33,7 @@
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
 #include "custom_processes/apply_constant_phreatic_surface_pressure_process.hpp"
 #include "custom_processes/apply_excavation_process.h"
+#include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
@@ -46,7 +47,6 @@
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
-#include "custom_processes/reset_displacement_process.h"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 #include "custom_processes/set_multiple_moving_loads.h"
 #include "custom_processes/set_parameter_field_process.hpp"
@@ -178,8 +178,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
         m, "CalculateIncrementalDisplacementProcess")
         .def(py::init<ModelPart&, const Parameters&>());
 
-    py::class_<ResetDisplacementProcess, ResetDisplacementProcess::Pointer, Process>(
-        m, "ResetDisplacementProcess")
+    py::class_<ApplyFinalStressesOfPreviousStageToInitialState, ApplyFinalStressesOfPreviousStageToInitialState::Pointer, Process>(
+        m, "ApplyFinalStressesOfPreviousStageToInitialState")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 
