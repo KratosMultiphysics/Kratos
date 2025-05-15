@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientModifierForPwLineElement : public IntegrationCoefficientModifier
+class KRATOS_API(GEO_MECHANICS_APPLICATION) IntegrationCoefficientModifierForLineElement : public IntegrationCoefficientModifier
 {
 public:
     double operator()(double                           IntegrationCoefficient,
