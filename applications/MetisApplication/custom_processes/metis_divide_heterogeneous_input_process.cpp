@@ -126,7 +126,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
     // Write partition info into separate input files
     // Create lists containing all nodes/elements/conditions known to each partition
-    LegacyPartitioningUtilities::DividingNodes(rPartitioningInfo.NodesAllPartitions, element_connectivities, condition_connectivities, node_partition, element_partition, condition_partition);
+    LegacyPartitioningUtilities::DividingNodes(rPartitioningInfo.NodesAllPartitions, geometry_connectivities, element_connectivities, condition_connectivities, master_slave_constraints_connectivities, node_partition, geometry_partition, element_partition, condition_partition, master_slave_constraints_partition);
     LegacyPartitioningUtilities::DividingGeometries(rPartitioningInfo.GeometriesAllPartitions, geometry_partition);
     LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, element_partition);
     LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, condition_partition);
