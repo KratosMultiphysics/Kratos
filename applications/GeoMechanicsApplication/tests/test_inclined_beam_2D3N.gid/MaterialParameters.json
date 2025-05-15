@@ -36,13 +36,14 @@
       "properties_id":           2,
       "Material": {
           "constitutive_law": {
-              "name"             :  "LinearElastic2DBeamLaw" 
+              "name"             :  "TimoshenkoBeamElasticConstitutiveLaw"
           },
           "Variables": {
               "YOUNG_MODULUS"     :  1000.0,
               "POISSON_RATIO"     :  0.3,
               "DENSITY"           :  7.850,
               "CROSS_AREA"        :  1.0,
+              "AREA_EFFECTIVE_Y" :   1.0,
               "I33"               :  0.083333333
          },
          "Tables": {}
