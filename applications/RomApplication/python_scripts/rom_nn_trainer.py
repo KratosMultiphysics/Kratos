@@ -290,7 +290,7 @@ class RomNeuralNetworkTrainer(object):
         else:
             self.using_manual_model_path = True
             model_path=pathlib.Path(custom_model_path)
-            with open(pathlib.Path(model_path / 'train_config_kratos_format.json'), "r") as config_file:
+            with open(pathlib.Path(model_path / 'train_config.json'), "r") as config_file:
                 model_properties = json.load(config_file)
 
         print("Getting model weights and config from: ", model_path)

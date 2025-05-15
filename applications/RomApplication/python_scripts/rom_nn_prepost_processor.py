@@ -3,19 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 class PODANN_prepost_processor():
-    def __init__(self):
-        super().__init__()
-        self.phi_inf = None
-        self.phi_inf_tf = None
-        self.phi_sup = None
-        self.phi_sup_tf = None
-        self.sigma_inf = None
-        self.sigma_inf_tf = None
-        self.sigma_sup = None
-        self.sigma_sup_tf = None
-
-    def configure_processor(self, phi, sigma, S, svd_inf_size, svd_sup_size):
-
+    def __init__(self, phi, sigma, S, svd_inf_size, svd_sup_size):
         self.phi=phi
         self.sigma=sigma/np.sqrt(S.shape[0])
 

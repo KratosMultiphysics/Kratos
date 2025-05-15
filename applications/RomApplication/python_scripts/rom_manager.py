@@ -50,23 +50,23 @@ class RomManager(object):
                     self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
                     self._LaunchFOM(mu_validation, start_from_closest_mu=start_from_closest_mu) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_train, mu_train = mu_train, nn_rom_interface=nn_rom_interface)
+                    # self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
+                    # nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                    # self._LaunchROM(mu_train, mu_train = mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
-                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                    self._LaunchROM(mu_train)
+                    # self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+                    # self._LaunchROM(mu_train)
                 if any(item == "HROM" for item in training_stages):
                     #FIXME there will be an error if we only train HROM, but not ROM
                     self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
                     self._LaunchTrainHROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    self._LaunchHROM(mu_train)
+                    # self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+                    # self._LaunchHROM(mu_train)
         #######################
 
         #######################################
@@ -77,24 +77,24 @@ class RomManager(object):
                     self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
                     self._LaunchFOM(mu_validation, start_from_closest_mu=start_from_closest_mu) #What to do here with the gid and vtk results?
                     self.TrainAnnEnhancedROM(mu_train,mu_validation)
-                    self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
-                    nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
-                    self._LaunchROM(mu_train, mu_train = mu_train, nn_rom_interface=nn_rom_interface)
+                    # self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
+                    # nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base)
+                    # self._LaunchROM(mu_train, mu_train = mu_train, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in training_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
                     self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
-                    self._ChangeRomFlags(simulation_to_run = "lspg")
-                    self._LaunchROM(mu_train)
+                    # self._ChangeRomFlags(simulation_to_run = "lspg")
+                    # self._LaunchROM(mu_train)
                 if any(item == "HROM" for item in training_stages):
                     # Change the flags to train the HROM for LSPG
                     self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
                     self._LaunchTrainHROM(mu_train)
                     # Change the flags to run the HROM for LSPG
-                    self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    self._LaunchHROM(mu_train)
+                    # self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                    # self._LaunchHROM(mu_train)
         #######################################
 
         ##########################
@@ -109,26 +109,26 @@ class RomManager(object):
                     self._LaunchTrainROM(mu_train, start_from_closest_mu=start_from_closest_mu)
                     self._ChangeRomFlags(simulation_to_run = "TrainPG")
                     self._LaunchTrainPG(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "PG")
-                    self._LaunchROM(mu_train)
+                    # self._ChangeRomFlags(simulation_to_run = "PG")
+                    # self._LaunchROM(mu_train)
 
                 if any(item == "HROM" for item in training_stages):
                     #FIXME there will be an error if we only train HROM, but not ROM
                     self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
                     self._LaunchTrainHROM(mu_train)
-                    self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    self._LaunchHROM(mu_train)
+                    # self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+                    # self._LaunchHROM(mu_train)
             ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        if type_of_decoder =="ann_enhanced":
-            if nn_rom_interface.get_using_manual_model_path():
-                self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan, mu_aux=None, nn_model_name=nn_rom_interface.get_nn_model_name())
-            else:
-                self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan, mu_aux=mu_train)
-        else:
-            self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan)
+        # if type_of_decoder =="ann_enhanced":
+        #     if nn_rom_interface.get_using_manual_model_path():
+        #         self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan, mu_aux=None, nn_model_name=nn_rom_interface.get_nn_model_name())
+        #     else:
+        #         self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan, mu_aux=mu_train)
+        # else:
+        #     self.ComputeErrors(mu_train, case='Test', filter_nan=filter_nan)
 
     def TrainAnnEnhancedROM(self, mu_train, mu_validation):
         counter = 0
@@ -158,7 +158,7 @@ class RomManager(object):
         self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].SetInt(counter)
         in_database, _ = self.data_base.check_if_in_database("Neural_Network_Residual", mu_train)
         if not in_database:
-            self._LaunchTrainNeuralNetworkResidual(mu_train,mu_validation)
+            self._LaunchTrainNeuralNetworkResidual(mu_train, mu_validation, simulation)
         elif in_database and self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
             while in_database:
                 counter+=1
@@ -166,7 +166,9 @@ class RomManager(object):
                 #using Fit(), the model launched will be the one trained last.
                 #For Test() or Run() methods, it is the one privided in "model_number"
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network_Residual", mu_train)
-            self._LaunchTrainNeuralNetworkResidual(mu_train,mu_validation)
+            self._LaunchTrainNeuralNetworkResidual(mu_train, mu_validation, simulation)
+        else:
+            print("Finetuned model for this config already exists")
 
     def TestNeuralNetworkReconstruction(self, mu_train, mu_validation, mu_test):
         custom_model_path = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["custom_model_path"].GetString()
@@ -192,7 +194,11 @@ class RomManager(object):
                     self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base, custom_model_path=custom_model_path)
-                    self._LaunchROM(mu_test, mu_train = mu_train, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
+                    if '/saved_nn_models/' in custom_model_path:
+                        gid_name = 'NN-ROM_Test'
+                    elif '/saved_nn_models_residual/' in custom_model_path:
+                        gid_name = 'NN-ROM-Residual_Test'
+                    self._LaunchROM(mu_test, mu_train = mu_train, gid_and_vtk_name=gid_name, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
                     raise Exception(err_msg)
@@ -218,7 +224,11 @@ class RomManager(object):
                     self._LaunchFOM(mu_test, start_from_closest_mu=start_from_closest_mu, gid_and_vtk_name='FOM_Test')
                     self._ChangeRomFlags(simulation_to_run = "lspg_ANN")
                     nn_rom_interface = NN_ROM_Interface(mu_train, self.data_base, custom_model_path=custom_model_path)
-                    self._LaunchROM(mu_test, mu_train = mu_train, gid_and_vtk_name='ROM_Test', nn_rom_interface=nn_rom_interface)
+                    if '/saved_nn_models/' in custom_model_path:
+                        gid_name = 'NN-ROM_Test'
+                    elif '/saved_nn_models_residual/' in custom_model_path:
+                        gid_name = 'NN-ROM-Residual_Test'
+                    self._LaunchROM(mu_test, mu_train = mu_train, gid_and_vtk_name=gid_name, nn_rom_interface=nn_rom_interface)
                 if any(item == "HROM" for item in testing_stages):
                     err_msg = f'HROM is not available yet for ann_enhanced decoders.'
             elif type_of_decoder =="linear":
@@ -783,12 +793,11 @@ class RomManager(object):
         self.data_base.add_to_database("Neural_Network", mu_train , None)
         rom_nn_trainer.EvaluateNetwork()
 
-    def _LaunchTrainNeuralNetworkResidual(self, mu_train, mu_validation):
+    def _LaunchTrainNeuralNetworkResidual(self, mu_train, mu_validation, simulation):
         RomNeuralNetworkTrainerResidual = self._TryImportNNTrainerResidual()
-        rom_nn_trainer_residual = RomNeuralNetworkTrainerResidual(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
+        rom_nn_trainer_residual = RomNeuralNetworkTrainerResidual(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base, simulation)
         rom_nn_trainer_residual.TrainNetwork()
         self.data_base.add_to_database("Neural_Network_Residual", mu_train , None)
-        rom_nn_trainer_residual.EvaluateNetwork()
 
     def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation, mu_test, custom_model_path = None):
         RomNeuralNetworkTrainer = self._TryImportNNTrainer()

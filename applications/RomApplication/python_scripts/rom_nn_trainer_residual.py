@@ -30,7 +30,8 @@ class R_Only_Strategy_KerasModel(Model):
 
         self.run_eagerly = False
         
-        self.rescaling_factor_r=1.0
+        # self.rescaling_factor_r=1.0
+        # self.rescaling_factor_x=1.0
 
         self.loss_x_tracker = metrics.Mean(name="loss_x")
         self.loss_r_tracker = metrics.Mean(name="loss_r")
@@ -147,16 +148,22 @@ class RomNeuralNetworkTrainerResidual(object):
 
     def _GetTrainingData(self, n_inf, n_sup, kratos_simulation):
 
-        S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM')
-        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
+        S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM').T
+        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM').T
+        print('Shape S_train: ', S_train.shape)
+        print('Shape S_val: ', S_val.shape)
 
         R_train =  kratos_simulation.get_r_batch_(S_train)
         R_val =  kratos_simulation.get_r_batch_(S_val)
+        print('Shape R_train: ', R_train.shape)
+        print('Shape R_val: ', R_val.shape)
 
         _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
         phi = self.data_base.get_single_numpy_from_database(hash_basis)
         _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
         sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)
+        print('Shape phi: ', phi.shape)
+        print('Shape sigma_vec: ', sigma_vec.shape)
 
         self._CheckNumberOfModes(n_inf,n_sup,sigma_vec.shape[0])
 
@@ -228,6 +235,7 @@ class RomNeuralNetworkTrainerResidual(object):
         model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network_Residual", self.mu_train)
         model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models_residual' / model_name)
         model_path.mkdir(parents=True, exist_ok=False)
+        print('New_model_path: ', model_path)
 
         S_train, S_val, R_train, R_val, phi, sigma_vec = self._GetTrainingData(n_inf, n_sup, self.structural_nn_interface)
 
@@ -238,13 +246,17 @@ class RomNeuralNetworkTrainerResidual(object):
         network.compile(AdamW(epsilon=1e-17), run_eagerly=False)
         network.summary()
 
-        callbacks = [LearningRateScheduler(self._SelectScheduler(lr_scheme, base_lr, lr_additional_params), verbose=0)]
+        callbacks = [LearningRateScheduler(self._SelectScheduler(lr_scheme, base_lr, lr_additional_params), verbose=0),
+                     tf.keras.callbacks.ModelCheckpoint(str(model_path)+"/model.weights.h5",save_weights_only=True,save_best_only=True,monitor="val_loss_r",mode="min")]
         
-        network.load_weights(nn_training_parameters['online']['custom_model_path']+'/model_weights.h5')
+        pretrained_model_path = pathlib.Path(nn_training_parameters['online']['custom_model_path'].GetString())
+        # pretrained_model_path = pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / pretrained_model_name)
+        network.load_weights(pretrained_model_path / 'model.weights.h5')
+        print('Using pre-trained weights from: ', pretrained_model_path)
         
         input_data, target_data, val_input, val_target = prepost_processor.get_training_data(S_train, S_val, R_train, R_val)
-
-
+        
+        network.update_rescaling_factors(target_data[0],target_data[1])
         history = network.fit(input_data, target_data, batch_size=batch_size, epochs=epochs, validation_data=(val_input,val_target), shuffle=True, callbacks=callbacks)
 
         training_parameters_dict = {
@@ -263,8 +275,5 @@ class RomNeuralNetworkTrainerResidual(object):
         with open(str(model_path)+"/train_config.json", "w") as ae_config_json_file:
             json.dump(training_parameters_dict, ae_config_json_file)
 
-        network.save_weights(str(model_path)+"/model.weights.h5")
-        with open(str(model_path)+"/history.json", "w") as history_file:
-            json.dump(str(history.history), history_file)
-
+        network.load_weights(str(model_path)+"/model.weights.h5")
         self._SaveWeightsKratosFormat(network, str(model_path)+"/model_weights.npy")

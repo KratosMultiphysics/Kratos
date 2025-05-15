@@ -18,7 +18,7 @@ class NN_ROM_Interface():
         else:
             self.using_manual_model_path = True
             self.model_path=pathlib.Path(custom_model_path)
-            with open(pathlib.Path(self.model_path / 'train_config_kratos_format.json'), "r") as config_file:
+            with open(pathlib.Path(self.model_path / 'train_config.json'), "r") as config_file:
                 model_config = json.load(config_file)
 
         print("Getting model weights and config from: ", self.model_path)
