@@ -24,6 +24,7 @@ class Schema_Validation:
                 "panel_origin_node": {"type": "integer"},
                 "corner_node_x" : {"type": "integer"},
                 "corner_node_y" : {"type": "integer"},
+                "boundary_conditions" : {"type": "array", "items" : {"type" : "number"}},
                 "analysis_methods"  :   {"type": "array", "items": {"type": "string"}}
             },
             "required": ["type", "submodelpart", "panel_origin_node", "corner_node_x", "corner_node_y", "analysis_methods"]

@@ -33,9 +33,9 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
                     sub_model_part = self.modelpart.GetSubModelPart(structural_element["submodelpart"].GetString())
                     panel = Panel.FromKratosParametersObject(sub_model_part=sub_model_part, data=structural_element)
                     print("Panel Name: ", structural_element["submodelpart"].GetString(), 
-                      "\n Length: ", panel.length, 
-                      "\n Width: ", panel.width, 
-                      "\n Ratio: ", panel.aspect_ratio,
+                      "\n Length: ", panel.a, 
+                      "\n Width: ", panel.b, 
+                      "\n Aspect Ratio: ", panel.aspect_ratio,
                       "\n E: ", panel.E,
                       "\n Nu: ", panel.nu,
                       "\n t: ", panel.thickness,
