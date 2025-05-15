@@ -115,8 +115,9 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = VOIGT_SIZE_3D;
 
-    static constexpr SizeType Sig0Size         = 20;
-    static constexpr SizeType StressVectorSize = 6;
+    static constexpr SizeType Sig0Size                  = 20;
+    static constexpr SizeType StressVectorSize          = 6;
+    static constexpr SizeType StrainIncrementVectorSize = 12;
 
     /// Pointer definition of SmallStrainUDSM3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM3DLaw);
@@ -350,10 +351,10 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    array_1d<double, VOIGT_SIZE_3D> mStressVector;
+    array_1d<double, VOIGT_SIZE_3D> mStressVector{VOIGT_SIZE_3D, 0.0};
 
-    array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
-    array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
+    array_1d<double, StrainIncrementVectorSize> mDeltaStrainVector{StrainIncrementVectorSize, 0.0};
+    array_1d<double, VOIGT_SIZE_3D>             mStrainVectorFinalized{VOIGT_SIZE_3D, 0.0};
 
     double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
 
@@ -426,7 +427,7 @@ private:
 
     // See section 16.2 "Implementation of User Defined (UD) soil Models in calculations program"
     // of the Plaxis documentation for the array sizes
-    array_1d<double, Sig0Size> mSig0;
+    array_1d<double, Sig0Size> mSig0{Sig0Size, 0.0};
 
     ///@}
     ///@name Private Operators

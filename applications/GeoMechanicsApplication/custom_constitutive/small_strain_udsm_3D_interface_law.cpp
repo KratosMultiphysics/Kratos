@@ -30,11 +30,14 @@ ConstitutiveLaw::Pointer SmallStrainUDSM3DInterfaceLaw::Clone() const
 
 void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
-    const Vector& rStrainVector = rValues.GetStrainVector();
+    const auto& r_strain_vector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[INDEX_3D_ZZ] = rStrainVector(INDEX_3D_INTERFACE_ZZ) - mStrainVectorFinalized[INDEX_3D_ZZ];
-    mDeltaStrainVector[INDEX_3D_YZ] = rStrainVector(INDEX_3D_INTERFACE_YZ) - mStrainVectorFinalized[INDEX_3D_YZ];
-    mDeltaStrainVector[INDEX_3D_XZ] = rStrainVector(INDEX_3D_INTERFACE_XZ) - mStrainVectorFinalized[INDEX_3D_XZ];
+    mDeltaStrainVector[INDEX_3D_ZZ] =
+        r_strain_vector[INDEX_3D_INTERFACE_ZZ] - mStrainVectorFinalized[INDEX_3D_ZZ];
+    mDeltaStrainVector[INDEX_3D_YZ] =
+        r_strain_vector[INDEX_3D_INTERFACE_YZ] - mStrainVectorFinalized[INDEX_3D_YZ];
+    mDeltaStrainVector[INDEX_3D_XZ] =
+        r_strain_vector[INDEX_3D_INTERFACE_XZ] - mStrainVectorFinalized[INDEX_3D_XZ];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)

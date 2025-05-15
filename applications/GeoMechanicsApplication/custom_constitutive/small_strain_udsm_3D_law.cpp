@@ -282,7 +282,7 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties&   rMaterialProperties
     mSig0.clear();
 
     // set strain vectors:
-    noalias(mDeltaStrainVector)     = ZeroVector(mDeltaStrainVector.size());
+    mDeltaStrainVector.clear();
     noalias(mStrainVectorFinalized) = ZeroVector(mStrainVectorFinalized.size());
 
     for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
@@ -610,13 +610,11 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 
 void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY
-    const Vector& r_strain_vector = rValues.GetStrainVector();
+    const auto& r_strain_vector = rValues.GetStrainVector();
 
-    for (unsigned int i = 0; i < mDeltaStrainVector.size(); ++i) {
-        mDeltaStrainVector[i] = r_strain_vector(i) - mStrainVectorFinalized[i];
+    for (unsigned int i = 0; i < GetStrainSize(); ++i) {
+        mDeltaStrainVector[i] = r_strain_vector[i] - mStrainVectorFinalized[i];
     }
-    KRATOS_CATCH("")
 }
 
 void SmallStrainUDSM3DLaw::SetExternalStressVector(Vector& rStressVector)

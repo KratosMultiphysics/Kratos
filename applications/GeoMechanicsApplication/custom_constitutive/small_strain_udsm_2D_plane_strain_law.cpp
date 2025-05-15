@@ -25,15 +25,6 @@ ConstitutiveLaw::Pointer SmallStrainUDSM2DPlaneStrainLaw::Clone() const
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSM2DPlaneStrainLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
-{
-    const Vector& rStrainVector = rValues.GetStrainVector();
-
-    for (unsigned int i = 0; i < VoigtSize; ++i) {
-        mDeltaStrainVector[i] = rStrainVector(i) - mStrainVectorFinalized[i];
-    }
-}
-
 void SmallStrainUDSM2DPlaneStrainLaw::SetExternalStressVector(Vector& rStressVector)
 {
     KRATOS_TRY
