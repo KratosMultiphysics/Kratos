@@ -111,7 +111,7 @@ public:
     const Parameters GetDefaultKeyPlaneGeneratorParameters() const;
 
     ///@}
-protected:
+private:
     // Data that I store in the internal data structure for each node of the cartesian grid
     class CartesianNodalData
     {

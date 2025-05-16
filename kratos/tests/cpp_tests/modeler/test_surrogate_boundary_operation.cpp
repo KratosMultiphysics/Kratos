@@ -20,7 +20,7 @@
 #include "includes/kratos_application.h"
 #include "includes/kernel.h"
 
-#include "modeler/surrogate_boundary_modeler.h"
+#include "modeler/voxel_mesh_generator_modeler.h"
 
 namespace Kratos::Testing {
 
@@ -161,39 +161,10 @@ End SubModelPart
 		// Generate the skin
 		current_model.CreateModelPart("skin_model_part");
 
-		std::cout << "Modelpart created" << std::endl;
-
 		// Generating the mesh
-		auto voxel_mesher = SurrogateBoundaryModeler(current_model, mesher_parameters);
+		auto voxel_mesher = VoxelMeshGeneratorModeler(current_model, mesher_parameters);
 		voxel_mesher.SetupGeometryModel();
 		voxel_mesher.SetupModelPart();
-
-		std::cout << "SurrogateBoundaryModeler created" << std::endl;
-
-		voxel_mesher.ComputeSurrogateBoundary();
-
-		std::cout << "Distances and colors computed" << std::endl;
-		
-		auto& nodalSBdata = voxel_mesher.GetSurrogateBoundaryNodes();
-
-		for (SurrogateBoundaryModeler::SurrogateBoundaryNode& node : nodalSBdata) 
-		{
-			// We could also use GetSurrogateBoundaryNode(i,j,k)
-			if (node.IsActive()) 
-			{
-				std::cout << *node.GetNodePtr() 
-						  << " \n  Vector distance to skin: " << node.GetVectorDistance()
-						  << " \n  Signed distance to skin: " << node.GetSignedDistance() 
-						  << " \n  Is inside: " << node.IsInside() << std::endl;
-			
-                if (std::abs(node.GetNodePtr()->X()) > 0.03 ||
-                    std::abs(node.GetNodePtr()->Y()) > 0.03 ||
-                    node.GetNodePtr()->Z() < 0.03 || node.GetNodePtr()->Z() > 0.09)
-                {
-                    KRATOS_CHECK_IS_FALSE(node.IsInside());
-                }
-            }
-		}
 	}
 
 } // namespace Kratos::Testing

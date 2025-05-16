@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Ariadna Cortes Danes
 //
 
 // System includes
@@ -40,7 +40,7 @@ void ComputeSurrogateBoundaryData::ValidateParameters()
 void ComputeSurrogateBoundaryData::Apply() const
 {   
     /// The data of every node in the voxel mesh, with its corresponging SB information
-    std::vector<SurrogateBoundaryNode> mSurrogateBoundaryData;
+    std::vector<SurrogateBoundaryNode> surrogate_boundary_data;
 
     Parameters parameters = GetParameters();
     int outside_color = parameters["outside_color"].GetInt();
@@ -53,7 +53,7 @@ void ComputeSurrogateBoundaryData::Apply() const
     GeometricalObjectsBins elements_bin(r_skin_part.ElementsBegin(),r_skin_part.ElementsEnd());
     GeometricalObjectsBins conditions_bin(r_skin_part.ConditionsBegin(),r_skin_part.ConditionsEnd());
     array_1d<std::size_t, 3> number_of_divisions = GetNumberOfDivisions();
-    mSurrogateBoundaryData.resize(number_of_divisions[0]*number_of_divisions[1]*number_of_divisions[2]);
+    surrogate_boundary_data.resize(number_of_divisions[0]*number_of_divisions[1]*number_of_divisions[2]);
 
     // Compute colors for every node. 
     array_1d< std::size_t, 3 > min_ray_position{0,0,0};
@@ -79,15 +79,15 @@ void ComputeSurrogateBoundaryData::Apply() const
                 const std::size_t node_index = GetNodeIndex(i,j,k);
                 if (colors.GetNodalColor(i,j,k) == inside_color) 
                 {
-                    mSurrogateBoundaryData[node_index].IsInside() = true;
+                    surrogate_boundary_data[node_index].IsInside() = true;
                 }
 
                 auto& nodal_data = GetNodalData(i,j,k);
                 Node::Pointer node_pointer = nodal_data.pGetNode();
                 if (node_pointer) 
                 {
-                    mSurrogateBoundaryData[node_index].IsActive() = true;
-                    mSurrogateBoundaryData[node_index].SetNodePointer(node_pointer);
+                    surrogate_boundary_data[node_index].IsActive() = true;
+                    surrogate_boundary_data[node_index].SetNodePointer(node_pointer);
 
                     Point point = *node_pointer;
                     GeometricalObjectsBins::ResultType search_result = elements_bin.SearchNearest(point);
@@ -104,18 +104,18 @@ void ComputeSurrogateBoundaryData::Apply() const
                         
                         for (std::size_t ii = 0; ii < 3; ii++) 
                         {
-                            mSurrogateBoundaryData[node_index].GetVectorDistance()[ii] = point[ii] - closest_point[ii];
+                            surrogate_boundary_data[node_index].GetVectorDistance()[ii] = point[ii] - closest_point[ii];
                         }
                     } else {
                         KRATOS_WARNING("SurrogateBoundaryModeler") << "Input geometry has no elements or conditions. Unable to compute distance to skin." << std::endl;
                     } 
                     
-                    double d = norm_2(mSurrogateBoundaryData[node_index].GetVectorDistance());
+                    double d = norm_2(surrogate_boundary_data[node_index].GetVectorDistance());
                     if (colors.GetNodalColor(i,j,k) == inside_color) 
                     {
-                        mSurrogateBoundaryData[node_index].GetSignedDistance() = -d;
+                        surrogate_boundary_data[node_index].GetSignedDistance() = -d;
                     } else {
-                        mSurrogateBoundaryData[node_index].GetSignedDistance() = d;
+                        surrogate_boundary_data[node_index].GetSignedDistance() = d;
                     }
                 }
             } 
@@ -126,7 +126,7 @@ void ComputeSurrogateBoundaryData::Apply() const
     
     // Check if the file was opened successfully
     if (output_file.is_open()) {
-        output_file <<  PrintSBData(mSurrogateBoundaryData);
+        output_file <<  PrintSBData(surrogate_boundary_data);
         output_file.close();
     } else  
         KRATOS_WARNING("ComputeSurrogateBoundaryData") << "Data could not be saved in file" << std::endl;

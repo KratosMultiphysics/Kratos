@@ -27,11 +27,11 @@ namespace Kratos {
 
 class ComputeSurrogateBoundaryData: public VoxelMesherOperation {
 
-    typedef Node NodeType;
-    typedef Node::Pointer NodePtrType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef GeometryType::Pointer GeometryPtrType;
-    typedef GeometryType::PointsArrayType PointsArrayType;
+    using NodeType = Node;
+    using NodePtrType = Node::Pointer;
+    using GeometryType = Geometry<NodeType>;
+    using GeometryPtrType = GeometryType::Pointer;
+    using PointsArrayType = GeometryType::PointsArrayType;
 
 public:
     ComputeSurrogateBoundaryData(VoxelMeshGeneratorModeler& rModeler, Parameters OperationParameters):
@@ -72,17 +72,6 @@ private:
         Node::Pointer GetNodePtr(){ return node_pointer; }
         void SetNodePointer(Node::Pointer pNode) { node_pointer = pNode; }
     };
-   
-
-    // std::vector<SurrogateBoundaryNode>& GetSurrogateBoundaryNodes() 
-    // {
-    //     return mSurrogateBoundaryData;
-    // }
-
-    // SurrogateBoundaryNode& GetSurrogateBoundaryNode(std::size_t I, std::size_t J, std::size_t K) 
-    // {
-    //     return mSurrogateBoundaryData[GetNodeIndex(I,J,K)];
-    // }
 
     std::string PrintSBData(std::vector<SurrogateBoundaryNode>& sbdata) const;
 
