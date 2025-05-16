@@ -330,7 +330,7 @@ public:
         }
 
         //and now we shall find out where the new nodes belong to
-        //defintions for spatial search
+        //definitions for spatial search
         typedef Node PointType;
         typedef Node::Pointer PointPointerType;
         typedef std::vector<PointType::Pointer>           PointVector;
@@ -655,7 +655,7 @@ private:
         Node work_point(0,0.0,0.0,0.0);
 
         unsigned int n_points_in_radius;
-        //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+        //radius means the distance, closer than which no node shall be allowed. if closer -> mark for erasing
         double radius;
 
         for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); in++)
@@ -714,7 +714,7 @@ private:
     {
         //NOTE THAT preserved_list1 will be overwritten, only the elements that passed alpha-shaoe check will enter it
 
-        //prepairing for alpha shape passing : creating necessary arrays
+        //preparing for alpha shape passing : creating necessary arrays
         //list of preserved elements is created: at max el_number can be preserved (all elements)
 
 
@@ -1037,7 +1037,7 @@ private:
 
         KRATOS_CATCH("")
     }
-    //AUXILLIARY FCTNS
+    //AUXILIARY FUNCTIONS
     inline void CalculateCenterAndSearchRadius(const double x0, const double y0,
             const double x1, const double y1,
             const double x2, const double y2,

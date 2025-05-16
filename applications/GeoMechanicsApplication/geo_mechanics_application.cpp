@@ -215,11 +215,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N)
 
     // Register geo structural elements
-    KRATOS_REGISTER_ELEMENT("GeoCrBeamElement3D2N", mGeoCrBeamElement3D2N)
-    KRATOS_REGISTER_ELEMENT("GeoCrBeamElement2D2N", mGeoCrBeamElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear2D2N", mGeoCrBeamElementLinear2D2N)
-    KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
-    KRATOS_REGISTER_ELEMENT("GeoCurvedBeamElement2D3N", mGeoCurvedBeamElement2D3N)
 
     // Register thermal elements
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D3N", mTransientThermalElement2D3N)
@@ -372,6 +368,8 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombWithTensionCutOff2D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombWithTensionCutOff3D)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulombWithTensionCutOff)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)

@@ -47,7 +47,7 @@ public:
     ///@{
 
     /**
-     * @brief Calculate max L2 norm of the evaluated expression for each entitiy.
+     * @brief Calculate max L2 norm of the evaluated expression for each entity.
      *
      * This calculates L2 norm of the each entity expression by evaluating, and then returns
      * the maximum of those. This is also an expensive operation.
@@ -64,7 +64,7 @@ public:
     /**
      * @brief Computes inner product between two container expressions by evaluating
      * both expressions for each entity in their containers, hence this is an
-     * expensive operation. Both container expressions should have the same types of containe expressions,
+     * expensive operation. Both container expressions should have the same types of container expressions,
      * therefore they may have the same container expressions lists.
      *
      * This method is optimized and compatible with OpenMP and MPI.
@@ -80,7 +80,7 @@ public:
     /**
      * @brief Calculates matrix vector product for container variable data
      *
-     * This computes matrix and vector product between rMatrix and the contaienr variable data rInput.
+     * This computes matrix and vector product between rMatrix and the container variable data rInput.
      * This is an expensive operation since this involve evaluating the expression for each
      * entity and doing matrix vector multiplication.
      *
@@ -100,7 +100,7 @@ public:
     /**
      * @brief Calculates matrix vector product for container variable data
      *
-     * This computes matrix and vector product between rMatrix and the contaienr variable data rInput.
+     * This computes matrix and vector product between rMatrix and the container variable data rInput.
      * This is an expensive operation since this involve evaluating the expression for each
      * entity and doing matrix vector multiplication.
      *
@@ -159,7 +159,7 @@ public:
     /**
      * @brief Maps container data to nodal data
      *
-     * This method mapps containr data given in rInput to nodal data (rOutput). Mapping is done using
+     * This method mapps container data given in rInput to nodal data (rOutput). Mapping is done using
      * rNeighbourEntities (which should consist of number of neighbour entities surrounding each node.).
      *
      * All the model parts in rOutput, rInput and rNeighbourEntities should be the same.
@@ -200,7 +200,7 @@ public:
      *
      * This method first distributes rNodalValues to nodes. Then it calculates
      * the matrix from the rEntities using rMatrixVariable. Then nodal values of each
-     * entitiy in rEntities is computed. Finally the matrix (from rMatrixVariable in each entity)
+     * entity in rEntities is computed. Finally the matrix (from rMatrixVariable in each entity)
      * and vector (from nodal values for each entity taken from rNodalValues) multiplication is carried out.
      * The solution of this multiplication is stored in rOutput.
      *
@@ -236,7 +236,7 @@ public:
         ModelPart& rExtractionModelPart);
 
     ///@}
-    ///@name Static operations derrived from Kratos::ExpressionUtils
+    ///@name Static operations derived from Kratos::ExpressionUtils
     ///@{
 
     #ifndef KRATOS_OPTAPP_EXPRESSION_UTILS_CEXP_METHOD_1
