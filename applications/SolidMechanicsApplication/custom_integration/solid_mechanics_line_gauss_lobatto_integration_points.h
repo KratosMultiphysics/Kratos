@@ -12,8 +12,7 @@
 //
 
 
-#if !defined(KRATOS_LINE_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_LINE_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -26,10 +25,10 @@
 
 namespace Kratos
 {
-class LineGaussLobattoIntegrationPoints1
+class SolidMechanicsLineGaussLobattoIntegrationPoints1
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints1);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints1);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -64,10 +63,10 @@ public:
 };
 
 
-class LineGaussLobattoIntegrationPoints2
+class SolidMechanicsLineGaussLobattoIntegrationPoints2
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints2);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints2);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -103,10 +102,10 @@ public:
 };
 
 
-class LineGaussLobattoIntegrationPoints3
+class SolidMechanicsLineGaussLobattoIntegrationPoints3
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints3);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints3);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -140,14 +139,14 @@ public:
     }
 
 
-}; // Class LineGaussLobattoIntegrationPoints3
+}; // Class SolidMechanicsLineGaussLobattoIntegrationPoints3
 
 
 
-class LineGaussLobattoIntegrationPoints4
+class SolidMechanicsLineGaussLobattoIntegrationPoints4
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints4);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints4);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -182,14 +181,14 @@ public:
     }
 
 
-}; // Class LineGaussLobattoIntegrationPoints4
+}; // Class SolidMechanicsLineGaussLobattoIntegrationPoints4
 
 
 
-class LineGaussLobattoIntegrationPoints5
+class SolidMechanicsLineGaussLobattoIntegrationPoints5
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints5);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints5);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -225,14 +224,14 @@ public:
     }
 
 
-}; // Class LineGaussLobattoIntegrationPoints5
+}; // Class SolidMechanicsLineGaussLobattoIntegrationPoints5
 
 
 
-class LineGaussLobattoIntegrationPoints6
+class SolidMechanicsLineGaussLobattoIntegrationPoints6
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints6);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints6);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -269,14 +268,14 @@ public:
     }
 
 
-}; // Class LineGaussLobattoIntegrationPoints6
+}; // Class SolidMechanicsLineGaussLobattoIntegrationPoints6
 
 
 
-class LineGaussLobattoIntegrationPoints7
+class SolidMechanicsLineGaussLobattoIntegrationPoints7
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints7);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints7);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -314,14 +313,14 @@ public:
     }
 
 
-}; // Class LineGaussLobattoIntegrationPoints7
+}; // Class SolidMechanicsLineGaussLobattoIntegrationPoints7
 
 
 
-class LineGaussLobattoIntegrationPoints8
+class SolidMechanicsLineGaussLobattoIntegrationPoints8
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints8);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints8);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -360,14 +359,14 @@ public:
     }
 
 
-}; // Class LineGaussLobattoIntegrationPoints8
+}; // Class SolidMechanicsLineGaussLobattoIntegrationPoints8
 
 
 
-class LineGaussLobattoIntegrationPoints9
+class SolidMechanicsLineGaussLobattoIntegrationPoints9
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints9);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints9);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -407,14 +406,14 @@ public:
     }
 
 
-}; // Class LineGaussLobattoIntegrationPoints9
+}; // Class SolidMechanicsLineGaussLobattoIntegrationPoints9
 
 
 
-class LineGaussLobattoIntegrationPoints10
+class SolidMechanicsLineGaussLobattoIntegrationPoints10
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineGaussLobattoIntegrationPoints10);
+    KRATOS_CLASS_POINTER_DEFINITION(SolidMechanicsLineGaussLobattoIntegrationPoints10);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
@@ -455,7 +454,7 @@ public:
     }
 
 
-}; // Class LineGaussLobattoIntegrationPoints10
+}; // Class SolidMechanicsLineGaussLobattoIntegrationPoints10
 
 
 ///@}
@@ -473,6 +472,5 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED  defined
 
 
