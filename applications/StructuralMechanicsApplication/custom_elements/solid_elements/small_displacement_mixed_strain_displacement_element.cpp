@@ -193,12 +193,9 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     const auto& r_props = GetProperties();
 
     // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        // Integration method initialization
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
+    if (!rCurrentProcessInfo[IS_RESTARTED])
         // Constitutive Law Vector initialisation
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
         if (mConstitutiveLawVector.size() != r_integration_points.size()) {
             mConstitutiveLawVector.resize(r_integration_points.size());
         }
