@@ -83,7 +83,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	# Thermal conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_conditions/line_heat_flux_condition.cpp
 
-	# Utilites
+	# Utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 
 	# Processes

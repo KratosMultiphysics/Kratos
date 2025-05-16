@@ -84,7 +84,7 @@ class Solution(AnalysisStage):
         if self._is_not_restarted():
             self._import_materials()
 
-        # Initiliaze processes
+        # Initialize processes
         self._processes.ExecuteInitialize()
 
         # Initialize graphical output (GiD)
@@ -153,13 +153,13 @@ class Solution(AnalysisStage):
         # Predict time step
         self.PredictTimeStep()
 
-        # Processes to be executed at the begining of the solution step
+        # Processes to be executed at the beginning of the solution step
         self._processes.ExecuteInitializeSolutionStep()
 
-        # Execution at the begining of the solution step
+        # Execution at the beginning of the solution step
         self._model.ExecuteInitializeSolutionStep()
 
-        # Execution at the begining of the solution step
+        # Execution at the beginning of the solution step
         self._output.ExecuteInitializeSolutionStep()
 
         #self._stop_time_measuring(clock_time, "Initialize Step", self.report);

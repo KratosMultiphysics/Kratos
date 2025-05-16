@@ -53,7 +53,7 @@ ThermalElement::ThermalElement( ThermalElement const& rOther)
 {
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 ThermalElement&  ThermalElement::operator=(ThermalElement const& rOther)
@@ -298,7 +298,7 @@ void ThermalElement::CalculateKinematics(GeneralVariables& rVariables,
 {
     KRATOS_TRY
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
     //Get the shape functions for the order of the integration method [N]

@@ -137,7 +137,7 @@ namespace Kratos
 	  }
       }
 
-    //std::cout<<" ExternalStifness "<< rLeftHandSideMatrix <<std::endl;
+    //std::cout<<" ExternalStiffness "<< rLeftHandSideMatrix <<std::endl;
 
     KRATOS_CATCH( "" )
   }

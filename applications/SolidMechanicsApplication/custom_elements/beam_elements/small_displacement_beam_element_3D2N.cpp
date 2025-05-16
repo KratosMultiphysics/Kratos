@@ -347,7 +347,7 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
     mLength = GetGeometry().Length();
 
     if(mLength == 0.00)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Zero length found in elemnet #", this->Id());
+        KRATOS_THROW_ERROR(std::invalid_argument, "Zero length found in element #", this->Id());
 
 
     KRATOS_CATCH( "" )
@@ -810,7 +810,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
     KRATOS_TRY
 
     // External force vector calculation
-    // external forces are uniformely distributed
+    // external forces are uniformly distributed
     // must be located somewhere else
 
     Vector Weight = rVolumeForce * mSection.Area;
@@ -1009,7 +1009,7 @@ void SmallDisplacementBeamElement3D2N::CalculateGlobalBodyForce( Vector& rGlobal
     KRATOS_TRY
 
     // External force vector calculation
-    // external forces are uniformely distributed
+    // external forces are uniformly distributed
     // must be located somewhere else
 
     Vector Weight = rVolumeForce * mSection.Area;
