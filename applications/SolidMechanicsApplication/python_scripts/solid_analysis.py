@@ -180,7 +180,7 @@ class Solution(AnalysisStage):
         # self._solver.FinalizeSolutionStep()
 
         iterations = self.process_info[KratosMultiphysics.NL_ITERATION_NUMBER]
-        print("  (-ITER:"+str(iterations)+" CPU:%.2f" % round((timer.clock()-clock_time), 2)+"s-)")
+        print("  (-ITER:"+str(iterations)+" CPU:%.2f" % round((timer.process_time()-clock_time), 2)+"s-)")
 
         #self._stop_time_measuring(clock_time, "Solve Step", self.report)
 
