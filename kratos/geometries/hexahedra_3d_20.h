@@ -384,7 +384,6 @@ public:
         return *this;
     }
 
-    ///@}
     ///@name Operations
     ///@{
 
@@ -850,7 +849,7 @@ public:
         rResult[16] = ((1.0 - rCoordinates[0] * rCoordinates[0]) * (1.0 - rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
 
         rResult[17] = ((1.0 + rCoordinates[0]) * (1.0 - rCoordinates[1] * rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
-        
+
         rResult[18] = ((1.0 - rCoordinates[0] * rCoordinates[0]) * (1.0 + rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
 
         rResult[19] = ((1.0 - rCoordinates[0]) * (1.0 - rCoordinates[1] * rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
@@ -1430,7 +1429,7 @@ private:
                              (1.0 + integration_points[pnt].Z())) / 2.0;
             result(19, 2) = ((-1.0 + integration_points[pnt].X()) *
                              (-1.0 + integration_points[pnt].Y() * integration_points[pnt].Y())) / 4.0;
-    
+
 
             d_shape_f_values[pnt] = result;
         }

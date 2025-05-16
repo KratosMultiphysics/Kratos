@@ -66,7 +66,7 @@ public:
     }
 
     virtual ~ModelPartCombinationUtilities()= default;
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -173,7 +173,7 @@ private:
      * @brief This method reorders the Ids of the entities to avoid conflict when combining
      * @param rModelPartsNames The list of ModelParts to check the submodelparts names
      */
-    void ReorderIds(const std::vector<std::string>& rModelPartsNames); 
+    void ReorderIds(const std::vector<std::string>& rModelPartsNames);
 
     /**
      * @brief This method recursively adds the ModelParts to the list to check that no submodelpart is repeated
@@ -183,27 +183,22 @@ private:
     void RecursiveAddOfModelPartsToList(
         ModelPart& rModelPart,
         std::unordered_map<std::string, std::size_t>& rListModelParts
-        ); 
+        );
 
     /**
-     * @brief This method recursively adds the entities to the destination ModelParts 
+     * @brief This method recursively adds the entities to the destination ModelParts
      * @param rDestinationModelPart The destination model part
      * @param rOriginModelPart The origin model part
      */
     void RecursiveAddEntities(
         ModelPart& rDestinationModelPart,
         ModelPart& rOriginModelPart
-        ); 
+        );
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const;
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
 
     ///@}
     ///@name Serialization
@@ -219,23 +214,8 @@ private:
     {
     }
 
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
     ///@}
 };// class ModelPartCombinationUtilities
-
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 

@@ -42,16 +42,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
- * @class ParallelFillCommunicator
- * @ingroup KratosMPI
+/**
  * @brief This function recomputes the communication plan for MPI
  * @details The objective of this class is to read the mesh owned by each node in a distributed context
  * and to fill the communication plan (coloring) so to allow the communication to be performed correctly
  * It fills the Ghost and Local lists and performs the coloring, then it updates the MPI communicator
  * @author Riccardo Rossi
+ * @ingroup KratosMPICore
  */
-class KRATOS_API(KRATOS_MPI_CORE) ParallelFillCommunicator 
+class KRATOS_API(KRATOS_MPI_CORE) ParallelFillCommunicator
     : public FillCommunicator
 {
 public:
@@ -65,14 +64,14 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** 
+    /**
      * @brief Constructor (deprecated)
      * @param rModelPart The model part to recompute the communication plan for MPI
      */
     KRATOS_DEPRECATED_MESSAGE("This constructor is deprecated, please use the one that accepts a DataCommunicator")
     ParallelFillCommunicator(ModelPart& rModelPart);
 
-    /** 
+    /**
      * @brief Constructor.
      * @param rModelPart The model part to recompute the communication plan for MPI
      * @param rDataCommunicator The communicator to recompute the communication plan for MPI
@@ -163,9 +162,9 @@ protected:
 
     /// Generate the ghost, local and interface meshes for processes of a communication pair (color).
     void GenerateMeshes(
-        const int NeighbourPID, 
-        const int MyPID, 
-        const unsigned int Color, 
+        const int NeighbourPID,
+        const int MyPID,
+        const unsigned int Color,
         ModelPart& rModelPart
         );
 

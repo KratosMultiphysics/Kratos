@@ -658,7 +658,6 @@ public:
         return min_edge_length;
     }
 
-    ///@}
     ///@name Face
     ///@{
 

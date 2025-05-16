@@ -33,8 +33,8 @@
 #include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
 
-namespace Kratos
-{
+namespace Kratos {
+
 ///@name Kratos Classes
 ///@{
 
@@ -89,10 +89,6 @@ public:
     ~ResidualBasedAdjointBossakScheme() override
     {
     }
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
@@ -367,10 +363,6 @@ public:
         rOStream << Info();
     }
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 
 protected:
     ///@name Protected member Variables
@@ -473,9 +465,9 @@ protected:
     /**
      * @brief Calculates elemental residual
      *
-     * \[
+     * \f[
      *      \underline{F} = \underline{F} - \mathbf{\underline{K}}\underline{\lambda}_1
-     * \]
+     * \f]
      *
      * @param rCurrentElement           Current element
      * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
@@ -495,9 +487,9 @@ protected:
     /**
      * @brief Calculates condition residual
      *
-     * \[
+     * \f[
      *      \underline{F} = \underline{F} - \mathbf{\underline{K}}\underline{\lambda}_1
-     * \]
+     * \f]
      *
      * @param rCurrentCondition         Current condition
      * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
@@ -630,10 +622,6 @@ protected:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -647,9 +635,9 @@ private:
     /**
      * @brief Calculates entity residual
      *
-     * \[
+     * \f[
      *      \underline{F} = \underline{F} - \mathbf{\underline{K}}\underline{\lambda}_1
-     * \]
+     * \f]
      *
      * @tparam TEntityType
      * @param rCurrentEntity            Current Entity
@@ -674,10 +662,10 @@ private:
     /**
      * @brief Calculates entity first derivative contributions for adjoint system
      *
-     * \[
+     * \f[
      *      \mathbf{\underline{K}} = \mathbf{\underline{K}} + \frac{\partial \underline{R}^n}{\partial \underline{w}^n} \\
      *      \underline{F} = \underline{F} - \frac{\partial J^n}{\partial \underline{w}^n}
-     * \]
+     * \f]
      *
      * @tparam TEntityType
      * @param rCurrentEntity            Current entity
@@ -703,10 +691,10 @@ private:
     /**
      * @brief Calculates element first derivative contributions to adjoint system
      *
-     * \[
+     * \f[
      *      \mathbf{\underline{K}} =  \mathbf{\underline{K}} + \frac{\gamma}{\beta \Delta t} \frac{\partial \underline{R}^n}{\partial \underline{\dot{w}}^n} \\
      *      \underline{F} = \underline{F} - \frac{\gamma}{\beta \Delta t} \frac{\partial J^n}{\partial \underline{\dot{w}}^n}
-     * \]
+     * \f]
      *
      * @tparam TEntityType
      * @param rCurrentEntity            Current entity
@@ -734,10 +722,10 @@ private:
     /**
      * @brief Calculates element second derivative contributions for adjoint system
      *
-     * \[
+     * \f[
      *      \mathbf{\underline{K}} =  \mathbf{\underline{K}} + \frac{1 - \alpha}{\beta\Delta t^2}\frac{\partial \underline{R}^n}{\partial \underline{\ddot{w}}^n} \\
      *      \underline{F} = \underline{F} - \frac{1}{\beta\Delta t^2}\frac{\partial J^n}{\partial \underline{\ddot{w}}^n}
-     * \]
+     * \f]
      *
      * @tparam TEntityType
      * @param rCurrentEntity            Current entity
@@ -769,12 +757,14 @@ private:
      * No need to use again conditions version of this since elements includes condition nodes as well.
      * Therefore, this will add automatically condition contributions as well.
      *
+     * @f[
      * \underline{F} =
      *      \underline{F}
      *      - \frac{1}{\beta\Delta t^2}\left[\frac{\partial \underline{R}^{n+1}}{\underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
      *      - \frac{1}{\beta\Delta t^2}\frac{\partial J^{n+1}}{\underline{\ddot{w}}^n}
      *      + \frac{\beta - \gamma\left(\gamma + \frac{1}{2}\right)}{\beta^2\Delta t}\underline{\lambda}_2^{n+1}
      *      - \frac{\gamma + \frac{1}{2}}{\beta^2\Delta t^2}\underline{\lambda}_3^{n+1}
+     * @f]
      *
      * @param rCurrentElement           Current element
      * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
@@ -815,16 +805,16 @@ private:
     /**
      * @brief Calculates entity time scheme contributions as depicted.
      *
-     *   \[
+     *   \f[
      *       rAdjointTimeSchemeValues2 =
      *           - \frac{\partial J^{n}}{\partial \underline{\dot{w}}^n}
      *           - \left[\frac{\partial \underline{R}^{n}}{\partial \underline{\dot{w}}}\right]^T\underline{\lambda}_1^{n+1}
-     *   \]
-     *   \[
+     *   \f]
+     *   \f[
      *       rAdjointTimeSchemeValues3 =
      *           - \frac{\partial J^{n}}{\partial \underline{\ddot{w}}^n}
      *           - \left(1-\alpha\right)\left[\frac{\partial \underline{R}^{n}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
-     *   \]
+     *   \f]
      *
      * @tparam TEntityType
      * @param rCurrentEntity
@@ -874,8 +864,8 @@ private:
      * @brief Calculates contributions from each entity for auxiliary variable as depicted
      *
      *  rAdjointAuxiliaryValues =
-     *     - \frac{\partial J^{n+1}}{\partial \underline{\ddot{w}}^n}
-     *     - \alpha \left[\frac{\partial \underline{R}^{n+1}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
+     *     - @f$ \frac{\partial J^{n+1}}{\partial \underline{\ddot{w}}^n} @f$
+     *     - @f$ \alpha \left[\frac{\partial \underline{R}^{n+1}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1} @f$
      *
      * @tparam TEntityType
      * @param rCurrentEntity
@@ -1319,25 +1309,7 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; /* Class ResidualBasedAdjointBossakScheme */
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 

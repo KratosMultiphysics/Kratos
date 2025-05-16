@@ -1373,11 +1373,6 @@ public:
         return ConstitutiveLaw::HasSameType(*rLHS, *rRHS);
     }
 
-    ///@}
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -1483,48 +1478,11 @@ protected:
 
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-
 private:
-
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
+
     InitialState::Pointer mpInitialState = nullptr;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
 
     ///@}
     ///@name Serialization
@@ -1545,24 +1503,9 @@ private:
         rSerializer.load("InitialState",mpInitialState);
     }
 
-
     ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; /* Class ConstitutiveLaw */
 
-///@}
-///@name Type Definitions
-///@{
-///@}
 ///@name Input and output
 ///@{
 
@@ -1583,7 +1526,6 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 
 ///@}
-///@} addtogroup block
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents< Variable<ConstitutiveLaw::Pointer> >;

@@ -700,62 +700,12 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
     static const GeometryData msGeometryData;
 
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -772,11 +722,6 @@ private:
     }
 
     Sphere3D1(): BaseType( PointsArrayType(), &msGeometryData ) {}
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
 
     ///@}
@@ -849,34 +794,9 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Private Friends
-    ///@{
 
     template<class TOtherPointType> friend class Sphere3D1;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class Geometry
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output

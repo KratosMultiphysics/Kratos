@@ -67,6 +67,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
 
       ///@}
       ///@name Pointer Definitions
+      ///@{
 
       /// Pointer definition of ReadMaterialProcess
       KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);

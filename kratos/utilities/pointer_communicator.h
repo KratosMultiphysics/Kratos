@@ -29,9 +29,9 @@
 #include "includes/parallel_environment.h"
 #include "utilities/communication_coloring_utilities.h"
 
-namespace Kratos
-{
-///@addtogroup Kratos MPI Core
+namespace Kratos {
+
+///@addtogroup KratosMPICore
 ///@{
 
 ///@name Kratos Globals

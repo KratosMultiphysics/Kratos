@@ -46,7 +46,7 @@ namespace Kratos
 * @brief Factory for the specialized spatial search
 * @author Vicente Mataix Ferrandiz
 */
-class SpecializedSpatialSearchFactory 
+class SpecializedSpatialSearchFactory
     : public SpatialSearch
 {
 public:
@@ -251,7 +251,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 ///@}
-
-///@}addtogroup block
 
 }  // namespace Kratos.

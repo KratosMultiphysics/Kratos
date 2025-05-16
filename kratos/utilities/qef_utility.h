@@ -23,7 +23,7 @@
 #include "geometries/bounding_box.h"
 
 namespace Kratos
-{ 
+{
 ///@name Kratos Globals
 ///@{
 
@@ -47,11 +47,10 @@ namespace Kratos
 class GeometricalObject;
 
 /**
- * @class QuadraticErrorFunction (quadratic error function)
- * @ingroup KratosCore
  * @brief Utilities to compute the minimum error point in a 3D voxel intersected by a triangle mesh
  * This implementation is based on the algorithm explained here: https://www.mattkeeter.com/projects/qef/
  * @author Ariadna Cortes
+ * @ingroup KratosCore
  */
 class KRATOS_API(KRATOS_CORE) QuadraticErrorFunction
 {
@@ -89,36 +88,36 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
-     * @brief Finds the QuadraticErrorFunction point of a voxel 
+     * @brief Finds the QuadraticErrorFunction point of a voxel
      * @param rVoxel references to the voxel whose x-point will be calculated
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
-     * @return The QuadraticErrorFunction point (x,y,z) 
+     * @return The QuadraticErrorFunction point (x,y,z)
      */
     static array_1d<double,3> QuadraticErrorFunctionPoint (
-        const GeometryType& rVoxel,  
-        const GeometryArrayType& rTriangles     
+        const GeometryType& rVoxel,
+        const GeometryArrayType& rTriangles
         );
 
     /**
-     * @brief Finds the QuadraticErrorFunction point of a voxel 
+     * @brief Finds the QuadraticErrorFunction point of a voxel
      * @param rVoxel references to the voxel whose x-point will be calculated
      * @param rTriangles references to the triangles which intersect the voxel at some edge.
-     * @return The QuadraticErrorFunction point (x,y,z) 
+     * @return The QuadraticErrorFunction point (x,y,z)
      */
     static array_1d<double,3> QuadraticErrorFunctionPoint (
-        const BoundingBox<Point>& rBox,  
-        const std::vector<GeometricalObject*>& rTriangles     
+        const BoundingBox<Point>& rBox,
+        const std::vector<GeometricalObject*>& rTriangles
         );
 
     /**
-     * @brief Calculates the normal vector to the surface of a 3D triangle 
+     * @brief Calculates the normal vector to the surface of a 3D triangle
      * @param rTriangle reference to the triangle
      * @return Normal vector (x,y,z)
-     */  
+     */
     static array_1d<double,3> CalculateNormal(const GeometryType& rTriangle);
-    
+
 private:
     ///@name Private static Member Variables
     ///@{
@@ -137,7 +136,7 @@ private:
 
     static Point FirstEnd(int i, const BoundingBox<Point>& rBox);
     static Point SecondEnd(int i, const BoundingBox<Point>& rBox);
-    
+
     ///@}
 }; /* Class VoxelInsideVolumeUtility */
 

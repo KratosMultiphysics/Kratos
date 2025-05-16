@@ -31,8 +31,6 @@ namespace Kratos
 ///@{
 
 /**
- * @class InitialState
- * @ingroup StructuralMechanicsApplication
  * @brief Define the initial state of the material in terms of initial stress/strain/F
  * @details Storages the information regarding initial stresses/strains/F
  * @author Alejandro Cornejo

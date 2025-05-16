@@ -26,18 +26,8 @@
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "butcher_tableau.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 

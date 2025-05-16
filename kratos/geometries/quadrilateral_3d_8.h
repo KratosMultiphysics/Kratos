@@ -348,7 +348,6 @@ public:
         return *this;
     }
 
-    ///@}
     ///@name Operations
     ///@{
 
@@ -1398,7 +1397,6 @@ private:
 
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
     ///@name Serialization
     ///@{
 

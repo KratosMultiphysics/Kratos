@@ -324,14 +324,10 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
     static const GeometryData msGeometryData;
 
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
     ///@name Member Variables
     ///@{
 

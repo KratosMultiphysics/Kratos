@@ -74,7 +74,6 @@ public:
     using BaseType::ShapeFunctionsLocalGradients;
     using BaseType::InverseOfJacobian;
 
-    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -584,12 +583,8 @@ protected:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
     ///@name Member Variables
     ///@{
 

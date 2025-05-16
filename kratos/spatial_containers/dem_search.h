@@ -22,31 +22,11 @@
 // External includes
 #include "spatial_containers/spatial_search.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
 
 template<std::size_t dim, class T>
 class PointDistance2
@@ -181,10 +161,6 @@ class DEMSearch : public SpatialSearch
       }
 
       ///@}
-      ///@name Operators
-      ///@{
-
-      ///@}
       ///@name Operations
       ///@{
 
@@ -305,16 +281,6 @@ class DEMSearch : public SpatialSearch
       }
 
       ///@}
-      ///@name Access
-      ///@{
-
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
-
-      ///@}
       ///@name Input and output
       ///@{
 
@@ -333,80 +299,14 @@ class DEMSearch : public SpatialSearch
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const override {}
 
-
-      ///@}
-      ///@name Friends
-      ///@{
-
-
       ///@}
 
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-
-      ///@}
+protected:
       ///@name Protected  Access
       ///@{
       bool mDomainPeriodicity;
       array_1d<double, 3> mDomainMin;
       array_1d<double, 3> mDomainMax;
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
-
-      ///@}
-      ///@name Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Private Operators
-      ///@{
-
-
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-
 
       ///@}
       ///@name Un accessible methods
@@ -424,39 +324,10 @@ class DEMSearch : public SpatialSearch
           *this = rOther;
       }
 
-
       ///@}
 
-    }; // Class DEMSearch
+}; // Class DEMSearch
 
-  ///@}
-
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
-
-
-//   /// input stream function
-//   inline std::istream& operator >> (std::istream& rIStream,
-//                     DEMSearch& rThis){return rIStream;}
-//
-//   /// output stream function
-//   inline std::ostream& operator << (std::ostream& rOStream,
-//                     const DEMSearch& rThis)
-//     {
-//       rThis.PrintInfo(rOStream);
-//       rOStream << std::endl;
-//       rThis.PrintData(rOStream);
-//
-//       return rOStream;
-//     }
-
-  ///@}
-
-  ///@} addtogroup block
+///@}
 
 }  // namespace Kratos.

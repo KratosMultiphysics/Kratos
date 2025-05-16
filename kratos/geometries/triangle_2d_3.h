@@ -73,7 +73,6 @@ template<class TPointType> class Triangle2D3
     : public Geometry<TPointType>
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 

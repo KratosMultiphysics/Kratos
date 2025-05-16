@@ -249,7 +249,7 @@ inline std::ostream& operator << (
 
     return rOStream;
 }
+
 ///@}
-///@} addtogroup block
 
 } // namespace Kratos.

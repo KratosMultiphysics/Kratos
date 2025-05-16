@@ -160,10 +160,7 @@ KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(__VA_ARGS__) \
 
 #endif
 
-namespace Kratos
-{
-///@addtogroup Kratos MPI Core
-///@{
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{

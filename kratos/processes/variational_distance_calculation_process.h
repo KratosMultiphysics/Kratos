@@ -35,25 +35,8 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -83,6 +66,7 @@ public:
 
     ///@}
     ///@name Pointer Definitions
+    ///@{
 
     /// Pointer definition of VariationalDistanceCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(VariationalDistanceCalculationProcess);
@@ -725,12 +709,6 @@ const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDen
 
 template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
 const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2));
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output

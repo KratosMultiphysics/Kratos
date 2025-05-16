@@ -146,24 +146,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rTransformedCoordinates The new coordinates which are transformed with rTransformationMatrix.
      */
     void TransformNode(const array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates) const;
-
-
-
-}; // Class
-
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
+};
 
 }  // namespace Kratos.
 

@@ -22,27 +22,11 @@
 #include "containers/model.h"
 #include "includes/kratos_parameters.h"
 
-namespace Kratos 
-{
-///@name Kratos Globals
-///@{
+namespace Kratos {
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class SerialModelPartCombinatorModeler
  * @ingroup KratosCore
@@ -50,7 +34,7 @@ namespace Kratos
  * @details Uses ModelPartCombinationUtilities to combine different ModelParts into one single ModelPart, with the corresponding sub ModelParts
  * @author Vicente Maataix Ferrandiz
  */
-class KRATOS_API(KRATOS_CORE) SerialModelPartCombinatorModeler 
+class KRATOS_API(KRATOS_CORE) SerialModelPartCombinatorModeler
     : public Modeler {
 public:
     ///@name Type Definitions
@@ -84,10 +68,6 @@ public:
 
     /// Destructor.
     virtual ~SerialModelPartCombinatorModeler() = default;
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
@@ -132,59 +112,13 @@ public:
     }
 
     ///@}
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
 
     Model* mpModel = nullptr; /// The model of the problem
 
     Parameters mParameters;   /// The configuration parameters
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
 
     ///@}
     ///@name Serialization
@@ -199,14 +133,6 @@ private:
     void load(Serializer& rSerializer)
     {
     }
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
 
 }; // Class SerialModelPartCombinatorModeler
 

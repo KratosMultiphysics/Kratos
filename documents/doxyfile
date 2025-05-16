@@ -66,9 +66,12 @@ EXCLUDE_PATTERNS       = */.git/*                       \
                          */external_libraries/*         \
                          */cmake_modules/*              \
                          */scripts/*                    \
-                         */SuperLU_4.3/*                \
+                         */SuperLU_/*                   \
                          */custom_external_libraries/*  \
-                         */tests/* *_test* *test_*
+                         */tests/* *_test* *test_*      \
+                         *testing/*                     \
+                         *application_generator/*       \
+                         *KratosUnittest.py
 EXCLUDE_SYMBOLS        =
 IMAGE_PATH             =
 INPUT_FILTER           =

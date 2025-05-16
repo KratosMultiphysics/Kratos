@@ -55,7 +55,6 @@ template<class TPointType>
 class Pyramid3D13 : public Geometry<TPointType>
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 

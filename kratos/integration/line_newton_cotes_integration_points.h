@@ -224,6 +224,4 @@ public:
 
 }; // Class LineNewtonCotesIntegrationPoints5
 
-///@}
-
 }  // namespace Kratos.

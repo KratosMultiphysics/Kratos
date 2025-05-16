@@ -22,24 +22,8 @@
 #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 
 
-namespace Kratos
-{
-///@name Kratos Globals
-///@{
+namespace Kratos {
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -53,7 +37,6 @@ template<class TPointType> class QuadrilateralInterface2D4
     : public Geometry<TPointType>
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 

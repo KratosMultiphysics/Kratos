@@ -94,8 +94,6 @@ public:
      */
     [[nodiscard]] static int GetNumProcs();
 
-    ///@}
-
     /** @brief Returns the global lock
      * Global lock that can be used for critical sections
      * @return global lock
@@ -252,8 +250,9 @@ public:
 
     /** @brief loop with thread local storage (TLS) allowing reductions. f called on every entry in rData
      * the function f needs to return the values to be used by the reducer
-     * @param TReducer template parameter specifying the reduction operation to be done
-     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @tparam TReducer template parameter specifying the reduction operation to be done
+     * @tparam TThreadLocalStorage template parameter specifying the thread local storage
+     * @param rThreadLocalStoragePrototype
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>

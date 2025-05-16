@@ -27,33 +27,10 @@
 #include "includes/global_pointer_variables.h"
 #include "utilities/builtin_timer.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-/**@name Kratos Globals */
-/*@{ */
-
-
-/*@} */
-/**@name Type Definitions */
-/*@{ */
-
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+/// @name Kratos Classes
+///@{
 
 /** Short class definition.
 
@@ -82,8 +59,6 @@ as the neighborhood relationships are considered to be known
 \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
 \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
 */
 template<class TSparseSpace,
          class TDenseSpace ,
@@ -94,8 +69,8 @@ class ResidualBasedEliminationBuilderAndSolverComponentwise
     : public ResidualBasedEliminationBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions
+    ///@{
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEliminationBuilderAndSolverComponentwise );
 
 
@@ -126,7 +101,6 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -169,10 +143,10 @@ public:
     ~ResidualBasedEliminationBuilderAndSolverComponentwise() override {}
 
 
-    /*@} */
+    ///@}
     /**@name Operators
     */
-    /*@{ */
+    ///@{
 
 
 
@@ -480,19 +454,19 @@ public:
             KRATOS_WATCH("ResidualBasedEliminationBuilderAndSolver Clear Function called");
         }
     }
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    ///@}
+    ///@name Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Access */
-    /*@{ */
+    ///@}
+    ///@name Access
+    ///@{
 
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Inquiry
+    ///@{
 
     ///@}
     ///@name Input and output
@@ -516,26 +490,26 @@ public:
         rOStream << Info();
     }
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-    /*@} */
+    ///@}
 
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables
+    ///@{
 
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operators
+    ///@{
     //**************************************************************************
     //**************************************************************************
     //**************************************************************************
@@ -691,43 +665,43 @@ protected:
 
 
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
 
-    /*@} */
+    ///@}
 
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@}
+    ///@name Member Variables
+    ///@{
     TVariableType const & rVar;
     GlobalPointersVector<Node > mActiveNodes;
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@}
+    ///@name Private Operators
+    ///@{
     //******************************************************************************************
     //******************************************************************************************
     inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, DenseVector<unsigned int>& partitions)
@@ -740,45 +714,10 @@ private:
             partitions[i] = partitions[i-1] + partition_size ;
     }
 
-
-
-
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-
-
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-
-    /*@} */
-
+    ///@}
 }; /* Class ResidualBasedEliminationBuilderAndSolverComponentwise */
 
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
+///@}
 
 }  /* namespace Kratos.*/
 

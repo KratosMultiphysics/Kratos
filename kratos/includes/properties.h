@@ -31,25 +31,8 @@
 #include "includes/table.h"
 #include "utilities/string_utilities.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -642,44 +625,8 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
 
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -690,14 +637,6 @@ private:
     SubPropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
     AccessorsContainerType mAccessors = {}; /// The map containing the variable and corresponding accessor pairs
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@
 
     ///@}
     ///@name Serialization

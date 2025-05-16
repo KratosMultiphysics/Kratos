@@ -187,7 +187,6 @@ namespace EntitiesUtilities
         ///@}
     }; ///  Class EntitityIdentifier
 
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -363,8 +362,6 @@ namespace EntitiesUtilities
 
         KRATOS_CATCH("")
     }
-
-    ///@}
-
 }; // namespace EntitiesUtilities
+
 }  // namespace Kratos

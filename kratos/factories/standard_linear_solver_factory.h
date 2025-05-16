@@ -108,6 +108,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@}
 ///@name Input and output
+///@{
 
 void RegisterLinearSolvers();
 

@@ -931,7 +931,6 @@ public:
         return rResult;
     }
 
-    ///@}
     ///@name Edge
     ///@{
 

@@ -60,7 +60,6 @@ public:
     using BaseType::Calculate;
     using BaseType::DeterminantOfJacobian;
 
-    ///@}
     ///@name Life Cycle
     ///@{
 

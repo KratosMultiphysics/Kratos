@@ -325,7 +325,7 @@ public:
      */
     void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        /* When the `TShiftedBoundary` template parameter is true, the spans are computed using 
+        /* When the `TShiftedBoundary` template parameter is true, the spans are computed using
         *  the shifted boundary method by invoking `SpansLocalSpaceSBM`.
         *  Otherwise, the spans are computed using the standard method by invoking `SpansLocalSpace`
         */
@@ -336,7 +336,7 @@ public:
             mpCurveOnSurface->SpansLocalSpace(rSpans,
                 mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
         }
-        
+
     }
 
     ///@}
@@ -579,7 +579,7 @@ public:
             mpCurveOnSurface->CreateQuadraturePointGeometries(
                 rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
         }
-        
+
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
@@ -654,14 +654,10 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
     static const GeometryData msGeometryData;
 
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
     ///@name Member Variables
     ///@{
 

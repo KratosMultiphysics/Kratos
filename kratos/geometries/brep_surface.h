@@ -38,7 +38,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief The BrepSurface acts as topology for faces. Those
  *        can be enclosed by a certain set of brep face curves.
- * @tparam TShiftedBoundary Boolean flag indicating whether is 
+ * @tparam TShiftedBoundary Boolean flag indicating whether is
  *        defined with shifted boundary conditions.
  */
 template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType>
@@ -436,16 +436,16 @@ public:
     ///@{
 
     /* Creates integration points on the nurbs surface of this geometry.
-     * Accounting for whether the surface is trimmed or untrimmed, and whether shifted 
+     * Accounting for whether the surface is trimmed or untrimmed, and whether shifted
      * boundary conditions are used
-     * 
+     *
      * - **Untrimmed Surface**: -> Non-cutting case
-     *   - If `TShiftedBoundary` is true, the method prepares for the shifted boundary method (SBM) 
+     *   - If `TShiftedBoundary` is true, the method prepares for the shifted boundary method (SBM)
      *   - Otherwise, it directly uses `CreateIntegrationPoints` from the underlying NURBS surface.
      * - **Trimmed Surface**: -> Cutting case
-     *   - It calls `BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints` 
+     *   - It calls `BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints`
      *     to generate integration points that conform to the trimming curve.
-     * 
+     *
      * @param return integration points.
      */
     void CreateIntegrationPoints(
@@ -557,16 +557,16 @@ public:
 
     /**
      * @brief Set the Surrogate Outer Loop Geometries object
-     * @param pSurrogateOuterLoopArray 
+     * @param pSurrogateOuterLoopArray
      */
     void SetSurrogateOuterLoopGeometries(GeometrySurrogateArrayType &rSurrogateOuterLoopArray)
     {
         mpSurrogateOuterLoopGeometries = &rSurrogateOuterLoopArray;
     }
-    
+
     /**
      * @brief Set the Surrogate Inner Loop Geometries object
-     * @param pSurrogateInnerLoopArray 
+     * @param pSurrogateInnerLoopArray
      */
     void SetSurrogateInnerLoopGeometries(GeometrySurrogateArrayType &rSurrogateInnerLoopArray)
     {
@@ -575,7 +575,7 @@ public:
 
     /**
      * @brief Get the Surrogate Inner Loop Geometries object
-     * @return GeometrySurrogateArrayType 
+     * @return GeometrySurrogateArrayType
      */
     GeometrySurrogateArrayType& GetSurrogateInnerLoopGeometries()
     {
@@ -584,7 +584,7 @@ public:
 
     /**
      * @brief Get the Surrogate Outer Loop Geometries object
-     * @return GeometrySurrogateArrayType 
+     * @return GeometrySurrogateArrayType
      */
     GeometrySurrogateArrayType& GetSurrogateOuterLoopGeometries()
     {
@@ -618,14 +618,10 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
     static const GeometryData msGeometryData;
 
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -638,7 +634,7 @@ private:
 
     GeometrySurrogateArrayType* mpSurrogateInnerLoopGeometries;
     GeometrySurrogateArrayType* mpSurrogateOuterLoopGeometries;
-    
+
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.

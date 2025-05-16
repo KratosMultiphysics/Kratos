@@ -53,7 +53,6 @@ template<class TPointType> class QuadrilateralInterface3D4
     : public Geometry<TPointType>
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 

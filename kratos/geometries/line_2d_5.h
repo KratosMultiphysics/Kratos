@@ -61,7 +61,6 @@ namespace Kratos
     class Line2D5 : public Geometry<TPointType>
     {
     public:
-        ///@}
         ///@name Type Definitions
         ///@{
 

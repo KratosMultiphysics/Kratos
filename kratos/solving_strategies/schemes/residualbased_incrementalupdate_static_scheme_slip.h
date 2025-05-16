@@ -29,31 +29,9 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "utilities/coordinate_transformation_utilities.h"
 
-namespace Kratos
-{
-
-///@name Kratos Globals
-///@{
+namespace Kratos {
 
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-
-
-///@name  Enum's
-///@{
-
-
-///@}
-///@name  Functions
-///@{
-
-
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -150,11 +128,6 @@ public:
 
     ///@}
     ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
     ///@{
 
     /**
@@ -279,11 +252,6 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
     ///@name Inquiry
     ///@{
 
@@ -306,57 +274,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
-
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -364,46 +282,9 @@ private:
     RotationToolPointerType mpRotationTool;
 
     ///@}
-    ///@name Serialization
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    ///@}
-
 }; // class
 
 ///@}
-///@name Type Definitions
-///@{
-
-///@}
-
-///@} // group
 
 }  // namespace Kratos
 

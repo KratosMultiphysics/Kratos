@@ -119,7 +119,6 @@ public:
 
     ///@}
 private:
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -138,7 +137,5 @@ private:
 ///@{
 
 ///@}
-
-///@}addtogroup block
 
 }  // namespace Kratos.

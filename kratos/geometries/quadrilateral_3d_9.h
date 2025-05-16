@@ -357,7 +357,6 @@ public:
         return *this;
     }
 
-    ///@}
     ///@name Operations
     ///@{
 

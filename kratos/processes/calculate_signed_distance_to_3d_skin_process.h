@@ -19,10 +19,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <ctime>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -140,7 +140,7 @@ public:
     {
         rHighPoint = rObject->GetGeometry().GetPoint(0);
         rLowPoint  = rObject->GetGeometry().GetPoint(0);
-        
+
         for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)
         {
             for(std::size_t i = 0; i<3; i++)
@@ -443,7 +443,7 @@ public:
                         double pos_pres = 0.0;
                         double neg_pres = 0.0;
                         GlobalPointersVector< Node >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
-                        
+
                         for (GlobalPointersVector< Node >::iterator j = neighours.begin(); j != neighours.end(); j++) {
                             if (j->Is(VISITED)) {
                                 n_good_neighbors++;
@@ -461,10 +461,10 @@ public:
                             n_bad_nodes--;
                         }
                         //KRATOS_WATCH(pos_pres)
-                        //KRATOS_WATCH(neg_pres)          
+                        //KRATOS_WATCH(neg_pres)
                     }
                 }
-                
+
                 if(n_bad_nodes == n_bad_nodes_backup) break; //WE BREAK THE WHILE HERE, OTHERWISE THE CODE HANGS (it was not able to remove any other node)
 
                 /*int n_bad_nodes=0;
@@ -473,7 +473,7 @@ public:
                    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
                    Node ::Pointer p_structure_node = *(iparticle.base());
                    if (p_structure_node->IsNot(VISITED))
-                       n_bad_nodes++;		  
+                       n_bad_nodes++;
                 }
                  */
                 //KRATOS_WATCH(n_bad_nodes)
@@ -488,24 +488,24 @@ public:
 
 		    double pos_pressure=p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 		    double neg_pressure=p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-                    
+
                     GlobalPointersVector< Node >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
-			
+
 	  	    if (neighours.size()>=1.0)
-			{			    
+			{
 			    double av_pos_pres=0.0;
 			    double av_neg_pres=0.0;
 			    for( GlobalPointersVector< Node >::iterator j = neighours.begin();
 				        j != neighours.end(); j++)
 			    {
-				
+
 					av_pos_pres+=j->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 					av_neg_pres+=j->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-										
+
 			    }
 			    av_pos_pres/=neighours.size();
 			    av_neg_pres/=neighours.size();
-			    
+
 			    //IF the average pressure of the neighbors is 10 times lower than of the given node, something is bad and we reset its value
 			    if (fabs(pos_pressure)>3.0*fabs(av_pos_pres))
 					{
@@ -516,11 +516,11 @@ public:
 					{
 					p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = av_neg_pres;
 					//KRATOS_WATCH("BAD NODE")
-					}				    	
-			 
+					}
+
 			}
 		 }
-		
+
 
 
     }
@@ -583,8 +583,8 @@ public:
             Vector Nlocal(3);
 
             //form a triangle with the edge nodes
-            Triangle3D3< Point > triangle(Point::Pointer(new Point(edge_points[0])), 
-					     Point::Pointer(new Point(edge_points[1])), 
+            Triangle3D3< Point > triangle(Point::Pointer(new Point(edge_points[0])),
+					     Point::Pointer(new Point(edge_points[1])),
 					     Point::Pointer(new Point(edge_points[2]))
 					     );
 
@@ -662,7 +662,7 @@ public:
             Quadrilateral3D4< Point > quad = Quadrilateral3D4< Point >(
 			Point::Pointer(new Point(edge_points[0])),
 			Point::Pointer(new Point(edge_points[min_pos])),
-			Point::Pointer(new Point(edge_points[center_pos])), 
+			Point::Pointer(new Point(edge_points[center_pos])),
 			Point::Pointer(new Point(edge_points[max_pos]))
 			);
 
@@ -797,7 +797,7 @@ public:
             {
                 CalcElementDistances( it , TetEdgeIndexTable );
             }
-        }        
+        }
 
         // Finally, each tetrahedral Element has 4 distance values. But each node belongs to
         // several Elements, such that it is assigned several distance values
@@ -921,7 +921,7 @@ public:
 
         double EdgeNode1[3] = {P1.X() , P1.Y() , P1.Z()};
         double EdgeNode2[3] = {P2.X() , P2.Y() , P2.Z()};
-	
+
         // loop over all octree cells which are intersected by the fluid Element
         for(unsigned int i_cell = 0 ; i_cell < leaves.size() ; i_cell++)
         {
@@ -947,7 +947,7 @@ public:
                         NewIntersectionNode.Coordinates[0] = IntersectionPoint[0];
                         NewIntersectionNode.Coordinates[1] = IntersectionPoint[1];
                         NewIntersectionNode.Coordinates[2] = IntersectionPoint[2];
-			 
+
                         if( IsIntersectionNodeOnTetEdge( IntersectionPoint , EdgeNode1 , EdgeNode2 ) )
                         {
                             if ( IsNewIntersectionNode( NewIntersectionNode , IntersectedTetEdges ) )
@@ -1155,7 +1155,7 @@ public:
         array_1d<double,4> ElementalDistances;
 
         FillIntNodesContainer(IntersectedTetEdges,NodesOfApproximatedStructure);
-	
+
         // Intersection with one corner point
         if( NodesOfApproximatedStructure.size() == 1 && NumberIntersectionsOnTetCorner == 1 )
         {
@@ -1265,8 +1265,8 @@ public:
 
         // switch direction of normal
         if(NormalWrongOriented)
-            Normal *=-1;	
-	
+            Normal *=-1;
+
         // Compute distance values for all tet-nodes
         for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
         {
@@ -1499,7 +1499,7 @@ public:
         // Assign a distance limit
         double dist_limit = 1e-5;
 //         bool distChangedToLimit = false; //variable to indicate that a distance value < tolerance is set to a limit distance = tolerance
-// 
+//
 //         for(unsigned int i_node = 0; i_node < 4; i_node++)
 //         {
 //             if(fabs(ElementalDistances[i_node]) < dist_limit)
@@ -1508,7 +1508,7 @@ public:
 //                 distChangedToLimit = true;
 //             }
 //         }
-// 
+//
 //         // Check, if this approach changes the split-flag (might be, that Element is not cut anymore if node with zero distance gets a positive limit distance value
 //         unsigned int numberNodesPositiveDistance = 0;
 //         for(unsigned int i_node = 0; i_node < 4; i_node++)
@@ -1516,7 +1516,7 @@ public:
 //             if((ElementalDistances[i_node]) > 0)
 //                 numberNodesPositiveDistance++;
 //         }
-        
+
         for(unsigned int i_node = 0; i_node < 4; i_node++)
         {
             double & di = ElementalDistances[i_node];
@@ -1660,7 +1660,7 @@ public:
                     Triangle3D3< Node > triangle2(pnode1, pnode3, pnode4);
 
                     Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D");
-                 
+
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
 
                     Condition::Pointer p_condition1 = rReferenceCondition.Create(id_condition++, triangle1, properties);
@@ -1668,7 +1668,7 @@ public:
 
                     mrNewSkinModelPart.Conditions().push_back(p_condition1);
                     mrNewSkinModelPart.Conditions().push_back(p_condition2);
-                    
+
                 }
 
             }
@@ -1686,15 +1686,15 @@ public:
         auto temp_octree =  Kratos::make_shared<OctreeType>();
         //OctreeType::Pointer temp_octree = OctreeType::Pointer(new OctreeType() );
         mpOctree.swap(temp_octree);
-        
+
         double low[3];
         double high[3];
-        
+
         for (int i = 0 ; i < 3; i++)
         {
             low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinates()[i];
         }
-        
+
         // loop over all nodes in the bounding box
         for(ModelPart::NodeIterator i_node = mrFluidModelPart.NodesBegin();
             i_node != mrFluidModelPart.NodesEnd();
@@ -1707,7 +1707,7 @@ public:
                 high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
             }
         }
-        
+
         // loop over all skin nodes
         for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
             i_node != mrSkinModelPart.NodesEnd();
@@ -1720,7 +1720,7 @@ public:
                 high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
             }
         }
-                
+
         mpOctree->SetBoundingBox(low,high);
 
         //mpOctree->RefineWithUniformSize(0.0625);
@@ -1972,7 +1972,7 @@ public:
 
         // Creating the ray
         double ray[3] = {coords[0], coords[1], coords[2]};
-        
+
         mpOctree->NormalizeCoordinates(ray);
         ray[i_direction] = 0; // starting from the lower extreme
 
@@ -2109,7 +2109,7 @@ public:
         {
             // Creating the ray
             double ray[3] = {coords[0], coords[1], coords[2]};
-            
+
             mpOctree->NormalizeCoordinates(ray);
             ray[i_direction] = 0; // starting from the lower extreme
 
@@ -2398,7 +2398,7 @@ public:
 
 		double triangle_origin_distance = -inner_prod(n, rGeometry[0]);
 		Point ray_point_1, ray_point_2;
-		
+
 		for(int i = 0 ; i < 3 ; i++)
         {
             dir[i] = RayPoint2[i] - RayPoint1[i];             // ray direction vector
@@ -2781,51 +2781,18 @@ private:
             partitions[i] = partitions[i - 1] + partition_size;
     }
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
     CalculateSignedDistanceTo3DSkinProcess& operator=(CalculateSignedDistanceTo3DSkinProcess const& rOther);
-
-    /// Copy constructor.
-    //CalculateSignedDistanceTo3DSkinProcess(CalculateSignedDistanceTo3DSkinProcess const& rOther);
-
 
     ///@}
 
 }; // Class CalculateSignedDistanceTo3DSkinProcess
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -2848,6 +2815,6 @@ const double CalculateSignedDistanceTo3DSkinProcess::epsilon = 1e-18;
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CALCULATE_DISTANCE_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_CALCULATE_DISTANCE_PROCESS_H_INCLUDED  defined
 
 

@@ -420,14 +420,10 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
     static const GeometryData msGeometryData;
 
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -494,6 +490,7 @@ GeometryData BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeom
     &msGeometryDimension,
     GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
+
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
 const GeometryDimension BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(3, 1);

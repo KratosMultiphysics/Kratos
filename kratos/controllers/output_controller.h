@@ -30,7 +30,6 @@ namespace Kratos
 ///@{
 
 /**
- * @class Temporal controller
  * @ingroup KratosCore
  * @brief A temporal controller to control behavior based on temporal values.
  * @details This controller checks prescribed control variables, and evalutes.

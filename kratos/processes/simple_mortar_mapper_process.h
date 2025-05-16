@@ -31,25 +31,13 @@
 #include "spatial_containers/point_object.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
-namespace Kratos
-{
-///@name Kratos Globals
-///@{
+namespace Kratos {
 
-///@}
 ///@name Type Definitions
 ///@{
 
     /// The definition of the size type
     using SizeType = std::size_t;
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
 
 ///@}
 ///@name Kratos Classes
@@ -800,18 +788,6 @@ private:
     void UpdateInterface();
 
     ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
     ///@name Unaccessible methods
     ///@{
 
@@ -823,15 +799,6 @@ private:
 
     ///@}
 };// class SimpleMortarMapperProcess
-
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 

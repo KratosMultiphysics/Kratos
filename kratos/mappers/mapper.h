@@ -27,10 +27,8 @@
 #include "containers/flags.h"
 
 
-namespace Kratos
-{
+namespace Kratos {
 
-///@}
 ///@name Kratos Classes
 ///@{
 

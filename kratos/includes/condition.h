@@ -105,8 +105,6 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     typedef GeometryData GeometryDataType;
-    ///@}
-
 
     ///@}
     ///@name Life Cycle

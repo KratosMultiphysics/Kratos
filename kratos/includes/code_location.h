@@ -38,7 +38,6 @@ namespace Kratos
 
         CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber);
 
-         ///@}
         ///@name Private Operators
         ///@{
 
@@ -127,7 +126,5 @@ namespace Kratos
 #endif
 
 #define KRATOS_CODE_LOCATION Kratos::CodeLocation(__FILE__, KRATOS_CURRENT_FUNCTION, __LINE__)
-
-  ///@} addtogroup block
 
 }  // namespace Kratos.

@@ -24,34 +24,18 @@
 #include "containers/array_1d.h"
 #include "includes/model_part.h"
 
-///@name Kratos Globals
-///@{
 
-///@}
-///@name Type Definitions
-///@{
+namespace Kratos {
 
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/** 
- * @class GatherModelPartUtility
- * @ingroup KratosMPI
+/**
  * @brief This function gathers a model part from a given rank to the master rank
  * @details The objective of this class is to gather a model part from a given rank to the master rank
  * @author Riccardo Rossi
+ * @ingroup KratosMPICore
  */
-namespace Kratos
-{
 class KRATOS_API(KRATOS_MPI_CORE) GatherModelPartUtility
 {
 public:
@@ -104,10 +88,6 @@ public:
         const int MeshId,
         ModelPart& rDestinationModelPart
         );
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
@@ -197,14 +177,6 @@ public:
         );
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -218,24 +190,13 @@ public:
     void PrintData(std::ostream& rOStream) const;
 
     ///@}
-    ///@name Friends
-    ///@{
 
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPart; /// The model part to be gathered
     int mGatherRank;        /// The rank to which the model part is gathered
-    
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     ///@}
     ///@name Private Operations
@@ -256,22 +217,10 @@ private:
         );
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-
     GatherModelPartUtility& operator=(GatherModelPartUtility const& rOther) = delete;
-
-    /// Copy constructor.
 
     GatherModelPartUtility(GatherModelPartUtility const& rOther) = delete;
 

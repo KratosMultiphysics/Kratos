@@ -73,7 +73,6 @@ public:
     using BaseType::ShapeFunctionsLocalGradients;
     using BaseType::InverseOfJacobian;
 
-    ///@}
     ///@name Life Cycle
     ///@{
 

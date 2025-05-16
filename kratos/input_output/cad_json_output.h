@@ -42,11 +42,9 @@ namespace Kratos
 https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4. */
 class KRATOS_API(KRATOS_CORE) CadJsonOutput
 {
-    public:
-
-    ///@}
+public:
     ///@name Type Definitions
-    ///@}
+    ///@{
 
     /// Pointer definition of CadJsonOutput
     KRATOS_CLASS_POINTER_DEFINITION(CadJsonOutput);

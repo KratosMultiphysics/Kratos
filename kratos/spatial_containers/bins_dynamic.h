@@ -938,11 +938,6 @@ public:
 
 };
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 

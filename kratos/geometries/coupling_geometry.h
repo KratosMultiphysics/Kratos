@@ -40,7 +40,6 @@ template<class TPointType> class CouplingGeometry
     : public Geometry<TPointType>
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 

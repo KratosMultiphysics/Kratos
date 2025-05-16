@@ -15,10 +15,6 @@
 
 #pragma once
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "includes/node.h"
 #include "includes/condition.h"
@@ -28,29 +24,12 @@
 
 #include "utilities/spatial_containers_configure.h"
 
-namespace Kratos
-{
-///@name Kratos Globals
-///@{
+namespace Kratos {
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
 /**
- * @class BinBasedFastPointLocator
  * @ingroup KratosCore
  * @brief This class is designed to allow the fast location of MANY points on the top of a 3D mesh.
  * @details The utility relies on the creation of a Bin of objects that allows finding quikly a reduced number of element candidates for the location of a point.
@@ -65,9 +44,6 @@ template< SizeType TDim, class TConfigureType = SpatialContainersConfigure<TDim>
 class BinBasedFastPointLocator
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
     /// The configure type
     typedef TConfigureType ConfigureType;
 
@@ -96,10 +72,6 @@ public:
     /// Pointer definition of BinBasedFastPointLocator
     KRATOS_CLASS_POINTER_DEFINITION(BinBasedFastPointLocator);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
     /**
      * @brief This is the default constructor
      * @param rModelPart The model part of the mesh used in the search
@@ -119,14 +91,6 @@ public:
         auto paux = typename BinsType::Pointer(new BinsType(*rOther.mpBinsObjectDynamic));
         paux.swap(mpBinsObjectDynamic);
     }
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
 
     /**
      * @brief Function to construct or update the search database
@@ -290,35 +254,7 @@ public:
         return is_found;
     }
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
     /**
     * @brief Checks if given point in global space coordinates
     *        is inside the geometry boundaries. This function
@@ -340,38 +276,10 @@ protected:
         return rGeometry.IsInside(rPointGlobalCoordinates, rResult, Tolerance);
     }
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
     ModelPart& mrModelPart; /// The model part containing the mesh for the search
 
     typename BinsType::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     /**
      * @brief This operation is defined to the the corresponding container type
@@ -398,23 +306,6 @@ private:
     {
         rContainerArray = rModelPart.ConditionsArray();
     }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
 };
 
 } // namespace Kratos.

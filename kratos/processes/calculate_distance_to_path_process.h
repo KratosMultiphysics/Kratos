@@ -53,7 +53,7 @@ struct CalculateDistanceToPathSettings
 
 /**
  * @class CalculateDistanceToPathProcess
- * @ingroup KratosCore 
+ * @ingroup KratosCore
  * @brief Computes DISTANCE from a path model part to a given model part
  * @author Vicente Mataix Ferrandiz
  * @tparam THistorical If the distance is computed as historical or non historical variable
@@ -199,7 +199,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     Model& mrModel;                             /// The model containing the ModelParts of the path and the distance to be computed
     Parameters mThisParameters;                 /// The configuration parameters
     const Variable<double>* mpDistanceVariable; /// The distance variable to be computed
@@ -280,5 +280,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-///@}
 } /// namespace Kratos

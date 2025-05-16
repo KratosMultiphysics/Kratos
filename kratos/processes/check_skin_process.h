@@ -79,14 +79,6 @@ public:
     void Execute() override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -109,23 +101,11 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPart; /// The model part to be checked
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     ///@}
     ///@name Un accessible methods
@@ -138,15 +118,8 @@ private:
     CheckSkinProcess(CheckSkinProcess const& rOther);
 
     ///@}
-
 }; // Class Process
 
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 
@@ -164,6 +137,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
 ///@}
 
 } // namespace Kratos

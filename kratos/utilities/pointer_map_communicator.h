@@ -36,7 +36,7 @@
 
 namespace Kratos
 {
-///@addtogroup Kratos MPI Core
+///@addtogroup KratosMPICore
 ///@{
 
 ///@name Kratos Classes

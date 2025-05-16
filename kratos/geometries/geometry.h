@@ -70,7 +70,6 @@ template<class TPointType>
 class Geometry
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 

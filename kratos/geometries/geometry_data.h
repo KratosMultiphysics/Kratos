@@ -158,21 +158,27 @@ public:
      * @enum KratosGeometryOrderType
      * @brief Defines the order of geometries in Kratos.
      * @details This enumeration lists the different polynomial orders that can be used for defining the geometry of elements in Kratos. The geometry order impacts the accuracy and computational cost of simulations.
-     * @var KratosGeometryOrderType::Kratos_Zero_Order: Defines a zero-order geometry. This is 0D geometry, aka discrete points, and is the simplest form of geometry.
-     * @var KratosGeometryOrderType::Kratos_Linear_Order: Defines a linear geometry. This is the simplest form, with minimal computational cost but lower accuracy.
-     * @var KratosGeometryOrderType::Kratos_Quadratic_Order: Defines a quadratic geometry. Offers a balance between computational cost and accuracy.
-     * @var KratosGeometryOrderType::Kratos_Cubic_Order: Defines a cubic geometry. Higher computational cost than quadratic, but offers improved accuracy.
-     * @var KratosGeometryOrderType::Kratos_Quartic_Order: Defines a quartic geometry. Further increases computational cost and accuracy.
-     * @var KratosGeometryOrderType::Kratos_Quintic_Order: Defines a quintic geometry. Represents the highest polynomial order here, with the highest accuracy and computational cost.
-     * @var KratosGeometryOrderType::Kratos_Unknown_Order: Used when the geometry order is unknown or not specified. Allows for flexibility in geometry definition.
-    */
+     */
     enum KratosGeometryOrderType {
+        /// @brief Defines a zero-order geometry. This is 0D geometry, aka discrete points, and is the simplest form of geometry.
         Kratos_Zero_Order,
+
+        /// @brief Defines a linear geometry. This is the simplest form, with minimal computational cost but lower accuracy.
         Kratos_Linear_Order,
+
+        /// @brief Defines a quadratic geometry. Offers a balance between computational cost and accuracy.
         Kratos_Quadratic_Order,
+
+        /// @brief Defines a cubic geometry. Higher computational cost than quadratic, but offers improved accuracy.
         Kratos_Cubic_Order,
+
+        /// @brief Defines a quartic geometry. Further increases computational cost and accuracy.
         Kratos_Quartic_Order,
+
+        /// @brief Defines a quintic geometry. Represents the highest polynomial order here, with the highest accuracy and computational cost.
         Kratos_Quintic_Order,
+
+        /// @brief Used when the geometry order is unknown or not specified. Allows for flexibility in geometry definition.
         Kratos_Unknown_Order
     };
 

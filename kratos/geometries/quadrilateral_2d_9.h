@@ -1093,7 +1093,6 @@ private:
 
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
     ///@name Serialization
     ///@{
 

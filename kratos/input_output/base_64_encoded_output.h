@@ -47,7 +47,6 @@ public:
     /// The index type
     using IndexType = std::size_t;
 
-    ///@}
     ///@name Public classes
     ///@{
 

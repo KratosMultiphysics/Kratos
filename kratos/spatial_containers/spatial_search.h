@@ -1169,7 +1169,7 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream, 
+inline std::ostream& operator << (std::ostream& rOStream,
                 const SpatialSearch& rThis)
 {
     rThis.PrintInfo(rOStream);
@@ -1179,7 +1179,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
-///@}addtogroup block
 
 }  // namespace Kratos.

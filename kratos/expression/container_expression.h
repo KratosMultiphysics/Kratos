@@ -88,7 +88,7 @@ public:
 
     ///@}
     ///@name Life cycle
-    ///#{
+    ///@{
 
     /// Constructor with the model part
     ContainerExpression(ModelPart& rModelPart);

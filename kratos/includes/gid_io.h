@@ -1555,6 +1555,4 @@ inline std::ostream& operator << (std::ostream& rOStream, const GidIO<>& rThis)
 
 }// namespace Kratos.
 
-///@}
-
 #endif // KRATOS_GID_OUTPUT_H_INCLUDED  defined

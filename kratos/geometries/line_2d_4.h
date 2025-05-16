@@ -61,7 +61,6 @@ template<class TPointType>
 class Line2D4 : public Geometry<TPointType>
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 

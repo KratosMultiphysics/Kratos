@@ -57,22 +57,6 @@ KRATOS_DOF_TRAITS
 #undef KRATOS_END_DOF_TRAIT
 
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -392,18 +376,12 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
 
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
 
     static const Variable<TDataType> msNone;
     static constexpr int msIsFixedPosition = 63;
 
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -506,6 +484,7 @@ private:
     ///@}
 
 }; // Class Dof
+
 template<class TDataType> const Variable<TDataType> Dof<TDataType>::msNone("NONE");
 
 ///@}

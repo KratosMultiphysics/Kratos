@@ -25,17 +25,10 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 
-namespace Kratos
-{
-///@name Kratos Globals
-///@{
+namespace Kratos {
 
-///@}
-///@name Type Definitions
-///@{
 
-///@}
-///@name  Enum's
+///@name  Enums
 ///@{
 
     /**
@@ -45,10 +38,6 @@ namespace Kratos
      * @details https://gamedevelopment.tutsplus.com/tutorials/collision-detection-using-the-separating-axis-theorem--gamedev-169
      */
     enum class OBBHasIntersectionType {Direct = 0, SeparatingAxisTheorem = 1};
-
-///@}
-///@name  Functions
-///@{
 
 ///@}
 ///@name Kratos Classes
@@ -152,10 +141,6 @@ public:
     }
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -223,14 +208,6 @@ public:
     void GetEquivalentRotatedGeometry(OutputType& rGeometry);
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -283,54 +260,14 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
 
     array_1d<double, 3> mPointCenter;                        /// This defines the center point of the box
     array_1d<array_1d<double, 3>, TDim> mOrientationVectors; /// This defines the orientation vectors of the OrientedBoundingBox
     array_1d<double, TDim> mHalfLength;                      /// This defines the half of the distance which defines the walls of the box of the OrientedBoundingBox
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     ///@}
     ///@name Private Operations
@@ -421,32 +358,7 @@ private:
         ) const;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
 }; // Class OrientedBoundingBox
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 

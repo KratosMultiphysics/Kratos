@@ -71,8 +71,6 @@ public:
     NodalData& operator=(NodalData&&) noexcept = default;
 
     ///@}
-
-    ///@}
     ///@name Access
     ///@{
 

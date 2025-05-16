@@ -25,18 +25,9 @@
 #include "factories/factory.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-///@}
-///@name  Enum's
-///@{
 
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -48,29 +39,29 @@ namespace Kratos
  * accuracy in time. Will only work for formulations reading from buffer
  * positions 0, and 1. Behaviour when reading from buffer position 2 or greater
  * is left unspecified.
- * 
+ *
  * Formulation:
- * 
+ *
  * 1. First, a Forward-Euler step is taken from t=t0 to t=t0+Δt.
  *                       u1 = u0 + Δt*(M^-1)*R(u0)
  *
  * 2. Then, a Forward-Euler step is taken backwards back to t=t0
  *                       u2 = u1 - Δt*(M^-1)*R(u1)
- * 
+ *
  * 3. Then, an error is computed from the diference between u0 and u2:
  *                           e = (u2 - u0) / 2
- * 
+ *
  * 4. A corrected u is computed:
  *                             uc = e0 - e
- * 
- * 5. Then, a last Forward-Euler step is taken from the corrected value 
+ *
+ * 5. Then, a last Forward-Euler step is taken from the corrected value
  *    at t=t0 to t=t0+Δt:
  *                        u = uc - Δt*(M^-1)*R(uc)
- * 
+ *
  * Note that for this scheme to work, the formulation must preserve information
  * during steps 1 and 2. Hence, all non-numerical dissipative terms must be
  * disabled during these back-and-forth steps for the correction to make sense.
- * 
+ *
  * The following methods are provided in order to extend this class:
  *  -  void InitializeBFECCForwardSubstep()  - Executed right before 1.
  *  -  void FinalizeBFECCForwardSubstep()    - Executed right after 1.
@@ -78,13 +69,13 @@ namespace Kratos
  *  -  void FinalizeBFECCBackwardSubstep()   - Executed right after 2.
  *  -  void InitializeBFECCFinalSubstep()    - Executed right before 5.
  *  -  void FinalizeBFECCFinalSubstep()      - Executed right after 5.
- * 
+ *
  * Reference:
  * HASHEMI, Mohammad R.; ROSSI, Riccardo; RYZHAKOV, Pavel B. An enhanced
  * non-oscillatory BFECC algorithm for finite element solution of advective
  * transport problems. Computer Methods in Applied Mechanics and Engineering,
  * 2022, 391: 114576.
- * 
+ *
  */
 template <class TSparseSpace, class TDenseSpace>
 class ExplicitSolvingStrategyBFECC : public ExplicitSolvingStrategy<TSparseSpace, TDenseSpace>

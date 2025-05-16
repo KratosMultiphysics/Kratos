@@ -62,7 +62,6 @@ class Line2D3
   : public Geometry<TPointType>
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 

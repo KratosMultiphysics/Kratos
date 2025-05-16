@@ -30,9 +30,9 @@
 #include "includes/model_part.h"
 #include "modeler/modeler.h"
 
-namespace Kratos
-{
-///@}
+namespace Kratos {
+
+
 ///@name Kratos Classes
 ///@{
 

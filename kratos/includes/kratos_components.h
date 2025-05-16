@@ -72,10 +72,6 @@ public:
     virtual ~KratosComponents() = default;
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -122,7 +118,7 @@ public:
      * @brief Removes all components.
      * @details This function removes all components form the ComponentsContainer and leaves it empty.
      */
-    static void Clear() 
+    static void Clear()
     {
         msComponents.clear();
     }
@@ -197,23 +193,11 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
     static ComponentsContainerType msComponents; /// Component container
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     ///@}
     ///@name Private Operations
@@ -234,14 +218,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -255,8 +231,6 @@ private:
 
 }; // Class KratosComponents
 
-
-///@}
 template<>
 class KRATOS_API(KRATOS_CORE) KratosComponents<VariableData>
 {

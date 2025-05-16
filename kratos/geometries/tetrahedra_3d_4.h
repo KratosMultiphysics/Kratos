@@ -60,10 +60,6 @@ template<class TPointType> class Tetrahedra3D4 : public Geometry<TPointType>
 {
 public:
     /**
-     * Type Definitions
-     */
-
-    /**
      * Geometry as base class.
      */
     typedef Geometry<TPointType> BaseType;
@@ -189,9 +185,6 @@ public:
      */
     typedef Matrix MatrixType;
 
-    /**
-     * Life Cycle
-     */
     Tetrahedra3D4( typename PointType::Pointer pPoint1,
                    typename PointType::Pointer pPoint2,
                    typename PointType::Pointer pPoint3,
@@ -260,7 +253,6 @@ public:
     {
     }
 
-    /// Destructor. Does nothing!!!
     ~Tetrahedra3D4() override {}
 
     /**
@@ -291,10 +283,6 @@ public:
     {
         return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
-
-    /**
-     * Operators
-     */
 
     /**
      * Assignment operator.
@@ -332,7 +320,6 @@ public:
         return *this;
     }
 
-    ///@}
     ///@name Operations
     ///@{
 

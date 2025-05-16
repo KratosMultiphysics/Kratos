@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 // System includes
 
@@ -9,36 +9,20 @@
 #include "containers/model.h"
 #include "includes/kratos_parameters.h"
 
-namespace Kratos 
-{
-///@name Kratos Globals
-///@{
+namespace Kratos {
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class CombineModelPartModeler
  * @ingroup KratosCore
- * @brief This modeler combines several model parts into a new one. All input model parts should share 
+ * @brief This modeler combines several model parts into a new one. All input model parts should share
  *   the same root model part.
  * @details ProcessInfo is shallow-copied from root origin model part.
  * @author Daniel Diez @ddiezrod
  */
-class KRATOS_API(KRATOS_CORE) CombineModelPartModeler 
+class KRATOS_API(KRATOS_CORE) CombineModelPartModeler
     : public Modeler {
 public:
     ///@name Type Definitions
@@ -68,10 +52,6 @@ public:
 
     /// Destructor.
     virtual ~CombineModelPartModeler() = default;
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
@@ -119,19 +99,6 @@ public:
 
     ///@}
 protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -176,22 +143,7 @@ protected:
     void CheckOriginModelPartsAndAssignRoot();
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -200,19 +152,6 @@ private:
     Parameters mParameters;   /// The configuration parameters
 
     ModelPart* mpOriginRootModelPart = nullptr; /// Root model part of all origin model parts
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
 
     ///@}
     ///@name Serialization

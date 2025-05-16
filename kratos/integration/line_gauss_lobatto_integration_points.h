@@ -458,19 +458,6 @@ public:
 }; // Class LineGaussLobattoIntegrationPoints10
 
 
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-///@}
-
-
 }  // namespace Kratos.
 
 #endif // KRATOS_LINE_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED  defined

@@ -956,15 +956,13 @@ public:
             rOStream << "    Jacobian in the origin\t : " << jacobian;
         }
     }
-private:
-    ///@name Static Member Variables
-    ///@{
+    ///@}
 
+private:
     static const GeometryData msGeometryData;
 
     static const GeometryDimension msGeometryDimension;
 
-    ///@}
     ///@name Serialization
     ///@{
 

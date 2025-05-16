@@ -35,30 +35,30 @@
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+///@name Kratos Globals
+///@{
 
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@}
+///@name Type Definitions
+///@{
 
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
+///@}
 
 
-/*@} */
-/**@name  Functions */
-/*@{ */
+///@name  Enum's
+///@{
+
+
+///@}
+///@name  Functions
+///@{
 
 
 
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@}
+///@name Kratos Classes
+///@{
 
 /// Short class definition.
 /**   Detail class definition.
@@ -90,8 +90,8 @@ class AdaptiveResidualBasedNewtonRaphsonStrategy
     : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions
+    ///@{
     typedef ConvergenceCriteria<TSparseSpace,TDenseSpace> TConvergenceCriteriaType;
 
     /** Counted pointer of ClassName */
@@ -126,10 +126,9 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    /*@} */
-    /**@name Life Cycle
-    */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /**
      * @brief Default constructor
@@ -837,19 +836,9 @@ public:
         return "adaptative_newton_raphson_strategy";
     }
 
-    /*@} */
-    /**@name Operators
-    */
-    /*@{ */
-
-    /*@} */
-    /**@name Operations */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Access */
-    /*@{ */
+    ///@}
+    ///@name Access
+    ///@{
 
     TSystemMatrixType& GetSystemMatrix() override
     {
@@ -857,10 +846,6 @@ public:
 
         return mA;
     }
-
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
 
     ///@}
     ///@name Input and output
@@ -884,60 +869,11 @@ public:
         rOStream << Info();
     }
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
-
-private:
-    /**@name Protected static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
-
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
+    ///@}
 
 protected:
-    /**@name Static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@name Member Variables
+    ///@{
 
     typename TSchemeType::Pointer mpScheme;
 
@@ -983,9 +919,9 @@ protected:
 
     int mNumberOfCycles;
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@}
+    ///@name Private Operators
+    ///@{
     //**********************************************************************
     //**********************************************************************
     void Initialize() override
@@ -1119,43 +1055,21 @@ protected:
         }
     }
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
     /** Copy constructor.
     */
     AdaptiveResidualBasedNewtonRaphsonStrategy(const AdaptiveResidualBasedNewtonRaphsonStrategy& Other);
 
 
-    /*@} */
+    ///@}
 
 }; /* Class ResidualBasedNewtonRaphsonStrategy */
 
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
+///@}
 
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY  defined */
-

@@ -520,7 +520,6 @@ public:
         return false;
     }
 
-    ///@}
     ///@name Edge
     ///@{
 

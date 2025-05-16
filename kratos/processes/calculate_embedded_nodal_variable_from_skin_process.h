@@ -35,29 +35,8 @@
 #include "utilities/intersection_utilities.h"
 #include "utilities/variable_utils.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name  Enum's
-///@{
-
-
-///@}
-///@name  Functions
-///@{
-
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -65,28 +44,11 @@ template< class TVarType >
 class EmbeddedNodalVariableFromSkinTypeHelperClass
 {
 public:
-
-    ///@name Type Definitions
-    ///@{
-
-
-    ///@}
     ///@name Pointer Definitions
 
     /// Pointer definition of EmbeddedNodalVariableFromSkinTypeHelperClass
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedNodalVariableFromSkinTypeHelperClass);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -177,7 +139,6 @@ public:
     /// Pointer definition of CalculateEmbeddedNodalVariableFromSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateEmbeddedNodalVariableFromSkinProcess);
 
-    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -296,7 +257,7 @@ public:
         KRATOS_TRY;
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->GenerateIntersectedEdgesElementsModelPart();
-        
+
         // Set the linear strategy to solve the regression problem
         this->SetLinearStrategy();
 
@@ -604,7 +565,7 @@ protected:
         for(auto& item: map_of_nodes){
             tmp.push_back(item.second);
         }
-        rModelPart.AddNodes(tmp.begin(), tmp.end());    
+        rModelPart.AddNodes(tmp.begin(), tmp.end());
     }
 
     void SetLinearStrategy()
@@ -742,7 +703,7 @@ private:
     {
         const auto& rp_var_list = rModelPart.pGetNodalSolutionStepVariablesList();
         unsigned int buffer_size = rModelPart.GetBufferSize();
-        
+
         // Loop the edge nodes
         for (std::size_t i = 0; i < 2; ++i) {
             auto p_i_node = rEdgeGeometry(i);
@@ -750,7 +711,7 @@ private:
             if (!p_i_node->Is(VISITED)) {
                 p_i_node->Set(VISITED, true);
                 auto p_node_copy = Kratos::make_intrusive< Node >(
-                    p_i_node->Id(), 
+                    p_i_node->Id(),
                     p_i_node->Coordinates());
                 p_node_copy->SetSolutionStepVariablesList(rp_var_list);
                 p_node_copy->SetBufferSize(buffer_size);

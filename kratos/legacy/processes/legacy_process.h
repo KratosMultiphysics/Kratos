@@ -100,12 +100,6 @@ private:
 
 }; // Class Process
 
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 
@@ -123,6 +117,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
 ///@}
 
 }  // namespace Kratos::Legacy.

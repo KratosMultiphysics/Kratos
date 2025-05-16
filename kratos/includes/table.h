@@ -29,26 +29,10 @@ namespace Kratos
 ///@addtogroup KratosCore
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
+
+/**
  * @class Table
  * @ingroup KratosCore
  * @brief This class represents the value of its variable depending to other variable.
@@ -237,7 +221,7 @@ public:
     {
         mData.push_back(RecordType(X,Y));
     }
-    
+
     /**
      * @brief This method clears database
      */
@@ -664,7 +648,7 @@ public:
         if (dx < epsilon)
         {
             dx=epsilon;
-            KRATOS_WARNING("") 
+            KRATOS_WARNING("")
             << "*******************************************\n"
             << "*** ATTENTION: SMALL dX WHEN COMPUTING  ***\n"
             << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 ***\n"
@@ -673,7 +657,7 @@ public:
         Result= dy/dx;
         return Result;
     }
-    
+
     /**
      * @brief This method clears database
      */
@@ -681,7 +665,7 @@ public:
     {
         mData.clear();
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -696,11 +680,6 @@ public:
     {
         return mData;
     }
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
 
 
     ///@}
@@ -747,19 +726,8 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -768,17 +736,7 @@ private:
     std::string mNameOfY;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-
-
-    ///@}
     ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Serialization
     ///@{
 
     friend class Serializer;
@@ -811,43 +769,18 @@ private:
         }
    }
 
-
     ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    ///@}
-
 }; // Class Table
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
 
-/// input stream function
 template<class TArgumentType, class TResultType>
-inline std::istream& operator >> (std::istream& rIStream,
-                                  Table<TArgumentType, TResultType>& rThis);
+std::istream& operator >> (std::istream& rIStream,
+                           Table<TArgumentType, TResultType>& rThis);
 
-/// output stream function
 template<class TArgumentType, class TResultType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const Table<TArgumentType, TResultType>& rThis)
@@ -861,6 +794,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@}
 
-///@} addtogroup block
+///@}
 
 }  // namespace Kratos.

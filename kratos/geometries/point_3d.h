@@ -52,7 +52,6 @@ template<class TPointType>
 class Point3D : public Geometry<TPointType>
 {
 public:
-    ///@}
     ///@name Type Definitions
     ///@{
 
