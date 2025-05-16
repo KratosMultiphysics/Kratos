@@ -25,6 +25,12 @@
 
 namespace Kratos {
 
+    /**
+     * Note: When integration sandbox-solver in Kratos, the information computed by this operation
+     * will need to be stored in main class VoxelMeshGeneratorModeler. This includes moving the definition 
+     * of SurrogateBoundaryNode class, creating a vector of SurrogateBoundaryNode and defining the proper 
+     * functions to access them in the superclass VoxelMesherOperation.
+     */
 class ComputeSurrogateBoundaryData: public VoxelMesherOperation {
 
     using NodeType = Node;
