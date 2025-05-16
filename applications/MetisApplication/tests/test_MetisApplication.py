@@ -6,7 +6,7 @@ import KratosMultiphysics.MetisApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from quad_partition_test import QuadPartitionTest
+from test_quad_partition import TestQuadPartition
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -27,7 +27,7 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallMPISuite = suites['small']
-    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([QuadPartitionTest]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestQuadPartition]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
