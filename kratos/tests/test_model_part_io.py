@@ -55,7 +55,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfGeometries(), 9)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
-
+        self.assertEqual(model_part.NumberOfMasterSlaveConstraints(), 2)
 
     def execute_test_model_part_io_read_model_part(self, input_mdpa):
         current_model = KratosMultiphysics.Model()
@@ -223,6 +223,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), KratosMultiphysics.IO.MESH_ONLY)
         model_part_io.ReadModelPart(model_part)
 
@@ -234,6 +235,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfGeometries(), 9)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
+        self.assertEqual(model_part.NumberOfMasterSlaveConstraints(), 2)
 
         self.assertTrue(model_part.HasSubModelPart("Inlets"))
 
