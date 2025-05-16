@@ -1,5 +1,5 @@
 #!/bin/bash
-PYTHONS=("313" "314")
+PYTHONS=("313")
 export KRATOS_VERSION="10.2.2"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
@@ -145,18 +145,17 @@ build_interface () {
 # Core can be build independently of the python version.
 # Install path should be useless here.
 echo "Starting core build"
-build_core python3.13 ${KRATOS_ROOT}/bin/core
+build_core python3.8 ${KRATOS_ROOT}/bin/core
 echo "Finished core build"
 
 for PYTHON_VERSION in  "${PYTHONS[@]}"
 do
     PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
-    export PYTHON=${PYTHON_TMP#cp}
-    export PYTHON_VERSION=${PYTHON_VERSION}
+    export PYTHON=${PYTHON_VERSION}
     echo "Starting build for python${PYTHON_VERSION}"
 
 	PYTHON_LOCATION=/opt/python/cp${PYTHON_VERSION}-cp${PYTHON_VERSION}/bin/python
-    PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_cp$PYTHON_VERSION
+    PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_$PYTHON
 
     $PYTHON_LOCATION -m pip install mypy
 

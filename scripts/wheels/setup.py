@@ -7,7 +7,7 @@ import shutil
 kratos_version = os.environ["KRATOS_VERSION"]
 
 def replaceKeyword(str):
-    return str.replace("${KRATOS_VERSION}", kratos_version).replace("${PYTHON_VERSION}", os.environ["PYTHON_VERSION"])
+    return str.replace("${KRATOS_VERSION}", kratos_version).replace("${PYTHON}", os.environ["PYTHON"])
 
 def replaceKeywords(stringArray):
     return list(map(lambda str: replaceKeyword(str), stringArray))
@@ -20,7 +20,7 @@ with open(os.path.join(os.environ["KRATOS_ROOT"], conf["readme"]), "r") as fh:
     long_description = fh.read()
 
 for module in conf["included_modules"]:
-    src = os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_cp${PYTHON_VERSION}"), "KratosMultiphysics", module)
+    src = os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module)
     dst = os.path.join("KratosMultiphysics", module)
     if os.path.exists(dst):
         shutil.rmtree(dst)
@@ -30,7 +30,7 @@ for module in conf["included_modules"]:
         print("Warning copying {}: {}".format(src,e))
 
 for binary in conf["included_binaries"]:
-    for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON_VERSION}"), "libs", replaceKeyword(binary))):
+    for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
         print("Adding {} matching binary: {}".format(file, binary))
         shutil.copy(file, os.path.join("KratosMultiphysics", ".libs"))
 
@@ -48,8 +48,6 @@ package_classifiers = [
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
-        "Programming Language :: Python :: 3.13",
-        "Programming Language :: Python :: 3.14",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Mathematics",
