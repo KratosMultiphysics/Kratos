@@ -447,7 +447,7 @@ class ExplicitStrategy():
                                                              self.search_strategy, self.solver_settings)'''
             
         self.cplusplus_strategy.SetSpSearch(self.search_strategy)
-
+  
     def _GetInputType(self):
         return self.solver_settings["model_import_settings"]["input_type"].GetString()
 

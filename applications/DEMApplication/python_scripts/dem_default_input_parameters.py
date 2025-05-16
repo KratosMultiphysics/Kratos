@@ -102,6 +102,7 @@ def GetDefaultInputParameters():
             "respect_preprocessor_marked_skin" : true,
             "AutomaticSkinComputation"         : false,
             "UseInitialBondContactArea"        : false,
+            "ShiftParticlesOption"             : false,
             "SkinFactorRadius"                 : 1.0,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
