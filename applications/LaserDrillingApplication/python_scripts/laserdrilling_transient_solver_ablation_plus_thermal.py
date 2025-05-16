@@ -120,6 +120,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         # TODO: vectorize this loop?
         for node in self.main_model_part.Nodes:
             """
+            The shallow hole approximation: assume the pulse does not change in irradiance
+            when it advances from the surface of the sample to the inside of the hole.
             Translate each node towards the surface, i.e., in the negative x direction
             by an amount equal to the hole's depth at the node's Y coord (Y = radius).
             In essence, shift all nodes along the x axis to the left to fill the hole.
@@ -251,6 +253,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
                     )  # self.q_ast # TODO: rename MATERIAL_THERMAL_ENERGY_PER_VOLUME to something more descriptive (see Woodfield 2024 for the definition of q_ast)
 
                 # If the energy threshold is exceeded, deactivate the element
+                # and mark its nodes as decomposed (but don't remove them)
                 if q_energy_per_volume >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     for node in elem.GetNodes():
