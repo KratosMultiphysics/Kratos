@@ -82,9 +82,6 @@ public:
     /// Alias for the conditions container type.
     using ConditionsContainerType = BaseType::ConditionsContainerType;
 
-    /// Alias for the master-slave constraints container type.
-    using MasterSlaveConstraintContainerType = BaseType::MasterSlaveConstraintContainerType;
-
     /// Alias for the connectivities container type.
     using ConnectivitiesContainerType = BaseType::ConnectivitiesContainerType;
 
