@@ -53,6 +53,13 @@ namespace Kratos {
 #define KRATOS_ARCH_TYPE "Unknown architecture"
 #endif
 
+// Adding architecture extension
+#if defined(KRATOS_ARCHITECTURE_EXTENSION)
+#define KRATOS_COMPLETE_ARCH_TYPE KRATOS_ARCH_TYPE "-" KRATOS_ARCHITECTURE_EXTENSION
+#else
+#define KRATOS_COMPLETE_ARCH_TYPE KRATOS_ARCH_TYPE
+#endif
+
 // Full version
 #ifndef KRATOS_TO_STRING_
     #define KRATOS_TO_STRING_(X) #X
@@ -67,7 +74,7 @@ KRATOS_TO_STRING(KRATOS_PATCH_VERSION) "-" \
 KRATOS_BRANCH_NAME "-" \
 KRATOS_SHA1_NUMBER "-" \
 KRATOS_BUILD_TYPE  "-" \
-KRATOS_ARCH_TYPE
+KRATOS_COMPLETE_ARCH_TYPE
 
 // Define OS name
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)

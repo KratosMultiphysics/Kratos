@@ -44,6 +44,7 @@ cmake ..                                                                        
 -H"${KRATOS_SOURCE}"                                                                                \
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \
+-DKRATOS_ARCHITECTURE_EXTENSION="native"                                                            \
 -DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
 -DUSE_EIGEN_MKL=OFF
 
