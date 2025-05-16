@@ -82,7 +82,7 @@ void CompareValues(
     } else if constexpr(std::is_same_v<TDataType, Kratos::Vector>) {
         KRATOS_EXPECT_VECTOR_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Matrix>) {
-        KRATOS_EXPECT_MATRIX_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_MATRIX_EQ(rValue1, rValue2);
     } else {
         static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
