@@ -14,6 +14,7 @@
 // System includes
 
 // Project includes
+#include "includes/constitutive_law.h"
 #include "utilities/data_type_traits.h"
 
 // Application includes
@@ -37,9 +38,22 @@ bool ReadComponent(
 
     if (KratosComponents<Variable<TDataType>>::Has(rVariableName)) {
         const auto& r_variable = KratosComponents<Variable<TDataType>>::Get(rVariableName);
-        TDataType value{};
-        rFile.ReadAttribute(rPrefix + "/DataValues", rVariableName, value);
-        rData[r_variable] = value;
+        if constexpr(std::is_same_v<TDataType, ConstitutiveLaw::Pointer>) {
+            // reading the constitutive law name
+            std::string constitutive_law_name;
+            rFile.ReadAttribute(rPrefix + "/DataValues", rVariableName, constitutive_law_name);
+            KRATOS_ERROR_IF_NOT(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) << "Kratos components missing \"" << constitutive_law_name << "\"" << std::endl;
+
+            // TODO: The constitutive law cannot be constructed because, the constitutive law does not retain
+            //       the construction mechanism it used in creating it (especially in composites, where the composite
+            //       the structure of composite is given in json).
+            // auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(cl_parameters, rProperty);
+            // rData[r_variable] = p_constitutive_law;
+        } else {
+            TDataType value{};
+            rFile.ReadAttribute(rPrefix + "/DataValues", rVariableName, value);
+            rData[r_variable] = value;
+        }
         return true;
     } else {
         return false;
@@ -60,7 +74,20 @@ bool WriteComponent(
     if (KratosComponents<Variable<TDataType>>::Has(rVariableName)) {
         const auto& r_variable = KratosComponents<Variable<TDataType>>::Get(rVariableName);
         const auto& r_value = rData[r_variable];
-        rFile.WriteAttribute(rPrefix + "/DataValues", rVariableName, r_value);
+        if constexpr(std::is_same_v<TDataType, ConstitutiveLaw::Pointer>) {
+            auto components_cl = KratosComponents<ConstitutiveLaw>::GetComponents();
+            std::string cl_name = "";
+            for (const auto& comp_cl : components_cl) {
+                if (r_value->HasSameType(r_value.get(), comp_cl.second)) {
+                    cl_name = comp_cl.first;
+                    break;
+                }
+            }
+            KRATOS_ERROR_IF(cl_name == "") << "Kratos components missing \"" << r_value << "\"" << std::endl;
+            rFile.WriteAttribute(rPrefix + "/DataValues", rVariableName, cl_name);
+        } else {
+            rFile.WriteAttribute(rPrefix + "/DataValues", rVariableName, r_value);
+        }
         return true;
     } else {
         return false;
@@ -119,6 +146,7 @@ void ReadDataValueContainer(
 
     for (const auto& r_name : attr_names) {
         HDF5Utilities  ::Read<
+            ConstitutiveLaw::Pointer,
             bool,
             int,
             double,
@@ -145,6 +173,7 @@ void WriteDataValueContainer(
 
     for (auto it = rData.begin(); it != rData.end(); ++it) {
         HDF5Utilities  ::Write<
+            ConstitutiveLaw::Pointer,
             bool,
             int,
             double,
