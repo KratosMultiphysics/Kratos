@@ -145,6 +145,13 @@ End SubModelPart
 					"color": -1,
 					"properties_id": 1
 				} 
+				],
+				"model_part_operations": [
+				{
+					"type" : "compute_surrogate_boundary_data",
+					"model_part_name" : "skin_model_part",
+					"output_path" : "/home/ari/Kratos/bin/Release/test/sbdata.txt"
+				} 
 				]
 			})");
 			
