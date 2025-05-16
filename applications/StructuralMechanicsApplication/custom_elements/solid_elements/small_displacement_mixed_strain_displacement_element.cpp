@@ -201,8 +201,7 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
             mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
         }
 
-        //const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-        const auto& r_integration_points = GetIntegrationPoints();
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         // Constitutive Law Vector initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size()) {
@@ -259,8 +258,7 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(
         cl_values.SetStressVector(this_constitutive_variables.StressVector);
         cl_values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-        //const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-        const auto& r_integration_points = GetIntegrationPoints();
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
@@ -321,8 +319,7 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(
         cl_values.SetStressVector(this_constitutive_variables.StressVector);
         cl_values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-        // const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-        const auto& r_integration_points = GetIntegrationPoints();
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
@@ -404,8 +401,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     Q.clear();
     M.clear();
 
-    //const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
-    const auto& r_integration_points = GetIntegrationPoints();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
     Matrix D0(strain_size, strain_size);
@@ -510,8 +506,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     Q.clear();
     M.clear();
 
-    //const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
-    const auto& r_integration_points = GetIntegrationPoints();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
     Matrix D0(strain_size, strain_size);
@@ -590,8 +585,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    //const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
-    const auto& r_integration_points = GetIntegrationPoints();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
 
     Vector RHSu(dim * n_nodes);
@@ -815,7 +809,7 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     for (IndexType i = 0; i < rG.size1(); ++i)
         for (IndexType j = 0; j < rG.size2(); ++j)
             rLHS(i + displ_size, j) = rG(i, j);
-    
+
     KRATOS_CATCH("")
 }
 
@@ -959,8 +953,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     )
 {
     KRATOS_TRY
-    // const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-    const auto& r_integration_points = GetIntegrationPoints();
+
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType n_gauss = r_integration_points.size();
 
@@ -977,7 +971,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -992,8 +986,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
 {
     KRATOS_TRY
     const auto& r_geometry = GetGeometry();
-    //const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
-    const auto& r_integration_points = GetIntegrationPoints();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType number_of_integration_points = r_integration_points.size();
     if (rOutput.size() != number_of_integration_points)
@@ -1050,8 +1043,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     )
 {
     KRATOS_TRY
-    // const auto &r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-    const auto& r_integration_points = GetIntegrationPoints();
+
+    const auto &r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType number_of_integration_points = r_integration_points.size();
     if (rOutput.size() != number_of_integration_points)
@@ -1076,8 +1069,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
 {
     KRATOS_TRY
     const auto& r_geometry = GetGeometry();
-    // const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-    const auto& r_integration_points = GetIntegrationPoints();
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType n_gauss = r_integration_points.size();
     if (rOutput.size() != n_gauss) {

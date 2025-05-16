@@ -140,57 +140,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    // This is a provisional implementation until the Lobatto
-    // quadratures are fully integrated in the Core
-    IntegrationPointsArrayType GetIntegrationPoints()
-    {
-        const auto& r_geom = GetGeometry();
-        const SizeType dimension = r_geom.WorkingSpaceDimension();
-        const SizeType n_nodes = r_geom.size();
-        const SizeType key_sum = n_nodes + dimension;
-
-        if (key_sum == 5) { // triangle
-            const double one_over_six = 1.0 / 6.0;
-            static const IntegrationPointsArrayType s_integration_points{{
-                IntegrationPointType( 0.0, 0.0 , one_over_six ),
-                IntegrationPointType( 1.0, 0.0 , one_over_six ),
-                IntegrationPointType( 0.0, 1.0 , one_over_six )
-            }};
-            return s_integration_points;
-        } else if (key_sum == 6) { // quadrilateral
-            static const IntegrationPointsArrayType s_integration_points{{
-                IntegrationPointType(-1.0, -1.0, 1.0),
-                IntegrationPointType(1.0, -1.0, 1.0),
-                IntegrationPointType(1.0, 1.0, 1.0),
-                IntegrationPointType(-1.0, 1.0, 1.0)
-            }};
-            return s_integration_points;
-        } else if (key_sum == 7) { // tetrahedron
-            const double one_over_twenty_four = 1.0 / 24.0;
-            static const IntegrationPointsArrayType s_integration_points{{
-                IntegrationPointType( 0.0, 0.0 , 0.0, one_over_twenty_four ),
-                IntegrationPointType( 1.0, 0.0 , 0.0, one_over_twenty_four ),
-                IntegrationPointType( 0.0, 1.0 , 0.0, one_over_twenty_four ),
-                IntegrationPointType( 0.0, 0.0 , 1.0, one_over_twenty_four )
-            }};
-            return s_integration_points;
-        } else if (key_sum == 11) { // hexahedron
-            static const IntegrationPointsArrayType s_integration_points{{
-                IntegrationPointType( -1.0 , -1.0, -1.0, 1.0 ),
-                IntegrationPointType(  1.0 , -1.0, -1.0, 1.0 ),
-                IntegrationPointType(  1.0 ,  1.0, -1.0, 1.0 ),
-                IntegrationPointType( -1.0 ,  1.0, -1.0, 1.0 ),
-                IntegrationPointType( -1.0 , -1.0,  1.0, 1.0 ),
-                IntegrationPointType(  1.0 , -1.0,  1.0, 1.0 ),
-                IntegrationPointType(  1.0 ,  1.0,  1.0, 1.0 ),
-                IntegrationPointType( -1.0 ,  1.0,  1.0, 1.0 )
-            }};
-            return s_integration_points;
-        } else {
-            KRATOS_ERROR << "The type of element does not exist" << std::endl;
-        }
-
-    }
 
     /**
      * @brief Called to initialize the element.
