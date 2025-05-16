@@ -195,12 +195,7 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-        if (r_props.Has(INTEGRATION_ORDER) ) {
-            mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(r_props[INTEGRATION_ORDER] - 1);
-        } else {
-            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
-        }
-
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         // Constitutive Law Vector initialisation
