@@ -62,7 +62,7 @@ namespace Kratos
    }
 
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    AxisymUpdatedLagrangianUwPElement&  AxisymUpdatedLagrangianUwPElement::operator=(AxisymUpdatedLagrangianUwPElement const& rOther)
