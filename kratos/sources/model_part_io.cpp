@@ -3580,7 +3580,6 @@ ModelPartIO::SizeType ModelPartIO::ReadMasterSlaveConstraintsConnectivitiesBlock
         buffer << " [Line " << mNumberOfLines << " ]";
         KRATOS_ERROR << buffer.str() << std::endl;
     }
-    auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(master_slave_constraint_name);
 
     // Reading the number of master and slave dofs
     SizeType number_of_master_dofs;
