@@ -63,7 +63,7 @@ NodalConcentratedElement::NodalConcentratedElement( NodalConcentratedElement con
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 NodalConcentratedElement&  NodalConcentratedElement::operator=(NodalConcentratedElement const& rOther)

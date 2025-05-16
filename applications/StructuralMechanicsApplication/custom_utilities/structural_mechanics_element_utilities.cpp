@@ -619,17 +619,95 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double CalculatePhi(const Properties& rProperties, const double L)
+double CalculatePhi(const Properties& rProperties, const double L, const SizeType Plane)
 {
     const double E   = rProperties[YOUNG_MODULUS];
-    const double I   = rProperties[I33];
-    const double A_s = rProperties[AREA_EFFECTIVE_Y];
-    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
 
-    if (A_s == 0.0) // If effective area is null -> Euler Bernouilli case
+    double I, G, A_s;
+    if (Plane == 0) {
+        I   = rProperties[I33];
+        A_s = rProperties[AREA_EFFECTIVE_Y];
+        G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+    } else {
+        I   = rProperties[I22];
+        A_s = rProperties[AREA_EFFECTIVE_Z];
+        G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+    }
+
+    if (A_s == 0.0) // If effective area is null -> Euler Bernoulli case
         return 0.0;
     else
         return 12.0 * E * I / (G * A_s * std::pow(L, 2));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix)
+{
+    InitializeConstitutiveLawValuesForStressCalculation(rValues, rStrainVector, rStressVector);
+    rValues.SetConstitutiveMatrix(rConstitutiveMatrix);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector)
+{
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    rStrainVector.clear();
+    rValues.SetStrainVector(rStrainVector);
+    rValues.SetStressVector(rStressVector);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry)
+{
+    BoundedMatrix<double, 3, 3> T;
+    T.clear(); // global to local
+
+    array_1d<double, 3> t;
+    array_1d<double, 3> n;
+    array_1d<double, 3> m;
+
+    // t is the axis of the truss
+    noalias(t) = rGeometry[1].GetInitialPosition() - rGeometry[0].GetInitialPosition();
+    t /= norm_2(t);
+
+    n.clear();
+
+    if (rGeometry.Has(LOCAL_AXIS_2)) {
+        noalias(n) = rGeometry.GetValue(LOCAL_AXIS_2);
+    } else {
+        // Default
+        n[1] = 1.0;
+    }
+
+    if (norm_2(t - n) <= 1.0e-8) { // colineal, hence we use another aux vector
+        n.clear();
+        n[2] = 1.0;
+        KRATOS_WARNING("StructuralElementUtilities") << "The LOCAL_AXIS_2 is colineal with the axis of the beam, being modified to [0,0,1]";
+    }
+
+    // Gram-Schmidt ortogonalization
+    n = n - inner_prod(t, n) / inner_prod(t, t) * t;
+    n /= norm_2(n);
+
+    noalias(m) = MathUtils<double>::CrossProduct(t, n);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        T(0, i) = t[i];
+        T(1, i) = n[i];
+        T(2, i) = m[i];
+    }
+
+    return T;
 }
 
 /***********************************************************************************/

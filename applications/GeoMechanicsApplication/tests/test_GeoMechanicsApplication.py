@@ -7,7 +7,6 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from generalTests import KratosGeoMechanicsGeneralTests
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
 from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
@@ -39,9 +38,11 @@ from test_column_changing_waterlevel import KratosGeoMechanicsChangingWaterLevel
 from test_set_multiple_moving_load_process import KratosGeoMechanicsSetMultipleMovingLoadProcessTests
 from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
+from test_transient_thermal_validation import KratosGeoMechanicsTransientThermalValidationTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
 from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
 from c_phi_reduction_process import KratosGeoMechanicsCPhiReductionProcess
+from test_partial_saturation import KratosGeoMechanicsPartialSaturation
 
 from test_conditions import KratosGeoMechanicsConditionTests
 from test_prescribed_derivatives import KratosGeoMechanicsPrescribedDerivatives
@@ -56,6 +57,10 @@ from test_integration_node_extrapolation import KratosGeoMechanicsExtrapolationT
 from test_truss_backbone_mat import KratosGeoMechanicsTrussBackboneMaterialTests
 from test_line_interface_elements import KratosGeoMechanicsInterfaceElementTests
 from test_three_dimensional_piping_validation import KratosGeoMechanicsThreeDimensionalPipingValidation
+from test_master_slave_constraints import KratosGeoMechanicsMasterSlaveConstraints
+from test_deactivation_with_structural_element import KratosGeoMechanicsDeactivationWithStructuralTest
+from test_mohr_coulomb_with_tension_cutoff import KratosGeoMechanicsMohrCoulombWithTensionTests
+from test_single_element_with_Mohr_Coulomb import KratosGeoMechanicsSingleElementWithMohrCoulomb
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -71,11 +76,7 @@ def AssembleTestSuites():
     '''
 
     # Create an array with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-
     small_test_cases = [
-                        KratosGeoMechanicsGeneralTests,
                         KratosGeoMechanicsExcavationTests,
                         KratosGeoMechanicsResetDisplacementTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
@@ -103,7 +104,10 @@ def AssembleTestSuites():
                         KratosGeoMechanicsFixedSpatialVariationTests,
                         KratosGeoMechanicsExtrapolationTests,
                         KratosGeoMechanicsTrussBackboneMaterialTests,
-                        KratosGeoMechanicsInterfaceElementTests
+                        KratosGeoMechanicsInterfaceElementTests,
+                        KratosGeoMechanicsMasterSlaveConstraints,
+                        KratosGeoMechanicsSingleElementWithMohrCoulomb,
+                        KratosGeoMechanicsMohrCoulombWithTensionTests
     ]
 
     # Create an array with the selected tests
@@ -124,7 +128,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientThermalTests,
                         KratosGeoMechanicsTimeIntegrationTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
-                        KratosGeoMechanicsTransientPressurePointFluxTests
+                        KratosGeoMechanicsTransientPressurePointFluxTests,
+                        KratosGeoMechanicsPartialSaturation
                         ]
     night_test_cases.extend(small_test_cases)
 
@@ -137,7 +142,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientGroundWaterFlowTests,
                         TestSellmeijersRuleValidation,
                         KratosGeoMechanicsDynamicsLongTests,
-                        KratosGeoMechanicsThreeDimensionalPipingValidation
+                        KratosGeoMechanicsThreeDimensionalPipingValidation,
+                        KratosGeoMechanicsTransientThermalValidationTests
                         ]
 
     # Create an array that contains all the tests from every testCase
@@ -150,15 +156,15 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # add the tests to the corresponding suite,
-    smallSuite = suites['small']
-    nightSuite = suites['nightly']
-    validSuite = suites['validation']
-    allSuite = suites['all']
+    small_suite = suites['small']
+    night_suite = suites['nightly']
+    valid_suite = suites['validation']
+    all_suite = suites['all']
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
-    validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
-    allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
+    night_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
+    valid_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
+    all_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
 
     return suites
 

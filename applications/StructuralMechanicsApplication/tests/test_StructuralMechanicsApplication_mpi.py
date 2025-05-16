@@ -16,7 +16,7 @@ from structural_mechanics_test_factory_mpi import ShellT3AndQ4LinearStaticStruct
 def AssembleTestSuites():
     ''' Populates the MPI test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
+    Populates the test suites to run. At least, it should populate the suites:
     "mpi_small", "mpi_nightly" and "mpi_all"
 
     Return

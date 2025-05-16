@@ -83,13 +83,13 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         rigid_parameters.AddValue("master_node_id", settings["master_node_id"])
         self.rigid_movement_process = StructuralMechanicsApplication.ImposeRigidMovementProcess(self.main_model_part, rigid_parameters)
 
-        # Trasfering the entities
+        # Transferring the entities
         if new_model_part_name != "":
             transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.rigid_model_part, self.model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES)
             transfer_process.Execute()
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.

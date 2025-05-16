@@ -430,7 +430,7 @@ namespace Kratos
 
 
 
-               // 2. Set the matrix to the appropiate size
+               // 2. Set the matrix to the appropriate size
 
                if ( rConstitutiveMatrix.size1() == 6) {
                   noalias( rConstitutiveMatrix ) = rConstMatrixBig;
@@ -487,7 +487,7 @@ namespace Kratos
                   double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H);
 
                   double DeltaGamma = YieldSurface;
-                  DeltaGamma /= ( H + MathUtils<double>::Dot( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) ) );
+                  DeltaGamma /= ( H + MathUtils<double>::Dot<Vector, Vector>( DeltaStressYieldCondition,  prod(ElasticMatrix, PlasticPotentialDerivative) ) );
 
                   MatrixType UpdateMatrix;
                   ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
@@ -781,7 +781,7 @@ namespace Kratos
                double DeltaGamma;
                DeltaGamma = MathUtils<double>::Dot( AuxVector, DeltaStressYieldCondition);
 
-               double Denominador = H + MathUtils<double>::Dot( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) );
+               double Denominador = H + MathUtils<double>::Dot<VectorType, VectorType>( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) );
 
                DeltaGamma /= Denominador;
 

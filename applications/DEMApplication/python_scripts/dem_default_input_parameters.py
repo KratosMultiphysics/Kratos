@@ -29,7 +29,8 @@ def GetDefaultInputParameters():
                 "BoundingBoxServoLoadingFrequency" : 50,
                 "BoundingBoxServoLoadingVelocityMax": 0.05,
                 "MeanParticleDiameterD50"          : 0.1,
-                "ParticleYoungsModulus"            : 1e9
+                "ParticleYoungsModulus"            : 1e9,
+                "TriaxialLoadingVelocity"          : 0.01
             },                                        
             "dem_inlet_option"                 : true,
             "dem_inlets_settings"              : {},
@@ -52,6 +53,7 @@ def GetDefaultInputParameters():
             "CleanIndentationsOption"          : false,
             "CleanIndentationsV2Option"        : false,                                       
             "RemoveBallsInEmbeddedOption"      : false,
+            "UseMeshRepairOption"              : false,
             "RadiusExpansionOption"            : false,
             "RadiusExpansionRate"              : 0.0,
             "RadiusMultiplierMax"              : 0.0,
@@ -112,7 +114,7 @@ def GetDefaultInputParameters():
             "ZStrainValue"                     : "0.0*t",
             "ImposeZStrainIn2DWithControlModule" : false,
             "GlobalDamping"                    : 0.0,
-            "GlobalViscousDamping"             : 0.0,
+            "GlobalDampingModel"               : "NonViscousConstantForceDirection",
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
             "DontSearchUntilFailure"           : false,
