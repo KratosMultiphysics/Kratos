@@ -60,7 +60,6 @@ public:
     {
         Default, // Default do nothing integration rule
         GAUSS, // Standard Gauss integration rule
-        EXTENDED_GAUSS, //FIXME: Messy and misleading stuff to be removed in an upcoming PR
         LOBATTO, // Standard Lobatto integration rule
         GRID, // Equally-spaced integration points rule (not suitable for all geometries)
         CUSTOM // Custom integration rule (e.g., integration points coming from QuESo)
