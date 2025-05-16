@@ -190,7 +190,6 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
-    const auto& r_props = GetProperties();
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED])
