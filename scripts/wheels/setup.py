@@ -7,7 +7,7 @@ import shutil
 kratos_version = os.environ["KRATOS_VERSION"]
 
 def replaceKeyword(str):
-    return str.replace("${KRATOS_VERSION}", kratos_version).replace("${PYTHON}", os.environ["PYTHON"])
+    return str.replace("${KRATOS_VERSION}", kratos_version).replace("${PYTHON_VERSION}", os.environ["PYTHON_VERSION"])
 
 def replaceKeywords(stringArray):
     return list(map(lambda str: replaceKeyword(str), stringArray))
