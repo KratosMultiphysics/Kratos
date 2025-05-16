@@ -34,11 +34,6 @@ void SmallStrainUDSM2DPlaneStrainLaw::SetExternalStressVector(Vector& rStressVec
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSM2DPlaneStrainLaw::SetInternalStressVector(const Vector& rStressVector)
-{
-    std::copy_n(rStressVector.begin(), VoigtSize, GetSig0().begin());
-}
-
 void SmallStrainUDSM2DPlaneStrainLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
     KRATOS_TRY

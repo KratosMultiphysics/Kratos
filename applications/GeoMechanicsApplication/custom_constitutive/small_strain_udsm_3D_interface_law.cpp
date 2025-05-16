@@ -53,9 +53,9 @@ void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStres
 
     std::fill_n(r_sig0.begin(), StressVectorSize, 0.0);
 
-    r_sig0[INDEX_3D_ZZ] = rStressVector(INDEX_3D_INTERFACE_ZZ);
-    r_sig0[INDEX_3D_YZ] = rStressVector(INDEX_3D_INTERFACE_YZ);
-    r_sig0[INDEX_3D_XZ] = rStressVector(INDEX_3D_INTERFACE_XZ);
+    r_sig0[INDEX_3D_ZZ] = rStressVector[INDEX_3D_INTERFACE_ZZ];
+    r_sig0[INDEX_3D_YZ] = rStressVector[INDEX_3D_INTERFACE_YZ];
+    r_sig0[INDEX_3D_XZ] = rStressVector[INDEX_3D_INTERFACE_XZ];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)

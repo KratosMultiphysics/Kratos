@@ -24,6 +24,24 @@
 #include <dlfcn.h>
 #endif
 
+namespace
+{
+
+using namespace Kratos;
+
+constexpr auto props_size = SizeType{50};
+
+array_1d<double, props_size> MakePropsVector(const Vector& rUMatParameters)
+{
+    KRATOS_DEBUG_ERROR_IF(rUMatParameters.size() > props_size) << "Number of UMAT_PARAMETERS (" << rUMatParameters.size() << ") exceeds the maximum number of " << props_size << "\n";
+
+    auto result = array_1d<double, props_size>{props_size, 0.0};
+    std::copy(rUMatParameters.begin(), rUMatParameters.end(), result.begin());
+    return result;
+}
+
+}
+
 namespace Kratos
 {
 /*
@@ -334,9 +352,10 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
     std::vector<double> StateVariablesFinalized;
     std::vector<double> StateVariables;
 
-    const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
+    const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
+
     mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
               &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
               &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
               &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
@@ -385,9 +404,10 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
     std::vector<double> StateVariablesFinalized;
     std::vector<double> StateVariables;
 
-    const auto& MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
+    const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
+
     mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(MaterialParameters.data()[0]),
+              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
               &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
               &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
               &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
@@ -713,10 +733,7 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
     int  iAbort                = 0;
     auto nSizeProjectDirectory = static_cast<int>(mProjectDirectory.size());
 
-    const auto&    r_given_umat_parameters  = rMaterialProperties[UMAT_PARAMETERS];
-    constexpr auto max_umat_parameters_size = SizeType{50};
-    auto umat_parameters = array_1d<double, max_umat_parameters_size>{max_umat_parameters_size, 0.0};
-    std::copy(r_given_umat_parameters.begin(), r_given_umat_parameters.end(), umat_parameters.begin());
+    const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
     mpUserMod(pIDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
               &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
@@ -733,7 +750,7 @@ void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& r
             << std::to_string(*pIDTask) << "."
             << " UDSM: " << rMaterialProperties[UDSM_NAME]
             << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
-            << " Parameters: " << r_given_umat_parameters << std::endl;
+            << " Parameters: " << rMaterialProperties[UMAT_PARAMETERS] << std::endl;
         KRATOS_ERROR << "the specified UDSM returns an error while call UDSM with IDTASK: "
                      << std::to_string(*pIDTask) << ". UDSM: " << rMaterialProperties[UDSM_NAME]
                      << std::endl;
