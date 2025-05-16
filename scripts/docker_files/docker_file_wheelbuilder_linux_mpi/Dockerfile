@@ -29,30 +29,33 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/m
     mkdir /workspace/mmg_5_5_1/build && \
     mkdir -p /workspace/external_libraries/mmg/mmg_5_5_1 && \
     cd /workspace/mmg_5_5_1/build && \
-    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/workspace/external_libraries/mmg/mmg_5_5_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
+    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/workspace/external_libraries/mmg/mmg_5_5_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make -j24 install && \
     rm -r /workspace/mmg_5_5_1 && \
     cd /
 
 # Install setuptools
 # 3.8
-RUN /opt/python/c38-cp38/bin/python -m pip install --upgrade pip
-RUN /opt/python/c38-cp38/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp38-cp38/bin/python -m pip install --upgrade pip
+RUN /opt/python/cp38-cp38/bin/python -m pip install --upgrade setuptools wheel
 # 3.9
-RUN /opt/python/c39-cp39/bin/python -m pip install --upgrade pip
-RUN /opt/python/c39-cp39/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp39-cp39/bin/python -m pip install --upgrade pip
+RUN /opt/python/cp39-cp39/bin/python -m pip install --upgrade setuptools wheel
 # 3.10
-RUN /opt/python/c310-cp310/bin/python -m pip install --upgrade pip
-RUN /opt/python/c310-cp310/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp310-cp310/bin/python -m pip install --upgrade pip
+RUN /opt/python/cp310-cp310/bin/python -m pip install --upgrade setuptools wheel
 # 3.11
-RUN /opt/python/c311-cp311/bin/python -m pip install --upgrade pip
-RUN /opt/python/c311-cp311/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp311-cp311/bin/python -m pip install --upgrade pip
+RUN /opt/python/cp311-cp311/bin/python -m pip install --upgrade setuptools wheel
 # 3.12
-RUN /opt/python/c312-cp312/bin/python -m pip install --upgrade pip
-RUN /opt/python/c312-cp312/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp312-cp312/bin/python -m pip install --upgrade pip
+RUN /opt/python/cp312-cp312/bin/python -m pip install --upgrade setuptools wheel
 # 3.13
-RUN /opt/python/c313-cp313/bin/python -m pip install --upgrade pip
-RUN /opt/python/c313-cp313/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp313-cp313/bin/python -m pip install --upgrade pip
+RUN /opt/python/cp313-cp313/bin/python -m pip install --upgrade setuptools wheel
+# 3.14
+RUN /opt/python/cp314-cp314/bin/python -m pip install --upgrade pip
+RUN /opt/python/cp314-cp314/bin/python -m pip install --upgrade setuptools wheel
 
 
 COPY start.sh /workspace/scripts/start.sh

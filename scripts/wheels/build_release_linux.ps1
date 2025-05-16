@@ -1,4 +1,4 @@
-$RELEASE_BRANCH="Release-10.2.2"
+$RELEASE_BRANCH="ci/updating-wheelbuilders"
 
 $HOST_SWAP="C:/data_swap_host"
 $GUEST_SWAP="/data_swap_guest"
