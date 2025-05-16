@@ -41,7 +41,9 @@ namespace HDF5TestUtilities
 template<class TDataType>
 void AssignValue(TDataType& rValue)
 {
-    if constexpr(std::is_same_v<TDataType, int>) {
+    if constexpr(std::is_same_v<TDataType, bool>) {
+        rValue = true;
+    } else if constexpr(std::is_same_v<TDataType, int>) {
         rValue = 12345;
     } else if constexpr(std::is_same_v<TDataType, double>) {
         rValue = 1.2345;
@@ -67,7 +69,9 @@ void CompareValues(
     const TDataType& rValue1,
     const TDataType& rValue2)
 {
-    if constexpr(std::is_same_v<TDataType, int>) {
+    if constexpr(std::is_same_v<TDataType, bool>) {
+        KRATOS_EXPECT_EQ(rValue1, rValue2);
+    } else if constexpr(std::is_same_v<TDataType, int>) {
         KRATOS_EXPECT_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, double>) {
         KRATOS_EXPECT_EQ(rValue1, rValue2);
@@ -264,6 +268,7 @@ void TestModelPartFactory::AddNodalVariables(std::vector<std::string> const& rNo
 {
     for (const auto& r_variable_name : rNodalVariables) {
         HDF5TestUtilities::AddNodalVariablesWrapper<
+                                                Variable<bool>,
                                                 Variable<int>,
                                                 Variable<double>,
                                                 Variable<array_1d<double, 3>>,
@@ -297,6 +302,7 @@ void TestModelPartFactory::AssignNodalTestData(std::vector<std::string> const& r
 
     for (auto& r_name : rNodalVariables) {
         HDF5TestUtilities::AddNodalTestDataWrapper<
+                                                Variable<bool>,
                                                 Variable<int>,
                                                 Variable<double>,
                                                 Variable<array_1d<double, 3>>,
@@ -323,6 +329,7 @@ void TestModelPartFactory::AssignDataValueContainer(DataValueContainer& rData, F
     for (auto& r_name : rVariables) {
         HDF5TestUtilities::AssignDataValueContainerWrapper<
                                                     Flags,
+                                                    Variable<bool>,
                                                     Variable<int>,
                                                     Variable<double>,
                                                     Variable<array_1d<double, 3>>,
@@ -514,6 +521,7 @@ void CompareDataValueContainers(
 {
     for (const auto& r_value1 : rData1) {
         HDF5TestUtilities::CompareComponentWrapper<
+                                                Variable<bool>,
                                                 Variable<int>,
                                                 Variable<double>,
                                                 Variable<array_1d<double, 3>>,

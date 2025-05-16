@@ -141,6 +141,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties1, KratosHDF5TestSuite)
                                                    {{"TIME"}, {"STRAIN"}});
     TestModelPartFactory::AssignDataValueContainer(r_write_properties[4].Data(), dummy_flags,
                                                    {{"LOCAL_AXES_MATRIX"}});
+    TestModelPartFactory::AssignDataValueContainer(r_write_properties[4].Data(), dummy_flags,
+                                                   {{"IS_RESTARTED"}});
     HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteProperties(r_write_properties);
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");

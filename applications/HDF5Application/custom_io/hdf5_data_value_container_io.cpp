@@ -119,6 +119,7 @@ void ReadDataValueContainer(
 
     for (const auto& r_name : attr_names) {
         HDF5Utilities  ::Read<
+            bool,
             int,
             double,
             std::string,
@@ -144,6 +145,7 @@ void WriteDataValueContainer(
 
     for (auto it = rData.begin(); it != rData.end(); ++it) {
         HDF5Utilities  ::Write<
+            bool,
             int,
             double,
             std::string,
