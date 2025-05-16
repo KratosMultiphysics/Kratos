@@ -1343,7 +1343,6 @@ void ModelPartIO::FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(
         KRATOS_ERROR << buffer.str() << std::endl;
     }
 
-    MasterSlaveConstraint const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(master_slave_constraint_name);
     SizeType number_of_master_dofs, number_of_slave_dofs;
 
     // We need to read the number of master and slave dofs
@@ -5079,7 +5078,6 @@ void ModelPartIO::DivideMasterSlaveConstraintsBlock(
         return;
     }
 
-    MasterSlaveConstraint const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(master_slave_constraint_name);
     SizeType number_of_master_dofs, number_of_slave_dofs;
 
     // Reading the number of master and slave dofs
