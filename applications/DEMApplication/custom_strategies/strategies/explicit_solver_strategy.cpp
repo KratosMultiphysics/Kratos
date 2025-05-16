@@ -411,8 +411,8 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
 
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        if (r_process_info[DOMAIN_IS_PERIODIC]) {
-            //mpParticleCreatorDestructor->ShiftAllParticles(r_model_part);
+        if (r_process_info[DOMAIN_IS_PERIODIC] && r_process_info[SHIFT_PARTICLES_OPTION]) {
+            mpParticleCreatorDestructor->ShiftAllParticles(r_model_part);
         }
 
         SearchDEMOperations(r_model_part);
