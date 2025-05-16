@@ -152,6 +152,7 @@ for PYTHON_VERSION in  "${PYTHONS[@]}"
 do
     PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
     export PYTHON=${PYTHON_TMP#cp}
+    export PYTHON_VERSION=${PYTHON_VERSION}
     echo "Starting build for python${PYTHON_VERSION}"
 
 	PYTHON_LOCATION=/opt/python/cp${PYTHON_VERSION}-cp${PYTHON_VERSION}/bin/python
