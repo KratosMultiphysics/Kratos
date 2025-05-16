@@ -192,7 +192,7 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     KRATOS_TRY
 
     // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED])
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Constitutive Law Vector initialisation
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
         if (mConstitutiveLawVector.size() != r_integration_points.size()) {
