@@ -4,13 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Daniel Diez
 //
-
-
 
 // System includes
 
@@ -75,11 +73,9 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
             idxtype* node_indices = 0;
             idxtype* node_connectivities = 0;
 
-
             LegacyPartitioningUtilities::ConvertKratosToCSRFormat(reduced_kratos_format_node_connectivities, &node_indices, &node_connectivities);
 
             PartitionNodes(reduced_kratos_format_node_connectivities.size(), node_indices, node_connectivities, submodelpart_partition_nodes);
-
 
             for (auto map_element : node_ids_map) {
                 rNodePartition[map_element.first] = submodelpart_partition_nodes[map_element.second];
@@ -95,7 +91,6 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
         KRATOS_CATCH("")
 
     }
-
 
 ///@}
 
