@@ -145,7 +145,7 @@ build_interface () {
 # Core can be build independently of the python version.
 # Install path should be useless here.
 echo "Starting core build"
-build_core python3.8 ${KRATOS_ROOT}/bin/core
+build_core python3.13 ${KRATOS_ROOT}/bin/core
 echo "Finished core build"
 
 for PYTHON_VERSION in  "${PYTHONS[@]}"
