@@ -80,6 +80,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         settings = KratosMultiphysics.Parameters("""{
             "model_import_settings" : {
@@ -130,6 +131,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         settings = KratosMultiphysics.Parameters("""{
             "model_import_settings" : {
@@ -166,6 +168,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         self.file_name = "cube"
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         settings = KratosMultiphysics.Parameters("""{
             "model_import_settings" : {
