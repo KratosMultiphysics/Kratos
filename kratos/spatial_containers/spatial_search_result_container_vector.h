@@ -1,0 +1,566 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
+//
+
+#pragma once
+
+// System includes
+#include <unordered_map>
+
+// External includes
+
+// Project includes
+#include "spatial_containers/spatial_search_result_container.h"
+
+namespace Kratos
+{
+///@addtogroup KratosCore
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class SpatialSearchResultContainerVector
+ * @brief Spatial search result container vector.
+ * @details This class is used to store the results of a spatial search of several points, in a vector which assumes the order.
+ * @tparam TObjectType The type of the object.
+ * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
+ * @ingroup KratosCore
+ * @author Vicente Mataix Ferrandiz
+ */
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
+class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainerVector
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of SpatialSearchResultContainerVector
+    KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResultContainerVector);
+
+    /// The index map type
+    using IndexMapType = std::unordered_map<IndexType, IndexType>;
+
+    /// The spatial search result container type
+    using SpatialSearchResultContainerType = SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>;
+
+    /// Spatial search result type
+    using SpatialSearchResultType = typename SpatialSearchResultContainerType::SpatialSearchResultType;
+
+    /// The global pointer result type
+    using GlobalPointerResultType = typename SpatialSearchResultContainerType::GlobalPointerResultType;
+
+    /// The global results vector
+    using GlobalResultsVector = typename SpatialSearchResultContainerType::GlobalResultsVector;
+
+    /// The global pointer communicator type
+    using GlobalPointerCommunicatorType = typename SpatialSearchResultContainerType::GlobalPointerCommunicatorType;
+
+    /// The global pointer communicator pointer type
+    using GlobalPointerCommunicatorPointerType = typename SpatialSearchResultContainerType::GlobalPointerCommunicatorPointerType;
+
+    /// The spatial search result container reference type
+    using SpatialSearchResultContainerReferenceType = SpatialSearchResultContainerType&;
+
+    /// The spatial search result container pointer type
+    using SpatialSearchResultContainerPointerType = SpatialSearchResultContainerType*;
+
+    /// The container type
+    using ContainerType = std::vector<SpatialSearchResultContainerPointerType>;
+
+    // Define the iterator class
+    class iterator {
+    public:
+        /// The category of the iterator, indicating forward iteration.
+        using iterator_category = std::forward_iterator_tag;
+
+        /// The type of the value pointed to by the iterator.
+        using value_type = SpatialSearchResultContainerType;
+
+        /// The difference type between two iterators.
+        using difference_type = std::ptrdiff_t;
+
+        /**
+         * @brief Constructs an iterator pointing to the specified position.
+         * @param iter The iterator to initialize from.
+         */
+        iterator(typename ContainerType::iterator iter) : iter_(iter) {}
+
+        /**
+         * @brief Prefix increment operator.
+         * @return Reference to the incremented iterator.
+         */
+        iterator& operator++() {
+            ++iter_;
+            return *this;
+        }
+
+        /**
+         * @brief Postfix increment operator.
+         * @return An iterator before increment.
+         */
+        iterator operator++(int) {
+            iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        /**
+         * @brief Equality comparison operator.
+         * @param other The iterator to compare with.
+         * @return True if the iterators are equal, false otherwise.
+         */
+        bool operator==(const iterator& other) const {
+            return iter_ == other.iter_;
+        }
+
+        /**
+         * @brief Inequality comparison operator.
+         * @param other The iterator to compare with.
+         * @return True if the iterators are not equal, false otherwise.
+         */
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+
+        /**
+        * @brief Dereference operator.
+        * @return Reference to the value pointed to by the iterator.
+        */
+        SpatialSearchResultContainerReferenceType operator*() const {
+            return **iter_;
+        }
+
+        /**
+        * @brief Member access operator.
+        * @return Pointer to the value pointed to by the iterator.
+        */
+        SpatialSearchResultContainerPointerType operator->() const {
+            return *iter_;
+        }
+
+    private:
+        typename ContainerType::iterator iter_;
+    };
+
+    // Define the const_iterator class
+    class const_iterator {
+    public:
+        /// The category of the iterator, indicating forward iteration.
+        using iterator_category = std::forward_iterator_tag;
+
+        /// The type of the value pointed to by the iterator.
+        using value_type = SpatialSearchResultContainerType;
+
+        /// The difference type between two iterators.
+        using difference_type = std::ptrdiff_t;
+
+        /**
+         * @brief Constructs a constant iterator pointing to the specified position.
+         * @param iter The constant iterator to initialize from.
+         */
+        const_iterator(typename ContainerType::const_iterator iter) : iter_(iter) {}
+
+        /**
+         * @brief Prefix increment operator.
+         * @return Reference to the incremented constant iterator.
+         */
+        const_iterator& operator++() {
+            ++iter_;
+            return *this;
+        }
+
+        /**
+         * @brief Postfix increment operator.
+         * @return A constant iterator before increment.
+         */
+        const_iterator operator++(int) {
+            const_iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        /**
+         * @brief Equality comparison operator.
+         * @param other The constant iterator to compare with.
+         * @return True if the constant iterators are equal, false otherwise.
+         */
+        bool operator==(const const_iterator& other) const {
+            return iter_ == other.iter_;
+        }
+
+        /**
+         * @brief Inequality comparison operator.
+         * @param other The constant iterator to compare with.
+         * @return True if the constant iterators are not equal, false otherwise.
+         */
+        bool operator!=(const const_iterator& other) const {
+            return !(*this == other);
+        }
+
+        /**
+        * @brief Dereference operator.
+        * @return Reference to the value pointed to by the iterator.
+        */
+        const SpatialSearchResultContainerType& operator*() const {
+            return **iter_;
+        }
+
+        /**
+        * @brief Member access operator.
+        * @return Pointer to the value pointed to by the iterator.
+        */
+        const SpatialSearchResultContainerType* operator->() const {
+            return *iter_;
+        }
+
+    private:
+        typename ContainerType::const_iterator iter_;
+    };
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor.
+    SpatialSearchResultContainerVector() = default;
+
+    /// Destructor.
+    virtual ~SpatialSearchResultContainerVector();
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+   /**
+     * @brief Operator []
+     * @param Index The index to be retrieved
+     * @return The result container
+     */
+    SpatialSearchResultContainerReferenceType operator[](const IndexType Index)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
+        return *mPointResults[Index];
+    }
+
+    /**
+     * @brief Operator []
+     * @param Index The index to be retrieved
+     * @return The result container
+     */
+    const SpatialSearchResultContainerType& operator[](const IndexType Index) const
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
+        return *mPointResults[Index];
+    }
+
+    /**
+     * @brief Operator ()
+     * @param Index The index to be retrieved
+     * @return The result container pointer
+     */
+    SpatialSearchResultContainerPointerType operator()(const IndexType Index)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
+        return mPointResults[Index];
+    }
+
+    /**
+     * @brief Operator ()
+     * @param Index The index to be retrieved
+     * @return The result container pointer
+     */
+    const SpatialSearchResultContainerType* operator()(const IndexType Index) const
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(HasResult(Index)) << "Index " << Index << " not available. Size: " << mPointResults.size() << std::endl;
+        return mPointResults[Index];
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Returns an iterator pointing to the beginning of the container.
+     * @return An iterator pointing to the beginning of the container.
+     */
+    iterator begin()
+    {
+        return iterator(mPointResults.begin());
+    }
+
+    /**
+     * @brief Returns an iterator pointing to the end of the container.
+     * @return An iterator pointing to the end of the container.
+     */
+    iterator end()
+    {
+        return iterator(mPointResults.end());
+    }
+
+    /**
+     * @brief Returns a constant iterator pointing to the beginning of the container.
+     * @return A constant iterator pointing to the beginning of the container.
+     */
+    const_iterator begin() const
+    {
+        return const_iterator(mPointResults.begin());
+    }
+
+    /**
+     * @brief Returns a constant iterator pointing to the end of the container.
+     * @return A constant iterator pointing to the end of the container.
+     */
+    const_iterator end() const
+    {
+        return const_iterator(mPointResults.end());
+    }
+
+    /**
+     * @brief Returns the number of points results
+     * @return The number of points results
+     */
+    std::size_t NumberOfSearchResults() const;
+
+    /**
+     * @brief Initialize the container
+     * @param rDataCommunicator The data communicator considered
+     * @return The result container
+     */
+    SpatialSearchResultContainerReferenceType InitializeResult(const DataCommunicator& rDataCommunicator);
+
+    /**
+     * @brief Initialize the container
+     * @param rDataCommunicators The data communicators
+     */
+    void InitializeResults(const std::vector<const DataCommunicator*>& rDataCommunicators);
+
+    /**
+     * @brief Check if coordinates are initialized
+     * @param Index The index to be initialized
+     * @return True if hash is initialized, false otherwise
+    */
+    bool HasResult(const IndexType Index) const;
+
+    /**
+     * @brief Clear the containers
+     * @details This method clears the containers
+     */
+    void Clear();
+
+    /**
+     * @brief Generate the global pointer communicator
+     * @param rDataCommunicator The data communicator considered
+     */
+    void GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator);
+
+    /**
+     * @brief Synchronize all container between partitions
+     * @details This method synchronizes all the container between partitions
+     * @param rDataCommunicator The data communicator considered
+     */
+    void SynchronizeAll(const DataCommunicator& rDataCommunicator);
+
+    /**
+     * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
+     * @tparam TFunctorType Functor type.
+     * @param UserFunctor The user-provided function.
+     * @return A proxy to the results.
+     */
+    template<class TFunctorType>
+    ResultsProxy<
+    SpatialSearchResultType,
+    TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
+    > Apply(TFunctorType&& UserFunctor)
+    {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+        // Apply the user-provided function
+        return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
+    }
+
+    /**
+     * @brief Retrieves the global distances
+     * @return A vector containing all the distances
+     */
+    std::vector<std::vector<double>> GetDistances();
+
+    /**
+     * @brief Retrieves if is local the entity
+     * @return A vector containing all the booleans showing is local the entity
+     */
+    std::vector<std::vector<bool>> GetResultIsLocal();
+
+    /**
+     * @brief Retrieves the rank of the entity
+     * @return A vector containing all the ranks of the entity
+     */
+    std::vector<std::vector<int>> GetResultRank();
+
+    /**
+     * @brief Retrieves if is active the entity
+     * @return A vector containing all the booleans showing is active the entity
+     */
+    std::vector<std::vector<bool>> GetResultIsActive();
+
+    /**
+     * @brief Retrieves if inside the geometry
+     * @param rPoint The point coordinates
+     * @param Tolerance The tolerance considered
+     * @return A vector containing all the booleans showing is inside the geometry
+     */
+    std::vector<std::vector<bool>> GetResultIsInside(
+        const array_1d<double, 3>& rPoint,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        );
+
+    /**
+     * @brief Considers the global pointer communicator to get the shape functions of the resulting object
+     * @param rPoint The point coordinates
+     * @return A vector containing all the shape functions
+     */
+    std::vector<std::vector<Vector>> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
+
+    /**
+     * @brief Considers the global pointer communicator to get the indices of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::vector<IndexType>> GetResultIndices();
+
+    /**
+     * @brief Considers the global pointer communicator to get the indices of the nodes of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::vector<std::vector<IndexType>>> GetResultNodeIndices();
+
+    /**
+     * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::vector<std::vector<int>>> GetResultPartitionIndices();
+
+    /**
+     * @brief Considers the global pointer communicator to get the coordinates of the resulting object
+     * @return A vector containing all the coordinates
+     */
+    std::vector<std::vector<std::vector<array_1d<double, 3>>>> GetResultCoordinates();
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    /**
+     * @brief Get the container
+     * @return The container
+     */
+    ContainerType& GetContainer()
+    {
+        return mPointResults;
+    }
+
+    /**
+     * @brief Accessor for mpGlobalPointerCommunicator.
+     * @details This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
+     * @return The GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
+     */
+    GlobalPointerCommunicatorPointerType GetGlobalPointerCommunicator()
+    {
+        return mpGlobalPointerCommunicator;
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const;
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
+
+    ///@}
+private:
+    ///@name Member Variables
+    ///@{
+
+    ContainerType mPointResults;                                                /// The results of each point
+
+    GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Copies values from a vector of GlobalPointerResultType to global results vectors.
+     * @details This function copies values from a vector of GlobalPointerResultType to global results vectors based on the provided active results and result global sizes. It iterates through the input vector of GlobalPointerResultType and assigns values to the corresponding global results vectors.
+     * @param rGlobalResults The vector of GlobalPointerResultType to copy values from.
+     * @param rActiveResults The vector of active results indices.
+     * @param rResultGlobalSize The vector of result global sizes.
+     */
+    void CopyingValuesToGlobalResultsVector(
+        const std::vector<GlobalPointerResultType>& rGlobalResults,
+        const std::vector<std::size_t>& rActiveResults,
+        const std::vector<std::size_t>& rResultGlobalSize
+        );
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    /**
+     * @brief Save the object in a serializer
+     * @param rSerializer The serializer
+     */
+    void save(Serializer& rSerializer) const;
+
+    /**
+     * @brief Load the object in a serializer
+     * @param rSerializer The serializer
+     */
+    void load(Serializer& rSerializer);
+
+    ///@}
+}; // Class SpatialSearchResultContainerVector
+
+/// input stream function
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+inline std::istream& operator>>(std::istream& rIStream,
+                                SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+inline std::ostream& operator<<(std::ostream& rOStream,
+                                const SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+///@}
+
+///@} addtogroup block
+
+}  // namespace Kratos.
