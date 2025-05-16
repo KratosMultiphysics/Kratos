@@ -35,7 +35,7 @@ public:
 
     const array_1d<double, 2>& GetSupport();
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+    /// Turn back information as a stemplate<class T, std::size_t dim> string.
     virtual std::string Info() const;
 
     /// Print information about this object.
@@ -52,7 +52,7 @@ protected:
 
     template<typename T>
     void CalculateFirstAndLastIndicesWithNonzeroValue(std::vector<T> values, size_t& low_index, size_t& high_index){
-                // finding first and last indices that correspond to nonzero probabilites
+                // finding first and last indices that correspond to nonzero probabilities
 
         auto it = std::find_if(values.begin(), values.end(), [](const double x) { return x != 0; });
         auto reverse_it = std::find_if(values.rbegin(), values.rend(), [](const double x) { return x != 0; });

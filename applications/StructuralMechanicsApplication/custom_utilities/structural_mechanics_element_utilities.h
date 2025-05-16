@@ -287,6 +287,50 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
     BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
 
 /**
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildRotationMatrixForTruss(
+    BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    const double AlphaAngle);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor2D2NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 4, 4>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor2D3NTruss(
+    const BoundedMatrix<double, 2, 2>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor3D2NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 2 dofs per node: u,v
+ */
+void BuildElementSizeRotationMatrixFor3D3NTruss(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
+
+/**
  * @brief This function computes the inclination angle of a 2 noded beam
  * @param rGeometry The geometry of the beam
  * It assumes 3 dofs per node: u,v,theta
@@ -304,7 +348,20 @@ double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
  * @brief This function computes the shear psi factor
  * @param rValues The constitutive law parameters
  */
-KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L);
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L, const SizeType Plane = 0);
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector, Matrix& rConstitutiveMatrix);
+
+void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector, Vector& rStressVector);
+
+/**
+ * @brief This function builds a Frenet-Serret rotation matrix from local to global in 3D
+ * This is valid for STRAIGHT lines
+ * @param rGeometry: The geometry of the line element
+ */
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

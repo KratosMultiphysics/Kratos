@@ -75,7 +75,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline volumes
+    /// Constructor for B-Spline volumes
     NurbsVolumeGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
@@ -95,8 +95,8 @@ public:
         CheckAndFitKnotVectors();
     }
 
-    /// Attention: Weigths are not yet implemented!
-    /// Conctructor for NURBS volumes
+    /// Attention: Weights are not yet implemented!
+    /// Constructor for NURBS volumes
     // NurbsVolumeGeometry(
     //     const PointsArrayType& rThisPoints,
     //     const SizeType PolynomialDegreeU,
@@ -644,7 +644,7 @@ public:
      * @brief Computes jacobian matrix at the given coordinates.
      * @param rCoordinates Coordinates to be evaluated.
      * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
-     * @todo Refactor such that addional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
+     * @todo Refactor such that additional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
      *       find the correct knotspans and to set the shape_function_member variables 'mFirstNonzeroControlPointU,-V,-W'.
      * @note This function is only required to compute e.g. the volume of the geometry. During an IGA-Analysis the corresponding function
      *       of the base class is called.
@@ -1091,11 +1091,21 @@ public:
     ///@name Geometry Family
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;

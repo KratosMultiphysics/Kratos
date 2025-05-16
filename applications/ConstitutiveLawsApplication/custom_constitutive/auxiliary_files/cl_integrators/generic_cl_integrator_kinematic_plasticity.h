@@ -154,7 +154,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     ///@{
 
     /**
-     * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
+     * @brief This method integrates the predictive stress vector with the CL using different evolution laws using the backward euler scheme
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The equivalent strain vector of that integration point
      * @param rUniaxialStress The equivalent uniaxial stress

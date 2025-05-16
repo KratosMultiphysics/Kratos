@@ -41,7 +41,6 @@ If `constrained` is `true` unfixes the values.
 ```json
 {
     "model_part_name" : "please_specify_model_part_name",
-    "mesh_id"         : 0,
     "variable_name"   : "SPECIFY_VARIABLE_NAME",
     "interval"        : [0.0, 1e30],
     "value"           : [0.0, 0.0, 0.0],
@@ -53,9 +52,6 @@ If `constrained` is `true` unfixes the values.
 
 ##### `model_part_name` 
 Name of the modelpart in wich the process will be applied.
-
-##### `mesh_id`
-Id of the internal mesh to which the process will be applied. Default `0`.
 
 ##### `variable_name`
 Name of the variable in which the process will be applied.

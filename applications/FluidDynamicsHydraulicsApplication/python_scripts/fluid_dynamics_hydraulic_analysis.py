@@ -4,6 +4,7 @@ from sys import argv
 import KratosMultiphysics as Kratos
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosHydraulics
 
 from importlib import import_module
 
@@ -12,13 +13,17 @@ class FluidDynamicsHydraulicsAnalysis(FluidDynamicsAnalysis):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
     def _CreateSolver(self):
-        # TODO: Now it is only one solver available in the future it will be done using registry.
-        solver_module_name = "navier_stokes_two_fluid_hydraulic_solver"
+        solver_name = self.project_parameters["solver_settings"]["solver_type"].GetString()
+        
+        if solver_name == "two_fluid_hydraulic":
+            solver_module_name = "navier_stokes_two_fluid_hydraulic_solver"
+        elif solver_name == "two_fluid_hydraulic_fractional":
+            solver_module_name = "navier_stokes_two_fluid_hydraulic_fractional_solver"
+
         module_full = 'KratosMultiphysics.FluidDynamicsHydraulicsApplication.' + solver_module_name
         solver = import_module(module_full).CreateSolver(self.model, self.project_parameters["solver_settings"])
         return solver
-
-
+    
 if __name__ == '__main__':
     if len(argv) > 2:
         err_msg =  'Too many input arguments!\n'

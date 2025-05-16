@@ -19,7 +19,10 @@ The $c-\phi$ reduction process requires the existence of a stress state in your 
 points violate the given Mohr-Coulomb failure surface. During the stage with the active $c-\phi$ reduction process, 
 $c$ and $\tan \phi$ will be incrementally reduced in steps with an initial size of 10%. For each reduction step stresses are 
 mapped back onto the reduced Mohr-Coulomb yield surface and equilibrium is found if possible. When equilibrium is no longer 
-found in the given number of iterations for the Newton-Raphson scheme, the step is retried with a halved reduction increment. This is repeated until the allowed number of cycles for a step is reached.   
+found in the given number of iterations for the Newton-Raphson scheme, the step is retried with a halved reduction increment.
+This is repeated until the allowed number of cycles for a step is reached or until the reduction factor drops below 0.01.
+As the stepping is "mis"using the time-stepping of the GeoMechanics application, reaching the end_time also terminates the
+reduction process.
 
 ### Safety factor
 The safety factor is computed as the inverse of the reduction factor [[1]](#1):
@@ -89,11 +92,19 @@ When the overconsolidation ratio ("OCR") and optionally the unloading-reloading 
 
 $$K_0 = OCR.K_0^{nc} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
 
-![Initial effective stress tensor](initial_effective_stress_tensor.png)
+```math
+\sigma^{'}_{initial} = \begin{bmatrix} {K_0 \sigma^{'}_{zz}} & 0 & 0 \\
+                                        0 & {K_0 \sigma^{'}_{zz}} & 0 \\
+                                        0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}
+```
 
 Alternatively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
 
-![Initial effective stress tensor with POP](initial_effective_stress_tensor_with_POP.png)
+```math
+\sigma^{'}_{initial} = \begin{bmatrix} {K_0^{nc} (\sigma^{'}_{zz} + POP )} - \frac{\nu_{ur}}{1 - \nu_{ur}} POP & 0 & 0 \\
+                                        0 & {K_0^{nc} (\sigma^{'}_{zz} + POP)} - \frac{\nu_{ur}}{1 - \nu_{ur}} POP & 0 \\
+                                        0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}
+```
 
 When the optional unloading-reloading Poisson's ratio is omitted, a default value $\nu_{ur} = 0$ is used such that the correction term drops to 0.
 
@@ -104,7 +115,7 @@ After the stress adaptation by the $K_0$ procedure, the stress state may not be 
 The process is defined as follows in "ProjectParameters.json" (also found in some of the [integration tests](../tests/test_k0_procedure_process)). Without the addition of this process, no adaptation of the horizontal stresses takes place.
 ```json
 {
-  "auxilliary_process_list": [
+  "auxiliary_process_list": [
     {
       "python_module": "apply_k0_procedure_process",
       "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -126,7 +137,6 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "K0_NC":                       0.6,
     "UDSM_NAME"                :  "MohrCoulomb64.dll",
     "IS_FORTRAN_UDSM"          :  true,
-    "NUMBER_OF_UMAT_PARAMETERS":  6,
     "INDEX_OF_UMAT_PHI_PARAMETER": 4,
     "UMAT_PARAMETERS"          :  [30000000,
                                    0.2,
@@ -137,7 +147,7 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "OCR":                         1.4,
     "POISSON_UNLOADING_RELOADING": 0.35,
     "POP":                         800.0
-  },
+  }
 }
 ```
 

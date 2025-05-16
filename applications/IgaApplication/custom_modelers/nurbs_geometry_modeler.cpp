@@ -106,7 +106,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{
     void NurbsGeometryModeler::CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
-        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV)
+        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool AddSurfaceToModelPart)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
@@ -175,22 +175,25 @@ namespace Kratos
 
         // Set up weights. Required in case no refinement is performed.
         Vector WeightsRefined(points.size(),1.0);
-
-        // Add geometry to model part
-        if( mParameters.Has("geometry_name") ){
-            p_surface_geometry->SetId(mParameters["geometry_name"].GetString());
-        } else {
-            const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
-            SizeType last_geometry_id = 0;
-            if( number_of_geometries > 0 ){
-                for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
-                    last_geometry_id = it->Id();
+        
+        // In some cases there is no need of add the surface geometry, AddSurfaceToModelPart is true by default
+        if (AddSurfaceToModelPart) {
+            // Add geometry to model part
+            if( mParameters.Has("geometry_name") ){
+                p_surface_geometry->SetId(mParameters["geometry_name"].GetString());
+            } else {
+                const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+                SizeType last_geometry_id = 0;
+                if( number_of_geometries > 0 ){
+                    for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
+                        last_geometry_id = it->Id();
+                    }
                 }
+                p_surface_geometry->SetId(last_geometry_id+1);
             }
-            p_surface_geometry->SetId(last_geometry_id+1);
+            r_model_part.AddGeometry(p_surface_geometry);
         }
-        r_model_part.AddGeometry(p_surface_geometry);
-
+    
         // Perform knot refinement.
         PointerVector<NodeType> PointsRefined = p_surface_geometry->Points();
         if( NumKnotSpansU > 1) {
@@ -237,6 +240,13 @@ namespace Kratos
         p_surface_geometry->SetInternals(PointsRefined,
             p_surface_geometry->PolynomialDegreeU(), p_surface_geometry->PolynomialDegreeV(),
             p_surface_geometry->KnotsU(), p_surface_geometry->KnotsV(), WeightsRefined);
+
+        // assign the value p_surface_geometry to the class member mpSurface for derived classes
+        mpSurface = p_surface_geometry;
+        mInsertKnotsU = insert_knots_u;
+        mInsertKnotsV = insert_knots_v;
+        mKnotVectorU = knot_vector_u;
+        mKnotVectorV = knot_vector_v;
     }
 
 
