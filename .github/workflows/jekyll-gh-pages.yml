@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: cp -r statik_content/Page_files/* main/docs/
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
       - name: Create navigation menus
         shell: bash
         run: cd main/docs && python3 process_pages.py -t web

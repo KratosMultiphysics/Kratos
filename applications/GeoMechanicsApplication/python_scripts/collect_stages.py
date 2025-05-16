@@ -1,5 +1,5 @@
 
-class Sub_model_part():
+class SubModelPart():
     def __init__(self):
         self.name =''
         self.tables =[]
@@ -59,7 +59,7 @@ def clear_element_data_from_mdpa(mdpa_data,nr_element_types, line=0):
     :return:
     """
 
-    for i in range(nr_element_types):
+    for _ in range(nr_element_types):
         while ('Begin Elements' not in mdpa_data[line]) and line < len(mdpa_data):
             line += 1
 
@@ -87,7 +87,7 @@ def collect_submodel_parts_from_mdpa(mdpa_data):
     all_submodel_parts = []
     for line_nr ,line in enumerate(mdpa_data):
         if "Begin SubModelPart " in line:
-            sub_model_part = Sub_model_part()
+            sub_model_part = SubModelPart()
             sub_model_part.read_submodel_part(mdpa_data, line_nr=line_nr)
 
             all_submodel_parts.append(sub_model_part)

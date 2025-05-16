@@ -84,27 +84,6 @@ void SmallStrainUDSM2DPlaneStrainLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Pa
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSM2DPlaneStrainLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                                                 Vector& rStrainVector)
-{
-    // 1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-
-    // for shells/membranes in case the DeformationGradient is of size 3x3
-    BoundedMatrix<double, 2, 2> F2x2;
-    for (unsigned int i = 0; i < 2; ++i)
-        for (unsigned int j = 0; j < 2; ++j)
-            F2x2(i, j) = F(i, j);
-
-    Matrix E_tensor = prod(trans(F2x2), F2x2);
-
-    for (unsigned int i = 0; i < 2; ++i)
-        E_tensor(i, i) -= 1.0;
-
-    E_tensor *= 0.5;
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-}
-
 Vector& SmallStrainUDSM2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
@@ -118,13 +97,13 @@ Vector& SmallStrainUDSM2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisV
     return rValue;
 }
 
-void SmallStrainUDSM2DPlaneStrainLaw::SetValue(const Variable<Vector>& rThisVariable,
+void SmallStrainUDSM2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable,
                                                const Vector&           rValue,
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUDSM3DLaw::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUDSM3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }
 }

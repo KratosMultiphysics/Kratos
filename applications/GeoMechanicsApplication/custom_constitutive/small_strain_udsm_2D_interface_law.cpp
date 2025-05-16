@@ -90,13 +90,6 @@ indexStress3D SmallStrainUDSM2DInterfaceLaw::getIndex3D(const indexStress2DInter
     }
 }
 
-void SmallStrainUDSM2DInterfaceLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                                               Vector& rStrainVector)
-{
-    KRATOS_ERROR << "CalculateCauchyGreenStrain is not implemented in SmallStrainUDSM2DInterfaceLaw"
-                 << std::endl;
-}
-
 Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
@@ -110,13 +103,13 @@ Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVar
     return rValue;
 }
 
-void SmallStrainUDSM2DInterfaceLaw::SetValue(const Variable<Vector>& rThisVariable,
+void SmallStrainUDSM2DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
                                              const Vector&           rValue,
                                              const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUDSM3DLaw::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUDSM3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }
 }

@@ -110,7 +110,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
@@ -190,7 +190,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLeftHandSide(
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
@@ -274,7 +274,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateRightHandSide(
                 // Get the current surrogate face geometry information
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the surrogate boundary average conductivity
@@ -329,7 +329,7 @@ std::vector<std::size_t> LaplacianShiftedBoundaryElement<TDim>::GetSurrogateFace
     auto& r_neigh_elems = GetValue(NEIGHBOUR_ELEMENTS);
 
     // Check the current element faces
-    // Note that we relly on the fact that the neighbours are sorted according to the faces
+    // Note that we rely on the fact that the neighbours are sorted according to the faces
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
         auto p_neigh_elem = r_neigh_elems(i_face).get();

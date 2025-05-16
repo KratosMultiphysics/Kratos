@@ -26,7 +26,7 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
             warn_msg += 'Parameter "end_time" will be ignored!'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)
         else:
-            # Create dummy paramter
+            # Create dummy parameter
             aux_settings = KratosMultiphysics.Parameters(r"""{ "end_time" : 1.0 }""")
             problem_data.AddMissingParameters(aux_settings)
 

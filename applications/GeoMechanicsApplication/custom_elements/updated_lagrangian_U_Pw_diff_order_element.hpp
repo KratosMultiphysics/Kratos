@@ -13,10 +13,6 @@
 #if !defined(KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
 #define KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -67,7 +63,6 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
     using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
@@ -79,16 +74,16 @@ public:
     /// Counted pointer of UpdatedLagrangianUPwDiffOrderElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Default Constructor
     UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, std::move(pStressStatePolicy))
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SmallStrainUPwDiffOrderElement(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -96,8 +91,10 @@ public:
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
                                          PropertiesType::Pointer            pProperties,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SmallStrainUPwDiffOrderElement(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -116,13 +113,11 @@ public:
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
-     * @param ThisNodes The array containing nodes
+     * @param rNodes The array containing nodes
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
@@ -143,10 +138,10 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
-
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
+    using SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints;
 
     ///@}
     ///@name Access
@@ -162,18 +157,14 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw different order Element #" << this->Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "Updated Lagrangian U-Pw different order Element #" + std::to_string(this->Id()) +
+               "\nConstitutive law: " + constitutive_info;
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "Updated Lagrangian U-Pw different order Element #" << this->Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
@@ -209,12 +200,10 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
-                                                 ElementVariables& rVariables,
-                                                 unsigned int      GPoint);
+    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
 
     ///@}
     ///@name Protected Operations
@@ -231,6 +220,11 @@ protected:
     ///@}
 
 private:
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
+                                                 const Vector& rStressVector,
+                                                 const Matrix& rDNuDx,
+                                                 const double  IntegrationCoefficient) const;
+
     ///@name Static Member Variables
     ///@{
 

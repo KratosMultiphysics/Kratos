@@ -265,7 +265,7 @@ public:
     */
     void AddNode(typename NodeType::Pointer pNewNode)
     {
-        mpNodes->insert(mpNodes->begin(), pNewNode);
+        mpNodes->insert(mpNodes->end(), pNewNode);
     }
 
     /** Returns the Node::Pointer  corresponding to it's identifier */
@@ -487,7 +487,7 @@ public:
     */
     void AddElement(typename ElementType::Pointer pNewElement)
     {
-        mpElements->insert(mpElements->begin(), pNewElement);
+        mpElements->insert(mpElements->end(), pNewElement);
     }
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
@@ -610,7 +610,7 @@ public:
     */
     void AddCondition(typename ConditionType::Pointer pNewCondition)
     {
-        mpConditions->insert(mpConditions->begin(), pNewCondition);
+        mpConditions->insert(mpConditions->end(), pNewCondition);
     }
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
@@ -736,11 +736,7 @@ public:
     {
         const auto it_existing_constraint = mpMasterSlaveConstraints->find(pNewMasterSlaveConstraint->Id());
         if (it_existing_constraint == mpMasterSlaveConstraints->end()) {
-            // PointerVectorSet::insert takes a position argument to insert the
-            // item at but ignores it, which makes it completely irrelevant to
-            // properly compute (an estimate) of the new constraint's position
-            // in the container => pass begin as position.
-            const auto it_insert_position = mpMasterSlaveConstraints->begin();
+            const auto it_insert_position = mpMasterSlaveConstraints->end();
             mpMasterSlaveConstraints->insert(it_insert_position, pNewMasterSlaveConstraint);
             return true;
         }
@@ -824,6 +820,11 @@ public:
     typename MasterSlaveConstraintContainerType::Pointer pMasterSlaveConstraints()
     {
         return mpMasterSlaveConstraints;
+    }
+
+    void SetMasterSlaveConstraints(typename MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
+    {
+        mpMasterSlaveConstraints = pOtherMasterSlaveConstraints;
     }
 
     typename MasterSlaveConstraintContainerType::ContainerType& MasterSlaveConstraintsArray()

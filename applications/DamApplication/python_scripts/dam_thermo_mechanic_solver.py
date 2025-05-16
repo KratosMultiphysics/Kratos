@@ -137,6 +137,7 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         ## Thermal variables
         thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
@@ -274,7 +275,7 @@ class DamThermoMechanicSolver(object):
         self.Thermal_Solver.Solve()
         self.Mechanical_Solver.Solve()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def InitializeStrategy(self):
         if self.settings["thermal_solver_settings"]["clear_storage"].GetBool():
@@ -301,7 +302,7 @@ class DamThermoMechanicSolver(object):
         self.Thermal_Solver.FinalizeSolutionStep()
         self.Mechanical_Solver.FinalizeSolutionStep()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def SetEchoLevel(self, level):
         self.Thermal_Solver.SetEchoLevel(level)

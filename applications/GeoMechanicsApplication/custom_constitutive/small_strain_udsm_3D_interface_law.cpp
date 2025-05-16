@@ -101,18 +101,11 @@ indexStress3D SmallStrainUDSM3DInterfaceLaw::getIndex3D(const indexStress3DInter
     }
 }
 
-void SmallStrainUDSM3DInterfaceLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                                               Vector& rStrainVector)
+Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
-    KRATOS_ERROR << "CalculateCauchyGreenStrain is not implemented in SmallStrainUDSM3DInterfaceLaw"
-                 << std::endl;
-}
-
-Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
-{
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUDSM3DLaw::GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUDSM3DLaw::GetValue(rVariable, rValue);
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
 
         rValue[INDEX_3D_INTERFACE_ZZ] = mStressVectorFinalized[INDEX_3D_ZZ];

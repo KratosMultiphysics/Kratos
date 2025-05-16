@@ -26,7 +26,7 @@ class FluidSolver(PythonSolver):
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
 
-    The solution strategy, builder_and_solver, etc. should alway be retrieved
+    The solution strategy, builder_and_solver, etc. should always be retrieved
     using the getter functions _GetSolutionStrategy, _GetBuilderAndSolver,
     etc. from this base class.
 
@@ -162,30 +162,26 @@ class FluidSolver(PythonSolver):
         cond_num_nodes = self._GetConditionNumNodes()
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-        ## If there are no elements and/or conditions, default to triangles/tetra meshes to avoid breaking the ReplaceElementsAndConditionsProcess
-        ## This only affects the input name (if there are no elements or conditions to replace, nothing is replaced).
-        if elem_num_nodes == 0:
-            elem_num_nodes = domain_size + 1
-        if cond_num_nodes == 0:
-            cond_num_nodes = domain_size
-
-        ## Complete the element name
-        if (self.element_name is not None):
-            new_elem_name = self.element_name + str(int(domain_size)) + "D" + str(int(elem_num_nodes)) + "N"
-        else:
-            raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
-
-        ## Complete the condition name
-        if (self.condition_name is not None):
-            new_cond_name = self.condition_name + str(int(domain_size)) + "D" + str(int(cond_num_nodes)) + "N"
-        else:
-            raise Exception("There is no condition name. Define the self.condition_name string variable in your derived solver.")
-
         ## Set the element and condition names in the Json parameters
-        #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""{}""")
         self.settings.AddValue("element_replace_settings", KratosMultiphysics.Parameters("""{}"""))
-        self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(new_elem_name)
-        self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(new_cond_name)
+
+        ## If there are no elements and/or conditions, we keep ReplaceElementsAndConditionsProcess settings empty
+        ## Note that if there are no element_name or condition_name replace settings, nothing is done internally
+        if elem_num_nodes != 0:
+            ## Complete the element name
+            if (self.element_name is not None):
+                new_elem_name = self.element_name + str(int(domain_size)) + "D" + str(int(elem_num_nodes)) + "N"
+            else:
+                raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
+            self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(new_elem_name)
+
+        if cond_num_nodes != 0:
+            ## Complete the condition name
+            if (self.condition_name is not None):
+                new_cond_name = self.condition_name + str(int(domain_size)) + "D" + str(int(cond_num_nodes)) + "N"
+            else:
+                raise Exception("There is no condition name. Define the self.condition_name string variable in your derived solver.")
+            self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(new_cond_name)
 
         ## Call the replace elements and conditions process
         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
@@ -215,7 +211,7 @@ class FluidSolver(PythonSolver):
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
         prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
 
-        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
+        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
 
     def _SetAndFillBuffer(self):
         init_dt = self._ComputeInitialDeltaTime()

@@ -36,7 +36,7 @@ namespace Kratos
  * @details Give access to methods and restores all member variables in fatigue simulations
  * @author Alireza Taherzadeh-Fard, Alejandro Cornejo
  */
-class HCFDataContainer
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) HCFDataContainer
 {
 public:
 
@@ -63,6 +63,8 @@ public:
         double ReversionFactor = 0.0;
         bool AdvanceStrategyApplied;
         bool DamageActivation;
+        double CFactor = 1.0;
+        double UltimateStress = 1.0;
     };
 
     static constexpr double tolerance = 1.0e-3;
@@ -92,6 +94,12 @@ public:
     double CalculateReversionFactor(const double MaxStress, const double MinStress);
 
     /**
+     * @brief This method calculates the ultimate stress
+     * depending on the used softening law
+     */
+    double UltimateStressDamage(const Properties& rMaterialParameters);
+
+    /**
      * @brief This method sets the variables required
      * for calculating fatigue reduction factor and Wohler stress
      */
@@ -108,7 +116,7 @@ public:
      * @brief This method initializes all the values
      * in the FatigueVariables
      */
-    void InitializeFatigueVariables(HCFDataContainer::FatigueVariables &rFatigueVariables);
+    void InitializeFatigueVariables(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables);
 
 
     /**
@@ -157,6 +165,7 @@ private:
     double mThresholdStress = 0.0;
     double mCyclesToFailure = std::numeric_limits<double>::infinity();
     bool mNewCycleIndicator = false;
+    double mCFactor = 1.0; // Fatigue reduction factor smoothness term
     ///@}
 
 friend class Serializer;
@@ -179,6 +188,7 @@ void save(Serializer& rSerializer) const
     rSerializer.save("ThresholdStress",mThresholdStress);
     rSerializer.save("CyclesToFailure",mCyclesToFailure);
     rSerializer.save("NewCycleIndicator",mNewCycleIndicator);
+    rSerializer.save("CFactor",mCFactor);
 }
 
 void load(Serializer& rSerializer)
@@ -199,6 +209,7 @@ void load(Serializer& rSerializer)
     rSerializer.load("ThresholdStress",mThresholdStress);
     rSerializer.load("CyclesToFailure",mCyclesToFailure);
     rSerializer.load("NewCycleIndicator",mNewCycleIndicator);
+    rSerializer.load("CFactor",mCFactor);
 }
 
 }; // class

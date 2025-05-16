@@ -18,7 +18,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -47,17 +47,13 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
-    SteadyStatePwPipingElement(IndexType NewId = 0)
+    explicit SteadyStatePwPipingElement(IndexType NewId = 0)
         : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -65,16 +61,20 @@ public:
     /// Constructor using an array of nodes
     SteadyStatePwPipingElement(IndexType                          NewId,
                                const NodesArrayType&              ThisNodes,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
     SteadyStatePwPipingElement(IndexType                          NewId,
                                GeometryType::Pointer              pGeometry,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -82,15 +82,14 @@ public:
     SteadyStatePwPipingElement(IndexType                          NewId,
                                GeometryType::Pointer              pGeometry,
                                PropertiesType::Pointer            pProperties,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwPipingElement() override {}
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~SteadyStatePwPipingElement() = default;
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
@@ -102,11 +101,15 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    std::string Info() const override;
+
     bool InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom);
 
     double CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
 
-    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
+    double CalculateEquilibriumPipeHeight(const PropertiesType& rProperties,
+                                          const GeometryType&   rGeometry,
+                                          double                PipeLength);
 
     void CalculateLength(const GeometryType& Geom);
 
@@ -114,8 +117,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     using BaseType::CalculateOnIntegrationPoints;
     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
@@ -126,17 +129,9 @@ protected:
                                       std::vector<double>&    rValues,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
-    double CalculateParticleDiameter(const PropertiesType& Prop);
-
     double pipe_initialised = false;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Assignment operator.
     SteadyStatePwPipingElement& operator=(SteadyStatePwPipingElement const& rOther);
 

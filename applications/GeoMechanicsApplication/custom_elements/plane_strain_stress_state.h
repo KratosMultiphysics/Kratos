@@ -17,20 +17,24 @@
 namespace Kratos
 {
 
-class PlaneStrainStressState : public StressStatePolicy
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrainStressState final : public StressStatePolicy
 {
 public:
-    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rGradNpT,
-                                          const Vector&         rNp,
+    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rDN_DX,
+                                          const Vector&         rN,
                                           const Geometry<Node>& rGeometry) const override;
-    [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                         double DetJ,
-                                                         const Geometry<Node>& rGeometry) const override;
     [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const override;
     [[nodiscard]] std::unique_ptr<StressStatePolicy> Clone() const override;
+    [[nodiscard]] const Vector&                      GetVoigtVector() const override;
+    [[nodiscard]] SizeType                           GetVoigtSize() const override;
+    [[nodiscard]] SizeType                           GetStressTensorSize() const override;
 
 private:
     [[nodiscard]] static Vector ConvertStrainTensorToVector(const Matrix& rStrainTensor);
+
+    friend class Serializer;
+    void save(Serializer&) const override;
+    void load(Serializer&) override;
 };
 
 } // namespace Kratos

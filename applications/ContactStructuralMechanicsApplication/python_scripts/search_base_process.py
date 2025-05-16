@@ -99,7 +99,7 @@ class SearchBaseProcess(KM.Process):
         self.interval = KM.IntervalUtility(self.settings)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -150,10 +150,11 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h.Execute()
 
         # We check the normals
-        normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
-        normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
-        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
-        check_normal_process.Execute()
+        if self.main_model_part.ProcessInfo[KM.IS_RESTARTED] == 0:
+            normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
+            normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
+            check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
+            check_normal_process.Execute()
 
         ## We recompute the search factor and the check in function of the relative size of the mesh
         if self.settings["search_parameters"]["adapt_search"].GetBool():
@@ -329,7 +330,7 @@ class SearchBaseProcess(KM.Process):
         return ""
 
     def _assign_master_flags(self, partial_model_part):
-        """ This method initializes assigment of the master nodes and conditions
+        """ This method initializes assignment of the master nodes and conditions
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -344,7 +345,7 @@ class SearchBaseProcess(KM.Process):
                 KM.VariableUtils().SetFlag(KM.MASTER, True, partial_model_part.Conditions)
 
     def _assign_slave_flags(self, key = "0"):
-        """ This method initializes assigment of the slave nodes and conditions
+        """ This method initializes assignment of the slave nodes and conditions
 
         Keyword arguments:
         self -- It signifies an instance of a class.

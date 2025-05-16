@@ -21,6 +21,7 @@
 #include "expression/container_data_io.h"
 #include "expression/container_expression.h"
 #include "expression/variable_expression_io.h"
+#include "expression/literal_expression_input.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/atomic_utilities.h"
@@ -28,6 +29,7 @@
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/model_part_utils.h"
 
 // Application includes
 #include "optimization_application_variables.h"
@@ -455,7 +457,7 @@ void ContainerExpressionUtils::MapNodalVariableToContainerVariable(
         auto& r_flat_data_expression = *p_flat_data_expression;
         rOutput.SetExpression(p_flat_data_expression);
 
-        // compute the entity valeus.
+        // compute the entity values.
         IndexPartition<IndexType>(number_of_entities).for_each([&p_variable_expression_data_io, &r_output_container, &r_flat_data_expression, &p_variable](const IndexType EntityIndex) {
             const auto p_entity = (r_output_container.begin() + EntityIndex);
             const auto& r_geometry = p_entity->GetGeometry();
@@ -551,11 +553,57 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+ContainerExpression<TContainerType> ContainerExpressionUtils::ExtractData(
+    ContainerExpression<TContainerType>& rInputExpression,
+    ModelPart& rExtractionModelPart)
+{
+    KRATOS_TRY
+
+    if (&rInputExpression.GetModelPart() == &rExtractionModelPart) {
+        return rInputExpression;
+    }
+
+    auto& r_input_container = rInputExpression.GetContainer();
+    const auto& r_input_expression = rInputExpression.GetExpression();
+    const auto stride = rInputExpression.GetItemComponentCount();
+    const auto number_of_input_entities = r_input_container.size();
+
+    ContainerExpression<TContainerType> output_expression(rExtractionModelPart);
+    auto& r_output_container = output_expression.GetContainer();
+    const auto number_of_output_entities = r_output_container.size();
+
+    // create flat expression to hold data
+    auto p_output_expression = LiteralFlatExpression<double>::Create(number_of_output_entities, rInputExpression.GetItemShape());
+    output_expression.SetExpression(p_output_expression);
+
+    for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
+        // make the existing values to zero.
+        VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_1, ModelPartUtils::GetContainer<TContainerType>(rExtractionModelPart));
+        VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_1, ModelPartUtils::GetContainer<TContainerType>(rInputExpression.GetModelPart()));
+
+        // now write the values from input expression
+        IndexPartition<IndexType>(number_of_input_entities).for_each([&](const auto Index) {
+            (r_input_container.begin() + Index)->SetValue(TEMPORARY_SCALAR_VARIABLE_1, r_input_expression.Evaluate(Index, Index * stride, i_comp));
+        });
+
+        // now read back to the output expression
+        IndexPartition<IndexType>(number_of_output_entities).for_each([&] (const auto Index) {
+            *(p_output_expression->begin() + Index * stride + i_comp) = (r_output_container.begin() + Index)->GetValue(TEMPORARY_SCALAR_VARIABLE_1);
+        });
+    }
+
+    return output_expression;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
-#define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                      \
+#define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                           \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerExpression<ContainerType>&);   \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const Matrix&, const ContainerExpression<ContainerType>&);
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const Matrix&, const ContainerExpression<ContainerType>&);                                                              \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ContainerType> ContainerExpressionUtils::ExtractData(ContainerExpression<ContainerType>&, ModelPart&);
 
 #define KRATOS_INSTANTIATE_NON_NODAL_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ComputeNumberOfNeighbourEntities<ContainerType>(ContainerExpression<ModelPart::NodesContainerType>&);                                                                                                                \

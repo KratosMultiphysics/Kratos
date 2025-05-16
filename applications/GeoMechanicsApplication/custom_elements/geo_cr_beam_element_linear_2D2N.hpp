@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "../StructuralMechanicsApplication/custom_elements/cr_beam_element_linear_2D2N.hpp"
+#include "../StructuralMechanicsApplication/custom_elements/beam_elements/cr_beam_element_linear_2D2N.hpp"
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
@@ -72,7 +72,7 @@ public:
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    ~GeoCrBeamElementLinear2D2N() override;
+    ~GeoCrBeamElementLinear2D2N() = default;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -93,11 +93,12 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+    using CrBeamElementLinear2D2N::CalculateOnIntegrationPoints;
 
     void ResetConstitutiveLaw() override;
 
 protected:
-    GeoCrBeamElementLinear2D2N(){};
+    GeoCrBeamElementLinear2D2N() = default;
 
     Vector mInternalGlobalForcesFinalized         = ZeroVector(msElementSize);
     Vector mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);

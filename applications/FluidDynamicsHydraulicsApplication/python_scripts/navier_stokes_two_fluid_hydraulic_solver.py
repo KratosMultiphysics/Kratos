@@ -231,7 +231,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Non historical variable are initilized in order to avoid memory problems
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ACCELERATION, self.main_model_part.Nodes)
         if self.artificial_viscosity:
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
     def Check(self):
@@ -365,7 +365,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         properties_1 = self.main_model_part.Properties[1]
         water_dynamic_viscosity_max = self.artificial_limiter_coefficient * properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
         for element in self.GetComputingModelPart().Elements:
-            elem_artificial_viscosity = element.Calculate(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
+            elem_artificial_viscosity = element.Calculate(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
 
             if elem_artificial_viscosity > water_dynamic_viscosity_max:
                 elem_artificial_viscosity = water_dynamic_viscosity_max
@@ -383,7 +383,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             # elif pos_nodes==3:
             #     elem_artificial_viscosity = 0.0
 
-            element.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
+            element.SetValue(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
 
     def __PerformLevelSetConvection(self):
 
@@ -466,7 +466,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # Create and read an auxiliary materials file for each one of the fields (only on one rank)
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials = KratosMultiphysics.Parameters()
                     aux_materials.AddEmptyArray("properties")
                     aux_materials["properties"].Append(i_material)
@@ -478,7 +478,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             data_comm.Barrier()
 
             # read the files on all ranks
-            for i_material in materials["properties"]:
+            for i_material in materials["properties"].values():
                 aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                 aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
@@ -488,7 +488,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # remove aux files after every rank read them
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                     KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
 

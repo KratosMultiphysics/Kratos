@@ -57,6 +57,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianFICElement
 public:
     ///@name Type Definitions
     ///@{
+    using BaseType       = UPwSmallStrainFICElement<TDim, TNumNodes>;
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
     using NodeType       = Node;
@@ -70,21 +71,18 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
+    using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+    using UPwBaseElement::mThisIntegrationMethod;
     using UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateShearModulus;
-    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
     using FICElementVariables = typename UPwSmallStrainFICElement<TDim, TNumNodes>::FICElementVariables;
 
     /// Counted pointer of UPwUpdatedLagrangianFICElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianFICElement);
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
     explicit UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
@@ -95,16 +93,20 @@ public:
     /// Constructor using an array of nodes
     UPwUpdatedLagrangianFICElement(IndexType                          NewId,
                                    const NodesArrayType&              ThisNodes,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainFICElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
     UPwUpdatedLagrangianFICElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainFICElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -112,13 +114,14 @@ public:
     UPwUpdatedLagrangianFICElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainFICElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
-    /// Destructor
-    ~UPwUpdatedLagrangianFICElement() override {}
+    ~UPwUpdatedLagrangianFICElement() = default;
 
     /**
      * @brief Creates a new element
@@ -174,18 +177,14 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "Updated Lagrangian U-Pw FIC Element #" << this->Id()
-               << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        const std::string constitutive_info =
+            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+        return "Updated Lagrangian U-Pw FIC Element #" + std::to_string(this->Id()) +
+               "\nConstitutive law: " + constitutive_info;
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "Updated Lagrangian U-Pw FIC Element #" << this->Id()
-                 << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
@@ -221,8 +220,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     ///@}
     ///@name Protected Operations
@@ -271,14 +270,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     }
 
     void load(Serializer& rSerializer) override
     {
-        typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
 }; // Class UPwUpdatedLagrangianFICElement
 

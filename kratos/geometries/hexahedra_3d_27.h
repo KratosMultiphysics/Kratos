@@ -168,7 +168,7 @@ public:
     ShapeFunctionsSecondDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -329,7 +329,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor don't copy the points and new
@@ -345,14 +345,34 @@ public:
     /// Destructor. Does nothing!!!
     ~Hexahedra3D27() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Hexahedra3D27;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     /**
@@ -457,7 +477,7 @@ public:
 
     /**
      * This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
@@ -476,7 +496,7 @@ public:
     }
 
     /**
-     * @brief This method calculate and return volume of this geometry.
+     * @brief This method calculates and returns volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -489,8 +509,8 @@ public:
     }
 
     /**
-     * This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * This method calculates and returns length, area or volume of
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
@@ -665,7 +685,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -682,7 +702,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -782,7 +802,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber

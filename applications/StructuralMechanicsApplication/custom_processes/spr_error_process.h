@@ -48,7 +48,7 @@ namespace Kratos
 /**
  * @class SPRErrorProcess
  * @ingroup StructuralMechanicsApplication
- * @brief This class is can be used to compute the metrics of the model part with a superconvergent patch recovery (SPR) approach
+ * @brief This class can be used to compute the metrics of the model part with a superconvergent patch recovery (SPR) approach
  * @details The formulation employed in order to compute the super patch recovery is based on the work of O. C. Zienkiewicz
 J. Z. Zhu, and extended for contact mechanics. In the papers:
  * - The superconvergent patch recovery and a posteriori error estimates. Part 1: The recovery technique https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620330702

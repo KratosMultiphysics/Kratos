@@ -7,7 +7,7 @@ class BufferedDict:
     Instances of this can hold (str, Any) data pairs in hierachychal data
     structure where each sub item can have their own buffer sizes. Hence,
     Different sub structures can have their own buffers and can be advanced
-    seperately or all together.
+    separately or all together.
 
     Overwriting of the existing data is not allowed because, this is used
     as a central place to store data from various objects, hence allowing
@@ -38,7 +38,7 @@ class BufferedDict:
         self.__SetBufferSize(buffer_size)
 
     def GetBufferSize(self) -> int:
-        """Returns the buffer size of current isntance of buffered data
+        """Returns the buffer size of current instance of buffered data
 
         Returns:
             int: Buffer size of the cyclic buffer
@@ -49,7 +49,7 @@ class BufferedDict:
         """Advances the buffered data containers
 
         Advances to the next index of the buffer in the cyclic buffer
-        making the current index accesible as a past value indes (step_index = 1)
+        making the current index accessible as a past value index (step_index = 1)
 
         Clears the values in the current step after advancement.
 
@@ -70,7 +70,7 @@ class BufferedDict:
         """Checks whether key exists in the given step_index
 
         The key in here should always be relative to the instance it is called upon.
-        Hence, this key can have "/" seperations for subitems, then this method
+        Hence, this key can have "/" separations for subitems, then this method
         will navigate through the sub items as well to check whether given key is available.
 
         Args:
@@ -105,7 +105,7 @@ class BufferedDict:
 
         This method retrieves the value given by the key at the specified step_index.
         The key must be the relative path w.r.t. current instance of the BufferedDict.
-        It can include "/" seperators to get a value which is in sub items. In this case,
+        It can include "/" separators to get a value which is in sub items. In this case,
         it will be retrieved by recursive calls.
 
         Args:
@@ -146,7 +146,7 @@ class BufferedDict:
 
         This method sets the value at the key at the specified step_index.
         The key must be the relative path w.r.t. current instance of the BufferedDict.
-        It can include "/" seperators to set a value which is in sub items. In this case,
+        It can include "/" separators to set a value which is in sub items. In this case,
         it will be set by recursive calls.
 
         Args:
@@ -183,7 +183,7 @@ class BufferedDict:
             current_key = key[:pos]
             if not current_key in self.__sub_items.keys():
                 # no existing key found then create it.
-                self.__AddSubItem(current_key, BufferedDict(self.GetBufferSize()))
+                self.__AddSubItem(current_key, BufferedDict(self.GetBufferSize(), self.__clear_buffer_when_advancing))
 
             self.__sub_items[current_key].SetValue(key[pos+1:], value, step_index, overwrite)
 
@@ -192,7 +192,7 @@ class BufferedDict:
 
         This method removes value at the key specified at the step_index.
         The key must be the relative path w.r.t. current instance of the BufferedDict.
-        It can include "/" seperators to remove a value which is in sub items. In this case,
+        It can include "/" separators to remove a value which is in sub items. In this case,
         it will be removed by recursive calls.
 
         Args:
