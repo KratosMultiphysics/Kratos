@@ -154,7 +154,7 @@ do
     export PYTHON=${PYTHON_TMP#cp}
     echo "Starting build for python${PYTHON_VERSION}"
 
-	PYTHON_LOCATION=/opt/python/cp$PYTHON_VERSION-cp$PYTHON_VERSION/bin/python
+	PYTHON_LOCATION=/opt/python/cp${PYTHON_VERSION}-cp${PYTHON_VERSION}/bin/python
     PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_cp$PYTHON_VERSION
 
     $PYTHON_LOCATION -m pip install mypy
