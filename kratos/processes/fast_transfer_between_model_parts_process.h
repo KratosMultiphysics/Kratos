@@ -66,7 +66,7 @@ public:
     typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
     typedef ModelPart::ElementsContainerType                           ElementsArrayType;
     typedef ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintArrayType;
-    typedef ModelPart::GeometriesMapType                               GeometriesMapType;
+    typedef ModelPart::GeometryContainerType                         GeometriesArrayType;
 
     /// The type used to identify the size
     typedef std::size_t SizeType;
