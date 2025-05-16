@@ -73,9 +73,6 @@ public:
     /// Alias for the properties container type.
     using PropertiesContainerType = BaseType::PropertiesContainerType;
 
-    /// The geometry map type within ModelPart
-    using GeometriesMapType = BaseType::GeometriesMapType;
-
     /// Alias for the elements container type.
     using ElementsContainerType = BaseType::ElementsContainerType;
 
