@@ -1,5 +1,5 @@
 #!/bin/bash
-PYTHONS=("313")
+PYTHONS=("313 314")
 export KRATOS_VERSION="10.2.2"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
@@ -155,7 +155,7 @@ do
     echo "Starting build for python${PYTHON_VERSION}"
 
 	PYTHON_LOCATION=/opt/python/cp$PYTHON_VERSION/bin/python
-    PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_cp$PYTHON
+    PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_cp$PYTHON_VERSION
 
     $PYTHON_LOCATION -m pip install mypy
 
