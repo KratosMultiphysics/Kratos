@@ -35,7 +35,7 @@ namespace Testing
 {
 
 
-namespace TestModelPartFactoryHelperUtilities
+namespace HDF5TestUtilities
 {
 
 template<class TDataType>
@@ -48,11 +48,11 @@ void AssignValue(TDataType& rValue)
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
         rValue = array_1d<double, 3>(3, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 4>>) {
-        rValue = array_1d<double, 3>(3, 1.2345);
+        rValue = array_1d<double, 4>(4, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 6>>) {
-        rValue = array_1d<double, 3>(3, 1.2345);
+        rValue = array_1d<double, 6>(6, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 9>>) {
-        rValue = array_1d<double, 3>(3, 1.2345);
+        rValue = array_1d<double, 9>(9, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Vector>) {
         rValue = Kratos::Vector(2, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Matrix>) {
@@ -215,7 +215,7 @@ void CompareComponentWrapper(
         << "\" is not found in registered variables list.";
 }
 
-} // namespace TestModelPartFactoryHelperUtilities
+} // namespace HDF5TestUtilities
 
 template<>
 HDF5::File::Vector<array_1d<double,3>> TestVector(std::size_t n)
@@ -263,7 +263,7 @@ TestModelPartFactory::TestModelPartFactory(ModelPart& rTestModelPart)
 void TestModelPartFactory::AddNodalVariables(std::vector<std::string> const& rNodalVariables)
 {
     for (const auto& r_variable_name : rNodalVariables) {
-        TestModelPartFactoryHelperUtilities::AddNodalVariablesWrapper<
+        HDF5TestUtilities::AddNodalVariablesWrapper<
                                                 Variable<int>,
                                                 Variable<double>,
                                                 Variable<array_1d<double, 3>>,
@@ -296,7 +296,7 @@ void TestModelPartFactory::AssignNodalTestData(std::vector<std::string> const& r
         return;
 
     for (auto& r_name : rNodalVariables) {
-        TestModelPartFactoryHelperUtilities::AddNodalTestDataWrapper<
+        HDF5TestUtilities::AddNodalTestDataWrapper<
                                                 Variable<int>,
                                                 Variable<double>,
                                                 Variable<array_1d<double, 3>>,
@@ -321,7 +321,7 @@ void TestModelPartFactory::AssignNonHistoricalNodalTestData(ModelPart& rTestMode
 void TestModelPartFactory::AssignDataValueContainer(DataValueContainer& rData, Flags& rFlags, std::vector<std::string> const& rVariables)
 {
     for (auto& r_name : rVariables) {
-        TestModelPartFactoryHelperUtilities::AssignDataValueContainerWrapper<
+        HDF5TestUtilities::AssignDataValueContainerWrapper<
                                                     Flags,
                                                     Variable<int>,
                                                     Variable<double>,
@@ -513,7 +513,7 @@ void CompareDataValueContainers(
     Flags const& rFlags2)
 {
     for (const auto& r_value1 : rData1) {
-        TestModelPartFactoryHelperUtilities::CompareComponentWrapper<
+        HDF5TestUtilities::CompareComponentWrapper<
                                                 Variable<int>,
                                                 Variable<double>,
                                                 Variable<array_1d<double, 3>>,
@@ -525,7 +525,7 @@ void CompareDataValueContainers(
     }
 
     for (const auto& r_flag_name : rFlagNames) {
-        TestModelPartFactoryHelperUtilities::CompareComponentWrapper<
+        HDF5TestUtilities::CompareComponentWrapper<
                                                 Flags>(r_flag_name, rData1, rFlags1, rData2, rFlags2);
     }
 }

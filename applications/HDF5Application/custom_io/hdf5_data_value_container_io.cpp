@@ -23,11 +23,11 @@
 
 namespace Kratos
 {
-namespace DataValueContainerIOHelperUtilities
+namespace HDF5Utilities
 {
 
 template<class TDataType>
-bool ReadComponentData(
+bool ReadComponent(
     HDF5::File& rFile,
     const std::string& rVariableName,
     const std::string& rPrefix,
@@ -49,7 +49,7 @@ bool ReadComponentData(
 }
 
 template<class TDataType>
-bool WriteComponentData(
+bool WriteComponent(
     HDF5::File& rFile,
     const std::string& rVariableName,
     const std::string& rPrefix,
@@ -78,7 +78,7 @@ void Read(
 {
     KRATOS_TRY
 
-    const bool is_read = (... || ReadComponentData<TDataTypes>(rFile, rVariableName, rPrefix, rData));
+    const bool is_read = (... || ReadComponent<TDataTypes>(rFile, rVariableName, rPrefix, rData));
 
     KRATOS_ERROR_IF_NOT(is_read) << "The variable \"" << rVariableName << "\" not found in registered variables list.";
 
@@ -94,14 +94,14 @@ void Write(
 {
     KRATOS_TRY
 
-    const bool is_written = (... || WriteComponentData<TDataTypes>(rFile, rVariableName, rPrefix, rData));
+    const bool is_written = (... || WriteComponent<TDataTypes>(rFile, rVariableName, rPrefix, rData));
 
     KRATOS_ERROR_IF_NOT(is_written) << "The variable \"" << rVariableName << "\" not found in registered variables list.";
 
     KRATOS_CATCH("");
 }
 
-} // namespace DataValueContainerIOHelperUtilities
+} // namespace HDF5Utilities
 
 namespace HDF5
 {
@@ -118,7 +118,7 @@ void ReadDataValueContainer(
     const auto& attr_names = rFile.GetAttributeNames(rPrefix + "/DataValues");
 
     for (const auto& r_name : attr_names) {
-        DataValueContainerIOHelperUtilities::Read<
+        HDF5Utilities  ::Read<
             int,
             double,
             std::string,
@@ -143,7 +143,7 @@ void WriteDataValueContainer(
     rFile.AddPath(rPrefix + "/DataValues");
 
     for (auto it = rData.begin(); it != rData.end(); ++it) {
-        DataValueContainerIOHelperUtilities::Write<
+        HDF5Utilities  ::Write<
             int,
             double,
             std::string,
