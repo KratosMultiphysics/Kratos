@@ -20,7 +20,7 @@ with open(os.path.join(os.environ["KRATOS_ROOT"], conf["readme"]), "r") as fh:
     long_description = fh.read()
 
 for module in conf["included_modules"]:
-    src = os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON_VERSION}"), "KratosMultiphysics", module)
+    src = os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_cp${PYTHON_VERSION}"), "KratosMultiphysics", module)
     dst = os.path.join("KratosMultiphysics", module)
     if os.path.exists(dst):
         shutil.rmtree(dst)
