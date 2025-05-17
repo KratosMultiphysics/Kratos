@@ -58,11 +58,11 @@ public:
 
     enum class QuadratureMethod
     {
-        Default,
-        GAUSS,
-        EXTENDED_GAUSS,
-        LOBATTO,
-        GRID
+        Default, // Default do nothing integration rule
+        GAUSS, // Standard Gauss integration rule
+        LOBATTO, // Standard Lobatto integration rule
+        GRID, // Equally-spaced integration points rule (not suitable for all geometries)
+        CUSTOM // Custom integration rule (e.g., integration points coming from QuESo)
     };
 
     ///@}
@@ -116,7 +116,7 @@ public:
     IntegrationMethod GetIntegrationMethod(
         IndexType DimensionIndex) const;
 
-    /* Evaluates the corresponding IntegrationMethod to 
+    /* Evaluates the corresponding IntegrationMethod to
      * the number of points and the quadrature method.
      */
     static IntegrationMethod GetIntegrationMethod(
@@ -128,9 +128,6 @@ public:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
                 return IntegrationMethod::GI_GAUSS_1;
             }
-            else if (ThisQuadratureMethod == QuadratureMethod::EXTENDED_GAUSS) {
-                return IntegrationMethod::GI_EXTENDED_GAUSS_1;
-            }
             else {
                 return IntegrationMethod::GI_LOBATTO_1;
             }
@@ -139,32 +136,20 @@ public:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
                 return IntegrationMethod::GI_GAUSS_2;
             }
-            else {
-                return IntegrationMethod::GI_EXTENDED_GAUSS_2;
-            }
             break;
         case 3:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
                 return IntegrationMethod::GI_GAUSS_3;
-            }
-            else {
-                return IntegrationMethod::GI_EXTENDED_GAUSS_3;
             }
             break;
         case 4:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
                 return IntegrationMethod::GI_GAUSS_4;
             }
-            else {
-                return IntegrationMethod::GI_EXTENDED_GAUSS_4;
-            }
             break;
         case 5:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
                 return IntegrationMethod::GI_GAUSS_5;
-            }
-            else {
-                return IntegrationMethod::GI_EXTENDED_GAUSS_5;
             }
             break;
         case 0:
