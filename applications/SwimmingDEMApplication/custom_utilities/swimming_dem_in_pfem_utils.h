@@ -90,7 +90,7 @@ void TransferWalls(ModelPart& r_source_model_part, ModelPart& r_destination_mode
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const
 {

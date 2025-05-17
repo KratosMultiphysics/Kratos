@@ -174,7 +174,7 @@ void CalculateVelocityLaplacianRate(ModelPart& r_model_part);
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 virtual std::string Info() const
 {
     return "";

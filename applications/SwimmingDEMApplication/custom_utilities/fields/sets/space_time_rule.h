@@ -56,7 +56,7 @@ virtual bool CheckIfRuleIsMet(const double time, const double coor_x, const doub
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const
 {

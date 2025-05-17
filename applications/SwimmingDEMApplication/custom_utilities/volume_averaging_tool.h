@@ -119,7 +119,7 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+    /// Turn back information as a stemplate<class T, std::size_t dim> string.
     virtual std::string Info() const
     {
         return "";
@@ -301,7 +301,7 @@ private:
         double inv_area = 0.0;
         if (std::abs(area) < std::numeric_limits<double>::epsilon()) {
 
-            //The interpolated node will not be inside an elemente with zero area
+            //The interpolated node will not be inside an element with zero area
             return false;
         }
         else {
@@ -347,7 +347,7 @@ private:
         if (vol < 0.0000000000001)
         {
 
-            //The interpolated node will not be inside an elemente with zero volume
+            //The interpolated node will not be inside an element with zero volume
             return false;
         }
         else

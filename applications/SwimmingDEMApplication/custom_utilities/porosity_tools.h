@@ -72,7 +72,7 @@ void CalculatePorosity(ModelPart& r_model_part, const ProcessInfo& r_current_pro
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const
 {
