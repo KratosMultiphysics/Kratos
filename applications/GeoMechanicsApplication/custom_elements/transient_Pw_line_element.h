@@ -894,6 +894,10 @@ public:
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             const auto [LHSContribution, RHSContribution] = calculator->LocalSystemContribution();
+            std::cout << " rContribution " << static_cast<std::underlying_type<CalculationContribution>::type>(rContribution) << std::endl;
+            if (LHSContribution) std::cout << " LHSContribution " << *LHSContribution << std::endl;
+            std::cout << " RHSContribution " << RHSContribution << std::endl;
+
             if (LHSContribution) rLeftHandSideMatrix += *LHSContribution;
             rRightHandSideVector += RHSContribution;
         }
@@ -924,7 +928,7 @@ public:
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
         case GeometryData::Kratos_Cubic_Order:
-            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+            return GetGeometry().LocalSpaceDimension() == 1 ?GeometryData::IntegrationMethod::GI_GAUSS_3 : IntegrationMethod::GI_GAUSS_4;
         case GeometryData::Kratos_Quartic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
@@ -1038,6 +1042,7 @@ public:
 
         KRATOS_CATCH("")
     }
+
 
 protected:
     StressStatePolicy& GetStressStatePolicy() const { return *mpStressStatePolicy; }
