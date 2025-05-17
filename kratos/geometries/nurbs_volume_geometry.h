@@ -709,7 +709,7 @@ public:
         // Makes sure we use assembly Option 2 in CreateQuadraturePointGeometries().
         IntegrationInfo integration_info(
             { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1, PolynomialDegreeW() + 1 },
-            { IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS });
+            { IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM });
 
         this->CreateQuadraturePointGeometries(
             rResultGeometries,
@@ -817,7 +817,7 @@ public:
                 this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
         }
         // Option 2: A list of QuadraturePointGeometry is created, one for each integration points.
-        else if ( IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS == rIntegrationInfo.GetQuadratureMethod(0) ) {
+        else if ( IntegrationInfo::QuadratureMethod::CUSTOM == rIntegrationInfo.GetQuadratureMethod(0) ) {
             // Shape function container.
             NurbsVolumeShapeFunction shape_function_container(
                 mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, NumberOfShapeFunctionDerivatives);
