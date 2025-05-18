@@ -87,7 +87,6 @@ virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& co
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const
 {

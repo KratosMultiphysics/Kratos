@@ -172,8 +172,7 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> string.
-    virtual std::string Info() const
+        virtual std::string Info() const
     {
         return "";
     }
