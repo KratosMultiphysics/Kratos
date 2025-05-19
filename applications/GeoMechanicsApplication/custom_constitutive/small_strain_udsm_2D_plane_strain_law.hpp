@@ -82,12 +82,6 @@ public:
      */
     [[nodiscard]] SizeType GetStrainSize() const override;
 
-    /**
-     * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
-     * @return the expected stress measure
-     */
-    StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
-
     ///@}
     ///@name Inquiry
     ///@{

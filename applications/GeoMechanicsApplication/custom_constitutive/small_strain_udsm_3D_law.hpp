@@ -172,7 +172,7 @@ public:
      * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in Voigt notation)
      * @return the expected stress measure
      */
-    StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
+    StressMeasure GetStressMeasure() override;
 
     /**
      * @brief Computes the material response:

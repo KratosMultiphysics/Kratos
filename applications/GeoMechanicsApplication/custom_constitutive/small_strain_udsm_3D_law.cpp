@@ -230,6 +230,11 @@ ConstitutiveLaw::StrainMeasure SmallStrainUDSM3DLaw::GetStrainMeasure()
     return StrainMeasure_Infinitesimal;
 }
 
+ConstitutiveLaw::StressMeasure SmallStrainUDSM3DLaw::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
+}
+
 int SmallStrainUDSM3DLaw::Check(const Properties&   rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const ProcessInfo&  rCurrentProcessInfo) const
