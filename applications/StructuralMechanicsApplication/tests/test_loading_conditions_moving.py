@@ -954,6 +954,47 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[7], 0)
         self.assertAlmostEqual(rhs[8], 0)
 
+    def _MovingLoadCondition3D3N_floating_point_inaccuracy(self):
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+
+        strategy = self.setup_strategy(mp)
+        # create nodes
+        second_coord = [0.3, 0.0, 0.0]
+        third_coord = [0.15, 0.0, 0.0]
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,second_coord[0],second_coord[1],second_coord[2])
+        mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        # create condition
+        cond = mp.CreateNewCondition("MovingLoadCondition3D3N", 1, [1,2,3], mp.GetProperties()[1])
+
+        # initialise matrices
+        lhs = KratosMultiphysics.Matrix(0,0)
+        rhs = KratosMultiphysics.Vector(0)
+
+        # set perpendicular POINT_LOAD to the condition
+        load_on_cond = KratosMultiphysics.Vector(3)
+        load_on_cond[0] = 0.0
+        load_on_cond[1] = -1.0
+        load_on_cond[2] = 0.0
+
+        cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, load_on_cond)
+
+        # set load outside condition with a local distance with a floating point inaccuracy
+        # ( 0.1+0.2 = 0.30000000000000004)
+        cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, 0.1+0.2)
+        strategy.InitializeSolutionStep()
+        cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+
+        self.assertVectorAlmostEqual(rhs, [0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0])
+
     def test_MovingLoadCondition3D2NRotDofZ(self):
         self._MovingLoadCondition3D2NRotDofZ()
 
@@ -970,6 +1011,9 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
     def test_MovingLoadCondition3D3N(self):
         self._MovingLoadCondition3D3N()
+
+    def test_MovingLoadCondition3D3N_floating_point_inaccuracy(self):
+        self._MovingLoadCondition3D3N_floating_point_inaccuracy()
 
     def test_MovingLoadCondition2D2NRot_disp_rot_at_load(self):
         self._MovingLoadCondition2D2NRot_disp_rot_at_load()

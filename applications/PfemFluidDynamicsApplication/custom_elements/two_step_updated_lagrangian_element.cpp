@@ -184,7 +184,7 @@ namespace Kratos
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-      { // it must be checked once at the begining only
+      { // it must be checked once at the beginning only
         // Build RHS
         // double posX=this->GetGeometry()[i].X();
         // double posY=this->GetGeometry()[i].Y();

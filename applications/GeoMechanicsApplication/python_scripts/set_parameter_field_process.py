@@ -7,10 +7,10 @@ import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
-    return SetParameterFieldProcess(Model, settings["Parameters"])
+    return SetParameterFieldProcess(model, settings["Parameters"])
 
 
 class SetParameterFieldProcess(KratosMultiphysics.Process):
@@ -32,10 +32,10 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
     filled in at the 'dataset' parameter, within the projectparameters.json
     """
 
-    def __init__(self, Model, settings ):
+    def __init__(self, model, settings):
         KratosMultiphysics.Process.__init__(self)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = model[settings["model_part_name"].GetString()]
 
         self.params = KratosMultiphysics.Parameters("{}")
         self.params.AddValue("model_part_name", settings["model_part_name"])
@@ -119,13 +119,13 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
             custom_module = importlib.import_module("." + self.params["function"].GetString(),
                                                                 KratosGeo.__name__ + ".user_defined_scripts")
 
-            CustomParameterField = getattr(custom_module, 'ParameterField')
-            custom_class = CustomParameterField()
+            custom_parameter_field_class = getattr(custom_module, 'ParameterField')
+            parameter_field = custom_parameter_field_class()
 
             # validate and generate custom defined parameter field
-            custom_class.validate_input(input_dict, return_dict)
-            custom_class.generate_field()
-            custom_class.validate_output()
+            parameter_field.validate_input(input_dict, return_dict)
+            parameter_field.generate_field()
+            parameter_field.validate_output()
 
             self.params["dataset"].SetString(json.dumps(return_dict))
 

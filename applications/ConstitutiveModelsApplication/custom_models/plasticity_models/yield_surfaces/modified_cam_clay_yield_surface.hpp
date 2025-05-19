@@ -128,7 +128,7 @@ namespace Kratos
       double MeanStress, LodeAngle;
       double DeviatoricQ; // == sqrt(3)*J2
 
-      // more work is requiered
+      // more work is required
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
       DeviatoricQ *= sqrt(3.0);
 
@@ -164,7 +164,7 @@ namespace Kratos
       double MeanStress, J2, LodeAngle;
 
       VectorType V1, V2;
-      // more work is requiered
+      // more work is required
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
       StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2);
 

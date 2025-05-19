@@ -32,7 +32,7 @@ class MechanicalSolver(PythonSolver):
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
 
-    The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
+    The mechanical_solution_strategy, builder_and_solver, etc. should always be retrieved
     using the getter functions _GetSolutionStrategy, get_builder_and_solver,
     etc. from this base class.
 

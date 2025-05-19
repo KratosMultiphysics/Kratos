@@ -2,7 +2,7 @@
     "problem_data"     : {
         "problem_name"  : "automated_initial_damage_process_test",
         "parallel_type" : "OpenMP",
-        "echo_level"    : 1,
+        "echo_level"    : 0,
         "start_time"    : 0.0,
         "end_time"      : 1.0
     },
