@@ -41,6 +41,7 @@ def _plot_traces(fig, ax):
 def _configure_axis_labels(ax, x_label, y_label):
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
 
 
 def _configure_plot_layout(ax, index, x, y):

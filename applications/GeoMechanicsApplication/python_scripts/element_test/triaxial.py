@@ -54,8 +54,8 @@ class TriaxialTestRunner:
 
         return tensors, yy_strain, vol_strain, von_mises_values, mean_stress_values
 
-    def _load_stage_parameters(self, n_stages=2):
-        parameter_files = [os.path.join(self.work_dir, f'ProjectParameters_stage{i + 1}.json') for i in range(n_stages)]
+    def _load_stage_parameters(self, n_stages=1):
+        parameter_files = [os.path.join(self.work_dir, f'ProjectParameters_stage{i + 2}.json') for i in range(n_stages)]
         return [Kratos.Parameters(open(f).read()) for f in parameter_files]
 
     def _execute_analysis_stages(self, parameters):

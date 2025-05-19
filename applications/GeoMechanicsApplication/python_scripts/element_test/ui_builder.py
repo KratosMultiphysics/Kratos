@@ -119,6 +119,9 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
 
             render_plots(figs, axes, canvas)
 
+        for widget in button_frame.winfo_children():
+            widget.destroy()
+
         ttk.Button(button_frame, text="Run Calculation", command=run_calculation).pack(pady=5)
 
     model_var.trace("w", update_parameters)
