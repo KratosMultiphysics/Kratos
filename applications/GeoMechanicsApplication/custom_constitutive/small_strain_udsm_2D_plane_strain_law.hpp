@@ -83,12 +83,6 @@ public:
     [[nodiscard]] SizeType GetStrainSize() const override;
 
     /**
-     * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
-     * @return the expected strain measure
-     */
-    StrainMeasure GetStrainMeasure() override { return StrainMeasure_Infinitesimal; }
-
-    /**
      * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */

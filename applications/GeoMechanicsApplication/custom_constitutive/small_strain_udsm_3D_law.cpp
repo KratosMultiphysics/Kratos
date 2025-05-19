@@ -225,6 +225,11 @@ void SmallStrainUDSM3DLaw::GetLawFeatures(Features& rFeatures)
 
 SizeType SmallStrainUDSM3DLaw::GetStrainSize() const { return VOIGT_SIZE_3D; }
 
+ConstitutiveLaw::StrainMeasure SmallStrainUDSM3DLaw::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
 int SmallStrainUDSM3DLaw::Check(const Properties&   rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const ProcessInfo&  rCurrentProcessInfo) const
