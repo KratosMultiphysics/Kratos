@@ -6,6 +6,8 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import the base structural analysis
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
+# NOTE: This analysis may fail because certain changes that are not part of the master branch are not here. This requires extra work in order to work.
+
 class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     """
     This class is the main-script of the ContactStructuralMechanicsApplication when using adaptative remeshing put in a class
