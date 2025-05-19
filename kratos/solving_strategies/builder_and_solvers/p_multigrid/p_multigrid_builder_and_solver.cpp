@@ -60,6 +60,14 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
         PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>
     >> mMaybeHierarchy;
 
+    struct LinearSystem {
+        typename TSparse::MatrixType* mpLhs;
+        typename TSparse::VectorType* mpSolution;
+        typename TSparse::VectorType* mpRhs;
+    }; // struct LinearSystem
+
+    std::optional<LinearSystem> mMaybeLinearSystem;
+
     std::unique_ptr<Scaling> mpDiagonalScaling;
 
     int mMaxIterations;
@@ -187,7 +195,11 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             status_report.maybe_multigrid_residual.reset();
 
             // Initialize the constraint assembler and update residuals.
-            mpConstraintAssembler->InitializeSolutionStep(rLhs, rSolution, rRhs);
+            mpConstraintAssembler->InitializeConstraintIteration(rLhs,
+                                                                 rSolution,
+                                                                 rRhs,
+                                                                 mpInterface->GetDofSet().begin(),
+                                                                 mpInterface->GetDofSet().end());
             TSparse::Copy(rRhs, residual);
             BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolution, residual, static_cast<typename TSparse::DataType>(-1));
 
@@ -202,11 +214,13 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                                        status_report);
 
             // Check for constraint convergence.
-            constraint_status = mpConstraintAssembler->FinalizeSolutionStep(rLhs,
-                                                                            rSolution,
-                                                                            rRhs,
-                                                                            status_report,
-                                                                            rStream);
+            constraint_status = mpConstraintAssembler->FinalizeConstraintIteration(rLhs,
+                                                                                   rSolution,
+                                                                                   rRhs,
+                                                                                   mpInterface->GetDofSet().begin(),
+                                                                                   mpInterface->GetDofSet().end(),
+                                                                                   status_report,
+                                                                                   rStream);
             if (constraint_status) {
                 rStream.Submit(status_report.Tag(2), mVerbosity);
                 status_report.maybe_constraint_residual.reset();
@@ -409,7 +423,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
         mpConstraintAssembler->Assemble(
             rModelPart.MasterSlaveConstraints(),
             rModelPart.GetProcessInfo(),
-            mpInterface->GetDofSet(),
+            mpInterface->GetDofSet().begin(),
+            mpInterface->GetDofSet().end(),
             AssembleLHS,
             AssembleRHS);
 
@@ -691,6 +706,11 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ResizeAndInitializeVectors(type
         rpRhs->resize(this->mEquationSystemSize, false);
     TSparse::SetToZero(*rpRhs);
 
+    mpImpl->mMaybeLinearSystem.emplace();
+    mpImpl->mMaybeLinearSystem.value().mpLhs = rpLhs.get();
+    mpImpl->mMaybeLinearSystem.value().mpSolution = rpSolution.get();
+    mpImpl->mMaybeLinearSystem.value().mpRhs = rpRhs.get();
+
     // Construct LHS topology if necessary or requested.
     if (rpLhs->size1() == 0 || this->GetReshapeMatrixFlag() == true) {
         mpImpl->MakeLhsTopology(pScheme, *rpLhs, rModelPart);
@@ -701,7 +721,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ResizeAndInitializeVectors(type
                                                 *rpLhs,
                                                 *rpSolution,
                                                 *rpRhs,
-                                                this->GetDofSet());
+                                                this->GetDofSet().begin(),
+                                                this->GetDofSet().end());
     } else {
         if (rpLhs->size1() != this->mEquationSystemSize || rpLhs->size2() != this->mEquationSystemSize) {
             KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
@@ -847,9 +868,9 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ApplyConstraints(typename Inter
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     mpImpl->mpConstraintAssembler->Initialize(rLhs,
+                                              *mpImpl->mMaybeLinearSystem.value().mpSolution,
                                               rRhs,
-                                              this->GetDofSet().begin(),
-                                              this->GetDofSet().end());
+                                              this->GetDofSet());
     if (mpImpl->mMaybeHierarchy.has_value()) {
         std::visit([](auto& r_hierarchy){r_hierarchy.ApplyConstraints();},
                    mpImpl->mMaybeHierarchy.value());
@@ -1048,6 +1069,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::Clear()
         std::visit([](auto& r_grid) {r_grid.Clear();},
                    mpImpl->mMaybeHierarchy.value());
     } // if mMaybeHierarchy
+
+    mpImpl->mMaybeLinearSystem.reset();
 
     this->SetDofSetIsInitializedFlag(false);
 }

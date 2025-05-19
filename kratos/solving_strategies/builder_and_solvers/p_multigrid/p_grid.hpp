@@ -28,7 +28,7 @@
 namespace Kratos {
 
 
-/** @brief Coarse grid level of @PMultigridBuilderAndSolver.
+/** @brief Coarse grid level of @ref PMultigridBuilderAndSolver.
  *  @details Settings:
  *           @code
  *           {

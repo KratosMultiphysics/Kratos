@@ -355,10 +355,7 @@ template <class TSparse, class TDense>
 void PGrid<TSparse,TDense>::ApplyConstraints()
 {
     KRATOS_TRY
-    mpConstraintAssembler->Initialize(mLhs,
-                                      mRhs,
-                                      mIndirectDofSet.begin(),
-                                      mIndirectDofSet.end());
+    mpConstraintAssembler->Initialize(mLhs, mSolution, mRhs, mIndirectDofSet);
     KRATOS_CATCH("")
 }
 
@@ -417,12 +414,22 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
         rReport.maybe_constraint_residual.reset();
 
         // Initialize the constraint assembler.
-        mpConstraintAssembler->InitializeSolutionStep(mLhs, mSolution, mRhs);
+        mpConstraintAssembler->InitializeConstraintIteration(mLhs,
+                                                             mSolution,
+                                                             mRhs,
+                                                             mIndirectDofSet.begin(),
+                                                             mIndirectDofSet.end());
 
         // Get an update on the solution with respect to the current right hand side.
         this->ExecuteMultigridLoop(rStream, rReport);
 
-        constraints_finished = mpConstraintAssembler->FinalizeSolutionStep(mLhs, mSolution, mRhs, rReport, rStream);
+        constraints_finished = mpConstraintAssembler->FinalizeConstraintIteration(mLhs,
+                                                                                  mSolution,
+                                                                                  mRhs,
+                                                                                  mIndirectDofSet.begin(),
+                                                                                  mIndirectDofSet.end(),
+                                                                                  rReport,
+                                                                                  rStream);
 
         // Update state log.
         if (!constraints_finished) {
