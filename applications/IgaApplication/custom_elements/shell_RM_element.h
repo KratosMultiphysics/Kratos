@@ -327,11 +327,11 @@ public:
     * @param rValues The values obtained int the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable,
-        std::vector<array_1d<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
+    // void CalculateOnIntegrationPoints(
+    //     const Variable<array_1d<double, 3>>& rVariable,
+    //     std::vector<array_1d<double, 3>>& rOutput,
+    //     const ProcessInfo& rCurrentProcessInfo
+    // ) override;
 
     ///@}
     ///@name Check
@@ -431,6 +431,15 @@ private:
         Matrix& dn,
         const KinematicVariables& rActualKinematic) const;
 
+    void CalculateBGeo(
+        const IndexType IntegrationPointIndex,
+        Matrix& rB,
+        double zeta, //
+        Matrix& DN_De_Jn,
+        Matrix& J_inv,
+        Matrix& dn,
+        const KinematicVariables& rActualKinematic) const;
+
     void CalculateJn(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables,
@@ -445,6 +454,11 @@ private:
         Matrix& rBd,
         Matrix& DN_De_Jn,
         const KinematicVariables& rActualKinematic) const;
+
+    void CalculateStressMatrix(
+        array_1d<double, 6> stress_vector,
+        Matrix& stress_matrix
+    ) const;
 
     void CalculateSecondVariationStrainCurvature(
         const IndexType IntegrationPointIndex,
@@ -486,9 +500,10 @@ private:
 
     inline void CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
-        const SecondVariations& rSecondVariationsStrain,
-        const Vector& rSD,
-        const double IntegrationWeight) const;
+        const Matrix& rB,
+        const Matrix& rD,
+        const double IntegrationWeight,
+        const double IntegrationWeight_zeta) const;
 
     // Calculation of the PK2 stress
     void CalculatePK2Stress(
