@@ -116,8 +116,11 @@ private:
     // vector of sorted conditions
     std::vector<Condition> mSortedConditions;
 
-    // vector of booleans which indicate if the nodes in the condition are in reversed order with respect to the direction of the moving load
-    std::vector<bool> mIsCondReversedVector;
+    // vector of the ids of the sorted conditions
+    std::vector<IndexType> mSortedConditionsIds;
+
+    // vector of integers (casted to booleans) which indicate if the nodes in the condition are in reversed order with respect to the direction of the moving load
+    std::vector<int> mIsCondReversedVector;
 
     // point of origin of the moving load
     array_1d<double, 3> mOriginPoint;
