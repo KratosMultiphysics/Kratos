@@ -74,31 +74,52 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( EXPLICIT_RHS_COMPUTATION ); // True means elastic behaviour for stabilization
 
     ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    using ConstitutiveLawType = ConstitutiveLaw;
 
     ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    using ConstitutiveLawPointerType = ConstitutiveLawType::Pointer;
 
     ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+    using StressMeasureType = ConstitutiveLawType::StressMeasure;
 
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /// This is the definition of the node.
-    typedef Node NodeType;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /// The base element type
-    typedef BaseSolidElement BaseType;
+    using BaseType = BaseSolidElement;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
-    // The vector containing the weak pointers to the nodes
-    typedef GlobalPointersVector<NodeType> WeakPointerVectorNodesType;
+    /// The definition of the geometry type
+    using GeometryType = Geometry<Node>;
+
+    /// The definition of the coordinates array type
+    using CoordinatesArrayType = GeometryType::CoordinatesArrayType;
+
+    /// The vector containing the weak pointers to the nodes
+    using WeakPointerVectorNodesType = GlobalPointersVector<Node>;
+
+    /// Integration methods implemented in geometry.
+    using IntegrationMethod = GeometryType::IntegrationMethod;
+
+    /// The definition of the integration points array type
+    using IntegrationPointsArrayType = GeometryType::IntegrationPointsArrayType;
+
+    /// The integration points array type
+    using IntegrationPointsContainerType = GeometryType::IntegrationPointsContainerType;
+
+    /// A third order tensor used as shape functions' values container.
+    using ShapeFunctionsValuesContainerType = GeometryType::ShapeFunctionsValuesContainerType;
+
+    /// A third order tensor to hold shape functions'  gradients. ShapefunctionsGradients function return this type as its result.
+    using ShapeFunctionsGradientsType = GeometryType::ShapeFunctionsGradientsType;
+
+    /// A fourth order tensor used as shape functions' local gradients container in geometry.
+    using ShapeFunctionsLocalGradientsContainerType = GeometryType::ShapeFunctionsLocalGradientsContainerType;
 
     /// Counted pointer of SolidShellElementSprism3D6N
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidShellElementSprism3D6N);
@@ -108,21 +129,21 @@ public:
     ///@{
 
     /**
-     * @brief This enum is defined in oder to difereniate between initial (TL) and current (UL) configuration
+     * @brief This enum is defined in oder to differentiate between initial (TL) and current (UL) configuration
      */
     enum class Configuration {INITIAL = 0, CURRENT = 1};
 
     /**
-     * @brief To differtiate between center, lower part and upper part
+     * @brief To differentiate between center, lower part and upper part
      */
     enum class GeometricLevel {LOWER = 0, CENTER = 5, UPPER = 9};
 
     /**
-     * @brief To differtiate between the different possible orthogonal bases
+     * @brief To differentiate between the different possible orthogonal bases
      * @details Then:
-     * - 0- If X is the prefered normal vector
-     * - 1- If Y is the prefered normal vector
-     * - 2- If Z is the prefered normal vector
+     * - 0- If X is the preferred normal vector
+     * - 1- If Y is the preferred normal vector
+     * - 2- If Z is the preferred normal vector
      */
     enum class OrthogonalBaseApproach {X = 0, Y = 1, Z = 2};
 
@@ -130,26 +151,35 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /* A private default constructor necessary for serialization */
+    //// A private default constructor necessary for serialization
     SolidShellElementSprism3D6N();
 
-    /* Constructor using an array of nodes */
+    /**
+     * @brief Constructor using an array of nodes
+     * @param NewId The Id of the new created element
+     * @param pGeometry The pointer to the geometry of the element
+     */
     SolidShellElementSprism3D6N(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /* Constructor using an array of nodes with properties */
+    /**
+     * @brief Constructor using an array of nodes with properties
+     * @param NewId The Id of the new created element
+     * @param pGeometry The pointer to the geometry of the element
+     * @param pProperties The pointer to the properties of the element
+     */
     SolidShellElementSprism3D6N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    /* Copy constructor */
+    /// Copy constructor
     SolidShellElementSprism3D6N(SolidShellElementSprism3D6N const& rOther);
 
-    /* Destructor */
+    /// Destructor
     ~SolidShellElementSprism3D6N() override;
 
     ///@}
     ///@name Operators
     ///@{
-    ///
-    /* Assignment operator */
+
+    /// Assignment operator
     SolidShellElementSprism3D6N& operator=(SolidShellElementSprism3D6N const& rOther);
 
     ///@}
@@ -744,12 +774,11 @@ protected:
     };
 
     /**
-     * This struct is used in the component wise calculation only
+     * @brief This struct is used in the component wise calculation only
      * is defined here and is used to declare a member variable in the component wise elements
      * private pointers can only be accessed by means of set and get functions
      * this allows to set and not copy the local system variables
      */
-
     struct LocalSystemComponents
     {
     private:
@@ -795,7 +824,6 @@ protected:
     };
 
     ///@{
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -849,7 +877,7 @@ protected:
      */
     bool HasNeighbour(
         const IndexType Index,
-        const NodeType& NeighbourNode
+        const Node& NeighbourNode
         ) const ;
 
     /**
@@ -857,14 +885,14 @@ protected:
      * @param pNeighbourNodes The neighbours nodes
      * @return An integer with the number of neighbours of the node
      */
-    std::size_t NumberOfActiveNeighbours(const GlobalPointersVector< NodeType >& pNeighbourNodes) const;
+    std::size_t NumberOfActiveNeighbours(const GlobalPointersVector< Node >& pNeighbourNodes) const;
 
     /**
      * @brief  It gets the nodal coordinates, according to the configutaion
      */
     void GetNodalCoordinates(
         BoundedMatrix<double, 12, 3 >& NodesCoord,
-        const GlobalPointersVector< NodeType >& pNeighbourNodes,
+        const GlobalPointersVector< Node >& pNeighbourNodes,
         const Configuration ThisConfiguration
         ) const;
 
@@ -1271,12 +1299,12 @@ protected:
      * @brief Update the RHS of the system with the EAS and the internal variable alpha
      * @param rRHSFull The full internal forces vector
      * @param rEAS The components of the EAS stabilization
-     * @param AlphaEAS The internal variable for the EAS
+     * @param rAlphaEAS The internal variable for the EAS
      */
     void ApplyEASRHS(
         BoundedMatrix<double, 36, 1 >& rRHSFull,
         const EASComponents& rEAS,
-        double& AlphaEAS
+        double& rAlphaEAS
         );
 
     /**
@@ -1345,7 +1373,7 @@ protected:
     void CalculateKinematics(
         GeneralVariables& rVariables,
         const CommonComponents& rCommonComponents,
-        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+        const IntegrationPointsArrayType& rIntegrationPoints,
         const IndexType rPointNumber,
         const double AlphaEAS,
         const double ZetaGauss
@@ -1423,27 +1451,89 @@ protected:
         const double IntegrationWeight
         );
 
+    /**
+     * @brief Retrieves all integration points associated with the solid shell element.
+     * @details This static function constructs and returns a container holding the integration points used in the solid shell element's numerical integration process. The integration points are intended to be generated via specific quadrature rules tailored to prism elements.
+     * @return IntegrationPointsContainerType A container with all the integration points required for this element.
+     */
+    static const IntegrationPointsContainerType AllIntegrationPoints();
+
+    /**
+     * @brief Calculates the values of all shape function in all integration points.
+     * @details Integration points are expected to be given in local coordinates
+     * @param ThisMethod the current integration method
+     * @return the matrix of values of every shape function in each integration point
+     */
+    static Matrix CalculateShapeFunctionsIntegrationPointsValues(const IntegrationMethod ThisMethod);
+
+    /**
+     * @brief Generates a container with precomputed shape functions values.
+     * @details This function evaluates and collects the shape function values at integration points
+     * for various Gauss integration methods. It calls the function
+     * CalculateShapeFunctionsIntegrationPointsValues() for each of the following methods:
+     * - GI_GAUSS_1
+     * - GI_GAUSS_2
+     * - GI_GAUSS_3
+     * - GI_GAUSS_4
+     * - GI_GAUSS_5
+     * The results are stored in a ShapeFunctionsValuesContainerType, with each element
+     * corresponding to the shape function values for a specific Gauss integration method.
+     * @return ShapeFunctionsValuesContainerType containing the shape functions values
+     *         evaluated at the respective integration points.
+     */
+    static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues();
+
+    /**
+     * @brief Calculates the local gradients of all shape functions in all integration points.
+     * @details Integration points are expected to be given in local coordinates
+     * @param ThisMethod the current integration method
+     * @return The vector of the gradients of all shape functions in each integration point
+     */
+    static ShapeFunctionsGradientsType
+    CalculateShapeFunctionsIntegrationPointsLocalGradients(const IntegrationMethod ThisMethod);
+
+    /**
+     * @brief Computes and returns a container with local gradients for shape functions.
+     * @details This function calculates the local gradients of the shape functions used by the element at various integration points determined by different Gauss integration methods. It generates the local gradients for each of the predefined integration methods (GI_GAUSS_1 to GI_GAUSS_5) and stores them in a container.
+     * @return ShapeFunctionsLocalGradientsContainerType A container holding the local gradients for each
+     * integration point corresponding to the different Gauss integration methods.
+     */
+    static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients();
+
     ///@}
     ///@name Protected  Access
     ///@{
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
     ///@}
-
 private:
-
     ///@name Static Member Variables
     ///@{
+
+    inline static const GeometryDimension msGeometryDimension = GeometryDimension(3, 3); /// Dimension of the geometry
+    inline static const GeometryData msGeometryData = GeometryData(
+        &msGeometryDimension,
+        GeometryData::IntegrationMethod::GI_GAUSS_1,
+        AllIntegrationPoints(),
+        AllShapeFunctionsValues(),
+        AllShapeFunctionsLocalGradients()
+        ); /// Geometry data
+
     ///@}
     ///@name Member Variables
     ///@{
+
     ///@}
     ///@name Private Operators
     ///@{
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -1461,7 +1551,7 @@ private:
         std::vector<TType>& rOutput
         )
     {
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = msGeometryData.IntegrationPoints(this->GetIntegrationMethod());
 
         for ( IndexType point_number = 0; point_number <integration_points.size(); ++point_number ) {
             mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
@@ -1497,7 +1587,7 @@ private:
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = msGeometryData.IntegrationPoints( this->GetIntegrationMethod() );
 
         double& alpha_eas = this->GetValue(ALPHA_EAS);
 
@@ -1531,10 +1621,11 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
+
     ///@}
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     /**
@@ -1544,16 +1635,17 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    // Constructor
+    ///@}
 
 }; // class SolidShellElementSprism3D6N.
 
 ///@}
 ///@name Type Definitions
 ///@{
+
 ///@}
 ///@name Input and output
 ///@{
-///@}
 
+///@}
 } // namespace Kratos.
