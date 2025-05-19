@@ -34,29 +34,6 @@ void SmallStrainUDSM2DPlaneStrainLaw::SetExternalStressVector(Vector& rStressVec
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSM2DPlaneStrainLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues,
-                                                             Matrix& rConstitutiveMatrix)
-{
-    KRATOS_TRY
-
-    if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM]) {
-        // transfer Fortran style matrix to C++ style
-        for (unsigned int i = 0; i < GetStrainSize(); ++i) {
-            for (unsigned int j = 0; j < GetStrainSize(); ++j) {
-                rConstitutiveMatrix(i, j) = mMatrixD[j][i];
-            }
-        }
-    } else {
-        for (unsigned int i = 0; i < GetStrainSize(); ++i) {
-            for (unsigned int j = 0; j < GetStrainSize(); ++j) {
-                rConstitutiveMatrix(i, j) = mMatrixD[i][j];
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUDSM2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable,
                                                const Vector&           rValue,
                                                const ProcessInfo&      rCurrentProcessInfo)

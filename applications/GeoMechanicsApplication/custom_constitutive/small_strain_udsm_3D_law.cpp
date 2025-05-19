@@ -667,14 +667,14 @@ void SmallStrainUDSM3DLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& r
 
     if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM]) {
         // transfer Fortran style matrix to C++ style
-        for (unsigned int i = 0; i < VOIGT_SIZE_3D; i++) {
-            for (unsigned int j = 0; j < VOIGT_SIZE_3D; j++) {
+        for (unsigned int i = 0; i < GetStrainSize(); i++) {
+            for (unsigned int j = 0; j < GetStrainSize(); j++) {
                 rConstitutiveMatrix(i, j) = mMatrixD[j][i];
             }
         }
     } else {
-        for (unsigned int i = 0; i < VOIGT_SIZE_3D; i++) {
-            for (unsigned int j = 0; j < VOIGT_SIZE_3D; j++) {
+        for (unsigned int i = 0; i < GetStrainSize(); i++) {
+            for (unsigned int j = 0; j < GetStrainSize(); j++) {
                 rConstitutiveMatrix(i, j) = mMatrixD[i][j];
             }
         }

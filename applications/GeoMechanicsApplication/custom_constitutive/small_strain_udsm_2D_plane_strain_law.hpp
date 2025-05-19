@@ -128,7 +128,6 @@ protected:
     ///@name Protected  Access
     ///@{
     void SetExternalStressVector(Vector& rStressVector) override;
-    void CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix) override;
 
     ///@}
     ///@name Protected Inquiry
