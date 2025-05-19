@@ -118,6 +118,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                 "surface_source_variable"       : "FACE_HEAT_FLUX",
                 "projection_variable"           : "PROJECTED_SCALAR1",
                 "convection_variable"           : "CONVECTION_VELOCITY",
+                "generic_3d_variable"           : "GENERIC_3D_VARIABLE",
                 "gradient_variable"             : "TEMPERATURE_GRADIENT",
                 "mesh_velocity_variable"        : "MESH_VELOCITY",
                 "transfer_coefficient_variable" : "TRANSFER_COEFFICIENT",
@@ -220,6 +221,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         if (reaction_gradient_variable != ""):
             convention_diffusion_settings.SetReactionGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable))
 
+
         target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
 
         if target_model_part.ProcessInfo.Has(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS):
@@ -264,6 +266,10 @@ class ConvectionDiffusionSolver(PythonSolver):
             trunc_solution_error_variable = self.settings["convection_diffusion_variables"]["trunc_solution_error"].GetString()
             if (trunc_solution_error_variable != ""):
                 target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.TRUNC_SOLUTION_ERROR)
+            print(f"settigns:\n{self.settings['convection_diffusion_variables']}")
+            generic_variable_3D = self.settings["convection_diffusion_variables"]["generic_3d_variable"].GetString()
+            if (generic_variable_3D != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.GENERIC_3D_VARIABLE)
 
         else:
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
