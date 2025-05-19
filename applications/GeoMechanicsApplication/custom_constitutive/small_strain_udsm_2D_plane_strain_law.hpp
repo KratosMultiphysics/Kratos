@@ -67,7 +67,7 @@ public:
     /**
      * @brief Clone method
      */
-    ConstitutiveLaw::Pointer Clone() const override;
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * @brief Dimension of the law:

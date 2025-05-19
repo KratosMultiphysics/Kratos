@@ -18,11 +18,7 @@ namespace Kratos
 
 ConstitutiveLaw::Pointer SmallStrainUDSM2DPlaneStrainLaw::Clone() const
 {
-    KRATOS_TRY
-
-    return Kratos::make_shared<SmallStrainUDSM2DPlaneStrainLaw>(*this);
-
-    KRATOS_CATCH("")
+    return std::make_shared<SmallStrainUDSM2DPlaneStrainLaw>(*this);
 }
 
 SizeType SmallStrainUDSM2DPlaneStrainLaw::GetStrainSize() const

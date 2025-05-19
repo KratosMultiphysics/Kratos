@@ -17,11 +17,7 @@ namespace Kratos
 
 ConstitutiveLaw::Pointer SmallStrainUDSM2DInterfaceLaw::Clone() const
 {
-    KRATOS_TRY
-
-    return Kratos::make_shared<SmallStrainUDSM2DInterfaceLaw>(*this);
-
-    KRATOS_CATCH("")
+    return std::make_shared<SmallStrainUDSM2DInterfaceLaw>(*this);
 }
 
 void SmallStrainUDSM2DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)

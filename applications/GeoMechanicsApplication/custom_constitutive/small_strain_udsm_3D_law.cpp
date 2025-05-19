@@ -162,11 +162,7 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw& rOther)
 
 ConstitutiveLaw::Pointer SmallStrainUDSM3DLaw::Clone() const
 {
-    KRATOS_TRY
-
-    return Kratos::make_shared<SmallStrainUDSM3DLaw>(*this);
-
-    KRATOS_CATCH("")
+    return std::make_shared<SmallStrainUDSM3DLaw>(*this);
 }
 
 SmallStrainUDSM3DLaw& SmallStrainUDSM3DLaw::operator=(SmallStrainUDSM3DLaw const& rOther)

@@ -67,7 +67,7 @@ public:
     /**
      * @brief Clone method
      */
-    ConstitutiveLaw::Pointer Clone() const override;
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     using SmallStrainUDSM3DLaw::GetValue;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
