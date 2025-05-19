@@ -25,7 +25,7 @@ Matrix PlaneStrain::CalculateElasticMatrix(double YoungsModulus, double Poissons
     const auto c2 = PoissonsRatio * c0;
     const auto c3 = (0.5 - PoissonsRatio) * c0;
 
-    Matrix result = ZeroMatrix(4, 4);
+    Matrix result = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     result(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
     result(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;

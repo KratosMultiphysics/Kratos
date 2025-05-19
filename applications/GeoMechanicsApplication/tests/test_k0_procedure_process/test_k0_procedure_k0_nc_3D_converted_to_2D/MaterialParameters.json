@@ -4,11 +4,11 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "GeoIncrementalLinearElastic3DLaw"
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw"
           },
           "Variables": {
               "IGNORE_UNDRAINED"         :  true,
-              "YOUNG_MODULUS"            :  10000,
+              "YOUNG_MODULUS"            :  1,
               "POISSON_RATIO"            :  0.0,
               "DENSITY_SOLID"            :  2.65,
               "DENSITY_WATER"            :  1.0,
@@ -16,7 +16,7 @@
               "BULK_MODULUS_SOLID"       :  1.0e9,
               "BULK_MODULUS_FLUID"       :  2.0e-30,
 	          "K0_NC"                    :  0.5,
-	          "K0_MAIN_DIRECTION"        :  2,
+	          "K0_MAIN_DIRECTION"        :  1,
               "PERMEABILITY_XX"          :  4.5e-30,
               "PERMEABILITY_YY"          :  4.5e-30,
               "PERMEABILITY_ZZ"          :  4.5e-30,

@@ -19,7 +19,7 @@
           "PERMEABILITY_YY": 4.5E-30,
           "PERMEABILITY_XY": 0.0,
           "DYNAMIC_VISCOSITY": 9810.0,
-          "YOUNG_MODULUS": 100000.0,
+          "YOUNG_MODULUS": 1.0,
           "POISSON_RATIO": 0.2,
           "THICKNESS": 1.0,
           "K0_MAIN_DIRECTION": 1,

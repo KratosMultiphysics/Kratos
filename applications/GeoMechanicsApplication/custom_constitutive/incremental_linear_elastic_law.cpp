@@ -161,6 +161,13 @@ void GeoIncrementalLinearElasticLaw::CalculatePK2Stress(const Vector&           
 
     rStressVector = mStressVector;
 
+    KRATOS_INFO("mStrainVectorFinalized") << mStrainVectorFinalized << std::endl;
+    KRATOS_INFO("rValues.GetStrainVector()") << rValues.GetStrainVector() << std::endl;
+    KRATOS_INFO("mDeltaStrainVector") << mDeltaStrainVector << std::endl;
+    KRATOS_INFO("mStressVectorFinalized") << mStressVectorFinalized << std::endl;
+    KRATOS_INFO("mStressVector") << mStressVector << std::endl;
+
+
     KRATOS_CATCH("")
 }
 

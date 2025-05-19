@@ -1,0 +1,62 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1  -1.0000000000   0.0000000000   0.0000000000
+    2   1.0000000000   0.0000000000   0.0000000000
+    3  -1.0000000000  10.0000000000   0.0000000000
+    4   1.0000000000  10.0000000000   0.0000000000
+    5   0.0000000000   0.0000000000   0.0000000000
+    6  -1.0000000000   5.0000000000   0.0000000000
+    7   1.0000000000   5.0000000000   0.0000000000
+    8   0.0000000000  10.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements UPwSmallStrainElement2D8N// GUI group identifier: soil
+        1          0     1 2 4 3 5 7 8 6
+End Elements
+
+Begin SubModelPart sides_along_x // Group sides_along_x // Subtree WATER_PRESSURE
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart sides_along_y // Group sides_along_y // Subtree WATER_PRESSURE
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            6
+            7
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart bottom // Group bottom // Subtree WATER_PRESSURE
+    Begin SubModelPartNodes
+            1
+            2
+            5
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart soil // Group soil // Subtree Parts_Soil
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+End SubModelPart

@@ -10,7 +10,7 @@
     "solver_settings": {
         "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
-        "domain_size":                        3,
+        "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
             "input_filename":   "column3"
@@ -73,7 +73,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "hexa_mesh_in_Z",
+                "output_name": "quadrilateral",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -99,18 +99,6 @@
     },
     "processes": {
         "constraints_process_list": [{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.sides_along_x",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [false,true,false],
-            "is_fixed":        [false,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
             "python_module": "apply_vector_constraint_table_process",
             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
             "process_name":  "ApplyVectorConstraintTableProcess",
@@ -141,8 +129,8 @@
         "Parameters": {
           "model_part_name": "PorousDomain.soil",
           "variable_name": "VOLUME_ACCELERATION",
-          "active": [ false, false, true ],
-          "value": [ 0.0, 0.0, -9.81 ],
+          "active": [ false, true, false ],
+          "value": [ 0.0, -9.81, 0.0 ],
           "table": [ 0, 0, 0 ] }
     },{
         "python_module": "apply_scalar_constraint_table_process",
@@ -153,7 +141,7 @@
           "variable_name": "WATER_PRESSURE",
           "is_fixed": false,
           "fluid_pressure_type": "Hydrostatic",
-          "gravity_direction": 2,
+          "gravity_direction": 1,
           "reference_coordinate": 0.0,
           "table": 0,
           "pressure_tension_cut_off": 0.0,

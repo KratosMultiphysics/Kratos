@@ -903,6 +903,27 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         if (CalculateResidualVectorFlag)
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, integration_point);
     }
+    if (this->GetId() == 1) {
+        KRATOS_INFO("CalculateAll") << "rRightHandSideVector = " << rRightHandSideVector << std::endl;
+        std::vector<std::size_t> result;
+        this->EquationIdVector(result, rCurrentProcessInfo);
+        KRATOS_INFO("CalculateAll") << "EquationIdVector = " << result << std::endl;
+
+        KRATOS_INFO("CalculateAll") << "integration_coefficients_on_initial_configuration: " << integration_coefficients_on_initial_configuration << std::endl;
+        KRATOS_INFO("CalculateAll") << "integration_coefficients: " << integration_coefficients << std::endl;
+        KRATOS_INFO("CalculateAll") << "DetJ: " << Variables.detJContainer << std::endl;
+        for (const auto& integration_point : IntegrationPoints) {
+            KRATOS_INFO("CalculateAll") << "Integration point weight: " << integration_point.Weight() << std::endl;
+        }
+
+        for (const auto& node : this->GetGeometry()) {
+            for (const auto& dof : node.GetDofs()) {
+            KRATOS_INFO("CalculateAll") << "For node " << node.GetId() << ", dof " << dof->GetVariable().Name() << ", has equation id " << dof->EquationId() << std::endl;
+
+            }
+        }
+
+    }
 
     KRATOS_CATCH("")
 }
@@ -1175,7 +1196,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(Vecto
     KRATOS_TRY
     const array_1d<double, TNumNodes * TDim> stiffness_force =
         -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
-
+    if (this->GetId() == 1) {
+        KRATOS_INFO("CalculateAndAddStiffnessForce") << stiffness_force << std::endl;
+    }
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
 
     KRATOS_CATCH("")
@@ -1190,8 +1213,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(VectorT
     this->CalculateSoilGamma(rVariables);
 
     const array_1d<double, TNumNodes * TDim> mix_body_force =
-        prod(trans(rVariables.Nu), rVariables.SoilGamma) * rVariables.IntegrationCoefficientInitialConfiguration;
-
+        prod(trans(rVariables.Nu), rVariables.SoilGamma) * rVariables.IntegrationCoefficient;
+    if (this->GetId() == 1) {
+        KRATOS_INFO("CalculateAndAddMixBodyForce") << mix_body_force << std::endl;
+    }
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, mix_body_force);
 
     KRATOS_CATCH("")
