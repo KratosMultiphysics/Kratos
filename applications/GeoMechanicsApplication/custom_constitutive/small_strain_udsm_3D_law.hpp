@@ -115,6 +115,10 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = VOIGT_SIZE_3D;
 
+    static constexpr SizeType Sig0Size                  = 20;
+    static constexpr SizeType StressVectorSize          = 6;
+    static constexpr SizeType StrainIncrementVectorSize = 12;
+
     /// Pointer definition of SmallStrainUDSM3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM3DLaw);
 
@@ -347,17 +351,11 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    array_1d<double, VOIGT_SIZE_3D> mStressVector;
-    array_1d<double, VOIGT_SIZE_3D> mStressVectorFinalized;
+    array_1d<double, VOIGT_SIZE_3D> mStressVector{VOIGT_SIZE_3D, 0.0};
 
-    array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
-    array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
-    int                             mPlastic = 0;
+    array_1d<double, StrainIncrementVectorSize> mDeltaStrainVector{StrainIncrementVectorSize, 0.0};
+    array_1d<double, VOIGT_SIZE_3D>             mStrainVectorFinalized{VOIGT_SIZE_3D, 0.0};
 
-public:
-    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
-
-protected:
     double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
 
     ///@}
@@ -393,6 +391,8 @@ protected:
     // returns 1 if the stiffness matrix of the material is tangential
     int getUseTangentMatrix() { return mAttributes[USE_TANGENT_MATRIX]; }
 
+    array_1d<double, Sig0Size>& GetSig0();
+
     ///@}
     ///@name Protected Inquiry
     ///@{
@@ -424,6 +424,10 @@ private:
 
     Vector mStateVariables;
     Vector mStateVariablesFinalized;
+
+    // See section 16.2 "Implementation of User Defined (UD) soil Models in calculations program"
+    // of the Plaxis documentation for the array sizes
+    array_1d<double, Sig0Size> mSig0{Sig0Size, 0.0};
 
     ///@}
     ///@name Private Operators
@@ -468,7 +472,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("InitializedModel", mIsModelInitialized);
         rSerializer.save("Attributes", mAttributes);
-        rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
+        rSerializer.save("Sig0", mSig0);
         rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
         rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
     }
@@ -478,7 +482,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("InitializedModel", mIsModelInitialized);
         rSerializer.load("Attributes", mAttributes);
-        rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
+        rSerializer.load("Sig0", mSig0);
         rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
         rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
     }

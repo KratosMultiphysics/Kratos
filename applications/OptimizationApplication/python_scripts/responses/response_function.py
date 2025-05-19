@@ -7,7 +7,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 class ResponseFunction(ABC):
     """Base response function.
 
-    This reponse function is the base response function. This is assumed to have following responsibilities.
+    This response function is the base response function. This is assumed to have following responsibilities.
         1. CalculateValue for a new design. (@see CalculateValue)
         2. CalculateSensitivity for a new design (@see CalculateSensitivity)
 
@@ -55,8 +55,8 @@ class ResponseFunction(ABC):
         that sensitivities w.r.t. those variables are requested from the response. If sensitivities
         w.r.t. other variables are required from this response, they are ASSUMED TO BE ZERO.
 
-        Please return all the dependent physical variables, eventhough the gradient computation is not yet implemented
-        for some to avoid future bugs.
+        Please return all the dependent physical variables, even though the gradient computation is not yet
+        implemented for some to avoid future bugs.
 
         Returns:
             list[SupportedSensitivityFieldVariableTypes]: All dependent physical variables of the response.

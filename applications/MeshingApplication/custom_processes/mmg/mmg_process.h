@@ -345,7 +345,7 @@ protected:
     virtual void ExecuteRemeshing();
 
     /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     * @brief After we have transfer the information from the previous modelpart we initialize the elements and conditions
      */
     virtual void InitializeElementsAndConditions();
 
@@ -361,7 +361,7 @@ protected:
     virtual void FreeMemory();
 
     /**
-     * @brief It sets to zero the entity data, using the variables from the orginal model part
+     * @brief It sets to zero the entity data, using the variables from the original model part
      * @param rNewModelPart The new container
      * @param rOldModelPart The old container
      * @tparam TContainerType The container type
@@ -429,7 +429,7 @@ protected:
     virtual void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     /**
-     * @brief Applies local hmin, hmax and hausd values to entitities as specified
+     * @brief Applies local hmin, hmax and hausd values to entities as specified
      * in the parameters, to locally control the size and curvature of the remeshing.
     */
     void ApplyLocalParameters();
