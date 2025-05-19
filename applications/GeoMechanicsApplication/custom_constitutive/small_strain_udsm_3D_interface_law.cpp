@@ -62,9 +62,9 @@ void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrai
 {
     std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
 
-    mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector(INDEX_3D_INTERFACE_ZZ);
-    mStrainVectorFinalized[INDEX_3D_YZ] = rStrainVector(INDEX_3D_INTERFACE_YZ);
-    mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector(INDEX_3D_INTERFACE_XZ);
+    mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector[INDEX_3D_INTERFACE_ZZ];
+    mStrainVectorFinalized[INDEX_3D_YZ] = rStrainVector[INDEX_3D_INTERFACE_YZ];
+    mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector[INDEX_3D_INTERFACE_XZ];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)

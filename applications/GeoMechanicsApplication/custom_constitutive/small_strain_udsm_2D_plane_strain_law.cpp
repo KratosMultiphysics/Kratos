@@ -34,15 +34,6 @@ void SmallStrainUDSM2DPlaneStrainLaw::SetExternalStressVector(Vector& rStressVec
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSM2DPlaneStrainLaw::SetInternalStrainVector(const Vector& rStrainVector)
-{
-    KRATOS_TRY
-    for (unsigned int i = 0; i < GetStrainSize(); ++i) {
-        mStrainVectorFinalized[i] = rStrainVector(i);
-    }
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUDSM2DPlaneStrainLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues,
                                                              Matrix& rConstitutiveMatrix)
 {
