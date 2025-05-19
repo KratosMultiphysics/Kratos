@@ -66,17 +66,6 @@ void SmallStrainUDSM2DPlaneStrainLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Pa
     KRATOS_CATCH("")
 }
 
-Vector& SmallStrainUDSM2DPlaneStrainLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
-{
-    if (rVariable == STATE_VARIABLES) {
-        SmallStrainUDSM3DLaw::GetValue(rVariable, rValue);
-    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
-        rValue.resize(GetStrainSize());
-        std::copy_n(GetSig0().begin(), GetStrainSize(), rValue.begin());
-    }
-    return rValue;
-}
-
 void SmallStrainUDSM2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable,
                                                const Vector&           rValue,
                                                const ProcessInfo&      rCurrentProcessInfo)

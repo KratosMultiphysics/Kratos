@@ -899,8 +899,8 @@ Vector& SmallStrainUDSM3DLaw::GetValue(const Variable<Vector>& rVariable, Vector
 
         noalias(rValue) = mStateVariablesFinalized;
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
-        rValue.resize(StressVectorSize);
-        std::copy_n(mSig0.begin(), StressVectorSize, rValue.begin());
+        rValue.resize(GetStrainSize());
+        std::copy_n(mSig0.begin(), GetStrainSize(), rValue.begin());
     }
     return rValue;
 }
