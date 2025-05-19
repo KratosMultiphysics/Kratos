@@ -101,7 +101,7 @@ class MpmAnalysis(AnalysisStage):
             project_parameters["solver_settings"]["auxiliary_reaction_list"].SetStringArray(aux_reaction_list_new)
 
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
         ## Solver construction
         return CreateSolver(self.model, self.project_parameters)
 
