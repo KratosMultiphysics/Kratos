@@ -306,7 +306,7 @@ private:
 
     /**
      * @brief GetNodeInEdge gets the middle node on an edge and return a pointer to it
-     * @detail CreateNodeInEdge should be executed before to ensure the node existance
+     * @detail CreateNodeInEdge should be executed before to ensure the node existence
      * @param rEdge The edge containing the two father nodes
      * @param rNumberOfDivisions
      * @param rTagNodes  The map with the vector of Id's associated to the tag

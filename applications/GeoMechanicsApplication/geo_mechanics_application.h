@@ -99,6 +99,7 @@
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/transient_Pw_line_element.h"
+#include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
@@ -110,12 +111,7 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 
 // geo structural element
-#include "custom_elements/geo_cr_beam_element_2D2N.hpp"
-#include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
-#include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/geo_curved_beam_element.hpp"
-#include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
@@ -746,16 +742,8 @@ private:
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     // geo structural element
-    const GeoCrBeamElement2D2N mGeoCrBeamElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCurvedBeamElement<2, 3> mGeoCurvedBeamElement2D3N{
-        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
 
     // transient one-phase temperature elements:
     const TransientThermalElement<2, 3> mTransientThermalElement2D3N{
