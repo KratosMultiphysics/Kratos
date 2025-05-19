@@ -204,12 +204,20 @@ namespace Kratos
                     }
                 }
 
+                for (unsigned i = 0; i < mNumLayers; i++)
+                {
+                    layer_integrals[i] = abs(layer_integrals[i]);
+                    layer_flows[i] = abs(layer_flows[i]);
+                }
+                
+                
+
                 // Compute total velocity flux and normalize the surface integral values
                 double total_flow = 0.0;
                 for (unsigned i = 0; i < mNumLayers; i++)
                 {
                     total_flow += layer_flows[i];
-                    layer_integrals[i] = std::abs(layer_integrals[i] / layer_flows[i]);
+                    layer_integrals[i] = layer_integrals[i] / layer_flows[i];
                 }
 
                 // Compute asymptotic solution
