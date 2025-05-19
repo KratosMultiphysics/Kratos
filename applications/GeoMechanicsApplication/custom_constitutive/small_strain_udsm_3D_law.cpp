@@ -33,14 +33,16 @@ constexpr auto props_size = SizeType{50};
 
 array_1d<double, props_size> MakePropsVector(const Vector& rUMatParameters)
 {
-    KRATOS_DEBUG_ERROR_IF(rUMatParameters.size() > props_size) << "Number of UMAT_PARAMETERS (" << rUMatParameters.size() << ") exceeds the maximum number of " << props_size << "\n";
+    KRATOS_DEBUG_ERROR_IF(rUMatParameters.size() > props_size)
+        << "Number of UMAT_PARAMETERS (" << rUMatParameters.size()
+        << ") exceeds the maximum number of " << props_size << "\n";
 
     auto result = array_1d<double, props_size>{props_size, 0.0};
     std::copy(rUMatParameters.begin(), rUMatParameters.end(), result.begin());
     return result;
 }
 
-}
+} // namespace
 
 namespace Kratos
 {
@@ -835,10 +837,10 @@ void SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::
 }
 
 double& SmallStrainUDSM3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                             const Variable<double>&      rThisVariable,
+                                             const Variable<double>&      rVariable,
                                              double&                      rValue)
 {
-    if (rThisVariable == STRAIN_ENERGY) {
+    if (rVariable == STRAIN_ENERGY) {
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector&       r_stress_vector = rParameterValues.GetStressVector();
         this->CalculateStress(rParameterValues, r_stress_vector);
@@ -849,11 +851,11 @@ double& SmallStrainUDSM3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
 }
 
 Vector& SmallStrainUDSM3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                             const Variable<Vector>&      rThisVariable,
+                                             const Variable<Vector>&      rVariable,
                                              Vector&                      rValue)
 {
-    if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
-        rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
+    if (rVariable == STRESSES || rVariable == CAUCHY_STRESS_VECTOR ||
+        rVariable == KIRCHHOFF_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& rFlags = rParameterValues.GetOptions();
 
@@ -877,36 +879,36 @@ Vector& SmallStrainUDSM3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
 }
 
 Matrix& SmallStrainUDSM3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                             const Variable<Matrix>&      rThisVariable,
+                                             const Variable<Matrix>&      rVariable,
                                              Matrix&                      rValue)
 {
-    if (rThisVariable == CONSTITUTIVE_MATRIX || rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
+    if (rVariable == CONSTITUTIVE_MATRIX || rVariable == CONSTITUTIVE_MATRIX_PK2 ||
+        rVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
         this->CalculateConstitutiveMatrix(rParameterValues, rValue);
     }
     return rValue;
 }
 
-Vector& SmallStrainUDSM3DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+Vector& SmallStrainUDSM3DLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
-    if (rThisVariable == STATE_VARIABLES) {
+    if (rVariable == STATE_VARIABLES) {
         if (rValue.size() != mStateVariablesFinalized.size())
             rValue.resize(mStateVariablesFinalized.size());
 
         noalias(rValue) = mStateVariablesFinalized;
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         rValue.resize(StressVectorSize);
         std::copy_n(mSig0.begin(), StressVectorSize, rValue.begin());
     }
     return rValue;
 }
 
-double& SmallStrainUDSM3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
+double& SmallStrainUDSM3DLaw::GetValue(const Variable<double>& rVariable, double& rValue)
 {
-    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rThisVariable);
+    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
-        << "GetValue: Variable: " << rThisVariable
+        << "GetValue: Variable: " << rVariable
         << " does not exist in UDSM. Requested index: " << index << std::endl;
 
     rValue = mStateVariablesFinalized[index];

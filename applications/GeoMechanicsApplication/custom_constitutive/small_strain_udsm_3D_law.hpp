@@ -223,34 +223,34 @@ public:
     /**
      * @brief It calculates the value of a specified variable (double case)
      * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
+     * @param rVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<double>&      rThisVariable,
+                           const Variable<double>&      rVariable,
                            double&                      rValue) override;
 
     /**
      * @brief It calculates the value of a specified variable (Vector case)
      * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
+     * @param rVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
     Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<Vector>&      rThisVariable,
+                           const Variable<Vector>&      rVariable,
                            Vector&                      rValue) override;
 
     /**
      * @brief It calculates the value of a specified variable (Matrix case)
      * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
+     * @param rVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
     Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<Matrix>&      rThisVariable,
+                           const Variable<Matrix>&      rVariable,
                            Matrix&                      rValue) override;
 
     using ConstitutiveLaw::CalculateValue;
@@ -295,8 +295,8 @@ public:
                        const GeometryType& rElementGeometry,
                        const Vector&       rShapeFunctionsValues) override;
 
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    double& GetValue(const Variable<double>& rVariable, double& rValue) override;
+    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
 
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
@@ -460,7 +460,7 @@ private:
 
     // get number of MaterialParameters
     SizeType          GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
-    [[nodiscard]] int GetStateVariableIndex(const Variable<double>& rThisVariable) const;
+    [[nodiscard]] int GetStateVariableIndex(const Variable<double>& rVariable) const;
 
     ///@}
     ///@name Serialization

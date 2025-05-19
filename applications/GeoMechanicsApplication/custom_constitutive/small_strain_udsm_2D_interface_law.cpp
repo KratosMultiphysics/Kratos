@@ -92,11 +92,11 @@ indexStress3D SmallStrainUDSM2DInterfaceLaw::getIndex3D(const indexStress2DInter
     }
 }
 
-Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUDSM3DLaw::GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUDSM3DLaw::GetValue(rVariable, rValue);
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         rValue.resize(VoigtSize);
 
         auto& r_sig0                  = GetSig0();
