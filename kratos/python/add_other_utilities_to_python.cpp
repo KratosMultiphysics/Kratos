@@ -824,6 +824,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("CalculatePressureAtSkinNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodes)
         .def("CalculateVelocityAtSkinNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodes)
         .def("CalculateVariablesAtSkinPoints", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPoints)
+        .def("CalculateExtensionError", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateExtensionError)
     ;
 
     m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")

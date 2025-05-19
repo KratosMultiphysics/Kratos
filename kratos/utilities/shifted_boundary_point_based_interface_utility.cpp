@@ -1025,9 +1025,9 @@ namespace Kratos
         << "The fluid force inside " << n_split_elements_without_correct_extension << " split elements was calculated without valid extension." << std::endl;
     }
 
-    //void ShiftedBoundaryPointBasedInterfaceUtility::CalculateExtensionError()
-    /*{
-        std::vector<double> x_pos, y_pos, error_u_pos, error_u_neg, error_p_pos, error_p_neg;
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateExtensionError()
+    {
+        std::vector<double> x_pos, y_pos, error_u_pos, error_u_neg, error_p_pos, error_p_neg, error_dpX_pos, error_dpY_pos, error_dpX_neg, error_dpY_neg;
 
         std::size_t n_skin_points_without_correct_extension = 0;
 
@@ -1036,6 +1036,7 @@ namespace Kratos
             const auto p_element = rKeyData.first;
             const auto& skin_points_data_vector = rKeyData.second;
             const auto& r_geom = p_element->GetGeometry();
+            const std::size_t n_dim = r_geom.WorkingSpaceDimension();
             const std::size_t n_nodes = r_geom.PointsNumber();
 
             // Iterate over the element's skin points adding a positive side and a negative side drag contribution
@@ -1047,39 +1048,54 @@ namespace Kratos
 
                 // Get shape function values of the element at the skin point
                 Vector skin_pt_N(n_nodes);
-                array_1d<double,3> int_pt_local_coords = ZeroVector(3);
-                r_geom.PointLocalCoordinates(int_pt_local_coords, skin_pt_position);
-                r_geom.ShapeFunctionsValues(skin_pt_N, int_pt_local_coords);
+                Matrix skin_pt_DN_DX = ZeroMatrix(n_nodes, n_dim);
+                GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
-                // Calculate pressure at skin point for positive and negative side of Gamma
-                double p_pos, p_neg;
-                const bool p_calculated_successfully = CalculatePressureAtSplitElementSkinPoint(p_element, skin_pt_N, p_pos, p_neg);
-                if (!p_calculated_successfully) {
-                    n_skin_points_without_correct_extension++;
-                }
-
+                // Calculate the velocity at the skin point for positive and negative side of Gamma
                 array_1d<double,3> u_pos, u_neg;
                 const bool u_calculated_successfully = CalculateVelocityAtSplitElementSkinPoint(p_element, skin_pt_N, u_pos, u_neg);
                 if (!u_calculated_successfully) {
                     n_skin_points_without_correct_extension++;
                 }
 
-                const double p_analyt = 100.0 * (1.0 - skin_pt_position[1]);
+                // Calculate the pressure at the skin point for positive and negative side of Gamma
+                double p_pos, p_neg;
+                const bool p_calculated_successfully = CalculatePressureAtSplitElementSkinPoint(p_element, skin_pt_N, p_pos, p_neg);
+                if (!p_calculated_successfully) {
+                    n_skin_points_without_correct_extension++;
+                }
+
+                // Calculate the pressure gradient at the skin point for positive and negative side of Gamma
+                Vector dp_pos, dp_neg;
+                const bool dp_calculated_successfully = CalculatePressureGradientAtSplitElementSkinPoint(p_element, skin_pt_DN_DX, dp_pos, dp_neg);
+
+                // Analytical solution of the hydrostatic reservoir
                 const array_1d<double,3> u_analyt = ZeroVector(3);
+                const double p_analyt = 100.0 * (1.0 - skin_pt_position[1]);
+                const double dpX_analyt =    0.0;
+                const double dpY_analyt = -100.0;
 
                 // Calculate error of velocity and pressure for positive and negative side
-                const double skin_pt_error_p_pos = std::abs(p_pos - p_analyt);
-                const double skin_pt_error_p_neg = std::abs(p_neg - p_analyt);
-                const double skin_pt_error_u_pos = norm_2(u_pos - u_analyt);
-                const double skin_pt_error_u_neg = norm_2(u_neg - u_analyt);
+                const double skin_pt_error_u_pos   = norm_2(u_pos - u_analyt);
+                const double skin_pt_error_u_neg   = norm_2(u_neg - u_analyt);
+                const double skin_pt_error_p_pos   = std::abs(p_pos - p_analyt);
+                const double skin_pt_error_p_neg   = std::abs(p_neg - p_analyt);
+                const double skin_pt_error_dpX_pos = std::abs(dp_pos(0) - dpX_analyt);
+                const double skin_pt_error_dpY_pos = std::abs(dp_pos(1) - dpY_analyt);
+                const double skin_pt_error_dpX_neg = std::abs(dp_neg(0) - dpX_analyt);
+                const double skin_pt_error_dpY_neg = std::abs(dp_neg(1) - dpY_analyt);
 
                 // Add data to vectors
                 x_pos.push_back(skin_pt_position[0]);
                 y_pos.push_back(skin_pt_position[1]);
-                error_p_pos.push_back(skin_pt_error_p_pos);
-                error_p_neg.push_back(skin_pt_error_p_neg);
                 error_u_pos.push_back(skin_pt_error_u_pos);
                 error_u_neg.push_back(skin_pt_error_u_neg);
+                error_p_pos.push_back(skin_pt_error_p_pos);
+                error_p_neg.push_back(skin_pt_error_p_neg);
+                error_dpX_pos.push_back(skin_pt_error_dpX_pos);
+                error_dpY_pos.push_back(skin_pt_error_dpY_pos);
+                error_dpX_neg.push_back(skin_pt_error_dpX_neg);
+                error_dpY_neg.push_back(skin_pt_error_dpY_neg);
             }
         }
             KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_skin_points_without_correct_extension > 0)
@@ -1091,7 +1107,11 @@ namespace Kratos
         KRATOS_WATCH(error_u_neg);
         KRATOS_WATCH(error_p_pos);
         KRATOS_WATCH(error_p_neg);
-    }*/
+        KRATOS_WATCH(error_dpX_pos);
+        KRATOS_WATCH(error_dpY_pos);
+        KRATOS_WATCH(error_dpX_neg);
+        KRATOS_WATCH(error_dpY_neg);
+    }
 
     template <std::size_t TDim>
     bool ShiftedBoundaryPointBasedInterfaceUtility::CalculateUnknownsForBothSidesOfSplitElement(
@@ -1262,6 +1282,92 @@ namespace Kratos
                     }
                 } else { point_is_without_positive_extension = true; }
                 rNegativeSidePressure += i_node_N * p_node->FastGetSolutionStepValue(PRESSURE);
+            }
+        }
+        if (point_is_without_positive_extension || point_is_without_negative_extension) { return false; }
+        else { return true; }
+    }
+
+    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureGradientAtSplitElementSkinPoint(
+        const ElementType::Pointer pElement,
+        const Matrix& rPointShapeFunctionDerivatives,
+        Vector& rPositiveSidePressureGradient,
+        Vector& rNegativeSidePressureGradient)
+    {
+        //TODO ? Check whether the element is actually a part of the boundary
+        // if (!pElement->Is(SBM_BOUNDARY)) {
+        //     return 0;
+        // }
+        const auto& r_geom = pElement->GetGeometry();
+        const std::size_t n_dim = r_geom.WorkingSpaceDimension();
+        const std::size_t n_nodes = r_geom.PointsNumber();
+
+        // Initialize pressure variables
+        rPositiveSidePressureGradient = ZeroVector(n_dim);
+        rNegativeSidePressureGradient = ZeroVector(n_dim);
+
+        Vector sides_vector(n_nodes);
+        const std::size_t sides_found = mSidesVectorMap.count(pElement);
+        // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
+        if (!sides_found) {
+            // Create sides vector based on belonging to SBM_BOUNDARY or SBM_INTERFACE of the elements nodes, if possible
+            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                auto& r_node = r_geom[i_node];
+                if (r_node.Is(SBM_BOUNDARY)) {
+                    sides_vector[i_node] =  1.0;
+                } else if (r_node.Is(SBM_INTERFACE)) {
+                    sides_vector[i_node] = -1.0;
+                } else { return false; }
+            }
+            // Store the created sides vector for future calculations
+            mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
+        } else {
+            // Get sides vector for the element the skin node is located in
+            sides_vector = mSidesVectorMap[pElement];
+        }
+
+        // Calculate positive and negative side pressure gradient at skin node
+        bool point_is_without_positive_extension = false;
+        bool point_is_without_negative_extension = false;
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto p_node = r_geom(i_node);
+
+            // Check whether extension exists for node
+            const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
+
+            // The extension needs to be used for nodes of the element which are located on the other side of the pressure that is being calculated
+            if (sides_vector[i_node] > 0.0) {
+                for (std::size_t d = 0; d < n_dim; ++d) {
+                    rPositiveSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * p_node->FastGetSolutionStepValue(PRESSURE);
+                }
+                if (extension_found) {
+                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
+                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
+                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+                        //const auto& r_support_node_data = *it_data;
+                        const auto p_support_node = std::get<0>(*it_data);
+                        const double weight_support_node = std::get<1>(*it_data);
+                        for (std::size_t d = 0; d < n_dim; ++d) {
+                            rNegativeSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * weight_support_node * p_node->FastGetSolutionStepValue(PRESSURE);
+                        }
+                    }
+                } else { point_is_without_negative_extension = true; }
+            } else {
+                if (extension_found) {
+                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
+                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
+                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+                        //const auto& r_support_node_data = *it_data;
+                        const auto p_support_node = std::get<0>(*it_data);
+                        const double weight_support_node = std::get<1>(*it_data);
+                        for (std::size_t d = 0; d < n_dim; ++d) {
+                            rPositiveSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * weight_support_node * p_node->FastGetSolutionStepValue(PRESSURE);
+                        }
+                    }
+                } else { point_is_without_positive_extension = true; }
+                for (std::size_t d = 0; d < n_dim; ++d) {
+                    rNegativeSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * p_node->FastGetSolutionStepValue(PRESSURE);
+                }
             }
         }
         if (point_is_without_positive_extension || point_is_without_negative_extension) { return false; }
@@ -1639,6 +1745,13 @@ namespace Kratos
                         const array_1d<double,3> r_coords = p_node->Coordinates();
                         const double kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
                         p_meshless_sh_func(cloud_nodes_coordinates, r_coords, kernel_rad, N_container);
+
+                        // if (sides_vector[i_node] < 0.0) {
+                        //     Vector N_container_aux;
+                        //     Matrix DNDX_container;
+                        //     MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>(cloud_nodes_coordinates, r_coords, kernel_rad, N_container_aux, DNDX_container);
+                        //     KRATOS_WATCH(DNDX_container);
+                        // }
 
                         // Save the extension operator nodal data to the extension operator map
                         CloudDataVectorType cloud_data_vector(n_cloud_nodes);

@@ -290,6 +290,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             if self.postprocess_pressure:
                 sbm_interface_utility.CalculatePressureAtSkinNodes()
 
+            #sbm_interface_utility.CalculateExtensionError()
+
         # Call the base solver FinalizeSolutionStep()
         super(NavierStokesShiftedBoundaryMonolithicSolver, self).FinalizeSolutionStep()
 

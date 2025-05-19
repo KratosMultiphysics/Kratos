@@ -203,6 +203,9 @@ public:
     void CalculateVariablesAtSkinPointsTemplated();
     void CalculateVariablesAtSkinPoints();
 
+    //TODO
+    void CalculateExtensionError();
+
     ///@}
     ///@name Access
     ///@{
@@ -428,6 +431,12 @@ protected:
         const Vector& rPointShapeFunctionValues,
         double& rPositiveSidePressure,
         double& rNegativeSidePressure);
+
+    bool CalculatePressureGradientAtSplitElementSkinPoint(
+        const ElementType::Pointer pElement,
+        const Matrix& rPointShapeFunctionDerivatives,
+        Vector& rPositiveSidePressureGradient,
+        Vector& rNegativeSidePressureGradient);
 
     bool CalculateVelocityAtSplitElementSkinPoint(
         const ElementType::Pointer pElement,
