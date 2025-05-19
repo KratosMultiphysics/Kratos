@@ -938,8 +938,8 @@ void SmallStrainUDSM3DLaw::SetValue(const Variable<Vector>& rVariable, const Vec
     if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
-        KRATOS_ERROR_IF(rValue.size() != StressVectorSize)
-            << "Failed to set stress vector: expected one with " << StressVectorSize
+        KRATOS_ERROR_IF(rValue.size() != GetStrainSize())
+            << "Failed to set stress vector: expected one with " << GetStrainSize()
             << " components, but got one with " << rValue.size() << "components\n";
         std::copy(rValue.begin(), rValue.end(), mSig0.begin());
     }
