@@ -57,9 +57,6 @@ public:
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_2D;
 
-    /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
-
     /// Pointer definition of SmallStrainUDSM2DPlaneStrainLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM2DPlaneStrainLaw);
 
@@ -86,7 +83,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() const override { return VoigtSize; }
+    [[nodiscard]] SizeType GetStrainSize() const override;
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)

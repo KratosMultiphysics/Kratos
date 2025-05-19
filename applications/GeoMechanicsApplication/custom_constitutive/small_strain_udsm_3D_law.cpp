@@ -223,6 +223,8 @@ void SmallStrainUDSM3DLaw::GetLawFeatures(Features& rFeatures)
     KRATOS_CATCH("")
 }
 
+SizeType SmallStrainUDSM3DLaw::GetStrainSize() const { return VOIGT_SIZE_3D; }
+
 int SmallStrainUDSM3DLaw::Check(const Properties&   rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const ProcessInfo&  rCurrentProcessInfo) const

@@ -71,16 +71,16 @@ void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Para
 {
     if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM]) {
         // transfer fortran style matrix to C++ style
-        for (unsigned int i = 0; i < VoigtSize; i++) {
-            for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int i = 0; i < GetStrainSize(); i++) {
+            for (unsigned int j = 0; j < GetStrainSize(); j++) {
                 rConstitutiveMatrix(i, j) =
                     mMatrixD[getIndex3D(static_cast<indexStress3DInterface>(j))]
                             [getIndex3D(static_cast<indexStress3DInterface>(i))];
             }
         }
     } else {
-        for (unsigned int i = 0; i < VoigtSize; i++) {
-            for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int i = 0; i < GetStrainSize(); i++) {
+            for (unsigned int j = 0; j < GetStrainSize(); j++) {
                 rConstitutiveMatrix(i, j) =
                     mMatrixD[getIndex3D(static_cast<indexStress3DInterface>(i))]
                             [getIndex3D(static_cast<indexStress3DInterface>(j))];
@@ -108,7 +108,7 @@ Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSM3DLaw::GetValue(rVariable, rValue);
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
-        rValue.resize(VoigtSize);
+        rValue.resize(GetStrainSize());
 
         auto& r_sig0                  = GetSig0();
         rValue[INDEX_3D_INTERFACE_ZZ] = r_sig0[INDEX_3D_ZZ];
@@ -124,9 +124,10 @@ void SmallStrainUDSM3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSM3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == GetStrainSize())) {
         this->SetInternalStressVector(rValue);
     }
 }
 
+SizeType SmallStrainUDSM3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_3D_INTERFACE; }
 } // namespace Kratos

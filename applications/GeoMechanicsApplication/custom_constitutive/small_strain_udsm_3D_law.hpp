@@ -112,9 +112,6 @@ public:
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_3D;
 
-    /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_3D;
-
     static constexpr SizeType Sig0Size                  = 20;
     static constexpr SizeType StressVectorSize          = 6;
     static constexpr SizeType StrainIncrementVectorSize = 12;
@@ -163,7 +160,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    [[nodiscard]] SizeType GetStrainSize() const override { return VoigtSize; }
+    [[nodiscard]] SizeType GetStrainSize() const override;
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
