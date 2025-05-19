@@ -73,17 +73,17 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( QUADRATIC_ELEMENT );        // True means quadratic in-plane behaviour
     KRATOS_DEFINE_LOCAL_FLAG( EXPLICIT_RHS_COMPUTATION ); // True means elastic behaviour for stabilization
 
-    ///Reference type definition for constitutive laws
+    /// Reference type definition for constitutive laws
     using ConstitutiveLawType = ConstitutiveLaw;
 
-    ///Pointer type for constitutive laws
+    /// Pointer type for constitutive laws
     using ConstitutiveLawPointerType = ConstitutiveLawType::Pointer;
 
-    ///StressMeasure from constitutive laws
+    /// StressMeasure from constitutive laws
     using StressMeasureType = ConstitutiveLawType::StressMeasure;
 
-    ///Type definition for integration methods
-    using IntegrationMethod = GeometryData::IntegrationMethod;
+    /// Integration methods implemented in geometry.
+    using IntegrationMethod = GeometryType::IntegrationMethod;
 
     /// The base element type
     using BaseType = BaseSolidElement;
@@ -102,9 +102,6 @@ public:
 
     /// The vector containing the weak pointers to the nodes
     using WeakPointerVectorNodesType = GlobalPointersVector<Node>;
-
-    /// Integration methods implemented in geometry.
-    using IntegrationMethod = GeometryType::IntegrationMethod;
 
     /// The definition of the integration points array type
     using IntegrationPointsArrayType = GeometryType::IntegrationPointsArrayType;
