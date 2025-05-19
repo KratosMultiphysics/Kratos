@@ -635,10 +635,8 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
-
-    for (unsigned int i = 0; i < GetStrainSize(); ++i) {
-        mDeltaStrainVector[i] = r_strain_vector[i] - mStrainVectorFinalized[i];
-    }
+    std::transform(r_strain_vector.begin(), r_strain_vector.begin() + GetStrainSize(),
+                   mStrainVectorFinalized.begin(), mDeltaStrainVector.begin(), std::minus<>{});
 }
 
 void SmallStrainUDSM3DLaw::SetExternalStressVector(Vector& rStressVector)
