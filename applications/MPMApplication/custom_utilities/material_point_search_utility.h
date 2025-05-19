@@ -418,7 +418,6 @@ namespace Kratos::MPMSearchElementUtility
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
             auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
             element_itr->Reset(ACTIVE);
-            auto& r_geometry = element_itr->GetGeometry();
             
             element_itr->GetGeometry().SetValue(MP_COUNTER, 0);
         }
