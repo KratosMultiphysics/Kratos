@@ -127,7 +127,6 @@ protected:
     ///@}
     ///@name Protected  Access
     ///@{
-    void SetExternalStressVector(Vector& rStressVector) override;
 
     ///@}
     ///@name Protected Inquiry

@@ -651,9 +651,7 @@ void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Para
 
 void SmallStrainUDSM3DLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    KRATOS_TRY
-    std::copy_n(mStressVector.begin(), rStressVector.size(), rStressVector.begin());
-    KRATOS_CATCH("")
+    std::copy_n(mStressVector.begin(), GetStrainSize(), rStressVector.begin());
 }
 
 void SmallStrainUDSM3DLaw::SetInternalStressVector(const Vector& rStressVector)
