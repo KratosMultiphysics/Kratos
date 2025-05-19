@@ -191,7 +191,7 @@ c
       call check_parms_h(props,nprops,parms,nparms)
       write(6,*) 'in umat_hypo, line 192'
 c
-c ... print informations about time integration, useful when problems occur
+c ... print information about time integration, useful when problems occur
 c
       elprsw = .false.
       write(6,*) 'in umat_hypo, line 197'
@@ -1574,7 +1574,7 @@ c-----------------------------------------------------------------------------
 c-----------------------------------------------------------------------------
 c
 c  numerical solution of y'=f(y)
-c  explicit, adapive RKF23 scheme with local time step extrapolation
+c  explicit, adaptive RKF23 scheme with local time step extrapolation
 c
 c  Tamagnini, Sellari & Miriano 6/2005
 c
