@@ -1448,55 +1448,6 @@ protected:
         const double IntegrationWeight
         );
 
-    /**
-     * @brief Retrieves all integration points associated with the solid shell element.
-     * @details This static function constructs and returns a container holding the integration points used in the solid shell element's numerical integration process. The integration points are intended to be generated via specific quadrature rules tailored to prism elements.
-     * @return IntegrationPointsContainerType A container with all the integration points required for this element.
-     */
-    static const IntegrationPointsContainerType AllIntegrationPoints();
-
-    /**
-     * @brief Calculates the values of all shape function in all integration points.
-     * @details Integration points are expected to be given in local coordinates
-     * @param ThisMethod the current integration method
-     * @return the matrix of values of every shape function in each integration point
-     */
-    static Matrix CalculateShapeFunctionsIntegrationPointsValues(const IntegrationMethod ThisMethod);
-
-    /**
-     * @brief Generates a container with precomputed shape functions values.
-     * @details This function evaluates and collects the shape function values at integration points
-     * for various Gauss integration methods. It calls the function
-     * CalculateShapeFunctionsIntegrationPointsValues() for each of the following methods:
-     * - GI_GAUSS_1
-     * - GI_GAUSS_2
-     * - GI_GAUSS_3
-     * - GI_GAUSS_4
-     * - GI_GAUSS_5
-     * The results are stored in a ShapeFunctionsValuesContainerType, with each element
-     * corresponding to the shape function values for a specific Gauss integration method.
-     * @return ShapeFunctionsValuesContainerType containing the shape functions values
-     *         evaluated at the respective integration points.
-     */
-    static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues();
-
-    /**
-     * @brief Calculates the local gradients of all shape functions in all integration points.
-     * @details Integration points are expected to be given in local coordinates
-     * @param ThisMethod the current integration method
-     * @return The vector of the gradients of all shape functions in each integration point
-     */
-    static ShapeFunctionsGradientsType
-    CalculateShapeFunctionsIntegrationPointsLocalGradients(const IntegrationMethod ThisMethod);
-
-    /**
-     * @brief Computes and returns a container with local gradients for shape functions.
-     * @details This function calculates the local gradients of the shape functions used by the element at various integration points determined by different Gauss integration methods. It generates the local gradients for each of the predefined integration methods (GI_GAUSS_1 to GI_GAUSS_5) and stores them in a container.
-     * @return ShapeFunctionsLocalGradientsContainerType A container holding the local gradients for each
-     * integration point corresponding to the different Gauss integration methods.
-     */
-    static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients();
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1511,19 +1462,6 @@ protected:
 
     ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    inline static const GeometryDimension msGeometryDimension = GeometryDimension(3, 3); /// Dimension of the geometry
-    inline static const GeometryData msGeometryData = GeometryData(
-        &msGeometryDimension,
-        GeometryData::IntegrationMethod::GI_GAUSS_1,
-        AllIntegrationPoints(),
-        AllShapeFunctionsValues(),
-        AllShapeFunctionsLocalGradients()
-        ); /// Geometry data
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -1614,6 +1552,68 @@ private:
             rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
         }
     }
+
+    /**
+     * @brief Retrieves all integration points associated with the solid shell element.
+     * @details This static function constructs and returns a container holding the integration points used in the solid shell element's numerical integration process. The integration points are intended to be generated via specific quadrature rules tailored to prism elements.
+     * @return IntegrationPointsContainerType A container with all the integration points required for this element.
+     */
+    static const IntegrationPointsContainerType AllIntegrationPoints();
+
+    /**
+     * @brief Calculates the values of all shape function in all integration points.
+     * @details Integration points are expected to be given in local coordinates
+     * @param ThisMethod the current integration method
+     * @return the matrix of values of every shape function in each integration point
+     */
+    static Matrix CalculateShapeFunctionsIntegrationPointsValues(const IntegrationMethod ThisMethod);
+
+    /**
+     * @brief Generates a container with precomputed shape functions values.
+     * @details This function evaluates and collects the shape function values at integration points
+     * for various Gauss integration methods. It calls the function
+     * CalculateShapeFunctionsIntegrationPointsValues() for each of the following methods:
+     * - GI_GAUSS_1
+     * - GI_GAUSS_2
+     * - GI_GAUSS_3
+     * - GI_GAUSS_4
+     * - GI_GAUSS_5
+     * The results are stored in a ShapeFunctionsValuesContainerType, with each element
+     * corresponding to the shape function values for a specific Gauss integration method.
+     * @return ShapeFunctionsValuesContainerType containing the shape functions values
+     *         evaluated at the respective integration points.
+     */
+    static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues();
+
+    /**
+     * @brief Calculates the local gradients of all shape functions in all integration points.
+     * @details Integration points are expected to be given in local coordinates
+     * @param ThisMethod the current integration method
+     * @return The vector of the gradients of all shape functions in each integration point
+     */
+    static ShapeFunctionsGradientsType
+    CalculateShapeFunctionsIntegrationPointsLocalGradients(const IntegrationMethod ThisMethod);
+
+    /**
+     * @brief Computes and returns a container with local gradients for shape functions.
+     * @details This function calculates the local gradients of the shape functions used by the element at various integration points determined by different Gauss integration methods. It generates the local gradients for each of the predefined integration methods (GI_GAUSS_1 to GI_GAUSS_5) and stores them in a container.
+     * @return ShapeFunctionsLocalGradientsContainerType A container holding the local gradients for each
+     * integration point corresponding to the different Gauss integration methods.
+     */
+    static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients();
+
+    ///@}
+    ///@name Static Member Variables
+    ///@{
+
+    inline static const GeometryDimension msGeometryDimension = GeometryDimension(3, 3); /// Dimension of the geometry
+    inline static const GeometryData msGeometryData = GeometryData(
+        &msGeometryDimension,
+        GeometryData::IntegrationMethod::GI_GAUSS_1,
+        AllIntegrationPoints(),
+        AllShapeFunctionsValues(),
+        AllShapeFunctionsLocalGradients()
+        ); /// Geometry data
 
     ///@}
     ///@name Private  Access
