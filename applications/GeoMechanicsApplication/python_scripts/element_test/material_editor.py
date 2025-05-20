@@ -25,11 +25,11 @@ class MaterialEditor:
         with open(self.json_path, 'w') as f:
             json.dump(self.data, f, indent=4)
 
-    def _convert_type(self, value):
+    def _convert_type(self, value_string):
         try:
-            if '.' in value or 'e' in value.lower():
-                return float(value)
+            if '.' in value_string or 'e' in value_string.lower():
+                return float(value_string)
             else:
-                return int(value)
+                return int(value_string)
         except ValueError:
-            return value
+            return value_string
