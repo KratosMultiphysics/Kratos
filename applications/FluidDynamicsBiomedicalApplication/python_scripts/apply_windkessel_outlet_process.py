@@ -37,9 +37,9 @@ class ApplyWindkesselOutletProcess(KratosMultiphysics.Process):
         # Trick: allows "value" to be a double, a string or a table value (otherwise the ValidateAndAssignDefaults might fail)
         if(settings.Has("value")):
             if(settings["value"].IsString()):
-                settings["value"].SetString("0.0")
+                default_settings["value"].SetString("0.0")
             elif settings["value"].IsNumber():
-                settings["value"].SetDouble(0.0)
+                default_settings["value"].SetDouble(0.0)
         else:
             err_msg = "Provided settings have no 'value'. This needs to be provided."
             raise Exception(err_msg)
