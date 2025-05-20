@@ -29,8 +29,7 @@ int IntersectionUtilities::ComputeTriangleLineIntersection(
     const array_1d<double,3>& rLinePoint1,
     const array_1d<double,3>& rLinePoint2,
     array_1d<double,3>& rIntersectionPoint,
-    const double Epsilon
-    ) 
+    const double Epsilon) 
 {
     // This is the adaption of the implementation provided in:
     // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
@@ -86,8 +85,7 @@ bool IntersectionUtilities::TriangleLineIntersection2D(
     const array_1d<double,3>& rVert1,
     const array_1d<double,3>& rVert2,
     const array_1d<double,3>& rPoint0,
-    const array_1d<double,3>& rPoint1
-    )
+    const array_1d<double,3>& rPoint1)
 {
     // Check the intersection of each edge against the intersecting object
     array_1d<double,3> int_point;
@@ -109,8 +107,7 @@ bool IntersectionUtilities::PointInTriangle(
     const array_1d<double,3>& rVert1,
     const array_1d<double,3>& rVert2,
     const array_1d<double,3>& rPoint,
-    const double Tolerance
-    )
+    const double Tolerance)
 {
     const array_1d<double,3> u = rVert1 - rVert0;
     const array_1d<double,3> v = rVert2 - rVert0;
@@ -141,8 +138,7 @@ int IntersectionUtilities::ComputeLineLineIntersection(
     const array_1d<double,3>& rLine2Point0,
     const array_1d<double,3>& rLine2Point1,
     array_1d<double,3>& rIntersectionPoint,
-    const double Epsilon
-    )
+    const double Epsilon)
 {
     const array_1d<double,3> r = rLine1Point1 - rLine1Point0;
     const array_1d<double,3> s = rLine2Point1 - rLine2Point0;
@@ -198,8 +194,7 @@ int IntersectionUtilities::ComputePlaneLineIntersection(
     const array_1d<double,3>& rLinePoint1,
     const array_1d<double,3>& rLinePoint2,
     array_1d<double,3>& rIntersectionPoint,
-    const double Epsilon
-    )
+    const double Epsilon)
 {
     // This is the adaption of the implementation provided in:
     // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
@@ -238,8 +233,7 @@ int IntersectionUtilities::ComputeLineBoxIntersection(
     const array_1d<double,3>& rBoxPoint0,
     const array_1d<double,3>& rBoxPoint1,
     const array_1d<double,3>& rLinePoint0,
-    const array_1d<double,3>& rLinePoint1
-    )
+    const array_1d<double,3>& rLinePoint1)
 {
     array_1d<double,3> intersection_point = ZeroVector(3);
 
