@@ -86,6 +86,47 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerUPwScheme_SetsTimeFactors, Krat
                             expected_velocity_coefficient);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_PredictsWaterPressure, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    BackwardEulerQuasiStaticUPwSchemeTester tester;
+
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+    tester.GetModelPart().GetProcessInfo()[DELTA_TIME]                              = 4.0;
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 3.0;
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
+    tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
+    constexpr auto expected_water_pressure = 13.0;
+
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(WATER_PRESSURE, 0),
+                            expected_water_pressure);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_PredictsWaterPressureWhenDerivativeIsFixed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    BackwardEulerQuasiStaticUPwSchemeTester tester;
+
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+    tester.GetModelPart().GetProcessInfo()[DELTA_TIME]                              = 4.0;
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 3.0;
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 0) = 7.0;
+    tester.GetModelPart().GetNode(0).Fix(DT_WATER_PRESSURE);
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
+    tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
+    constexpr auto expected_water_pressure = 29;
+
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(WATER_PRESSURE, 0),
+                            expected_water_pressure);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivatives, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     BackwardEulerQuasiStaticUPwSchemeTester tester;
@@ -96,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
     Vector                   b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
-
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 0.25;
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
     constexpr auto expected_dt_water_pressure = 0.25;

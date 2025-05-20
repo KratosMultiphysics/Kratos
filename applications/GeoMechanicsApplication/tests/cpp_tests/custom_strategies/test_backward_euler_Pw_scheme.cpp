@@ -32,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_When
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
 
-    constexpr double current_pressure  = 1.0;
+    constexpr double current_pressure  = 0.0;
     constexpr double previous_pressure = 0.0;
     constexpr double delta_time        = 4.0;
 
@@ -41,6 +41,9 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_When
     auto p_node = model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
     p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = current_pressure;
     p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = previous_pressure;
+    p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 0.25;
+    p_node->AddDof(DT_WATER_PRESSURE);
+    p_node->AddDof(WATER_PRESSURE);
 
     KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE, 0), 0.0);
 
@@ -53,8 +56,8 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerPwScheme_UpdatesVariablesDerivatives_When
 
     scheme.Predict(model_part, dof_set, A, Dx, b);
 
-    constexpr double expected_dt_temperature = 0.25;
-    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE, 0), expected_dt_temperature);
+    constexpr double expected_dt_water_pressure = 0.25;
+    KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(DT_WATER_PRESSURE, 0), expected_dt_water_pressure);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InitializeBackwardEulerPwScheme_SetsTimeFactors, KratosGeoMechanicsFastSuiteWithoutKernel)
