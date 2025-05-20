@@ -74,7 +74,9 @@ namespace Kratos
             ModelPart &model_part,
             std::vector<ModelPart *> model_part_vector,
             const std::vector<double> &interfaces_positions,
-            const std::vector<double> &interfaces_density_values) : mMainModelPart(model_part), mModelPartVector(model_part_vector), mIsBlurrinessComputed(false)
+            const std::vector<double> &interfaces_density_values,
+            const double& u0,
+            const double& r0) : mMainModelPart(model_part), mModelPartVector(model_part_vector), mIsBlurrinessComputed(false), mU0(u0), mR0(r0)
         {
             // Check that the dimensions are correct
             KRATOS_ERROR_IF(interfaces_positions.size() != interfaces_density_values.size() + 1)
@@ -111,6 +113,12 @@ namespace Kratos
             // << "The model part " << mMainModelPart.Name() << " does not have the error variable STEP_SOLUTION_ERROR" << std::endl;
         }
 
+        BlurrinessCalculator(
+            ModelPart &model_part,
+            std::vector<ModelPart *> model_part_vector,
+            const std::vector<double> &interfaces_positions,
+            const std::vector<double> &interfaces_density_values): BlurrinessCalculator(model_part, model_part_vector, interfaces_positions, interfaces_density_values, 1.0, 1.0){}
+
         /// Turn back information as a string.
         std::string Info() const
         {
@@ -128,10 +136,12 @@ namespace Kratos
         /// @brief Compute the blurriness of each interface
         void ComputeBlurriness()
         {
+            double scale_factor = mR0 * mR0 * mU0;
             for (unsigned m = 0; m < mModelPartVector.size(); m++)
             {
                 std::vector<double> layer_integrals(mNumLayers, 0.); // Defined as \int{ (rho_h - rho_step)^2 dQ } , dQ = u * dS
                 std::vector<double> layer_flows(mNumLayers, 0.);     // Velocity flows of each layer
+                double area = 0.0, max_diff = 0.;
 
                 ModelPart &r_model_part = *(mModelPartVector[m]);
                 const unsigned number_of_conditions = r_model_part.NumberOfConditions();
@@ -155,8 +165,7 @@ namespace Kratos
                     unsigned ith_interface = mNumLayers; // Initialize it with an impossible value
                     for (unsigned i = 0; i < mNumLayers; i++)
                     {
-                        double z1 = mInterfacesPositions[i], z2 = mInterfacesPositions[i + 1];
-                        if (condition_center_z >= z1 && condition_center_z <= z2)
+                        if (condition_center_z <= mInterfacesPositions[i + 1])
                         {
                             ith_interface = i;
                             break;
@@ -197,20 +206,39 @@ namespace Kratos
 
                         double step_sol_error, normal_vel;
                         InterpolateAtPosition(p_elem, gauss_point_local, normal_vec, step_sol_error, normal_vel);
+                        double err_abs = abs(step_sol_error);
+                        max_diff = (err_abs >  max_diff) ? err_abs : max_diff;
 
                         double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
-                        layer_integrals[ith_interface] += Weight * step_sol_error * step_sol_error * normal_vel;
-                        layer_flows[ith_interface] += Weight * normal_vel;
+                        area += Weight;
+                        layer_flows[ith_interface] += Weight * normal_vel / scale_factor;
+                        layer_integrals[ith_interface] += Weight * step_sol_error * step_sol_error * normal_vel / scale_factor;
+
+                        // Divide by its scale factor
+                        // layer_flows[ith_interface] /= scale_factor;
+                        // layer_integrals[ith_interface] /= scale_factor;
                     }
                 }
+
+                // Compute blurriness for this model part
+                double exact_area = M_PI * pow(.5e-3, 2);
+                double error = abs(exact_area - area) / exact_area;
+
+                std::cout << "Numerical dimensionless values:" << std::endl;
+                std::cout << "Area = " << area << " (rel err ~ " << error << ")" << std::endl;
+                std::cout << "Max step sol err = " << max_diff << std::endl;
 
                 for (unsigned i = 0; i < mNumLayers; i++)
                 {
                     layer_integrals[i] = abs(layer_integrals[i]);
                     layer_flows[i] = abs(layer_flows[i]);
+
+                    // Print info
+                    std::cout << "Layer " << i << ":" << std::endl;
+                    std::cout << "  - ui = " << mLayersDensityValues[i] << std::endl;
+                    std::cout << "  - qi = " << layer_flows[i] << std::endl;
+                    std::cout << "  - layer integral = " << layer_integrals[i] << std::endl;
                 }
-                
-                
 
                 // Compute total velocity flux and normalize the surface integral values
                 double total_flow = 0.0;
@@ -226,6 +254,8 @@ namespace Kratos
                 {
                     asymptotic_sol_value += mLayersDensityValues[i] * layer_flows[i] / total_flow;
                 }
+                std::cout << "qt = " << total_flow << std::endl;
+                std::cout << "u_inf = " << asymptotic_sol_value << std::endl;
 
                 // Set blurriness to 0
                 for (unsigned i = 0; i < mNumLayers; i++)
@@ -242,12 +272,17 @@ namespace Kratos
                     double norm_factor = density_diff_1 * density_diff_1 + density_diff_2 * density_diff_2;
 
                     // Layer integrals
-                    // double integral_layer_1 = std::sqrt(layer_integrals[i]);
-                    // double integral_layer_2 = std::sqrt(layer_integrals[i + 1]);
-                    // mBlurriness[m][i] = (integral_layer_1 + integral_layer_2) / norm_factor;
                     mBlurriness[m][i] = (layer_integrals[i] + layer_integrals[i + 1]) / norm_factor;
                     mBlurriness[m][i] = std::sqrt(mBlurriness[m][i]);
+
+                    // Print info
+                    std::cout << "Interface " << i << ":" << std::endl;
+                    std::cout << "  - norm_factor = " << norm_factor << std::endl;
+                    std::cout << "  - num / qi = " << layer_integrals[i] + layer_integrals[i + 1] << std::endl;
+                    std::cout << "  - blurriness^2 = " << mBlurriness[m][i] * mBlurriness[m][i] << std::endl;
+                    std::cout << "  - blurriness = " << mBlurriness[m][i] << std::endl;
                 }
+
             }
             mIsBlurrinessComputed = true;
         }
@@ -272,6 +307,8 @@ namespace Kratos
         std::vector<std::vector<double>> mBlurriness;
         unsigned mNumLayers;
         bool mIsBlurrinessComputed;
+        const double mU0; // Velocity scale
+        const double mR0; // Length scale
 
         /// Default constructor.
         BlurrinessCalculator() = delete;
@@ -322,23 +359,12 @@ namespace Kratos
                 array_1d<double, 3> nodal_vel = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                 for (unsigned d = 0; d < 3; d++)
                 {
-                    nodal_normal_velocity += nodal_vel[d] * normal_vec[d];
+                    nodal_normal_velocity += (nodal_vel[d]) * normal_vec[d];
                 }
 
                 double shape_function_value = r_geometry.ShapeFunctionValue(n, p_pos_local);
                 step_func_error += nodal_step_func_error * shape_function_value;
                 normal_velocity += nodal_normal_velocity * shape_function_value;
-            }
-        }
-
-        double StepFunction(double z)
-        {
-            for (unsigned i = 0; i < mNumLayers; i++)
-            {
-                if (z >= mInterfacesPositions[i] && z <= mInterfacesPositions[i + 1])
-                {
-                    return mLayersDensityValues[i];
-                }
             }
         }
     }; // Class BlurrinessCalculator

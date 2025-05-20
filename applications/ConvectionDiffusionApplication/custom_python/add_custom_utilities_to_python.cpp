@@ -172,6 +172,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<BlurrinessCalculator>(m, "BlurrinessCalculator")
     .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&>())
+    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&, const double&, const double&>())
     .def("ComputeBlurriness", &BlurrinessCalculator::ComputeBlurriness)
     .def("GetBlurriness", &BlurrinessCalculator::GetBlurriness)
     ;
