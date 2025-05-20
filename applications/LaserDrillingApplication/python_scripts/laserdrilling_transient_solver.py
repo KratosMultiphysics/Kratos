@@ -55,7 +55,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.delta_time = self.main_model_part.ProcessInfo[
             KratosMultiphysics.DELTA_TIME
-        ]  # TODO: Make delta_time a local variable
+        ]  # TODO: Make delta_time a local variable?
 
         self.jump_between_pulses_counter += self.delta_time
         error_in_delta_time = abs(self.jump_between_pulses_counter - self.time_jump_between_pulses)
