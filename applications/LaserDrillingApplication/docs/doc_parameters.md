@@ -4,9 +4,9 @@ In this file we describe the parameters that appear in the JSON files that deter
 
 - problem_name:
 - parallel_type: Which kind of parallelisation form to use
-- time_step (ms): Ellapsed time between each time step
-- start_time (ms): The time at the start of the simulation 
-- end_time (ms): The time at the end of the simulation
+- time_step (s): Ellapsed time between each time step
+- start_time (s): The time at the start of the simulation 
+- end_time (s): The time at the end of the simulation
 - echo_level (int):
 
 - compute_vaporisation (bool): (unused) Toggle the computation of vaporisation due to the temperature of an element exceeding the vaporisation temprature of the material.
