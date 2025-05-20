@@ -93,7 +93,7 @@ public:
      * @param rIntersectionPoint The intersection point coordinates
      * @param Epsilon The tolerance considered
      * @return The intersection type index:
-     * -1 (the triangle is degenerate)
+     * -1 (the triangle is degenerated)
      * 0 (disjoint - no intersection)
      * 1 (intersect in a unique point)
      * 2 (are in the same plane)
