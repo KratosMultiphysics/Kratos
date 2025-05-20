@@ -115,7 +115,7 @@ public:
     }
 
     // Move constructor
-    SystemVector(SystemVector<TDataType,TIndexType>& rOtherVector)
+    SystemVector(SystemVector<TDataType,TIndexType>&& rOtherVector)
     {
         mpComm = rOtherVector.mpComm;
         mData = rOtherVector.mData;
