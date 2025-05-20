@@ -1786,7 +1786,7 @@ private:
         {
             {
                 HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_1 ), // FIXME: this is the lower order geometry (i.e., quad) Lobatto quadrature and shouldn't be GI_GAUSS_1
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_LOBATTO_1 ), // T
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
