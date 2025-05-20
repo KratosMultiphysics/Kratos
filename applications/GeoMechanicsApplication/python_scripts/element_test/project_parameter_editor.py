@@ -12,21 +12,19 @@ class ProjectParameterEditor:
         with open(self.json_path, 'w') as f:
             f.write(self.raw_text)
 
-    def update_time_step_properties(self, number_of_step, end_time):
-        new_time_step = end_time / number_of_step
-        pattern = r'("time_step"\s*:\s*)([0-9eE+\.\-]+)'
-        replacement = r'\g<1>' + str(new_time_step)
+    def _update_property(self, property_name, new_value):
+        pattern = rf'("{property_name}"\s*:\s*)([0-9eE+\.\-]+)'
+        replacement = rf'\g<1>{new_value}'
         self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
         if count == 0:
-            messagebox.showwarning("Warning", "Could not find 'time_step' to update.")
+            messagebox.showwarning("Warning", f"Could not find '{property_name}' to update.")
         else:
             self._write_back()
 
+    def update_time_step_properties(self, number_of_step, end_time):
+        new_time_step = end_time / number_of_step
+        ProjectParameterEditor._update_property(self, 'time_step', new_time_step)
+
     def update_end_time_properties(self, end_time):
-        pattern = r'("end_time"\s*:\s*)([0-9eE+\.\-]+)'
-        replacement = r'\g<1>' + str(end_time)
-        self.raw_text, count = re.subn(pattern, replacement, self.raw_text)
-        if count == 0:
-            messagebox.showwarning("Warning", "Could not find 'end_time' to update.")
-        else:
-            self._write_back()
+        ProjectParameterEditor._update_property(self, 'end_time', end_time)
+

@@ -79,12 +79,12 @@ def lab_test(dll_path, index, umat_parameters, num_steps, end_time, maximum_stra
 if __name__ == "__main__":
     figs = lab_test(
         "../MohrCoulomb64.dll",
+        1,
         ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"],
-        1,           # num_steps
-        0.01,        # end_time
-        1.0,         # maximum_strain
-        10,          # initial_effective_cell_pressure
-        100          # dummy value if needed
+        0.01,
+        1.0,
+        10,
+        100
     )
 
     for i, fig in enumerate(figs):
