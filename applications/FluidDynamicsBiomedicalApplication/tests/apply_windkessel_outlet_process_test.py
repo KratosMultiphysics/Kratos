@@ -1,9 +1,6 @@
-import csv
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-from KratosMultiphysics.FluidDynamicsApplication import apply_outlet_process
 from KratosMultiphysics.FluidDynamicsBiomedicalApplication import apply_windkessel_outlet_process
 
 class ApplyWindkesselOutletProcessTest(KratosUnittest.TestCase):
@@ -29,36 +26,22 @@ class ApplyWindkesselOutletProcessTest(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,[0.0,0.0,0.0])
         return model
 
-    @classmethod
-    def __GetBlankParameters(cls):
-        return KratosMultiphysics.Parameters("""{
-            "name" : "Processes.KratosMultiphysics.FluidDynamicsBiomedicalApplication.apply_windkessel_outlet_process",
-            "Parameters"    : {
-                "model_part_name" : "OutletModelPart"
-            }
-        }""")
-
-    @classmethod
-    def tearDown(self):
-        KratosUtilities.DeleteFileIfExisting("test_outlet_table.csv")
-
     def testApplyWindkesselOutletProcessConversionFalse(self):
         # Set up test - Check the behaviour of Windkessel update when values are written in Pa
         model = self.__CreateModel()
         settings = KratosMultiphysics.Parameters("""{
             "Parameters" : {
                 "model_part_name"    : "OutletModelPart",
-                "mesh_id"            : 0,
                 "variable_name"      : "PRESSURE",
                 "constrained"        : false,
                 "value"              : 0.0,
                 "interval"           : [0.0,"End"],
-                "resistance1"        : 0.02,
-                "resistance2"        : 0.98,
-                "compliance"         : 1.02,
+                "characteristic_resistance"        : 0.02,
+                "peripheral_resistance"            : 0.98,
+                "arterial_compliance"              : 1.02,
                 "venous_pressure"    : 0.0,
                 "initial_pressure"   : 1.0,
-                "pressure_in_mmHg"   : false,
+                "pressure_unit"      : "Pa",
                 "echo_level"         : 1
             }
         }""")
@@ -76,17 +59,16 @@ class ApplyWindkesselOutletProcessTest(KratosUnittest.TestCase):
         settings = KratosMultiphysics.Parameters("""{
             "Parameters" : {
                 "model_part_name"    : "OutletModelPart",
-                "mesh_id"            : 0,
                 "variable_name"      : "PRESSURE",
                 "constrained"        : false,
                 "value"              : 0.0,
                 "interval"           : [0.0,"End"],
-                "resistance1"        : 0.02,
-                "resistance2"        : 0.98,
-                "compliance"         : 1.02,
+                "characteristic_resistance"        : 0.02,
+                "peripheral_resistance"            : 0.98,
+                "arterial_compliance"              : 1.02,
                 "venous_pressure"    : 0.0,
                 "initial_pressure"   : 1.0,
-                "pressure_in_mmHg"   : true,
+                "pressure_unit"      : "mmHg",
                 "echo_level"         : 1
             }
         }""")
