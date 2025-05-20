@@ -656,11 +656,10 @@ private:
      * @return The 2D cross product value
      */
     static inline double CrossProd2D(
-        const array_1d<double,3>& a, 
-        const array_1d<double,3>& b
-        )
+        const array_1d<double,3>& rA, 
+        const array_1d<double,3>& rB)
     {
-        return (a(0)*b(1) - a(1)*b(0));
+        return (rA(0)*rB(1) - rA(1)*rB(0));
     }
 
     /**
