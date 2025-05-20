@@ -105,8 +105,7 @@ public:
         const array_1d<double,3>& rLinePoint1,
         const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
-        const double Epsilon = 1e-12
-        );
+        const double Epsilon = 1e-12);
 
     /**
      * @brief Find the 3D intersection of a line (bounded) with a triangle (bounded)
@@ -144,8 +143,7 @@ public:
     static bool TriangleLineIntersection2D(
         const TGeometryType& rTriangle,
         const array_1d<double,3>& rPoint0,
-        const array_1d<double,3>& rPoint1
-        )
+        const array_1d<double,3>& rPoint1)
     {
         return TriangleLineIntersection2D(rTriangle[0], rTriangle[1], rTriangle[2], rPoint0, rPoint1);
     }
@@ -164,8 +162,7 @@ public:
         const array_1d<double,3>& rVert1,
         const array_1d<double,3>& rVert2,
         const array_1d<double,3>& rPoint0,
-        const array_1d<double,3>& rPoint1
-        );
+        const array_1d<double,3>& rPoint1);
 
     /**
      * @brief Check if a point is inside a 2D triangle
@@ -184,8 +181,7 @@ public:
         const array_1d<double,3>& rVert1,
         const array_1d<double,3>& rVert2,
         const array_1d<double,3>& rPoint,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        );
+        const double Tolerance = std::numeric_limits<double>::epsilon());
 
     /**
      * @brief Find the 3D intersection of a line (bounded) with a triangle (bounded) in the same plane
@@ -581,8 +577,7 @@ public:
         const array_1d<double,3>& rLinePoint0,
         const array_1d<double,3>& rLinePoint1,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12
-        )
+        const double epsilon = 1e-12)
     {
         return ComputeLineLineIntersection(
             rLineGeometry[0], rLineGeometry[1], rLinePoint0, rLinePoint1, rIntersectionPoint, epsilon);
@@ -608,8 +603,7 @@ public:
         const array_1d<double,3>& rLine2Point0,
         const array_1d<double,3>& rLine2Point1,
         array_1d<double,3>& rIntersectionPoint,
-        const double Epsilon = 1e-12
-        );
+        const double Epsilon = 1e-12);
 
     /**
      * @brief Find the 3D intersection of a plane (infinite) with a segment (bounded)
@@ -630,8 +624,7 @@ public:
         const array_1d<double,3>& rLinePoint1,
         const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
-        const double Epsilon = 1e-12
-        );
+        const double Epsilon = 1e-12);
 
     /**
      * @brief Compute a segment box intersection
@@ -649,8 +642,7 @@ public:
         const array_1d<double,3>& rBoxPoint0,
         const array_1d<double,3>& rBoxPoint1,
         const array_1d<double,3>& rLinePoint0,
-        const array_1d<double,3>& rLinePoint1
-        );
+        const array_1d<double,3>& rLinePoint1);
 
     ///@}
 private:
@@ -688,8 +680,7 @@ private:
         const double Dist2,
         const array_1d<double,3>& rPoint1,
         const array_1d<double,3>& rPoint2,
-        array_1d<double,3>& rIntersectionPoint
-        )
+        array_1d<double,3>& rIntersectionPoint)
     {
         if ((Dist1 * Dist2) >= 0.0){
             return 0;
@@ -716,8 +707,7 @@ private:
         const array_1d<double,3>& rIntersectionPoint,
         const array_1d<double,3>& rBoxPoint0,
         const array_1d<double,3>& rBoxPoint1,
-        const unsigned int Axis
-        )
+        const unsigned int Axis)
     {
         if ( Axis==1 && rIntersectionPoint[2] > rBoxPoint0[2] && rIntersectionPoint[2] < rBoxPoint1[2] && rIntersectionPoint[1] > rBoxPoint0[1] && rIntersectionPoint[1] < rBoxPoint1[1]) return 1;
         if ( Axis==2 && rIntersectionPoint[2] > rBoxPoint0[2] && rIntersectionPoint[2] < rBoxPoint1[2] && rIntersectionPoint[0] > rBoxPoint0[0] && rIntersectionPoint[0] < rBoxPoint1[0]) return 1;
