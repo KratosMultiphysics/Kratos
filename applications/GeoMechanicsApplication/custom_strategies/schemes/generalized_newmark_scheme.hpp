@@ -27,7 +27,7 @@ public:
     using BaseType          = Scheme<TSparseSpace, TDenseSpace>;
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
     using TSystemVectorType = typename BaseType::TSystemVectorType;
-    using DofsArrayType         = typename BaseType::DofsArrayType;
+    using DofsArrayType     = typename BaseType::DofsArrayType;
 
     GeneralizedNewmarkScheme(const std::vector<FirstOrderScalarVariable>& rFirstOrderScalarVariables,
                              const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables,
@@ -106,7 +106,7 @@ public:
         KRATOS_CATCH("")
     }
 
-        void Predict(ModelPart& rModelPart, DofsArrayType& rDofSet, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
+    void Predict(ModelPart& rModelPart, DofsArrayType& rDofSet, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -127,6 +127,23 @@ public:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
             PredictVariableForNode(rNode, r_second_order_vector_variable);
+        }
+
+        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+            if (!rNode.SolutionStepsDataHas(r_first_order_scalar_variable.instance)) continue;
+
+            const double previous_variable =
+                rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.instance, 1);
+            const double previous_first_time_derivative =
+                rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative, 1);
+            const double current_first_time_derivative =
+                rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative, 0);
+
+
+            if (!rNode.IsFixed(r_first_order_scalar_variable.instance)) {
+                rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.instance) =
+                    previous_variable + this->GetDeltaTime() * previous_first_time_derivative;
+            }
         }
     }
 

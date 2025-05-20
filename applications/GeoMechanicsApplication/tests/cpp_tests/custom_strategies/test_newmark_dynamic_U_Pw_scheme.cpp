@@ -204,6 +204,8 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivat
     Vector                   Dx;
     Vector                   b;
 
+
+    tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 3.0;
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
@@ -211,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivat
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
     const auto     expected_acceleration      = Kratos::array_1d<double, 3>{13, 14, 15};
     const auto     expected_velocity          = Kratos::array_1d<double, 3>{62, 67, 72};
-    constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
+    constexpr auto expected_dt_water_pressure = 3.0;
 
     const auto actual_acceleration =
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
