@@ -353,26 +353,40 @@ public:
 
     void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
+    /**
+     * @brief Virtual method to read element and condition IDs from a sub-model part.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rModelPartName The name of the sub-model part to read from.
+     * @param rElementsIds Set to store element IDs.
+     * @param rConditionsIds Set to store condition IDs.
+     */
     void ReadSubModelPartElementsAndConditionsIds(
         std::string const& rModelPartName,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds) override;
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds
+        ) override;
 
+    /**
+     * @brief Virtual method to read nodal graph from entities list.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rAuxConnectivities Container of connectivities.
+     * @param rElementsIds Set of element IDs.
+     * @param rConditionsIds Set of condition IDs.
+     * @return The size of the nodal graph.
+     */
     std::size_t ReadNodalGraphFromEntitiesList(
         ConnectivitiesContainerType& rAuxConnectivities,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds) override;
-
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds
+        ) override;
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -753,12 +767,32 @@ private:
 
     void ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the nodes block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the nodes will be added.
+     */
     void ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the elements block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the elements will be added.
+     */
     void ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the conditions block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the conditions will be added.
+     */
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the geometries block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the geometries will be added.
+     */
     void ReadSubModelPartGeometriesBlock(
         ModelPart &rMainModelPart,
         ModelPart &rSubModelPart);

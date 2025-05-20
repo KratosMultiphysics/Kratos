@@ -437,10 +437,10 @@ void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesConta
     KRATOS_CATCH("")
 }
 
-std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
+std::size_t ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
 {
     KRATOS_TRY
-    std::size_t number_of_elements = 0;
+    std::size_t number_of_conditions = 0;
     ResetInput();
     std::string word;
     while(true)
@@ -450,11 +450,11 @@ std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerTy
             break;
         ReadBlockName(word);
         if(word == "Conditions")
-            number_of_elements += ReadConditionsConnectivitiesBlock(rConditionsConnectivities);
+            number_of_conditions += ReadConditionsConnectivitiesBlock(rConditionsConnectivities);
         else
             SkipBlock(word);
     }
-    return number_of_elements;
+    return number_of_conditions;
     KRATOS_CATCH("")
 }
 
@@ -1054,7 +1054,6 @@ void ModelPartIO::FillNodalConnectivitiesFromGeometryBlockInList(
             break;
 
         ExtractValue(word,id);
-        ReadWord(word); // Reading the properties id;
         temp_geometry_nodes.clear();
         for(SizeType i = 0 ; i < n_nodes_in_elem ; i++) {
             ReadWord(word); // Reading the node id;
