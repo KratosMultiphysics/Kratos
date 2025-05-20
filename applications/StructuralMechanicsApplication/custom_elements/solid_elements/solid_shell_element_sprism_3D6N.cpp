@@ -271,7 +271,7 @@ void SolidShellElementSprism3D6N::GetValuesVector(
     }
 
     // Neighbour nodes
-    for (int i = 0; i < r_geometry.size(); ++i) {
+    for (unsigned int i = 0; i < r_geometry.size(); ++i) {
         if (HasNeighbour(i, r_neighbour_nodes[i])) {
             const array_1d<double, 3>& r_displacement = r_neighbour_nodes[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             for (IndexType j = 0; j < 3; ++j) {
@@ -313,7 +313,7 @@ void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
     }
 
     // Neighbour nodes
-    for (int i = 0; i < r_geometry.size(); ++i) {
+    for (unsigned int i = 0; i < r_geometry.size(); ++i) {
         if (HasNeighbour(i, r_neighbour_nodes[i])) {
             const array_1d<double, 3>& r_velocity = r_neighbour_nodes[i].FastGetSolutionStepValue(VELOCITY, Step);
             for (IndexType j = 0; j < 3; ++j) {
@@ -356,7 +356,7 @@ void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
     }
 
     // Neighbour nodes
-    for (int i = 0; i < r_geometry.size(); ++i) {
+    for (unsigned int i = 0; i < r_geometry.size(); ++i) {
         if (HasNeighbour(i, r_neighbour_nodes[i])) {
             const array_1d<double, 3>& r_acceleration = r_neighbour_nodes[i].FastGetSolutionStepValue(ACCELERATION, Step);
             for (IndexType j = 0; j < 3; ++j) {
@@ -666,9 +666,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 {
     KRATOS_TRY;
 
-    // Get geometry
-    const auto& r_geometry = GetGeometry();
-
+    // Get the integration points number
     const IndexType integration_point_number = msGeometryData.IntegrationPointsNumber( this->GetIntegrationMethod() );
 
     if ( rOutput.size() != integration_point_number ) {
@@ -4252,7 +4250,7 @@ SolidShellElementSprism3D6N::ShapeFunctionsGradientsType SolidShellElementSprism
     // Initialising container
     // Loop over all integration points
     Matrix result( 6, 3 );
-    for (unsigned int pnt = 0; pnt < integration_points_number; pnt++ ) {
+    for (int pnt = 0; pnt < integration_points_number; pnt++ ) {
         result( 0, 0 ) = -1.0 + integration_points[pnt].Z();
         result( 0, 1 ) = -1.0 + integration_points[pnt].Z();
         result( 0, 2 ) = -1.0 + integration_points[pnt].X() + integration_points[pnt].Y();
