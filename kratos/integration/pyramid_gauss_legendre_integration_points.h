@@ -5,15 +5,14 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//	                 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
 //
 //  Reference:       (https://github.com/nschloe/quadpy/blob/main/src/quadpy/p3/_felippa.py)
 
-#if !defined (KRATOS_PYRAMID_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED)
-#define KRATOS_PYRAMID_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -22,24 +21,22 @@
 // Project includes
 #include "integration/quadrature.h"
 
-
 namespace Kratos {
 
 class PyramidGaussLegendreIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PyramidGaussLegendreIntegrationPoints1);
-    typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 3;
 
-    typedef IntegrationPoint<3> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<3>;
 
-    typedef std::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 1>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 1;
     }
@@ -65,17 +62,16 @@ class PyramidGaussLegendreIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PyramidGaussLegendreIntegrationPoints2);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 3;
 
-    typedef IntegrationPoint<3> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<3>;
 
-    typedef std::array<IntegrationPointType, 5> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 5>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 5;
     }
@@ -105,17 +101,16 @@ class PyramidGaussLegendreIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PyramidGaussLegendreIntegrationPoints3);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 3;
 
-    typedef IntegrationPoint<3> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<3>;
 
-    typedef std::array<IntegrationPointType, 8> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 8>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 8;
     }
@@ -148,17 +143,16 @@ class PyramidGaussLegendreIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PyramidGaussLegendreIntegrationPoints4);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 3;
 
-    typedef IntegrationPoint<3> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<3>;
 
-    typedef std::array<IntegrationPointType, 18> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 18>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 18;
     }
@@ -201,17 +195,16 @@ class PyramidGaussLegendreIntegrationPoints5
 {
 public:
    KRATOS_CLASS_POINTER_DEFINITION(PyramidGaussLegendreIntegrationPoints5);
-   typedef std::size_t SizeType;
-
+   
    static const unsigned int Dimension = 3;
 
-   typedef IntegrationPoint<3> IntegrationPointType;
+   using IntegrationPointType = IntegrationPoint<3>;
 
-   typedef std::array<IntegrationPointType, 27> IntegrationPointsArrayType;
+   using IntegrationPointsArrayType = std::array<IntegrationPointType, 27>;
 
-   typedef IntegrationPointType::PointType PointType;
+   using PointType = IntegrationPointType::PointType;
 
-   static SizeType IntegrationPointsNumber()
+   static std::size_t IntegrationPointsNumber()
    {
        return 27;
    }
@@ -260,5 +253,3 @@ public:
 }; // Class PyramidGaussLegendreIntegrationPoints5
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PYRAMID_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED defined

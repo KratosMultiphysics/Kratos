@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
 //
 //
 
-#if !defined(KRATOS_LINE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_LINE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -27,17 +26,16 @@ class LineGaussLegendreIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints1);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 1>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 1;
     }
@@ -65,17 +63,16 @@ class LineGaussLegendreIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints2);
-    typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 2> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 2>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 2;
     }
@@ -104,17 +101,16 @@ class LineGaussLegendreIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints3);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 3>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 3;
     }
@@ -145,17 +141,16 @@ class LineGaussLegendreIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints4);
-    typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 4>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 4;
     }
@@ -187,17 +182,16 @@ class LineGaussLegendreIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints5);
-    typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 5> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 5>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 5;
     }
@@ -230,17 +224,16 @@ class LineGaussLegendreIntegrationPoints6
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints6);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 6> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 6>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 6;
     }
@@ -274,17 +267,16 @@ class LineGaussLegendreIntegrationPoints7
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints7);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 7> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 7>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 7;
     }
@@ -319,17 +311,16 @@ class LineGaussLegendreIntegrationPoints8
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints8);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 8> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 8>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 8;
     }
@@ -365,17 +356,16 @@ class LineGaussLegendreIntegrationPoints9
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints9);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 9>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 9;
     }
@@ -412,17 +402,16 @@ class LineGaussLegendreIntegrationPoints10
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LineGaussLegendreIntegrationPoints10);
-    typedef std::size_t SizeType;
-
+    
     static const unsigned int Dimension = 1;
 
-    typedef IntegrationPoint<1> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<1>;
 
-    typedef std::array<IntegrationPointType, 10> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 10>;
 
-    typedef IntegrationPointType::PointType PointType;
+    using PointType = IntegrationPointType::PointType;
 
-    static SizeType IntegrationPointsNumber()
+    static std::size_t IntegrationPointsNumber()
     {
         return 10;
     }
@@ -454,41 +443,9 @@ public:
 
 }; // Class LineGaussLegendreIntegrationPoints10
 
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
 ///@}
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
 
 
