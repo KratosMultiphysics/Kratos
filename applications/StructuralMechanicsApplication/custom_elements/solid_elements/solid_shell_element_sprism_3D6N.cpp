@@ -1617,13 +1617,17 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( const ProcessInfo&
         IntegrateEASInZeta(general_variables, EAS, zeta_gauss, integration_weight);
     }
 
-    /* Getting the increase of displacements */
-    BoundedMatrix<double, 36, 1> delta_disp, current_disp, previous_disp;
-    GetVectorCurrentPosition(current_disp);
-    GetVectorPreviousPosition(previous_disp);
+    // /* Getting the increase of displacements */
+    // BoundedMatrix<double, 36, 1> delta_disp, current_disp, previous_disp;
+    // GetVectorCurrentPosition(current_disp);
+    // GetVectorPreviousPosition(previous_disp);
 
-    // Calculates the increase of displacements
-    noalias(delta_disp) = current_disp - previous_disp;
+    // // Calculates the increase of displacements
+    // noalias(delta_disp) = current_disp - previous_disp;
+
+    /* Getting the increase of displacements */
+    BoundedMatrix<double,36,1> delta_disp;
+    GetDeltaDisplacement(delta_disp);
 
     /* Update alpha EAS */
     if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) { // Avoid division by zero
@@ -3312,6 +3316,69 @@ void SolidShellElementSprism3D6N::GetVectorPreviousPosition(BoundedMatrix<double
 
     KRATOS_CATCH( "" );
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SolidShellElementSprism3D6N::GetDeltaDisplacement(BoundedMatrix<double, 36, 1>& rDeltaDisplacement)
+{
+    KRATOS_TRY;
+
+    // Retrieve geometry and neighbour info
+    const auto& r_geometry                = this->GetGeometry();
+    const auto& r_neighbour_nodes         = this->GetValue(NEIGHBOUR_NODES);
+    const unsigned int number_of_nodes    = r_geometry.size();
+    const unsigned int number_of_active_neighbours = NumberOfActiveNeighbours(r_neighbour_nodes);
+    const bool all_neighbours_active      = (number_of_active_neighbours == number_of_nodes);
+
+    // Auxiliary variables
+    array_1d<double,3> previous_position;
+
+    // Element’s own nodes
+    for (unsigned int node_index = 0; node_index < number_of_nodes; ++node_index) {
+        // Current position
+        const array_1d<double,3>& r_current_position = r_geometry[node_index].Coordinates();
+
+        // Previous position = original position + last‐step displacement
+        noalias(previous_position) = r_geometry[node_index].GetInitialPosition().Coordinates() + r_geometry[node_index].FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+        // Delta = current – previous
+        for (unsigned int component = 0; component < 3; ++component) {
+            rDeltaDisplacement(node_index*3 + component, 0) = r_current_position[component] - previous_position[component];
+        }
+    }
+
+    // Neighbour nodes
+    for (unsigned int neighbour_index = 0; neighbour_index < number_of_nodes; ++neighbour_index) {
+        // Check if the neighbour node is active
+        const bool neighbour_exists = all_neighbours_active || this->HasNeighbour(neighbour_index, r_neighbour_nodes[neighbour_index]);
+
+        // If neighbour exists, get its current position and previous position
+        if (neighbour_exists) {
+            // Get the neighbour node
+            const auto& r_neighbour_node = r_neighbour_nodes[neighbour_index];
+
+            // Current position
+            const array_1d<double,3>& r_current_position = r_neighbour_node.Coordinates();
+
+            // Previous position = original position + last‐step displacement
+            noalias(previous_position) = r_neighbour_node.GetInitialPosition().Coordinates() + r_neighbour_node.FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+            // Delta = current – previous
+            for (unsigned int component = 0; component < 3; ++component) {
+                rDeltaDisplacement(18 + neighbour_index*3 + component, 0) = r_current_position[component] - previous_position[component];
+            }
+        } else {
+            // No neighbour equal to zero displacement increment
+            for (unsigned int component = 0; component < 3; ++component) {
+                rDeltaDisplacement(18 + neighbour_index*3 + component, 0) = 0.0;
+            }
+        }
+    }
+
+    KRATOS_CATCH( "" );
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/

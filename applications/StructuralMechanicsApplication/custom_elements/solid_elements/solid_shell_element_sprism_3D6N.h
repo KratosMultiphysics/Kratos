@@ -1221,6 +1221,12 @@ protected:
     void GetVectorPreviousPosition(BoundedMatrix<double, 36, 1>& rVectorPreviousPosition);
 
     /**
+     * @brief Calculates the vector of delta displacements
+     * @param rDeltaDisplacement The vector containing the delta displacements.
+     */
+    void GetDeltaDisplacement(BoundedMatrix<double, 36, 1>& rDeltaDisplacement);
+
+    /**
      * @brief Integrates stresses in zeta using the Gauss Quadrature
      * @param rVariables The internal variables in the element
      * @param AlphaEAS The internal variable for the EAS
