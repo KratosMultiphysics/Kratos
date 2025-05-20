@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "integration/quadrature.h"
 #include "base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
@@ -1635,6 +1636,168 @@ private:
     ///@}
 
 }; // class SolidShellElementSprism3D6N.
+
+/* For the formulation SPRISM we just consider one integration point in the plane */
+
+class PrismGaussLegendreIntegrationPointsInAxis1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis1);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 2;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 2, 1 point in plane";
+        return buffer.str();
+    }
+
+
+}; // Class PrismGaussLegendreIntegrationPointsInAxis1
+
+class PrismGaussLegendreIntegrationPointsInAxis2
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis2);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 3;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 3, 1 point in plane";
+        return buffer.str();
+    }
+
+
+}; // Class PrismGaussLegendreIntegrationPointsInAxis2
+
+class PrismGaussLegendreIntegrationPointsInAxis3
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis3);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 5;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 5, 1 point in plane";
+        return buffer.str();
+    }
+
+
+}; // Class PrismGaussLegendreIntegrationPointsInAxis3
+
+class PrismGaussLegendreIntegrationPointsInAxis4
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis4);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 7;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 7, 1 point in plane";
+        return buffer.str();
+    }
+
+
+}; // Class PrismGaussLegendreIntegrationPointsInAxis4
+
+class PrismGaussLegendreIntegrationPointsInAxis5
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis5);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 11;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 11, 1 point in plane";
+        return buffer.str();
+    }
+
+
+}; // Class PrismGaussLegendreIntegrationPointsInAxis5
 
 ///@}
 ///@name Type Definitions

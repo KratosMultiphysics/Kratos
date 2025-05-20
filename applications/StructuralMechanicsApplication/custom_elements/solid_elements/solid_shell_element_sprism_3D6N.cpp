@@ -17,7 +17,6 @@
 #include "includes/checks.h"
 #include "includes/global_pointer_variables.h"
 #include "input_output/logger.h"
-#include "integration/prism_gauss_legendre_integration_points.h"
 #include "utilities/geometry_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
@@ -4173,11 +4172,11 @@ const SolidShellElementSprism3D6N::IntegrationPointsContainerType SolidShellElem
     IntegrationPointsContainerType integration_points =
     {
         {
-            Quadrature<PrismGaussLegendreIntegrationPointsExt1, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
-            Quadrature<PrismGaussLegendreIntegrationPointsExt2, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
-            Quadrature<PrismGaussLegendreIntegrationPointsExt3, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
-            Quadrature<PrismGaussLegendreIntegrationPointsExt4, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
-            Quadrature<PrismGaussLegendreIntegrationPointsExt5, 3, IntegrationPoint<3>>::GenerateIntegrationPoints()
+            Quadrature<PrismGaussLegendreIntegrationPointsInAxis1, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
+            Quadrature<PrismGaussLegendreIntegrationPointsInAxis2, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
+            Quadrature<PrismGaussLegendreIntegrationPointsInAxis3, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
+            Quadrature<PrismGaussLegendreIntegrationPointsInAxis4, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
+            Quadrature<PrismGaussLegendreIntegrationPointsInAxis5, 3, IntegrationPoint<3>>::GenerateIntegrationPoints()
         }
     };
     return integration_points;
@@ -4311,6 +4310,89 @@ void SolidShellElementSprism3D6N::load( Serializer& rSerializer )
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseSolidElement);
     rSerializer.load("FinalizedStep",mFinalizedStep);
     rSerializer.load("HistoricalF0",mAuxContainer);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const PrismGaussLegendreIntegrationPointsInAxis1::IntegrationPointsArrayType& PrismGaussLegendreIntegrationPointsInAxis1::IntegrationPoints()
+{
+    static constexpr double one_third = 1.0 / 3.0;
+    static const IntegrationPointsArrayType s_integration_points{{
+        IntegrationPointType( one_third , one_third, 0.2113248654051871177454 , 0.25 ),
+        IntegrationPointType( one_third , one_third, 0.7886751345948128822546 , 0.25 )
+    }};
+    return s_integration_points;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const PrismGaussLegendreIntegrationPointsInAxis2::IntegrationPointsArrayType& PrismGaussLegendreIntegrationPointsInAxis2::IntegrationPoints()
+{
+    static constexpr double one_third = 1.0 / 3.0;
+    static const IntegrationPointsArrayType s_integration_points{{
+        IntegrationPointType( one_third , one_third, 0.1127016653792583114821 , 0.1388888888888888889 ),
+        IntegrationPointType( one_third , one_third, 0.5 , 0.2222222222222222222 ),
+        IntegrationPointType( one_third , one_third, 0.8872983346207416885180 , 0.1388888888888888889 )
+    }};
+    return s_integration_points;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const PrismGaussLegendreIntegrationPointsInAxis3::IntegrationPointsArrayType& PrismGaussLegendreIntegrationPointsInAxis3::IntegrationPoints()
+{
+    static constexpr double one_third = 1.0 / 3.0;
+    static const IntegrationPointsArrayType s_integration_points{{
+        IntegrationPointType( one_third , one_third, 0.0469100770306680036012 , 0.0592317212640472718 ),
+        IntegrationPointType( one_third , one_third, 0.2307653449471584544819 , 0.1196571676248416170 ),
+        IntegrationPointType( one_third , one_third, 0.5 , 0.1422222222222222222 ),
+        IntegrationPointType( one_third , one_third, 0.7692346550528415455182 , 0.1196571676248416170 ),
+        IntegrationPointType( one_third , one_third, 0.9530899229693319963988 , 0.0592317212640472718 )
+    }};
+    return s_integration_points;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const PrismGaussLegendreIntegrationPointsInAxis4::IntegrationPointsArrayType& PrismGaussLegendreIntegrationPointsInAxis4::IntegrationPoints()
+{
+    static constexpr double one_third = 1.0 / 3.0;
+    static const IntegrationPointsArrayType s_integration_points{{
+        IntegrationPointType( one_third , one_third, 0.0254460438286207377369 , 0.0261224489795918367347 ),
+        IntegrationPointType( one_third , one_third, 0.1292344072003027800681 , 0.069926347872319166975  ),
+        IntegrationPointType( one_third , one_third, 0.2970774243113014165467 , 0.09545751262627973624   ),
+        IntegrationPointType( one_third , one_third, 0.5 , 0.1044897959183673469388 ),
+        IntegrationPointType( one_third , one_third, 0.7029225756886985834533 , 0.09545751262627973624   ),
+        IntegrationPointType( one_third , one_third, 0.8707655927996972199320 , 0.069926347872319166975  ),
+        IntegrationPointType( one_third , one_third, 0.9745539561713792622631 , 0.0261224489795918367347 )
+    }};
+    return s_integration_points;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const PrismGaussLegendreIntegrationPointsInAxis5::IntegrationPointsArrayType& PrismGaussLegendreIntegrationPointsInAxis5::IntegrationPoints()
+{
+    static constexpr double one_third = 1.0 / 3.0;
+    static const IntegrationPointsArrayType s_integration_points{{
+        IntegrationPointType( one_third , one_third, 0.0108856709269715035981 , 0.0139171417790434166207 ),
+        IntegrationPointType( one_third , one_third, 0.0564687001159523504624 , 0.031395092366226156159  ),
+        IntegrationPointType( one_third , one_third, 0.1349239972129753379533 , 0.0465725527319335628565 ),
+        IntegrationPointType( one_third , one_third, 0.2404519353965940920372 , 0.058298441147997619980  ),
+        IntegrationPointType( one_third , one_third, 0.3652284220238275138343 , 0.065701136127561665545  ),
+        IntegrationPointType( one_third , one_third, 0.5 , 0.0682312716944751576786 ),
+        IntegrationPointType( one_third , one_third, 0.6347715779761724861657 , 0.065701136127561665545  ),
+        IntegrationPointType( one_third , one_third, 0.7595480646034059079628 , 0.058298441147997619980  ),
+        IntegrationPointType( one_third , one_third, 0.8650760027870246620467 , 0.0465725527319335628565 ),
+        IntegrationPointType( one_third , one_third, 0.9435312998840476495376 , 0.031395092366226156159  ),
+        IntegrationPointType( one_third , one_third, 0.9891143290730284964020 , 0.0139171417790434166207 )
+    }};
+    return s_integration_points;
 }
 
 } // Namespace Kratos.
