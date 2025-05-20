@@ -1099,7 +1099,7 @@ void File::ReadDataSetImpl(
         }
     } else {
         #ifdef KRATOS_USING_MPI
-            bool read  = true;
+            bool read_data  = true;
             #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
                 /**
                  *  Until hdf5 1.14.2, if someone tries to read/write empty containers from every rank, it throws an error. This is
@@ -1107,10 +1107,10 @@ void File::ReadDataSetImpl(
                  *
                  * TODO: Remove this pre-compiler directive once we move to compatible versions.
                  */
-                read &= mpDataCommunicator->SumAll(TypeTraits::Size(rData)) > 0;
+                read_data &= mpDataCommunicator->SumAll(TypeTraits::Size(rData)) > 0;
             #endif
 
-            if (read) {
+            if (read_data) {
                 hid_t dxpl_id;
                 KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
                 if constexpr(TDataTransferMode == DataTransferMode::Collective) {
