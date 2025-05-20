@@ -204,7 +204,6 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_UpdatesVariablesDerivat
     Vector                   Dx;
     Vector                   b;
 
-
     tester.GetModelPart().GetNode(0).FastGetSolutionStepValue(DT_WATER_PRESSURE, 1) = 3.0;
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 

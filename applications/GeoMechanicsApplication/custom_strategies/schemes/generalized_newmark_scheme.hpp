@@ -139,6 +139,12 @@ public:
             const double current_first_time_derivative =
                 rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative, 0);
 
+            if (rNode.IsFixed(r_first_order_scalar_variable.first_time_derivative)) {
+                rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.instance) =
+                    previous_variable +
+                    (1 - this->GetTheta()) * this->GetDeltaTime() * previous_first_time_derivative +
+                    current_first_time_derivative * this->GetTheta() * this->GetDeltaTime();
+            }
 
             if (!rNode.IsFixed(r_first_order_scalar_variable.instance)) {
                 rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.instance) =
