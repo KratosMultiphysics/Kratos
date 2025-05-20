@@ -7,9 +7,11 @@ class MaterialEditor:
         self.data = self._load_json()
 
     def _load_json(self):
-        with open(self.json_path, 'r') as f:
-            data = json.load(f)
-        return data
+        try:
+            with open(self.json_path, 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            raise RuntimeError(f"Failed to load JSON file: {e}")
 
     def _update_material_and_save(self, entries: dict):
         variables = self.data["properties"][0]["Material"]["Variables"]
