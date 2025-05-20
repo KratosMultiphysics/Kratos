@@ -25,29 +25,11 @@ ConstitutiveLaw::Pointer SmallStrainUDSM2DPlaneStrainLaw::Clone() const
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSM2DPlaneStrainLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
-{
-    const Vector& rStrainVector = rValues.GetStrainVector();
-
-    for (unsigned int i = 0; i < VoigtSize; ++i) {
-        mDeltaStrainVector[i] = rStrainVector(i) - mStrainVectorFinalized[i];
-    }
-}
-
 void SmallStrainUDSM2DPlaneStrainLaw::SetExternalStressVector(Vector& rStressVector)
 {
     KRATOS_TRY
     for (unsigned int i = 0; i < VoigtSize; ++i) {
         rStressVector(i) = mStressVector[i];
-    }
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUDSM2DPlaneStrainLaw::SetInternalStressVector(const Vector& rStressVector)
-{
-    KRATOS_TRY
-    for (unsigned int i = 0; i < VoigtSize; ++i) {
-        mStressVectorFinalized[i] = rStressVector(i);
     }
     KRATOS_CATCH("")
 }
@@ -89,10 +71,8 @@ Vector& SmallStrainUDSM2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisV
     if (rThisVariable == STATE_VARIABLES) {
         SmallStrainUDSM3DLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-        if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
-        for (unsigned int i = 0; i < VoigtSize; ++i) {
-            rValue[i] = mStressVectorFinalized[i];
-        }
+        rValue.resize(VoigtSize);
+        std::copy_n(GetSig0().begin(), VoigtSize, rValue.begin());
     }
     return rValue;
 }
