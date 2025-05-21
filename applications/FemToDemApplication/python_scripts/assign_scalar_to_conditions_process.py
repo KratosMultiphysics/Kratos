@@ -2,7 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
-## This proces sets the value of a scalar variable to conditions
+## This process sets the value of a scalar variable to conditions
 
 from KratosMultiphysics.FemToDemApplication.assign_scalar_to_nodes_process import AssignScalarToNodesProcess
 

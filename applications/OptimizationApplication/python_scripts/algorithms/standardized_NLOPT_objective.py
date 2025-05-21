@@ -175,7 +175,7 @@ class StandardizedNLOPTObjective(ResponseRoutine):
             CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
             self.LogOptimizationStep()
             self.__optimization_problem.AdvanceStep()
-            # convert numpy arry to expression
+            # convert numpy array to expression
             new_control_field_exp = master_control.GetEmptyField()
             number_of_entities = []
             shapes = []

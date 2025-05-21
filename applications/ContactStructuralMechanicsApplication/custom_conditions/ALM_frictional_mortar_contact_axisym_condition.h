@@ -172,7 +172,7 @@ public:
     ///@{
 
     /**
-     * @brief Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an array of nodes
      * @param NewId The ID of the new element
      * @param rThisNodes The nodes of the new element
      * @param pProperties The properties assigned to the new element
@@ -214,7 +214,7 @@ public:
 
 
     /******************************************************************/
-    /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
+    /********** AUXILIARY METHODS FOR GENERAL CALCULATIONS ************/
     /******************************************************************/
 
     /**
