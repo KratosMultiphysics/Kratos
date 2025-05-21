@@ -9,41 +9,11 @@ from ui_plot_manager import render_plots
 
 def build_ui_from_model(root, parent_frame, dll_path, model_dict):
     global fig, axes, canvas
-    model_var = tk.StringVar(root)
-    model_var.set(model_dict["model_name"][0])
 
-    dropdown_frame = ttk.Frame(parent_frame, padding="10", width=700, height=100)
-    dropdown_frame.pack_propagate(False)  # Prevents the frame from resizing to fit its children
-    dropdown_frame.pack(side="left", fill="y", padx=10, pady=10)
-
-    ttk.Label(dropdown_frame, text="Select a Model:", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=5)
-    model_menu = ttk.Combobox(dropdown_frame, textvariable=model_var, values=model_dict["model_name"], state="readonly")
-    model_menu.pack(side="top", fill="x", expand=True, padx=5)
-
-    param_frame = ttk.Frame(dropdown_frame, padding="10")
-    param_frame.pack(fill="both", expand=True, pady=10)
-
-    button_frame = ttk.Frame(dropdown_frame, padding="10")
-    button_frame.pack(fill="x", pady=10)
-
-    plot_frame = ttk.Frame(parent_frame, padding="5", width=800, height=600)
-    plot_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
-
-    width_per_ax, height_per_ax = 6, 5
-    nrows, ncols = 3, 2
-    fig = plt.figure(figsize=(ncols * width_per_ax, nrows * height_per_ax))
-    gs = GridSpec(nrows, ncols, figure=fig, wspace=0.4, hspace=0.6)
-    axes = [fig.add_subplot(gs[i]) for i in range(5)]
-
-    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
-    canvas_widget = canvas.get_tk_widget()
-    canvas_widget.pack(fill="both", expand=True)
-
-    if len(fig.axes) == 6:
-        fig.delaxes(fig.axes[5])
-
-    def update_parameters(*args):
+    def _create_input_fields(model_var, param_frame, button_frame, plot_frame):
         for widget in param_frame.winfo_children():
+            widget.destroy()
+        for widget in button_frame.winfo_children():
             widget.destroy()
 
         entry_widgets = {}
@@ -88,13 +58,14 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
             ttk.Label(row, text=unit).pack(side="left", padx=5)
             triaxial_entry_widgets[label] = entry
 
-        def run_calculation():
+        def _gather_and_validate_inputs():
             try:
                 umat_params = [e.get() for e in entry_widgets.values()]
                 eps_max = float(triaxial_entry_widgets["Maximum Strain |εᵧᵧ|"].get())
                 sigma_init = float(triaxial_entry_widgets["Initial effective cell pressure |σ'₃₃|"].get())
                 n_steps = float(triaxial_entry_widgets["Number of steps"].get())
                 duration = float(triaxial_entry_widgets["Duration"].get())
+
                 if n_steps <= 0:
                     raise ValueError("Number of steps must be greater than zero.")
                 if duration <= 0:
@@ -104,16 +75,22 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
                 if sigma_init < 0:
                     raise ValueError("Initial effective cell pressure cannot be negative.")
 
-            except ValueError:
-                messagebox.showerror("Error", "Invalid input for triaxial fields.")
+                return umat_params, eps_max, sigma_init, n_steps, duration
+            except ValueError as e:
+                messagebox.showerror("Invalid Input", str(e))
+                return None
+
+        def _run_simulation():
+            result = _gather_and_validate_inputs()
+            if not result:
                 return
+            umat_params, eps_max, sigma_init, n_steps, duration = result
 
             if dll_path:
                 index = model_dict["model_name"].index(model_var.get()) + 1
                 figs = run_triaxial_simulation(dll_path, index, umat_params, n_steps, duration, eps_max, sigma_init)
             else:
-                json_path = "test_triaxial/MaterialParameters_stage1.json"
-                editor = MaterialEditor(json_path)
+                editor = MaterialEditor("test_triaxial/MaterialParameters_stage1.json")
                 entries = {
                     "YOUNG_MODULUS": umat_params[0],
                     "POISSON_RATIO": umat_params[1],
@@ -126,10 +103,37 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
 
             render_plots(figs, axes, canvas)
 
-        for widget in button_frame.winfo_children():
-            widget.destroy()
+        ttk.Button(button_frame, text="Run Calculation", command=_run_simulation).pack(pady=5)
 
-        ttk.Button(button_frame, text="Run Calculation", command=run_calculation).pack(pady=5)
+    model_var = tk.StringVar(root)
+    model_var.set(model_dict["model_name"][0])
 
-    model_var.trace("w", update_parameters)
-    update_parameters()
+    dropdown_frame = ttk.Frame(parent_frame, padding="10", width=700, height=100)
+    dropdown_frame.pack_propagate(False)
+    dropdown_frame.pack(side="left", fill="y", padx=10, pady=10)
+
+    ttk.Label(dropdown_frame, text="Select a Model:", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=5)
+    model_menu = ttk.Combobox(dropdown_frame, textvariable=model_var, values=model_dict["model_name"], state="readonly")
+    model_menu.pack(side="top", fill="x", expand=True, padx=5)
+
+    param_frame = ttk.Frame(dropdown_frame, padding="10")
+    param_frame.pack(fill="both", expand=True, pady=10)
+
+    button_frame = ttk.Frame(dropdown_frame, padding="10")
+    button_frame.pack(fill="x", pady=10)
+
+    plot_frame = ttk.Frame(parent_frame, padding="5", width=800, height=600)
+    plot_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+
+    width_per_ax, height_per_ax = 6, 5
+    nrows, ncols = 3, 2
+    fig = plt.figure(figsize=(ncols * width_per_ax, nrows * height_per_ax))
+    gs = GridSpec(nrows, ncols, figure=fig, wspace=0.4, hspace=0.6)
+    axes = [fig.add_subplot(gs[i]) for i in range(5)]
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.get_tk_widget().pack(fill="both", expand=True)
+    if len(fig.axes) == 6:
+        fig.delaxes(fig.axes[5])
+
+    model_var.trace("w", lambda *args: _create_input_fields(model_var, param_frame, button_frame, plot_frame))
+    _create_input_fields(model_var, param_frame, button_frame, plot_frame)
