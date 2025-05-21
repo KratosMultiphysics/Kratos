@@ -3,8 +3,8 @@ from tkinter import ttk, messagebox
 from matplotlib.gridspec import GridSpec
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import numpy as np
-from ui_runner import run_triaxial_simulation
+from material_editor import MaterialEditor
+from set_triaxial_test import run_triaxial_simulation
 from ui_plot_manager import render_plots
 
 def build_ui_from_model(root, parent_frame, dll_path, model_dict):
@@ -103,8 +103,6 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
                 index = model_dict["model_name"].index(model_var.get()) + 1
                 figs = run_triaxial_simulation(dll_path, index, umat_params, n_steps, duration, eps_max, sigma_init)
             else:
-                from material_editor import MaterialEditor
-                from set_triaxial_test import lab_test
                 json_path = "test_triaxial/MaterialParameters_stage1.json"
                 editor = MaterialEditor(json_path)
                 entries = {
@@ -115,7 +113,7 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
                     "UMAT_PARAMETERS": []
                 }
                 editor._update_material_and_save(entries)
-                figs = lab_test("", -2, [], n_steps, duration, eps_max, sigma_init)
+                figs = run_triaxial_simulation("", -2, [], n_steps, duration, eps_max, sigma_init)
 
             render_plots(figs, axes, canvas)
 

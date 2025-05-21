@@ -6,11 +6,11 @@ import numpy as np
 from material_editor import MaterialEditor
 from project_parameter_editor import ProjectParameterEditor
 from mdpa_editor import MdpaEditor
-from triaxial import TriaxialTest, TriaxialTestRunner  #run_triaxial_test
+from triaxial import TriaxialTest, TriaxialTestRunner
 
 from triaxial_plots import plot_delta_sigma, plot_volumetric_strain, plot_sigma, plot_p_q, plot_mohr_coulomb_circle
 
-def lab_test(dll_path, index, umat_parameters, num_steps, end_time, maximum_strain, initial_effective_cell_pressure):
+def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_time, maximum_strain, initial_effective_cell_pressure):
     tmp_folder = tempfile.mkdtemp(prefix="triaxial_")
 
     src_dir = 'test_triaxial'
