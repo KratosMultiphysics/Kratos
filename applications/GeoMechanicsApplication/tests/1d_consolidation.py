@@ -1,7 +1,10 @@
 # from KratosMultiphysics import * as Kratos
 
 import sys
+import math
+import matplotlib.pyplot as plt
 import os
+import pathlib
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -31,7 +34,7 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         :return:
         """
         from math import fabs
-        from analytical_solutions import calculate_pore_pressure_1d_consolidation, calculate_degree_of_1d_consolidation
+        from analytical_solutions import calculate_relative_water_pressure, calculate_degree_of_1d_consolidation, calculate_pore_pressure_1d_consolidation
         
         # define number of stages
         n_stages = 11
@@ -60,27 +63,32 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         for idx, stage in enumerate(stages):
             stage.Run()
             stage_water_pressure[idx] = test_helper.get_water_pressure(stage)
-            displacements = test_helper.get_displacement(stage)
+            displacements = test_helper.get_nodal_variable(stage, KratosGeo.TOTAL_DISPLACEMENT)
             stage_displacement[idx]   = [displacement[1] for displacement in displacements] 
 
         # get y coords of all the nodes
+        node_ids = [5, 7, 12, 18, 24, 30, 35, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141, 146, 151, 156, 161, 166, 171, 176, 181, 187, 192, 199]
         coords = test_helper.get_nodal_coordinates(stages[0])
-        y_coords = [coord[1] + 1 for coord in coords]
+        y_coords = [1.0 + coords[id - 1][1] for id in node_ids]
         
         t_vs = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]    
         # calculate water pressure analytical solution for all stages and calculate the error
-        sample_height = 1
+        sample_height = 1.0
         rmse_stages = [None] * (n_stages - 1)
         for idx, t_v in enumerate(t_vs):
-            rel_p_stage  = [calculate_pore_pressure_1d_consolidation(y_coord, sample_height, t_v) * -1 for y_coord in y_coords]
-            errors_stage = [stage_water_pressure[idx + 1][node_idx] - rel_p for node_idx, rel_p in
-                            enumerate(rel_p_stage)]
-            rmse_stages[idx] = (sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5
+            analytical_solution = [calculate_relative_water_pressure(y_coord, sample_height, t_v) for y_coord in y_coords]
+
+            # Compressive water pressures are assumed positive by the analytical solution
+            numerical_solution = [-1.0 * stage_water_pressure[idx + 1][id - 1] for id in node_ids]
+
+            errors_stage = [rel_p_numerical - rel_p_analytical for rel_p_numerical, rel_p_analytical in
+                            zip(numerical_solution, analytical_solution)]
+            rmse_stages[idx] = math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage))
 
         # assert if average error in all stages is below 1 percent
         accuracy = 0.01
-        for rmse_stage in rmse_stages:
-            self.assertLess(rmse_stage, accuracy)
+        for idx, rmse_stage in enumerate(rmse_stages):
+            self.assertLess(rmse_stage, accuracy, msg=f"RMSE of relative water pressure values in stage {idx+1}")
 
         # calculate the degree of consolidation analytical solution for all stages and calculate the error
         # Verruijt's notations
@@ -92,19 +100,21 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         n = 0.3                             # the porosity
         delta_h0 = (-1)*m_v*sample_height*q*n*beta/(m_v+n*beta) # deformation immediately after the application of the load
         delta_h_infinity = (-1)*m_v*sample_height*q # the final deformation
-        
+
+        node_ids = [197, 198, 199, 200, 201]  # nodes at the top edge of the soil column
         for idx, t_v in enumerate(t_vs):
-            rel_displacement = [(stage_displacement[idx + 1][node_idx]-delta_h0)/(delta_h_infinity-delta_h0) for node_idx, y_coord in
-                            enumerate(y_coords) if fabs(y_coord - sample_height) < 0.001]
-            analytical_degree_of_consolidation = [calculate_degree_of_1d_consolidation(t_v) * -1 
-                            for y_coord in y_coords if fabs(y_coord - sample_height) < 0.001]
-            errors_stage = [rel_displacement[node_idx] - degree for node_idx, degree in enumerate(analytical_degree_of_consolidation)]
+            rel_displacement = [(-1.0 * stage_displacement[idx + 1][id - 1] - delta_h0) / (delta_h_infinity - delta_h0) for id in
+                            node_ids]
+            analytical_degree_of_consolidation = [calculate_degree_of_1d_consolidation(t_v)
+                            for id in node_ids]
+
+            errors_stage = [numerical_degree - analytical_degree for numerical_degree, analytical_degree in zip(rel_displacement, analytical_degree_of_consolidation)]
             rmse_stages[idx] = (sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5
 
         # assert if average error in all stages is below 1 percent
         accuracy = 0.01
         for rmse_stage in rmse_stages:
-            self.assertLess(rmse_stage, accuracy)
+            self.assertLess(rmse_stage, accuracy, msg=f"RMSE of degree of consolidation values in stage {idx+1}")
 
         os.chdir(initial_directory)
 
