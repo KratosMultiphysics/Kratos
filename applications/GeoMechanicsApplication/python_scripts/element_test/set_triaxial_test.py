@@ -47,7 +47,7 @@ def lab_test(dll_path, index, umat_parameters, num_steps, end_time, maximum_stra
 
     output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial_Stage_2.post.res")]
     runner = TriaxialTestRunner(output_files, tmp_folder)
-    reshaped_values_by_time, vertical_strain, volumetric_strain, von_mise_stress, mean_effective_stresses = runner.run()#output_files, tmp_folder)
+    reshaped_values_by_time, vertical_strain, volumetric_strain, von_mise_stress, mean_effective_stresses = runner.run()
 
     sigma1_list = []
     sigma3_list = []
@@ -75,17 +75,3 @@ def lab_test(dll_path, index, umat_parameters, num_steps, end_time, maximum_stra
         plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1], cohesion, friction_angle),
     ]
     return figs
-
-if __name__ == "__main__":
-    figs = lab_test(
-        "../MohrCoulomb64.dll",
-        1,
-        ["10000", "0.3", "0.0", "30.0", "0.0", "0.0", "1.0", "0.3"],
-        0.01,
-        1.0,
-        10,
-        100
-    )
-
-    for i, fig in enumerate(figs):
-        fig.show()
