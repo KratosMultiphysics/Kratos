@@ -61,7 +61,7 @@ from test_master_slave_constraints import KratosGeoMechanicsMasterSlaveConstrain
 from test_deactivation_with_structural_element import KratosGeoMechanicsDeactivationWithStructuralTest
 from test_mohr_coulomb_with_tension_cutoff import KratosGeoMechanicsMohrCoulombWithTensionTests
 from test_single_element_with_Mohr_Coulomb import KratosGeoMechanicsSingleElementWithMohrCoulomb
-from 1d_consolidation import KratosGeoMechanics1DConsolidation
+from one_dimensional_consolidation import KratosGeoMechanics1DConsolidation
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
