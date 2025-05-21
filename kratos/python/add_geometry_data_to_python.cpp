@@ -30,7 +30,8 @@ void AddGeometryDataToPython(pybind11::module& m)
         .value("GI_GAUSS_2", GeometryData::IntegrationMethod::GI_GAUSS_2)
         .value("GI_GAUSS_3", GeometryData::IntegrationMethod::GI_GAUSS_3)
         .value("GI_GAUSS_4", GeometryData::IntegrationMethod::GI_GAUSS_4)
-        .value("GI_GAUSS_5", GeometryData::IntegrationMethod::GI_GAUSS_5);
+        .value("GI_GAUSS_5", GeometryData::IntegrationMethod::GI_GAUSS_5)
+        .value("GI_LOBATTO_1", GeometryData::IntegrationMethod::GI_LOBATTO_1);
 
     auto geometry_family = py::enum_<GeometryData::KratosGeometryFamily>(m, "GeometryData_KratosGeometryFamily")
         .value("Kratos_NoElement", GeometryData::KratosGeometryFamily::Kratos_NoElement)

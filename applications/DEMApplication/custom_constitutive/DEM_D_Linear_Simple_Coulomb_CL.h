@@ -14,22 +14,22 @@
 #pragma once
 
 #include <string>
+#include "../custom_elements/spheric_particle.h"
 #include "DEM_discontinuum_constitutive_law.h"
 
 namespace Kratos {
 
-  class SphericParticle;
   class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_Simple_Coulomb : public DEMDiscontinuumConstitutiveLaw {
-  
+
   public:
-    
+
     using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
-    
+
     KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_Simple_Coulomb);
-    
+
     DEM_D_Linear_Simple_Coulomb() {}
     ~DEM_D_Linear_Simple_Coulomb() {}
-    
+
     DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
     std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
@@ -49,7 +49,7 @@ namespace Kratos {
                          SphericParticle* element2,
                          bool& sliding,
                          double LocalCoordSystem[3][3]) override;
-    
+
     void CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                 const double OldLocalElasticContactForce[3],
                                 double LocalElasticContactForce[3],

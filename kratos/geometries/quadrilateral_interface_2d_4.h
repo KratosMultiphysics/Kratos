@@ -19,6 +19,7 @@
 
 // Project includes
 #include "geometries/line_2d_2.h"
+#include "integration/line_gauss_lobatto_integration_points.h"
 #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 
 
@@ -1293,59 +1294,46 @@ private:
         return d_shape_f_values;
     }
 
-    /**
-     * TODO: testing
-     */
-    //FIXME: There's something weird in here... they're filling the container with fake empty quadratures
-    //FIXME: Besides, there were using a "0 order" Lobatto quadrature, with the integration points placed in the midplane
-    //FIXME: I guess this was something to hack the integration in this degenerated geometry (note that breaks the static integration mechanism)
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                IntegrationPointsArrayType(),
-                IntegrationPointsArrayType()
+                Quadrature < LineGaussLobattoIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
     }
 
-    /**
-     * TODO: testing
-     */
-    //FIXME: There's something weird in here... they're filling the container with fake empty quadratures
-    //FIXME: Besides, there were using a "0 order" Lobatto quadrature, with the integration points placed in the midplane
-    //FIXME: I guess this was something to hack the integration in this degenerated geometry (note that breaks the static integration mechanism)
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_2 ), //FIXME: Shouldn't this be GI_LOBATTO_1?
-                Matrix(),
-                Matrix()
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_1 ), // FIXME: this is the lower order geometry (i.e., line) Lobatto quadrature and shouldn't be GI_GAUSS_1
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
     }
 
-    /**
-     * TODO: testing
-     */
-    //FIXME: There's something weird in here... they're filling the container with fake empty quadratures
-    //FIXME: Besides, there were using a "0 order" Lobatto quadrature, with the integration points placed in the midplane
-    //FIXME: I guess this was something to hack the integration in this degenerated geometry (note that breaks the static integration mechanism)
-    static const ShapeFunctionsLocalGradientsContainerType
-    AllShapeFunctionsLocalGradients()
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
+    static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ), //FIXME: Shouldn't this be GI_LOBATTO_1?
-                ShapeFunctionsGradientsType(),
-                ShapeFunctionsGradientsType(),
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1), // FIXME: this is the lower order geometry (i.e., line) Lobatto quadrature and shouldn't be GI_GAUSS_1
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;
