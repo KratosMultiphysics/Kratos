@@ -21,9 +21,9 @@ CompressibilityCalculator::CompressibilityCalculator(InputProvider rInputProvide
 {
 }
 
-Matrix CompressibilityCalculator::LHSContribution()
+std::optional<Matrix> CompressibilityCalculator::LHSContribution()
 {
-    return LHSContribution(CalculateCompressibilityMatrix());
+    return std::make_optional(LHSContribution(CalculateCompressibilityMatrix()));
 }
 
 Vector CompressibilityCalculator::RHSContribution()
@@ -41,10 +41,10 @@ Matrix CompressibilityCalculator::LHSContribution(const Matrix& rCompressibility
     return mInputProvider.GetMatrixScalarFactor() * rCompressibilityMatrix;
 }
 
-std::pair<Matrix, Vector> CompressibilityCalculator::LocalSystemContribution()
+std::pair<std::optional<Matrix>, Vector> CompressibilityCalculator::LocalSystemContribution()
 {
     const auto compressibility_matrix = CalculateCompressibilityMatrix();
-    return {LHSContribution(compressibility_matrix), RHSContribution(compressibility_matrix)};
+    return {std::make_optional(LHSContribution(compressibility_matrix)), RHSContribution(compressibility_matrix)};
 }
 
 Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
@@ -78,36 +78,6 @@ double CompressibilityCalculator::CalculateBiotModulusInverse(const RetentionLaw
     result *= rRetentionLaw->CalculateSaturation(retention_parameters);
     result -= rRetentionLaw->CalculateDerivativeOfSaturation(retention_parameters) * r_properties[POROSITY];
     return result;
-}
-
-const Properties& CompressibilityCalculator::InputProvider::GetElementProperties() const
-{
-    return mGetElementProperties();
-}
-
-const std::vector<RetentionLaw::Pointer>& CompressibilityCalculator::InputProvider::GetRetentionLaws() const
-{
-    return mGetRetentionLaws();
-}
-
-const Matrix& CompressibilityCalculator::InputProvider::GetNContainer() const
-{
-    return mGetNContainer();
-}
-
-Vector CompressibilityCalculator::InputProvider::GetIntegrationCoefficients() const
-{
-    return mGetIntegrationCoefficients();
-}
-
-double CompressibilityCalculator::InputProvider::GetMatrixScalarFactor() const
-{
-    return mGetMatrixScalarFactor();
-}
-
-Vector CompressibilityCalculator::InputProvider::GetNodalValues(const Variable<double>& rVariable) const
-{
-    return mGetNodalValues(rVariable);
 }
 
 } // namespace Kratos

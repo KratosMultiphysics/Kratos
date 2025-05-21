@@ -55,7 +55,6 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
     // Now validate against defaults -- this also ensures no type mismatch
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mMeshId = ThisParameters["mesh_id"].GetInt();
     mVariableName = ThisParameters["variable_name"].GetString();
     this->Set( VARIABLE_IS_FIXED, ThisParameters["is_fixed"].GetBool());
 
@@ -82,12 +81,10 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
     const double DoubleValue,
-    std::size_t MeshId,
     const Flags Options
     ) : Process(Options) ,
         mrModelPart(rModelPart),
-        mDoubleValue(DoubleValue),
-        mMeshId(MeshId)
+        mDoubleValue(DoubleValue)
 {
     KRATOS_TRY;
 
@@ -106,12 +103,10 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
     ModelPart& rModelPart,
     const Variable<int>& rVariable,
     const int IntValue,
-    std::size_t MeshId,
     const Flags Options
     ) : Process(Options),
         mrModelPart(rModelPart),
-        mIntValue(IntValue),
-        mMeshId(MeshId)
+        mIntValue(IntValue)
 {
     KRATOS_TRY;
 
@@ -131,12 +126,10 @@ ApplyConstantScalarValueProcess::ApplyConstantScalarValueProcess(
     ModelPart& rModelPart,
     const Variable< bool >& rVariable,
     const bool BoolValue,
-    std::size_t MeshId,
     const Flags options
         ) : Process(options) ,
         mrModelPart(rModelPart),
-        mBoolValue(BoolValue),
-        mMeshId(MeshId)
+        mBoolValue(BoolValue)
 {
     KRATOS_TRY;
 
@@ -180,10 +173,10 @@ void ApplyConstantScalarValueProcess::InternalApplyValue(
     const typename TVarType::Type Value
     )
 {
-    const std::size_t number_of_nodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+    const std::size_t number_of_nodes = mrModelPart.Nodes().size();
 
     if(number_of_nodes != 0) {
-        block_for_each(mrModelPart.GetMesh(mMeshId).Nodes(), [&](Node& rNode){
+        block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
             if constexpr (std::is_same<TVarType, Variable<double>>::value) { // For nodes
                 if(ToBeFixed) {
                     rNode.Fix(rVariable);
@@ -220,10 +213,10 @@ void ApplyConstantScalarValueProcess::InternalApplyValueWithoutFixing(
     const typename TVarType::Type Value
     )
 {
-    const std::size_t number_of_nodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+    const std::size_t number_of_nodes = mrModelPart.Nodes().size();
 
     if(number_of_nodes != 0) {
-        VariableUtils().SetVariable(rVariable, Value, mrModelPart.GetMesh(mMeshId).Nodes());
+        VariableUtils().SetVariable(rVariable, Value, mrModelPart.Nodes());
     }
 }
 
@@ -248,7 +241,6 @@ const Parameters ApplyConstantScalarValueProcess::GetDefaultParameters() const
     return Parameters( R"(
     {
         "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
-        "mesh_id"         : 0,
         "variable_name"   : "PLEASE_PRESCRIBE_VARIABLE_NAME",
         "is_fixed"        : false,
         "value"           : 1.0

@@ -409,7 +409,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
 
     def testSameVariable(self):
-        """Ensures fixing diferent axes on the same variable does not cause unexpected interfearances."""
+        """Ensures fixing different axes on the same variable does not cause unexpected interfearances."""
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {

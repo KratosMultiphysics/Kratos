@@ -12,11 +12,17 @@
 
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/line_interface_geometry.h"
+#include "custom_utilities/registration_utilities.h"
+#include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <string>
+#include <type_traits>
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 namespace
 {
@@ -37,6 +43,14 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
 
 namespace Kratos::Testing
 {
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<InterfaceStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<InterfaceStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<InterfaceStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<InterfaceStressState>);
+}
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -112,21 +126,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlus
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, 1.0e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto interface_stress_state = InterfaceStressState{};
-
-    const Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
-
-    constexpr auto detJ                   = 2.0;
-    const auto     calculated_coefficient = interface_stress_state.CalculateIntegrationCoefficient(
-        integration_point, detJ, LineInterfaceGeometry<Line2D3<Node>>());
-
-    // The expected number is calculated as follows:
-    // weight * detJ = 0.5 * 2.0 = 1.0
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = InterfaceStressState{};
@@ -144,6 +143,27 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorS
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.GetStressTensorSize(),
         "For interfaces, the stress tensor size is not implemented.")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"InterfaceStressState"s, InterfaceStressState{}};
+    const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<InterfaceStressState>()};
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_policy);
+    auto p_loaded_policy = std::unique_ptr<StressStatePolicy>{};
+    serializer.load("test_tag"s, p_loaded_policy);
+
+    // Assert
+    ASSERT_NE(p_loaded_policy, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_2D_INTERFACE);
+    auto expected_voigt_vector = Vector{2};
+    expected_voigt_vector <<= 1.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

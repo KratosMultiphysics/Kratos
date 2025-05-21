@@ -40,6 +40,7 @@ add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+add_app ${KRATOS_APP_DIR}/SystemIdentificationApplication;
 
 # Clean
 clear
@@ -57,6 +58,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DEXCLUDE_AUTOMATIC_DEPENDENCIES=ON                                 \
 -DREMOVE_INSTALL_DIRECTORIES=OFF                                    \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                  \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
