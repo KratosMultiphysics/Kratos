@@ -1,10 +1,5 @@
-# from KratosMultiphysics import * as Kratos
-
-import sys
 import math
-import matplotlib.pyplot as plt
 import os
-import pathlib
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -18,23 +13,13 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
     """
     This class contains benchmark tests which are checked with the analytical solution
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_1d_consolidation(self):
         """
         test 1D consolidation on elastic soil.
 
         :return:
         """
-        from math import fabs
-        from analytical_solutions import calculate_relative_water_pressure, calculate_degree_of_1d_consolidation, calculate_pore_pressure_1d_consolidation
+        from analytical_solutions import calculate_relative_water_pressure, calculate_degree_of_1d_consolidation
         
         # define number of stages
         n_stages = 11
@@ -113,7 +98,7 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
 
         # assert if average error in all stages is below 1 percent
         accuracy = 0.01
-        for rmse_stage in rmse_stages:
+        for idx, rmse_stage in enumerate(rmse_stages):
             self.assertLess(rmse_stage, accuracy, msg=f"RMSE of degree of consolidation values in stage {idx+1}")
 
         os.chdir(initial_directory)
