@@ -95,6 +95,15 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
                 sigma_init = float(triaxial_entry_widgets["Initial effective cell pressure |σ'₃₃|"].get())
                 n_steps = float(triaxial_entry_widgets["Number of steps"].get())
                 duration = float(triaxial_entry_widgets["Duration"].get())
+                if n_steps <= 0:
+                    raise ValueError("Number of steps must be greater than zero.")
+                if duration <= 0:
+                    raise ValueError("Duration must be greater than zero.")
+                if eps_max <= 0:
+                    raise ValueError("Maximum strain must be greater than zero.")
+                if sigma_init < 0:
+                    raise ValueError("Initial effective cell pressure cannot be negative.")
+
             except ValueError:
                 messagebox.showerror("Error", "Invalid input for triaxial fields.")
                 return
