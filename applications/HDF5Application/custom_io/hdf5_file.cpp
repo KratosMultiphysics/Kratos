@@ -820,6 +820,8 @@ bool File::HasDataType(const std::string& rPath) const
         return type == H5T_INTEGER;
     } else if constexpr(std::is_same_v<TDataType, double>) {
         return type == H5T_FLOAT;
+    } else if constexpr(std::is_same_v<TDataType, char>) {
+        return type == H5T_INTEGER;
     } else {
         static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
@@ -974,7 +976,18 @@ void File::WriteDataSetImpl(
                 local_shape_start[0] = r_data_communicator.ScanSum(static_cast<unsigned int>(local_reduced_shape[0])) - local_reduced_shape[0];
             }
 
-            if (TDataTransferMode == DataTransferMode::Collective || number_of_local_primitive_data_values > 0) {
+            bool write_data = TDataTransferMode == DataTransferMode::Collective || number_of_local_primitive_data_values > 0;
+            #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
+                /**
+                 *  Until hdf5 1.14.2, if someone tries to read/write empty containers from every rank, it throws an error. This is
+                 *  fixed in the later versions.
+                 *
+                 * TODO: Remove this pre-compiler directive once we move to compatible versions.
+                 */
+                write_data &= r_data_communicator.SumAll(static_cast<std::size_t>(number_of_local_primitive_data_values)) > 0;
+            #endif
+
+            if (write_data) {
                 hid_t dxpl_id, mspace_id;
                 KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
                 if constexpr(TDataTransferMode == DataTransferMode::Collective) {
@@ -1086,19 +1099,32 @@ void File::ReadDataSetImpl(
         }
     } else {
         #ifdef KRATOS_USING_MPI
-            hid_t dxpl_id;
-            KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
-            if constexpr(TDataTransferMode == DataTransferMode::Collective) {
-                KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_COLLECTIVE)
-            } else {
-                KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_INDEPENDENT)
+            bool read_data  = true;
+            #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
+                /**
+                 *  Until hdf5 1.14.2, if someone tries to read/write empty containers from every rank, it throws an error. This is
+                 *  fixed in the later versions.
+                 *
+                 * TODO: Remove this pre-compiler directive once we move to compatible versions.
+                 */
+                read_data &= mpDataCommunicator->SumAll(TypeTraits::Size(rData)) > 0;
+            #endif
+
+            if (read_data) {
+                hid_t dxpl_id;
+                KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
+                if constexpr(TDataTransferMode == DataTransferMode::Collective) {
+                    KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_COLLECTIVE)
+                } else {
+                    KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_INDEPENDENT)
+                }
+                if (TypeTraits::Size(rData) > 0) {
+                    KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, TypeTraits::GetContiguousData(rData))
+                } else {
+                    KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr)
+                }
+                KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
             }
-            if (TypeTraits::Size(rData) > 0) {
-                KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, TypeTraits::GetContiguousData(rData))
-            } else {
-                KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr)
-            }
-            KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
         #else
             KRATOS_ERROR << "HDF5Application is not compiled with MPI.";
         #endif
@@ -1151,6 +1177,7 @@ KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 4>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 6>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 9>);
 
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<int>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<double>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 3>>);
