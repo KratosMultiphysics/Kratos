@@ -37,7 +37,6 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     RetentionLaw::Parameters retention_law_parameters(r_properties);
     const auto               projected_gravity_on_integration_points =
         mInputProvider.GetProjectedGravityAtIntegrationPoints();
-    std::cout << " projected_gravity_on_integration_points " << projected_gravity_on_integration_points << std::endl;
 
     const auto fluid_body_vector_length = shape_function_gradients[0].size1();
     auto       result                   = Vector{ZeroVector(fluid_body_vector_length)};

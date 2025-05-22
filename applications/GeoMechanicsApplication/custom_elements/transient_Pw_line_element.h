@@ -574,8 +574,8 @@ public:
     }
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                                                       std::vector<array_1d<double, 3>>& rOutput,
-                                                                       const ProcessInfo& rCurrentProcessInfo)
+                                      std::vector<array_1d<double, 3>>&    rOutput,
+                                      const ProcessInfo&                   rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -587,17 +587,19 @@ public:
 
         if (rVariable == FLUID_FLUX_VECTOR) {
             std::vector<double> permeability_update_factors(number_of_integration_points, 1.0);
-            const auto fluid_fluxes = this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
+            const auto          fluid_fluxes =
+                this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
 
-            for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
-                 ++integration_point) {
-                GeoElementUtilities::FillArray1dOutput(rOutput[integration_point], fluid_fluxes[integration_point]);
-                 }
+            for (unsigned int integration_point = 0;
+                 integration_point < number_of_integration_points; ++integration_point) {
+                GeoElementUtilities::FillArray1dOutput(rOutput[integration_point],
+                                                       fluid_fluxes[integration_point]);
+            }
         } else {
-            for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
-                 ++integration_point) {
+            for (unsigned int integration_point = 0;
+                 integration_point < number_of_integration_points; ++integration_point) {
                 noalias(rOutput[integration_point]) = ZeroVector(3);
-                 }
+            }
         }
 
         KRATOS_CATCH("")
@@ -766,8 +768,7 @@ public:
         return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
     }
 
-    void InitializeElementVariables(ElementVariables& rVariables,
-                                                                     const ProcessInfo& rCurrentProcessInfo)
+    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -894,10 +895,6 @@ public:
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             const auto [LHSContribution, RHSContribution] = calculator->LocalSystemContribution();
-            std::cout << " rContribution " << static_cast<std::underlying_type<CalculationContribution>::type>(rContribution) << std::endl;
-            if (LHSContribution) std::cout << " LHSContribution " << *LHSContribution << std::endl;
-            std::cout << " RHSContribution " << RHSContribution << std::endl;
-
             if (LHSContribution) rLeftHandSideMatrix += *LHSContribution;
             rRightHandSideVector += RHSContribution;
         }
@@ -928,7 +925,8 @@ public:
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
         case GeometryData::Kratos_Cubic_Order:
-            return GetGeometry().LocalSpaceDimension() == 1 ?GeometryData::IntegrationMethod::GI_GAUSS_3 : IntegrationMethod::GI_GAUSS_4;
+            return GetGeometry().LocalSpaceDimension() == 1 ? GeometryData::IntegrationMethod::GI_GAUSS_3
+                                                            : IntegrationMethod::GI_GAUSS_4;
         case GeometryData::Kratos_Quartic_Order:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
@@ -1042,7 +1040,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
 
 protected:
     StressStatePolicy& GetStressStatePolicy() const { return *mpStressStatePolicy; }
@@ -1168,7 +1165,7 @@ private:
 
         std::vector<Vector> projected_gravity;
         projected_gravity.reserve(number_integration_points);
-        if (GetGeometry().LocalSpaceDimension() == 1 ) {
+        if (GetGeometry().LocalSpaceDimension() == 1) {
             for (unsigned int integration_point_index = 0;
                  integration_point_index < number_integration_points; ++integration_point_index) {
                 GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
@@ -1178,13 +1175,12 @@ private:
                 projected_gravity.emplace_back(
                     ScalarVector(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
                                                        body_acceleration.begin(), 0.0)));
-                 }
-        }
-        else {
+            }
+        } else {
             for (unsigned int integration_point_index = 0;
                  integration_point_index < number_integration_points; ++integration_point_index) {
                 GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-    body_acceleration, rNContainer, volume_acceleration, integration_point_index);
+                    body_acceleration, rNContainer, volume_acceleration, integration_point_index);
                 projected_gravity.emplace_back(body_acceleration);
             }
         }
@@ -1298,8 +1294,13 @@ private:
         return [this]() {
             Vector det_J_container;
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            GeometryType::ShapeFunctionsGradientsType dN_dX_container =
-                GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+            GeometryType::ShapeFunctionsGradientsType dN_dX_container;
+            if (GetGeometry().LocalSpaceDimension() == 1) {
+                dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+            } else {
+                GetGeometry().ShapeFunctionsIntegrationPointsGradients(
+                    dN_dX_container, det_J_container, this->GetIntegrationMethod());
+            }
             std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
                            dN_dX_container.begin(), std::divides<>());
 
@@ -1308,6 +1309,7 @@ private:
     }
 
     auto MakeLocalSpaceDimensionGetter() const
+
     {
         return [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
     }
