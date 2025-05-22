@@ -156,6 +156,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
 
     std::vector<Condition> unsorted_conditions_v(rUnsortedConditions.begin(), rUnsortedConditions.end());
 
+    mSortedConditionsIds.clear();
     std::vector<Condition> sorted_conditions;
     std::vector<int> visited_indices;
     GeometricalObject::GeometryType& r_geom_first = rFirstCondition.GetGeometry();
@@ -177,6 +178,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
                         if (std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[0].Id()) != node_id_vector.end() && std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[1].Id()) != node_id_vector.end()) {
                             node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
                             sorted_conditions.push_back(r_cond);
+                            mSortedConditionsIds.push_back(r_cond.Id());
                             visited_indices.push_back(i);
                         }
                     } else {
@@ -199,6 +201,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
                         // add condition to sorted conditions vector
                         node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
                         sorted_conditions.push_back(r_cond);
+                        mSortedConditionsIds.push_back(r_cond.Id());
                         visited_indices.push_back(i);
                     }
                 }
@@ -324,7 +327,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
         // get the two line condition elements at both sides of the model part
         std::vector<Condition> end_conditions = FindEndConditions();
 
-        // find start condition 
+        // find start condition
         const Point center_1 = end_conditions[0].GetGeometry().Center();
         const Point center_2 = end_conditions[1].GetGeometry().Center();
         Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
@@ -335,6 +338,12 @@ void SetMovingLoadProcess::ExecuteInitialize()
         mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
 
         InitializeDistanceLoadInSortedVector();
+    } else {
+        mSortedConditions.clear();
+
+        for (const auto& id : mSortedConditionsIds) {
+            mSortedConditions.push_back(mrModelPart.GetCondition(id));
+        }
     }
     KRATOS_CATCH("")
 }
@@ -390,7 +399,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
             r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, 0);
         }
         distance_cond += element_length;
-    }    
+    }
 }
 
 
@@ -418,7 +427,7 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 void SetMovingLoadProcess::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Process);
-    rSerializer.save("SortedConditions", mSortedConditions);
+    rSerializer.save("SortedConditionsIds", mSortedConditionsIds);
     rSerializer.save("IsCondReversedVector", mIsCondReversedVector);
     rSerializer.save("UseLoadFunction", mUseLoadFunction);
     rSerializer.save("UseVelocityFunction", mUseVelocityFunction);
@@ -429,7 +438,7 @@ void SetMovingLoadProcess::save(Serializer& rSerializer) const
 void SetMovingLoadProcess::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Process);
-    rSerializer.load("SortedConditions", mSortedConditions);
+    rSerializer.load("SortedConditionsIds", mSortedConditionsIds);
     rSerializer.load("IsCondReversedVector", mIsCondReversedVector);
     rSerializer.load("UseLoadFunction", mUseLoadFunction);
     rSerializer.load("UseVelocityFunction", mUseVelocityFunction);
