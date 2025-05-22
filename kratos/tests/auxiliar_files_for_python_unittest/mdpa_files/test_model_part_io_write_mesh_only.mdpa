@@ -25,10 +25,10 @@ Begin Elements	Element2D4N
 	3	1	2	1	3	6	
 End Elements
 
-Begin MasterSlaveConstraints	LinearMasterSlaveConstraint	1	1	DISPLACEMENT_X	DISPLACEMENT_X
+Begin Constraints	LinearMasterSlaveConstraint	1	1	DISPLACEMENT_X	DISPLACEMENT_X
 	1	1	2	0.5	0	
 	2	1	3	0.5	0	
-End MasterSlaveConstraints
+End Constraints
 
 Begin Geometries	Quadrilateral2D4
 	1	4	6	2	3	
@@ -56,7 +56,7 @@ Begin SubModelPart	Parts_Parts_Auto1
 	End SubModelPartConditions
 	Begin SubModelPartGeometries
 	End SubModelPartGeometries
-	Begin SubModelPartMasterSlaveConstraints
-	End SubModelPartMasterSlaveConstraints
+	Begin SubModelPartConstraints
+	End SubModelPartConstraints
 End SubModelPart	
 
