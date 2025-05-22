@@ -284,13 +284,13 @@ public:
      * container. The base class implementation throws an error, indicating that
      * the method must be implemented in the derived class.
      * @param rThisNodes The nodes to be used for associating the master-slave constraints.
-     * @param rMasterSlaveConstraintContainer The container where the master-slave
+     * @param rConstraintContainer The container where the master-slave
      *        constraints will be stored. This container is expected to be populated
      *        by the derived class implementation.
      */
     void ReadMasterSlaveConstraints(
         NodesContainerType& rThisNodes,
-        MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
+        MasterSlaveConstraintContainerType& rConstraintContainer
         ) override;
 
     /**
@@ -306,10 +306,10 @@ public:
      * specific functionality for writing master-slave constraints. The base
      * class implementation throws an error, indicating that the method must
      * be implemented in the derived class.
-     * @param rMasterSlaveConstraintContainer The container holding the master-slave
+     * @param rConstraintContainer The container holding the master-slave
      *        constraints to be written.
      */
-    void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rMasterSlaveConstraintContainer) override;
+    void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer) override;
 
     /**
      * @brief This method reads the initial values of the model part
@@ -520,7 +520,7 @@ protected:
      * @param ConstraintId The original constraint ID.
      * @return The reordered constraint ID (same as input in this base class).
      */
-    virtual ModelPartIO::SizeType ReorderedMasterSlaveConstraintId(ModelPartIO::SizeType ConstraintId);
+    virtual ModelPartIO::SizeType ReorderedConstraintId(ModelPartIO::SizeType ConstraintId);
 
     ///@}
     ///@name Protected  Access
@@ -606,7 +606,7 @@ private:
      * degrees of freedom in the model.
      * @param rModelPart Reference to the ModelPart where the constraints will be added.
      */
-    void ReadMasterSlaveConstraintsBlock(ModelPart& rModelPart);
+    void ReadConstraintsBlock(ModelPart& rModelPart);
 
     /**
      * @brief Reads a block of master-slave constraints from the input.
@@ -615,13 +615,13 @@ private:
      * storing the constraints in the specified container.
      * @param rThisNodes A reference to the container of nodes to be used
      *                   for associating the master-slave constraints.
-     * @param rMasterSlaveConstraints A reference to the container where
+     * @param rConstraints A reference to the container where
      *                                the read master-slave constraints
      *                                will be stored.
      */
-    void ReadMasterSlaveConstraintsBlock(
+    void ReadConstraintsBlock(
         NodesContainerType& rThisNodes,
-        MasterSlaveConstraintContainerType& rMasterSlaveConstraints
+        MasterSlaveConstraintContainerType& rConstraints
         );
 
     /**
@@ -728,7 +728,7 @@ private:
      * @brief Reads master-slave constraint data block from the input stream into the given constraints container.
      * @param rThisConstraints Reference to the container of master-slave constraints.
      */
-    void ReadMasterSlaveConstraintDataBlock(MasterSlaveConstraintContainerType& rThisConstraints);
+    void ReadConstraintDataBlock(MasterSlaveConstraintContainerType& rThisConstraints);
 
     /**
      * @brief Reads scalar variable data for each constraint in the container.
@@ -737,7 +737,7 @@ private:
      * @param rVariable The scalar variable to read.
      */
     template<class TVariableType>
-    void ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable);
+    void ReadConstraintScalarVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable);
 
     /**
      * @brief Reads vectorial variable data for each constraint in the container.
@@ -748,7 +748,7 @@ private:
      * @param Dummy Dummy parameter to help with template deduction.
      */
     template<class TVariableType, class TDataType>
-    void ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable, TDataType Dummy);
+    void ReadConstraintVectorialVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable, TDataType Dummy);
 
     /**
      * @brief Reads geometry data block from the input stream into the given geometries container.
@@ -944,9 +944,9 @@ private:
         ModelPart &rSubModelPart);
 
     /**
-     * @brief Reads and processes the SubModelPartMasterSlaveConstraints block from the input stream.
+     * @brief Reads and processes the SubModelPartConstraints block from the input stream.
      * @details This function reads geometry IDs from the input stream until it detects the end of the
-     * "SubModelPartMasterSlaveConstraints" block. The read geometry IDs are stored in a vector,
+     * "SubModelPartConstraints" block. The read geometry IDs are stored in a vector,
      * which is then sorted in ascending order. Finally, the sorted IDs are used to add master-slave
      * constraints to the provided sub-model part.
      * @param rMainModelPart The main model part used for context during the parsing process.
@@ -954,7 +954,7 @@ private:
      * @note The function relies on the correctness of the stream data and may throw exceptions
      *       if an error occurs during the reading or processing of the block.
      */
-     void ReadSubModelPartMasterSlaveConstraintsBlock(
+     void ReadSubModelPartConstraintsBlock(
         ModelPart &rMainModelPart,
         ModelPart &rSubModelPart
         );

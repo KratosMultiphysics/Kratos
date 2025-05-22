@@ -514,7 +514,7 @@ void ModelPartIO::ReadNewMasterSlaveConstraint(
 
 void ModelPartIO::ReadMasterSlaveConstraints(
     NodesContainerType& rThisNodes,
-    MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
+    MasterSlaveConstraintContainerType& rConstraintContainer
     )
 {
     KRATOS_TRY
@@ -525,8 +525,8 @@ void ModelPartIO::ReadMasterSlaveConstraints(
         if(mpStream->eof())
             break;
         ReadBlockName(word);
-        if(word == "MasterSlaveConstraints") {
-            ReadMasterSlaveConstraintsBlock(rThisNodes, rMasterSlaveConstraintContainer);
+        if(word == "Constraints") {
+            ReadConstraintsBlock(rThisNodes, rConstraintContainer);
         } else {
             SkipBlock(word);
         }
@@ -554,7 +554,27 @@ std::size_t ModelPartIO::ReadMasterSlaveConstraintsConnectivities(Connectivities
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rMasterSlaveConstraintContainer)
+std::size_t ModelPartIO::ReadMasterSlaveConstraintsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
+{
+    KRATOS_TRY
+    std::size_t number_of_constraints = 0;
+    ResetInput();
+    std::string word;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if(word == "MasterSlaveConstraints")
+            number_of_constraints += ReadMasterSlaveConstraintsConnectivitiesBlock(rConditionsConnectivities);
+        else
+            SkipBlock(word);
+    }
+    return number_of_constraints;
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
 {
     // We are going to proceed like the following, we are going to iterate over all the master slave constraints and compare with the components, we will save the type and we will compare until we get that the type of master slave constraint has changed
 
@@ -563,13 +583,13 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
 
     // A lambda to check that the check_same_type_vector is the same
     auto check_same_type = [](
-        const MasterSlaveConstraint& rMasterSlaveConstraint,
-        const MasterSlaveConstraint& rMasterSlaveConstraintPrevious,
+        const MasterSlaveConstraint& rConstraint,
+        const MasterSlaveConstraint& rConstraintPrevious,
         const std::vector<IndexType>& rCheckSameTypeVectorPrevious,
         const ProcessInfo& rCurrentProcessInfo
         ) -> bool
     {
-        if (typeid(rMasterSlaveConstraint) != typeid(rMasterSlaveConstraintPrevious)) {
+        if (typeid(rConstraint) != typeid(rConstraintPrevious)) {
             return false;
         }
 
@@ -577,7 +597,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         MasterSlaveConstraint::DofPointerVectorType master_dofs, slave_dofs;
 
         // Compute the dofs
-        rMasterSlaveConstraint.GetDofList(slave_dofs, master_dofs, rCurrentProcessInfo);
+        rConstraint.GetDofList(slave_dofs, master_dofs, rCurrentProcessInfo);
 
         // We get the number of master and slave dofs
         const SizeType number_of_master_dofs = master_dofs.size();
@@ -603,9 +623,9 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
     };
 
     // If there are master slave constraints we print them
-    if (rMasterSlaveConstraintContainer.size() > 0) {
+    if (rConstraintContainer.size() > 0) {
         // Define the name of the master slave constraint
-        std::string master_slave_constraint_name;
+        std::string constraint_name;
 
         // Define the variables names
         std::vector<std::string> variables_names;
@@ -613,11 +633,11 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         // Define empty process info
         ProcessInfo current_process_info;
 
-        auto it_master_slave_constraint_begin = rMasterSlaveConstraintContainer.begin();
-        auto master_slave_constraints_components = KratosComponents<MasterSlaveConstraint>::GetComponents();
+        auto it_constraint_begin = rConstraintContainer.begin();
+        auto constraints_components = KratosComponents<MasterSlaveConstraint>::GetComponents();
 
-        // First we do the first master_slave_constraint
-        CompareElementsAndConditionsUtility::GetRegisteredName(*it_master_slave_constraint_begin, master_slave_constraint_name);
+        // First we do the first constraint
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_constraint_begin, constraint_name);
 
         // We get the transformation matrix and the constant vector
         Matrix transformation_matrix;
@@ -627,7 +647,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         MasterSlaveConstraint::DofPointerVectorType master_dofs, slave_dofs;
 
         // Compute the dofs
-        it_master_slave_constraint_begin->GetDofList(slave_dofs, master_dofs, current_process_info);
+        it_constraint_begin->GetDofList(slave_dofs, master_dofs, current_process_info);
 
         // We get the number of master and slave dofs
         SizeType number_of_master_dofs = master_dofs.size();
@@ -651,14 +671,14 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         }
 
         // We get the transformation matrix and the constant vector
-        it_master_slave_constraint_begin->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
+        it_constraint_begin->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
 
-        (*mpStream) << "Begin MasterSlaveConstraints\t" << master_slave_constraint_name << "\t" << number_of_master_dofs << "\t" << number_of_slave_dofs;
+        (*mpStream) << "Begin Constraints\t" << constraint_name << "\t" << number_of_master_dofs << "\t" << number_of_slave_dofs;
         for (IndexType i = 0; i < variables_names.size(); ++i) {
             (*mpStream) << "\t" << variables_names[i];
         }
         (*mpStream) << "\n";
-        (*mpStream) << "\t" << it_master_slave_constraint_begin->Id() << "\t";
+        (*mpStream) << "\t" << it_constraint_begin->Id() << "\t";
         for (IndexType i = 0; i < number_of_master_dofs; ++i) {
             (*mpStream) << master_dofs[i]->Id() << "\t";
         }
@@ -676,9 +696,9 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         (*mpStream) << "\n";
 
         // Now we iterate over all the master slave constraints
-        for(std::size_t i = 1; i < rMasterSlaveConstraintContainer.size(); i++) {
-            auto it_const_previous = it_master_slave_constraint_begin + i - 1;
-            auto it_const_current = it_master_slave_constraint_begin + i;
+        for(std::size_t i = 1; i < rConstraintContainer.size(); i++) {
+            auto it_const_previous = it_constraint_begin + i - 1;
+            auto it_const_current = it_constraint_begin + i;
 
             if (check_same_type(*it_const_current, *it_const_previous, check_same_type_vector_previous, current_process_info)) {
                 // Compute the dofs
@@ -707,10 +727,10 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 (*mpStream) << "\n";
             } else {
                 // End previous master slave constraint
-                (*mpStream) << "End MasterSlaveConstraints" << "\n\n";
+                (*mpStream) << "End Constraints" << "\n\n";
 
                 // Get the new name
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_const_current, master_slave_constraint_name);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_const_current, constraint_name);
 
                 // Compute the dofs
                 slave_dofs.clear();
@@ -743,7 +763,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 // We get the transformation matrix and the constant vector
                 it_const_current->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
 
-                (*mpStream) << "Begin MasterSlaveConstraints\t" << master_slave_constraint_name << "\t" << number_of_master_dofs << "\t" << number_of_slave_dofs;
+                (*mpStream) << "Begin Constraints\t" << constraint_name << "\t" << number_of_master_dofs << "\t" << number_of_slave_dofs;
                 for (IndexType i = 0; i < variables_names.size(); ++i) {
                     (*mpStream) << "\t" << variables_names[i];
                 }
@@ -767,7 +787,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
             }
         }
 
-        (*mpStream) << "End MasterSlaveConstraints" << "\n\n";
+        (*mpStream) << "End Constraints" << "\n\n";
     }
 }
 
@@ -778,7 +798,7 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
     // We need to read the initial values of the model part
     auto& r_this_elements = rThisModelPart.Elements();
     auto& r_this_conditions = rThisModelPart.Conditions();
-    auto& r_this_master_slave_constraints = rThisModelPart.MasterSlaveConstraints();
+    auto& r_this_constraints = rThisModelPart.MasterSlaveConstraints();
     auto& r_this_geometries = rThisModelPart.Geometries();
 
     ResetInput();
@@ -794,8 +814,8 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
             ReadElementalDataBlock(r_this_elements);
         else if (word == "ConditionalData")
             ReadConditionalDataBlock(r_this_conditions);
-        else if (word == "MasterSlaveConstraintalData")
-            ReadMasterSlaveConstraintDataBlock(r_this_master_slave_constraints);
+        else if (word == "ConstraintalData")
+            ReadConstraintDataBlock(r_this_constraints);
         else if (word == "GeometricalData")
             ReadGeometryDataBlock(r_this_geometries);
         else
@@ -853,8 +873,8 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             ReadElementsBlock(rThisModelPart);
         } else if(word == "Conditions") {
             ReadConditionsBlock(rThisModelPart);
-        } else if (word == "MasterSlaveConstraints") {
-            ReadMasterSlaveConstraintsBlock(rThisModelPart);
+        } else if (word == "Constraints") {
+            ReadConstraintsBlock(rThisModelPart);
         } else if(word == "NodalData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadNodalDataBlock(rThisModelPart);
@@ -873,11 +893,11 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             } else {
                 SkipBlock("ConditionalData");
             }
-        } else if (word == "MasterSlaveConstraintalData") {
+        } else if (word == "ConstraintalData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
-                ReadMasterSlaveConstraintDataBlock(rThisModelPart.MasterSlaveConstraints());
+                ReadConstraintDataBlock(rThisModelPart.MasterSlaveConstraints());
             } else {
-                SkipBlock("MasterSlaveConstraintalData");
+                SkipBlock("ConstraintalData");
             }
         } else if(word == "CommunicatorData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
@@ -920,7 +940,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
         WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
         WriteDataBlock(rThisModelPart.Elements(), "Element");
         WriteDataBlock(rThisModelPart.Conditions(),"Condition");
-        WriteDataBlock(rThisModelPart.MasterSlaveConstraints(),"MasterSlaveConstraint");
+        WriteDataBlock(rThisModelPart.MasterSlaveConstraints(),"Constraint");
         WriteDataBlock(rThisModelPart.Geometries(), "Geometric");
     }
 //     WriteCommunicatorDataBlock(); // TODO: FINISH ME
@@ -2415,33 +2435,33 @@ void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, Properties
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadMasterSlaveConstraintsBlock(ModelPart& rModelPart)
+void ModelPartIO::ReadConstraintsBlock(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
     MasterSlaveConstraintContainerType aux_constraints;
-    ReadMasterSlaveConstraintsBlock(rModelPart.Nodes(), aux_constraints);
+    ReadConstraintsBlock(rModelPart.Nodes(), aux_constraints);
     rModelPart.AddMasterSlaveConstraints(aux_constraints.begin(), aux_constraints.end());
 
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadMasterSlaveConstraintsBlock(
+void ModelPartIO::ReadConstraintsBlock(
     NodesContainerType& rThisNodes,
-    MasterSlaveConstraintContainerType& rMasterSlaveConstraints
+    MasterSlaveConstraintContainerType& rConstraints
     )
 {
     KRATOS_TRY
 
     SizeType id;
     SizeType node_id;
-    SizeType number_of_read_master_slave_constraints = 0;
+    SizeType number_of_read_constraints = 0;
 
     std::string word;
-    std::string master_slave_constraint_name;
+    std::string constraint_name;
 
     // Reading the type of master slave constraint
-    ReadWord(master_slave_constraint_name);
+    ReadWord(constraint_name);
 
     // Reading the number of master dofs
     SizeType number_of_master_dofs;
@@ -2454,18 +2474,18 @@ void ModelPartIO::ReadMasterSlaveConstraintsBlock(
     ExtractValue(word, number_of_slave_dofs);
 
     // Printing some information
-    KRATOS_INFO("ModelPartIO") << "  [Reading MasterSlaveConstraints : ";
+    KRATOS_INFO("ModelPartIO") << "  [Reading Constraints : ";
 
-    if(!KratosComponents<MasterSlaveConstraint>::Has(master_slave_constraint_name)) {
+    if(!KratosComponents<MasterSlaveConstraint>::Has(constraint_name)) {
         std::stringstream buffer;
-        buffer << "MasterSlaveConstraint " << master_slave_constraint_name << " is not registered in Kratos.";
-        buffer << " Please check the spelling of the master_slave_constraint name and see if the application containing it is registered correctly.";
+        buffer << "Constraint " << constraint_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the constraint name and see if the application containing it is registered correctly.";
         buffer << " [Line " << mNumberOfLines << " ]";
         KRATOS_ERROR << buffer.str() << std::endl;
         return;
     }
 
-    const MasterSlaveConstraint& r_clone_master_slave_constraint = KratosComponents<MasterSlaveConstraint>::Get(master_slave_constraint_name);
+    const MasterSlaveConstraint& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(constraint_name);
     // The simpler case is when the connectivity is 1x1, many simplifications can be done
     if (number_of_master_dofs == 1 && number_of_slave_dofs == 1) {
         // Now we need to read the variables
@@ -2486,8 +2506,8 @@ void ModelPartIO::ReadMasterSlaveConstraintsBlock(
         // For 1x1 is the simplest, first the id, then is the master node id, then is the slave node id, then the weight and the constant
 
         while(!mpStream->eof()) {
-            ReadWord(word); // Reading the master_slave_constraint id or End
-            if(CheckEndBlock("MasterSlaveConstraints", word)) {
+            ReadWord(word); // Reading the constraint id or End
+            if(CheckEndBlock("Constraints", word)) {
                 break;
             }
 
@@ -2520,8 +2540,8 @@ void ModelPartIO::ReadMasterSlaveConstraintsBlock(
             }
 
             // Create the master slave constraint
-            rMasterSlaveConstraints.push_back(r_clone_master_slave_constraint.Create(id, *p_master_node, r_master_variable, *p_slave_node, r_slave_variable, weight, constant));
-            number_of_read_master_slave_constraints++;
+            rConstraints.push_back(r_clone_constraint.Create(id, *p_master_node, r_master_variable, *p_slave_node, r_slave_variable, weight, constant));
+            number_of_read_constraints++;
         }
     } else {
         // The more general case is when the connectivity is 1xN or Nx1
@@ -2551,8 +2571,8 @@ void ModelPartIO::ReadMasterSlaveConstraintsBlock(
         std::vector<Node::Pointer> temp_slave_nodes(number_of_slave_dofs);
 
         while(!mpStream->eof()) {
-            ReadWord(word); // Reading the master_slave_constraint id or End
-            if(CheckEndBlock("MasterSlaveConstraints", word)) {
+            ReadWord(word); // Reading the constraint id or End
+            if(CheckEndBlock("Constraints", word)) {
                 break;
             }
 
@@ -2606,13 +2626,13 @@ void ModelPartIO::ReadMasterSlaveConstraintsBlock(
             }
 
             // Create the master slave constraint
-            rMasterSlaveConstraints.push_back(r_clone_master_slave_constraint.Create(id, master_dofs, slave_dofs, relation_matrix, constant_vector));
-            number_of_read_master_slave_constraints++;
+            rConstraints.push_back(r_clone_constraint.Create(id, master_dofs, slave_dofs, relation_matrix, constant_vector));
+            number_of_read_constraints++;
         }
     }
 
-    KRATOS_INFO("") << number_of_read_master_slave_constraints << " master slave constraints read] [Type: " << master_slave_constraint_name << "]" << std::endl;
-    rMasterSlaveConstraints.Unique();
+    KRATOS_INFO("") << number_of_read_constraints << " master slave constraints read] [Type: " << constraint_name << "]" << std::endl;
+    rConstraints.Unique();
 
     KRATOS_CATCH("")
 }
@@ -3284,7 +3304,7 @@ void ModelPartIO::ReadGeometryVectorialVariableData(GeometriesMapType& rThisGeom
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadMasterSlaveConstraintDataBlock(MasterSlaveConstraintContainerType& rThisConstraints)
+void ModelPartIO::ReadConstraintDataBlock(MasterSlaveConstraintContainerType& rThisConstraints)
 {
     KRATOS_TRY
 
@@ -3293,19 +3313,19 @@ void ModelPartIO::ReadMasterSlaveConstraintDataBlock(MasterSlaveConstraintContai
     ReadWord(variable_name);
 
     if(KratosComponents<Variable<double> >::Has(variable_name)) {
-        ReadMasterSlaveConstraintScalarVariableData(rThisConstraints, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
+        ReadConstraintScalarVariableData(rThisConstraints, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
     } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
-        ReadMasterSlaveConstraintScalarVariableData(rThisConstraints, static_cast<Variable<bool> const& >(KratosComponents<Variable<bool> >::Get(variable_name)));
+        ReadConstraintScalarVariableData(rThisConstraints, static_cast<Variable<bool> const& >(KratosComponents<Variable<bool> >::Get(variable_name)));
     } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
-        ReadMasterSlaveConstraintScalarVariableData(rThisConstraints, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+        ReadConstraintScalarVariableData(rThisConstraints, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
     } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
-        ReadMasterSlaveConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+        ReadConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
     } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
-        ReadMasterSlaveConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
+        ReadConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
     } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
-        ReadMasterSlaveConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
+        ReadConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
     } else if(KratosComponents<Variable<Vector> >::Has(variable_name)) {
-        ReadMasterSlaveConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
+        ReadConstraintVectorialVariableData(rThisConstraints, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
     } else {
         std::stringstream buffer;
         buffer << variable_name << " is not a valid variable!!!" << std::endl;
@@ -3317,7 +3337,7 @@ void ModelPartIO::ReadMasterSlaveConstraintDataBlock(MasterSlaveConstraintContai
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable)
+void ModelPartIO::ReadConstraintScalarVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -3328,7 +3348,7 @@ void ModelPartIO::ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstra
 
     while(!mpStream->eof()) {
         ReadWord(value); // reading id
-        if(CheckEndBlock("MasterSlaveConstraintalData", value)) {
+        if(CheckEndBlock("ConstraintalData", value)) {
             break;
         }
 
@@ -3338,7 +3358,7 @@ void ModelPartIO::ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstra
         ReadWord(value);
         ExtractValue(value, constraint_value);
 
-        auto it_result = rThisConstraints.find(ReorderedMasterSlaveConstraintId(id));
+        auto it_result = rThisConstraints.find(ReorderedConstraintId(id));
         if (it_result != rThisConstraints.end()) {
             it_result->GetValue(rVariable) = constraint_value;
         } else {
@@ -3350,7 +3370,7 @@ void ModelPartIO::ReadMasterSlaveConstraintScalarVariableData(MasterSlaveConstra
 }
 
 template<class TVariableType, class TDataType>
-void ModelPartIO::ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable, TDataType Dummy)
+void ModelPartIO::ReadConstraintVectorialVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable, TDataType Dummy)
 {
     KRATOS_TRY
 
@@ -3361,7 +3381,7 @@ void ModelPartIO::ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveCons
 
     while(!mpStream->eof()) {
         ReadWord(value); // reading id
-        if(CheckEndBlock("MasterSlaveConstraintalData", value)) {
+        if(CheckEndBlock("ConstraintalData", value)) {
             break;
         }
 
@@ -3370,7 +3390,7 @@ void ModelPartIO::ReadMasterSlaveConstraintVectorialVariableData(MasterSlaveCons
         // Reading constraint_value
         ReadVectorialValue(constraint_value);
 
-        auto it_result = rThisConstraints.find(ReorderedMasterSlaveConstraintId(id));
+        auto it_result = rThisConstraints.find(ReorderedConstraintId(id));
         if(it_result != rThisConstraints.end()) {
             it_result->GetValue(rVariable) = constraint_value;
         } else {
@@ -4477,8 +4497,8 @@ void ModelPartIO::ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rP
             ReadSubModelPartMasterSlaveConstraintsBlock(rMainModelPart, r_sub_model_part);
         } else if (word == "SubModelPartGeometries") {
             ReadSubModelPartGeometriesBlock(rMainModelPart, r_sub_model_part);
-        } else if (word == "SubModelPartMasterSlaveConstraints") {
-            ReadSubModelPartMasterSlaveConstraintsBlock(rMainModelPart, r_sub_model_part);
+        } else if (word == "SubModelPartConstraints") {
+            ReadSubModelPartConstraintsBlock(rMainModelPart, r_sub_model_part);
 //         TODO: Add the following blocks. Pooyan.
 //         } else if (word == "CommunicatorData") {
 //            ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
@@ -4554,12 +4574,12 @@ void ModelPartIO::WriteSubModelPartBlock(
         }
         (*mpStream) << InitialTabulation << "\tEnd SubModelPartGeometries" << std::endl;
 
-        // Submodelpart MasterSlaveConstraints section
-        (*mpStream) << InitialTabulation << "\tBegin SubModelPartMasterSlaveConstraints" << std::endl;
+        // Submodelpart Constraints section
+        (*mpStream) << InitialTabulation << "\tBegin SubModelPartConstraints" << std::endl;
         for (auto& r_const : r_sub_model_part.MasterSlaveConstraints()) {
             (*mpStream) << InitialTabulation << "\t\t" << r_const.Id() << "\n";
         }
-        (*mpStream) << InitialTabulation << "\tEnd SubModelPartMasterSlaveConstraints" << std::endl;
+        (*mpStream) << InitialTabulation << "\tEnd SubModelPartConstraints" << std::endl;
 
         // Write the subsubmodelparts
         WriteSubModelPartBlock(r_sub_model_part, InitialTabulation+"\t");
@@ -4706,7 +4726,7 @@ void  ModelPartIO::ReadSubModelPartGeometriesBlock(
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadSubModelPartMasterSlaveConstraintsBlock(
+void ModelPartIO::ReadSubModelPartConstraintsBlock(
     ModelPart& rMainModelPart,
     ModelPart& rSubModelPart
     )
@@ -4719,7 +4739,7 @@ void ModelPartIO::ReadSubModelPartMasterSlaveConstraintsBlock(
 
     while (!mpStream->eof()) {
         ReadWord(word); // Reading the geometry id or End
-        if (CheckEndBlock("SubModelPartMasterSlaveConstraints", word))
+        if (CheckEndBlock("SubModelPartConstraints", word))
             break;
 
         ExtractValue(word, geometry_id);
@@ -5343,8 +5363,8 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
             index = ReorderedElementId(id);
         } else if (BlockName == "ConditionalData") {
             index = ReorderedConditionId(id);
-        } else if (BlockName == "MasterSlaveConstraintalData") {
-            index = ReorderedMasterSlaveConstraintId(id);
+        } else if (BlockName == "ConstraintalData") {
+            index = ReorderedConstraintId(id);
         } else if (BlockName == "GeometricalData") {
             index = ReorderedGeometryId(id);
         } else{
@@ -5469,8 +5489,8 @@ void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles
             index = ReorderedElementId(id);
         } else if(BlockName == "ConditionalData") {
             index = ReorderedConditionId(id);
-        } else if(BlockName == "MasterSlaveConstraintalData") {
-            index = ReorderedMasterSlaveConstraintId(id);
+        } else if(BlockName == "ConstraintalData") {
+            index = ReorderedConstraintId(id);
         } else if (BlockName == "GeometricalData") {
             index = ReorderedGeometryId(id);
         } else {
@@ -6740,7 +6760,7 @@ ModelPartIO::SizeType ModelPartIO::ReorderedConditionId(ModelPartIO::SizeType Co
     return ConditionId;
 }
 
-ModelPartIO::SizeType ModelPartIO::ReorderedMasterSlaveConstraintId(ModelPartIO::SizeType ConstraintId)
+ModelPartIO::SizeType ModelPartIO::ReorderedConstraintId(ModelPartIO::SizeType ConstraintId)
 {
     // The ModelPartIO does not reorder the constrints
     // This method is the one to be overridden by some reordering IO class
