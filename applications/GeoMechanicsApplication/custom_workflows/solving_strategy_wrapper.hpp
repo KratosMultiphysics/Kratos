@@ -97,26 +97,29 @@ public:
 
     void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
     {
-        if (mResetDisplacements) {
-            mOldTotalDisplacements.clear();
+        mOldTotalDisplacements.clear();
+        mOldTotalDisplacements.reserve(mrModelPart.NumberOfNodes());
+
+        if (!mResetDisplacements) {
             for (const auto& node : mrModelPart.Nodes()) {
                 mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
             }
+        } else {
+            std::fill_n(std::back_inserter(mOldTotalDisplacements), mrModelPart.NumberOfNodes(),
+                        array_1d<double, 3>(3, 0.0));
         }
     }
 
     void AccumulateTotalDisplacementField() override
     {
-        if (mResetDisplacements) {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size())
-                << "The number of old displacements (" << mOldTotalDisplacements.size()
-                << ") does not match the current number of nodes (" << mrModelPart.Nodes().size() << ").";
-            std::size_t count = 0;
-            for (auto& node : mrModelPart.Nodes()) {
-                node.GetSolutionStepValue(TOTAL_DISPLACEMENT) =
-                    mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
-                ++count;
-            }
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size())
+            << "The number of old displacements (" << mOldTotalDisplacements.size()
+            << ") does not match the current number of nodes (" << mrModelPart.Nodes().size() << ").";
+        std::size_t count = 0;
+        for (auto& node : mrModelPart.Nodes()) {
+            node.GetSolutionStepValue(TOTAL_DISPLACEMENT) =
+                mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
+            ++count;
         }
     }
 

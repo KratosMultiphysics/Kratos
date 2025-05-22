@@ -219,18 +219,14 @@ KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMech
     const auto original_total_displacement           = array_1d<double, 3>{1.0, 2.0, 3.0};
     p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT) = original_total_displacement;
 
-    // Saving the total displacement field twice should still result in the same expected result.
-    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
+    // Since "reset displacement" is switched on, this will set the total displacements back to zero
     strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
 
     const auto displacement_in_time_step       = array_1d<double, 3>{3.0, 2.0, 1.0};
     p_node->GetSolutionStepValue(DISPLACEMENT) = displacement_in_time_step;
     strategy_wrapper.AccumulateTotalDisplacementField();
 
-    const auto expected_total_displacement =
-        array_1d<double, 3>{original_total_displacement + displacement_in_time_step};
-
-    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), expected_total_displacement);
+    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), displacement_in_time_step);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanicsFastSuite)
