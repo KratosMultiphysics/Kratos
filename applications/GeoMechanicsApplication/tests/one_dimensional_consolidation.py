@@ -1,5 +1,6 @@
 import math
 import os
+import shutil
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -102,6 +103,31 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
             self.assertLess(rmse_stage, accuracy, msg=f"RMSE of degree of consolidation values in stage {idx+1}")
 
         os.chdir(initial_directory)
+
+
+class KratosGeoMechanics1DConsolidationCppRoute(KratosUnittest.TestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.test_root = test_helper.get_file_path("one_dimensional_consolidation")
+        self.test_path = os.path.join(self.test_root, "cpp")
+
+        shutil.rmtree(self.test_path, ignore_errors=True)
+
+        os.makedirs(self.test_path)
+
+        self.number_of_stages = 11
+        self.project_parameters_filenames = [f"ProjectParameters_stage{i+1}.json" for i in range(self.number_of_stages)]
+        input_filenames = self.project_parameters_filenames + ["MaterialParameters.json", "1D-Consolidationtest.mdpa"]
+
+        for filename in input_filenames:
+            shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
+
+    def test_1d_consolidation(self):
+        import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
+
+        status = run_geo_settlement.run_stages(self.test_path, self.project_parameters_filenames)
+        self.assertEqual(status, 0)
 
 if __name__ == '__main__':
     KratosUnittest.main()
