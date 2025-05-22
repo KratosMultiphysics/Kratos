@@ -37,19 +37,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # Construct the base solver and validate the settings in base class
         super().__init__(model, custom_settings)
 
-    @classmethod
-    def GetDefaultParameters(cls):
-        this_defaults = KratosMultiphysics.Parameters(r"""{
-            "compute_vaporisation"             : false,
-            "consider_material_refraction"     : false,
-            "adjust_T_field_after_ablation"    : false,
-            "print_hole_geometry_files"        : false,
-            "print_debug_info"                 : false,
-            "decomposed_nodes_coords_filename" : "hole_coords_q_ast=q_ast+delta_pen+mesh_type+mesh_size.txt"
-        }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
-        return this_defaults
-
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
@@ -61,7 +48,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         error_in_delta_time = abs(self.jump_between_pulses_counter - self.time_jump_between_pulses)
 
         numerical_error = 1e-16  # TODO: Make it global or a parameter?
-        if self.jump_between_pulses_counter >= self.time_jump_between_pulses or error_in_delta_time < numerical_error:
+
+        # If we just started the simulation or
+        # if the time elapsed since the previous pulse (numerically) equals the pulse period
+        # we apply a pulse and ablate elements
+        if self.pulse_number == 0 or error_in_delta_time < numerical_error:
             self.jump_between_pulses_counter = 0
             self.pulse_number += 1
             self.ResetTemperatureField()
@@ -133,6 +124,19 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         import math  # TODO: Why not import math at the top? And why not use numpy?
 
         return self.omega_0 * math.sqrt(0.5 * math.log(self.F_p / (self.delta_pen * self.q_ast)))
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters(r"""{
+            "compute_vaporisation"             : false,
+            "consider_material_refraction"     : false,
+            "adjust_T_field_after_ablation"    : false,
+            "print_hole_geometry_files"        : false,
+            "print_debug_info"                 : false,
+            "decomposed_nodes_coords_filename" : "hole_coords_q_ast=q_ast+delta_pen+mesh_type+mesh_size.txt"
+        }""")
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
 
     def SetParameters(self):
         # TODO: - Utilitzar GUI de GiD de la LaserDrilling Application per a generar un cas amb 2 materials i
