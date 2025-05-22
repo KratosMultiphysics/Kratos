@@ -554,16 +554,19 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
                         "fluid_or_solid": "fluid",
                         "max_volume_fraction" : 0.4
                     },
-                    "WSS_constraint_settings": {
-                        "use_WSS_constraint" : false,
-                        "min_WSS" : 0.5
+                    "use_other_constraints": true,
+                    "other_constraints_list": {
+                        "WSS_constraint_settings": {
+                            "use_WSS_constraint" : false,
+                            "min_WSS" : 0.5
+                        }
                     }
                 },
-                "custom_initial_design_settings": {
-                    "use_custom_initial_design": false,
+                "use_custom_initial_design": false,
+                "custom_initial_design_settings": { 
                     "custom_initial_design": [{
-                        "model_part_name": {},
-                        "initial_value": {}
+                        "model_part_name": "",
+                        "initial_value": "0.0"
                     }]
                 }
             }

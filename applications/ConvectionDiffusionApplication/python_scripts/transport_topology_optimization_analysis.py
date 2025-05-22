@@ -232,7 +232,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         if (abs(self.functional_weights[7]) > 1e-10):
             self._EvaluateTransportScalarDecayFunctional(print_functional)
         if (abs(self.functional_weights[8]) > 1e-10):
-            self._EvaluateTransportScalarSourceFunctional(print_functional)\
+            self._EvaluateTransportScalarSourceFunctional(print_functional)
 
     def _EvaluateOutletTransportScalarFunctional(self, print_functional=False):
         """
@@ -651,13 +651,20 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                     "volume_constraint_settings": {
                         "fluid_or_solid": "fluid",
                         "max_volume_fraction" : 0.4
+                    },
+                    "use_other_constraints": true,
+                    "other_constraints_list": {
+                        "WSS_constraint_settings": {
+                            "use_WSS_constraint" : false,
+                            "min_WSS" : 0.5
+                        }
                     }
                 },
-                "custom_initial_design_settings": {
-                    "use_custom_initial_design": false,
+                "use_custom_initial_design": false,
+                "custom_initial_design_settings": { 
                     "custom_initial_design": [{
-                        "model_part_name": {},
-                        "initial_value": {}
+                        "model_part_name": "",
+                        "initial_value": "0.0"
                     }]
                 }
             }
