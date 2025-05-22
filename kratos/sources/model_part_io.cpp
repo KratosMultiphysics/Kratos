@@ -528,9 +528,10 @@ void ModelPartIO::ReadMasterSlaveConstraints(
 
 void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
 {
-    // We are going to proceed like the following, we are going to iterate over all the master slave constraints and compare with the components, we will save the type and we will compare until we get that the type of master slave constraint has changed
+    // We are going to proceed like the following, we are going to iterate over all the constraints and compare with the components, we will save the type and we will compare until we get that the type of constraint has changed
+    // NOTE: Only constraints with one slave dof are supported
 
-    // We are going to use this vector to identify if the master slave constraint is of the same type, first the number of master dofs and then the number of slave dofs, and the the keys of the variables
+    // We are going to use this vector to identify if the constraint is of the same type, first the number of master dofs and then the number of slave dofs, and the the keys of the variables
     std::vector<IndexType> check_same_type_vector_previous;
 
     // A lambda to check that the check_same_type_vector is the same
@@ -574,9 +575,9 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         return true;
     };
 
-    // If there are master slave constraints we print them
+    // If there are constraints we print them
     if (rConstraintContainer.size() > 0) {
-        // Define the name of the master slave constraint
+        // Define the name of the constraint
         std::string constraint_name;
 
         // Define the variables names
@@ -604,19 +605,19 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         // We get the number of master and slave dofs
         SizeType number_of_master_dofs = master_dofs.size();
         SizeType number_of_slave_dofs = slave_dofs.size();
+        KRATOS_ERROR_IF(number_of_slave_dofs != 1) << "The constraint " << it_constraint_begin->Id() << " has to have only one slave dof" << std::endl;
         variables_names.reserve(number_of_master_dofs + number_of_slave_dofs);
         check_same_type_vector_previous.reserve(2 + number_of_master_dofs + number_of_slave_dofs);
         check_same_type_vector_previous.push_back(number_of_master_dofs);
         check_same_type_vector_previous.push_back(number_of_slave_dofs);
-
-        for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-            const auto& p_dof = master_dofs[i];
+        {
+            const auto& p_dof = slave_dofs[0];
             const auto& r_variable = p_dof->GetVariable();
             variables_names.push_back(r_variable.Name());
             check_same_type_vector_previous.push_back(r_variable.Key());
         }
-        for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
-            const auto& p_dof = slave_dofs[i];
+        for (IndexType i = 0; i < number_of_master_dofs; ++i) {
+            const auto& p_dof = master_dofs[i];
             const auto& r_variable = p_dof->GetVariable();
             variables_names.push_back(r_variable.Name());
             check_same_type_vector_previous.push_back(r_variable.Key());
@@ -625,29 +626,30 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
         // We get the transformation matrix and the constant vector
         it_constraint_begin->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
 
-        (*mpStream) << "Begin Constraints\t" << constraint_name << "\t" << number_of_master_dofs << "\t" << number_of_slave_dofs;
+        (*mpStream) << "Begin Constraints\t" << constraint_name;// << "\t" << number_of_master_dofs;
         for (IndexType i = 0; i < variables_names.size(); ++i) {
             (*mpStream) << "\t" << variables_names[i];
         }
         (*mpStream) << "\n";
         (*mpStream) << "\t" << it_constraint_begin->Id() << "\t";
+        (*mpStream) << slave_dofs[0]->Id() << "\t";
         for (IndexType i = 0; i < number_of_master_dofs; ++i) {
             (*mpStream) << master_dofs[i]->Id() << "\t";
         }
-        for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
-            (*mpStream) << slave_dofs[i]->Id() << "\t";
-        }
-        for (IndexType i = 0; i < transformation_matrix.size1(); ++i) {
-            for (IndexType j = 0; j < transformation_matrix.size2(); ++j) {
-                (*mpStream) << transformation_matrix(i, j) << "\t";
+        // We write the constant vector (we consider that the first value is just one value)
+        (*mpStream) << constant_vector[0] << "\t";
+
+        // We write the transformation matrix
+        (*mpStream) << "[";
+        for (IndexType j = 0; j < number_of_master_dofs; ++j) {
+            (*mpStream) << transformation_matrix(0, j);
+            if (j < number_of_master_dofs - 1) {
+                (*mpStream) << ",\t";
             }
         }
-        for (IndexType i = 0; i < constant_vector.size(); ++i) {
-            (*mpStream) << constant_vector[i] << "\t";
-        }
-        (*mpStream) << "\n";
+        (*mpStream) << "]\n";
 
-        // Now we iterate over all the master slave constraints
+        // Now we iterate over all the constraints
         for(std::size_t i = 1; i < rConstraintContainer.size(); i++) {
             auto it_const_previous = it_constraint_begin + i - 1;
             auto it_const_current = it_constraint_begin + i;
@@ -662,23 +664,24 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 it_const_current->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
 
                 (*mpStream) << "\t" << it_const_current->Id() << "\t";
+                (*mpStream) << slave_dofs[0]->Id() << "\t";
                 for (IndexType i = 0; i < number_of_master_dofs; ++i) {
                     (*mpStream) << master_dofs[i]->Id() << "\t";
                 }
-                for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
-                    (*mpStream) << slave_dofs[i]->Id() << "\t";
-                }
-                for (IndexType i = 0; i < transformation_matrix.size1(); ++i) {
-                    for (IndexType j = 0; j < transformation_matrix.size2(); ++j) {
-                        (*mpStream) << transformation_matrix(i, j) << "\t";
+                // We write the constant vector (we consider that the first value is just one value)
+                (*mpStream) << constant_vector[0] << "\t";
+
+                // We write the transformation matrix
+                (*mpStream) << "[";
+                for (IndexType j = 0; j < number_of_master_dofs; ++j) {
+                    (*mpStream) << transformation_matrix(0, j);
+                    if (j < number_of_master_dofs - 1) {
+                        (*mpStream) << ",\t";
                     }
                 }
-                for (IndexType i = 0; i < constant_vector.size(); ++i) {
-                    (*mpStream) << constant_vector[i] << "\t";
-                }
-                (*mpStream) << "\n";
+                (*mpStream) << "]\n";
             } else {
-                // End previous master slave constraint
+                // End previous constraint
                 (*mpStream) << "End Constraints" << "\n\n";
 
                 // Get the new name
@@ -692,6 +695,7 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 // We get the number of master and slave dofs
                 number_of_master_dofs = master_dofs.size();
                 number_of_slave_dofs = slave_dofs.size();
+                KRATOS_ERROR_IF(number_of_slave_dofs != 1) << "The constraint " << it_const_current->Id() << " has to have only one slave dof" << std::endl;
                 variables_names.clear();
                 variables_names.reserve(number_of_master_dofs + number_of_slave_dofs);
                 check_same_type_vector_previous.clear();
@@ -699,14 +703,14 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 check_same_type_vector_previous.push_back(number_of_master_dofs);
                 check_same_type_vector_previous.push_back(number_of_slave_dofs);
 
-                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-                    const auto& p_dof = master_dofs[i];
+                {
+                    const auto& p_dof = slave_dofs[0];
                     const auto& r_variable = p_dof->GetVariable();
                     variables_names.push_back(r_variable.Name());
                     check_same_type_vector_previous.push_back(r_variable.Key());
                 }
-                for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
-                    const auto& p_dof = slave_dofs[i];
+                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
+                    const auto& p_dof = master_dofs[i];
                     const auto& r_variable = p_dof->GetVariable();
                     variables_names.push_back(r_variable.Name());
                     check_same_type_vector_previous.push_back(r_variable.Key());
@@ -715,27 +719,28 @@ void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType
                 // We get the transformation matrix and the constant vector
                 it_const_current->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
 
-                (*mpStream) << "Begin Constraints\t" << constraint_name << "\t" << number_of_master_dofs << "\t" << number_of_slave_dofs;
+                (*mpStream) << "Begin Constraints\t" << constraint_name;// << "\t" << number_of_master_dofs;
                 for (IndexType i = 0; i < variables_names.size(); ++i) {
                     (*mpStream) << "\t" << variables_names[i];
                 }
                 (*mpStream) << "\n";
                 (*mpStream) << "\t" << it_const_current->Id() << "\t";
+                (*mpStream) << slave_dofs[0]->Id() << "\t";
                 for (IndexType i = 0; i < number_of_master_dofs; ++i) {
                     (*mpStream) << master_dofs[i]->Id() << "\t";
                 }
-                for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
-                    (*mpStream) << slave_dofs[i]->Id() << "\t";
-                }
-                for (IndexType i = 0; i < transformation_matrix.size1(); ++i) {
-                    for (IndexType j = 0; j < transformation_matrix.size2(); ++j) {
-                        (*mpStream) << transformation_matrix(i, j) << "\t";
+                // We write the constant vector (we consider that the first value is just one value)
+                (*mpStream) << constant_vector[0] << "\t";
+
+                // We write the transformation matrix
+                (*mpStream) << "[";
+                for (IndexType j = 0; j < number_of_master_dofs; ++j) {
+                    (*mpStream) << transformation_matrix(0, j);
+                    if (j < number_of_master_dofs - 1) {
+                        (*mpStream) << ",\t";
                     }
                 }
-                for (IndexType i = 0; i < constant_vector.size(); ++i) {
-                    (*mpStream) << constant_vector[i] << "\t";
-                }
-                (*mpStream) << "\n";
+                (*mpStream) << "]\n";
             }
         }
 
@@ -2235,18 +2240,8 @@ void ModelPartIO::ReadConstraintsBlock(
     std::string word;
     std::string constraint_name;
 
-    // Reading the type of master slave constraint
+    // Reading the type of constraint
     ReadWord(constraint_name);
-
-    // Reading the number of master dofs
-    SizeType number_of_master_dofs;
-    ReadWord(word);
-    ExtractValue(word, number_of_master_dofs);
-
-    // Reading the number of slave dofs
-    SizeType number_of_slave_dofs;
-    ReadWord(word);
-    ExtractValue(word, number_of_slave_dofs);
 
     // Printing some information
     KRATOS_INFO("ModelPartIO") << "  [Reading Constraints : ";
@@ -2261,17 +2256,96 @@ void ModelPartIO::ReadConstraintsBlock(
     }
 
     const MasterSlaveConstraint& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(constraint_name);
+
+    // Read the slave variable
+    ReadWord(word);
+    const Variable<double>& r_slave_variable = KratosComponents<Variable<double>>::Get(word);
+
+    // Lambda function generates a vector of strings from the input string
+    auto split_string_into_a_vector = [](const std::string& rText) -> std::vector<std::string> {
+        std::istringstream iss(rText);
+        std::string word;
+        std::vector<std::string> words;
+
+        // The stream extraction operator (>>) automatically skips whitespace
+        // (including spaces and tabs) by default.
+        while (iss >> word) {
+            words.push_back(word);
+        }
+        return words;
+    };
+
+    // Reading the number of master dofs
+    std::string current_line;
+    std::getline(*mpStream, current_line);
+    const auto words = split_string_into_a_vector(current_line);
+    const SizeType number_of_master_dofs = words.size();
+
+    auto trim = [](const std::string& rInputStr) -> std::string {
+        auto first = std::find_if_not(rInputStr.begin(), rInputStr.end(), [](unsigned char ch) {
+            return std::isspace(ch);
+        });
+        if (first == rInputStr.end()) {
+            return "";
+        }
+        auto last = std::find_if_not(rInputStr.rbegin(), rInputStr.rend(), [](unsigned char ch) {
+            return std::isspace(ch);
+        }).base();
+        return std::string(first, last);
+    };
+
+    // Define the lambda function
+    auto split_string_to_double_vector = [&trim](const std::string& rInputStr) -> std::vector<double> {
+        std::vector<double> result;
+        std::string str = rInputStr; // Make a mutable copy
+
+        // 1. Remove '[' and ']'
+        // Remove '[' from the beginning if it exists
+        if (!str.empty() && str.front() == '[') {
+            str.erase(0, 1);
+        }
+        // Remove ']' from the end if it exists
+        if (!str.empty() && str.back() == ']') {
+            str.pop_back();
+        }
+
+        // If the string is empty after removing brackets (e.g., "[]" or "[ ]"), return an empty vector
+        if (trim(str).empty()) {
+            return result;
+        }
+
+        // 2. Use stringstream to split by comma and parse doubles
+        std::stringstream ss(str);
+        std::string segment;
+
+        while (std::getline(ss, segment, ',')) {
+            // Trim whitespace from the segment
+            std::string trimmedSegment = trim(segment);
+            if (!trimmedSegment.empty()) {
+                try {
+                    // Convert the trimmed segment to a double
+                    result.push_back(std::stod(trimmedSegment));
+                } catch (const std::invalid_argument& ia) {
+                    // Handle cases where conversion is not possible (e.g., non-numeric characters)
+                    KRATOS_ERROR << "Warning: Invalid argument for stod: '" << trimmedSegment << "'" << std::endl;
+                    // Optionally, you could throw an error here or skip the invalid segment
+                } catch (const std::out_of_range& oor) {
+                    // Handle cases where the number is out of range for a double
+                    KRATOS_ERROR << "Warning: Out of range for stod: '" << trimmedSegment << "'" << std::endl;
+                }
+            }
+        }
+        return result;
+    };
+
     // The simpler case is when the connectivity is 1x1, many simplifications can be done
-    if (number_of_master_dofs == 1 && number_of_slave_dofs == 1) {
+    NodeType::Pointer p_slave_node;
+    if (number_of_master_dofs == 1) {
         // Now we need to read the variables
-        ReadWord(word);
-        const Variable<double>& r_master_variable = KratosComponents<Variable<double> >::Get(word);
-        ReadWord(word);
-        const Variable<double>& r_slave_variable = KratosComponents<Variable<double> >::Get(word);
+        const Variable<double>& r_master_variable = KratosComponents<Variable<double> >::Get(words[0]);
 
         // Define the master and slave nodes pointers
         NodeType::Pointer p_master_node;
-        NodeType::Pointer p_slave_node;
 
         // Define the weight and the constant
         double weight;
@@ -2289,61 +2363,57 @@ void ModelPartIO::ReadConstraintsBlock(
             // Constraint id
             ExtractValue(word, id);
 
-            // Master node pointer
-            ReadWord(word); // Reading the node id;
-            ExtractValue(word, node_id);
-            p_master_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
-
             // Slave node pointer
             ReadWord(word); // Reading the node id;
             ExtractValue(word, node_id);
             p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
 
-            // Get the weight and the constant
-            ReadWord(word); // Reading the weight
-            ExtractValue(word, weight);
+            // Master node pointer
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            p_master_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
 
+            // Get the weight and the constant
             ReadWord(word); // Reading the constant
             ExtractValue(word, constant);
 
+            // Get the weights
+            std::getline(*mpStream, current_line);
+            const auto weights = split_string_to_double_vector(current_line);
+            weight = weights[0];
+
             // Check dofs exist for the variables and the nodes
-            if (!p_master_node->HasDofFor(r_master_variable)) {
-                p_master_node->pAddDof(r_master_variable);
-            }
             if (!p_slave_node->HasDofFor(r_slave_variable)) {
                 p_slave_node->pAddDof(r_slave_variable);
             }
+            if (!p_master_node->HasDofFor(r_master_variable)) {
+                p_master_node->pAddDof(r_master_variable);
+            }
 
-            // Create the master slave constraint
+            // Create the constraint
             rConstraints.push_back(r_clone_constraint.Create(id, *p_master_node, r_master_variable, *p_slave_node, r_slave_variable, weight, constant));
             number_of_read_constraints++;
         }
     } else {
-        // The more general case is when the connectivity is 1xN or Nx1
+        // The more general case is when the connectivity is 1xN
         std::vector<const Variable<double>*> master_variables(number_of_master_dofs);
         for (SizeType i = 0; i < number_of_master_dofs; i++) {
-            ReadWord(word);
-            master_variables[i] = &KratosComponents<Variable<double>>::Get(word);
-        }
-        std::vector<const Variable<double>*> slave_variables(number_of_slave_dofs);
-        for (SizeType i = 0; i < number_of_slave_dofs; i++) {
-            ReadWord(word);
-            slave_variables[i] = &KratosComponents<Variable<double>>::Get(word);
+            master_variables[i] = &KratosComponents<Variable<double>>::Get(words[i]);
         }
 
         // Define the master and slave nodes dofs vectors
         MasterSlaveConstraint::DofPointerVectorType master_dofs(number_of_master_dofs);
-        MasterSlaveConstraint::DofPointerVectorType slave_dofs(number_of_slave_dofs);
+        MasterSlaveConstraint::DofPointerVectorType slave_dofs(1);
 
         // Define relation matrix
-        Matrix relation_matrix(number_of_slave_dofs, number_of_master_dofs);
+        Matrix relation_matrix(1, number_of_master_dofs);
 
         // Define the constant vector
-        Vector constant_vector(number_of_slave_dofs);
+        Vector constant_vector(1);
 
         // Define the temporary nodes
         std::vector<Node::Pointer> temp_master_nodes(number_of_master_dofs);
-        std::vector<Node::Pointer> temp_slave_nodes(number_of_slave_dofs);
+        std::vector<Node::Pointer> temp_slave_nodes(1);
 
         while(!mpStream->eof()) {
             ReadWord(word); // Reading the constraint id or End
@@ -2354,7 +2424,12 @@ void ModelPartIO::ReadConstraintsBlock(
             // Constraint id
             ExtractValue(word, id);
 
-            // First we retrieve the master nodes
+            // Slave node pointer
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
+
+            // Then we retrieve the master nodes
             temp_master_nodes.clear();
             for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
                 ReadWord(word); // Reading the node id;
@@ -2362,15 +2437,12 @@ void ModelPartIO::ReadConstraintsBlock(
                 temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
             }
 
-            // Then we retrieve the slave nodes
-            temp_slave_nodes.clear();
-            for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
-                ReadWord(word); // Reading the node id;
-                ExtractValue(word, node_id);
-                temp_slave_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
-            }
-
             // Now with the nodes and the variables we can create the dofs
+            if (p_slave_node->HasDofFor(r_slave_variable)) {
+                slave_dofs[0] = p_slave_node->pGetDof(r_slave_variable);
+            } else {
+                slave_dofs[0] = p_slave_node->pAddDof(r_slave_variable);
+            }
             for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
                 if (temp_master_nodes[i]->HasDofFor(*master_variables[i])) {
                     master_dofs[i] = temp_master_nodes[i]->pGetDof(*master_variables[i]);
@@ -2378,35 +2450,27 @@ void ModelPartIO::ReadConstraintsBlock(
                     master_dofs[i] = temp_master_nodes[i]->pAddDof(*master_variables[i]);
                 }
             }
-            for (SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
-                if (temp_slave_nodes[i]->HasDofFor(*slave_variables[i])) {
-                    slave_dofs[i] = temp_slave_nodes[i]->pGetDof(*slave_variables[i]);
-                } else {
-                    slave_dofs[i] = temp_slave_nodes[i]->pAddDof(*slave_variables[i]);
-                }
+
+            // Read the constant vector
+            {
+                ReadWord(word); // Reading the constant vector
+                ExtractValue(word, constant_vector[0]);
             }
 
             // Read the relation matrix
-            for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
-                for (SizeType j = 0; j < number_of_master_dofs; j++) {
-                    ReadWord(word); // Reading the relation matrix
-                    ExtractValue(word, relation_matrix(i,j));
-                }
+            std::getline(*mpStream, current_line);
+            const auto weights = split_string_to_double_vector(current_line);
+            for (SizeType j = 0; j < number_of_master_dofs; j++) {
+                relation_matrix(0, j) = weights[j];
             }
 
-            // Read the constant vector
-            for(SizeType i = 0 ; i < number_of_slave_dofs ; i++) {
-                ReadWord(word); // Reading the constant vector
-                ExtractValue(word, constant_vector[i]);
-            }
-
-            // Create the master slave constraint
+            // Create the constraint
             rConstraints.push_back(r_clone_constraint.Create(id, master_dofs, slave_dofs, relation_matrix, constant_vector));
             number_of_read_constraints++;
         }
     }
 
-    KRATOS_INFO("") << number_of_read_constraints << " master slave constraints read] [Type: " << constraint_name << "]" << std::endl;
+    KRATOS_INFO("") << number_of_read_constraints << " constraints read] [Type: " << constraint_name << "]" << std::endl;
     rConstraints.Unique();
 
     KRATOS_CATCH("")
