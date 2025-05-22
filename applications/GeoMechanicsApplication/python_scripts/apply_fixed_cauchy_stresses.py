@@ -1,6 +1,6 @@
 import KratosMultiphysics as Core
 
-def Factory(settings, model):
+def Factory(settings, model): # noqa: N802
     if not isinstance(settings, Core.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
 
