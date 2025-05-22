@@ -1045,9 +1045,9 @@ protected:
     StressStatePolicy& GetStressStatePolicy() const { return *mpStressStatePolicy; }
 
 private:
+    std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<CalculationContribution>  mContributions;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
-    std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
     std::vector<Vector>                   mStressVector;
