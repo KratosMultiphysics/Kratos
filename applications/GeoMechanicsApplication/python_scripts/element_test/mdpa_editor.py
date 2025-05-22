@@ -17,13 +17,12 @@ class MdpaEditor:
     def _replacer_factory(self, variable_value):
         def replacer(match):
             leading_ws = match.group(1)
-            trailing_ws = match.group(2)
-            return f"{leading_ws}{variable_value}{trailing_ws}"
+            return f"{leading_ws}{variable_value:.4f}"
         return replacer
 
 
     def update_maximum_strain(self, maximum_strain):
-        pattern = r'(\s*)\$maximum_strain(\s*)'
+        pattern = r'(\s*)\$maximum_strain\b'
         prescribed_displacement = -maximum_strain / 100
 
         replacer = self._replacer_factory(prescribed_displacement)
@@ -36,7 +35,7 @@ class MdpaEditor:
         # messagebox.showinfo("Success", f"'$maximum_strain' replaced with {prescribed_displacement}")
 
     def update_initial_effective_cell_pressure(self, initial_effective_cell_pressure):
-        pattern = r'(\s*)\$initial_effective_cell_pressure(\s*)'
+        pattern = r'(\s*)\$initial_effective_cell_pressure\b'
 
         replacer = self._replacer_factory(initial_effective_cell_pressure)
         new_text, count = re.subn(pattern, replacer, self.raw_text)
@@ -49,7 +48,7 @@ class MdpaEditor:
 
     def update_first_timestep(self, num_steps):
         first_timestep = 1.0 / num_steps
-        pattern = r'(\s*)\$first_timestep(\s*)'
+        pattern = r'(\s*)\$first_timestep\b'
 
         replacer = self._replacer_factory(first_timestep)
         new_text, count = re.subn(pattern, replacer, self.raw_text)
