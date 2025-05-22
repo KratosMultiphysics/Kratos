@@ -38,7 +38,7 @@ class TriaxialTest:
             friction_angle = umat_parameters[3]
             return cohesion, friction_angle
         except KeyError:
-            return 0.0, 30.0  #TODO: Remove the reasonable defaults for Mohr-Coulomb failure envelope
+            return 0.0, 30.0  #Remove the reasonable defaults for Mohr-Coulomb failure envelope for Linear Elastic
 
 class TriaxialTestRunner:
     def __init__(self, output_file_paths, work_dir):
@@ -58,7 +58,7 @@ class TriaxialTestRunner:
         return tensors, yy_strain, vol_strain, von_mises_values, mean_stress_values
 
     def _load_stage_parameters(self):
-        parameter_files = [os.path.join(self.work_dir, f'ProjectParameters.json')]
+        parameter_files = [os.path.join(self.work_dir, 'ProjectParameters.json')]
         parameters = []
         for f in parameter_files:
             with open(f, 'r') as file:
