@@ -109,6 +109,11 @@ void ConnectivitiesData<TContainerType>::Write(
 {
     KRATOS_TRY;
 
+    if (mpFile->GetDataCommunicator().SumAll(rEntities.size()) == 0) {
+        // do nothing if the all the ranks have no entities.
+        return;
+    }
+
     std::string entity_name = "";
     unsigned int geometry_size = 0;
     if (!rEntities.empty()) {
@@ -143,12 +148,6 @@ void ConnectivitiesData<TContainerType>::Write(
         // in the above if block, we will make the empty rank's entity_name also non emtpy. Therefore
         // an additional check is included to check whether the rank_name is also empty.
         KRATOS_ERROR_IF(entity_name != rank_name && !rank_name.empty()) << "All the ranks should have the same entities.";
-    }
-
-    if (entity_name.empty()) {
-        // do nothing if the entity_name is empty. This means, none of the ranks had any entities in the container
-        // hence there is no point in continuing further.
-        return;
     }
 
     const auto& entity_group_path = mPrefix + "/" + entity_name;
