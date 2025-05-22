@@ -246,24 +246,30 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
 
         std::vector<int> shape(value_type_traits::Dimension);
-        if constexpr(value_type_traits::IsDynamic) {
-            // retrieving dynamic shape
+        if constexpr(value_type_traits::Dimension == 0) {
+            Vector<value_type> values(rLocalContainer.size());
+            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), values.size());
+            mpFile->WriteDataSet(r_data_set_path, values, rInfo);
+        } else {
+            // get the correct size
+            value_type value_prototype{};
             if (!rLocalContainer.empty()) {
+                // if the value type is not static, then we need to get the shape
+                // of the first element assuming all the entities will have the same
+                // shape.
                 typename TContainerDataIO::template TLSType<component_type> tls;
-                const auto& value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component, tls);
-                value_type_traits::Shape(value_prototype, shape.data(), shape.data() + value_type_traits::Dimension);
+                value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component, tls);
             }
+
+            // now retrieve the shape
+            value_type_traits::Shape(value_prototype, shape.data(), shape.data() + value_type_traits::Dimension);
+
+            // communicate between ranks(to provide shape for the ranks which are empty.)
             shape = mpFile->GetDataCommunicator().MaxAll(shape);
 
             Matrix<value_primitive_type> values;
             values.resize(rLocalContainer.size(), std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>{}));
-            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values));
-            mpFile->WriteDataSet(r_data_set_path, values, rInfo);
-        } else {
-            value_type_traits::Shape(value_type{}, shape.data(), shape.data() + value_type_traits::Dimension);
-            Vector<value_type> values;
-            values.resize(rLocalContainer.size());
-            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values));
+            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), values.size1() * values.size2());
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         }
 

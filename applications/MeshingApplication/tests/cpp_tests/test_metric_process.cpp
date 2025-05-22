@@ -20,7 +20,7 @@
 // #include "includes/gid_io.h"
 #include "containers/model.h"
 #include "meshing_application_variables.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 /* Processes */
 #include "processes/compute_nodal_gradient_process.h"
@@ -47,7 +47,7 @@ namespace Kratos
 //             gid_io.WriteNodalResults(DISTANCE, rModelPart.Nodes(), label, 0);
 //             gid_io.WriteNodalResults(DISTANCE_GRADIENT, rModelPart.Nodes(), label, 0);
 //             gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_2D, rModelPart.Nodes(), label);
-// //             gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_3D, rModelPart.Nodes(), label); // NOTE: 6 components not suported, update
+// //             gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_3D, rModelPart.Nodes(), label); // NOTE: 6 components not supported, update
 //         }
 //
 //         void GiDIODebugMetricSPR(ModelPart& rModelPart)
@@ -65,7 +65,7 @@ namespace Kratos
 //             gid_io.PrintOnGaussPoints(CAUCHY_STRESS_VECTOR, rModelPart, label);
 //             gid_io.PrintOnGaussPoints(STRAIN_ENERGY, rModelPart, label);
 //             gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_2D, rModelPart.Nodes(), label);
-// //             gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_3D, rModelPart.Nodes(), label); // NOTE: 6 components not suported, update
+// //             gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_3D, rModelPart.Nodes(), label); // NOTE: 6 components not supported, update
 //         }
 
         /**

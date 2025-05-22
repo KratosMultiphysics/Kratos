@@ -16,7 +16,7 @@
             "input_filename":   "test_thermal_heat_flux_2D3N"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "../Common/MaterialParameters2D.json"
         },
         "time_stepping":              {
             "time_step":                 600,
@@ -32,7 +32,6 @@
         "block_builder":                      true,
         "solution_type":                      "Transient_Heat_Transfer",
         "scheme_type":                        "Backward_Euler",
-        "reset_displacements":                true,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -52,14 +51,12 @@
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-        "calculate_reactions":                true,
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
         "second_alpha_value":                 1.0,
         "min_alpha":                          0.1,
         "max_alpha":                          2.0,
         "line_search_tolerance":              0.5,
-        "rotation_dofs":                      true,
         "linear_solver_settings":             {
             "solver_type":         "bicgstab",
             "tolerance":           1.0e-6,
@@ -136,7 +133,6 @@
             "value":           100.0,
             "table":           0
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

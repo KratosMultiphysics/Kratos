@@ -91,7 +91,6 @@ namespace Kratos::MPMSearchElementUtility
                 }
             }
         }
-        #pragma omp critical
         rGeom.SetValue(GEOMETRY_NEIGHBOURS, geometry_neighbours);
     }
 
@@ -130,9 +129,13 @@ namespace Kratos::MPMSearchElementUtility
             IsFound = true;
             return rParentGeom;
         } else {
+            // Lock for ParentGeom is required as reading and writing is called in parallel
+            // Lock is set on the node, since the lock option is not available for the geometry
+            rParentGeom(0)->SetLock();
             if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS)) {
                 ConstructNeighbourRelations(rParentGeom, rBackgroundGridModelPart);
             }
+            rParentGeom(0)->UnSetLock();
             auto& geometry_neighbours = rParentGeom.GetValue(GEOMETRY_NEIGHBOURS);
             for (IndexType k = 0; k < geometry_neighbours.size(); ++k) {
                 if (CheckIsInside(*geometry_neighbours[k], rLocalCoords, xg, Tolerance)) {
@@ -167,7 +170,8 @@ namespace Kratos::MPMSearchElementUtility
     inline void NeighbourSearchElements(
         const ModelPart& rMPMModelPart,
         const ModelPart& rBackgroundGridModelPart,
-        std::vector<typename Element::Pointer>& rMissingElements,
+        std::vector<std::vector<Element::Pointer>>& rThreadMissingElements,
+        std::vector<std::vector<IndexType>>& rThreadActiveNodeIds,
         const double Tolerance
         )
     {
@@ -183,6 +187,7 @@ namespace Kratos::MPMSearchElementUtility
                 rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                 rMPMModelPart.GetProcessInfo(), is_found);
 
+            const int thread_id = omp_get_thread_num();
             if (is_found) {
                 const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
                     ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
@@ -200,12 +205,11 @@ namespace Kratos::MPMSearchElementUtility
                     is_found = false;
                 } else {
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
-                        r_found_geom.Points()[j].Set(ACTIVE);
+                        rThreadActiveNodeIds[thread_id].push_back(r_found_geom.Points()[j].Id());
                     }
                 }
             } else {
-                #pragma omp critical
-                rMissingElements.push_back(&*element_itr);
+                rThreadMissingElements[thread_id].push_back(&*element_itr);
             }
         }
     }
@@ -214,7 +218,8 @@ namespace Kratos::MPMSearchElementUtility
     inline void NeighbourSearchConditions(
         const ModelPart& rMPMModelPart,
         const ModelPart& rBackgroundGridModelPart,
-        std::vector<typename Condition::Pointer>& rMissingConditions,
+        std::vector<std::vector<Condition::Pointer>>& rThreadMissingConditions,
+        std::vector<std::vector<IndexType>>& rThreadActiveNodeIds,
         const double Tolerance
         )
     {
@@ -232,17 +237,20 @@ namespace Kratos::MPMSearchElementUtility
                     rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                     rMPMModelPart.GetProcessInfo(), is_found);
 
+                const int thread_id = omp_get_thread_num();
                 if (is_found) {
                     CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                         condition_itr->pGetGeometry(), local_coordinates,
                         condition_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
 
+                    condition_itr->Set(ACTIVE);
+
+                    
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
-                        r_found_geom[j].Set(ACTIVE);
+                        rThreadActiveNodeIds[thread_id].push_back(r_found_geom.Points()[j].Id());
                     }
                 } else {
-                    #pragma omp critical
-                    rMissingConditions.push_back(&*condition_itr);
+                    rThreadMissingConditions[thread_id].push_back(&*condition_itr);
                 }
             }
         }
@@ -274,6 +282,7 @@ namespace Kratos::MPMSearchElementUtility
         ModelPart& rBackgroundGridModelPart,
         std::vector<typename Element::Pointer>& rMissingElements,
         std::vector<typename Condition::Pointer>& rMissingConditions,
+        std::vector<std::vector<IndexType>>& rThreadActiveNodeIds,
         const std::size_t MaxNumberOfResults,
         const double Tolerance
         )
@@ -337,8 +346,10 @@ namespace Kratos::MPMSearchElementUtility
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
                     }
                     auto& r_geometry = element_itr->GetGeometry();
+                    
+                    const int thread_id = omp_get_thread_num();
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
-                        r_geometry[j].Set(ACTIVE);
+                        rThreadActiveNodeIds[thread_id].push_back(r_geometry[j].Id());
                     }
                 } else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: "
@@ -374,10 +385,12 @@ namespace Kratos::MPMSearchElementUtility
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
                         auto& r_geometry = condition_itr->GetGeometry();
-
+                        
+                        const int thread_id = omp_get_thread_num();
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
-                            r_geometry[j].Set(ACTIVE);
+                            rThreadActiveNodeIds[thread_id].push_back(r_geometry[j].Id());
                         }
+                        condition_itr->Set(ACTIVE);
                     } else {
                         KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
                             << " is failed. Geometry is cleared." << std::endl;
@@ -397,10 +410,13 @@ namespace Kratos::MPMSearchElementUtility
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
             auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
             element_itr->Reset(ACTIVE);
-            auto& r_geometry = element_itr->GetGeometry();
-            for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
-                r_geometry[j].Reset(ACTIVE);
-            }
+        }
+
+        // Reset all nodes 
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Nodes().size()); ++i) {
+            auto node_itr = rBackgroundGridModelPart.NodesBegin() + i;
+            node_itr->Reset(ACTIVE);
         }
     }
 
@@ -425,12 +441,25 @@ namespace Kratos::MPMSearchElementUtility
     {
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
+        const int num_threads = omp_get_max_threads();
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
+        std::vector<std::vector<IndexType>> thread_active_node_ids(num_threads);
+        std::vector<std::vector<Element::Pointer>> thread_missing_elements(num_threads);
+        std::vector<std::vector<Condition::Pointer>> thread_missing_conditions(num_threads);
 
         if (!rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
-            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance);
-            NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance);
+            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, thread_missing_elements, thread_active_node_ids, Tolerance);
+            NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, thread_missing_conditions, thread_active_node_ids, Tolerance);
+            
+            // Merge missing elements and conditions
+            for (const auto& thread_vec : thread_missing_elements) {
+                missing_elements.insert(missing_elements.end(), thread_vec.begin(), thread_vec.end());
+            }
+            for (const auto& thread_vec : thread_missing_conditions) {
+                missing_conditions.insert(missing_conditions.end(), thread_vec.begin(), thread_vec.end());
+            }
+
         } else {
             missing_elements.resize(rMPMModelPart.Elements().size());
             IndexPartition(rMPMModelPart.Elements().size()).for_each([&](std::size_t i){
@@ -445,8 +474,17 @@ namespace Kratos::MPMSearchElementUtility
 
         if (missing_conditions.size() > 0 || missing_elements.size() > 0) {
             BinBasedSearchElementsAndConditions<TDimension>(rMPMModelPart,
-                rBackgroundGridModelPart, missing_elements, missing_conditions,
+                rBackgroundGridModelPart, missing_elements, missing_conditions, thread_active_node_ids,
                 MaxNumberOfResults, Tolerance);
+        }
+
+        // collect active nodes and set active
+        std::unordered_set<IndexType> active_node_ids;
+        for (const auto& local_ids : thread_active_node_ids) {
+            active_node_ids.insert(local_ids.begin(), local_ids.end());
+        }
+        for (IndexType id : active_node_ids) {
+            rBackgroundGridModelPart.GetNode(id).Set(ACTIVE, true);
         }
     }
 } // end namespace Kratos::MPMSearchElementUtility

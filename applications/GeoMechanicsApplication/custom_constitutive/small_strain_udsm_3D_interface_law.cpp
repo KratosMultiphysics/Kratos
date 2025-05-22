@@ -30,11 +30,14 @@ ConstitutiveLaw::Pointer SmallStrainUDSM3DInterfaceLaw::Clone() const
 
 void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
-    const Vector& rStrainVector = rValues.GetStrainVector();
+    const auto& r_strain_vector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[INDEX_3D_ZZ] = rStrainVector(INDEX_3D_INTERFACE_ZZ) - mStrainVectorFinalized[INDEX_3D_ZZ];
-    mDeltaStrainVector[INDEX_3D_YZ] = rStrainVector(INDEX_3D_INTERFACE_YZ) - mStrainVectorFinalized[INDEX_3D_YZ];
-    mDeltaStrainVector[INDEX_3D_XZ] = rStrainVector(INDEX_3D_INTERFACE_XZ) - mStrainVectorFinalized[INDEX_3D_XZ];
+    mDeltaStrainVector[INDEX_3D_ZZ] =
+        r_strain_vector[INDEX_3D_INTERFACE_ZZ] - mStrainVectorFinalized[INDEX_3D_ZZ];
+    mDeltaStrainVector[INDEX_3D_YZ] =
+        r_strain_vector[INDEX_3D_INTERFACE_YZ] - mStrainVectorFinalized[INDEX_3D_YZ];
+    mDeltaStrainVector[INDEX_3D_XZ] =
+        r_strain_vector[INDEX_3D_INTERFACE_XZ] - mStrainVectorFinalized[INDEX_3D_XZ];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
@@ -46,14 +49,13 @@ void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVecto
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
-    KRATOS_TRY
-    std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
+    auto& r_sig0 = GetSig0();
 
-    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_3D_INTERFACE_ZZ);
-    mStressVectorFinalized[INDEX_3D_YZ] = rStressVector(INDEX_3D_INTERFACE_YZ);
-    mStressVectorFinalized[INDEX_3D_XZ] = rStressVector(INDEX_3D_INTERFACE_XZ);
+    std::fill_n(r_sig0.begin(), StressVectorSize, 0.0);
 
-    KRATOS_CATCH("")
+    r_sig0[INDEX_3D_ZZ] = rStressVector[INDEX_3D_INTERFACE_ZZ];
+    r_sig0[INDEX_3D_YZ] = rStressVector[INDEX_3D_INTERFACE_YZ];
+    r_sig0[INDEX_3D_XZ] = rStressVector[INDEX_3D_INTERFACE_XZ];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
@@ -101,23 +103,17 @@ indexStress3D SmallStrainUDSM3DInterfaceLaw::getIndex3D(const indexStress3DInter
     }
 }
 
-void SmallStrainUDSM3DInterfaceLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                                               Vector& rStrainVector)
+Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
-    KRATOS_ERROR << "CalculateCauchyGreenStrain is not implemented in SmallStrainUDSM3DInterfaceLaw"
-                 << std::endl;
-}
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUDSM3DLaw::GetValue(rVariable, rValue);
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+        rValue.resize(VoigtSize);
 
-Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
-{
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUDSM3DLaw::GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-        if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
-
-        rValue[INDEX_3D_INTERFACE_ZZ] = mStressVectorFinalized[INDEX_3D_ZZ];
-        rValue[INDEX_3D_INTERFACE_YZ] = mStressVectorFinalized[INDEX_3D_YZ];
-        rValue[INDEX_3D_INTERFACE_XZ] = mStressVectorFinalized[INDEX_3D_XZ];
+        auto& r_sig0                  = GetSig0();
+        rValue[INDEX_3D_INTERFACE_ZZ] = r_sig0[INDEX_3D_ZZ];
+        rValue[INDEX_3D_INTERFACE_YZ] = r_sig0[INDEX_3D_YZ];
+        rValue[INDEX_3D_INTERFACE_XZ] = r_sig0[INDEX_3D_XZ];
     }
     return rValue;
 }

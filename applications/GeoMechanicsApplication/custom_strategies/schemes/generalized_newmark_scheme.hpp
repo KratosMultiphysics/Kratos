@@ -11,6 +11,8 @@
 //
 #pragma once
 
+#include "custom_utilities/node_utilities.h"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geomechanics_time_integration_scheme.hpp"
 #include "includes/model_part.h"
 #include <optional>
@@ -131,6 +133,8 @@ protected:
 
     void UpdateScalarTimeDerivative(Node& rNode, const Variable<double>& variable, const Variable<double>& dt_variable) const
     {
+        if (rNode.IsFixed(dt_variable)) return;
+
         const auto delta_variable =
             rNode.FastGetSolutionStepValue(variable, 0) - rNode.FastGetSolutionStepValue(variable, 1);
         const auto previous_dt_variable = rNode.FastGetSolutionStepValue(dt_variable, 1);
@@ -145,12 +149,15 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            noalias(rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative, 0)) =
+            const array_1d<double, 3> updated_first_derivative =
                 rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative, 1) +
                 (1.0 - GetGamma()) * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1) +
                 GetGamma() * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 0);
+
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.first_time_derivative, updated_first_derivative);
         }
     }
 
@@ -159,7 +166,7 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            noalias(rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 0)) =
+            const array_1d<double, 3> updated_second_time_derivative =
                 ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
                   rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 1)) -
                  this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
@@ -167,6 +174,9 @@ protected:
                  (0.5 - GetBeta()) * this->GetDeltaTime() * this->GetDeltaTime() *
                      rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1)) /
                 (GetBeta() * this->GetDeltaTime() * this->GetDeltaTime());
+
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.second_time_derivative, updated_second_time_derivative);
         }
     }
 

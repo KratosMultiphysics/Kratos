@@ -35,6 +35,8 @@ import test_search_nodes
 import test_dem_3d_parallel_bond_model
 import test_dem_3d_smooth_joint_model
 import test_moving_periodic_boundary
+import test_servo_control
+import test_properties_measure_utility
 import sys
 sys.path.append('DEM3D_chung_ooi_tests/test1_data')
 sys.path.append('DEM3D_chung_ooi_tests/test2_data')
@@ -107,6 +109,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_dem_3d_parallel_bond_model.TestParallelBondModel("test_ParallelBondModel_1"))
     smallSuite.addTest(test_dem_3d_smooth_joint_model.TestSmoothJointModel("test_SmoothJointModel_1"))
     smallSuite.addTest(test_moving_periodic_boundary.TestMovingPeriodicBoundary("test_MovingPeriodicBoundary"))
+    smallSuite.addTest(test_servo_control.TestServoControl("test_ServoControl"))
+    smallSuite.addTest(test_properties_measure_utility.TestPropertiesMeasureUtility("test_PropertiesMeasureUtility"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

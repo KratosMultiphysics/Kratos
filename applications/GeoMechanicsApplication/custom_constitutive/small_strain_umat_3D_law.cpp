@@ -15,7 +15,7 @@
 // External includes
 
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
 #include "windows.hpp"
@@ -29,7 +29,7 @@ namespace Kratos
 {
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-typedef void(__stdcall* f_UMATMod)(double*       STRESS,
+using f_UMATMod = void(__stdcall*)(double*       STRESS,
                                    double*       STATEV,
                                    double**      DDSDDE,
                                    double*       SSE,
@@ -69,43 +69,43 @@ typedef void(__stdcall* f_UMATMod)(double*       STRESS,
 #endif
 
 #ifdef KRATOS_COMPILED_IN_LINUX
-typedef void (*f_UMATMod)(double*       STRESS,
-                          double*       STATEV,
-                          double**      DDSDDE,
-                          double*       SSE,
-                          double*       SPD,
-                          double*       SCD,
-                          double*       rpl,
-                          double*       ddsddt,
-                          double*       drplde,
-                          double*       drpldt,
-                          double*       stran,
-                          double*       dstran,
-                          double*       time,
-                          double*       dtime,
-                          double*       temp,
-                          double*       dtemp,
-                          double*       predef,
-                          double*       dpred,
-                          char*         materl,
-                          int*          ndi,
-                          int*          nshr,
-                          int*          ntens,
-                          int*          nstatv,
-                          const double* props,
-                          int*          nprops,
-                          double*       coords,
-                          double**      drot,
-                          double*       pnewdt,
-                          double*       celent,
-                          double**      dfgrd0,
-                          double**      dfgrd1,
-                          int*          noel,
-                          int*          npt,
-                          double*       kslay,
-                          double*       kspt,
-                          int*          kstep,
-                          int*          kinc);
+using f_UMATMod = void (*)(double*       STRESS,
+                           double*       STATEV,
+                           double**      DDSDDE,
+                           double*       SSE,
+                           double*       SPD,
+                           double*       SCD,
+                           double*       rpl,
+                           double*       ddsddt,
+                           double*       drplde,
+                           double*       drpldt,
+                           double*       stran,
+                           double*       dstran,
+                           double*       time,
+                           double*       dtime,
+                           double*       temp,
+                           double*       dtemp,
+                           double*       predef,
+                           double*       dpred,
+                           char*         materl,
+                           int*          ndi,
+                           int*          nshr,
+                           int*          ntens,
+                           int*          nstatv,
+                           const double* props,
+                           int*          nprops,
+                           double*       coords,
+                           double**      drot,
+                           double*       pnewdt,
+                           double*       celent,
+                           double**      dfgrd0,
+                           double**      dfgrd1,
+                           int*          noel,
+                           int*          npt,
+                           double*       kslay,
+                           double*       kspt,
+                           int*          kstep,
+                           int*          kinc);
 #endif
 
 SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther)
@@ -216,14 +216,14 @@ void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProper
     KRATOS_TRY
     // reset state variables
 
-    const auto& StateVariables  = rMaterialProperties[STATE_VARIABLES];
-    const auto  nStateVariables = StateVariables.size();
+    const auto& state_variables   = rMaterialProperties[STATE_VARIABLES];
+    const auto  n_state_variables = state_variables.size();
 
-    mStateVariables.resize(nStateVariables);
-    mStateVariablesFinalized.resize(nStateVariables);
+    mStateVariables.resize(n_state_variables);
+    mStateVariablesFinalized.resize(n_state_variables);
 
-    noalias(mStateVariables)          = StateVariables;
-    noalias(mStateVariablesFinalized) = StateVariables;
+    noalias(mStateVariables)          = state_variables;
+    noalias(mStateVariablesFinalized) = state_variables;
 
     KRATOS_CATCH("")
 }
@@ -291,12 +291,12 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties& rMaterialProperties)
         return false;
     }
     if (rMaterialProperties[IS_FORTRAN_UDSM]) {
-        pUserMod = (f_UMATMod)dlsym(lib_handle, "umat_");
+        mpUserMod = (f_UMATMod)dlsym(lib_handle, "umat_");
     } else {
-        pUserMod = (f_UMATMod)dlsym(lib_handle, "umat");
+        mpUserMod = (f_UMATMod)dlsym(lib_handle, "umat");
     }
 
-    if (!pUserMod) {
+    if (!mpUserMod) {
         KRATOS_ERROR << "cannot load function User_Mod in the specified UMAT "
                      << rMaterialProperties[UDSM_NAME] << std::endl;
         return false;
@@ -333,8 +333,8 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties& rMaterialProperties
         KRATOS_ERROR << "cannot load the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
     }
 
-    pUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
-    if (!pUserMod) {
+    mpUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
+    if (!mpUserMod) {
         KRATOS_INFO("Error in loadUMATWindows")
             << "cannot load function umat in the specified UMAT: " << rMaterialProperties[UDSM_NAME]
             << std::endl;
@@ -382,23 +382,24 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
     KRATOS_TRY
 
     // Get Values to compute the constitutive law:
-    const Flags& rOptions = rValues.GetOptions();
+    const Flags& r_options = rValues.GetOptions();
 
-    // NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if (rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& rStrainVector = rValues.GetStrainVector();
-        CalculateCauchyGreenStrain(rValues, rStrainVector);
+    KRATOS_DEBUG_ERROR_IF(r_options.IsDefined(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN) &&
+                          r_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+        << "The SmallStrainUMAT3DLaw needs an element provided strain" << std::endl;
+
+    KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
+        << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
+
+    if (r_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        Vector& r_stress_vector = rValues.GetStressVector();
+        CalculateStress(rValues, r_stress_vector);
     }
 
-    if (rOptions.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        Vector& rStressVector = rValues.GetStressVector();
-        CalculateStress(rValues, rStressVector);
-    }
-
-    if (rOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         // Constitutive matrix (D matrix)
-        Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrix(rValues, rConstitutiveMatrix);
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        CalculateConstitutiveMatrix(rValues, r_constitutive_matrix);
     }
 
     KRATOS_CATCH("")
@@ -406,32 +407,26 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 
 void SmallStrainUMAT3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
-    const Vector& rStrainVector = rValues.GetStrainVector();
+    const Vector& r_strain_vector = rValues.GetStrainVector();
 
     for (unsigned int i = 0; i < mDeltaStrainVector.size(); ++i) {
-        mDeltaStrainVector[i] = rStrainVector(i) - mStrainVectorFinalized[i];
+        mDeltaStrainVector[i] = r_strain_vector(i) - mStrainVectorFinalized[i];
     }
 }
 
 void SmallStrainUMAT3DLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    for (unsigned int i = 0; i < rStressVector.size(); ++i) {
-        rStressVector(i) = mStressVector[i];
-    }
+    std::copy(mStressVector.begin(), mStressVector.end(), rStressVector.begin());
 }
 
 void SmallStrainUMAT3DLaw::SetInternalStressVector(const Vector& rStressVector)
 {
-    for (unsigned int i = 0; i < mStressVectorFinalized.size(); ++i) {
-        mStressVectorFinalized[i] = rStressVector(i);
-    }
+    std::copy(rStressVector.begin(), rStressVector.end(), mStressVectorFinalized.begin());
 }
 
 void SmallStrainUMAT3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
-    for (unsigned int i = 0; i < mStrainVectorFinalized.size(); ++i) {
-        mStrainVectorFinalized[i] = rStrainVector(i);
-    }
+    std::copy(rStrainVector.begin(), rStrainVector.end(), mStrainVectorFinalized.begin());
 }
 
 void SmallStrainUMAT3DLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
@@ -514,12 +509,12 @@ void SmallStrainUMAT3DLaw::CallUMAT(ConstitutiveLaw::Parameters& rValues)
     // variable to check if an error happened in the model:
     const auto& MaterialParameters = rValues.GetMaterialProperties()[UMAT_PARAMETERS];
     auto        nProperties        = static_cast<int>(MaterialParameters.size());
-    pUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double**)mMatrixD, &SSE,
-             &SPD, &SCD, nullptr, nullptr, nullptr, nullptr, &(mStrainVectorFinalized.data()[0]),
-             &(mDeltaStrainVector.data()[0]), &time, &deltaTime, nullptr, nullptr, nullptr, nullptr,
-             &materialName, &ndi, &nshr, &ntens, &nStateVariables, &(MaterialParameters.data()[0]),
-             &nProperties, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &iElement,
-             &integrationNumber, nullptr, nullptr, &iStep, &iteration);
+    mpUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double**)mMatrixD, &SSE,
+              &SPD, &SCD, nullptr, nullptr, nullptr, nullptr, &(mStrainVectorFinalized.data()[0]),
+              &(mDeltaStrainVector.data()[0]), &time, &deltaTime, nullptr, nullptr, nullptr,
+              nullptr, &materialName, &ndi, &nshr, &ntens, &nStateVariables,
+              &(MaterialParameters.data()[0]), &nProperties, nullptr, nullptr, nullptr, nullptr,
+              nullptr, nullptr, &iElement, &integrationNumber, nullptr, nullptr, &iStep, &iteration);
 
     KRATOS_CATCH("")
 }
@@ -548,12 +543,12 @@ void SmallStrainUMAT3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Par
 
     if (!mIsModelInitialized) {
         // stress and strain vectors must be initialized:
-        const Vector& rStressVector = rValues.GetStressVector();
-        const Vector& rStrainVector = rValues.GetStrainVector();
+        const Vector& r_stress_vector = rValues.GetStressVector();
+        const Vector& r_strain_vector = rValues.GetStrainVector();
 
-        SetInternalStressVector(rStressVector);
+        SetInternalStressVector(r_stress_vector);
 
-        SetInternalStrainVector(rStrainVector);
+        SetInternalStrainVector(r_strain_vector);
 
         CallUMAT(rValues);
         mIsModelInitialized = true;
@@ -593,36 +588,16 @@ void SmallStrainUMAT3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::
     this->SetInternalStrainVector(rStrainVector);
 }
 
-void SmallStrainUMAT3DLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector)
-{
-    const SizeType space_dimension = this->WorkingSpaceDimension();
-
-    //-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1() != space_dimension || F.size2() != space_dimension)
-        << "expected size of F " << space_dimension << "x" << space_dimension << ", got "
-        << F.size1() << "x" << F.size2() << std::endl;
-
-    Matrix E_tensor = prod(trans(F), F);
-    for (unsigned int i = 0; i < space_dimension; ++i)
-        E_tensor(i, i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-}
-
 double& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                              const Variable<double>&      rThisVariable,
                                              double&                      rValue)
 {
-    Vector& rStrainVector = rParameterValues.GetStrainVector();
-    Vector& rStressVector = rParameterValues.GetStressVector();
-
     if (rThisVariable == STRAIN_ENERGY) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rStrainVector);
-        this->CalculateStress(rParameterValues, rStressVector);
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector&       r_stress_vector = rParameterValues.GetStressVector();
+        this->CalculateStress(rParameterValues, r_stress_vector);
 
-        rValue = 0.5 * inner_prod(rStrainVector, rStressVector); // Strain energy = 0.5*E:C:E
+        rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
     }
 
     return rValue;
@@ -632,12 +607,8 @@ Vector& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
                                              const Variable<Vector>&      rThisVariable,
                                              Vector&                      rValue)
 {
-    if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        this->CalculateCauchyGreenStrain(rParameterValues, rValue);
-
-    } else if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
-               rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
+    if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& rFlags = rParameterValues.GetOptions();
 
@@ -701,19 +672,9 @@ double& SmallStrainUMAT3DLaw::GetValue(const Variable<double>& rThisVariable, do
     return rValue;
 }
 
-int& SmallStrainUMAT3DLaw::GetValue(const Variable<int>& rThisVariable, int& rValue)
+void SmallStrainUMAT3DLaw::SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rThisVariable == NUMBER_OF_UMAT_STATE_VARIABLES)
-        rValue = static_cast<int>(mStateVariablesFinalized.size());
-
-    return rValue;
-}
-
-void SmallStrainUMAT3DLaw::SetValue(const Variable<double>& rThisVariable,
-                                    const double&           rValue,
-                                    const ProcessInfo&      rCurrentProcessInfo)
-{
-    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rThisVariable);
+    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
         << "SetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
@@ -721,13 +682,11 @@ void SmallStrainUMAT3DLaw::SetValue(const Variable<double>& rThisVariable,
     mStateVariablesFinalized[index] = rValue;
 }
 
-void SmallStrainUMAT3DLaw::SetValue(const Variable<Vector>& rThisVariable,
-                                    const Vector&           rValue,
-                                    const ProcessInfo&      rCurrentProcessInfo)
+void SmallStrainUMAT3DLaw::SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    if ((rThisVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
+    if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == mStressVectorFinalized.size())) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == mStressVectorFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStressVectorFinalized.begin());
     }
 }

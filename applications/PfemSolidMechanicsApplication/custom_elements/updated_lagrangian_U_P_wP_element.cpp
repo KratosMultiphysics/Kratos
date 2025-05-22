@@ -143,7 +143,7 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUPwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUPwPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -166,7 +166,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUPwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUPwPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -306,7 +306,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  UpdatedLagrangianUPwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  UpdatedLagrangianUPwPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -775,10 +775,10 @@ namespace Kratos
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
 
-         SolidElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
+         SolidElement::CalculateOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         SolidElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
+         SolidElement::CalculateOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
       }
@@ -830,7 +830,7 @@ namespace Kratos
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
 
-      SolidElement::GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
+      SolidElement::CalculateOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
       Caux = 1.0/Mmodulus[0];
 
       double he;
@@ -1078,7 +1078,7 @@ namespace Kratos
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
-      SolidElement::GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
+      SolidElement::CalculateOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
       Caux = 1.0/Mmodulus[0];
 
       double he;
@@ -1144,7 +1144,7 @@ namespace Kratos
    ////************************************************************************************
    ////************************************************************************************
 
-   void UpdatedLagrangianUPwPElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUPwPElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -1190,7 +1190,7 @@ namespace Kratos
    ////************************************************************************************
 
    void UpdatedLagrangianUPwPElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -1289,7 +1289,7 @@ namespace Kratos
       rScalingConstant = 1.0;
       rDeltaTime  = GetProperties()[DELTA_TIME];
       rDeltaTime = mTimeStep;
-      rPermeability = GetProperties()[PERMEABILITY];
+      rPermeability = GetProperties()[PERMEABILITY_WATER];
       rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
 
    }

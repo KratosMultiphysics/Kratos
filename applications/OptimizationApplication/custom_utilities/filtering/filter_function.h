@@ -15,15 +15,14 @@
 #pragma once
 
 // System includes
-#include <string>
 #include <functional>
+#include <string>
 
 // Project includes
+#include "containers/array_1d.h"
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -31,11 +30,9 @@ namespace Kratos
 /// Short class definition.
 /**
  * FilterFunction implementations.
-*/
-
-class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction
-{
-  public:
+ */
+class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction {
+public:
     ///@name Type Definitions
     ///@{
 
@@ -56,23 +53,22 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction
     ///@{
 
     double ComputeWeight(
-        const Array3DType& ICoord,
-        const Array3DType& JCoord,
-        const double Radius) const;
+        const double Radius,
+        const double Distance) const;
 
     ///@}
 
-  private:
+protected:
     ///@name Member Variables
     ///@{
 
-    std::function<double (const double, const double)> mFilterFunctional;
+    std::function<double(const double, const double)> mFilterFunctional;
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    double inline GetDistance(
+    double GetDistance(
         const Array3DType& ICoord,
         const Array3DType& JCoord) const;
 
@@ -83,4 +79,3 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction
 ///@}
 
 } // namespace Kratos.
-

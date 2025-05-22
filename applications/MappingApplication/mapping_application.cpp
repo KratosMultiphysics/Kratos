@@ -39,7 +39,7 @@
 #include "custom_mappers/coupling_geometry_mapper.h"
 
 // Macros for registering mappers
-// wil be removed once using the core factories
+// will be removed once using the core factories
 #define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                                \
     {                                                                                                 \
     Model current_model;                                                                              \
@@ -60,6 +60,11 @@
                 MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>>               \
         (dummy_model_part, dummy_model_part));                                                        \
     }
+
+Kratos::KratosApplication* CreateApplication()
+{
+    return new Kratos::KratosMappingApplication();
+}
 
 namespace Kratos
 {

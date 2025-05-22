@@ -21,7 +21,6 @@ class AssignExactVariableToADOFProcess(Kratos.Process):
         default_settings = Kratos.Parameters("""
         {
             "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the nodes belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "exact_variable_name"  : "SPECIFY_EXACT_VARIABLE_NAME",

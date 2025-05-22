@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -1987,7 +1987,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputMesh(const std::string& rOutputName)
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
-    // a)  Give the ouptut mesh name using MMG2D_Set_inputMeshName
+    // a)  Give the output mesh name using MMG2D_Set_inputMeshName
     MMG2D_Set_inputMeshName(mMmgMesh,mesh_file);
 
     // b) function calling
@@ -2007,7 +2007,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputMesh(const std::string& rOutputName)
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
-    // a)  Give the ouptut mesh name using MMG3D_Set_inputMeshName
+    // a)  Give the output mesh name using MMG3D_Set_inputMeshName
     MMG3D_Set_inputMeshName(mMmgMesh,mesh_file);
 
     // b) function calling
@@ -2027,7 +2027,7 @@ void MmgUtilities<MMGLibrary::MMGS>::InputMesh(const std::string& rOutputName)
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
-    // a)  Give the ouptut mesh name using MMGS_Set_inputMeshName
+    // a)  Give the output mesh name using MMGS_Set_inputMeshName
     MMGS_Set_inputMeshName(mMmgMesh,mesh_file);
 
     // b) function calling
@@ -2048,13 +2048,13 @@ void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
     const char* sol_file = sol_name.c_str();
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // a)  Give the ouptut mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        // a)  Give the output mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMG2D_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
 
         // b) function calling
         KRATOS_INFO_IF("MmgUtilities", MMG2D_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ SOLUTION" << std::endl;
     } else {
-        // a)  Give the ouptut mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        // a)  Give the output mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMG2D_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
 
         // b) function calling
@@ -2076,13 +2076,13 @@ void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
     const char* sol_file = sol_name.c_str();
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // a)  Give the ouptut mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        // a)  Give the output mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMG3D_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
 
         // b) function calling
         KRATOS_INFO_IF("MmgUtilities", MMG3D_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ SOLUTION" << std::endl;
     } else {
-        // a)  Give the ouptut mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        // a)  Give the output mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMG3D_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
 
         // b) function calling
@@ -2104,13 +2104,13 @@ void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
     const char* sol_file = sol_name.c_str();
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // a)  Give the ouptut mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        // a)  Give the output mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMGS_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
 
         // b) function calling
         KRATOS_INFO_IF("MmgUtilities", MMGS_loadSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO READ SOLUTION" << std::endl;
     } else {
-        // a)  Give the ouptut mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+        // a)  Give the output mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
         MMGS_Set_inputSolName(mMmgMesh, mMmgMet, sol_file);
 
         // b) function calling
@@ -2131,7 +2131,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(const std::string& rOutputName)
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
-    // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
+    // a)  Give the output mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMG2D_Set_outputMeshName(mMmgMesh,mesh_file);
 
     // b) function calling
@@ -2158,7 +2158,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(const std::string& rOutputName)
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
-    // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
+    // a)  Give the output mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMG3D_Set_outputMeshName(mMmgMesh,mesh_file);
 
     // b) function calling
@@ -2185,7 +2185,7 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(const std::string& rOutputName)
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
-    // a)  Give the ouptut mesh name using MMGS_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
+    // a)  Give the output mesh name using MMGS_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMGS_Set_outputMeshName(mMmgMesh,mesh_file);
 
     // b) function calling
@@ -2213,13 +2213,13 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(const std::string& rOutputName)
     const char* sol_file = sol_name.c_str();
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        // a)  Give the output sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMG2D_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
 
         // b) Function calling
         KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO SAVE SOLUTION" << std::endl;
     } else {
-        // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        // a)  Give the output sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMG2D_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
 
         // b) Function calling
@@ -2241,13 +2241,13 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(const std::string& rOutputName)
     const char* sol_file = sol_name.c_str();
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        // a)  Give the output sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMG3D_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
 
         // b) Function calling
         KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO SAVE SOLUTION" << std::endl;
     } else {
-        // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        // a)  Give the output sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMG3D_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
 
         // b) Function calling
@@ -2269,13 +2269,13 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
     const char* sol_file = sol_name.c_str();
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        // a)  Give the output sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMGS_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
 
         // b) Function calling
         KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh, mMmgSol, sol_file) != 1) << "UNABLE TO SAVE SOLUTION" << std::endl;
     } else {
-        // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+        // a)  Give the output sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
         MMGS_Set_outputSolName(mMmgMesh, mMmgMet, sol_file);
 
         // b) Function calling
@@ -2296,7 +2296,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputDisplacement(const std::string& rOut
     const std::string sol_name = rOutputName + ".disp.sol";
     const char* sol_file = sol_name.c_str();
 
-    // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    // a)  Give the output sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMG2D_Set_outputSolName(mMmgMesh, mMmgDisp, sol_file);
 
     // b) Function calling
@@ -2316,7 +2316,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputDisplacement(const std::string& rOut
     const std::string sol_name = rOutputName + ".disp.sol";
     const char* sol_file = sol_name.c_str();
 
-    // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    // a)  Give the output sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMG3D_Set_outputSolName(mMmgMesh, mMmgDisp, sol_file);
 
     // b) Function calling
@@ -2336,7 +2336,7 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputDisplacement(const std::string& rOutp
     const std::string sol_name = rOutputName + ".disp.sol";
     const char* sol_file = sol_name.c_str();
 
-    // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    // a)  Give the output sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMGS_Set_outputSolName(mMmgMesh, mMmgDisp, sol_file);
 
     // b) Function calling
@@ -2854,7 +2854,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMG2D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Edg, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -2869,7 +2869,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMG3D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -2884,7 +2884,7 @@ void MmgUtilities<MMGLibrary::MMGS>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMGS_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -3563,20 +3563,27 @@ void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
     // Iterate over nodes
     auto& r_nodes_array = rModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each([&](std::size_t i) {
         (it_node_begin + i)->SetId(i + 1);
+    });
 
     // Iterate over conditions
     auto& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
-    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+    IndexPartition<std::size_t>(r_conditions_array.size()).for_each([&](std::size_t i) {
         (it_cond_begin + i)->SetId(i + 1);
+    });
 
     // Iterate over elements
     auto& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
-    for(IndexType i = 0; i < r_elements_array.size(); ++i)
+    IndexPartition<std::size_t>(r_elements_array.size()).for_each([&](std::size_t i) {
         (it_elem_begin + i)->SetId(i + 1);
+    });
+
+    r_nodes_array.Unique();
+    r_conditions_array.Unique();
+    r_elements_array.Unique();
 
     KRATOS_CATCH("");
 }
@@ -3785,7 +3792,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     });
 
-    // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+    // RESETTING THE ID OF THE NODES (important for non consecutive meshes)
     IndexType counter_remesh = 1;
     IndexType counter_not_remesh = counter_to_remesh + 1;
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
@@ -3801,6 +3808,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
 
+    r_nodes_array.Unique();
+
     /* Conditions */
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_conditions_array,
@@ -3813,7 +3822,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     });
 
-    // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
+    // RESETTING THE ID OF THE CONDITIONS (important for non consecutive meshes)
     counter_remesh = 1;
     counter_not_remesh = counter_to_remesh + 1;
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
@@ -3829,6 +3838,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
 
+    r_conditions_array.Unique();
+
     /* Elements */
     counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_elements_array,
@@ -3841,7 +3852,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     });
 
-    // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
+    // RESETTING THE ID OF THE ELEMENTS (important for non consecutive meshes)
     counter_remesh = 1;
     counter_not_remesh = counter_to_remesh + 1;
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
@@ -3856,6 +3867,8 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_not_remesh;
         }
     }
+
+    r_elements_array.Unique();
 
     // Now we compute the colors
     rColors.clear();
@@ -4090,7 +4103,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
 {
     KRATOS_TRY;
 
-    /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
+    /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite recommended to create more than one sub model part if you have more than one element or condition) */
 
     auto& r_conditions_array = rModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
@@ -4459,7 +4472,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         // Auxilia metric
         TensorArrayType metric = ZeroVector(3 * (Dimension - 1));
 
-        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
+        // WARNING: This loop cannot be performed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -4472,7 +4485,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         // Auxilia metric
         double metric = 0.0;
 
-        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
+        // WARNING: This loop cannot be performed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -4543,7 +4556,7 @@ void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rM
             r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
             ModelPart& r_auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
             FastTransferBetweenModelPartsProcess(r_auxiliar_sub_model_part, rModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(r_flag.second)).Execute();
-            // If the number of elements transfered is 0 we remove the model part
+            // If the number of elements transferred is 0 we remove the model part
             if (r_auxiliar_sub_model_part.NumberOfNodes() == 0
             && r_auxiliar_sub_model_part.NumberOfElements() == 0
             && r_auxiliar_sub_model_part.NumberOfConditions() == 0) {

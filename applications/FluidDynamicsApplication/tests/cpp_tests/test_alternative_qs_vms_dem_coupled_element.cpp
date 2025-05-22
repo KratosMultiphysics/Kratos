@@ -13,7 +13,6 @@
 #include <iomanip> // for std::setprecision
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -22,7 +21,8 @@
 // Application includes
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_elements/alternative_qs_vms_dem_coupled.h"
-#include "custom_utilities/qsvms_dem_coupled_data.h"
+#include "custom_elements/data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
     model_part.AddNodalSolutionStepVariable(PERMEABILITY);
 
     // Process info creation
-    double delta_time = 0.1;
+    double delta_time = 1e15;
     model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 
     // Set the element properties
@@ -117,17 +117,17 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {-0.7903859428,0.1422482204,-0.01715539615,-10.404201,-4.187299126,-0.05064119836,-21.69732287,-21.35183401,-0.07314514572,-14.77475686,-22.26978176,-0.05905825977}; // QSVMSDEMCoupled2D4N
+    std::vector<double> output = {17.1162561,20.84678457,0.02985600197,-17.46267619,7.404904014,-0.05378241615,-40.00403206,-38.62206933,-0.1104570405,-7.316214511,-37.29628592,-0.06561654529}; // QSVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
         i->Initialize(r_process_info); // Initialize constitutive law
-
         const auto& rElem = *i;
         rElem.Check(r_process_info);
+        i->InitializeNonLinearIteration(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-        // std::cout << i->Info() << std::setprecision(10) << std::endl;
-        // KRATOS_WATCH(RHS);
+        //std::cout << i->Info() << std::setprecision(10) << std::endl;
+        //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
             KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-4);
@@ -146,6 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
         i->Initialize(r_process_info); // Initialize constitutive law
         const auto& rElem = *i;
         rElem.Check(r_process_info);
+        i->InitializeNonLinearIteration(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
         for (unsigned int j = 0; j < output.size(); j++) {

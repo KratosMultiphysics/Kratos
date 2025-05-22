@@ -3,7 +3,7 @@
         "problem_name":         "test_model",
         "start_time":           0.0,
         "end_time":             1.0,
-        "echo_level":           2,
+        "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
     },
@@ -23,7 +23,7 @@
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
-        "echo_level":                         2,
+        "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
@@ -93,7 +93,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE","VOLUME_ACCELERATION"],
+                        "nodal_results":       ["DISPLACEMENT","INCREMENTAL_DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE","VOLUME_ACCELERATION"],
                         "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","ENGINEERING_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR","HYDRAULIC_HEAD"]
                     },
                     "point_data_configuration":  []
@@ -166,7 +166,7 @@
             "table":           [0,0,0]
         }
     }],
-    "auxiliar_process_list": [
+    "auxiliary_process_list": [
       {
         "python_module": "apply_k0_procedure_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",

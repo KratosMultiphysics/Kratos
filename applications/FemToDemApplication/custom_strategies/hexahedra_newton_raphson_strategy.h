@@ -138,7 +138,7 @@ class HexahedraNewtonRaphsonStrategy
         BaseType::mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(BaseType::mpLinearSolver));
 
-        // Set flags to start correcty the calculations
+        // Set flags to start correctly the calculations
         BaseType::mSolutionStepIsInitialized = false;
         BaseType::mInitializeWasPerformed = false;
 
@@ -208,7 +208,7 @@ class HexahedraNewtonRaphsonStrategy
         // Setting up the default builder and solver
         BaseType::mpBuilderAndSolver = pNewBuilderAndSolver;
 
-        // Set flags to start correcty the calculations
+        // Set flags to start correctly the calculations
         BaseType::mSolutionStepIsInitialized = false;
         BaseType::mInitializeWasPerformed = false;
 
@@ -265,7 +265,7 @@ class HexahedraNewtonRaphsonStrategy
         ModelPart& rModelPart = BaseType::GetModelPart();
         Parameters extrapolation_parameters(R"(
         {
-        	"list_of_variables": ["STRESS_VECTOR","STRAIN_VECTOR"]
+        	"list_of_variables": ["FEMDEM_STRESS_VECTOR","FEMDEM_STRAIN_VECTOR"]
         })");
         auto extrapolation_process = IntegrationValuesExtrapolationToNodesProcess(rModelPart, extrapolation_parameters);
         extrapolation_process.Execute();

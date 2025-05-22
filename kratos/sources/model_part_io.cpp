@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -62,7 +62,7 @@ ModelPartIO::ModelPartIO(std::filesystem::path const& Filename, const Flags Opti
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
 
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(time_file_name.string());
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOutputFile(time_file_name.string());
 }
 
 /// Constructor with stream
@@ -81,7 +81,7 @@ ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags O
 
 /// Destructor.
 ModelPartIO::~ModelPartIO() {
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOuputFile();
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOutputFile();
 }
 
 bool ModelPartIO::ReadNode(NodeType& rThisNode)
@@ -288,7 +288,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
         (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
         const auto it_geom_begin = rThisGeometries.Geometries().begin();
         (*mpStream) << "\t" << it_geom_begin->Id() << "\t";
-        auto& r_geometry = *(it_geom_begin.base()->second);
+        auto& r_geometry = *it_geom_begin;
         for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
             (*mpStream) << r_geometry[i_node].Id() << "\t";
         (*mpStream) << std::endl;
@@ -302,7 +302,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
         for(std::size_t i = 1; i < rThisGeometries.NumberOfGeometries(); i++) {
             if(GeometryType::IsSame(*it_geom_previous, *it_geom_current)) {
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
-                r_geometry = *(it_geom_current.base()->second);
+                r_geometry = *it_geom_current;
                 for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
                     (*mpStream) << r_geometry[i_node].Id() << "\t";
                 (*mpStream) << std::endl;
@@ -313,7 +313,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
 
                 (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
-                r_geometry = *(it_geom_current.base()->second);
+                r_geometry = *it_geom_current;
                 for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
                     (*mpStream) << r_geometry[i_node].Id() << "\t";
                 (*mpStream) << std::endl;
@@ -437,10 +437,10 @@ void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesConta
     KRATOS_CATCH("")
 }
 
-std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
+std::size_t ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
 {
     KRATOS_TRY
-    std::size_t number_of_elements = 0;
+    std::size_t number_of_conditions = 0;
     ResetInput();
     std::string word;
     while(true)
@@ -450,11 +450,11 @@ std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerTy
             break;
         ReadBlockName(word);
         if(word == "Conditions")
-            number_of_elements += ReadConditionsConnectivitiesBlock(rConditionsConnectivities);
+            number_of_conditions += ReadConditionsConnectivitiesBlock(rConditionsConnectivities);
         else
             SkipBlock(word);
     }
-    return number_of_elements;
+    return number_of_conditions;
     KRATOS_CATCH("")
 }
 
@@ -803,7 +803,6 @@ void ModelPartIO::FillNodalConnectivitiesFromGeometryBlockInList(
             break;
 
         ExtractValue(word,id);
-        ReadWord(word); // Reading the properties id;
         temp_geometry_nodes.clear();
         for(SizeType i = 0 ; i < n_nodes_in_elem ; i++) {
             ReadWord(word); // Reading the node id;
@@ -1049,7 +1048,8 @@ void ModelPartIO::DivideInputToPartitions(
 void ModelPartIO::DivideInputToPartitionsImpl(
     OutputFilesContainerType& rOutputFiles,
     SizeType NumberOfPartitions,
-    const PartitioningInfo& rPartitioningInfo)
+    const PartitioningInfo& rPartitioningInfo
+    )
 {
     KRATOS_TRY
 
@@ -1123,9 +1123,9 @@ void ModelPartIO::SkipBlock(std::string const& BlockName)
         if(word == "End")
         {
             ReadWord(word);
-            if(number_of_nested_blocks == 0){
-                    if(CheckStatement(word , BlockName))
-                        break;
+            if(number_of_nested_blocks == 0) {
+                CheckStatement(word , BlockName);
+                break;
             } else {
                 number_of_nested_blocks--;
             }
@@ -1160,7 +1160,7 @@ void ModelPartIO::ReadSubModelPartDataBlock(ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
+void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart)
 {
     KRATOS_TRY
 
@@ -1169,7 +1169,7 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_su
     while(!mpStream->eof())
     {
         ReadWord(variable_name);
-        if(!is_submodelpart){
+        if(!IsSubmodelpart){
             if(CheckEndBlock("ModelPartData", variable_name))
                 break;
         }
@@ -1242,7 +1242,7 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_su
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
+void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart)
 {
     KRATOS_TRY;
 
@@ -5029,7 +5029,7 @@ ModelPartIO& ModelPartIO::ReadWord(std::string& Word)
     Word.clear();
 
     char c = SkipWhiteSpaces();
-    while(!mpStream->eof() && !IsWhiteSpace(c))
+    while(!mpStream->eof() && !std::isspace(c))
     {
         Word += c;
         c = GetCharacter();
@@ -5052,7 +5052,7 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
         if(c == 'E')
         {
             word.clear();
-            while(!mpStream->eof() && !IsWhiteSpace(c))
+            while(!mpStream->eof() && !std::isspace(c))
             {
                 word += c;
                 c = GetCharacter();
@@ -5075,7 +5075,7 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
         else if (c == 'B')
         {
             word.clear();
-            while (!mpStream->eof() && !IsWhiteSpace(c))
+            while (!mpStream->eof() && !std::isspace(c))
             {
                 word += c;
                 c = GetCharacter();
@@ -5102,14 +5102,9 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
 char ModelPartIO::SkipWhiteSpaces()
 {
     char c = GetCharacter();
-    while(IsWhiteSpace(c))
+    while(std::isspace(c))
         c = GetCharacter();
     return c;
-}
-
-bool ModelPartIO::IsWhiteSpace(char C)
-{
-    return ((C == ' ') || (C == '\t') || (C == '\r') || (C == '\n'));
 }
 
 char ModelPartIO::GetCharacter() //Getting the next character skipping comments
@@ -5145,20 +5140,9 @@ char ModelPartIO::GetCharacter() //Getting the next character skipping comments
 
 }
 
-bool ModelPartIO::CheckStatement(std::string const& rStatement, std::string const& rGivenWord)
+void ModelPartIO::CheckStatement(std::string const& rStatement, std::string const& rGivenWord) const
 {
-    bool result = false;
-    if(rGivenWord != rStatement)
-    {
-        std::stringstream buffer;
-        buffer << "A \"" << rStatement << "\" statement was expected but the given statement was \"";
-        buffer <<  rGivenWord << "\"" << " [Line " << mNumberOfLines << " ]";
-        KRATOS_ERROR << buffer.str() << std::endl;
-    }
-    else
-        result = true;
-
-    return result;
+    KRATOS_ERROR_IF(rGivenWord != rStatement )<< "A \"" << rStatement << "\" statement was expected but the given statement was \"" << rGivenWord << "\"" << " [Line " << mNumberOfLines << " ]" << std::endl;
 }
 
 void ModelPartIO::ResetInput()

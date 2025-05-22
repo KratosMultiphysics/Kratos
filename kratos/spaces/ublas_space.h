@@ -341,12 +341,12 @@ public:
         return aux_sum;
     }
 
-    static void Mult(const Matrix& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const Matrix& rA, const VectorType& rX, VectorType& rY)
     {
         axpy_prod(rA, rX, rY, true);
     }
 
-    static void Mult(const compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const compressed_matrix<TDataType>& rA, const VectorType& rX, VectorType& rY)
     {
 #ifndef _OPENMP
         axpy_prod(rA, rX, rY, true);
@@ -356,9 +356,9 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
+    static void TransposeMult(const TOtherMatrixType& rA, const VectorType& rX, VectorType& rY)
     {
-		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
+        boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
@@ -708,10 +708,16 @@ public:
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
         )
     {
+        // The system size
         const std::size_t system_size = rA.size1();
 
-        const double* Avalues = rA.value_data().begin();
-        const std::size_t* Arow_indices = rA.index1_data().begin();
+        // The matrix data
+        auto& r_Avalues = rA.value_data();
+        const auto& r_Arow_indices = rA.index1_data();
+        const auto& r_Acol_indices = rA.index2_data();
+
+        // Define the iterators
+        const auto it_Acol_indices_begin = r_Acol_indices.begin();
 
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -723,18 +729,29 @@ public:
         IndexPartition(system_size).for_each([&](std::size_t Index){
             bool empty = true;
 
-            const std::size_t col_begin = Arow_indices[Index];
-            const std::size_t col_end = Arow_indices[Index + 1];
+            const std::size_t col_begin = r_Arow_indices[Index];
+            const std::size_t col_end = r_Arow_indices[Index + 1];
 
             for (std::size_t j = col_begin; j < col_end; ++j) {
-                if(std::abs(Avalues[j]) > zero_tolerance) {
+                if(std::abs(r_Avalues[j]) > zero_tolerance) {
                     empty = false;
                     break;
                 }
             }
 
             if(empty) {
-                rA(Index, Index) = scale_factor;
+                const auto it_Acol_indices_row_begin = it_Acol_indices_begin + col_begin;
+                const auto it_Acol_indices_row_end = it_Acol_indices_begin + col_end;
+
+                const auto lower = std::lower_bound(it_Acol_indices_row_begin, it_Acol_indices_row_end, Index);
+                const auto upper = std::upper_bound(it_Acol_indices_row_begin, it_Acol_indices_row_end, Index);
+
+                if (lower != upper) { // Index was found
+                    r_Avalues[std::distance(it_Acol_indices_begin, lower)] = scale_factor;
+                } else {
+                    KRATOS_DEBUG_ERROR << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
+                    KRATOS_WARNING("UblasSpace") << "Diagonal term (" << Index << ", " << Index << ") is not defined in the system matrix" << std::endl;
+                }
                 rb[Index] = 0.0;
             }
         });
@@ -778,9 +795,9 @@ public:
      */
     static double GetDiagonalNorm(const MatrixType& rA)
     {
-        const double* Avalues = rA.value_data().begin();
-        const std::size_t* Arow_indices = rA.index1_data().begin();
-        const std::size_t* Acol_indices = rA.index2_data().begin();
+        const auto& Avalues = rA.value_data();
+        const auto& Arow_indices = rA.index1_data();
+        const auto& Acol_indices = rA.index2_data();
 
         const double diagonal_norm = IndexPartition<std::size_t>(Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -813,9 +830,9 @@ public:
      */
     static double GetMaxDiagonal(const MatrixType& rA)
     {
-        const double* Avalues = rA.value_data().begin();
-        const std::size_t* Arow_indices = rA.index1_data().begin();
-        const std::size_t* Acol_indices = rA.index2_data().begin();
+        const auto& Avalues = rA.value_data();
+        const auto& Arow_indices = rA.index1_data();
+        const auto& Acol_indices = rA.index2_data();
 
         return IndexPartition<std::size_t>(Size1(rA)).for_each<MaxReduction<double>>([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -836,9 +853,9 @@ public:
      */
     static double GetMinDiagonal(const MatrixType& rA)
     {
-        const double* Avalues = rA.value_data().begin();
-        const std::size_t* Arow_indices = rA.index1_data().begin();
-        const std::size_t* Acol_indices = rA.index2_data().begin();
+        const auto& Avalues = rA.value_data();
+        const auto& Arow_indices = rA.index1_data();
+        const auto& Acol_indices = rA.index2_data();
 
         return IndexPartition<std::size_t>(Size1(rA)).for_each<MinReduction<double>>([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -891,6 +908,22 @@ public:
         return false;
     }
 
+    /**
+     * @brief Returns a list of the fastest direct solvers.
+     * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
+     * @return A vector of strings containing the names of the fastest direct solvers.
+     */
+    inline static std::vector<std::string> FastestDirectSolverList()
+    {
+        std::vector<std::string> faster_direct_solvers({
+            "pardiso_lu",              // LinearSolversApplication (if compiled with Intel-support)
+            "pardiso_ldlt",            // LinearSolversApplication (if compiled with Intel-support)
+            "sparse_lu",               // LinearSolversApplication
+            "skyline_lu_factorization" // In Core, always available, but slow
+        });
+        return faster_direct_solvers;
+    }
+
     //***********************************************************************
 
     inline static TDataType GetValue(const VectorType& x, std::size_t I)
@@ -910,7 +943,7 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char* pFileName, /*const*/ TOtherMatrixType& rM, const bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketMatrix(pFileName, rM, Symmetric);
@@ -927,16 +960,6 @@ public:
     {
         DofUpdaterType tmp;
         return tmp.Create();
-    }
-
-   /**
-    * @brief Check if the UblasSpace is distributed.
-    * @details This static member function checks whether the UblasSpace is distributed or not.
-    * @return True if the space is distributed, false otherwise.
-    */
-    static constexpr bool IsDistributedSpace()
-    {
-        return false;
     }
 
     ///@}

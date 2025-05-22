@@ -58,8 +58,19 @@ public:
      * @brief Constructor for ApplyConstantVectorValueProcess.
      * @details This constructor initializes an instance of the ApplyConstantVectorValueProcess class with the given model part
      * and parameters.
+     * @param rModel Reference to the model to which the process is applied.
+     * @param ThisParameters Parameters defining the behavior of the process.
+     */
+    ApplyConstantVectorValueProcess(Model& rModel,
+                                    Parameters ThisParameters
+                                   );
+
+    /**
+     * @brief Constructor for ApplyConstantVectorValueProcess.
+     * @details This constructor initializes an instance of the ApplyConstantVectorValueProcess class with the given model part
+     * and parameters.
      * @param rModelPart Reference to the model part to which the process is applied.
-     * @param parameters Parameters defining the behavior of the process.
+     * @param ThisParameters Parameters defining the behavior of the process.
      */
     ApplyConstantVectorValueProcess(ModelPart& rModelPart,
                                     Parameters ThisParameters
@@ -73,14 +84,12 @@ public:
     * @param rVariable Reference to the variable to which the constant vector value is applied.
     * @param Modulus The modulus of the constant vector value.
     * @param Direction The direction of the constant vector value.
-    * @param MeshId The ID of the mesh to which the process is applied.
     * @param Options Flags specifying additional options for the process.
     */
     ApplyConstantVectorValueProcess(ModelPart& rModelPart,
                               const Variable< array_1d<double, 3 > >& rVariable,
                               const double Modulus,
                               const Vector& rDirection,
-                              std::size_t MeshId,
                               const Flags Options
                               );
 
@@ -161,9 +170,6 @@ protected:
 
     /// The direction of the vector
     Vector mDirection;
-
-    /// The mesh id (LEGACY, to be removed in the future)
-    std::size_t mMeshId = 0;
 
     ///@}
 private:

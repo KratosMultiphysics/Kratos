@@ -405,6 +405,38 @@ public:
         CalculateTangentTensorSmallDeformationNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold, ApproximationOrder);
     }
 
+    /**
+     * @brief This method computes the secant tensor as dS/dE with respect to the origin
+     * @param rValues The properties of the CL
+     */
+    static void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues)
+    {
+        const auto &r_strain = rValues.GetStrainVector();
+        const auto &r_stress = rValues.GetStressVector();
+        const SizeType strain_size = r_strain.size();
+        auto &r_D = rValues.GetConstitutiveMatrix();
+
+        for (IndexType i = 0; i < strain_size; i++)
+            for (IndexType j = 0; j < strain_size; j++)
+                r_D(i, j) = r_stress[i] / r_strain[j];
+    }
+
+    /**
+     * @brief This method computes the secant tensor as dS/dE with respect to the origin
+     * @param rValues The properties of the CL
+     */
+    static void CalculateOrthogonalSecantTensor(ConstitutiveLaw::Parameters& rValues)
+    {
+        const auto &r_strain = rValues.GetStrainVector();
+        const auto &r_stress = rValues.GetStressVector();
+        const SizeType strain_size = r_strain.size();
+        auto &r_D = rValues.GetConstitutiveMatrix();
+
+        for (IndexType i = 0; i < strain_size; i++)
+            for (IndexType j = 0; j < strain_size; j++)
+                r_D(i, j) = -r_strain[j] / r_stress[i];
+    }
+
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -576,7 +608,7 @@ private:
     }
 
     /**
-     * @brief This method computes the maximum absolut value (Vector)
+     * @brief This method computes the maximum absolute value (Vector)
      * @param rArrayValues The array containing the values
      * @param rMaxValue The value to be computed
      */
@@ -598,7 +630,7 @@ private:
     }
 
     /**
-     * @brief This method computes the maximum absolut value (Matrix)
+     * @brief This method computes the maximum absolute value (Matrix)
      * @param rArrayValues The array containing the values
      * @param rMaxValue The value to be computed
      */
@@ -627,7 +659,7 @@ private:
     }
 
     /**
-     * @brief This method computes the minimim absolut value (Vector)
+     * @brief This method computes the minimim absolute value (Vector)
      * @param rArrayValues The array containing the values
      * @param rMinValue The value to be computed
      */
@@ -649,7 +681,7 @@ private:
     }
 
     /**
-     * @brief This method computes the minimim absolut value (Matrix)
+     * @brief This method computes the minimim absolute value (Matrix)
      * @param rArrayValues The array containing the values
      * @param rMinValue The value to be computed
      */

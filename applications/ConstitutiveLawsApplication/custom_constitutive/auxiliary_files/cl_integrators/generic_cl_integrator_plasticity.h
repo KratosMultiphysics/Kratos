@@ -142,7 +142,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     ///@{
 
     /**
-     * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
+     * @brief This method integrates the predictive stress vector with the CL using different evolution laws using the backward euler scheme
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The equivalent strain vector of that integration point
      * @param rUniaxialStress The equivalent uniaxial stress
@@ -245,10 +245,10 @@ class GenericConstitutiveLawIntegratorPlasticity
     {
         array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
         array_1d<double, VoigtSize> h_capa = ZeroVector(VoigtSize);
-        double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain;
+        double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain, I1;
 
-        YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
-        const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
+        YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
         CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rValues);
@@ -278,7 +278,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         const double Denominator
         )
     {
-        rTangent = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
+        noalias(rTangent) = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
     }
 
 
@@ -586,11 +586,22 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         const double minimum_characteristic_fracture_energy_exponential_softening = (std::pow(yield_compression, 2)) / young_modulus;
 
+        const bool has_total_or_plastic_strain_space = r_material_properties.Has(TOTAL_OR_PLASTIC_STRAIN_SPACE);
+        const bool total_or_plastic_strain_space = has_total_or_plastic_strain_space ? r_material_properties[TOTAL_OR_PLASTIC_STRAIN_SPACE] : false; //Default value = plastic strain space
+
         double initial_threshold;
         GetInitialUniaxialThreshold(rValues, initial_threshold);
         KRATOS_ERROR_IF(characteristic_fracture_energy_compression < minimum_characteristic_fracture_energy_exponential_softening) << "The Fracture Energy is to low: " << characteristic_fracture_energy_compression << std::endl;
-        rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
-        rSlope = - initial_threshold;
+        if (total_or_plastic_strain_space) { // Curve built in the total strain space
+            rEquivalentStressThreshold = (young_modulus / initial_threshold) * ((0.5 * std::pow(initial_threshold, 2.0) / young_modulus - characteristic_fracture_energy_compression)
+                                            + std::sqrt(std::pow((0.5 * std::pow(initial_threshold, 2.0) / young_modulus + characteristic_fracture_energy_compression), 2.0)
+                                            - 2.0 * std::pow(initial_threshold, 2.0) / young_modulus * characteristic_fracture_energy_compression * PlasticDissipation));
+            rSlope = - initial_threshold * characteristic_fracture_energy_compression * std::pow(std::pow((0.5 * std::pow(initial_threshold, 2.0) / young_modulus + characteristic_fracture_energy_compression), 2.0)
+                    - 2.0 * std::pow(initial_threshold, 2.0) / young_modulus * characteristic_fracture_energy_compression * PlasticDissipation, -0.5);
+        } else { // Curve built in the plastic strain space
+            rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
+            rSlope = - initial_threshold;
+        }
     }
 
     /**
@@ -658,7 +669,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     }
 
     /**
-     * @brief This method computes the uniaxial threshold using a perfect plasticity law
+     * @brief This method computes the uniaxial threshold using an isotropic hardening (polynomial) - softening (exponential) plasticity law
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
@@ -725,7 +736,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         if (PlasticDissipation <= segment_threshold) {
             const double Eps = EquivalentPlasticStrain;
 
-            if (EquivalentPlasticStrain < plastic_strain_indicator_1) { // Polinomial region
+            if (EquivalentPlasticStrain < plastic_strain_indicator_1) { // Polynomial region
                 double S_Ep = curve_fitting_parameters[0];
                 double dS_dEp = 0.0;
                 for (IndexType i = 1; i < order_polinomial; ++i) {
@@ -761,7 +772,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     }
 
     /**
-     * @brief This method computes the uniaxial threshold using a linear-exponential softening, which changes from one to the other through the platic_dissipation_limit
+     * @brief This method computes the uniaxial threshold using an isotropic linear/exponential softening, which changes from one to the other through the platic_dissipation_limit
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator

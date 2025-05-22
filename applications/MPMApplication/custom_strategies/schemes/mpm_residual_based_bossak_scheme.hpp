@@ -29,6 +29,8 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -103,7 +105,7 @@ public:
         unsigned int BlockSize, double Alpha = 0.0,
         double NewmarkBeta = 0.25, bool IsDynamic = true)
                 :ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(Alpha, NewmarkBeta),
-                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize, IS_STRUCTURE)
+                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize)
     {
         // To distinguish quasi-static and dynamic
         mIsDynamic = IsDynamic;
@@ -111,6 +113,9 @@ public:
         // For Rotation Utility
         mDomainSize = DomainSize;
         mBlockSize  = BlockSize;
+
+        // For friction-related info
+        mFrictionIsActive = mGridModelPart.GetProcessInfo()[FRICTION_ACTIVE];
     }
 
     /**
@@ -119,7 +124,8 @@ public:
      MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
         :BossakBaseType(rOther)
         ,mGridModelPart(rOther.mGridModelPart)
-        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,IS_STRUCTURE)
+        ,mFrictionIsActive(rOther.mFrictionIsActive)
+        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize)
     {
     }
 
@@ -139,6 +145,13 @@ public:
 
     //***************************************************************************
     //***************************************************************************
+
+    void Initialize(ModelPart& rModelPart) override {
+        MPMParticleBaseCondition::SetRotationUtility(&mRotationTool);
+
+        BossakBaseType::Initialize(rModelPart);
+    }
+
 
     /**
      * @brief Performing the update of the solution
@@ -168,27 +181,22 @@ public:
         mRotationTool.RecoverDisplacements(rModelPart);
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-        const auto it_node_begin = rModelPart.Nodes().begin();
-
-        #pragma omp parallel for
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
-
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
+        {
             // In MPM the delta_displacement is the current displacement as the previous_displacement is always reset
-            const array_1d<double, 3 > & r_delta_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & r_delta_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+            array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
 
-            array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            array_1d<double, 3>& r_current_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
             if (mIsDynamic){
                 BossakBaseType::UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
                 BossakBaseType::UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
             }
-        }
+        });
 
         KRATOS_CATCH( "" )
     }
@@ -211,70 +219,99 @@ public:
     {
         KRATOS_TRY;
 
-		#pragma omp parallel for
-		for(int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter)
+		block_for_each(rModelPart.Nodes(), [&](Node& rNode)
 		{
-			auto i = rModelPart.NodesBegin() + iter;
-            const array_1d<double, 3 > & r_previous_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-			const array_1d<double, 3 > & r_previous_velocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double, 3 > & r_previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3 > & r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+			const array_1d<double, 3 > & r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3 > & r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
-            array_1d<double, 3 > & r_current_displacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & r_current_displacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             // Displacement prediction for implicit MPM
-            if (!(i->pGetDof(DISPLACEMENT_X)->IsFixed()))
+            if (!(rNode.pGetDof(DISPLACEMENT_X)->IsFixed()))
                 r_current_displacement[0] = 0.0;
             else
                 r_current_displacement[0]  = r_previous_displacement[0];
 
-            if (!(i->pGetDof(DISPLACEMENT_Y)->IsFixed()))
+            if (!(rNode.pGetDof(DISPLACEMENT_Y)->IsFixed()))
                 r_current_displacement[1] = 0.0;
             else
                 r_current_displacement[1]  = r_previous_displacement[1];
 
-            if (i->HasDofFor(DISPLACEMENT_Z))
+            if (rNode.HasDofFor(DISPLACEMENT_Z))
             {
-                if (!(i->pGetDof(DISPLACEMENT_Z)->IsFixed()))
+                if (!(rNode.pGetDof(DISPLACEMENT_Z)->IsFixed()))
                     r_current_displacement[2] = 0.0;
                 else
                     r_current_displacement[2]  = r_previous_displacement[2];
             }
 
             // Pressure prediction for implicit MPM
-            if (i->HasDofFor(PRESSURE))
+            if (rNode.HasDofFor(PRESSURE))
             {
-                double& r_current_pressure        = (i)->FastGetSolutionStepValue(PRESSURE);
-                const double& r_previous_pressure = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+                double& r_current_pressure        = rNode.FastGetSolutionStepValue(PRESSURE);
+                const double& r_previous_pressure = rNode.FastGetSolutionStepValue(PRESSURE, 1);
 
-                if (!(i->pGetDof(PRESSURE))->IsFixed())
+                if (!(rNode.pGetDof(PRESSURE))->IsFixed())
                     r_current_pressure = r_previous_pressure;
             }
 
             // Updating time derivatives
-            array_1d<double, 3 > & current_velocity       = (i)->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & current_acceleration   = (i)->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3 > & current_velocity       = rNode.FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3 > & current_acceleration   = rNode.FastGetSolutionStepValue(ACCELERATION);
 
             if (mIsDynamic){
                 BossakBaseType::UpdateVelocity(current_velocity, r_current_displacement, r_previous_velocity, r_previous_acceleration);
                 BossakBaseType::UpdateAcceleration (current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
             }
 
-		}
+		});
 
         KRATOS_CATCH( "" );
     }
 
-    // Clear friction-related flags so that RHS can be properly constructed for current iteration
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
 
-        // clear nodal reaction values if they were assigned a value outside from the condition
-        ClearReaction();
+        // Special treatment of particle based dirichlet conditions to calculate the reaction forces at the boundary particles
+        // ***
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        
+        // clear any nodal reaction values
+        ClearReactionVariable();
+        
+        // Calculating as an intermediate step the nodal reaction forces due to the boundary particles
+        block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
+        {  
+            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_NODAL_REACTIONS, r_dummy, r_current_process_info);
+        });
+        
+        // Calculating the reaction forces at the boundary particles due to the nodal reaction forces
+        block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
+        {  
+            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_CONTACT_FORCE, r_dummy, r_current_process_info);
+        });  
+
+        // clear nodal reaction values again
+        ClearReactionVariable();    
+        
+        // *** 
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
-        // modify reaction forces for material point particle slip conditions (Penalty)
-        mRotationTool.CalculateReactionForces(mGridModelPart);
+    }
+
+    void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
+                                 TSystemVectorType &rb) override {
+
+        BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        // clear nodal reaction values again
+        ClearReactionVariable();
+
+        if(mFrictionIsActive) {
+            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+        }
     }
 
     /**
@@ -296,22 +333,19 @@ public:
         KRATOS_TRY
 
         // Loop over the grid nodes performed to clear all nodal information
-		#pragma omp parallel for
-		for(int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter)
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
 		{
-			auto i = mGridModelPart.NodesBegin() + iter;
-
             // Variables to be cleaned
-            double & r_nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
-            array_1d<double, 3 > & r_nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-            array_1d<double, 3 > & r_nodal_inertia  = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+            double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
+            array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+            array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
 
-            array_1d<double, 3 > & r_nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3 > & r_nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
-            array_1d<double, 3 > & r_nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
+            array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
+            array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
 
-            double & r_nodal_old_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
-            double & r_nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
+            double & r_nodal_old_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
+            double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE);
 
             // Clear
             r_nodal_mass = 0.0;
@@ -325,41 +359,46 @@ public:
             r_nodal_pressure = 0.0;
 
             // Other additional variables
-            if ((i)->SolutionStepsDataHas(NODAL_AREA)){
-                double & r_nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
+            if (rNode.SolutionStepsDataHas(NODAL_AREA)){
+                double & r_nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
                 r_nodal_area          = 0.0;
             }
-            if(i->SolutionStepsDataHas(NODAL_MPRESSURE)) {
-                double & r_nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+            if(rNode.SolutionStepsDataHas(NODAL_MPRESSURE)) {
+                double & r_nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
                 r_nodal_mpressure = 0.0;
             }
-		}
+
+            // friction-related
+            if(mFrictionIsActive){
+                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
+                rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
+                rNode.SetValue(FRICTION_ASSIGNED, false);
+            }
+		});
 
         // Extrapolate from Material Point Elements and Conditions
         ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
 
         // Assign nodal variables after extrapolation
-        #pragma omp parallel for
-        for(int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter)
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
         {
-            auto i = mGridModelPart.NodesBegin() + iter;
-            const double & r_nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+            const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
 
             if (r_nodal_mass > std::numeric_limits<double>::epsilon())
             {
-                const array_1d<double, 3 > & r_nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                const array_1d<double, 3 > & r_nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+                const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+                const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
 
-                array_1d<double, 3 > & r_nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
-                array_1d<double, 3 > & r_nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
-                double & r_nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
+                array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
+                array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
+                double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
 
                 double delta_nodal_pressure = 0.0;
 
                 // For mixed formulation
-                if (i->HasDofFor(PRESSURE) && i->SolutionStepsDataHas(NODAL_MPRESSURE))
+                if (rNode.HasDofFor(PRESSURE) && rNode.SolutionStepsDataHas(NODAL_MPRESSURE))
                 {
-                    double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+                    double & nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
                     delta_nodal_pressure = nodal_mpressure/r_nodal_mass;
                 }
 
@@ -370,8 +409,15 @@ public:
                 r_nodal_acceleration += delta_nodal_acceleration;
 
                 r_nodal_pressure += delta_nodal_pressure;
+
+                // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
+                // an initial friction state of SLIDING instead of STICK
+                if(mFrictionIsActive){
+                    const bool has_initial_momentum = (mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon());
+                    rNode.SetValue(HAS_INITIAL_MOMENTUM, has_initial_momentum);
+                }
             }
-        }
+        });
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
@@ -385,6 +431,43 @@ public:
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
         KRATOS_CATCH( "" )
+    }
+
+    /**
+     * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
+     * @param rModelPart The model part of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
+     */
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        
+        if(mFrictionIsActive) {
+            block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
+            {
+                const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+                if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
+                    rNode.FastGetSolutionStepValue(REACTION).clear();       
+            });
+            
+            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+        }
+
+        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+
+            // rotate forces stored in REACTION to global coordinates on conforming boundaries
+            if (mRotationTool.IsConformingSlip(rConstNode) ) {
+                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
+            }
+        });
+        
     }
 
     /**
@@ -417,9 +500,13 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
-        // If there is a slip condition, apply it on a rotated system of coordinates
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
-        mRotationTool.ElementApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        }
+
 
         KRATOS_CATCH( "" )
     }
@@ -454,9 +541,12 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
-        // If there is a slip condition, apply it on a rotated system of coordinates
-        mRotationTool.RotateRHS(RHS_Contribution,rCurrentElement.GetGeometry());
-        mRotationTool.ElementApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
+        }
 
         KRATOS_CATCH( "" )
     }
@@ -494,8 +584,12 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        }
+
 
         KRATOS_CATCH( "" )
     }
@@ -528,8 +622,12 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        mRotationTool.RotateRHS(RHS_Contribution,rCurrentCondition.GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+        }
+
 
         KRATOS_CATCH( "" )
     }
@@ -542,18 +640,20 @@ protected:
     // To distinguish quasi-static and dynamic
     bool mIsDynamic;
 
+    // Identifies cases where friction is active in at least 1 slip boundary
+    bool mFrictionIsActive;
+
     // For Rotation Utility
     unsigned int mDomainSize;
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 
-    void ClearReaction() const
+    void ClearReactionVariable() const
     {
-        #pragma omp parallel for
-        for (int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
-            auto i = mGridModelPart.NodesBegin() + iter;
-            (i)->FastGetSolutionStepValue(REACTION).clear();
-        }
+        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
+        {
+            rNode.FastGetSolutionStepValue(REACTION).clear();
+        });
     }
 
 }; /* Class MPMResidualBasedBossakScheme */

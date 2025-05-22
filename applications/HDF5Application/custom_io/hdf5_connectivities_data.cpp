@@ -138,7 +138,11 @@ void ConnectivitiesData<TContainerType>::Write(
     // now cross check all names
     for (const auto& rank_char_entity_name : global_char_entity_names) {
         std::string rank_name(rank_char_entity_name.begin(), rank_char_entity_name.end());
-        KRATOS_ERROR_IF(entity_name != rank_name) << "All the ranks should have the same entities.";
+        // here we have to check current entity name is equal to other ranks entity names.
+        // but if a rank has not entities, then the AllGatherv above will have an empty string, but
+        // in the above if block, we will make the empty rank's entity_name also non emtpy. Therefore
+        // an additional check is included to check whether the rank_name is also empty.
+        KRATOS_ERROR_IF(entity_name != rank_name && !rank_name.empty()) << "All the ranks should have the same entities.";
     }
 
     const auto& entity_group_path = mPrefix + "/" + entity_name;
