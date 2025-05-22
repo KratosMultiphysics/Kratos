@@ -42,7 +42,10 @@ namespace Internals
 
 /// Represents connectivities information of a single element or condition type in a mesh.
 /**
- * Acts as the intermediary between the HDF5 file and the Kratos elements and conditions.
+ * @tparam TContainerType A container of @ref Element "elements" or @ref Condition "conditions".
+ * @details Acts as the intermediary between the HDF5 file and the Kratos elements and conditions.
+ * @see ElementsContainerType
+ * @see ConditionsContainerType
  */
 template<class TContainerType>
 class KRATOS_API(HDF5_APPLICATION) ConnectivitiesData
@@ -62,6 +65,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// @brief Construct an IO reading/writing from the specified file at the given prefix.
+    /// @param rPrefix Group path within the file to read from or write to.
+    /// @param pFile Pointer to the HDF5 file.
     ConnectivitiesData(
         const std::string& rPrefix,
         File::Pointer pFile);
