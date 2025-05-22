@@ -145,6 +145,12 @@ void ConnectivitiesData<TContainerType>::Write(
         KRATOS_ERROR_IF(entity_name != rank_name && !rank_name.empty()) << "All the ranks should have the same entities.";
     }
 
+    if (entity_name.empty()) {
+        // do nothing if the entity_name is empty. This means, none of the ranks had any entities in the container
+        // hence there is no point in continuing further.
+        return;
+    }
+
     const auto& entity_group_path = mPrefix + "/" + entity_name;
 
     const unsigned int num_entities = rEntities.size();
