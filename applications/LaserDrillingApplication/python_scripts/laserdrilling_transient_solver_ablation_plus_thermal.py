@@ -4,6 +4,7 @@ from scipy.interpolate import interp1d
 import KratosMultiphysics
 import KratosMultiphysics.LaserDrillingApplication as LaserDrillingApplication
 from KratosMultiphysics.LaserDrillingApplication import laserdrilling_transient_solver
+from KratosMultiphysics import Logger
 
 
 def CreateSolver(model, custom_settings):
@@ -37,6 +38,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
         self.hole_profile_in_Y_zero_file = open("hole_profile_in_Y_zero.txt", "w")
 
+        # TODO: why approximate this instead of interpolationg like it is done in ImposeTemperatureIncreaseDueToLaser?
         # Equation of the approximated hole shape (as a parabola)
         # x(y) = A * y^2 + C
         a = Y[-1]
@@ -72,19 +74,12 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             if y0 < 1e-8:
                 self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
 
-            delta_pen = self.delta_pen
-            F_p = self.F_p
-            omega_0 = self.omega_0
+            # delta_pen = self.delta_pen
+            # F_p = self.F_p
+            # omega_0 = self.omega_0
 
-            """
-            q_energy_per_volume = (
-                (1.0 / delta_pen)
-                * F_p
-                * np.exp(-2.0 * (y1 / omega_0) ** 2)
-                * np.exp(-l / delta_pen)
-                * np.cos(incident_angle)
-            ) """
-            q_energy_per_volume = self.EnergyPerVolumeWoodfield(y1, l, delta_pen, F_p, omega_0) * np.cos(incident_angle)
+            # q_energy_per_volume = self.EnergyPerVolumeWoodfield(y1, l, delta_pen, F_p, omega_0) * np.cos(incident_angle)
+            q_energy_per_volume = self.Fluence() * self.AxialDistributionLaw()
 
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
@@ -204,6 +199,32 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         delta_temp = q_energy_per_volume / (self.rho * self.cp)
         return delta_temp
 
+    def FluenceGaussian(self, r, Q, omega_0):
+        """
+        Returns the fluence in J/m2 applied by a gaussian laser pulse.
+
+        See Woodfield 2024 eq. (2).
+
+        Parameters
+        ----------
+        r: float
+            Radial coordinate (m)
+        Q: float
+            total energy of the pulse
+        omega_0: float
+            waist radius
+
+        Returns
+        -------
+        F: float
+            Fluence (J/m2)
+        """
+        F_p = 
+        fluence = F_p * np.exp(-2.0 * (r / omega_0) ** 2)
+
+        return fluence
+
+    # TODO: remove
     def EnergyPerVolumeWoodfield(self, r, z, delta_pen, F_p, omega_0):
         """
         Returns the energy per unit volume in J/m3 applied by the laser pulse according to Woodfield (2024).
@@ -236,6 +257,74 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
         return q
 
+    # TODO: remove
+    def EnergyPerVolumeWoodfieldSupergaussian(self, r, z, delta_pen, F_p, omega_0, n):
+        """
+        Returns the energy per unit volume in J/m3 applied by the laser pulse according to the model of
+        Woodfield (2024) but with the possibility of using an arbitrary supergaussian profile.
+
+        r is the distance in the radial direction [m], z is the distance below the surface [m], omega_0 is
+        the waist radius [m] of the Gaussian laser spot, Fp is the ﬂuence [J/m2 ] at r = 0 (i.e. peak
+        ﬂuence) and n is the supergaussian degree
+
+        Parameters
+        ----------
+        r: float
+            Radial coordinate
+        z: float
+            Axial coordinate
+        delta_pen: float
+            Optical penetration depth
+        F_p: float
+            Fluence at r=0 (i.e. peak fluence)
+        omega_0: float
+            Waist radius
+        n: int
+            Supergaussian degree
+        Returns
+        -------
+        q: float
+            Energy per unit volume [J/m3]
+        """
+        if not n % 2:
+            Logger.PrintWarning("Parameter not allowed", "The supergaussian order has to be an even natural number.")
+            raise ValueError
+
+        # TODO: normalize
+        self.Fp = -1e300
+        beer_lambert_factor = 1.0 / delta_pen * np.exp(-z / delta_pen)
+        gaussian_factor = F_p * np.exp(-2.0 * (r / omega_0) ** n)
+        q = beer_lambert_factor * gaussian_factor
+
+        return q
+
+    def EnergyPerVolume(self):
+        return self.Fluence() * self.AxialDistributionLaw()
+
+    def Fluence(self, *args, **kwargs):
+        """
+        Calls the globally assigned fluence function with the provided arguments.
+        Returns the fluence at a point according to the option chosen when setting self.fluence.
+
+        Parameters
+        ----------
+            *args: Positional arguments to pass to fluence
+            **kwargs: Keyword arguments to pass to fluence
+
+        Returns
+        -------
+            The fluence at a point
+        """
+        if self.fluence_function is None:
+            Logger.PrintWarning("Error", "No function assigned to fluence_function")
+            raise ValueError
+        try:
+            return self.fluence_function(*args, **kwargs)
+        except TypeError as e:
+            Logger.PrintWarning("Error", "Incorrect arguments for '{f.__name__}': {e}")
+            raise TypeError
+
+    # TODO: I think this is broken and unused. Remove or rework it
     def ComputePulseVolume(self):
         return 0.25 * self.delta_pen * np.pi * self.omega_0**2 * (np.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
 

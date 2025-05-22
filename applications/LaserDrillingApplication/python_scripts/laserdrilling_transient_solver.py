@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 import h5py
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.special import gamma as GammaFunction
 
 # from sympy import *
 
@@ -26,6 +27,8 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistrib
     import KratosMultiphysics.MetisApplication as KratosMetis
     import KratosMultiphysics.mpi as KratosMPI
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+
+from KratosMultiphysics import Logger
 
 
 def CreateSolver(model, custom_settings):
@@ -100,12 +103,25 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             node.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, 0.0)
 
     def ComputeSpotDiameter(self):
+        """
+        Computes the 1/e^2 diameter of a gaussian beam at position self.focus_z_offset + self.z_ast_max.
+        See: https://en.wikipedia.org/wiki/Gaussian_beam#Evolving_beam_width
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        spot_diameter: float
+            The diameter of the gaussian beam
+        """
         spot_diameter = self.beam_waist_diameter * np.sqrt(
             1.0 + ((self.focus_z_offset + self.z_ast_max) / self.rayleigh_length) ** 2
         )
         return spot_diameter
 
-    def ComputePeakFluence(self):
+    def ComputePeakFluenceGaussian(self):
         """
         Computes the peak fluence of a gaussian pulse from its energy and waist radius
         Source: Woodfield 2024, eq (5)
@@ -120,10 +136,60 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         """
         return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2
 
-    def ComputeMaximumAblationRadius(self):
-        import math  # TODO: Why not import math at the top? And why not use numpy?
+    def ComputePeakFluenceSupergaussian(self):
+        """
+        Computes the peak fluence of a supergaussian pulse from its energy and waist radius
 
-        return self.omega_0 * math.sqrt(0.5 * math.log(self.F_p / (self.delta_pen * self.q_ast)))
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        The peak fluence
+        """
+        F_p = (
+            self.Q
+            * gaussian_order
+            * 2 ** (2 / gaussian_order)
+            / (2 * np.pi * omega_0**2 * GammaFunction(2 / gaussian_order))
+        )
+        return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2
+
+        """
+        TODO: remove     
+        def ComputePeakFluence(self):
+        if self.supergaussian_intensity_distribution:
+            peak_fluence = self.ComputePeakFluenceSupergaussian()
+        else:
+            if self.arbitrary_intensity_distribution:
+                Logger.PrintWarning("Warning:", "Not implemented")
+                raise NotImplementedError
+            else:
+                # By default, use a gaussian pulse
+                peak_fluence = self.ComputePeakFluenceGaussian()
+
+        return peak_fluence 
+        """
+
+    def ComputeMaximumAblationRadius(self):
+        """
+        Computes the maximum radius of the ablated cavity after one pulse,
+        which corresponds to the radius at the surface of the sample.
+        Source: Woodfield 2024 eq. (7),
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        r_ast_max: float
+            The radius of the cavity at the surface
+        """
+
+        r_ast_max = self.omega_0 * np.sqrt(0.5 * np.log(self.F_p / (self.delta_pen * self.q_ast)))
+        return r_ast_max
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -216,6 +282,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.z_ast_max = 0.0  # TODO: Parameter? Remove, since the spot_diameter is unused?
 
+        # TODO: make general
+        self.fluence_function = self.FluenceGaussian
+
         # self.spot_diameter = self.ComputeSpotDiameter()
 
         if not self.material_settings["Variables"].Has("VAPORISATION_TEMPERATURE"):
@@ -293,7 +362,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
         ## Laser data
-        self.omega_0 = 0.5 * self.ComputeSpotDiameter()  # self.R_far # mm
+        # TODO: this is wrong, check the implications of this mistake. The correct line is the one following
+        # self.omega_0 = 0.5 * self.ComputeSpotDiameter()  # self.R_far # mm
+        self.omega_0 = self.beam_waist_diameter / 2  # Waist radius (m) of the Gaussian laser spot (Woodfield 2024)
         import numpy as np
 
         y_limit = 2.0 * self.omega_0
@@ -301,7 +372,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
         self.one_pulse_hole_theoretical_Y_coords = np.linspace(0.0, 0.0, 101)
         self.one_pulse_hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
-        self.F_p = self.ComputePeakFluence()
+        # self.F_p = self.ComputePeakFluence()
 
         ## Material calibration using experiments
         if not self.material_settings["Variables"].Has("OPTICAL_PENETRATION_DEPTH"):
@@ -420,8 +491,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.plot_progressive_hole_figures = False
 
     def ComputeMaximumDepth(self):
-        # TODO: Are we sure that what I understand to be the node at the axis of symmetry is
-        # always the deepest one? Shouldn't we search for the deepest among the list?
+        # TODO: I believe that X[0] is the node at the axis of symmetry.
+        # Are we sure that X[0] is always the deepest one?
+        # Shouldn't we search for the deepest among the list?
         maximum_depth = self.list_of_ablated_nodes_coords_X[0]
         return maximum_depth
 
@@ -441,10 +513,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
     def UpdateLaserRelatedParameters(self):
         self.z_ast_max = self.ComputeMaximumDepth()
-        # TODO: Maybe implement a function ComputeWaist that does this? For code clarity and
-        # so we don't forget to multiply by 0.5
-        self.omega_0 = 0.5 * self.ComputeSpotDiameter()
-        self.F_p = self.ComputePeakFluence()
+        # self.omega_0 = 0.5 * self.ComputeSpotDiameter()
+        # self.F_p = self.ComputePeakFluence()
         self.r_ast_max = self.ComputeMaximumAblationRadius()
 
     def SetUpResultsFiles(self):
@@ -1153,9 +1223,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             F_p = self.F_p
             q_ast = self.q_ast
             omega_0 = self.omega_0
-            import math
 
-            z_ast = delta_pen * (math.log(F_p / (delta_pen * q_ast)) - 2.0 * (r / omega_0) ** 2)
+            z_ast = delta_pen * (np.log(F_p / (delta_pen * q_ast)) - 2.0 * (r / omega_0) ** 2)
             return z_ast
 
     def CreateResultsFile(self, filename):
