@@ -25,7 +25,7 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         n_stages = 11
 
         # get the parameter file names for all stages
-        test_name = '1D-Consolidation_all_stages'
+        test_name = 'one_dimensional_consolidation'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
         parameter_file_names = [os.path.join(file_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
                                 range(n_stages)]
