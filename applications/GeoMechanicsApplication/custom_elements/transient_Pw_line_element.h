@@ -181,7 +181,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -237,7 +237,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo)
+                                      const ProcessInfo&      rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -419,7 +419,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo)
+                                      const ProcessInfo&      rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -575,7 +575,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
-                                      const ProcessInfo&                   rCurrentProcessInfo)
+                                      const ProcessInfo&                   rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -963,7 +963,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo)
+                                      const ProcessInfo&      rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
