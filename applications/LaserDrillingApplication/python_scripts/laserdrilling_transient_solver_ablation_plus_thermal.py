@@ -76,13 +76,16 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             F_p = self.F_p
             omega_0 = self.omega_0
 
+            """
             q_energy_per_volume = (
                 (1.0 / delta_pen)
                 * F_p
                 * np.exp(-2.0 * (y1 / omega_0) ** 2)
                 * np.exp(-l / delta_pen)
                 * np.cos(incident_angle)
-            )
+            ) """
+            q_energy_per_volume = self.EnergyPerVolumeWoodfield(y1, l, delta_pen, F_p, omega_0) * np.cos(incident_angle)
+
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
@@ -145,9 +148,14 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             F_p = self.F_p
             omega_0 = self.omega_0
 
+            """             
             q_energy_per_volume = (
                 (1.0 / delta_pen) * F_p * np.exp(-2.0 * (radius / omega_0) ** 2) * np.exp(-z / delta_pen)
-            )  # TODO: unused?
+            ) 
+            """
+            # TODO: unused?
+            q_energy_per_volume = self.EnergyPerVolumeWoodfield(radius, z, delta_pen, F_p, omega_0)
+
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
             # Compute enthalpy energy per volume
@@ -188,11 +196,45 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         F_p = self.F_p
         omega_0 = self.omega_0
 
-        q_energy_per_volume = (
-            (1.0 / delta_pen) * F_p * np.exp(-2.0 * (radius / omega_0) ** 2) * np.exp(-z / delta_pen)
-        )  # * np.cos(incidence_angle)
+        # q_energy_per_volume = (
+        #     (1.0 / delta_pen) * F_p * np.exp(-2.0 * (radius / omega_0) ** 2) * np.exp(-z / delta_pen)
+        # )  # * np.cos(incidence_angle)
+
+        q_energy_per_volume = self.EnergyPerVolumeWoodfield(radius, z, delta_pen, F_p, omega_0)
         delta_temp = q_energy_per_volume / (self.rho * self.cp)
         return delta_temp
+
+    def EnergyPerVolumeWoodfield(self, r, z, delta_pen, F_p, omega_0):
+        """
+        Returns the energy per unit volume in J/m3 applied by the laser pulse according to Woodfield (2024).
+
+        r is the distance in the radial direction [m], z is the distance below the surface [m], omega_0 is
+        the waist radius [m] of the Gaussian laser spot and Fp is the ﬂuence [J/m2 ] at r = 0 (i.e. peak ﬂuence)
+
+        Parameters
+        ----------
+        r: float
+            Radial coordinate
+        z: float
+            Axial coordinate
+        delta_pen: float
+            optical penetration depth
+        F_p: float
+            fluence at r=0 (i.e. peak fluence)
+        omega_0: float
+            waist radius
+
+        Returns
+        -------
+        q: float
+            Energy per unit volume [J/m3]
+        """
+
+        beer_lambert_factor = 1.0 / delta_pen * np.exp(-z / delta_pen)
+        gaussian_factor = F_p * np.exp(-2.0 * (r / omega_0) ** 2)
+        q = beer_lambert_factor * gaussian_factor
+
+        return q
 
     def ComputePulseVolume(self):
         return 0.25 * self.delta_pen * np.pi * self.omega_0**2 * (np.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
