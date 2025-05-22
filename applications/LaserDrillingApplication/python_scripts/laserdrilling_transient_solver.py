@@ -177,12 +177,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.laser_settings = laser["properties"][0]["Material"]
 
-        """
-        # Load the Project parameters file TODO: Read from the self.settings which file (filename) to load
-        with open("parameters/ProjectParameters.json", "r") as project_parameters_file:
-            self.project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
-        """
-
         """ 
         TODO: instead of hardcoding default values for the parameters, wouldn't it be better if when a parameter is not defined the program failed?
         In this way, we would ensure that the user is sure that they want to set a specific value for a variable. And they

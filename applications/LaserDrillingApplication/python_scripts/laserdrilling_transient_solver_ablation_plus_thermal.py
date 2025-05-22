@@ -21,7 +21,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         super(laserdrilling_transient_solver.LaserDrillingTransientSolver, self).SolveSolutionStep()
 
     def ComputeIonizationEnergyPerUnitVolumeThreshold(self):
-        # TODO: make these quantities into parameters. Why C11_H12_O3?
+        # TODO: make these quantities into parameters. Why C11_H12_O3 specifically?
         # Compute ionization energy per volume of C11_H12_O3
         E_m_H = 1312e3  #  J/mol (1st level ionization energy)
         E_m_C = 4621e3  #  J/mol (3rd level ionization energy)
