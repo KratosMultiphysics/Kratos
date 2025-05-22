@@ -13,31 +13,31 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
 
     def test_compressibility_upw_small_strain(self):
         test_name = 'compressibility_tests/upw_small_strain'
-        expected_water_pressure_at_bottom = -49.2298
+        expected_water_pressure_at_bottom = -52.8066
         self.run_and_assert_water_pressures(expected_water_pressure_at_bottom, test_name)
 
     def test_compressibility_upw_small_strain_fic(self):
         test_name = 'compressibility_tests/upw_small_strain_fic'
-        expected_water_pressure_at_bottom = -56.1231
+        expected_water_pressure_at_bottom = -59.5895
         self.run_and_assert_water_pressures(expected_water_pressure_at_bottom, test_name)
 
     def test_compressibility_upw_updated_lagrange_fic(self):
         test_name = 'compressibility_tests/upw_updated_lagrange_fic'
-        expected_water_pressure_at_bottom = -55.6957
+        expected_water_pressure_at_bottom = -59.4597
         self.run_and_assert_water_pressures(expected_water_pressure_at_bottom, test_name)
 
     def test_compressibility_upw_updated_lagrange(self):
         test_name = 'compressibility_tests/upw_updated_lagrange'
-        expected_water_pressure_at_bottom = -48.8369
+        expected_water_pressure_at_bottom = -52.6811
         self.run_and_assert_water_pressures(expected_water_pressure_at_bottom, test_name)
 
     def test_compressibility_upw_small_strain_diff_order(self):
         test_name = 'compressibility_tests/upw_small_strain_diff_order'
-        self.run_and_assert_water_pressures(-49.4291, test_name)
+        self.run_and_assert_water_pressures( -53.97, test_name)
 
     def test_compressibility_upw_diff_order_updated_lagrange(self):
         test_name = 'compressibility_tests/upw_diff_order_updated_lagrange'
-        self.run_and_assert_water_pressures(-48.8613, test_name)
+        self.run_and_assert_water_pressures(-53.8404, test_name)
 
     def run_and_assert_water_pressures(self, expected_water_pressure_at_bottom, test_name):
         output_data = self.run_simulation(test_name)

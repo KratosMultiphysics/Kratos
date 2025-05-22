@@ -55,8 +55,8 @@ public:
         result.GetProcessInfo()[DELTA_TIME] = 4.0;
 
         p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
-        p_node->FastGetSolutionStepValue(VELOCITY, 1) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
-        p_node->FastGetSolutionStepValue(ACCELERATION, 1) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
+        p_node->FastGetSolutionStepValue(VELOCITY, 1) = Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
+        p_node->FastGetSolutionStepValue(ACCELERATION, 1) = Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
 
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = 2.0;
@@ -108,8 +108,8 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
-    const auto     expected_acceleration      = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto     expected_velocity          = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
+    const auto expected_acceleration = Kratos::array_1d<double, 3>{-6.75, -9.0, -11.25};
+    const auto expected_velocity = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
     constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
 
     const auto actual_acceleration =
