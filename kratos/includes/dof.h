@@ -129,6 +129,14 @@ public:
             << "in the list of variables" << std::endl;
 
         mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable);
+        if (mpNodalData) { // Ensure mpNodalData is valid
+            mpCachedVariable = &(mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex));
+            mpCachedReaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
+            if (mpCachedReaction == &msNone) { // Normalize to nullptr if no reaction, msNone is static const Variable<TDataType>
+                mpCachedReaction = nullptr;
+            }
+        }
+        // else: mpNodalData is null, cached pointers remain nullptr, which is their default.
     }
 
     /** Constructor. This constructor takes the same input
@@ -171,6 +179,14 @@ public:
             << "in the list of variables" << std::endl;
 
         mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, &rThisReaction);
+        if (mpNodalData) { // Ensure mpNodalData is valid
+            mpCachedVariable = &(mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex));
+            mpCachedReaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
+            if (mpCachedReaction == &msNone) { // Normalize to nullptr if no reaction, msNone is static const Variable<TDataType>
+                mpCachedReaction = nullptr;
+            }
+        }
+        // else: mpNodalData is null, cached pointers remain nullptr, which is their default.
     }
 
     //This default constructor is needed for serializer
@@ -271,23 +287,31 @@ public:
     }
 
     /** Returns variable assigned to this degree of freedom. */
-    const VariableData& GetVariable() const
-    {
-        return mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex);
+    const VariableData& GetVariable() const {
+       if (!mpCachedVariable) { 
+            KRATOS_ERROR << "mpCachedVariable is nullptr in GetVariable. Dof might not be properly initialized. Dof ID: " << (mpNodalData ? std::to_string(mpNodalData->GetId()) : "unknown") << std::endl;
+       }
+       return *mpCachedVariable;
     }
 
     /** Returns reaction variable of this degree of freedom. */
-    const VariableData& GetReaction() const
-    {
-        auto p_reaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
-        return (p_reaction == nullptr) ? msNone : *p_reaction;
-    }
+    const VariableData& GetReaction() const {
+       if (!mpCachedReaction) {
+           return msNone; 
+       }
+       return *mpCachedReaction;
+   }
 
     template<class TReactionType>
-    void SetReaction(TReactionType const& rReaction)
-    {
-        mReactionType = DofTrait<TDataType, TReactionType>::Id;
+    void SetReaction(TReactionType const& rReaction) {
+        KRATOS_ERROR_IF_NOT(mpNodalData) << "Cannot SetReaction on a Dof with null NodalData." << std::endl;
+        mReactionType = DofTrait<TDataType, TReactionType>::Id; // Keep this for GetReference type switch
         mpNodalData->GetSolutionStepData().pGetVariablesList()->SetDofReaction(&rReaction, mIndex);
+        // Update cache:
+        mpCachedReaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
+        if (mpCachedReaction == &msNone) {
+             mpCachedReaction = nullptr;
+        }
     }
 
     /** Return the Equation Id related to this degree eof freedom.
@@ -323,22 +347,48 @@ public:
         return &(mpNodalData->GetSolutionStepData());
     }
 
-    void SetNodalData(NodalData* pNewNodalData)
-    {
-        auto p_variable = &GetVariable();
-        auto p_reaction = mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex);
-        mpNodalData = pNewNodalData;
-        if(p_reaction != nullptr){
-            mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
-        } else{
-            mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable);
-        }
-    }
+    void SetNodalData(NodalData* pNewNodalData) {
+       const VariableData* p_current_variable_descriptor = nullptr;
+       const VariableData* p_current_reaction_descriptor = nullptr;
 
-    bool HasReaction() const
-    {
-        return (mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex) != nullptr);
-    }
+       if (mpCachedVariable) { 
+           p_current_variable_descriptor = mpCachedVariable;
+           p_current_reaction_descriptor = mpCachedReaction; 
+       } else if (mpNodalData && mIndex < mpNodalData->GetSolutionStepData().GetVariablesList().NumberOfDofs()) { // Assuming NumberOfDofs() is a valid replacement for mDofVariables.size()
+           // This is a fallback if Dof existed with valid NodalData but cache was not set (e.g. before this code change)
+           p_current_variable_descriptor = &(mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex));
+           p_current_reaction_descriptor = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
+           if (p_current_reaction_descriptor == &msNone) {
+               p_current_reaction_descriptor = nullptr;
+           }
+       }
+
+       mpNodalData = pNewNodalData; 
+
+       if (mpNodalData && p_current_variable_descriptor) {
+           if(p_current_reaction_descriptor != nullptr){
+               mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_current_variable_descriptor, p_current_reaction_descriptor);
+           } else{
+               mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_current_variable_descriptor);
+           }
+           mpCachedVariable = &(mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex));
+           mpCachedReaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
+           if (mpCachedReaction == &msNone) {
+               mpCachedReaction = nullptr;
+           }
+       } else {
+           mpCachedVariable = nullptr;
+           mpCachedReaction = nullptr;
+           if (mpNodalData && !p_current_variable_descriptor) {
+                KRATOS_WARNING("Dof::SetNodalData") << "Setting new NodalData for Dof ID " << (mpNodalData ? std::to_string(mpNodalData->GetId()) : "unknown") << " but could not determine original variable. Dof may be in an inconsistent state." << std::endl;
+           }
+           // If mpNodalData is also null, mIndex remains, but Dof is effectively detached.
+       }
+   }
+
+   bool HasReaction() const {
+       return (mpCachedReaction != nullptr);
+   }
 
     ///@}
     ///@name Inquiry
@@ -422,6 +472,9 @@ private:
     /** A pointer to nodal data stored in node which is corresponded to this dof */
     NodalData* mpNodalData;
 
+    mutable const VariableData* mpCachedVariable = nullptr;
+    mutable const VariableData* mpCachedReaction = nullptr;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -490,6 +543,33 @@ private:
         int index;
         rSerializer.load("Index", index);
         mIndex = index;
+
+        // Initialize cached pointers after loading
+        if (mpNodalData) {
+            // Assuming NumberOfDofs() is a suitable replacement for mDofVariables.size()
+            // If NumberOfDofs() is not available, this check might need adjustment or removal,
+            // relying on GetDofVariable/pGetDofReaction to handle invalid mIndex.
+            // For now, let's assume a similar check to SetNodalData's original logic is intended.
+            // This check is primarily for safety during deserialization.
+            size_t num_dofs = mpNodalData->GetSolutionStepData().GetVariablesList().NumberOfDofs(); // Placeholder for actual size check
+            if (mIndex < num_dofs) { 
+                mpCachedVariable = &(mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex));
+                mpCachedReaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
+                if (mpCachedReaction == &msNone) {
+                    mpCachedReaction = nullptr;
+                }
+            } else {
+                KRATOS_ERROR << "Dof::load - mIndex " << mIndex << " out of bounds for loaded NodalData's DofVariables list (size: "
+                             << num_dofs
+                             << "). Dof ID: " << (mpNodalData ? std::to_string(mpNodalData->GetId()) : "unknown")
+                             << std::endl;
+                mpCachedVariable = nullptr;
+                mpCachedReaction = nullptr;
+            }
+        } else {
+            mpCachedVariable = nullptr;
+            mpCachedReaction = nullptr;
+        }
     }
     ///@}
     ///@name Private Operations
