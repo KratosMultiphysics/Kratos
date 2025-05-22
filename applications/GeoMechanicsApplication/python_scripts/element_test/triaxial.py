@@ -56,7 +56,12 @@ class TriaxialTestRunner:
 
     def _load_stage_parameters(self, n_stages=1):
         parameter_files = [os.path.join(self.work_dir, f'ProjectParameters_stage{i + 2}.json') for i in range(n_stages)]
-        return [Kratos.Parameters(open(f).read()) for f in parameter_files]
+        parameters = []
+        for f in parameter_files:
+            with open(f, 'r') as file:
+                parameters.append(Kratos.Parameters(file.read()))
+        return parameters
+
 
     def _execute_analysis_stages(self, parameters):
         model = Kratos.Model()
