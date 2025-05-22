@@ -72,7 +72,9 @@ double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
 
 double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
 {
-    return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
+    return rProjectParameters["solver_settings"]["time_stepping"].Has("max_delta_time_factor")
+               ? rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble()
+               : 1000.0;
 }
 
 std::optional<double> GetUserMinDeltaTimeFrom(const Parameters& rProjectParameters)
