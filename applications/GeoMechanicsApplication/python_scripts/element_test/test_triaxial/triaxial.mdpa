@@ -1,11 +1,9 @@
 Begin Table 1 TIME NORMAL_CONTACT_STRESS
-  -1.0 0.0
   0.0 $initial_effective_cell_pressure
   $end_time $initial_effective_cell_pressure
 End Table
 
 Begin Table 2 TIME DISPLACEMENT_Y
-  -1.0 0.0
   0.0 0.0
   $first_timestep 0.0
   $end_time $maximum_strain

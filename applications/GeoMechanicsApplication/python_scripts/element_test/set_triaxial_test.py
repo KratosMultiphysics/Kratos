@@ -15,21 +15,21 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
 
     src_dir = 'test_triaxial'
     files_to_copy = [
-        "MaterialParameters_stage1.json",
-        "ProjectParameters_stage1.json",
-        "ProjectParameters_stage2.json",
+        "MaterialParameters.json",
+        "ProjectParameters.json",
         "triaxial.mdpa"
     ]
 
     for filename in files_to_copy:
         shutil.copy(os.path.join(src_dir, filename), tmp_folder)
 
-    json_file_path = os.path.join(tmp_folder, "MaterialParameters_stage1.json")
-    project_param_path = os.path.join(tmp_folder, "ProjectParameters_stage2.json")
+    json_file_path = os.path.join(tmp_folder, "MaterialParameters.json")
+    project_param_path = os.path.join(tmp_folder, "ProjectParameters.json")
     mdpa_path = os.path.join(tmp_folder, "triaxial.mdpa")
 
     material_editor = MaterialEditor(json_file_path)
     material_editor._update_material_and_save({
+        "IS_FORTRAN_UDSM": True,
         "UMAT_PARAMETERS": umat_parameters,
         "UDSM_NAME": dll_path,
         "UDSM_NUMBER": index

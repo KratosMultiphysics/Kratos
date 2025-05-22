@@ -22,11 +22,7 @@
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
-                    "UDSM_NAME": "",
-                    "UDSM_NUMBER": -2,
-                    "IS_FORTRAN_UDSM": true,
-                    "UMAT_PARAMETERS": []
+                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001
                 }
             }
         }
