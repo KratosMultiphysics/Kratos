@@ -10,8 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_ELEMENT_H_INCLUDED )
-#define  KRATOS_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -1265,4 +1264,3 @@ KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Element >, NEIGHBOUR_ELEMENTS)
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 } // namespace Kratos.
-#endif // KRATOS_ELEMENT_H_INCLUDED  defined
