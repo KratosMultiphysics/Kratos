@@ -63,7 +63,7 @@ void ConnectivitiesData<TContainerType>::Read(
     IndexType start_index, block_size;
     std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, entity_group_path);
 
-    Vector<int> entity_ids, entitiy_property_ids;
+    Vector<int> entity_ids, entity_property_ids;
     Matrix<int> connectivities;
 
     std::string file_entity_name;
@@ -74,7 +74,7 @@ void ConnectivitiesData<TContainerType>::Read(
         << rEntityName << ", entity name in file = " << file_entity_name << " ].\n";
 
     mpFile->ReadDataSet(entity_group_path + "/Ids", entity_ids, start_index, block_size);
-    mpFile->ReadDataSet(entity_group_path + "/PropertiesIds", entitiy_property_ids, start_index, block_size);
+    mpFile->ReadDataSet(entity_group_path + "/PropertiesIds", entity_property_ids, start_index, block_size);
     mpFile->ReadDataSet(entity_group_path + "/Connectivities", connectivities, start_index, block_size);
 
     const auto& r_entity = KratosComponents<EntityType>::Get(rEntityName);
@@ -95,7 +95,7 @@ void ConnectivitiesData<TContainerType>::Read(
             const int node_id = connectivities(i, j);
             nodes(j) = rNodes(node_id);
         }
-        auto p_elem = r_entity.Create(entity_ids[i], nodes, rProperties(entitiy_property_ids[i]));
+        auto p_elem = r_entity.Create(entity_ids[i], nodes, rProperties(entity_property_ids[i]));
         rEntities.push_back(p_elem);
     }
 
@@ -154,15 +154,15 @@ void ConnectivitiesData<TContainerType>::Write(
 
     const unsigned int num_entities = rEntities.size();
 
-    Vector<int> entity_ids, entitiy_property_ids;
+    Vector<int> entity_ids, entity_property_ids;
     Matrix<int> connectivities;
 
     entity_ids.resize(num_entities, false);
-    entitiy_property_ids.resize(num_entities, false);
+    entity_property_ids.resize(num_entities, false);
     connectivities.resize(num_entities, geometry_size, false);
 
     // Fill arrays and perform checks.
-    IndexPartition<IndexType>(num_entities).for_each([&rEntities, &entity_ids, &entitiy_property_ids, &connectivities, geometry_size](const auto Index) {
+    IndexPartition<IndexType>(num_entities).for_each([&rEntities, &entity_ids, &entity_property_ids, &connectivities, geometry_size](const auto Index) {
         const auto& r_entity = *(rEntities.begin() + Index);
 
         // Check that the element and geometry types are the same.
@@ -171,7 +171,7 @@ void ConnectivitiesData<TContainerType>::Write(
 
         // Fill ids.
         entity_ids[Index] = r_entity.Id();
-        entitiy_property_ids[Index] = r_entity.GetProperties().Id();
+        entity_property_ids[Index] = r_entity.GetProperties().Id();
 
         // Fill connectivities.
         const auto& r_geom = r_entity.GetGeometry();
@@ -194,7 +194,7 @@ void ConnectivitiesData<TContainerType>::Write(
     mpFile->WriteDataSet(entity_group_path + "/Ids", entity_ids, info);
     mpFile->WriteDataSet(entity_group_path + "/Connectivities", connectivities, info);
     if (WriteProperties) {
-        mpFile->WriteDataSet(entity_group_path + "/PropertiesIds", entitiy_property_ids, info);
+        mpFile->WriteDataSet(entity_group_path + "/PropertiesIds", entity_property_ids, info);
     }
 
     mpFile->WriteAttribute(entity_group_path, "Name", entity_name);
