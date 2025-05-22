@@ -32,10 +32,13 @@ class TriaxialTest:
         self._write_json()
 
     def read_umat_parameters(self):
-        umat_parameters = self.data['properties'][0]['Material']['Variables']['UMAT_PARAMETERS']
-        cohesion = umat_parameters[2]
-        friction_angle = umat_parameters[3]
-        return cohesion, friction_angle
+        try:
+            umat_parameters = self.data['properties'][0]['Material']['Variables']['UMAT_PARAMETERS']
+            cohesion = umat_parameters[2]
+            friction_angle = umat_parameters[3]
+            return cohesion, friction_angle
+        except KeyError:
+            return 0.0, 30.0  #TODO: Remove the reasonable defaults for Mohr-Coulomb failure envelope
 
 class TriaxialTestRunner:
     def __init__(self, output_file_paths, work_dir):

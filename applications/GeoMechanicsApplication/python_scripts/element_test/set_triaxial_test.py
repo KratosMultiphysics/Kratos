@@ -28,12 +28,20 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
     mdpa_path = os.path.join(tmp_folder, "triaxial.mdpa")
 
     material_editor = MaterialEditor(json_file_path)
-    material_editor._update_material_and_save({
-        "IS_FORTRAN_UDSM": True,
-        "UMAT_PARAMETERS": umat_parameters,
-        "UDSM_NAME": dll_path,
-        "UDSM_NUMBER": index
-    })
+    if dll_path:
+        material_editor._update_material_properties({
+            "IS_FORTRAN_UDSM": True,
+            "UMAT_PARAMETERS": umat_parameters,
+            "UDSM_NAME": dll_path,
+            "UDSM_NUMBER": index
+        })
+        material_editor._set_constitutive_law("SmallStrainUDSM2DPlaneStrainLaw")
+    else:
+        material_editor._update_material_properties({
+            "YOUNG_MODULUS": umat_parameters[0],
+            "POISSON_RATIO": umat_parameters[1]
+        })
+        material_editor._set_constitutive_law("GeoLinearElasticPlaneStrain2DLaw")
 
     project_editor = ProjectParameterEditor(project_param_path)
     project_editor.update_time_step_properties(num_steps, end_time)

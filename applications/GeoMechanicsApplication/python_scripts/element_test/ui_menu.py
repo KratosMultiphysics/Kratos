@@ -33,8 +33,21 @@ def create_menu():
 
         build_ui_from_model(root, main_frame, dll_path, model_dict)
 
-    select_dll_button = ttk.Button(top_frame, text="Select DLL File", command=load_dll)
-    select_dll_button.pack(side="left")
+    def load_linear_elastic():
+        model_dict = {
+            "model_name": ["Linear Elastic"],
+            "num_params": [2],
+            "param_names": [["YOUNG MODULUS", "POISSON RATIO"]]
+        }
+
+        for widget in main_frame.winfo_children():
+            widget.destroy()
+
+        build_ui_from_model(root, main_frame, dll_path=None, model_dict=model_dict)
+
+
+    ttk.Button(top_frame, text="Select DLL File", command=load_dll).pack(side="left")
+    ttk.Button(top_frame, text="Use Linear Elastic Model", command=load_linear_elastic).pack(side="left")
 
     root.mainloop()
 

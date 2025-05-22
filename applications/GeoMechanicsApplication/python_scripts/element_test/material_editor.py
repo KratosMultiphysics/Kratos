@@ -13,7 +13,7 @@ class MaterialEditor:
         except (FileNotFoundError, json.JSONDecodeError) as e:
             raise RuntimeError(f"Failed to load JSON file: {e}")
 
-    def _update_material_and_save(self, entries: dict):
+    def _update_material_properties(self, entries: dict):
         variables = self.data["properties"][0]["Material"]["Variables"]
         for key, entry in entries.items():
             value = entry
@@ -21,7 +21,13 @@ class MaterialEditor:
                 value_str = [str(x).strip() for x in entry]
                 value = [self._convert_type(x) for x in value_str]
             variables[key] = value
+        self._save()
 
+    def _set_constitutive_law(self, law_name: str):
+        self.data["properties"][0]["Material"]["constitutive_law"]["name"] = law_name
+        self._save()
+
+    def _save(self):
         with open(self.json_path, 'w') as f:
             json.dump(self.data, f, indent=4)
 

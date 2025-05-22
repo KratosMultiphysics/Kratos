@@ -90,13 +90,15 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
                 index = model_dict["model_name"].index(model_var.get()) + 1
                 figs = run_triaxial_simulation(dll_path, index, umat_params, n_steps, duration, eps_max, sigma_init)
             else:
-                editor = MaterialEditor("test_triaxial/MaterialParameters.json")
-                entries = {
-                    "YOUNG_MODULUS": umat_params[0],
-                    "POISSON_RATIO": umat_params[1]
-                }
-                editor._update_material_and_save(entries)
-                figs = run_triaxial_simulation("", -2, [], n_steps, duration, eps_max, sigma_init)
+                figs = run_triaxial_simulation(
+                    dll_path="",
+                    index=-2,
+                    umat_parameters=[float(umat_params[0]), float(umat_params[1])],
+                    num_steps=n_steps,
+                    end_time=duration,
+                    maximum_strain=eps_max,
+                    initial_effective_cell_pressure=sigma_init
+                )
 
             render_plots(figs, axes, canvas)
 
