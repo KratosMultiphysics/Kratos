@@ -99,7 +99,7 @@ class ParametricWall(object):
 
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
 
-            # contruct parametric wall mesh
+            # construct parametric wall mesh
             self.CreateBoundingBoxMesh(self.wall_bounding_box, self.wall_model_part)
 
             # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.

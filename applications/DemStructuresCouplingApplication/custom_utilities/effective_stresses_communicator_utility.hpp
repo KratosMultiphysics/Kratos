@@ -87,7 +87,7 @@ namespace Kratos {
                     }
                     else {
                         continue; //In the DEM walls modelpart there is a node which represents the center of gravity of the solid...
-                        //KRATOS_ERROR<<"Radial stresses cannot be trasferred to a point which is in the origin of coordinates."<<std::endl;
+                        //KRATOS_ERROR<<"Radial stresses cannot be transferred to a point which is in the origin of coordinates."<<std::endl;
                     }
 
                     bool is_found = false;
@@ -130,7 +130,7 @@ namespace Kratos {
                     }
                     else {
                         continue; //In the DEM walls modelpart there is a node which represents the center of gravity of the solid...
-                        //KRATOS_ERROR<<"Radial stresses cannot be trasferred to a point which is in the origin of coordinates."<<std::endl;
+                        //KRATOS_ERROR<<"Radial stresses cannot be transferred to a point which is in the origin of coordinates."<<std::endl;
                     }
 
                     Vector tempV = prod(stress_tensor, unitary_radial_vector);

@@ -56,7 +56,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// The type used to idenify index and key
+    /// The type used to identify index and key
     typedef std::size_t IndexType;
 
     /// Counted pointer of GaussPointItem
@@ -153,7 +153,7 @@ public:
     }
 
     /**
-     * @brief Returns the integration weigth associated to the point
+     * @brief Returns the integration weight associated to the point
      * @return mWeight: The pointer to the Constitutive Law associated to the point
      */
 
@@ -163,7 +163,7 @@ public:
     }
 
     /**
-     * @brief Sets the integration weigth associated to the point
+     * @brief Sets the integration weight associated to the point
      * @param Weight The integration weight
      */
 
