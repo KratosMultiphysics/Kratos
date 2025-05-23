@@ -276,17 +276,17 @@ std::size_t  ModelPartIO::ReadGeometriesConnectivities(ConnectivitiesContainerTy
 void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
 {
     // We are going to proceed like the following, we are going to iterate over all the geometries and compare with the components, we will save the type and we will compare until we get that the type of geometry has changed
-    if (rThisGeometries.NumberOfGeometries() > 0) {
+    if (rThisGeometries.size() > 0) {
         std::string geometry_name;
 
-        auto it_geometry = rThisGeometries.GeometriesBegin();
+        auto it_geometry = rThisGeometries.begin();
         auto geometries_components = KratosComponents<GeometryType>::GetComponents();
 
         // First we do the first geometry
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_geometry, geometry_name);
 
         (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
-        const auto it_geom_begin = rThisGeometries.Geometries().begin();
+        const auto it_geom_begin = rThisGeometries.begin();
         (*mpStream) << "\t" << it_geom_begin->Id() << "\t";
         auto& r_geometry = *it_geom_begin;
         for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
@@ -299,7 +299,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
         ++it_geom_current;
 
         // Now we iterate over all the geometries
-        for(std::size_t i = 1; i < rThisGeometries.NumberOfGeometries(); i++) {
+        for(std::size_t i = 1; i < rThisGeometries.size(); i++) {
             if(GeometryType::IsSame(*it_geom_previous, *it_geom_current)) {
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
                 r_geometry = *it_geom_current;
@@ -1760,13 +1760,11 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
             temp_geometry_nodes.push_back( *(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
         }
 
-        aux_geometries.AddGeometry(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
+        rModelPart.AddGeometry(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
         number_of_read_geometries++;
 
     }
     KRATOS_INFO("") << number_of_read_geometries << " geometries read] [Type: " <<geometry_name << "]" << std::endl;
-
-    rModelPart.AddGeometries(aux_geometries.GeometriesBegin(), aux_geometries.GeometriesEnd());
 
     KRATOS_CATCH("")
 }
@@ -1812,7 +1810,7 @@ void ModelPartIO::ReadGeometriesBlock(NodesContainerType& rThisNodes, GeometryCo
             temp_geometry_nodes.push_back( *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
         }
 
-        rThisGeometries.AddGeometry(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
+        rThisGeometries.insert(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes)); //TO DO!
         number_of_read_geometries++;
 
     }
