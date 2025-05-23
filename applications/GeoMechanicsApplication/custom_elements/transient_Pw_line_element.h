@@ -79,14 +79,14 @@ public:
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return make_intrusive<TransientPwLineElement>(
-            NewId, GetGeometry().Create(rThisNodes), pProperties, this->GetStressStatePolicy().Clone(),
+            NewId, GetGeometry().Create(rThisNodes), pProperties, nullptr,
             mContributions, this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties,
-                                                      this->GetStressStatePolicy().Clone(), mContributions,
+                                                      nullptr, mContributions,
                                                       this->CloneIntegrationCoefficientModifier());
     }
 
@@ -1046,7 +1046,11 @@ public:
     }
 
 protected:
-    StressStatePolicy& GetStressStatePolicy() const { return *mpStressStatePolicy; }
+    StressStatePolicy& GetStressStatePolicy() const
+    {
+        std::abort();
+        return *mpStressStatePolicy;
+    }
 
 private:
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
