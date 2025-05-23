@@ -2483,10 +2483,6 @@ void ModelPartIO::ReadConstraintsBlock(
 
     const MasterSlaveConstraint& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(constraint_name);
 
-    // Read the slave variable
-    ReadWord(word);
-    const Variable<double>& r_slave_variable = KratosComponents<Variable<double>>::Get(word);
-
     // Lambda function generates a vector of strings from the input string
     auto split_string_into_a_vector = [](const std::string& rText) -> std::vector<std::string> {
         std::istringstream iss(rText);
@@ -2505,138 +2501,110 @@ void ModelPartIO::ReadConstraintsBlock(
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = split_string_into_a_vector(current_line);
-    const SizeType number_of_master_dofs = words.size();
+
+    // Read the slave variable
+    const Variable<double>& r_slave_variable = KratosComponents<Variable<double>>::Get(words[0]);
+    std::vector<const Variable<double>*> master_variables;
+
+    // The first word is the slave variable, the second and following ones are the master variables
+    SizeType number_of_master_dofs = words.size() - 1;
 
     // The simpler case is when the connectivity is 1x1, many simplifications can be done
     NodeType::Pointer p_slave_node;
-    if (number_of_master_dofs == 1) {
-        // Now we need to read the variables
-        const Variable<double>& r_master_variable = KratosComponents<Variable<double> >::Get(words[0]);
 
-        // Define the master and slave nodes pointers
-        NodeType::Pointer p_master_node;
+    if (number_of_master_dofs == 0) {
+        // We save the current position of the stream
+        std::streampos position = mpStream->tellg();
 
-        // Define the weight and the constant
-        double weight;
-        double constant;
+        // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
+        std::getline(*mpStream, current_line);
+        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "[");
 
-        // Read the connectivities and the weights
-        // For 1x1 is the simplest, first the id, then is the master node id, then is the slave node id, then the weight and the constant
+        // If it is 1x0 the count will be 1 (id constraint) + 1 (id node) + 1 (constant vector) = 3
+        // If the count is greater than 3, it means that the constraint is 1xN and all the variables are the same
+        number_of_master_dofs = count - 3;
 
-        while(!mpStream->eof()) {
-            ReadWord(word); // Reading the constraint id or End
-            if(CheckEndBlock("Constraints", word)) {
-                break;
-            }
-
-            // Constraint id
-            ExtractValue(word, id);
-
-            // Slave node pointer
-            ReadWord(word); // Reading the node id;
-            ExtractValue(word, node_id);
-            p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
-
-            // Master node pointer
-            ReadWord(word); // Reading the node id;
-            ExtractValue(word, node_id);
-            p_master_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
-
-            // Get the weight and the constant
-            ReadWord(word); // Reading the constant
-            ExtractValue(word, constant);
-
-            // Get the weights
-            std::getline(*mpStream, current_line);
-            const auto weights = StringUtilities::StringToVector<double>(current_line);
-            weight = weights[0];
-
-            // Check dofs exist for the variables and the nodes
-            if (!p_slave_node->HasDofFor(r_slave_variable)) {
-                p_slave_node->pAddDof(r_slave_variable);
-            }
-            if (!p_master_node->HasDofFor(r_master_variable)) {
-                p_master_node->pAddDof(r_master_variable);
-            }
-
-            // Create the constraint
-            rConstraints.push_back(r_clone_constraint.Create(id, *p_master_node, r_master_variable, *p_slave_node, r_slave_variable, weight, constant));
-            number_of_read_constraints++;
+        // The more general case is when the connectivity is 1xN, and all the variables are the same
+        master_variables.resize(number_of_master_dofs);
+        for (SizeType i = 0; i < number_of_master_dofs; i++) {
+            master_variables[i] = &r_slave_variable;
         }
+
+        // We set the stream to the previous position
+        mpStream->seekg(position);
     } else {
         // The more general case is when the connectivity is 1xN
-        std::vector<const Variable<double>*> master_variables(number_of_master_dofs);
+        master_variables.resize(number_of_master_dofs);
         for (SizeType i = 0; i < number_of_master_dofs; i++) {
             master_variables[i] = &KratosComponents<Variable<double>>::Get(words[i]);
         }
+    }
 
-        // Define the master and slave nodes dofs vectors
-        MasterSlaveConstraint::DofPointerVectorType master_dofs(number_of_master_dofs);
-        MasterSlaveConstraint::DofPointerVectorType slave_dofs(1);
+    // Define the master and slave nodes dofs vectors
+    MasterSlaveConstraint::DofPointerVectorType slave_dofs(1);
+    MasterSlaveConstraint::DofPointerVectorType master_dofs(number_of_master_dofs);
 
-        // Define relation matrix
-        Matrix relation_matrix(1, number_of_master_dofs);
+    // Define relation matrix
+    Matrix relation_matrix(1, number_of_master_dofs);
 
-        // Define the constant vector
-        Vector constant_vector(1);
+    // Define the constant vector
+    Vector constant_vector(1);
 
-        // Define the temporary nodes
-        std::vector<Node::Pointer> temp_master_nodes(number_of_master_dofs);
-        std::vector<Node::Pointer> temp_slave_nodes(1);
+    // Define the temporary nodes
+    std::vector<Node::Pointer> temp_master_nodes(number_of_master_dofs);
+    std::vector<Node::Pointer> temp_slave_nodes(1);
 
-        while(!mpStream->eof()) {
-            ReadWord(word); // Reading the constraint id or End
-            if(CheckEndBlock("Constraints", word)) {
-                break;
-            }
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the constraint id or End
+        if(CheckEndBlock("Constraints", word)) {
+            break;
+        }
 
-            // Constraint id
-            ExtractValue(word, id);
+        // Constraint id
+        ExtractValue(word, id);
 
-            // Slave node pointer
+        // Slave node pointer
+        ReadWord(word); // Reading the node id;
+        ExtractValue(word, node_id);
+        p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
+
+        // Then we retrieve the master nodes
+        temp_master_nodes.clear();
+        for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
             ReadWord(word); // Reading the node id;
             ExtractValue(word, node_id);
-            p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
-
-            // Then we retrieve the master nodes
-            temp_master_nodes.clear();
-            for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-                ReadWord(word); // Reading the node id;
-                ExtractValue(word, node_id);
-                temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
-            }
-
-            // Now with the nodes and the variables we can create the dofs
-            if (p_slave_node->HasDofFor(r_slave_variable)) {
-                slave_dofs[0] = p_slave_node->pGetDof(r_slave_variable);
-            } else {
-                slave_dofs[0] = p_slave_node->pAddDof(r_slave_variable);
-            }
-            for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-                if (temp_master_nodes[i]->HasDofFor(*master_variables[i])) {
-                    master_dofs[i] = temp_master_nodes[i]->pGetDof(*master_variables[i]);
-                } else {
-                    master_dofs[i] = temp_master_nodes[i]->pAddDof(*master_variables[i]);
-                }
-            }
-
-            // Read the constant vector
-            {
-                ReadWord(word); // Reading the constant vector
-                ExtractValue(word, constant_vector[0]);
-            }
-
-            // Read the relation matrix
-            std::getline(*mpStream, current_line);
-            const auto weights = StringUtilities::StringToVector<double>(current_line);
-            for (SizeType j = 0; j < number_of_master_dofs; j++) {
-                relation_matrix(0, j) = weights[j];
-            }
-
-            // Create the constraint
-            rConstraints.push_back(r_clone_constraint.Create(id, master_dofs, slave_dofs, relation_matrix, constant_vector));
-            number_of_read_constraints++;
+            temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
         }
+
+        // Now with the nodes and the variables we can create the dofs
+        if (p_slave_node->HasDofFor(r_slave_variable)) {
+            slave_dofs[0] = p_slave_node->pGetDof(r_slave_variable);
+        } else {
+            slave_dofs[0] = p_slave_node->pAddDof(r_slave_variable);
+        }
+        for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
+            if (temp_master_nodes[i]->HasDofFor(*master_variables[i])) {
+                master_dofs[i] = temp_master_nodes[i]->pGetDof(*master_variables[i]);
+            } else {
+                master_dofs[i] = temp_master_nodes[i]->pAddDof(*master_variables[i]);
+            }
+        }
+
+        // Read the constant vector
+        ReadWord(word);
+        ExtractValue(word, constant_vector[0]);
+
+        // Read the relation matrix
+        std::getline(*mpStream, current_line);
+        const auto weights = StringUtilities::StringToVector<double>(current_line);
+        KRATOS_ERROR_IF_NOT(weights.size() == 0 || weights.size() == number_of_master_dofs) << "The number of weights read is not equal to the number of master dofs. Another option is that the weights are not read at all. Line: " << current_line << std::endl;
+        for (SizeType j = 0; j < number_of_master_dofs; j++) {
+            relation_matrix(0, j) = weights[j];
+        }
+
+        // Create the constraint
+        rConstraints.push_back(r_clone_constraint.Create(id, master_dofs, slave_dofs, relation_matrix, constant_vector));
+        number_of_read_constraints++;
     }
 
     KRATOS_INFO("") << number_of_read_constraints << " constraints read] [Type: " << constraint_name << "]" << std::endl;
