@@ -242,6 +242,23 @@ std::string TrimRight(
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::vector<std::string> SplitStringIntoAVector(const std::string& rText)
+{
+    std::istringstream iss(rText);
+    std::string word;
+    std::vector<std::string> words;
+
+    // The stream extraction operator (>>) automatically skips whitespace
+    // (including spaces and tabs) by default.
+    while (iss >> word) {
+        words.push_back(word);
+    }
+    return words;
+};
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <typename TType>
 std::vector<TType> StringToVector(const std::string& rInputString)
 {
