@@ -2507,50 +2507,6 @@ void ModelPartIO::ReadConstraintsBlock(
     const auto words = split_string_into_a_vector(current_line);
     const SizeType number_of_master_dofs = words.size();
 
-    // Define the lambda function
-    auto split_string_to_double_vector = [](const std::string& rInputStr) -> std::vector<double> {
-        std::vector<double> result;
-        std::string str = rInputStr; // Make a mutable copy
-
-        // 1. Remove '[' and ']'
-        // Remove '[' from the beginning if it exists
-        if (!str.empty() && str.front() == '[') {
-            str.erase(0, 1);
-        }
-        // Remove ']' from the end if it exists
-        if (!str.empty() && str.back() == ']') {
-            str.pop_back();
-        }
-
-        // If the string is empty after removing brackets (e.g., "[]" or "[ ]"), return an empty vector
-        if (StringUtilities::Trim(str).empty()) {
-            return result;
-        }
-
-        // 2. Use stringstream to split by comma and parse doubles
-        std::stringstream ss(str);
-        std::string segment;
-
-        while (std::getline(ss, segment, ',')) {
-            // Trim whitespace from the segment
-            const std::string trimmedSegment = StringUtilities::Trim(segment);
-            if (!trimmedSegment.empty()) {
-                try {
-                    // Convert the trimmed segment to a double
-                    result.push_back(std::stod(trimmedSegment));
-                } catch (const std::invalid_argument& ia) {
-                    // Handle cases where conversion is not possible (e.g., non-numeric characters)
-                    KRATOS_ERROR << "Warning: Invalid argument for stod: '" << trimmedSegment << "'" << std::endl;
-                    // Optionally, you could throw an error here or skip the invalid segment
-                } catch (const std::out_of_range& oor) {
-                    // Handle cases where the number is out of range for a double
-                    KRATOS_ERROR << "Warning: Out of range for stod: '" << trimmedSegment << "'" << std::endl;
-                }
-            }
-        }
-        return result;
-    };
-
     // The simpler case is when the connectivity is 1x1, many simplifications can be done
     NodeType::Pointer p_slave_node;
     if (number_of_master_dofs == 1) {
@@ -2592,7 +2548,7 @@ void ModelPartIO::ReadConstraintsBlock(
 
             // Get the weights
             std::getline(*mpStream, current_line);
-            const auto weights = split_string_to_double_vector(current_line);
+            const auto weights = StringUtilities::StringToVector<double>(current_line);
             weight = weights[0];
 
             // Check dofs exist for the variables and the nodes
@@ -2672,7 +2628,7 @@ void ModelPartIO::ReadConstraintsBlock(
 
             // Read the relation matrix
             std::getline(*mpStream, current_line);
-            const auto weights = split_string_to_double_vector(current_line);
+            const auto weights = StringUtilities::StringToVector<double>(current_line);
             for (SizeType j = 0; j < number_of_master_dofs; j++) {
                 relation_matrix(0, j) = weights[j];
             }
