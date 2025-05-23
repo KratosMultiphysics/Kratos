@@ -48,7 +48,7 @@ namespace Internals
  * @see ConditionsContainerType
  */
 template<class TContainerType>
-class KRATOS_API(HDF5_APPLICATION) ConnectivitiesData
+class ConnectivitiesData
 {
 public:
     ///@name Type Definitions
