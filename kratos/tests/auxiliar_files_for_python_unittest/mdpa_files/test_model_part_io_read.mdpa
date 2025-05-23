@@ -70,7 +70,7 @@ Begin Conditions LineCondition2D2N
 1948 1        973        974
 End Conditions
 
-Begin Constraints LinearMasterSlaveConstraint DISPLACEMENT_X DISPLACEMENT_X
+Begin Constraints LinearMasterSlaveConstraint DISPLACEMENT_X
 1 2 1 0.0 [0.5]
 2 3 1 0.0 [0.5]
 End Constraints
