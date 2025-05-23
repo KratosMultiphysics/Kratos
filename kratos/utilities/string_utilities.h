@@ -152,6 +152,41 @@ namespace StringUtilities
 
 
     /**
+     * @brief Converts a string representation of a list into a vector of values.
+     * @details This function takes a string that represents a list of values (optionally enclosed
+     * in square brackets) and converts it into a std::vector of type TType. The conversion process
+     * involves the following steps:
+     *   1. Trimming any leading or trailing whitespace from the input string.
+     *   2. Removing the outer square brackets '[' and ']' if present.
+     *   3. Checking if the string is empty after trimming; if so, it returns an empty vector.
+     *   4. Splitting the string by commas to isolate individual elements.
+     *   5. Trimming whitespace from each element and attempting to convert it to type TType.
+     * During the conversion of each element, if the conversion fails (for example, due to
+     * invalid format, extra characters, or out-of-range values), a warning is logged via KRATOS_WARNING.
+     * @tparam TType The type of the elements to be extracted and converted from the string.
+     * @param rInputString The input string containing the list of values.
+     * @return std::vector<TType> A vector containing the converted values of type TType.
+     */
+    template <typename TType>
+    [[nodiscard]] std::vector<TType> KRATOS_API(KRATOS_CORE) StringToVector(const std::string& rInputString);
+
+    /**
+     * @brief Counts space-separated values in a string until a token starting with a specific prefix is found.
+     * @details It reads tokens separated by whitespace from the input string. The count
+     * includes tokens encountered *before* a token that starts with the `rStopPrefix`.
+     * If no token starts with `rStopPrefix`, all tokens are counted.
+     * If `rStopPrefix` is an empty string, it's considered to match the beginning of any token,
+     * so the function will return 0 (as the "stop" condition is met before the first token).
+     * @param rInputString The string containing values to be counted.
+     * @param rStopPrefix The prefix that indicates a token at which counting should stop.
+     * @return The number of values counted before encountering a token starting with `rStopPrefix`.
+     */
+    [[nodiscard]] std::size_t KRATOS_API(KRATOS_CORE) CountValuesUntilPrefix(
+        const std::string& rInputString,
+        const std::string& rStopPrefix = ""
+        );
+
+    /**
      * @brief Prints the data of an object of type TClass to the given output stream with indentation.
      * @param rOStream The output stream where the data will be printed.
      * @param rThisClass The object of type TClass whose data will be printed.
