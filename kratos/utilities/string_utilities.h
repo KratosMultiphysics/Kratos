@@ -150,6 +150,16 @@ namespace StringUtilities
         const std::string& rInputString,
         const bool RemoveNullChar = false);
 
+    /**
+     * @brief Splits a string into a vector of words.
+     * @details This function takes an input string and splits it into individual words using
+     * whitespace as the delimiter. The extraction operator (>>) automatically skips
+     * whitespace characters (such as spaces and tabs), ensuring that each word is properly
+     * isolated and stored in the resulting vector.
+     * @param rText The input string to be split into words.
+     * @return std::vector<std::string> A vector containing all the words extracted from the input string.
+     */
+    [[nodiscard]] std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringIntoAVector(const std::string& rText);
 
     /**
      * @brief Converts a string representation of a list into a vector of values.

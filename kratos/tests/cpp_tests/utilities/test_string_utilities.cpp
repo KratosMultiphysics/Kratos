@@ -214,6 +214,18 @@ KRATOS_TEST_CASE_IN_SUITE(TrimRight, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(StringUtilities::TrimRight(" Kra\ntos MP "), " Kra\ntos MP");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SplitStringIntoAVector, KratosCoreFastSuite)
+{
+    const std::string string_to_split = "The cake is a lie";
+    const std::vector<std::string> splitted_string = StringUtilities::SplitStringIntoAVector(string_to_split);
+    KRATOS_EXPECT_EQ(splitted_string.size(), 5);
+    KRATOS_EXPECT_EQ(splitted_string[0], "The");
+    KRATOS_EXPECT_EQ(splitted_string[1], "cake");
+    KRATOS_EXPECT_EQ(splitted_string[2], "is");
+    KRATOS_EXPECT_EQ(splitted_string[3], "a");
+    KRATOS_EXPECT_EQ(splitted_string[4], "lie");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(StringToVector, KratosCoreFastSuite)
 {
     // BasicIntegerParsing
