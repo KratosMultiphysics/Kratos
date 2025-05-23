@@ -194,6 +194,10 @@ public:
     {
         KRATOS_TRY
 
+        if (GetGeometry().LocalSpaceDimension() == 1) {
+            //there is no need to calculate the discharge for a line element
+            return;
+        }
         std::vector<array_1d<double, 3>> FluidFlux;
         this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, FluidFlux, rCurrentProcessInfo);
 
