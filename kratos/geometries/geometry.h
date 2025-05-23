@@ -115,107 +115,107 @@ public:
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
-    typedef PointerVector<TPointType> PointsArrayType;
+    using PointsArrayType = PointerVector<TPointType>;
 
     /** Integration methods implemented in geometry.
     */
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /** A Vector of counted pointers to Geometries. Used for
     returning edges of the geometry.
      */
-    typedef PointerVector<GeometryType> GeometriesArrayType;
+    using GeometriesArrayType = PointerVector<GeometryType>;
 
     /** Redefinition of geometry template parameter TPointType as this geometry point type.
      */
-    typedef TPointType PointType;
+    using PointType = TPointType;
 
     /** Type used for indexing in geometry class.std::size_t used for indexing
     point or integration point access methods and also all other
     methods which need point or integration point index.
     */
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
 
     /** This typed used to return size or dimension in
     geometry. Dimension, WorkingDimension, PointsNumber and
     ... return this type as their results.
     */
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 
-    typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
+    using CoordinatesArrayType = typename PointType::CoordinatesArrayType;
 
 
     /** This type used for representing an integration point in
     geometry. This integration point is a point with an
     additional weight component.
     */
-    typedef IntegrationPoint<3> IntegrationPointType;
+    using IntegrationPointType = IntegrationPoint<3>;
 
     /** A Vector of IntegrationPointType which used to hold
     integration points related to an integration
     method. IntegrationPoints functions used this type to return
     their results.
     */
-    typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = std::vector<IntegrationPointType>;
 
     /** A Vector of IntegrationPointsArrayType which used to hold
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef std::array<IntegrationPointsArrayType, static_cast<int>(GeometryData::IntegrationMethod::NumberOfIntegrationMethods)> IntegrationPointsContainerType;
+    using IntegrationPointsContainerType = std::array<IntegrationPointsArrayType, static_cast<int>(GeometryData::IntegrationMethod::NumberOfIntegrationMethods)>;
 
     /** A third order tensor used as shape functions' values
     container.
     */
-    typedef std::array<Matrix, static_cast<int>(GeometryData::IntegrationMethod::NumberOfIntegrationMethods)> ShapeFunctionsValuesContainerType;
+    using ShapeFunctionsValuesContainerType = std::array<Matrix, static_cast<int>(GeometryData::IntegrationMethod::NumberOfIntegrationMethods)>;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry.
     */
-    typedef GeometryData::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+    using ShapeFunctionsLocalGradientsContainerType = GeometryData::ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold jacobian matrices evaluated at
     integration points. Jacobian and InverseOfJacobian functions
     return this type as their result.
     */
-    typedef DenseVector<Matrix > JacobiansType;
+    using JacobiansType = DenseVector<Matrix >;
 
     /** A third order tensor to hold shape functions'  gradients.
     ShapefunctionsGradients function return this
     type as its result.
     */
-    typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    using ShapeFunctionsGradientsType = GeometryData::ShapeFunctionsGradientsType;
 
     /** A third order tensor to hold shape functions' local second derivatives.
     ShapefunctionsLocalGradients function return this
     type as its result.
     */
-    typedef GeometryData::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+    using ShapeFunctionsSecondDerivativesType = GeometryData::ShapeFunctionsSecondDerivativesType;
 
     /** A fourth order tensor to hold shape functions' local third order derivatives
      */
-    typedef GeometryData::ShapeFunctionsThirdDerivativesType ShapeFunctionsThirdDerivativesType;
+    using ShapeFunctionsThirdDerivativesType = GeometryData::ShapeFunctionsThirdDerivativesType;
 
     /** Type of the normal vector used for normal to edges in geometry.
      */
-    typedef DenseVector<double> NormalType;
+    using NormalType = DenseVector<double>;
 
     /// data type stores in this container.
-    typedef typename PointType::Pointer PointPointerType;
-    typedef const PointPointerType ConstPointPointerType;
-    typedef TPointType& PointReferenceType;
-    typedef const TPointType& ConstPointReferenceType;
-    typedef std::vector<PointPointerType> PointPointerContainerType;
+    using PointPointerType = typename PointType::Pointer;
+    using ConstPointPointerType = const PointPointerType;
+    using PointReferenceType = TPointType&;
+    using ConstPointReferenceType = const TPointType&;
+    using PointPointerContainerType = std::vector<PointPointerType>;
 
-    /// PointsArrayType typedefs
-    typedef typename PointsArrayType::iterator iterator;
-    typedef typename PointsArrayType::const_iterator const_iterator;
+    /// PointsArrayType using aliases
+    using iterator = typename PointsArrayType::iterator;
+    using const_iterator = typename PointsArrayType::const_iterator;
 
-    typedef typename PointsArrayType::ptr_iterator ptr_iterator;
-    typedef typename PointsArrayType::ptr_const_iterator ptr_const_iterator;
-    typedef typename PointsArrayType::difference_type difference_type;
+    using ptr_iterator = typename PointsArrayType::ptr_iterator;
+    using ptr_const_iterator = typename PointsArrayType::ptr_const_iterator;
+    using difference_type = typename PointsArrayType::difference_type;
 
     static constexpr IndexType BACKGROUND_GEOMETRY_INDEX = std::numeric_limits<IndexType>::max();
 

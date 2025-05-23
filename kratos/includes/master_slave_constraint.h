@@ -79,31 +79,31 @@ public:
     ///@{
 
     /// The definition of the base class
-    typedef IndexedObject BaseType;
+    using BaseType = IndexedObject;
 
     /// The index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The DoF type definition
-    typedef Dof<double> DofType;
+    using DofType = Dof<double>;
 
     /// The DoF pointer vector type definition
-    typedef std::vector< DofType::Pointer > DofPointerVectorType;
+    using DofPointerVectorType = std::vector< DofType::Pointer >;
 
     /// The node type definition
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// The equation Id vector type definition
-    typedef std::vector<std::size_t> EquationIdVectorType;
+    using EquationIdVectorType = std::vector<std::size_t>;
 
     /// The matrix type definition
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
     /// The vector type definition
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
     /// The variable type definition (double)
-    typedef Kratos::Variable<double> VariableType;
+    using VariableType = Kratos::Variable<double>;
 
     /// Pointer definition of MasterSlaveConstraint
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);

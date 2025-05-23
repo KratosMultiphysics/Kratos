@@ -64,46 +64,46 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Condition);
 
     ///definition of condition type
-    typedef Condition ConditionType;
+    using ConditionType = Condition;
 
     ///base type: an GeometricalObject that automatically has a unique number
-    typedef GeometricalObject BaseType;
+    using BaseType = GeometricalObject;
 
     ///definition of node type (default is: Node)
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /**
      * Properties are used to store any parameters
      * related to the constitutive law
      */
-    typedef Properties PropertiesType;
+    using PropertiesType = Properties;
 
     ///definition of the geometry type with given NodeType
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     ///definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
-    typedef Dof<double> DofType;
+    using DofType = Dof<double>;
 
-    typedef std::vector<std::size_t> EquationIdVectorType;
+    using EquationIdVectorType = std::vector<std::size_t>;
 
-    typedef std::vector<DofType::Pointer> DofsVectorType;
+    using DofsVectorType = std::vector<DofType::Pointer>;
 
-    typedef PointerVectorSet<DofType> DofsArrayType;
+    using DofsArrayType = PointerVectorSet<DofType>;
 
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
-    typedef GeometryData GeometryDataType;
+    using GeometryDataType = GeometryData;
     ///@}
 
 

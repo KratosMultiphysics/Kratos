@@ -115,42 +115,42 @@ public:
     /// Pointer definition of ModelPart
     //KRATOS_CLASS_POINTER_DEFINITION(ModelPart); //INTENTIONALLY REMOVING DEFINITION - DO NOT UNCOMMENT
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
-    typedef Dof<double> DofType;
-    typedef std::vector< DofType::Pointer > DofsVectorType;
-    typedef Variable<double> DoubleVariableType;
-    typedef Matrix MatrixType;
-    typedef Vector VectorType;
+    using DofType = Dof<double>;
+    using DofsVectorType = std::vector< DofType::Pointer >;
+    using DoubleVariableType = Variable<double>;
+    using MatrixType = Matrix;
+    using VectorType = Vector;
 
-    typedef PointerVectorSet<DofType> DofsArrayType;
+    using DofsArrayType = PointerVectorSet<DofType>;
 
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Properties PropertiesType;
-    typedef Element ElementType;
-    typedef Condition ConditionType;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using PropertiesType = Properties;
+    using ElementType = Element;
+    using ConditionType = Condition;
 
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    using MeshType = Mesh<NodeType, PropertiesType, ElementType, ConditionType>;
 
-    typedef PointerVector<MeshType> MeshesContainerType;
+    using MeshesContainerType = PointerVector<MeshType>;
 
     /// Nodes container. Which is a vector set of nodes with their Id's as key.
-    typedef MeshType::NodesContainerType NodesContainerType;
+    using NodesContainerType = MeshType::NodesContainerType;
 
     /** Iterator over the nodes. This iterator is an indirect
         iterator over Node::Pointer which turn back a reference to
         node by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::NodeIterator NodeIterator;
+    using NodeIterator = MeshType::NodeIterator;
 
     /** Const iterator over the nodes. This iterator is an indirect
         iterator over Node::Pointer which turn back a reference to
         node by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::NodeConstantIterator NodeConstantIterator;
+    using NodeConstantIterator = MeshType::NodeConstantIterator;
 
     /** Iterator over the properties. This iterator is an indirect
         iterator over Properties::Pointer which turn back a reference to
@@ -158,19 +158,19 @@ public:
         usage. */
 
     /// Properties container. Which is a vector set of Properties with their Id's as key.
-    typedef MeshType::PropertiesContainerType PropertiesContainerType;
+    using PropertiesContainerType = MeshType::PropertiesContainerType;
 
     /** Iterator over the Properties. This iterator is an indirect
         iterator over Node::Pointer which turn back a reference to
         node by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::PropertiesIterator PropertiesIterator;
+    using PropertiesIterator = MeshType::PropertiesIterator;
 
     /** Const iterator over the Properties. This iterator is an indirect
         iterator over Properties::Pointer which turn back a reference to
         Properties by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::PropertiesConstantIterator PropertiesConstantIterator;
+    using PropertiesConstantIterator = MeshType::PropertiesConstantIterator;
 
     /** Iterator over the properties. This iterator is an indirect
         iterator over Properties::Pointer which turn back a reference to
@@ -178,104 +178,104 @@ public:
         usage. */
 
     /// Element container. A vector set of Elements with their Id's as key.
-    typedef MeshType::ElementsContainerType ElementsContainerType;
+    using ElementsContainerType = MeshType::ElementsContainerType;
 
     /** Iterator over the Elements. This iterator is an indirect
         iterator over Elements::Pointer which turn back a reference to
         Element by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::ElementIterator ElementIterator;
+    using ElementIterator = MeshType::ElementIterator;
 
     /** Const iterator over the Elements. This iterator is an indirect
         iterator over Elements::Pointer which turn back a reference to
         Element by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::ElementConstantIterator ElementConstantIterator;
+    using ElementConstantIterator = MeshType::ElementConstantIterator;
 
     /// Condintions container. A vector set of Conditions with their Id's as key.
-    typedef MeshType::ConditionsContainerType ConditionsContainerType;
+    using ConditionsContainerType = MeshType::ConditionsContainerType;
 
     /** Iterator over the Conditions. This iterator is an indirect
        iterator over Conditions::Pointer which turn back a reference to
        Condition by * operator and not a pointer for more convenient
        usage. */
-    typedef MeshType::ConditionIterator ConditionIterator;
+    using ConditionIterator = MeshType::ConditionIterator;
 
     /** Const iterator over the Conditions. This iterator is an indirect
         iterator over Conditions::Pointer which turn back a reference to
         Condition by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::ConditionConstantIterator ConditionConstantIterator;
+    using ConditionConstantIterator = MeshType::ConditionConstantIterator;
 
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
+    using TableType = Table<double,double>;
 
     /// The container of the tables. A vector map of the tables.
-    typedef PointerVectorMap<SizeType, TableType> TablesContainerType;
+    using TablesContainerType = PointerVectorMap<SizeType, TableType>;
 
     /** Iterator over the Tables. This iterator is an indirect
     iterator over Tables::Pointer which turn back a reference to
     Table by * operator and not a pointer for more convenient
     usage. */
-    typedef TablesContainerType::iterator TableIterator;
+    using TableIterator = TablesContainerType::iterator;
 
     /** Const iterator over the Tables. This iterator is an indirect
     iterator over Tables::Pointer which turn back a reference to
     Table by * operator and not a pointer for more convenient
     usage. */
-    typedef TablesContainerType::const_iterator TableConstantIterator;
+    using TableConstantIterator = TablesContainerType::const_iterator;
     /**
      *
      */
     /// The container of the constraints
-    typedef MeshType::MasterSlaveConstraintType MasterSlaveConstraintType;
-    typedef MeshType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
+    using MasterSlaveConstraintType = MeshType::MasterSlaveConstraintType;
+    using MasterSlaveConstraintContainerType = MeshType::MasterSlaveConstraintContainerType;
 
     /** Iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
     MasterSlaveConstraint by * operator and not a pointer for more convenient
     usage. */
-    typedef MeshType::MasterSlaveConstraintIteratorType MasterSlaveConstraintIteratorType;
+    using MasterSlaveConstraintIteratorType = MeshType::MasterSlaveConstraintIteratorType;
 
     /** Const iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
     Table by * operator and not a pointer for more convenient
     usage. */
-    typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
+    using MasterSlaveConstraintConstantIteratorType = MeshType::MasterSlaveConstraintConstantIteratorType;
 
     /// The Geometry Container.
     /**
     * Contains all geometries, which can be addressed by specific identifiers.
     */
-    typedef GeometryContainer<GeometryType> GeometryContainerType;
+    using GeometryContainerType = GeometryContainer<GeometryType>;
 
     /// Geometry Iterator
-    typedef typename GeometryContainerType::GeometryIterator GeometryIterator;
+    using GeometryIterator = typename GeometryContainerType::GeometryIterator;
 
     /// Const Geometry Iterator
-    typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
+    using GeometryConstantIterator = typename GeometryContainerType::GeometryConstantIterator;
 
     /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
-    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
+    using GeometriesMapType = typename GeometryContainerType::GeometriesMapType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, Kratos::shared_ptr<ModelPart> >  SubModelPartsContainerType;
+    using SubModelPartsContainerType = PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, Kratos::shared_ptr<ModelPart> >;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
     	sub model parts and does not go through the hierarchy of the
     	sub model parts
     */
-    typedef SubModelPartsContainerType::iterator SubModelPartIterator;
+    using SubModelPartIterator = SubModelPartsContainerType::iterator;
 
     /// Constant iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
     	sub model parts and does not go through the hierarchy of the
     	sub model parts
     */
-    typedef SubModelPartsContainerType::const_iterator SubModelPartConstantIterator;
+    using SubModelPartConstantIterator = SubModelPartsContainerType::const_iterator;
 
     ///@}
     ///@name Flags

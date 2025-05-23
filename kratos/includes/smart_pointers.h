@@ -66,16 +66,18 @@ std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_ptr<T>
 } // namespace Kratos
 
 
-#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef Kratos::shared_ptr<a > Pointer; \
-typedef Kratos::shared_ptr<a > SharedPointer; \
-typedef Kratos::weak_ptr<a > WeakPointer; \
-typedef Kratos::unique_ptr<a > UniquePointer
+#define KRATOS_CLASS_POINTER_DEFINITION(a) \
+    using Pointer = Kratos::shared_ptr<a>; \
+    using SharedPointer = Kratos::shared_ptr<a>; \
+    using WeakPointer = Kratos::weak_ptr<a>; \
+    using UniquePointer = Kratos::unique_ptr<a>;
 
 namespace Kratos {
 template< class T > class GlobalPointer;
 }
 
-#define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a) typedef typename Kratos::intrusive_ptr<a > Pointer; \
-typedef Kratos::GlobalPointer<a > WeakPointer; \
-typedef Kratos::unique_ptr<a > UniquePointer; \
-typename a::Pointer shared_from_this(){ return a::Pointer(this); }
+#define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a) \
+    using Pointer = typename Kratos::intrusive_ptr<a>; \
+    using WeakPointer = Kratos::GlobalPointer<a>; \
+    using UniquePointer = Kratos::unique_ptr<a>; \
+    typename a::Pointer shared_from_this(){ return a::Pointer(this); }

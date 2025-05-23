@@ -64,16 +64,16 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeometricalObject);
 
     /// Definition of the node type
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// The geometry type definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Defines the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Defines the result type
-    typedef std::size_t result_type;
+    using result_type = std::size_t;
 
     ///@}
     ///@name Life Cycle

@@ -70,19 +70,19 @@ public:
     /// Pointer definition of	array_1d
     KRATOS_CLASS_POINTER_DEFINITION(array_1d);
 
-    typedef std::size_t size_type;
-    typedef	std::ptrdiff_t difference_type;
-    typedef	T value_type;
-    typedef	typename boost::numeric::ublas::type_traits<T>::const_reference const_reference;
-    typedef	T &reference;
-    typedef	std::array<T,N> array_type;
-    typedef	T *pointer;
-    typedef	array_1d<T, N> self_type;
-    typedef	const boost::numeric::ublas::vector_reference<const self_type>	const_closure_type;
-    typedef	boost::numeric::ublas::vector_reference<self_type>	closure_type;
-    typedef	self_type vector_temporary_type;
-    typedef	boost::numeric::ublas::dense_tag storage_category;
-//		typedef	concrete_tag simd_category; //removed for the new ublas
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using value_type = T;
+    using const_reference = typename boost::numeric::ublas::type_traits<T>::const_reference;
+    using reference = T&;
+    using array_type = std::array<T,N>;
+    using pointer = T*;
+    using self_type = array_1d<T, N>;
+    using const_closure_type = const boost::numeric::ublas::vector_reference<const self_type>;
+    using closure_type = boost::numeric::ublas::vector_reference<self_type>;
+    using vector_temporary_type = self_type;
+    using storage_category = boost::numeric::ublas::dense_tag;
+//		using simd_category = concrete_tag; //removed for the new ublas
 
     ///@}
     ///@name Life	Cycle
@@ -335,13 +335,13 @@ public:
     // Iterator	types
 private:
     // Use the storage array1 iterator
-    typedef	typename array_type::const_iterator const_iterator_type;
-    typedef	typename array_type::iterator iterator_type;
+    using const_iterator_type = typename array_type::const_iterator;
+    using iterator_type = typename array_type::iterator;
 
 public:
 #ifdef BOOST_UBLAS_USE_INDEXED_ITERATOR
-    typedef	indexed_iterator<self_type,	dense_random_access_iterator_tag> iterator;
-    typedef	indexed_const_iterator<self_type, dense_random_access_iterator_tag>	const_iterator;
+    using iterator = indexed_iterator<self_type,	dense_random_access_iterator_tag>;
+    using const_iterator = indexed_const_iterator<self_type, dense_random_access_iterator_tag>;
 #else
     class const_iterator;
     class iterator;
@@ -397,14 +397,14 @@ public:
         const_iterator, value_type, difference_type>
     {
     public:
-        typedef	dense_random_access_iterator_tag iterator_category;
+        using iterator_category = dense_random_access_iterator_tag;
 #ifdef BOOST_MSVC_STD_ITERATOR
-        typedef	const_reference	reference;
+        using reference = const_reference;
 #else
-        typedef	typename array_1d::difference_type difference_type;
-        typedef	typename array_1d::value_type	value_type;
-        typedef	typename array_1d::const_reference reference;
-        typedef	const typename array_1d::pointer pointer;
+        using difference_type = typename array_1d::difference_type;
+        using value_type = typename array_1d::value_type;
+        using reference = typename array_1d::const_reference;
+        using pointer = const typename array_1d::pointer;
 #endif
 
         // Construction	and	destruction
@@ -507,12 +507,12 @@ public:
         iterator, value_type, difference_type>
     {
     public:
-        typedef	dense_random_access_iterator_tag iterator_category;
+        using iterator_category = dense_random_access_iterator_tag;
 #ifndef	BOOST_MSVC_STD_ITERATOR
-        typedef	typename array_1d::difference_type difference_type;
-        typedef	typename array_1d::value_type	value_type;
-        typedef	typename array_1d::reference reference;
-        typedef	typename array_1d::pointer pointer;
+        using difference_type = typename array_1d::difference_type;
+        using value_type = typename array_1d::value_type;
+        using reference = typename array_1d::reference;
+        using pointer = typename array_1d::pointer;
 #endif
 
         // Construction	and	destruction
@@ -627,9 +627,9 @@ public:
     // Reverse iterator
 
 #ifdef BOOST_MSVC_STD_ITERATOR
-    typedef	reverse_iterator_base<const_iterator, value_type, const_reference> const_reverse_iterator;
+    using const_reverse_iterator = reverse_iterator_base<const_iterator, value_type, const_reference>;
 #else
-    typedef	boost::numeric::ublas::reverse_iterator_base<const_iterator> const_reverse_iterator;
+    using const_reverse_iterator = boost::numeric::ublas::reverse_iterator_base<const_iterator>;
 #endif
 
     BOOST_UBLAS_INLINE
@@ -644,9 +644,9 @@ public:
     }
 
 #ifdef BOOST_MSVC_STD_ITERATOR
-    typedef	reverse_iterator_base<iterator,	value_type,	reference> reverse_iterator;
+    using reverse_iterator = reverse_iterator_base<iterator,	value_type,	reference>;
 #else
-    typedef	boost::numeric::ublas::reverse_iterator_base<iterator>	reverse_iterator;
+    using reverse_iterator = boost::numeric::ublas::reverse_iterator_base<iterator>;
 #endif
 
     BOOST_UBLAS_INLINE

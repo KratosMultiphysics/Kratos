@@ -72,38 +72,38 @@ public:
     /// Pointer definition of Communicator
     KRATOS_CLASS_POINTER_DEFINITION(Communicator);
 
-    typedef unsigned int IndexType;
+    using IndexType = unsigned int;
 
-    typedef unsigned int SizeType;
+    using SizeType = unsigned int;
 
-    typedef Node NodeType;
+    using NodeType = Node;
 
-    typedef Properties PropertiesType;
+    using PropertiesType = Properties;
 
-    typedef Element ElementType;
+    using ElementType = Element;
 
-    typedef Condition ConditionType;
+    using ConditionType = Condition;
 
-    typedef DenseVector<int> NeighbourIndicesContainerType;
+    using NeighbourIndicesContainerType = DenseVector<int>;
 
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    using MeshType = Mesh<NodeType, PropertiesType, ElementType, ConditionType>;
 
-    typedef PointerVector<MeshType> MeshesContainerType;
+    using MeshesContainerType = PointerVector<MeshType>;
 
     /// Nodes container. Which is a vector set of nodes with their Id's as key.
-    typedef MeshType::NodesContainerType NodesContainerType;
+    using NodesContainerType = MeshType::NodesContainerType;
 
     /** Iterator over the nodes. This iterator is an indirect
         iterator over Node::Pointer which turn back a reference to
         node by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::NodeIterator NodeIterator;
+    using NodeIterator = MeshType::NodeIterator;
 
     /** Const iterator over the nodes. This iterator is an indirect
         iterator over Node::Pointer which turn back a reference to
         node by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::NodeConstantIterator NodeConstantIterator;
+    using NodeConstantIterator = MeshType::NodeConstantIterator;
 
     /** Iterator over the properties. This iterator is an indirect
         iterator over Properties::Pointer which turn back a reference to
@@ -111,19 +111,19 @@ public:
         usage. */
 
     /// Properties container. Which is a vector set of Properties with their Id's as key.
-    typedef MeshType::PropertiesContainerType PropertiesContainerType;
+    using PropertiesContainerType = MeshType::PropertiesContainerType;
 
     /** Iterator over the Properties. This iterator is an indirect
         iterator over Node::Pointer which turn back a reference to
         node by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::PropertiesIterator PropertiesIterator;
+    using PropertiesIterator = MeshType::PropertiesIterator;
 
     /** Const iterator over the Properties. This iterator is an indirect
         iterator over Properties::Pointer which turn back a reference to
         Properties by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::PropertiesConstantIterator PropertiesConstantIterator;
+    using PropertiesConstantIterator = MeshType::PropertiesConstantIterator;
 
     /** Iterator over the properties. This iterator is an indirect
         iterator over Properties::Pointer which turn back a reference to
@@ -131,34 +131,34 @@ public:
         usage. */
 
     /// Element container. A vector set of Elements with their Id's as key.
-    typedef MeshType::ElementsContainerType ElementsContainerType;
+    using ElementsContainerType = MeshType::ElementsContainerType;
 
     /** Iterator over the Elements. This iterator is an indirect
         iterator over Elements::Pointer which turn back a reference to
         Element by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::ElementIterator ElementIterator;
+    using ElementIterator = MeshType::ElementIterator;
 
     /** Const iterator over the Elements. This iterator is an indirect
         iterator over Elements::Pointer which turn back a reference to
         Element by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::ElementConstantIterator ElementConstantIterator;
+    using ElementConstantIterator = MeshType::ElementConstantIterator;
 
     /// Condintions container. A vector set of Conditions with their Id's as key.
-    typedef MeshType::ConditionsContainerType ConditionsContainerType;
+    using ConditionsContainerType = MeshType::ConditionsContainerType;
 
     /** Iterator over the Conditions. This iterator is an indirect
        iterator over Conditions::Pointer which turn back a reference to
        Condition by * operator and not a pointer for more convenient
        usage. */
-    typedef MeshType::ConditionIterator ConditionIterator;
+    using ConditionIterator = MeshType::ConditionIterator;
 
     /** Const iterator over the Conditions. This iterator is an indirect
         iterator over Conditions::Pointer which turn back a reference to
         Condition by * operator and not a pointer for more convenient
         usage. */
-    typedef MeshType::ConditionConstantIterator ConditionConstantIterator;
+    using ConditionConstantIterator = MeshType::ConditionConstantIterator;
 
     ///@}
     ///@name Life Cycle

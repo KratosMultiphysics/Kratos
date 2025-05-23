@@ -70,11 +70,11 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef std::array<TResultType, TResultsColumns>  result_row_type;
+    using result_row_type = std::array<TResultType, TResultsColumns>;
 
-    typedef std::pair<TArgumentType, result_row_type> RecordType;
+    using RecordType = std::pair<TArgumentType, result_row_type>;
 
-    typedef std::vector<RecordType> TableContainerType;
+    using TableContainerType = std::vector<RecordType>;
 
     ///@}
     ///@name Life Cycle
@@ -439,17 +439,17 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef double TResultType;
-    typedef double TArgumentType;
+    using TResultType = double;
+    using TArgumentType = double;
 
-    typedef std::array<TResultType, 1>  result_row_type;
+    using result_row_type = std::array<TResultType, 1>;
 
-    typedef std::pair<TArgumentType, result_row_type> RecordType;
+    using RecordType = std::pair<TArgumentType, result_row_type>;
 
-    typedef std::vector<RecordType> TableContainerType;
+    using TableContainerType = std::vector<RecordType>;
 
-    typedef Variable<TArgumentType> XVariableType;
-    typedef Variable<TResultType> YVariableType;
+    using XVariableType = Variable<TArgumentType>;
+    using YVariableType = Variable<TResultType>;
 
     ///@}
     ///@name Life Cycle

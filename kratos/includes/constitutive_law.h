@@ -76,14 +76,14 @@ public:
      * Type definitions
      * NOTE: geometries are assumed to be of type Node for all problems
      */
-    typedef ProcessInfo ProcessInfoType;
-    typedef std::size_t SizeType;
-    typedef Geometry<Node > GeometryType;
+    using ProcessInfoType = ProcessInfo;
+    using SizeType = std::size_t;
+    using GeometryType = Geometry<Node >;
 
-    typedef Vector StrainVectorType;
-    typedef Vector StressVectorType;
-    typedef Matrix VoigtSizeMatrixType;           // Constitutive Matrix
-    typedef Matrix DeformationGradientMatrixType; // Def. gradient tensor
+    using StrainVectorType = Vector;
+    using StressVectorType = Vector;
+    using VoigtSizeMatrixType = Matrix;           // Constitutive Matrix
+    using DeformationGradientMatrixType = Matrix; // Def. gradient tensor
 
     /**
      * Counted pointer of ConstitutiveLaw
