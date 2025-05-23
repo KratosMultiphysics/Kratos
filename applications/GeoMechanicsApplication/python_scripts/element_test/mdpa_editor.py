@@ -1,5 +1,6 @@
 import re
-from tkinter import messagebox
+from tkinter import messagebox, scrolledtext
+from ui_logger import log_message
 
 class MdpaEditor:
     def __init__(self, mdpa_path):
@@ -28,7 +29,7 @@ class MdpaEditor:
         replacer = self._replacer_factory(prescribed_displacement)
         new_text, count = re.subn(pattern, replacer, self.raw_text)
         if count == 0:
-            messagebox.showwarning("Warning", "Could not find '$maximum_strain' to update.")
+            log_message(f"Could not update maximum strain.", "Warning")
         else:
             self.raw_text = new_text
         MdpaEditor.save(self)
@@ -40,7 +41,7 @@ class MdpaEditor:
         replacer = self._replacer_factory(initial_effective_cell_pressure)
         new_text, count = re.subn(pattern, replacer, self.raw_text)
         if count == 0:
-            messagebox.showwarning("Warning", "Could not find '$initial_effective_cell_pressure' to update.")
+            log_message(f"Could not update initial effective cell pressure.", "Warning")
         else:
             self.raw_text = new_text
         MdpaEditor.save(self)

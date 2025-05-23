@@ -1,10 +1,11 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, scrolledtext
 from matplotlib.gridspec import GridSpec
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from set_triaxial_test import run_triaxial_simulation
 from ui_plot_manager import render_plots
+from ui_logger import init_log_widget, log_message, clear_log
 
 def build_ui_from_model(root, parent_frame, dll_path, model_dict):
     global fig, axes, canvas
@@ -52,14 +53,20 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
             duration = float(triaxial_widgets["Duration"].get())
 
             if n_steps <= 0 or duration <= 0 or eps_max <= 0 or sigma_init < 0:
-                raise ValueError("Invalid numeric values.")
+                raise ValueError in log_message("All values must be positive and non-zero.", "error")
 
             return umat_params, eps_max, sigma_init, n_steps, duration
-        except ValueError as e:
-            messagebox.showerror("Invalid Input", str(e))
+        except ValueError as error:
+            # messagebox.showerror("Invalid Input", str(e))
+            log_message(f"Input error: {error}", "error")
             return None
 
     def run_simulation(entry_widgets, triaxial_widgets, model_var):
+        clear_log()
+        log_message("Starting triaxial calculation...", "info")
+        log_message("Validating input...", "info")
+        root.update_idletasks()
+
         result = gather_and_validate(entry_widgets, triaxial_widgets)
         if not result:
             return
@@ -69,6 +76,7 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
             index = model_dict["model_name"].index(model_var.get()) + 1
             figs = run_triaxial_simulation(dll_path, index, umat_params, n_steps, duration, eps_max, sigma_init)
         else:
+            log_message("Starting triaxial calculation...", "info")
             figs = run_triaxial_simulation(
                 dll_path="",
                 index=-2,
@@ -79,6 +87,7 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
                 initial_effective_cell_pressure=sigma_init
             )
         render_plots(figs, axes, canvas)
+        log_message("Simulation completed successfully.", "info")
 
     def _create_input_fields(model_var, param_frame, button_frame):
         for w in param_frame.winfo_children() + button_frame.winfo_children():
@@ -100,7 +109,7 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
         ttk.Button(button_frame, text="Run Calculation",
                    command=lambda: run_simulation(entry_widgets, triaxial_widgets, model_var)).pack(pady=5)
 
-    # GUI layout setup (unchanged)
+
     model_var = tk.StringVar(root)
     model_var.set(model_dict["model_name"][0])
     dropdown_frame = ttk.Frame(parent_frame, padding="10", width=700, height=100)
@@ -115,6 +124,15 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
     param_frame.pack(fill="both", expand=True, pady=10)
     button_frame = ttk.Frame(dropdown_frame, padding="10")
     button_frame.pack(fill="x", pady=10)
+
+    log_frame = ttk.Frame(dropdown_frame, padding="5")
+    log_frame.pack(fill="x", padx=10, pady=(0, 10))
+
+    ttk.Label(log_frame, text="Log Output:", font=("Arial", 10, "bold")).pack(anchor="w")
+    log_widget = scrolledtext.ScrolledText(log_frame, height=6, width=40, state="disabled", wrap="word", font=("Courier", 9))
+    log_widget.pack(fill="x", expand=False)
+    init_log_widget(log_widget)
+
 
     plot_frame = ttk.Frame(parent_frame, padding="5", width=800, height=600)
     plot_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
