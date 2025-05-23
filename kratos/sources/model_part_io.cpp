@@ -22,6 +22,7 @@
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/quaternion.h"
+#include "utilities/string_utilities.h"
 #include "utilities/timer.h"
 
 // External includes
@@ -2506,21 +2507,8 @@ void ModelPartIO::ReadConstraintsBlock(
     const auto words = split_string_into_a_vector(current_line);
     const SizeType number_of_master_dofs = words.size();
 
-    auto trim = [](const std::string& rInputStr) -> std::string {
-        auto first = std::find_if_not(rInputStr.begin(), rInputStr.end(), [](unsigned char ch) {
-            return std::isspace(ch);
-        });
-        if (first == rInputStr.end()) {
-            return "";
-        }
-        auto last = std::find_if_not(rInputStr.rbegin(), rInputStr.rend(), [](unsigned char ch) {
-            return std::isspace(ch);
-        }).base();
-        return std::string(first, last);
-    };
-
     // Define the lambda function
-    auto split_string_to_double_vector = [&trim](const std::string& rInputStr) -> std::vector<double> {
+    auto split_string_to_double_vector = [](const std::string& rInputStr) -> std::vector<double> {
         std::vector<double> result;
         std::string str = rInputStr; // Make a mutable copy
 
@@ -2535,7 +2523,7 @@ void ModelPartIO::ReadConstraintsBlock(
         }
 
         // If the string is empty after removing brackets (e.g., "[]" or "[ ]"), return an empty vector
-        if (trim(str).empty()) {
+        if (StringUtilities::Trim(str).empty()) {
             return result;
         }
 
@@ -2545,7 +2533,7 @@ void ModelPartIO::ReadConstraintsBlock(
 
         while (std::getline(ss, segment, ',')) {
             // Trim whitespace from the segment
-            std::string trimmedSegment = trim(segment);
+            const std::string trimmedSegment = StringUtilities::Trim(segment);
             if (!trimmedSegment.empty()) {
                 try {
                     // Convert the trimmed segment to a double
