@@ -270,11 +270,11 @@ public:
      * @details This method is intended to be overridden in derived classes. The base class implementation
      * produces an error message indicating that the derived class should provide its own implementation.
      * @param rThisNodes The container holding the nodes involved in the constraint.
-     * @param pThisMasterSlaveConstraint A pointer to the master-slave constraint object that will be read.
+     * @param pConstraint A pointer to the master-slave constraint object that will be read.
      */
     void ReadNewMasterSlaveConstraint(
         NodesContainerType& rThisNodes,
-        MasterSlaveConstraint::Pointer& pThisMasterSlaveConstraint
+        MasterSlaveConstraint::Pointer& pConstraint
         ) override;
 
     /**
@@ -298,7 +298,7 @@ public:
      * @param rConditionsConnectivities The constraints connectivities
      * @return The number of constraints
      */
-    std::size_t ReadMasterSlaveConstraintsConnectivities(ConnectivitiesContainerType& rMasterSlaveConstraintsConnectivities) override;
+    std::size_t ReadMasterSlaveConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities) override;
 
     /**
      * @brief Writes the master-slave constraints to the output.
@@ -394,14 +394,14 @@ public:
      * @param rModelPartName The name of the sub-model part to read from.
      * @param rElementsIds Set to store element IDs.
      * @param rConditionsIds Set to store condition IDs.
-     * @param rMasterSlaveConstraintIds Set to store master-slave constraint IDs.
+     * @param rConstraintIds Set to store master-slave constraint IDs.
      * @param rGeometriesIds Set to store geometry IDs.
      */
     void ReadSubModelPartEntitiesIds(
         std::string const& rModelPartName,
         std::unordered_set<SizeType>& rElementsIds,
         std::unordered_set<SizeType>& rConditionsIds,
-        std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
+        std::unordered_set<SizeType>& rConstraintIds,
         std::unordered_set<SizeType>& rGeometriesIds
         ) override;
 
@@ -425,7 +425,7 @@ public:
      * @param rAuxConnectivities Container of connectivities.
      * @param rElementsIds Set of element IDs.
      * @param rConditionsIds Set of condition IDs.
-     * @param rMasterSlaveConstraintIds Set of master-slave constraint IDs.
+     * @param rConstraintIds Set of master-slave constraint IDs.
      * @param rGeometriesIds Set of geometry IDs.
      * @return The size of the nodal graph.
      */
@@ -433,7 +433,7 @@ public:
         ConnectivitiesContainerType& rAuxConnectivities,
         std::unordered_set<SizeType>& rElementsIds,
         std::unordered_set<SizeType>& rConditionsIds,
-        std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
+        std::unordered_set<SizeType>& rConstraintIds,
         std::unordered_set<SizeType>& rGeometriesIds
         ) override;
 
@@ -1005,11 +1005,11 @@ private:
     /**
      * @brief Divides the master-slave constraints block into partitions.
      * @param rOutputFiles The container of output files for each partition.
-     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
     void DivideMasterSlaveConstraintsBlock(
         OutputFilesContainerType& rOutputFiles,
-        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
 
     void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
@@ -1050,11 +1050,11 @@ private:
     /**
      * @brief Divides the master-slave constraint data block into partitions.
      * @param rOutputFiles The container of output files for each partition.
-     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
     void DivideMasterSlaveConstraintDataBlock(
         OutputFilesContainerType& rOutputFiles,
-        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
 
     /**
@@ -1063,14 +1063,14 @@ private:
      * @param rNodesAllPartitions The partition indices for all nodes.
      * @param rElementsAllPartitions The partition indices for all elements.
      * @param rConditionsAllPartitions The partition indices for all conditions.
-     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
     void DivideMeshBlock(
         OutputFilesContainerType& rOutputFiles,
         const PartitionIndicesContainerType& rNodesAllPartitions,
         const PartitionIndicesContainerType& rElementsAllPartitions,
         const PartitionIndicesContainerType& rConditionsAllPartitions,
-        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
 
     /**
@@ -1079,14 +1079,14 @@ private:
      * @param rNodesAllPartitions The partition indices for all nodes.
      * @param rElementsAllPartitions The partition indices for all elements.
      * @param rConditionsAllPartitions The partition indices for all conditions.
-     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
 	void DivideSubModelPartBlock(
         OutputFilesContainerType& rOutputFiles,
         const PartitionIndicesContainerType& rNodesAllPartitions,
         const PartitionIndicesContainerType& rElementsAllPartitions,
         const PartitionIndicesContainerType& rConditionsAllPartitions,
-        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions,
+        const PartitionIndicesContainerType& rConstraintsAllPartitions,
         const PartitionIndicesContainerType& rGeometriesAllPartitions
         );
 
@@ -1119,11 +1119,11 @@ private:
     /**
      * @brief Divides the mesh master-slave constraints block into partitions.
      * @param rOutputFiles The container of output files for each partition.
-     * @param rMasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
     void DivideMeshMasterSlaveConstraintsBlock(
         OutputFilesContainerType& rOutputFiles,
-        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
 
     /**
@@ -1169,7 +1169,7 @@ private:
      */
     void DivideSubModelPartMasterSlaveConstraintsBlock(
         OutputFilesContainerType& rOutputFiles,
-        const PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
 
     /**
@@ -1192,12 +1192,12 @@ private:
      * @param NodesPartitions The partition indices for nodes.
      * @param ElementsPartitions The partition indices for elements.
      * @param ConditionsPartitions The partition indices for conditions.
-     * @param MasterSlaveConstraintsPartitions The partition indices for master-slave constraints.
+     * @param ConstraintsPartitions The partition indices for master-slave constraints.
      * @param GeometriesPartitions The partition indices for geometries.
      * @param NodesAllPartitions The partition indices for all nodes.
      * @param ElementsAllPartitions The partition indices for all elements.
      * @param ConditionsAllPartitions The partition indices for all conditions.
-     * @param MasterSlaveConstraintsAllPartitions The partition indices for all master-slave constraints.
+     * @param ConstraintsAllPartitions The partition indices for all master-slave constraints.
      * @param GeometriesAllPartitions The partition indices for all geometries.
      */
     void WriteCommunicatorData(
@@ -1207,12 +1207,12 @@ private:
         PartitionIndicesType const& NodesPartitions,
         PartitionIndicesType const& ElementsPartitions,
         PartitionIndicesType const& ConditionsPartitions,
-        PartitionIndicesType const& MasterSlaveConstraintsPartitions,
+        PartitionIndicesType const& ConstraintsPartitions,
         PartitionIndicesType const& GeometriesPartitions,
         PartitionIndicesContainerType const& NodesAllPartitions,
         PartitionIndicesContainerType const& ElementsAllPartitions,
         PartitionIndicesContainerType const& ConditionsAllPartitions,
-        PartitionIndicesContainerType const& MasterSlaveConstraintsAllPartitions,
+        PartitionIndicesContainerType const& ConstraintsAllPartitions,
         PartitionIndicesContainerType const& GeometriesAllPartitions
         );
 
