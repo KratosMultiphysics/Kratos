@@ -320,49 +320,49 @@ private:
     const TransientPwLineElement<2, 2> mTransientPwLineElement2D2N{
         0,
         Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        nullptr,
+        std::make_unique<PlaneStrainStressState>(),
         {CalculationContribution::Permeability, CalculationContribution::Compressibility,
          CalculationContribution::FluidBodyFlow},
         std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<2, 3> mTransientPwLineElement2D3N{
         0,
         Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        nullptr,
+        std::make_unique<PlaneStrainStressState>(),
         {CalculationContribution::Permeability, CalculationContribution::Compressibility,
          CalculationContribution::FluidBodyFlow},
         std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<2, 4> mTransientPwLineElement2D4N{
         0,
         Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        nullptr,
+        std::make_unique<PlaneStrainStressState>(),
         {CalculationContribution::Permeability, CalculationContribution::Compressibility,
          CalculationContribution::FluidBodyFlow},
         std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<2, 5> mTransientPwLineElement2D5N{
         0,
         Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
-        nullptr,
+        std::make_unique<PlaneStrainStressState>(),
         {CalculationContribution::Permeability, CalculationContribution::Compressibility,
          CalculationContribution::FluidBodyFlow},
         std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<3, 2> mTransientPwLineElement3D2N{
         0,
         Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        nullptr,
+        std::make_unique<PlaneStrainStressState>(),
         {CalculationContribution::Permeability, CalculationContribution::Compressibility,
          CalculationContribution::FluidBodyFlow},
         std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<3, 3> mTransientPwLineElement3D3N{
         0,
         Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        nullptr,
+        std::make_unique<PlaneStrainStressState>(),
         {CalculationContribution::Permeability, CalculationContribution::Compressibility,
          CalculationContribution::FluidBodyFlow},
         std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<3, 4> mTransientPwLineElement3D4N{
         0,
         Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        nullptr,
+        std::make_unique<PlaneStrainStressState>(),
         {CalculationContribution::Permeability, CalculationContribution::Compressibility,
          CalculationContribution::FluidBodyFlow},
         std::make_unique<IntegrationCoefficientModifierForLineElement>()};
