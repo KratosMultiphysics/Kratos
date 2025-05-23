@@ -137,9 +137,11 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     def _CreateBuilderAndSolver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             linear_solver = self._GetLinearSolver()
-            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+            builder_and_solver_type: str = self.settings["builder_and_solver_settings"]["type"].GetString()
+
+            if builder_and_solver_type == "block":
                 builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
-            else:
+            elif builder_and_solver_type == "elimination":
                     # We use the elimination builder and solver
                     if self.settings["multi_point_constraints_used"].GetBool():
                         if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
@@ -147,6 +149,8 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
                     else:
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
+            else:
+                raise ValueError(f"Unsupported builder and solver type: {builder_and_solver_type}")
         else:
             builder_and_solver = super()._CreateBuilderAndSolver()
 
