@@ -214,4 +214,160 @@ KRATOS_TEST_CASE_IN_SUITE(TrimRight, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(StringUtilities::TrimRight(" Kra\ntos MP "), " Kra\ntos MP");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(StringToVector, KratosCoreFastSuite)
+{
+    // BasicIntegerParsing
+    {
+        std::string input = "[1.0, 2.5, 3.14]";
+        std::vector<double> expected = {1.0, 2.5, 3.14};
+        std::vector<double> actual = StringUtilities::StringToVector<double>(input);
+        for (size_t i = 0; i < expected.size(); ++i) {
+            KRATOS_EXPECT_EQ(actual[i], expected[i]);
+        }
+    }
+
+    // ParsingWithVariousSpaces
+    {
+        std::string input = "[10, 20, -5]";
+        std::vector<int> expected = {10, 20, -5};
+        std::vector<int> actual = StringUtilities::StringToVector<int>(input);
+        for (size_t i = 0; i < expected.size(); ++i) {
+            KRATOS_EXPECT_EQ(actual[i], expected[i]);
+        }
+    }
+
+    // SingleElementVector
+    {
+        std::string input = "  [ 1.1 ,  2.2,3.3  , 4.4 ]  ";
+        std::vector<double> expected = {1.1, 2.2, 3.3, 4.4};
+        std::vector<double> actual = StringUtilities::StringToVector<double>(input);
+        for (size_t i = 0; i < expected.size(); ++i) {
+            KRATOS_EXPECT_EQ(actual[i], expected[i]);
+        }
+
+        std::string input_int = " [ 5,  15,25 ] ";
+        std::vector<int> expected_int = {5, 15, 25};
+        std::vector<int> actual_int = StringUtilities::StringToVector<int>(input_int);
+        for (size_t i = 0; i < expected_int.size(); ++i) {
+            KRATOS_EXPECT_EQ(actual_int[i], expected_int[i]);
+        }
+    }
+
+    // EmptyVectorInput
+    {
+        std::string input = "[42.0]";
+        std::vector<double> expected = {42.0};
+        std::vector<double> actual = StringUtilities::StringToVector<double>(input);
+        KRATOS_EXPECT_EQ(actual.size(), expected.size());
+        KRATOS_EXPECT_EQ(actual.size(), 1);
+        KRATOS_EXPECT_EQ(actual[0], expected[0]);
+
+        std::string input_int = "[7]";
+        std::vector<int> expected_int = {7};
+        std::vector<int> actual_int = StringUtilities::StringToVector<int>(input_int);
+        KRATOS_EXPECT_EQ(actual_int.size(), expected_int.size());
+        KRATOS_EXPECT_EQ(actual_int.size(), 1);
+        KRATOS_EXPECT_EQ(actual_int[0], expected_int[0]);
+    }
+
+    // IntegerTruncationFromDoubleString
+    {
+        std::string input1 = "[]";
+        std::vector<double> expected_empty = {};
+        std::vector<double> actual1 = StringUtilities::StringToVector<double>(input1);
+        KRATOS_EXPECT_EQ(actual1.size(), 0);
+        KRATOS_EXPECT_EQ(actual1.size(), expected_empty.size());
+
+        std::string input2 = "[ ]"; // Empty with space
+        std::vector<int> actual2 = StringUtilities::StringToVector<int>(input2);
+        KRATOS_EXPECT_EQ(actual2.size(), 0);
+        KRATOS_EXPECT_EQ(actual2.size(), expected_empty.size());
+
+        std::string input3 = ""; // Completely empty string
+        std::vector<double> actual3 = StringUtilities::StringToVector<double>(input3);
+        KRATOS_EXPECT_EQ(actual3.size(), 0);
+        KRATOS_EXPECT_EQ(actual3.size(), expected_empty.size());
+    }
+
+    // InputWithoutBrackets
+    {
+        // The function is designed to remove brackets if present.
+        // If not present, it should still parse the comma-separated values.
+        std::string input = "1.5, 2.5, 3.5";
+        std::vector<double> expected = {1.5, 2.5, 3.5};
+        std::vector<double> actual = StringUtilities::StringToVector<double>(input);
+        for (size_t i = 0; i < expected.size(); ++i) {
+            KRATOS_EXPECT_EQ(actual[i], expected[i]);
+        }
+    }
+
+    // InvalidElementMixedWithValid
+    {
+        // "two" cannot be parsed as double. The function currently logs a warning
+        // and continues, so "two" should be skipped.
+        std::string input = "[1.0, two, 3.0, four, 5.5]";
+        std::vector<double> expected = {1.0, 3.0, 5.5}; // "two" and "four" should be skipped
+        std::vector<double> actual = StringUtilities::StringToVector<double>(input);
+        for (size_t i = 0; i < expected.size(); ++i) {
+            KRATOS_EXPECT_EQ(actual[i], expected[i]);
+        }
+    }
+
+    // InvalidNumberFormat
+    {
+        std::string input_double = "[1.2.3, 4.5]"; // "1.2.3" is invalid for double
+        std::vector<double> expected_double = {4.5};
+        std::vector<double> actual_double = StringUtilities::StringToVector<double>(input_double);
+        for (size_t i = 0; i < expected_double.size(); ++i) {
+            KRATOS_EXPECT_EQ(actual_double[i], expected_double[i]);
+        }
+
+        std::string input_int = "[10, 20x, 30]"; // "20x" is invalid for int
+        std::vector<int> expected_int = {10, 30};
+        std::vector<int> actual_int = StringUtilities::StringToVector<int>(input_int);
+        for (size_t i = 0; i < expected_int.size(); ++i) {
+            KRATOS_EXPECT_EQ(actual_int[i], expected_int[i]);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CountValuesUntilPrefix, KratosCoreFastSuite)
+{
+    // Test case 1: Basic functionality
+    {
+        std::string input = "value1 value2 value3";
+        std::string prefix = "value2";
+        std::size_t expected_count = 1;
+        std::size_t actual_count = StringUtilities::CountValuesUntilPrefix(input, prefix);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+
+    // Test case 2: Prefix not found
+    {
+        std::string input = "value1 value2 value3";
+        std::string prefix = "value4";
+        std::size_t expected_count = 3;
+        std::size_t actual_count = StringUtilities::CountValuesUntilPrefix(input, prefix);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+
+    // Test case 3: Empty input
+    {
+        std::string input = "";
+        std::string prefix = "value1";
+        std::size_t expected_count = 0;
+        std::size_t actual_count = StringUtilities::CountValuesUntilPrefix(input, prefix);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+
+    // Test case 4: Empty prefix
+    {
+        std::string input = "value1 value2 value3";
+        std::string prefix = "";
+        std::size_t expected_count = 0;
+        std::size_t actual_count = StringUtilities::CountValuesUntilPrefix(input, prefix);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+}
+
 } // namespace Kratos::Testing
