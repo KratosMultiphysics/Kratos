@@ -2258,24 +2258,10 @@ void ModelPartIO::ReadConstraintsBlock(
 
     const MasterSlaveConstraint& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get(constraint_name);
 
-    // Lambda function generates a vector of strings from the input string
-    auto split_string_into_a_vector = [](const std::string& rText) -> std::vector<std::string> {
-        std::istringstream iss(rText);
-        std::string word;
-        std::vector<std::string> words;
-
-        // The stream extraction operator (>>) automatically skips whitespace
-        // (including spaces and tabs) by default.
-        while (iss >> word) {
-            words.push_back(word);
-        }
-        return words;
-    };
-
     // Reading the number of master dofs
     std::string current_line;
     std::getline(*mpStream, current_line);
-    const auto words = split_string_into_a_vector(current_line);
+    const auto words = StringUtilities::SplitStringIntoAVector(current_line);
 
     // Read the slave variable
     const Variable<double>& r_slave_variable = KratosComponents<Variable<double>>::Get(words[0]);
