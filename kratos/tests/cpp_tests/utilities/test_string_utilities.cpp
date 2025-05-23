@@ -344,7 +344,7 @@ KRATOS_TEST_CASE_IN_SUITE(CountValuesUntilPrefix, KratosCoreFastSuite)
 
     // Test case 2: Prefix not found
     {
-        std::string input = "value1 value2 value3";
+        std::string input = "value1\tvalue2\tvalue3";
         std::string prefix = "value4";
         std::size_t expected_count = 3;
         std::size_t actual_count = StringUtilities::CountValuesUntilPrefix(input, prefix);
