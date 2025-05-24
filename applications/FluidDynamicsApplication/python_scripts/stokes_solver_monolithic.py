@@ -100,6 +100,12 @@ class StokesSolverMonolithic(NavierStokesMonolithicSolver):
             "analysis_type": "linear",
             "reform_dofs_at_each_step": false,
             "consider_periodic_conditions": false,
+            "builder_and_solver_settings" : {
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings" : { }
+            },
+            "multi_point_constraints_used": true,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
