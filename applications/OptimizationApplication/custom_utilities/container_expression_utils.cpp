@@ -457,7 +457,7 @@ void ContainerExpressionUtils::MapNodalVariableToContainerVariable(
         auto& r_flat_data_expression = *p_flat_data_expression;
         rOutput.SetExpression(p_flat_data_expression);
 
-        // compute the entity valeus.
+        // compute the entity values.
         IndexPartition<IndexType>(number_of_entities).for_each([&p_variable_expression_data_io, &r_output_container, &r_flat_data_expression, &p_variable](const IndexType EntityIndex) {
             const auto p_entity = (r_output_container.begin() + EntityIndex);
             const auto& r_geometry = p_entity->GetGeometry();

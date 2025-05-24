@@ -202,7 +202,7 @@ class ElementGaussPointOutput(VariableIOOperation):
     '''Write element integration point values to a file.'''
 
     def Execute(self) -> None:
-        KratosHDF5.HDF5ElementGaussPointOutput(
+        KratosHDF5.HDF5ElementGaussPointIO(
             self.parameters,
             self.file).WriteElementGaussPointValues(self.model_part.Elements,
                                                     self.model_part.GetCommunicator().GetDataCommunicator(),
@@ -251,7 +251,7 @@ class ConditionGaussPointOutput(VariableIOOperation):
     '''Write condition integration point values to a file.'''
 
     def Execute(self) -> None:
-        KratosHDF5.HDF5ConditionGaussPointOutput(
+        KratosHDF5.HDF5ConditionGaussPointIO(
             self.parameters,
             self.file).WriteConditionGaussPointValues(self.model_part.Conditions,
                                                       self.model_part.GetCommunicator().GetDataCommunicator(),
