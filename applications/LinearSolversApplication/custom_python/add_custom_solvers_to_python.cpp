@@ -32,6 +32,7 @@
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
+#include "custom_solvers/mkl_ilu.hpp" // MKLILU0Solver, MKLILUTSolver
 #endif
 
 #if defined USE_EIGEN_FEAST
@@ -231,6 +232,20 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_solver<EigenPardisoLUSolver<complex>>(m, "ComplexPardisoLUSolver");
     register_solver<EigenPardisoLDLTSolver<complex>>(m, "ComplexPardisoLDLTSolver");
     register_solver<EigenPardisoLLTSolver<complex>>(m, "ComplexPardisoLLTSolver");
+
+    pybind11::class_<MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
+                     MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
+                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILU0Solver")
+        .def(pybind11::init<>())
+        .def(pybind11::init<Parameters>())
+        ;
+
+    pybind11::class_<MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
+                     MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
+                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILUTSolver")
+        .def(pybind11::init<>())
+        .def(pybind11::init<Parameters>())
+        ;
 #endif // defined USE_EIGEN_MKL
 
     register_base_dense_solver(m);
