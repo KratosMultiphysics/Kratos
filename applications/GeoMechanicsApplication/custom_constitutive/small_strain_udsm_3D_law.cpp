@@ -33,14 +33,16 @@ constexpr auto props_size = SizeType{50};
 
 array_1d<double, props_size> MakePropsVector(const Vector& rUMatParameters)
 {
-    KRATOS_DEBUG_ERROR_IF(rUMatParameters.size() > props_size) << "Number of UMAT_PARAMETERS (" << rUMatParameters.size() << ") exceeds the maximum number of " << props_size << "\n";
+    KRATOS_DEBUG_ERROR_IF(rUMatParameters.size() > props_size)
+        << "Number of UMAT_PARAMETERS (" << rUMatParameters.size()
+        << ") exceeds the maximum number of " << props_size << "\n";
 
     auto result = array_1d<double, props_size>{props_size, 0.0};
     std::copy(rUMatParameters.begin(), rUMatParameters.end(), result.begin());
     return result;
 }
 
-}
+} // namespace
 
 namespace Kratos
 {
