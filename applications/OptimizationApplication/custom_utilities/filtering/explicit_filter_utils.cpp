@@ -141,7 +141,7 @@ void ExplicitFilterUtils<TContainerType>::SetRadius(const ContainerExpression<TC
 {
     KRATOS_ERROR_IF_NOT(rContainerExpression.GetItemComponentCount() == 1)
         << "Only scalar values are allowed for the filter radius container expression. "
-        << "Provided contaienr expression = " << rContainerExpression << ".\n";
+        << "Provided container expression = " << rContainerExpression << ".\n";
 
     KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
         << "Filter radius container expression model part and filter model part mismatch."
