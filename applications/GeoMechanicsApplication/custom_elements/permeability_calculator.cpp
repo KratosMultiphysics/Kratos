@@ -57,8 +57,13 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
     const auto   number_of_nodes           = shape_function_gradients[0].size1();
     auto         result                    = Matrix{ZeroMatrix{number_of_nodes, number_of_nodes}};
     const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+    const auto pressure_vector = mInputProvider.GetNodalValues(WATER_PRESSURE);
+    const auto nc_container = mInputProvider.GetNContainer();
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+                nc_container, pressure_vector);
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
+        retention_parameters.SetFluidPressure(fluid_pressures[integration_point_index]);
         const double relative_permeability =
             mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(retention_parameters);
         result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(

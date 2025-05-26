@@ -51,18 +51,21 @@ Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
 {
     const auto& r_N_container            = mInputProvider.GetNContainer();
     const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+    const auto pressure_vector = mInputProvider.GetNodalValues(WATER_PRESSURE);
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+                r_N_container, pressure_vector);
     auto        result = Matrix{ZeroMatrix{r_N_container.size2(), r_N_container.size2()}};
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
         const auto N = Vector{row(r_N_container, integration_point_index)};
         result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            N, CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index]),
+            N, CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index], fluid_pressures[integration_point_index]),
             integration_coefficients[integration_point_index]);
     }
     return result;
 }
 
-double CompressibilityCalculator::CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw) const
+double CompressibilityCalculator::CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw, double FluidPressure) const
 {
     const auto&  r_properties     = mInputProvider.GetElementProperties();
     const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
@@ -75,6 +78,7 @@ double CompressibilityCalculator::CalculateBiotModulusInverse(const RetentionLaw
                     r_properties[POROSITY] / bulk_fluid;
 
     RetentionLaw::Parameters retention_parameters(r_properties);
+    retention_parameters.SetFluidPressure(FluidPressure);
     result *= rRetentionLaw->CalculateSaturation(retention_parameters);
     result -= rRetentionLaw->CalculateDerivativeOfSaturation(retention_parameters) * r_properties[POROSITY];
     return result;

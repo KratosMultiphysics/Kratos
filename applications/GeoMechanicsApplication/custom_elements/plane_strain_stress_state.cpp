@@ -55,11 +55,20 @@ Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrain
     return result;
 }
 
-const Vector& PlaneStrainStressState::GetVoigtVector() const { return VoigtVector2D; }
+const Vector& PlaneStrainStressState::GetVoigtVector() const
+{
+    return VoigtVector2D;
+}
 
-SizeType PlaneStrainStressState::GetVoigtSize() const { return GetVoigtSize2D(); }
+SizeType PlaneStrainStressState::GetVoigtSize() const
+{
+    return GetVoigtSize2D();
+}
 
-SizeType PlaneStrainStressState::GetStressTensorSize() const { return GetStressTensorSize2D(); }
+SizeType PlaneStrainStressState::GetStressTensorSize() const
+{
+    return GetStressTensorSize2D();
+}
 
 void PlaneStrainStressState::save(Serializer&) const
 {

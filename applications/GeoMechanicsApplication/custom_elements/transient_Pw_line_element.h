@@ -1240,15 +1240,15 @@ private:
     {
         return PermeabilityCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeIntegrationCoefficientsGetter(),
-            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter());
+            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), MakeNContainerGetter());
     }
 
     FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider()
     {
         return FluidBodyFlowCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeIntegrationCoefficientsGetter(),
-            MakeProjectedGravityForIntegrationPointsGetter(),
-            MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter());
+            MakeProjectedGravityForIntegrationPointsGetter(), MakeNContainerGetter(),
+            MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter(), MakeNodalVariableGetter());
     }
 
     auto MakePropertiesGetter()

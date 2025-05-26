@@ -31,15 +31,19 @@ public:
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
                       std::function<Vector()>              GetIntegrationCoefficients,
                       std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
+                      std::function<const Matrix&()>                             GetNContainer,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
-                      std::function<std::size_t()> GetLocalSpaceDimension)
+                      std::function<std::size_t()> GetLocalSpaceDimension,
+                      std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
 
             : GetElementProperties(std::move(GetElementProperties)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
+              GetNContainer(std::move(GetNContainer)),
               GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
-              GetLocalSpaceDimension(std::move(GetLocalSpaceDimension))
+              GetLocalSpaceDimension(std::move(GetLocalSpaceDimension)),
+              GetNodalValues(std::move(GetNodalValuesOf))
         {
         }
 
@@ -47,8 +51,10 @@ public:
         std::function<Vector()>              GetIntegrationCoefficients;
         std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints;
         std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
+        std::function<const Matrix&()>                             GetNContainer;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
         std::function<std::size_t()>                                 GetLocalSpaceDimension;
+        std::function<Vector(const Variable<double>&)>             GetNodalValues;
     };
 
     explicit FluidBodyFlowCalculator(InputProvider AnInputProvider);
