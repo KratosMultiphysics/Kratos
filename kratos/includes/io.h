@@ -372,18 +372,18 @@ public:
      * container. The base class implementation throws an error, indicating that
      * the method must be implemented in the derived class.
      * @param rThisNodes The nodes to be used for associating the master-slave constraints.
-     * @param rMasterSlaveConstraintContainer The container where the master-slave
+     * @param rConstraintContainer The container where the master-slave
      *        constraints will be stored. This container is expected to be populated
      *        by the derived class implementation.
      * @throws Exception If the base class method is called directly, an error is
      *         thrown to indicate that the method must be implemented in a derived class.
      */
-    virtual void ReadMasterSlaveConstraints(
+    virtual void ReadConstraints(
         NodesContainerType& rThisNodes,
-        MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
+        MasterSlaveConstraintContainerType& rConstraintContainer
         )
     {
-        KRATOS_ERROR << "Calling base class method (ReadNewMasterSlaveConstraint). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (ReadNewConstraint). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -392,15 +392,15 @@ public:
      * specific functionality for writing master-slave constraints. The base
      * class implementation throws an error, indicating that the method must
      * be implemented in the derived class.
-     * @param rMasterSlaveConstraintContainer The container holding the master-slave
+     * @param rConstraintContainer The container holding the master-slave
      *        constraints to be written.
      * @throws Exception Always throws an error if called on the base class.
      *         Derived classes must override this method to provide the actual
      *         implementation.
      */
-    virtual void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rMasterSlaveConstraintContainer)
+    virtual void WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
     {
-        KRATOS_ERROR << "Calling base class method (WriteNewMasterSlaveConstraint). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (WriteNewConstraint). Please check the definition of derived class" << std::endl;
     }
 
     /**
