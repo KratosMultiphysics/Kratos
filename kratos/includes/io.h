@@ -375,16 +375,16 @@ public:
      * @details This method is intended to be overridden in derived classes. The base class implementation
      * produces an error message indicating that the derived class should provide its own implementation.
      * @param rThisNodes The container holding the nodes involved in the constraint.
-     * @param pThisMasterSlaveConstraint A pointer to the master-slave constraint object that will be read.
+     * @param pThisConstraint A pointer to the master-slave constraint object that will be read.
      * @note Calling this base class method will trigger an error. Ensure that the method is properly defined
      *       in any derived class.
      */
-    virtual void ReadNewMasterSlaveConstraint(
+    virtual void ReadNewConstraint(
         NodesContainerType& rThisNodes,
-        MasterSlaveConstraint::Pointer& pThisMasterSlaveConstraint
+        MasterSlaveConstraint::Pointer& pThisConstraint
         )
     {
-        KRATOS_ERROR << "Calling base class method (ReadNewMasterSlaveConstraint). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (ReadNewConstraint). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -394,18 +394,18 @@ public:
      * container. The base class implementation throws an error, indicating that
      * the method must be implemented in the derived class.
      * @param rThisNodes The nodes to be used for associating the master-slave constraints.
-     * @param rMasterSlaveConstraintContainer The container where the master-slave
+     * @param rConstraintContainer The container where the master-slave
      *        constraints will be stored. This container is expected to be populated
      *        by the derived class implementation.
      * @throws Exception If the base class method is called directly, an error is
      *         thrown to indicate that the method must be implemented in a derived class.
      */
-    virtual void ReadMasterSlaveConstraints(
+    virtual void ReadConstraints(
         NodesContainerType& rThisNodes,
-        MasterSlaveConstraintContainerType& rMasterSlaveConstraintContainer
+        MasterSlaveConstraintContainerType& rConstraintContainer
         )
     {
-        KRATOS_ERROR << "Calling base class method (ReadMasterSlaveConstraints). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (ReadConstraints). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -413,9 +413,9 @@ public:
      * @param rConditionsConnectivities The constraints connectivities
      * @return The number of constraints
      */
-    virtual std::size_t ReadMasterSlaveConstraintsConnectivities(ConnectivitiesContainerType& rMasterSlaveConstraintsConnectivities)
+    virtual std::size_t ReadConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities)
     {
-        KRATOS_ERROR << "Calling base class method (ReadMasterSlaveConstraintsConnectivities). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (ReadConstraintsConnectivities). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -424,15 +424,15 @@ public:
      * specific functionality for writing master-slave constraints. The base
      * class implementation throws an error, indicating that the method must
      * be implemented in the derived class.
-     * @param rMasterSlaveConstraintContainer The container holding the master-slave
+     * @param rConstraintContainer The container holding the master-slave
      *        constraints to be written.
      * @throws Exception Always throws an error if called on the base class.
      *         Derived classes must override this method to provide the actual
      *         implementation.
      */
-    virtual void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rMasterSlaveConstraintContainer)
+    virtual void WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
     {
-        KRATOS_ERROR << "Calling base class method (WriteNewMasterSlaveConstraint). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (WriteNewConstraint). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -672,18 +672,18 @@ public:
      * @param rModelPartName The name of the sub-model part to read from.
      * @param rElementsIds Set to store element IDs.
      * @param rConditionsIds Set to store condition IDs.
-     * @param rMasterSlaveConstraintIds Set to store master-slave constraint IDs.
+     * @param rConstraintIds Set to store master-slave constraint IDs.
      * @param rGeometriesIds Set to store geometry IDs.
      */
     virtual void ReadSubModelPartEntitiesIds(
         std::string const& rModelPartName,
         std::unordered_set<SizeType>& rElementsIds,
         std::unordered_set<SizeType>& rConditionsIds,
-        std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
+        std::unordered_set<SizeType>& rConstraintIds,
         std::unordered_set<SizeType>& rGeometriesIds
         )
     {
-        KRATOS_WARNING("IO") << " The method ReadSubModelPartEntitiesIds with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
+        KRATOS_WARNING("IO") << " The method ReadSubModelPartEntitiesIds with Constraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
         return ReadSubModelPartElementsAndConditionsIds(rModelPartName, rElementsIds, rConditionsIds);
     }
 
@@ -710,7 +710,7 @@ public:
      * @param rAuxConnectivities Container of connectivities.
      * @param rElementsIds Set of element IDs.
      * @param rConditionsIds Set of condition IDs.
-     * @param rMasterSlaveConstraintIds Set of master-slave constraint IDs.
+     * @param rConstraintIds Set of master-slave constraint IDs.
      * @param rGeometriesIds Set of geometry IDs.
      * @return The size of the nodal graph.
      */
@@ -718,11 +718,11 @@ public:
         ConnectivitiesContainerType& rAuxConnectivities,
         std::unordered_set<SizeType>& rElementsIds,
         std::unordered_set<SizeType>& rConditionsIds,
-        std::unordered_set<SizeType>& rMasterSlaveConstraintIds,
+        std::unordered_set<SizeType>& rConstraintIds,
         std::unordered_set<SizeType>& rGeometriesIds
         )
     {
-        KRATOS_WARNING("IO") << " The method ReadNodalGraphFromEntitiesList with MasterSlaveConstraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
+        KRATOS_WARNING("IO") << " The method ReadNodalGraphFromEntitiesList with Constraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
         return ReadNodalGraphFromEntitiesList(rAuxConnectivities, rElementsIds, rConditionsIds);
     }
 
