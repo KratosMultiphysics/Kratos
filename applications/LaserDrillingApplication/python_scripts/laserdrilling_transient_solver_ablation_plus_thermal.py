@@ -79,7 +79,15 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             # omega_0 = self.omega_0
 
             # q_energy_per_volume = self.EnergyPerVolumeWoodfield(y1, l, delta_pen, F_p, omega_0) * np.cos(incident_angle)
-            q_energy_per_volume = self.Fluence() * self.AxialDistributionLaw()
+            position = {"r": y1, "z": l}  # TODO: verify that r equals y1 and z equals l
+            parameters = {
+                "gaussian_order": self.gaussian_order,
+                "delta_pen": self.delta_pen,
+                "peak_fluence": self.F_p,
+                "waist_radius": self.omega_0,
+                "optical_penetration_depth": self.delta_pen,
+            }
+            q_energy_per_volume = self.EnergyPerVolume(position, parameters)
 
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
@@ -91,10 +99,10 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         self.hole_profile_in_Y_zero_file.close()
 
         for elem in self.main_model_part.Elements:
-            q_energy_per_volume = elem.CalculateOnIntegrationPoints(
+            q_energy_per_volume_elemental = elem.CalculateOnIntegrationPoints(
                 LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
             )
-            elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume[0])
+            elem.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume_elemental[0])
 
             enthalpy_energy_per_volume = elem.CalculateOnIntegrationPoints(
                 LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, self.main_model_part.ProcessInfo
@@ -139,17 +147,22 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             if radius < 1e-8:  # TODO: why this value? Make it into a variable or even a simulation parameter?
                 self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
 
-            delta_pen = self.delta_pen
-            F_p = self.F_p
-            omega_0 = self.omega_0
-
             """             
             q_energy_per_volume = (
                 (1.0 / delta_pen) * F_p * np.exp(-2.0 * (radius / omega_0) ** 2) * np.exp(-z / delta_pen)
             ) 
             """
             # TODO: unused?
-            q_energy_per_volume = self.EnergyPerVolumeWoodfield(radius, z, delta_pen, F_p, omega_0)
+            # q_energy_per_volume = self.EnergyPerVolumeWoodfield(radius, z, delta_pen, F_p, omega_0)
+            position = {"r": radius, "z": z}
+            parameters = {
+                "gaussian_order": self.gaussian_order,
+                "delta_pen": self.delta_pen,
+                "peak_fluence": self.F_p,
+                "waist_radius": self.omega_0,
+                "optical_penetration_depth": self.delta_pen,
+            }
+            q_energy_per_volume = self.EnergyPerVolume(position, parameters)
 
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
 
@@ -171,13 +184,13 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             )
             elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume_elemental[0])
 
-    def TemperatureVariationDueToLaser(self, radius, z):
+    def TemperatureVariationDueToLaser(self, r, z):
         """
         Computes the temperature increase caused by the laser in a specified position.
 
         Parameters
         ----------
-        radius: float
+        r: float
             The radial coordinate of the point
         z: float
             The axial coordinate of the point
@@ -187,142 +200,200 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         The temperature increase in kelvins
         """
 
-        delta_pen = self.delta_pen
-        F_p = self.F_p
-        omega_0 = self.omega_0
+        # delta_pen = self.delta_pen
+        # F_p = self.F_p
+        # omega_0 = self.omega_0
 
         # q_energy_per_volume = (
         #     (1.0 / delta_pen) * F_p * np.exp(-2.0 * (radius / omega_0) ** 2) * np.exp(-z / delta_pen)
         # )  # * np.cos(incidence_angle)
 
-        q_energy_per_volume = self.EnergyPerVolumeWoodfield(radius, z, delta_pen, F_p, omega_0)
+        # q_energy_per_volume = self.EnergyPerVolumeWoodfield(radius, z, delta_pen, F_p, omega_0)
+
+        position = {"r": r, "z": z}  # TODO: verify that r equals y1 and z equals l
+        parameters = {
+            "gaussian_order": self.gaussian_order,
+            "delta_pen": self.delta_pen,
+            "peak_fluence": self.F_p,
+            "waist_radius": self.omega_0,
+            "optical_penetration_depth": self.delta_pen,
+        }
+        q_energy_per_volume = self.EnergyPerVolume(position, parameters)
         delta_temp = q_energy_per_volume / (self.rho * self.cp)
+
         return delta_temp
 
-    def FluenceGaussian(self, r, Q, omega_0):
+    def FluenceSuperGaussian(self, position, parameters):
         """
-        Returns the fluence in J/m2 applied by a gaussian laser pulse.
+        Returns the fluence in J/m2 applied by a super-gaussian laser pulse.
 
-        See Woodfield 2024 eq. (2).
+        See Woodfield (2024) eq. (2).
 
         Parameters
         ----------
-        r: float
-            Radial coordinate (m)
-        Q: float
-            total energy of the pulse
-        omega_0: float
-            waist radius
+        position: dict
+            r: float
+                Radial coordinate (m)
+
+        parameters: dict
+            gaussian_order: integer
+                The order of the super-gaussian
+            peak_fluence: float
+                Peak fluence of the pulse
+            waist_radius: float
+                Waist radius
 
         Returns
         -------
         F: float
             Fluence (J/m2)
         """
-        F_p = 
-        fluence = F_p * np.exp(-2.0 * (r / omega_0) ** 2)
+
+        if "r" not in position:
+            Logger.PrintWarning("FluenceSuperGaussian", "KeyError: r is not in the position dict")
+            raise KeyError
+
+        if "gaussian_order" not in parameters:
+            Logger.PrintWarning("FluenceSuperGaussian", "KeyError: gaussian_order is not in the parameters dict")
+            raise KeyError
+        if "peak_fluence" not in parameters:
+            Logger.PrintWarning("FluenceSuperGaussian", "KeyError: peak_fluence is not in the parameters dict")
+            raise KeyError
+        if "waist_radius" not in parameters:
+            Logger.PrintWarning("FluenceSuperGaussian", "KeyError: waist_radius is not in the parameters dict")
+            raise KeyError
+
+        r = position["r"]
+        n = parameters["gaussian_order"]
+        F_p = parameters["peak_fluence"]
+        omega_0 = parameters["waist_radius"]
+
+        if n % 2 != 0:
+            Logger.PrintWarning(
+                "Warning",
+                "The gaussian order needs to be an even nonnegative integer",
+            )
+            raise ValueError
+
+        fluence = F_p * np.exp(-2.0 * (r / omega_0) ** n)
 
         return fluence
 
-    # TODO: remove
-    def EnergyPerVolumeWoodfield(self, r, z, delta_pen, F_p, omega_0):
+    def EnergyPerVolume(self, position, parameters):
         """
-        Returns the energy per unit volume in J/m3 applied by the laser pulse according to Woodfield (2024).
-
-        r is the distance in the radial direction [m], z is the distance below the surface [m], omega_0 is
-        the waist radius [m] of the Gaussian laser spot and Fp is the ﬂuence [J/m2 ] at r = 0 (i.e. peak ﬂuence)
+        Calculates the energy per unit volume applied to the material by the pulse. It assumes that this energy
+        distribution can be separated as the product of a superficial energy distribution, the fluence, times
+        an axial energy deposition distribution (see Woodfield (2024)).
 
         Parameters
         ----------
-        r: float
-            Radial coordinate
-        z: float
-            Axial coordinate
-        delta_pen: float
-            optical penetration depth
-        F_p: float
-            fluence at r=0 (i.e. peak fluence)
-        omega_0: float
-            waist radius
+            position: dict
+                Dictionary containing the position where to calculate the energy per unit volume
+            parameters: dict
+                Parameters for the fluence and axial energy distribution functions
 
         Returns
         -------
-        q: float
-            Energy per unit volume [J/m3]
+        energy_per_unit_volume: float
+            The energy per unit volume at the specified point
+
         """
 
-        beer_lambert_factor = 1.0 / delta_pen * np.exp(-z / delta_pen)
-        gaussian_factor = F_p * np.exp(-2.0 * (r / omega_0) ** 2)
-        q = beer_lambert_factor * gaussian_factor
+        energy_per_unit_volume = self.Fluence(position, parameters) * self.AxialEnergyDistribution(position, parameters)
+        return energy_per_unit_volume
 
-        return q
-
-    # TODO: remove
-    def EnergyPerVolumeWoodfieldSupergaussian(self, r, z, delta_pen, F_p, omega_0, n):
-        """
-        Returns the energy per unit volume in J/m3 applied by the laser pulse according to the model of
-        Woodfield (2024) but with the possibility of using an arbitrary supergaussian profile.
-
-        r is the distance in the radial direction [m], z is the distance below the surface [m], omega_0 is
-        the waist radius [m] of the Gaussian laser spot, Fp is the ﬂuence [J/m2 ] at r = 0 (i.e. peak
-        ﬂuence) and n is the supergaussian degree
-
-        Parameters
-        ----------
-        r: float
-            Radial coordinate
-        z: float
-            Axial coordinate
-        delta_pen: float
-            Optical penetration depth
-        F_p: float
-            Fluence at r=0 (i.e. peak fluence)
-        omega_0: float
-            Waist radius
-        n: int
-            Supergaussian degree
-        Returns
-        -------
-        q: float
-            Energy per unit volume [J/m3]
-        """
-        if not n % 2:
-            Logger.PrintWarning("Parameter not allowed", "The supergaussian order has to be an even natural number.")
-            raise ValueError
-
-        # TODO: normalize
-        self.Fp = -1e300
-        beer_lambert_factor = 1.0 / delta_pen * np.exp(-z / delta_pen)
-        gaussian_factor = F_p * np.exp(-2.0 * (r / omega_0) ** n)
-        q = beer_lambert_factor * gaussian_factor
-
-        return q
-
-    def EnergyPerVolume(self):
-        return self.Fluence() * self.AxialDistributionLaw()
-
-    def Fluence(self, *args, **kwargs):
+    def Fluence(self, position, parameters):
         """
         Calls the globally assigned fluence function with the provided arguments.
         Returns the fluence at a point according to the option chosen when setting self.fluence.
 
         Parameters
         ----------
-            *args: Positional arguments to pass to fluence
-            **kwargs: Keyword arguments to pass to fluence
+            position: dict
+                Dictionary containing the position where to calculate the fluence
+            parameters: dict
+                Parameters for the fluence function
 
         Returns
         -------
-            The fluence at a point
+        fluence: float
+            The fluence at the specified point
         """
         if self.fluence_function is None:
             Logger.PrintWarning("Error", "No function assigned to fluence_function")
             raise ValueError
         try:
-            return self.fluence_function(*args, **kwargs)
+            fluence = self.fluence_function(position, parameters)
+            return fluence
         except TypeError as e:
             Logger.PrintWarning("Error", "Incorrect arguments for '{f.__name__}': {e}")
             raise TypeError
+
+    def AxialEnergyDistribution(self, position, parameters):
+        """
+        Calls the globally assigned axial energy distribution function with the provided arguments.
+        Returns the factor of energy deposition at a point according to the option chosen when
+        setting self.axial_energy_distribution.
+
+        Parameters
+        ----------
+            position: dict
+                Dictionary containing the position where to calculate the axial energy deposition
+            parameters: dict
+                Parameters for the axial energy distribution function
+
+        Returns
+        -------
+        axial_energy_distribution_factor: float
+            The factor of energy deposition at the specified point
+        """
+        if self.axial_energy_distribution_function is None:
+            Logger.PrintWarning("Error", "No function assigned to axial_energy_distribution")
+            raise ValueError
+        try:
+            axial_energy_distribution = self.axial_energy_distribution_function(position, parameters)
+            return axial_energy_distribution
+        except TypeError as e:
+            Logger.PrintWarning("Error", "Incorrect arguments for '{f.__name__}': {e}")
+            raise TypeError
+
+    def AxialDistributionBeerLambert(self, position, parameters):
+        """
+        Calculates the factor for the energy depostion distribution along the beam's axis
+        according to the Beer-Lambert law (see Woodfield (2024))
+
+        Parameters
+        ----------
+            position: dict
+                Dictionary containing the position where to calculate the axial energy deposition
+                z: float
+                    Axial position (m)
+            parameters: dict
+                Parameters for the Beer-Lambert law
+                optical_penetration_depth: optical penetration depth
+
+        Returns
+        -------
+        axial_energy_distribution_factor: float
+            The factor of energy deposition at the specified point
+        """
+
+        if "z" not in position:
+            Logger.PrintWarning("AxialDistributionBeerLambert", "KeyError: z is not in the position dict")
+            raise KeyError
+
+        if "optical_penetration_depth" not in parameters:
+            Logger.PrintWarning(
+                "AxialDistributionBeerLambert", "KeyError: optical_penetration_depth is not in the parameters dict"
+            )
+            raise KeyError
+
+        z = position["z"]
+        delta_pen = parameters["optical_penetration_depth"]
+
+        beer_lambert_factor = np.exp(-z / delta_pen) / delta_pen
+
+        return beer_lambert_factor
 
     # TODO: I think this is broken and unused. Remove or rework it
     def ComputePulseVolume(self):
@@ -365,7 +436,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
     def RemoveElementsUsingEnergyPerVolumeThreshold(self):
         if self.ablation_energy_fraction:
             for elem in self.main_model_part.Elements:
-                q_energy_per_volume = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME)
+                q_energy_per_volume_elemental = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME)
                 enthalpy_energy_per_volume = elem.GetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME)
 
                 # Choose the energy threshold
@@ -385,7 +456,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
                 # If the energy threshold is exceeded, deactivate the element
                 # and mark its nodes as decomposed (but don't remove them)
-                if q_energy_per_volume >= energy_threshold:
+                if q_energy_per_volume_elemental >= energy_threshold:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
                     for node in elem.GetNodes():
                         node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)

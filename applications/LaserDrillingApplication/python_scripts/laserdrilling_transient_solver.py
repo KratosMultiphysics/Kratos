@@ -121,10 +121,29 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         )
         return spot_diameter
 
-    def ComputePeakFluenceGaussian(self):
+    #    def ComputePeakFluenceGaussian(self):
+    #        """
+    #        Computes the peak fluence of a gaussian pulse from its energy and waist radius
+    #        Source: Woodfield 2024, eq (5)
+    #
+    #        Parameters
+    #        ----------
+    #        None
+    #
+    #        Returns
+    #        -------
+    #        The peak fluence
+    #        """
+    #        return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2
+
+    def ComputePeakFluenceSuperGaussian(self):
         """
-        Computes the peak fluence of a gaussian pulse from its energy and waist radius
-        Source: Woodfield 2024, eq (5)
+        Computes the peak fluence of a super-gaussian pulse from its energy and waist radius.
+        The gaussian pulse is a super-gaussian pulse of order 2.
+
+        A super-gaussian pulse has intensity I(r) = I_peak * exp(-2 (r/w_0)^n).  The total
+        energy in the pulse is the integral of I(r) from 0 to +inf, which can be evaluated
+        using https://en.wikipedia.org/wiki/Gaussian_integral#Relation_to_the_gamma_function.
 
         Parameters
         ----------
@@ -134,43 +153,20 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         -------
         The peak fluence
         """
-        return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2
+        b = self.gaussian_order
+        F_p = self.Q * b * 2 ** (2 / b) / (2 * np.pi * self.omega_0**2 * GammaFunction(2 / b))
+        return F_p  # J/mm2
 
-    def ComputePeakFluenceSupergaussian(self):
-        """
-        Computes the peak fluence of a supergaussian pulse from its energy and waist radius
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        The peak fluence
-        """
-        F_p = (
-            self.Q
-            * gaussian_order
-            * 2 ** (2 / gaussian_order)
-            / (2 * np.pi * omega_0**2 * GammaFunction(2 / gaussian_order))
-        )
-        return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2
-
-        """
-        TODO: remove     
-        def ComputePeakFluence(self):
-        if self.supergaussian_intensity_distribution:
-            peak_fluence = self.ComputePeakFluenceSupergaussian()
+    def ComputePeakFluence(self):
+        if self.arbitrary_fluence:
+            # Think about this because not all distributions are peaked.
+            Logger.PrintWarning("Warning:", "Not implemented")
+            raise NotImplementedError
         else:
-            if self.arbitrary_intensity_distribution:
-                Logger.PrintWarning("Warning:", "Not implemented")
-                raise NotImplementedError
-            else:
-                # By default, use a gaussian pulse
-                peak_fluence = self.ComputePeakFluenceGaussian()
+            # By default, use a super-gaussian pulse
+            peak_fluence = self.ComputePeakFluenceSuperGaussian()
 
-        return peak_fluence 
-        """
+        return peak_fluence
 
     def ComputeMaximumAblationRadius(self):
         """
@@ -260,10 +256,19 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.pulse_frequency = self.laser_settings["Variables"]["pulse_frequency"].GetDouble()
 
+        self.Q = self.average_laser_power / self.pulse_frequency  # Energy per pulse
+        self.time_jump_between_pulses = 1.0 / self.pulse_frequency  # TODO: rename to something like pulse_period?
+
         if not self.laser_settings["Variables"].Has("beam_waist_diameter"):
             self.beam_waist_diameter = 0.0179
         else:
             self.beam_waist_diameter = self.laser_settings["Variables"]["beam_waist_diameter"].GetDouble()
+
+        ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
+        ## Laser data
+        # TODO: this is wrong, check the implications of this mistake. The correct line is the one following
+        # self.omega_0 = 0.5 * self.ComputeSpotDiameter()  # self.R_far # mm
+        self.omega_0 = self.beam_waist_diameter / 2  # Waist radius (m) of the Gaussian laser spot (Woodfield 2024)
 
         if not self.laser_settings["Variables"].Has("Rayleigh_length"):
             self.rayleigh_length = 0.409
@@ -282,8 +287,28 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.z_ast_max = 0.0  # TODO: Parameter? Remove, since the spot_diameter is unused?
 
-        # TODO: make general
-        self.fluence_function = self.FluenceGaussian
+        # Fluence
+        if not self.laser_settings["Variables"].Has("arbitrary_fluence"):
+            self.arbitrary_fluence = False
+        else:
+            self.arbitrary_fluence = self.laser_settings["Variables"]["arbitrary_fluence"].GetBool()
+
+        # If the user does not want an arbitrary distribution, select a gaussian.
+        if not self.arbitrary_fluence:
+            if not self.laser_settings["Variables"].Has("gaussian_order"):
+                self.gaussian_order = 2
+                Logger.PrintWarning("Warning", "Gaussian order not specified, defaulting to order 2")
+            else:
+                self.gaussian_order = self.laser_settings["Variables"]["gaussian_order"].GetInt()
+
+            self.fluence_function = self.FluenceSuperGaussian
+            self.F_p = self.ComputePeakFluence()
+
+        else:
+            pass  # TODO: Load the arbitrary intensity
+
+        # Axial energy distribution
+        self.axial_energy_distribution_function = self.AxialDistributionBeerLambert
 
         # self.spot_diameter = self.ComputeSpotDiameter()
 
@@ -342,8 +367,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.print_hole_geometry_files = self.settings["print_hole_geometry_files"].GetBool()
 
-        self.Q = self.average_laser_power / self.pulse_frequency  # Energy per pulse
-        self.time_jump_between_pulses = 1.0 / self.pulse_frequency  # TODO: rename to something like pulse_period?
         self.cp = self.material_settings["Variables"]["SPECIFIC_HEAT"].GetDouble()
         self.conductivity = self.material_settings["Variables"]["CONDUCTIVITY"].GetDouble()
         self.rho = self.material_settings["Variables"]["DENSITY"].GetDouble()
@@ -360,19 +383,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.ablation_energy_fraction = self.ionization_alpha
         self.evaporation_energy_fraction = 1.0 - self.ionization_alpha
 
-        ## 2024 Woodfield - Optical penetration models for practical prediction of femtosecond laser ablation of dental hard tissue
-        ## Laser data
-        # TODO: this is wrong, check the implications of this mistake. The correct line is the one following
-        # self.omega_0 = 0.5 * self.ComputeSpotDiameter()  # self.R_far # mm
-        self.omega_0 = self.beam_waist_diameter / 2  # Waist radius (m) of the Gaussian laser spot (Woodfield 2024)
-        import numpy as np
-
         y_limit = 2.0 * self.omega_0
         self.hole_theoretical_Y_coords = np.linspace(0.0, float(y_limit), 101)
         self.hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
         self.one_pulse_hole_theoretical_Y_coords = np.linspace(0.0, 0.0, 101)
         self.one_pulse_hole_theoretical_X_coords = np.linspace(0.0, 0.0, 101)
-        # self.F_p = self.ComputePeakFluence()
 
         ## Material calibration using experiments
         if not self.material_settings["Variables"].Has("OPTICAL_PENETRATION_DEPTH"):

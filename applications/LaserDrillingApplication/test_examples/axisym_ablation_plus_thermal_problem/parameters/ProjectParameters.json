@@ -4,7 +4,7 @@
         "problem_name"  : "axisym_ablation_plus_thermal_problem",
         "parallel_type" : "OpenMP",
         "start_time"    : 0.0,
-        "end_time"      : 15e-6,
+        "end_time"      : 20e-6,
         "echo_level"    : 0
     },
     "solver_settings"  : {
