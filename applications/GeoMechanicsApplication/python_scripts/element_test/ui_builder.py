@@ -6,6 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from set_triaxial_test import run_triaxial_simulation
 from ui_plot_manager import render_plots
 from ui_logger import init_log_widget, log_message, clear_log
+import traceback
 
 def build_ui_from_model(root, parent_frame, dll_path, model_dict):
     global fig, axes, canvas
@@ -70,24 +71,32 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
         result = gather_and_validate(entry_widgets, triaxial_widgets)
         if not result:
             return
-        umat_params, eps_max, sigma_init, n_steps, duration = result
 
-        if dll_path:
-            index = model_dict["model_name"].index(model_var.get()) + 1
-            figs = run_triaxial_simulation(dll_path, index, umat_params, n_steps, duration, eps_max, sigma_init)
-        else:
-            log_message("Starting triaxial calculation...", "info")
-            figs = run_triaxial_simulation(
-                dll_path="",
-                index=-2,
-                umat_parameters=[float(umat_params[0]), float(umat_params[1])],
-                num_steps=n_steps,
-                end_time=duration,
-                maximum_strain=eps_max,
-                initial_effective_cell_pressure=sigma_init
-            )
-        render_plots(figs, axes, canvas)
-        log_message("Simulation completed successfully.", "info")
+        umat_params, eps_max, sigma_init, n_steps, duration = result
+        log_message("Calculating...", "info")
+        root.update_idletasks()
+
+        try:
+            if dll_path:
+                index = model_dict["model_name"].index(model_var.get()) + 1
+                figs = run_triaxial_simulation(dll_path, index, umat_params, n_steps, duration, eps_max, sigma_init)
+            else:
+                figs = run_triaxial_simulation(
+                    dll_path="",
+                    index=-2,
+                    umat_parameters=[float(umat_params[0]), float(umat_params[1])],
+                    num_steps=n_steps,
+                    end_time=duration,
+                    maximum_strain=eps_max,
+                    initial_effective_cell_pressure=sigma_init
+                )
+            render_plots(figs, axes, canvas)
+            log_message("Simulation completed successfully.", "info")
+
+        except Exception as e:
+            traceback_str = traceback.format_exc()
+            log_message("An error occurred during simulation:", "error")
+            log_message(traceback_str, "error")
 
     def _create_input_fields(model_var, param_frame, button_frame):
         for w in param_frame.winfo_children() + button_frame.winfo_children():
