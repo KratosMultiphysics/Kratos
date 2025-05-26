@@ -505,7 +505,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
     }
 }
 
-void ModelPartIO::ReadNewMasterSlaveConstraint(
+void ModelPartIO::ReadNewConstraint(
     NodesContainerType& rThisNodes,
     MasterSlaveConstraint::Pointer& pConstraint
     )
@@ -513,7 +513,7 @@ void ModelPartIO::ReadNewMasterSlaveConstraint(
     KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
 }
 
-void ModelPartIO::ReadMasterSlaveConstraints(
+void ModelPartIO::ReadConstraints(
     NodesContainerType& rThisNodes,
     MasterSlaveConstraintContainerType& rConstraintContainer
     )
@@ -535,7 +535,7 @@ void ModelPartIO::ReadMasterSlaveConstraints(
     KRATOS_CATCH("")
 }
 
-std::size_t ModelPartIO::ReadMasterSlaveConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities)
+std::size_t ModelPartIO::ReadConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities)
 {
     KRATOS_TRY
     std::size_t number_of_constraints = 0;
@@ -547,7 +547,7 @@ std::size_t ModelPartIO::ReadMasterSlaveConstraintsConnectivities(Connectivities
             break;
         ReadBlockName(word);
         if(word == "Constraints")
-            number_of_constraints += ReadMasterSlaveConstraintsConnectivitiesBlock(rConstraintsConnectivities);
+            number_of_constraints += ReadConstraintsConnectivitiesBlock(rConstraintsConnectivities);
         else
             SkipBlock(word);
     }
@@ -555,7 +555,7 @@ std::size_t ModelPartIO::ReadMasterSlaveConstraintsConnectivities(Connectivities
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
+void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
 {
     // We are going to proceed like the following, we are going to iterate over all the constraints and compare with the components, we will save the type and we will compare until we get that the type of constraint has changed
     // NOTE: Only constraints with one slave dof are supported
@@ -821,7 +821,7 @@ void ModelPartIO::WriteMesh(MeshType & rThisMesh)
     WriteNodes(rThisMesh.Nodes());
     WriteElements(rThisMesh.Elements());
     WriteConditions(rThisMesh.Conditions());
-    WriteMasterSlaveConstraints(rThisMesh.MasterSlaveConstraints());
+    WriteConstraints(rThisMesh.MasterSlaveConstraints());
 }
 
 void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
@@ -964,7 +964,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
         } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
         } else if (word == "Constraints") {
-            FillNodalConnectivitiesFromMasterSlaveConstraintBlock(rAuxConnectivities);
+            FillNodalConnectivitiesFromConstraintBlock(rAuxConnectivities);
         } else {
             SkipBlock(word);
         }
@@ -1096,7 +1096,7 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
         } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
         } else if (word == "Constraints") {
-            FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(rAuxConnectivities, rConstraintIds);
+            FillNodalConnectivitiesFromConstraintBlockInList(rAuxConnectivities, rConstraintIds);
         } else {
             SkipBlock(word);
         }
@@ -1324,7 +1324,7 @@ void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
     KRATOS_CATCH("");
 }
 
-void ModelPartIO::FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(
+void ModelPartIO::FillNodalConnectivitiesFromConstraintBlockInList(
     ConnectivitiesContainerType& rNodalConnectivities,
     std::unordered_set<SizeType>& rConstraintIds
     )
@@ -1504,7 +1504,7 @@ void ModelPartIO::DivideInputToPartitionsImpl(
         else if(word == "Conditions")
             DivideConditionsBlock(rOutputFiles, rPartitioningInfo.ConditionsAllPartitions);
         else if(word == "Constraints")
-            DivideMasterSlaveConstraintsBlock(rOutputFiles, rPartitioningInfo.ConstraintsAllPartitions);
+            DivideConstraintsBlock(rOutputFiles, rPartitioningInfo.ConstraintsAllPartitions);
         else if(word == "NodalData")
             DivideNodalDataBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions);
         else if(word == "ElementalData")
@@ -1512,7 +1512,7 @@ void ModelPartIO::DivideInputToPartitionsImpl(
         else if(word == "ConditionalData")
             DivideConditionalDataBlock(rOutputFiles, rPartitioningInfo.ConditionsAllPartitions);
         else if (word == "ConstraintalData")
-            DivideMasterSlaveConstraintDataBlock(rOutputFiles, rPartitioningInfo.ConstraintsAllPartitions);
+            DivideConstraintDataBlock(rOutputFiles, rPartitioningInfo.ConstraintsAllPartitions);
         else if (word == "Mesh")
             DivideMeshBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions, rPartitioningInfo.ConstraintsAllPartitions);
         else if (word == "SubModelPart")
@@ -3504,7 +3504,7 @@ ModelPartIO::SizeType ModelPartIO::ReadConditionsConnectivitiesBlock(Connectivit
     KRATOS_CATCH("")
 }
 
-ModelPartIO::SizeType ModelPartIO::ReadMasterSlaveConstraintsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
+ModelPartIO::SizeType ModelPartIO::ReadConstraintsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
 {
     KRATOS_TRY
 
@@ -3796,7 +3796,7 @@ void ModelPartIO::FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContai
     KRATOS_CATCH("");
 }
 
-void ModelPartIO::FillNodalConnectivitiesFromMasterSlaveConstraintBlock(ConnectivitiesContainerType& rNodalConnectivities)
+void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesContainerType& rNodalConnectivities)
 {
     KRATOS_TRY;
 
@@ -4995,7 +4995,7 @@ void ModelPartIO::DivideConditionsBlock(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::DivideMasterSlaveConstraintsBlock(
+void ModelPartIO::DivideConstraintsBlock(
     OutputFilesContainerType& rOutputFiles,
     const PartitionIndicesContainerType& rConstraintsAllPartitions
     )
@@ -5482,7 +5482,7 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::DivideMasterSlaveConstraintDataBlock(
+void ModelPartIO::DivideConstraintDataBlock(
     OutputFilesContainerType& rOutputFiles,
     const PartitionIndicesContainerType& rConstraintsAllPartitions
     )
@@ -5564,7 +5564,7 @@ void ModelPartIO::DivideMeshBlock(
         else if(word == "MeshConditions")
             DivideMeshConditionsBlock(rOutputFiles, rConditionsAllPartitions);
         else if (word == "MeshConstraints")
-            DivideMeshMasterSlaveConstraintsBlock(rOutputFiles, rConstraintsAllPartitions);
+            DivideMeshConstraintsBlock(rOutputFiles, rConstraintsAllPartitions);
         else
             SkipBlock(word);
     }
@@ -5612,7 +5612,7 @@ void ModelPartIO::DivideSubModelPartBlock(
         else if (word == "SubModelPartConditions")
             DivideSubModelPartConditionsBlock(rOutputFiles, rConditionsAllPartitions);
         else if (word == "SubModelPartConstraints")
-            DivideSubModelPartMasterSlaveConstraintsBlock(rOutputFiles, rConstraintsAllPartitions);
+            DivideSubModelPartConstraintsBlock(rOutputFiles, rConstraintsAllPartitions);
         else if (word == "SubModelPartGeometries")
             DivideSubModelPartGeometriesBlock(rOutputFiles, rGeometriesAllPartitions);
         else if (word == "SubModelPart")
@@ -5787,7 +5787,7 @@ void ModelPartIO::DivideMeshConditionsBlock(OutputFilesContainerType& OutputFile
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::DivideMeshMasterSlaveConstraintsBlock(
+void ModelPartIO::DivideMeshConstraintsBlock(
     OutputFilesContainerType& OutputFiles,
     const PartitionIndicesContainerType& rConstraintsAllPartitions
     )
@@ -6009,7 +6009,7 @@ void ModelPartIO::DivideSubModelPartConditionsBlock(OutputFilesContainerType& Ou
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::DivideSubModelPartMasterSlaveConstraintsBlock(
+void ModelPartIO::DivideSubModelPartConstraintsBlock(
     OutputFilesContainerType& rOutputFiles,
     const PartitionIndicesContainerType& rConstraintsAllPartitions
     )

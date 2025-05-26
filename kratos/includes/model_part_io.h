@@ -272,7 +272,7 @@ public:
      * @param rThisNodes The container holding the nodes involved in the constraint.
      * @param pConstraint A pointer to the master-slave constraint object that will be read.
      */
-    void ReadNewMasterSlaveConstraint(
+    void ReadNewConstraint(
         NodesContainerType& rThisNodes,
         MasterSlaveConstraint::Pointer& pConstraint
         ) override;
@@ -288,7 +288,7 @@ public:
      *        constraints will be stored. This container is expected to be populated
      *        by the derived class implementation.
      */
-    void ReadMasterSlaveConstraints(
+    void ReadConstraints(
         NodesContainerType& rThisNodes,
         MasterSlaveConstraintContainerType& rConstraintContainer
         ) override;
@@ -298,7 +298,7 @@ public:
      * @param rConditionsConnectivities The constraints connectivities
      * @return The number of constraints
      */
-    std::size_t ReadMasterSlaveConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities) override;
+    std::size_t ReadConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities) override;
 
     /**
      * @brief Writes the master-slave constraints to the output.
@@ -309,7 +309,7 @@ public:
      * @param rConstraintContainer The container holding the master-slave
      *        constraints to be written.
      */
-    void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer) override;
+    void WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer) override;
 
     /**
      * @brief This method reads the initial values of the model part
@@ -817,7 +817,7 @@ private:
      * @param rThisConnectivities Reference to the container where the connectivities will be stored.
      * @return The number of master-slave constraints read.
      */
-    SizeType ReadMasterSlaveConstraintsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
+    SizeType ReadConstraintsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
     /**
      * @brief Fills the nodal connectivities from the geometry block.
@@ -841,7 +841,7 @@ private:
      * @brief Fills the nodal connectivities from the master-slave constraint block.
      * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
      */
-    void FillNodalConnectivitiesFromMasterSlaveConstraintBlock(ConnectivitiesContainerType& rNodalConnectivities);
+    void FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
     /**
      * @brief Fills the nodal connectivities from the geometry block for a specific list of geometries.
@@ -878,7 +878,7 @@ private:
      * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
      * @param rConstraintsIds Set of master-slave constraint IDs to filter the connectivities.
      */
-    void FillNodalConnectivitiesFromMasterSlaveConstraintBlockInList(
+    void FillNodalConnectivitiesFromConstraintBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
         std::unordered_set<SizeType>& rConstraintsIds
         );
@@ -1007,7 +1007,7 @@ private:
      * @param rOutputFiles The container of output files for each partition.
      * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
-    void DivideMasterSlaveConstraintsBlock(
+    void DivideConstraintsBlock(
         OutputFilesContainerType& rOutputFiles,
         const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
@@ -1052,7 +1052,7 @@ private:
      * @param rOutputFiles The container of output files for each partition.
      * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
-    void DivideMasterSlaveConstraintDataBlock(
+    void DivideConstraintDataBlock(
         OutputFilesContainerType& rOutputFiles,
         const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
@@ -1121,7 +1121,7 @@ private:
      * @param rOutputFiles The container of output files for each partition.
      * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
-    void DivideMeshMasterSlaveConstraintsBlock(
+    void DivideMeshConstraintsBlock(
         OutputFilesContainerType& rOutputFiles,
         const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
@@ -1167,7 +1167,7 @@ private:
      * @param OutputFiles The container of output files for each partition.
      * @param ConstraintsAllPartitions The partition indices for all master-slave constraints.
      */
-    void DivideSubModelPartMasterSlaveConstraintsBlock(
+    void DivideSubModelPartConstraintsBlock(
         OutputFilesContainerType& rOutputFiles,
         const PartitionIndicesContainerType& rConstraintsAllPartitions
         );
