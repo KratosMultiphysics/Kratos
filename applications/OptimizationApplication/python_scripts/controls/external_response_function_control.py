@@ -42,12 +42,13 @@ class ExternalResponseFunctionControl(Control):
         self.design_variable: SupportedSensitivityFieldVariableTypes = Kratos.KratosGlobals.GetVariable(parameters["design_variable"].GetString())
         self.output_all_fields = parameters["output_all_fields"].GetBool()
 
+        self.container_type = parameters["container_type"].GetString()
+
         if parameters["use_filtering"].GetBool():
-            self.filter: 'Optional[Filter]' = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), self.design_variable, Kratos.Globals.DataLocation.Element, parameters["filter_settings"])
+            self.filter: 'Optional[Filter]' = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), self.design_variable, self.__GetDataLocation(), parameters["filter_settings"])
         else:
             self.filter = None
 
-        self.container_type = parameters["container_type"].GetString()
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
@@ -169,4 +170,14 @@ class ExternalResponseFunctionControl(Control):
             "element": lambda :Kratos.Expression.VariableExpressionIO.Write(expression, variable),
         }
         return exp_dict[self.container_type]()
+
+    def __GetDataLocation(self) -> Kratos.Globals.DataLocation:
+        exp_dict = {
+            "nodal_historical": Kratos.Globals.DataLocation.NodeHistorical,
+            "nodal_nonhistorical": Kratos.Globals.DataLocation.NodeNonHistorical,
+            "condition": Kratos.Globals.DataLocation.Condition,
+            "element": Kratos.Globals.DataLocation.Element
+        }
+        return exp_dict[self.container_type]
+
 
