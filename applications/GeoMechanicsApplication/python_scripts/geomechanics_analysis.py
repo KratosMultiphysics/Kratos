@@ -50,8 +50,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
     def Initialize(self):
         super().Initialize()
 
-        # Displacement and rotation variables are defined as stage displacement and rotation
-        # so they need to be reset at the start of a stage.
+        # Displacement and rotation variables are defined as stage displacement and rotation,
+        # so they need to be reset at the start of a stage
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 

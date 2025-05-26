@@ -10,10 +10,36 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_helper
 
-class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
+
+class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.test_root = test_helper.get_file_path("one_dimensional_consolidation")
+        self.test_path = os.path.join(self.test_root, self.get_test_dir_name())
+
+        shutil.rmtree(self.test_path, ignore_errors=True)
+
+        os.makedirs(self.test_path)
+
+        self.number_of_stages = 11
+        self.project_parameters_filenames = [f"ProjectParameters_stage{i+1}.json" for i in range(self.number_of_stages)]
+        input_filenames = self.project_parameters_filenames + ["MaterialParameters.json", "1D-Consolidationtest.mdpa"]
+
+        for filename in input_filenames:
+            shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
+
+    def get_test_dir_name(self):
+        raise RuntimeError("This base class does not provide a generic test directory name")
+
+class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
     """
     This class contains benchmark tests which are checked with the analytical solution
     """
+    def get_test_dir_name(self):
+        return "python"
+
+
     def test_1d_consolidation(self):
         """
         test 1D consolidation on elastic soil.
@@ -21,22 +47,13 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         :return:
         """
         from analytical_solutions import calculate_relative_water_pressure, calculate_degree_of_1d_consolidation
-        
-        # define number of stages
-        n_stages = 11
-
-        # get the parameter file names for all stages
-        test_name = 'one_dimensional_consolidation'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
-        parameter_file_names = [os.path.join(file_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
-                                range(n_stages)]
 
         # set stage parameters
-        parameters_stages = [None] * n_stages
+        parameters_stages = [None] * self.number_of_stages
 
         initial_directory = os.getcwd()
-        os.chdir(file_path)
-        for idx, parameter_file_name in enumerate(parameter_file_names):
+        os.chdir(self.test_path)
+        for idx, parameter_file_name in enumerate(self.project_parameters_filenames):
             with open(parameter_file_name, 'r') as parameter_file:
                 parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
 
@@ -44,8 +61,8 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
 
         # run stages and get water pressure/displacement results per stage
-        stage_water_pressure = [None] * n_stages
-        stage_displacement   = [None] * n_stages
+        stage_water_pressure = [None] * self.number_of_stages
+        stage_displacement   = [None] * self.number_of_stages
         for idx, stage in enumerate(stages):
             stage.Run()
             stage_water_pressure[idx] = test_helper.get_water_pressure(stage)
@@ -55,16 +72,17 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         # get y coords of all the nodes
         node_ids = [5, 7, 12, 18, 24, 30, 35, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141, 146, 151, 156, 161, 166, 171, 176, 181, 187, 192, 199]
         coords = test_helper.get_nodal_coordinates(stages[0])
-        y_coords = [1.0 + coords[id - 1][1] for id in node_ids]
+        y_coords = [coords[id - 1][1] + 1.0 for id in node_ids]
         
         t_vs = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]    
         # calculate water pressure analytical solution for all stages and calculate the error
         sample_height = 1.0
-        rmse_stages = [None] * (n_stages - 1)
+        rmse_stages = [None] * (self.number_of_stages - 1)
         for idx, t_v in enumerate(t_vs):
             analytical_solution = [calculate_relative_water_pressure(y_coord, sample_height, t_v) for y_coord in y_coords]
 
-            # Compressive water pressures are assumed positive by the analytical solution
+            # Invert the sign of the water pressures resulting from the numerical solution, to make them match the
+            # analytical solution which assumes compressive water pressures to be positive rather than negative
             numerical_solution = [-1.0 * stage_water_pressure[idx + 1][id - 1] for id in node_ids]
 
             errors_stage = [rel_p_numerical - rel_p_analytical for rel_p_numerical, rel_p_analytical in
@@ -105,23 +123,10 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         os.chdir(initial_directory)
 
 
-class KratosGeoMechanics1DConsolidationCppRoute(KratosUnittest.TestCase):
-    def setUp(self):
-        super().setUp()
+class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestBase):
+    def get_test_dir_name(self):
+        return "cpp"
 
-        self.test_root = test_helper.get_file_path("one_dimensional_consolidation")
-        self.test_path = os.path.join(self.test_root, "cpp")
-
-        shutil.rmtree(self.test_path, ignore_errors=True)
-
-        os.makedirs(self.test_path)
-
-        self.number_of_stages = 11
-        self.project_parameters_filenames = [f"ProjectParameters_stage{i+1}.json" for i in range(self.number_of_stages)]
-        input_filenames = self.project_parameters_filenames + ["MaterialParameters.json", "1D-Consolidationtest.mdpa"]
-
-        for filename in input_filenames:
-            shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
 
     def test_1d_consolidation(self):
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement

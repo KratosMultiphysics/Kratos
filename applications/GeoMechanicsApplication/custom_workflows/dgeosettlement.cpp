@@ -72,6 +72,7 @@ double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
 
 double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
 {
+    // The provided default value here must match the one found in GeoMechanicsAnalysis.__init__
     return rProjectParameters["solver_settings"]["time_stepping"].Has("max_delta_time_factor")
                ? rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble()
                : 1000.0;
@@ -349,8 +350,8 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 
     GetMainModelPart().CloneTimeStep();
 
-    // Displacement and rotation variables are defined as stage displacement and rotation
-    // so they need to be reset at the start of a stage.
+    // Displacement and rotation variables are defined as stage displacement and rotation,
+    // so they need to be reset at the start of a stage
     ResetValuesOfNodalVariable(DISPLACEMENT);
     ResetValuesOfNodalVariable(ROTATION);
 
