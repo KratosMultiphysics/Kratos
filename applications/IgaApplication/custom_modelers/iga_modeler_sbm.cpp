@@ -84,16 +84,12 @@ void IgaModelerSbm::CreateIntegrationDomainPerUnit(
         CreateQuadraturePointGeometries(
             geometry_list, sub_model_part, rPhysicsParameters, geometry_type); 
     else 
-        // it must be a condition
         CreateQuadraturePointGeometriesSbm(
             geometry_list, sub_model_part, rPhysicsParameters, geometry_type);
 
     KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", mEchoLevel > 3)
         << "Creation of elements/ conditions finished in: " << sub_model_part << std::endl;
 }
-
-
-
 
 ///@}
 ///@name CAD functionalities
@@ -199,9 +195,6 @@ void IgaModelerSbm::GetGeometryList(
         << "::[IgaModelerSbm]:: Empty geometry list in GetGeometryList. Physics parameter is: " << rPhysicsParameters << std::endl;
 }
 
-
-
-
 void IgaModelerSbm::CreateQuadraturePointGeometries(
     GeometriesArrayType& rGeometryList,
     ModelPart& rModelPart,
@@ -242,9 +235,6 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             if (quadrature_method == "GAUSS") {
                 integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
             }
-            else if (quadrature_method == "EXTENDED_GAUSS") {
-                integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
-            }
             else if (quadrature_method == "GRID") {
                 integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
             }
@@ -274,7 +264,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
             << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
-        if (type == "element" || type == "Element") {
+        if (type == "element") {
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Elements().size() > 0)
                 id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
@@ -283,7 +273,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
                 geometries.ptr_begin(), geometries.ptr_end(),
                 rModelPart, name, id, PropertiesPointerType());
         }
-        else if (type == "condition" || type == "Condition") {
+        else if (type == "condition") {
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                 id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
@@ -311,7 +301,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
 
     // Only conditions should call CreateQuadraturePointGeometriesSbm
     std::string type = rParameters["type"].GetString();
-    bool check_input_type = (type == "condition" || type == "Condition");
+    bool check_input_type = (type == "condition");
     KRATOS_ERROR_IF_NOT(check_input_type) << ":::[IgaModelerSbm]::: type != \"condition\" in CreateQuadraturePointGeometriesSbm. "
                                           << "It must be a condition to apply the sbm operators. type: " << type << std::endl;
                                           
@@ -347,8 +337,8 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
                             << "Maybe you are not calling the nurbs_modeler_sbm" << std::endl;
 
     // inner & outer are defaulf sub model part names
-    ModelPart& skin_sub_model_part_in = skin_model_part.GetSubModelPart("inner");
-    ModelPart& skin_sub_model_part_out = skin_model_part.GetSubModelPart("outer");
+    auto& skin_sub_model_part_in = skin_model_part.GetSubModelPart("inner");
+    auto& skin_sub_model_part_out = skin_model_part.GetSubModelPart("outer");
 
     const bool is_inner = rParameters["sbm_parameters"]["is_inner"].GetBool();
     
@@ -371,17 +361,23 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
     }
     
     // Get the mesh sizes from the surrogate model part
-    const Vector knot_span_sizes = surrogate_sub_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+    const Vector& knot_span_sizes = surrogate_sub_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
     // Get the parameter space corners from the surrogate model part
-    const std::vector<Vector> parameter_space_corners = surrogate_sub_model_part.GetParentModelPart().GetValue(PARAMETER_SPACE_CORNERS);
+    const std::vector<Vector>& parameter_space_corners = surrogate_sub_model_part.GetParentModelPart().GetValue(PARAMETER_SPACE_CORNERS);
 
     double knot_span_reference_size = knot_span_sizes[0];
     if (knot_span_sizes[1] > knot_span_reference_size) {knot_span_reference_size = knot_span_sizes[1];}
     if (knot_span_sizes.size() > 2) {if (knot_span_sizes[2] > knot_span_reference_size) {knot_span_reference_size = knot_span_sizes[2];}}
 
-    // 2D case
-    const double search_radius = sqrt(2)*(knot_span_reference_size); 
-    // 3D case //TODO:
+    const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    double search_radius;
+    if (domain_size == 2) {
+        search_radius = std::sqrt(2.0) * knot_span_reference_size;
+    } else {
+        KRATOS_ERROR << "This method is only implemented for 2D (DOMAIN_SIZE == 2). "
+                    << "Current DOMAIN_SIZE: " << domain_size << std::endl;
+    }
+
     DynamicBins testBins(points.begin(), points.end());
     
     // Maximum number of results to be found in the search in radius
@@ -396,9 +392,6 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
         for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
             if (quadrature_method == "GAUSS") {
                 integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
-            }
-            else if (quadrature_method == "EXTENDED_GAUSS") {
-                integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
             }
             else if (quadrature_method == "GRID") {
                 integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
@@ -446,7 +439,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
                 }
             }
             KRATOS_ERROR_IF(obtained_results == 0) << "::[IgaModelerSbm]:: Zero points found in serch for projection of point: " <<
-                p_integration_point << std::endl;
+                integration_point << std::endl;
             
             // store id closest condition
             list_id_closest_condition[j] = results[nearest_node_id]->Id();
