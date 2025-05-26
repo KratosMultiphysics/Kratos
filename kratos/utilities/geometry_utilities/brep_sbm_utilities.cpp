@@ -15,8 +15,8 @@ namespace Kratos
     
 ///@name Kratos Classes
 ///@{
-template<bool TShiftedBoundary, class TNodeType>
-void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
+template<class TNodeType>
+void BrepSbmUtilities<TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
     const std::vector<double>& rSpansU,
     const std::vector<double>& rSpansV,
     const GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries,
@@ -26,6 +26,7 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrat
 {    
     // Loop over rSurrogateOuterLoopGeometries and collect the vertical conditions on each y-knot span
     std::vector<std::vector<double>> vertical_conditions_per_row(rSpansV.size()-1);
+    const double tolerance = 1e-13;
 
     // Check if the outer loop is defined
     bool is_outer_loop_defined = false;
@@ -34,7 +35,7 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrat
     // Loop over rSurrogateOuterLoopGeometries and collect the vertical conditions on each y-knot span
     for (auto i_cond : rSurrogateOuterLoopGeometries) {
         auto p_geometry = i_cond;
-        if (std::abs((*p_geometry)[0].X()-(*p_geometry)[1].X()) < 1e-13 ) {
+        if (std::abs((*p_geometry)[0].X()-(*p_geometry)[1].X()) < tolerance ) {
             // When local refining is performed, the surrogate steps might be larger that the refined knot spans
             const double direction = ((*p_geometry)[1].Y()-(*p_geometry)[0].Y())/std::abs(((*p_geometry)[1].Y()-(*p_geometry)[0].Y()));
 
@@ -50,7 +51,7 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrat
     // Loop over rSurrogateInnerLoopGeometries and collect the vertical conditions on each y-knot span
     for (auto i_cond : rSurrogateInnerLoopGeometries) {
         auto p_geometry = i_cond; 
-        if (std::abs((*p_geometry)[0].X()-(*p_geometry)[1].X()) < 1e-13 ) {
+        if (std::abs((*p_geometry)[0].X()-(*p_geometry)[1].X()) < tolerance ) {
             // When local refining is performed, the surrogate steps might be larger that the refined knot spans
             const double direction = ((*p_geometry)[1].Y()-(*p_geometry)[0].Y())/std::abs(((*p_geometry)[1].Y()-(*p_geometry)[0].Y()));
             int i_row_1 = FindKnotSpans1D(rSpansV, (*p_geometry)[0].Y() + 1e-12*(direction));
@@ -72,30 +73,36 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrat
         IndexType starting_column_index = 0;
         IndexType next_switch_knot_span;
         if (vertical_conditions_per_row[j].size() > 0) {
-            next_switch_knot_span = FindKnotSpans1D(rSpansU, vertical_conditions_per_row[j][0]+1e-13);
+            next_switch_knot_span = FindKnotSpans1D(rSpansU, vertical_conditions_per_row[j][0]+tolerance);
             }
         else {
             next_switch_knot_span = rSpansU.size() - 1;
         }
         IndexType vertical_condition_index = 1;
 
-        if (is_outer_loop_defined){
-            if (vertical_conditions_per_row[j].empty()) {continue;}
-            starting_column_index = FindKnotSpans1D(rSpansU, vertical_conditions_per_row[j][0]+1e-13);
-            next_switch_knot_span = FindKnotSpans1D(rSpansU, vertical_conditions_per_row[j][1]+1e-13);
-            vertical_condition_index = 2;
+        if (!is_outer_loop_defined) {
+            vertical_condition_index = 1;
+        } else {
+            const auto& row = vertical_conditions_per_row[j];
+            if (row.empty()) {
+                continue;
             }
+            starting_column_index = FindKnotSpans1D(rSpansU, row[0] + tolerance);
+            next_switch_knot_span = FindKnotSpans1D(rSpansU, row[1] + tolerance);
+            vertical_condition_index = 2;
+        }
+        
         for (IndexType i = starting_column_index; i < rSpansU.size() - 1; i++) {
             
             if (i == next_switch_knot_span) {
                 if (vertical_condition_index < vertical_conditions_per_row[j].size()) {
-                    i = FindKnotSpans1D(rSpansU, vertical_conditions_per_row[j][vertical_condition_index]+1e-13);
+                    i = FindKnotSpans1D(rSpansU, vertical_conditions_per_row[j][vertical_condition_index]+tolerance);
                 } else {
                     break;
                 }
                 vertical_condition_index++;
                     if (vertical_condition_index < vertical_conditions_per_row[j].size()) {
-                    next_switch_knot_span = FindKnotSpans1D(rSpansU, vertical_conditions_per_row[j][vertical_condition_index]+1e-13);
+                    next_switch_knot_span = FindKnotSpans1D(rSpansU, vertical_conditions_per_row[j][vertical_condition_index]+tolerance);
                 }
                 else {
                     next_switch_knot_span = rSpansU.size() - 1;
@@ -123,8 +130,8 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrat
 };
 
 ///@} // Kratos Classes
-template<bool TShiftedBoundary, class TNodeType>
-int BrepSbmUtilities<TShiftedBoundary, TNodeType>::FindKnotSpans1D(
+template<class TNodeType>
+int BrepSbmUtilities<TNodeType>::FindKnotSpans1D(
     const std::vector<double>& rSpans, 
     const double coord) {
     
@@ -140,6 +147,5 @@ int BrepSbmUtilities<TShiftedBoundary, TNodeType>::FindKnotSpans1D(
 
 // TODO: 3D extension
 
-template class KRATOS_API(KRATOS_CORE) BrepSbmUtilities<true>;
-template class KRATOS_API(KRATOS_CORE) BrepSbmUtilities<false>;
+template class KRATOS_API(KRATOS_CORE) BrepSbmUtilities<Node>;
 } // namespace Kratos.

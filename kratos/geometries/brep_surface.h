@@ -69,7 +69,7 @@ public:
     typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
 
     typedef BrepTrimmingUtilities<TShiftedBoundary> BrepTrimmingUtilitiesType;
-    typedef BrepSbmUtilities<TShiftedBoundary> BrepSbmUtilitiesType;
+    typedef BrepSbmUtilities<Node> BrepSbmUtilitiesType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -652,9 +652,9 @@ private:
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
-    // For Sbm
-    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries;
-    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries;
+    // For SBM
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries = nullptr;
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries = nullptr;
     
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
