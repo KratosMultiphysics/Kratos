@@ -13,15 +13,15 @@ It efficiently stores and manages graph connectivity where the number of edges i
 
 **Important Note:** This class is **not thread-safe by design**. A graph should be computed in each thread and then merged if parallel computation is needed.
 
-## Template Parameters
+### Template Parameters
 
 The `SparseGraph` class has one template parameter:
 
 - `TIndexType`: Specifies the type of indices used for the graph nodes. This is typically an integer type, such as `std::size_t`.
 
-## Lifecycle Methods
+### Lifecycle Methods
 
-### Constructors
+#### Constructors
 
 **Default Constructor**
 Creates an empty `SparseGraph`.
@@ -33,7 +33,7 @@ Kratos::SparseGraph<std::size_t> graph;
 `SparseGraph(IndexType N)`: This constructor initializes an empty graph. The parameter `N` is a hint and is not used to pre-allocate memory for the graph structure itself (which is a `std::map` and grows dynamically). The `Size()` of the graph is determined by the maximum row index to which entries are added, not by `N` directly.
 ```cpp
 Kratos::SparseGraph<std::size_t> graph(10); // N=10 is passed, graph is initially empty.
-                                         // Its Size() will be 0 until entries are added.
+                                            // Its Size() will be 0 until entries are added.
 ```
 **Constructor with DataCommunicator**
 `SparseGraph(DataCommunicator& rComm)`: Creates a `SparseGraph` associated with a specific Kratos `DataCommunicator`.
@@ -50,13 +50,13 @@ Kratos::SparseGraph<std::size_t> graph(r_comm);
 std::vector<std::size_t> single_vector_rep = {3, 0, 2, 1, 2, 2, 1, 0};
 Kratos::SparseGraph<std::size_t> graph_from_vec(single_vector_rep);
 ```
-### Destructor
+#### Destructor
 The destructor handles the deallocation of resources managed by the `SparseGraph`.
 ```cpp
 // graph object goes out of scope, its destructor is automatically called.
 ```
 
-### Copy Constructor
+#### Copy Constructor
 `SparseGraph(const SparseGraph& rOther)`: Creates a new `SparseGraph` as a deep copy of `rOther`.
 ```cpp
 Kratos::SparseGraph<std::size_t> original_graph;
@@ -65,24 +65,24 @@ original_graph.AddEntry(0,1);
 Kratos::SparseGraph<std::size_t> copied_graph(original_graph);
 // copied_graph is now an independent copy of original_graph.
 ```
-### Assignment Operator
+#### Assignment Operator
 `SparseGraph& operator=(SparseGraph const& rOther) = delete;`
 The assignment operator is explicitly deleted. `SparseGraph` objects cannot be assigned to one another after construction.
 ```cpp
-// Kratos::SparseGraph<std::size_t> graph1, graph2;
-// graph1 = graph2; // This line would cause a compilation error.
+Kratos::SparseGraph<std::size_t> graph1, graph2;
+graph1 = graph2; // This line would cause a compilation error.
 ```
 
-## Main Operators and Member Functions
+### Main Operators and Member Functions
 
-### `AddEntry(TIndexType Index1, TIndexType Index2)`
+#### `AddEntry(TIndexType Index1, TIndexType Index2)`
 Adds a single directed edge (entry) from `Index1` to `Index2`. If the entry already exists, it is not added again.
 ```cpp
 Kratos::SparseGraph<std::size_t> graph(5);
 graph.AddEntry(0, 1); // Adds an edge from node 0 to node 1
 graph.AddEntry(0, 2);
 ```
-### `AddEntries(TIndexType Index, const std::vector<TIndexType>& rNewEntries)`
+#### `AddEntries(TIndexType Index, const std::vector<TIndexType>& rNewEntries)`
 Adds multiple directed edges from a source node `Index` to all nodes specified in `rNewEntries`.
 ```cpp
 Kratos::SparseGraph<std::size_t> graph(5);
@@ -90,7 +90,7 @@ std::vector<std::size_t> targets = {1, 2, 3};
 graph.AddEntries(0, targets); // Adds edges from node 0 to nodes 1, 2, and 3
 ```
 
-### `AddEntries`
+#### `AddEntries`
 There are several overloads to add multiple entries:
 
 **`AddEntries(const IndexType RowIndex, const TContainerType& rColIndices)`**
@@ -142,7 +142,7 @@ graph1.AddEntries(graph2);
 // graph1 now contains: 0->{1,2}, 1->{2}
 ```
 
-### `ExportCSRArrays`
+#### `ExportCSRArrays`
 Exports the graph connectivity in Compressed Sparse Row (CSR) format. The column indices for each row are sorted internally by this function.
 
 **`IndexType ExportCSRArrays(TVectorType& rRowIndices, TVectorType& rColIndices) const`**
@@ -198,7 +198,7 @@ delete[] p_col_indices;
 **`IndexType ExportCSRArrays(Kratos::span<IndexType>& rRowIndices, Kratos::span<IndexType>& rColIndices) const = delete;`**
 This overload using `Kratos::span` is explicitly deleted and cannot be used.
 
-### `ExportSingleVectorRepresentation() const`
+#### `ExportSingleVectorRepresentation() const`
 Exports the graph connectivity as a single `std::vector<IndexType>`. This vector is returned by the function.
 The format of the returned vector is:
 `[NROWS, ROW_0_INDEX, R0_NUM_NEIGHBORS, R0_neighbor1, R0_neighbor2, ..., ROW_I_INDEX, RI_NUM_NEIGHBORS, RI_neighbor1, ...]`
@@ -223,7 +223,7 @@ std::vector<std::size_t> single_vec_rep = graph.ExportSingleVectorRepresentation
 // (Order of neighbors like {1,2} for row 0 is not guaranteed as it comes from an unordered_set).
 ```
 
-### `AddFromSingleVectorRepresentation(const std::vector<IndexType>& rSingleVectorRepresentation)`
+#### `AddFromSingleVectorRepresentation(const std::vector<IndexType>& rSingleVectorRepresentation)`
 Clears the current graph and populates it from the data provided in `rSingleVectorRepresentation`, which must follow the format described in `ExportSingleVectorRepresentation`.
 ```cpp
 Kratos::SparseGraph<std::size_t> graph;
@@ -231,7 +231,7 @@ std::vector<std::size_t> rep_data = {3, 0, 2, 1, 2, 2, 1, 0}; // Represents 0->{
 graph.AddFromSingleVectorRepresentation(rep_data);
 // graph now contains entries (0,1), (0,2), and (2,0).
 ```
-### `GetGraph() const`
+#### `GetGraph() const`
 Returns a constant reference to the underlying graph data structure.
 The graph is stored as `std::map<IndexType, std::unordered_set<IndexType> >`.
 ```cpp
@@ -250,7 +250,7 @@ for(const auto& row_pair : internal_graph_data) {
 // Row 0 has neighbors: 1 2  (or 2 1, as std::unordered_set does not guarantee order)
 ```
 
-### `Size() const`
+#### `Size() const`
 Returns the "size" of the graph. This is calculated as the largest row index that has entries, plus one. If the graph is empty (no entries), it returns 0.
 ```cpp
 Kratos::SparseGraph<std::size_t> graph;
@@ -261,7 +261,7 @@ graph.AddEntry(0, 1); // Max row index is still 2
 std::cout << "Size after adding (0,1): " << graph.Size() << std::endl; // Output: Size after adding (0,1): 3
 ```
 
-### `IsEmpty() const`
+#### `IsEmpty() const`
 Returns `true` if the graph contains no entries (i.e., `mGraph` is empty), `false` otherwise.
 ```cpp
 Kratos::SparseGraph<std::size_t> graph;
@@ -269,7 +269,7 @@ KRATOS_CHECK(graph.IsEmpty()); // True
 graph.AddEntry(0,0);
 KRATOS_CHECK_IS_FALSE(graph.IsEmpty()); // False
 ```
-### `Has(TIndexType Index1, TIndexType Index2)`
+#### `Has(TIndexType Index1, TIndexType Index2)`
 Checks if a directed edge exists from `Index1` to `Index2`.
 Returns `true` if the edge exists, `false` otherwise.
 ```cpp
@@ -279,7 +279,7 @@ bool exists = graph.Has(0, 1); // true
 bool not_exists = graph.Has(1, 0); // false (unless explicitly added)
 ```
 
-### `operator[](const IndexType& Key) const`
+#### `operator[](const IndexType& Key) const`
 Returns a constant reference to the `std::unordered_set<IndexType>` of neighbors for the row `Key`.
 **Important**: This operator assumes that `Key` exists as a row in the graph (i.e., `mGraph.find(Key)` would not be `mGraph.end()`). Accessing a non-existent key via this `operator[]` can lead to undefined behavior because it would involve dereferencing an end iterator of the underlying map.
 It is safer to first check if the row `Key` exists using `graph.GetGraph().count(Key)` or by iterating.
@@ -299,10 +299,10 @@ if (graph.GetGraph().count(0)) { // Check if row 0 exists
 }
 
 // Accessing graph[1] here would be unsafe if row 1 has not been added.
-// const auto& neighbors_of_1 = graph[1]; // Potential Undefined Behavior if 1 is not a key in mGraph
+const auto& neighbors_of_1 = graph[1]; // Potential Undefined Behavior if 1 is not a key in mGraph
 ```
 
-### `Clear()`
+#### `Clear()`
 Removes all nodes and edges from the graph, making it empty.
 ```cpp
 Kratos::SparseGraph<std::size_t> graph(5);
@@ -310,7 +310,7 @@ graph.AddEntry(0,1);
 graph.Clear();
 std::cout << "Graph size after clear: " << graph.Size() << std::endl; // Output: Graph size after clear: 0
 ```
-### Iterators
+#### Iterators
 The `SparseGraph` provides iterators to traverse the graph data.
 - `begin()`: Returns an iterator to the beginning of the graph's adjacency list.
 - `end()`: Returns an iterator to the end of the graph's adjacency list.
@@ -344,7 +344,7 @@ for (auto it_row = graph.begin(); it_row != graph.end(); ++it_row) {
 // Row 0 has neighbors: 1 2  (or 2 1)
 // Row 1 has neighbors: 2 
 ```
-### `Finalize()`
+#### `Finalize()`
 This method is provided but currently has an empty implementation in `sparse_graph.h`. It might be used in derived classes or future versions for graph optimization or finalization steps.
 ```cpp
 Kratos::SparseGraph<std::size_t> graph;
@@ -352,7 +352,7 @@ graph.AddEntry(0,1);
 graph.Finalize(); // Currently does nothing for SparseGraph itself.
 ```
 
-### `GetComm() const` and `pGetComm() const`
+#### `GetComm() const` and `pGetComm() const`
 Return the `DataCommunicator` associated with the graph. `SparseGraph` is intended for serial use, so this will typically be the serial communicator.
 - `GetComm()`: Returns a const reference to the communicator.
 - `pGetComm()`: Returns a const pointer to the communicator.
@@ -360,12 +360,12 @@ Return the `DataCommunicator` associated with the graph. `SparseGraph` is intend
 Kratos::SparseGraph<std::size_t> graph;
 const Kratos::DataCommunicator& comm_ref = graph.GetComm();
 // const Kratos::DataCommunicator* comm_ptr = graph.pGetComm();
-// KRATOS_CHECK_IS_FALSE(comm_ref.IsDistributed()); // Should be true for default serial communicator
+KRATOS_CHECK_IS_FALSE(comm_ref.IsDistributed()); // Should be true for default serial communicator
 ```
 
-## Input and Output Methods
+### Input and Output Methods
 
-### `Info() const`
+#### `Info() const`
 Returns a string containing basic information about the `SparseGraph`. According to `sparse_graph.h`, this returns the string "SparseGraph".
 ```cpp
 Kratos::SparseGraph<std::size_t> graph;
@@ -373,7 +373,7 @@ std::cout << graph.Info() << std::endl;
 // Output: SparseGraph
 ```
 
-### `PrintInfo(std::ostream& rOStream) const`
+#### `PrintInfo(std::ostream& rOStream) const`
 Prints basic information about the `SparseGraph` to the specified output stream `rOStream`. It prints the string "SparseGraph".
 ```cpp
 Kratos::SparseGraph<std::size_t> graph;
@@ -381,7 +381,7 @@ graph.PrintInfo(std::cout); // Prints "SparseGraph" to cout
 std::cout << std::endl;
 ```
 
-### `PrintData(std::ostream& rOStream) const`
+#### `PrintData(std::ostream& rOStream) const`
 Prints the data of the `SparseGraph` to the specified output stream `rOStream`.
 **Note:** The default implementation of `PrintData` in `sparse_graph.h` is empty, so it prints nothing.
 ```cpp
@@ -392,7 +392,7 @@ std::cout << std::endl;
 ```
 To visualize the graph's contents, iterate using `GetGraph()` or the graph's iterators and print manually.
 
-### Stream Operators
+#### Stream Operators
 
 **`operator<<(std::ostream& rOStream, const SparseGraph<TIndexType>& rThis)`**
 Overloads the `<<` operator for output streams. It calls `rThis.PrintInfo(rOStream)`, then prints a newline, and then calls `rThis.PrintData(rOStream)`.
@@ -407,22 +407,22 @@ std::cout << graph;
 //  then the stream operator itself doesn't add another newline automatically after PrintData)
 ```
 
-## Serialization
+### Serialization
 
-### `save(Serializer& rSerializer)`
+#### `save(Serializer& rSerializer)`
 Serializes the `SparseGraph` object. This is typically used for saving the state of the graph to a file or sending it over a network.
 ```cpp
 // Assuming rSerializer is a Kratos::Serializer object
-// Kratos::SparseGraph<std::size_t> graph_to_save;
+Kratos::SparseGraph<std::size_t> graph_to_save;
 // ... populate graph_to_save ...
-// rSerializer.save("MyGraph", graph_to_save);
+rSerializer.save("MyGraph", graph_to_save);
 ```
 **Note:** Actual usage depends on the Kratos serialization framework.
 
-### `load(Serializer& rSerializer)`
+#### `load(Serializer& rSerializer)`
 Deserializes the `SparseGraph` object, restoring its state from a serialized representation.
 ```cpp
 // Assuming rSerializer is a Kratos::Serializer object
-// Kratos::SparseGraph<std::size_t> graph_to_load;
-// rSerializer.load("MyGraph", graph_to_load);
+Kratos::SparseGraph<std::size_t> graph_to_load;
+rSerializer.load("MyGraph", graph_to_load);
 ```
