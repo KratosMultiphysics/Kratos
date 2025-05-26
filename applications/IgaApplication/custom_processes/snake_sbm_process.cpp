@@ -590,7 +590,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
                         
-                    auto pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    auto pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
 
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
                     pcond->Set(BOUNDARY, false);
@@ -609,7 +609,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0]; 
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
                     
-                auto pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
+                auto pcond = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                 id_surrogate_condition++;
                 check_next_point = true;
 
@@ -852,7 +852,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
                         
-                    auto pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    auto pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
                     pcond->Set(BOUNDARY, false);
                     id_surrogate_condition++;
@@ -866,7 +866,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
-                auto pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
+                auto pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                 id_surrogate_condition++;
                 check_next_point = true;
 

@@ -9,8 +9,8 @@ class TestSmoothClamper(UnitTest.TestCase):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
 
-        cls.min = -1.5
-        cls.max = 1.5
+        cls.min = -150
+        cls.max = 150
 
         for i in range(101):
             node = cls.model_part.CreateNewNode(i + 1, i + 1, i + 2, i + 3)
@@ -25,17 +25,17 @@ class TestSmoothClamper(UnitTest.TestCase):
     def test_Clamp(self) -> None:
         y = self.clamper.ProjectForward(self.x_exp).Evaluate()
         for i, y_i in enumerate(y):
-            if self.x[i] < 0.0:
+            if self.x[i] < -10.0:
                 self.assertEqual(y_i, -10.0)
-            elif self.x[i] > 1.0:
+            elif self.x[i] > 10.0:
                 self.assertEqual(y_i, 10.0)
-        self.assertAlmostEqual(np.linalg.norm(y), 91.57361915207677)
+        self.assertAlmostEqual(np.linalg.norm(y), 98.78158380993898)
 
     def test_InverseClamp(self) -> None:
         y = self.clamper.ProjectForward(self.x_exp)
         x = self.clamper.ProjectBackward(y).Evaluate()
 
-        x_clamped = np.clip(self.x_exp.Evaluate(), 0, 1)
+        x_clamped = np.clip(self.x_exp.Evaluate(), -10, 10)
         self.assertAlmostEqual(np.linalg.norm(x - x_clamped), 0.0)
 
     def test_ClampDerivative(self) -> None:
