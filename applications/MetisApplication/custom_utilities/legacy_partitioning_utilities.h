@@ -130,24 +130,24 @@ public:
      * @param rGeometriesAllPartitions The resulting geometries for all partitions.
      * @param rElementsConnectivities The connectivities of the elements.
      * @param rConditionsConnectivities The connectivities of the conditions.
-     * @param rMasterSlaveConstraintsAllPartitions The resulting constraints for all partitions.
+     * @param rConstraintsAllPartitions The resulting constraints for all partitions.
      * @param rNodesPartitions The node partitions.
      * @param rGeometriesPartitions The geometry partitions.
      * @param rElementsPartitions The element partitions.
      * @param rConditionsPartitions The condition partitions.
-     * @param rMasterSlaveConstraintsPartitions The constraints partitions.
+     * @param rConstraintsPartitions The constraints partitions.
      */
     static void DividingNodes(
         IO::PartitionIndicesContainerType& rNodesAllPartitions,
         IO::PartitionIndicesContainerType& rGeometriesAllPartitions,
         IO::ConnectivitiesContainerType& rElementsConnectivities,
         IO::ConnectivitiesContainerType& rConditionsConnectivities,
-        IO::PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions,
+        IO::PartitionIndicesContainerType& rConstraintsAllPartitions,
         const PartitionIndicesType& rNodesPartitions,
         const PartitionIndicesType& rGeometriesPartitions,
         const PartitionIndicesType& rElementsPartitions,
         const PartitionIndicesType& rConditionsPartitions,
-        const PartitionIndicesType& rMasterSlaveConstraintsPartitions
+        const PartitionIndicesType& rConstraintsPartitions
         );
 
     /**
@@ -182,12 +182,12 @@ public:
 
     /**
      * @brief Divides constraints among partitions.
-     * @param rMasterSlaveConstraintsAllPartitions The resulting constraints for all partitions.
-     * @param rMasterSlaveConstraintsPartitions The constraint partitions.
+     * @param rConstraintsAllPartitions The resulting constraints for all partitions.
+     * @param rConstraintsPartitions The constraint partitions.
      */
-    static void DividingMasterSlaveConstraints(
-        IO::PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions,
-        const PartitionIndicesType& rMasterSlaveConstraintsPartitions
+    static void DividingConstraints(
+        IO::PartitionIndicesContainerType& rConstraintsAllPartitions,
+        const PartitionIndicesType& rConstraintsPartitions
         );
 
     /**

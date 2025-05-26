@@ -88,7 +88,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
     // Partition master-slave constraints // TODO
     IO::ConnectivitiesContainerType master_slave_constraints_connectivities;
-    const SizeType number_of_master_slave_constraints = mrIO.ReadMasterSlaveConstraintsConnectivities(master_slave_constraints_connectivities);
+    const SizeType number_of_master_slave_constraints = mrIO.ReadConstraintsConnectivities(master_slave_constraints_connectivities);
     if (number_of_master_slave_constraints != master_slave_constraints_connectivities.size()) {
         std::stringstream Msg;
         Msg << std::endl;
@@ -99,7 +99,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
     }
     std::vector<idxtype> master_slave_constraints_partition;
     if (mSynchronizeConditions)
-        PartitionMasterSlaveConstraintsSynchronous(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
+        PartitionConstraintsSynchronous(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
     else
         PartitionMesh(node_partition,master_slave_constraints_connectivities,master_slave_constraints_partition);
 
@@ -130,7 +130,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
     LegacyPartitioningUtilities::DividingGeometries(rPartitioningInfo.GeometriesAllPartitions, geometry_partition);
     LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, element_partition);
     LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, condition_partition);
-    LegacyPartitioningUtilities::DividingMasterSlaveConstraints(rPartitioningInfo.ConstraintsAllPartitions, master_slave_constraints_partition);
+    LegacyPartitioningUtilities::DividingConstraints(rPartitioningInfo.ConstraintsAllPartitions, master_slave_constraints_partition);
 
     if (mVerbosity > 1) {
         auto& r_nodes_all_partitions = rPartitioningInfo.NodesAllPartitions;
@@ -577,26 +577,26 @@ void MetisDivideHeterogeneousInputProcess::PartitionConditionsSynchronous(const 
 
 }
 
-void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchronous(std::vector<idxtype> const& NodePartition,
-                    const IO::ConnectivitiesContainerType& rMasterSlaveConstraintConnectivities,
-                    std::vector<idxtype>& rMasterSlaveConstraintPartition)
+void MetisDivideHeterogeneousInputProcess::PartitionConstraintsSynchronous(std::vector<idxtype> const& NodePartition,
+                    const IO::ConnectivitiesContainerType& rConstraintConnectivities,
+                    std::vector<idxtype>& rConstraintPartition)
 {
-    SizeType NumMasterSlaveConstraints = rMasterSlaveConstraintConnectivities.size();
+    SizeType NumConstraints = rConstraintConnectivities.size();
 
-    // initialize MasterSlaveConstraintPartition
+    // initialize ConstraintPartition
     mNodeConnectivities = std::vector<std::unordered_set<std::size_t>>(mNumNodes,std::unordered_set<std::size_t>());
-    rMasterSlaveConstraintPartition.resize(NumMasterSlaveConstraints,-1);
+    rConstraintPartition.resize(NumConstraints,-1);
 
     // Fill the node Connectivities
-    for(std::size_t i = 0; i < NumMasterSlaveConstraints; i++) {
-        for (auto it_node = rMasterSlaveConstraintConnectivities[i].begin(); it_node != rMasterSlaveConstraintConnectivities[i].end(); ++it_node) {
+    for(std::size_t i = 0; i < NumConstraints; i++) {
+        for (auto it_node = rConstraintConnectivities[i].begin(); it_node != rConstraintConnectivities[i].end(); ++it_node) {
             mNodeConnectivities[*it_node-1].insert(i);
         }
     }
 
-    // MasterSlaveConstraints where all nodes belong to the same partition always go to that partition
-    auto it_master_slave_constraint = rMasterSlaveConstraintConnectivities.begin();
-    for (auto it_part = rMasterSlaveConstraintPartition.begin(); it_part != rMasterSlaveConstraintPartition.end(); it_part++) {
+    // Constraints where all nodes belong to the same partition always go to that partition
+    auto it_master_slave_constraint = rConstraintConnectivities.begin();
+    for (auto it_part = rConstraintPartition.begin(); it_part != rConstraintPartition.end(); it_part++) {
         const int my_partition = NodePartition[ (*it_master_slave_constraint)[0] - 1 ]; // Node Ids start from 1
         SizeType neighbour_nodes = 1; // Nodes in the same partition
         for (auto it_node = it_master_slave_constraint->begin()+1; it_node != it_master_slave_constraint->end(); ++it_node) {
@@ -615,8 +615,8 @@ void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchr
     }
 
     // Now distribute boundary constraints
-    it_master_slave_constraint = rMasterSlaveConstraintConnectivities.begin();
-    for (auto it_part = rMasterSlaveConstraintPartition.begin(); it_part != rMasterSlaveConstraintPartition.end(); it_part++) {
+    it_master_slave_constraint = rConstraintConnectivities.begin();
+    for (auto it_part = rConstraintPartition.begin(); it_part != rConstraintPartition.end(); it_part++) {
         if (*it_part == -1) { // If constraint is still unassigned
             SizeType found_neighbours = 0;
             SizeType nodes_in_master_slave_constraint = it_master_slave_constraint->size();
@@ -653,7 +653,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionMasterSlaveConstraintsSynchr
         it_master_slave_constraint++;
     }
 
-    PrintDebugData("MasterSlaveConstraint Partition",rMasterSlaveConstraintPartition);
+    PrintDebugData("Constraint Partition",rConstraintPartition);
 }
 
 void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
@@ -664,8 +664,8 @@ void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
     const IO::ConnectivitiesContainerType& rElementConnectivities,
     std::vector<idxtype> const& rConditionPartition,
     const IO::ConnectivitiesContainerType& rConditionConnectivities,
-    std::vector<idxtype> const& rMasterSlaveConstraintPartition,
-    const IO::ConnectivitiesContainerType& rMasterSlaveConstraintConnectivities
+    std::vector<idxtype> const& rConstraintPartition,
+    const IO::ConnectivitiesContainerType& rConstraintConnectivities
     )
 {
     // Initialize node use counts
@@ -706,9 +706,9 @@ void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
 
     // Count number of times a node is used locally in master-slave constraints
     std::size_t constraint_index = 0;
-    for (auto it_const = rMasterSlaveConstraintConnectivities.begin(); it_const != rMasterSlaveConstraintConnectivities.end(); it_const++) {
+    for (auto it_const = rConstraintConnectivities.begin(); it_const != rConstraintConnectivities.end(); it_const++) {
         for (auto it_node = it_const->begin(); it_node != it_const->end(); it_node++) {
-            if ( rNodePartition[*it_node-1] == rMasterSlaveConstraintPartition[constraint_index] ) {
+            if ( rNodePartition[*it_node-1] == rConstraintPartition[constraint_index] ) {
                 node_use_counts[*it_node-1]++;
             }
         }
@@ -769,10 +769,10 @@ void MetisDivideHeterogeneousInputProcess::RedistributeHangingNodes(
 
         // Count number of times a node is used locally in master-slave constraints
         std::size_t constraint_index = 0;
-        for (auto it_const = rMasterSlaveConstraintConnectivities.begin(); it_const != rMasterSlaveConstraintConnectivities.end(); it_const++) {
+        for (auto it_const = rConstraintConnectivities.begin(); it_const != rConstraintConnectivities.end(); it_const++) {
             for (auto it_node = it_const->begin(); it_node != it_const->end(); it_node++) {
                 if ( hanging_nodes[n] == *it_node ) {
-                    local_use_count[rMasterSlaveConstraintPartition[constraint_index]]++;
+                    local_use_count[rConstraintPartition[constraint_index]]++;
                 }
             }
             constraint_index++;

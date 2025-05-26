@@ -218,10 +218,10 @@ protected:
 			     std::vector<idxtype>& rCondPartition);
 
     /// Partition the constraint such that boundary constraints are always assigned the majority partition.
-    void PartitionMasterSlaveConstraintsSynchronous(
+    void PartitionConstraintsSynchronous(
         const std::vector<idxtype>& NodePartition,
-        const IO::ConnectivitiesContainerType& rMasterSlaveConstraintConnectivities,
-        std::vector<idxtype>& rMasterSlaveConstraintPartition
+        const IO::ConnectivitiesContainerType& rConstraintConnectivities,
+        std::vector<idxtype>& rConstraintPartition
         );
 
     /**
@@ -244,9 +244,9 @@ protected:
      *                            Condition partitioning is used to manage nodes associated with conditions.
      * @param rConditionConnectivities A const reference to the container with connectivity data
      *                                 for conditions. This is used to correctly assign node partitions based on condition connectivity.
-     * @param rMasterSlaveConstraintPartition A const reference to the vector holding partition indices for master-slave constraints.
+     * @param rConstraintPartition A const reference to the vector holding partition indices for master-slave constraints.
      *                                          This is used to propagate partitioning information from master-slave constraints.
-     * @param rMasterSlaveConstraintConnectivities A const reference to the container with connectivity data
+     * @param rConstraintConnectivities A const reference to the container with connectivity data
      *                                             for master-slave constraints.
      */
     void RedistributeHangingNodes(
@@ -257,8 +257,8 @@ protected:
             const IO::ConnectivitiesContainerType& rElementConnectivities,
             std::vector<idxtype> const& rConditionPartition,
             const IO::ConnectivitiesContainerType& rConditionConnectivities,
-            std::vector<idxtype> const& rMasterSlaveConstraintPartition,
-            const IO::ConnectivitiesContainerType& rMasterSlaveConstraintConnectivities
+            std::vector<idxtype> const& rConstraintPartition,
+            const IO::ConnectivitiesContainerType& rConstraintConnectivities
             );
 
     SizeType FindMax(SizeType NumTerms, const std::vector<int>& rVect);
