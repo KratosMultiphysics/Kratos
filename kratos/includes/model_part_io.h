@@ -273,7 +273,7 @@ public:
      *        constraints will be stored. This container is expected to be populated
      *        by the derived class implementation.
      */
-    void ReadMasterSlaveConstraints(
+    void ReadConstraints(
         NodesContainerType& rThisNodes,
         MasterSlaveConstraintContainerType& rConstraintContainer
         ) override;
@@ -287,7 +287,7 @@ public:
      * @param rConstraintContainer The container holding the master-slave
      *        constraints to be written.
      */
-    void WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer) override;
+    void WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer) override;
 
     /**
      * @brief This method reads the initial values of the model part

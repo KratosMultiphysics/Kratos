@@ -505,7 +505,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
     }
 }
 
-void ModelPartIO::ReadMasterSlaveConstraints(
+void ModelPartIO::ReadConstraints(
     NodesContainerType& rThisNodes,
     MasterSlaveConstraintContainerType& rConstraintContainer
     )
@@ -527,7 +527,7 @@ void ModelPartIO::ReadMasterSlaveConstraints(
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteMasterSlaveConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
+void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
 {
     // We are going to proceed like the following, we are going to iterate over all the constraints and compare with the components, we will save the type and we will compare until we get that the type of constraint has changed
     // NOTE: Only constraints with one slave dof are supported
@@ -790,7 +790,7 @@ void ModelPartIO::WriteMesh(MeshType & rThisMesh)
     WriteNodes(rThisMesh.Nodes());
     WriteElements(rThisMesh.Elements());
     WriteConditions(rThisMesh.Conditions());
-    WriteMasterSlaveConstraints(rThisMesh.MasterSlaveConstraints());
+    WriteConstraints(rThisMesh.MasterSlaveConstraints());
 }
 
 void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
