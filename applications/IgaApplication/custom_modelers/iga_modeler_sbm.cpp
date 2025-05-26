@@ -362,8 +362,6 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
     
     // Get the mesh sizes from the surrogate model part
     const Vector& knot_span_sizes = surrogate_sub_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
-    // Get the parameter space corners from the surrogate model part
-    const std::vector<Vector>& parameter_space_corners = surrogate_sub_model_part.GetParentModelPart().GetValue(PARAMETER_SPACE_CORNERS);
 
     double knot_span_reference_size = knot_span_sizes[0];
     if (knot_span_sizes[1] > knot_span_reference_size) {knot_span_reference_size = knot_span_sizes[1];}
