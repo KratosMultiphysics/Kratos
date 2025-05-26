@@ -111,19 +111,19 @@ void LegacyPartitioningUtilities::DividingNodes(
     IO::ConnectivitiesContainerType& rElementsConnectivities,
     IO::ConnectivitiesContainerType& rConditionsConnectivities,
     IO::ConnectivitiesContainerType& rGeometriesConnectivities,
-    IO::ConnectivitiesContainerType& rMasterSlaveConstraintsConnectivities,
+    IO::ConnectivitiesContainerType& rConstraintsConnectivities,
     const PartitionIndicesType& rNodesPartitions,
     const PartitionIndicesType& rElementsPartitions,
     const PartitionIndicesType& rConditionsPartitions,
     const PartitionIndicesType& rGeometriesPartitions,
-    const PartitionIndicesType& rMasterSlaveConstraintsPartitions
+    const PartitionIndicesType& rConstraintsPartitions
     )
 {
     const SizeType number_of_nodes = rNodesPartitions.size();
     const SizeType number_of_elements = rElementsPartitions.size();
     const SizeType number_of_conditions = rConditionsPartitions.size();
     const SizeType number_of_geometries = rGeometriesPartitions.size();
-    const SizeType number_of_master_slave_constraints = rMasterSlaveConstraintsPartitions.size();
+    const SizeType number_of_master_slave_constraints = rConstraintsPartitions.size();
 
     rNodesAllPartitions.resize(number_of_nodes);
 
@@ -171,9 +171,9 @@ void LegacyPartitioningUtilities::DividingNodes(
 
     // Process master-slave constraints connectivities
     for(IndexType i_constraint = 0; i_constraint < number_of_master_slave_constraints; i_constraint++) {
-        const int constraint_partition = rMasterSlaveConstraintsPartitions[i_constraint];
+        const int constraint_partition = rConstraintsPartitions[i_constraint];
 
-        auto& r_constraint_connectivity = rMasterSlaveConstraintsConnectivities[i_constraint];
+        auto& r_constraint_connectivity = rConstraintsConnectivities[i_constraint];
         for(auto it_node = r_constraint_connectivity.begin(); it_node != r_constraint_connectivity.end(); it_node++) {
             const int my_gid = *it_node - 1;
             const int node_partition = rNodesPartitions[my_gid];
@@ -238,18 +238,18 @@ void LegacyPartitioningUtilities::DividingConditions(
     }
 }
 
-void LegacyPartitioningUtilities::DividingMasterSlaveConstraints(
-    IO::PartitionIndicesContainerType& rMasterSlaveConstraintsAllPartitions,
-    const PartitionIndicesType& MasterSlaveConstraintsPartitions
+void LegacyPartitioningUtilities::DividingConstraints(
+    IO::PartitionIndicesContainerType& rConstraintsAllPartitions,
+    const PartitionIndicesType& ConstraintsPartitions
     )
 {
-    const SizeType number_of_constraints = MasterSlaveConstraintsPartitions.size();
+    const SizeType number_of_constraints = ConstraintsPartitions.size();
 
-    rMasterSlaveConstraintsAllPartitions.resize(number_of_constraints);
+    rConstraintsAllPartitions.resize(number_of_constraints);
 
     // Adding the constraint partition to their array of partitions
     for(IndexType i_constraint = 0 ; i_constraint < number_of_constraints ; i_constraint++) {
-        rMasterSlaveConstraintsAllPartitions[i_constraint].push_back(MasterSlaveConstraintsPartitions[i_constraint]);
+        rConstraintsAllPartitions[i_constraint].push_back(ConstraintsPartitions[i_constraint]);
     }
 }
 
