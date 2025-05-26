@@ -10,7 +10,7 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 # The bounding box, which has its bottom placed at z=0 is set to mark the particles to be erased when they
 # cross this limit. Depending on the delay imposed on the destruction of the particles after they are marked,
 # a different number of particles is recovered at the end of the simulation (more delay should lead
-# to equal ot greater number of particles at the end).
+# to equal or greater number of particles at the end).
 
 debug_mode = False
 

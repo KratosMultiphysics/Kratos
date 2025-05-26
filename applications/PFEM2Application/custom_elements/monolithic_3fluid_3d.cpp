@@ -1047,7 +1047,7 @@ namespace Kratos
 			ExtendedDampMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
 		}
 
-		//now we put it all toghether in the big matrix:
+		//now we put it all together in the big matrix:
 		for (unsigned int i=0; i!=(5); i++) //4 nodes + 1dof in the new virtual node
 			for (unsigned int j=0; j!=(5); j++) //4 nodes + 1dof in the new virtual node
 				for (unsigned int k=0; k!=(3); k++) //x,y,(z)

@@ -252,6 +252,8 @@ private:
                     active_range_knot_vector[0] = first_point[0];
                     active_range_knot_vector[1] = second_point[0];
                 }
+                // Always sort the range, regardless of direction
+                std::sort(active_range_knot_vector.begin(), active_range_knot_vector.end());
 
                 // check if the brep is entering or exiting
                 if (i_cond.Is(BOUNDARY))
@@ -309,6 +311,8 @@ private:
                     active_range_knot_vector[0] = first_point[0];
                     active_range_knot_vector[1] = second_point[0];
                 }
+                // Always sort the range, regardless of direction
+                std::sort(active_range_knot_vector.begin(), active_range_knot_vector.end());
 
                 // check if the brep is entering or exiting
                 if (p_cond->Is(BOUNDARY))

@@ -136,6 +136,39 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20Volume, KratosCoreGeometriesFastSuite)
   KRATOS_EXPECT_NEAR(geom->Volume(), 1.0, TOLERANCE);
 }
 
+/** Checks the values of the shape functions at a local coordinate */
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20ShapeFunctionsValues, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateCanonicalHexahedra3D20();
+    array_1d<double, 3> coord(3);
+    coord[0] = 1.0 / 2.0;
+    coord[1] = 1.0 / 4.0;
+    coord[2] = 1.0 / 16.0;
+
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), -0.12359619140625, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), -0.23895263671875, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), -0.28839111328125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(3, coord), -0.16937255859375, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(4, coord), -0.13385009765625, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(5, coord), -0.25213623046875, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(6, coord), -0.29571533203125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(7, coord), -0.18157958984375, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(8, coord), 0.1318359375, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(9, coord), 0.32958984375, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(10, coord), 0.2197265625, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(11, coord), 0.10986328125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(12, coord), 0.0933837890625, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(13, coord), 0.2801513671875, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(14, coord), 0.4669189453125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(15, coord), 0.1556396484375, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(16, coord), 0.1494140625, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(17, coord), 0.37353515625, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(18, coord), 0.2490234375, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(19, coord), 0.12451171875, TOLERANCE);
+
+    CrossCheckShapeFunctionsValues(*geom);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D20ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite)
 {
     auto geom = GenerateCanonicalHexahedra3D20();
