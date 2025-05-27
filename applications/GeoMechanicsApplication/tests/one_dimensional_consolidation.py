@@ -60,6 +60,13 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         return [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", time, output_data, node_ids)]
 
 
+    def _get_numerical_vertical_displacements(self, time, stage_no, node_ids):
+        output_file_path = os.path.join(self.test_path, f"1D-Consolidationtest_stage{stage_no}.post.res")
+        reader = test_helper.GiDOutputFileReader()
+        output_data = reader.read_output_from(output_file_path)
+        return [-1.0 * u[1] for u in reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data, node_ids)]
+
+
     def _calculate_rmse_of_differences(self, values1, values2):
         differences = [value1 - value2 for value1, value2 in zip(values1, values2)]
         return math.sqrt(sum([diff * diff for diff in differences]) / len(differences))
@@ -76,6 +83,30 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
             stage_no += 1
 
         self._check_rmse_values(rmse_values, "relative water pressure values")
+
+
+    def _check_degree_of_consolidation(self):
+        # calculate the degree of consolidation analytical solution for all stages and calculate the error
+        # Verruijt's notations
+        q = -1.0                            # the load
+        K = 3.33e2                          # the compression modulus
+        G = 5.0e2                           # shear modulus
+        m_v = 1/(K + 4/3 * G)               # the compressibility coefficient
+        beta = 0.5e-9                       # the compressibility of the water.
+        n = 0.3                             # the porosity
+        delta_h0 = (-1)*m_v*self.sample_height*q*n*beta/(m_v+n*beta) # deformation immediately after the application of the load
+        delta_h_infinity = (-1)*m_v*self.sample_height*q # the final deformation
+
+        stage_no = 2  # The first stage is not checked
+        rmse_values = []
+        for t_v, time in zip(self.t_vs, self.end_times):
+            settlement_values = self._get_numerical_vertical_displacements(time, stage_no, self.top_node_ids)
+            numerical_degree_values = [(u_y - delta_h0) / (delta_h_infinity - delta_h0) for u_y in settlement_values]
+            analytical_degree = analytical_solutions.calculate_degree_of_1d_consolidation(t_v)
+            rmse_values.append(self._calculate_rmse_of_differences(numerical_degree_values, [analytical_degree] * len(self.top_node_ids)))
+            stage_no += 1
+
+        self._check_rmse_values(rmse_values, "degree of consolidation values")
 
 
     def _check_rmse_values(self, values, description):
@@ -106,34 +137,11 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
         model = Kratos.Model()
 
         # run stages and get total displacement results per stage
-        stage_total_y_displacements = []
         for stage_parameters in all_stage_parameters:
-            stage = analysis.GeoMechanicsAnalysis(model, stage_parameters)
-            stage.Run()
-            total_displacements = test_helper.get_nodal_variable(stage, KratosGeo.TOTAL_DISPLACEMENT)
-            stage_total_y_displacements.append([displacement[1] for displacement in total_displacements])
+            analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 
         self._check_relative_water_pressures_at_mid_column()
-
-        # calculate the degree of consolidation analytical solution for all stages and calculate the error
-        # Verruijt's notations
-        q = -1.0                            # the load
-        K = 3.33e2                          # the compression modulus
-        G = 5.0e2                           # shear modulus
-        m_v = 1/(K + 4/3 * G)               # the compressibility coefficient
-        beta = 0.5e-9                       # the compressibility of the water.
-        n = 0.3                             # the porosity
-        delta_h0 = (-1)*m_v*self.sample_height*q*n*beta/(m_v+n*beta) # deformation immediately after the application of the load
-        delta_h_infinity = (-1)*m_v*self.sample_height*q # the final deformation
-
-        rmse_values = []
-        for idx, t_v in enumerate(self.t_vs):
-            numerical_degree_values = [(-1.0 * stage_total_y_displacements[idx + 1][id - 1] - delta_h0) / (delta_h_infinity - delta_h0) for id in
-                            self.top_node_ids]
-            analytical_degree = analytical_solutions.calculate_degree_of_1d_consolidation(t_v)
-            rmse_values.append(self._calculate_rmse_of_differences(numerical_degree_values, [analytical_degree] * len(self.top_node_ids)))
-
-        self._check_rmse_values(rmse_values, "degree of consolidation values")
+        self._check_degree_of_consolidation()
 
         os.chdir(initial_directory)
 
@@ -150,6 +158,7 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
         self.assertEqual(status, 0)
 
         self._check_relative_water_pressures_at_mid_column()
+        self._check_degree_of_consolidation()
 
 
 if __name__ == '__main__':
