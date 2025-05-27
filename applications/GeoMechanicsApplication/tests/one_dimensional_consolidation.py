@@ -39,6 +39,12 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
     def _get_test_dir_name(self):
         raise RuntimeError("This base class does not provide a generic test directory name")
 
+
+    def _check_rmse_values(self, values, description):
+        accuracy = 0.01
+        for stage_index, value in enumerate(values):
+            self.assertLess(value, accuracy, msg=f"RMSE of {description} in stage {stage_index+2}")  # Checking starts from stage 2
+
 class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
     """
     This class contains benchmark tests which are checked with the analytical solution
@@ -92,10 +98,7 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
                             zip(numerical_solution, analytical_solution)]
             rmse_stages[idx] = math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage))
 
-        # assert if average error in all stages is below 1 percent
-        accuracy = 0.01
-        for idx, rmse_stage in enumerate(rmse_stages):
-            self.assertLess(rmse_stage, accuracy, msg=f"RMSE of relative water pressure values in stage {idx+1}")
+        self._check_rmse_values(rmse_stages, "relative water pressure values")
 
         # calculate the degree of consolidation analytical solution for all stages and calculate the error
         # Verruijt's notations
@@ -116,10 +119,7 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
             errors_stage = [numerical_degree - analytical_degree for numerical_degree in rel_displacement]
             rmse_stages[idx] = (sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5
 
-        # assert if average error in all stages is below 1 percent
-        accuracy = 0.01
-        for idx, rmse_stage in enumerate(rmse_stages):
-            self.assertLess(rmse_stage, accuracy, msg=f"RMSE of degree of consolidation values in stage {idx+1}")
+        self._check_rmse_values(rmse_stages, "degree of consolidation values")
 
         os.chdir(initial_directory)
 
@@ -152,10 +152,7 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
                             zip(numerical_solution, analytical_solution)]
             rmse_stages.append(math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage)))
 
-        # assert if average error in all stages is below 1 percent
-        accuracy = 0.01
-        for idx, rmse_stage in enumerate(rmse_stages):
-            self.assertLess(rmse_stage, accuracy, msg=f"RMSE of relative water pressure values in stage {idx+2}")
+        self._check_rmse_values(rmse_stages, "relative water pressure values")
 
 
 
