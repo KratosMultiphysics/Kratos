@@ -83,6 +83,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }] // iga modeler
             """)
         
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        
         run_modelers(current_model, modeler_settings)
 
         support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
@@ -197,6 +200,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         ] // iga modeler
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         
         run_modelers(current_model, modeler_settings)
 
@@ -238,6 +244,10 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
         run_modelers(current_model, modeler_settings)
 
         model_part = current_model.GetModelPart("IgaModelPart")
@@ -299,6 +309,10 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
        # New model
         current_model = KratosMultiphysics.Model()
         skin_model_part_outer_initial = current_model.CreateModelPart("skinModelPart_outer_initial")
@@ -378,6 +392,10 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
        # New model
         current_model = KratosMultiphysics.Model()
         skin_model_part_inner_initial = current_model.CreateModelPart("skinModelPart_inner_initial")
@@ -448,6 +466,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
         current_model = KratosMultiphysics.Model()
 
@@ -555,6 +576,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
         # Create Inner skin boundary
         skin_model_part_inner_initial = current_model.CreateModelPart("skinModelPart_inner_initial")
