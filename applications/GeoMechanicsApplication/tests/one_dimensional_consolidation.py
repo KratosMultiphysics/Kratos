@@ -3,9 +3,6 @@ import os
 import shutil
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
-import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_helper
@@ -56,7 +53,8 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         reader = test_helper.GiDOutputFileReader()
         output_data = reader.read_output_from(output_file_path)
         # Invert the sign of the water pressures resulting from the numerical solution, to make them match the
-        # analytical solution which assumes compressive water pressures to be positive rather than negative
+        # analytical solution which assumes compressive water pressures to be positive rather than negative.
+        # In addition, since the load has size 1, the relative values are equal to the total values.
         return [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", time, output_data, node_ids)]
 
 
