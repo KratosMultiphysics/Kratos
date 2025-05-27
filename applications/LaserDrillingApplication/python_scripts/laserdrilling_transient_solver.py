@@ -8,6 +8,8 @@ import h5py
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.special import gamma as GammaFunction
+from scipy.integrate import quad
+
 
 # from sympy import *
 
@@ -29,6 +31,7 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistrib
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 from KratosMultiphysics import Logger
+from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
 
 def CreateSolver(model, custom_settings):
@@ -158,10 +161,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         return F_p  # J/mm2
 
     def ComputePeakFluence(self):
-        if self.arbitrary_fluence:
+        if self.fluence_type != "super-gaussian":
             # Think about this because not all distributions are peaked.
-            Logger.PrintWarning("Warning:", "Not implemented")
-            raise NotImplementedError
+            self.F_p = None
         else:
             # By default, use a super-gaussian pulse
             peak_fluence = self.ComputePeakFluenceSuperGaussian()
@@ -288,13 +290,18 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.z_ast_max = 0.0  # TODO: Parameter? Remove, since the spot_diameter is unused?
 
         # Fluence
-        if not self.laser_settings["Variables"].Has("arbitrary_fluence"):
-            self.arbitrary_fluence = False
+        if not self.laser_settings["Variables"].Has("fluence_type"):
+            self.fluence_type = "super-gaussian"
+            self.gaussian_order = 2
+            Logger.PrintWarning("Warning", "Fluence type not specified, defaulting to a super-gaussian of order 2")
         else:
-            self.arbitrary_fluence = self.laser_settings["Variables"]["arbitrary_fluence"].GetBool()
+            self.fluence_type = self.laser_settings["Variables"]["fluence_type"].GetString()
 
-        # If the user does not want an arbitrary distribution, select a gaussian.
-        if not self.arbitrary_fluence:
+        # Choose the fluence function: either a super-gaussian, a function from a table or
+        # a function from an expression
+        # TODO: documentation: since the simulation is axisymmetric, only the nonegative half of the
+        # Y axis is used.
+        if self.fluence_type == "super-gaussian":
             if not self.laser_settings["Variables"].Has("gaussian_order"):
                 self.gaussian_order = 2
                 Logger.PrintWarning("Warning", "Gaussian order not specified, defaulting to order 2")
@@ -304,6 +311,38 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.fluence_function = self.FluenceSuperGaussian
             self.F_p = self.ComputePeakFluence()
 
+            # Calculate r_ast_max according to Woodfield 2024
+            if self.gaussian_order == 2:
+                self.r_ast_max = self.ComputeMaximumAblationRadius()
+
+        elif self.fluence_type == "table":
+            if not self.laser_settings["Variables"].Has("table_filename"):
+                Logger.PrintWarning("Warning", "The filename of the file for the fluence table is not specified")
+                raise NameError
+            else:
+                fluence_table_filename = self.laser_settings["Variables"]["table_filename"].GetString()
+
+            fluence_table_settings = KratosMultiphysics.Parameters("""{
+                "name"             : "csv_table",
+                "filename"         : "",
+                "delimiter"        : ",",
+                "skiprows"         : 0,
+                "first_column_id"  : 0,
+                "second_column_id" : 1,
+                "table_id"         : -1,
+                "na_replace"       : 0.0
+            }""")
+            fluence_table_settings["filename"].SetString(fluence_table_filename)
+
+            # Read the table of values into a Kratos PiecewiseLinearTable
+            fluence_table = ReadCsvTableUtility(fluence_table_settings).Read()
+            # Convert the table from a Kratos table to a Python function and normalize it
+            fluence_function_normalized = self.NormalizeAxisymmetricFunction(self.TableToFunction(fluence_table))
+            # Multiply the normalized pulse by the pulse energy to obtain a pulse with energy Q
+            self.fluence_function = lambda x: self.Q * fluence_function_normalized(x)
+
+        elif self.fluence_type == "expression":
+            raise NotImplementedError
         else:
             pass  # TODO: Load the arbitrary intensity
 
@@ -441,8 +480,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             self.decomposed_nodes_coords_filename = self.settings["decomposed_nodes_coords_filename"].GetString()
 
-        self.r_ast_max = self.ComputeMaximumAblationRadius()
-
         if not self.settings.Has("adjust_T_field_after_ablation"):
             self.adjust_T_field_after_ablation = False
         else:
@@ -527,10 +564,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         return self.l_s
 
     def UpdateLaserRelatedParameters(self):
-        self.z_ast_max = self.ComputeMaximumDepth()
+        # self.z_ast_max = self.ComputeMaximumDepth()
         # self.omega_0 = 0.5 * self.ComputeSpotDiameter()
         # self.F_p = self.ComputePeakFluence()
-        self.r_ast_max = self.ComputeMaximumAblationRadius()
+        # self.r_ast_max = self.ComputeMaximumAblationRadius()
+        pass
 
     def SetUpResultsFiles(self):
         self.SetUpGNUPlotFiles()
@@ -936,6 +974,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             )
 
     def ImposeTemperatureIncreaseDueTo1DConduction(self):
+        """
+        TODO: I think this is currently unused
+        """
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
         # TODO: why these values?
@@ -1350,3 +1391,66 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         Must be implemented by child classes.
         """
         pass
+
+    # TODO: move out of the solver class into a sort of utility class or file?
+    def TableToFunction(self, table):
+        """
+        Takes a Kratos PiecewiseLinearTable and outputs a Python function that accesses it.
+
+        Parameters
+        ----------
+        table: Kratos PiecewiseLinearTable
+
+        Returns
+        -------
+        TableAsFunction: Python function
+        """
+
+        def TableAsFunction(x):
+            return table.GetValue(x)
+
+        return TableAsFunction
+
+    # TODO: move out of the solver class into a sort of utility class or file?
+    def NormalizeAxisymmetricFunction(self, f, numerical_zero=1e-15):
+        """
+        Normalizes a function f=f(r) representing the radial part of an axisymmetric function F(r, phi) = f(r)
+        with 0 <= r < +inf,  0 < phi < 2pi.
+        It generates a function g = g(r) such that the integral of G(r, phi) = g(r) over the real plane
+        equals one.
+
+        Note: f itself is not normalized, F is:
+        Integral(F, real plane) = Integral(F(r,phi) r dr dphi, 0 < r < +inf, 0 < phi < 2 pi)
+            = 2pi * Integral(f(r) r dr, 0 < r < +inf)
+
+        Parameters
+        ----------
+        f: callable
+            The input function to normalize, taking a single numeric input.
+
+        Returns
+        -------
+        g: callable
+            A function g such that Integral(g, 0 < r < +inf, 0 < phi < 2 pi) = 1.
+
+        Raises
+        ------
+        ValueError: If the integral of r*f(r) over (0, +inf) is zero or infinite.
+        """
+
+        # Compute the integral of r * f(r) over (0, +inf)
+        radial_integral, _ = quad(lambda r: r * f(r), 0, np.inf)
+
+        # Check if the integral is finite and non-zero
+        if not np.isfinite(radial_integral):
+            raise ValueError("Integral of r*f(r) over (0, +inf) is infinite or NaN")
+        if abs(radial_integral) < numerical_zero:  # Small threshold to avoid division by zero
+            raise ValueError("Integral of r*f(r) over (0, +inf) is zero or nearly zero")
+
+        normalization_factor = 2 * np.pi * radial_integral
+
+        # Define the normalized function
+        def g(r):
+            return f(r) / normalization_factor
+
+        return g
