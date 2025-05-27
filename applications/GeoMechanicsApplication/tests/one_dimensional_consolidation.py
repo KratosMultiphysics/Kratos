@@ -36,6 +36,8 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         self.end_times = [8640, 17280, 43200, 86400, 172800, 432000, 864000, 1728000, 4320000, 8640000]
         self.t_vs = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
 
+        self.sample_height = 1.0
+
     def _get_test_dir_name(self):
         raise RuntimeError("This base class does not provide a generic test directory name")
 
@@ -43,6 +45,37 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
     def _get_y_coordinates_of_nodes(self, node_ids):
         post_msh_file_path = os.path.join(self.test_path, "1D-Consolidationtest_stage1.post.msh")
         return [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=node_ids)]
+
+
+    def _get_analytical_relative_water_pressures(self, t_v, y_coordinates):
+        return [analytical_solutions.calculate_relative_water_pressure(y, self.sample_height, t_v) for y in y_coordinates]
+
+
+    def _get_numerical_relative_water_pressures(self, time, stage_no, node_ids):
+        output_file_path = os.path.join(self.test_path, f"1D-Consolidationtest_stage{stage_no}.post.res")
+        reader = test_helper.GiDOutputFileReader()
+        output_data = reader.read_output_from(output_file_path)
+        # Invert the sign of the water pressures resulting from the numerical solution, to make them match the
+        # analytical solution which assumes compressive water pressures to be positive rather than negative
+        return [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", time, output_data, node_ids)]
+
+
+    def _calculate_rmse_of_differences(self, values1, values2):
+        differences = [value1 - value2 for value1, value2 in zip(values1, values2)]
+        return math.sqrt(sum([diff * diff for diff in differences]) / len(differences))
+
+
+    def _check_relative_water_pressures_at_mid_column(self):
+        y_coordinates = self._get_y_coordinates_of_nodes(self.mid_column_node_ids)
+        stage_no = 2  # The first stage is not checked
+        rmse_values = []
+        for t_v, time in zip(self.t_vs, self.end_times):
+            analytical_solution = self._get_analytical_relative_water_pressures(t_v, y_coordinates)
+            numerical_solution = self._get_numerical_relative_water_pressures(time, stage_no, self.mid_column_node_ids)
+            rmse_values.append(self._calculate_rmse_of_differences(numerical_solution, analytical_solution))
+            stage_no += 1
+
+        self._check_rmse_values(rmse_values, "relative water pressure values")
 
 
     def _check_rmse_values(self, values, description):
@@ -77,31 +110,13 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
         stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
 
         # run stages and get water pressure/displacement results per stage
-        stage_water_pressure = [None] * self.number_of_stages
         stage_displacement   = [None] * self.number_of_stages
         for idx, stage in enumerate(stages):
             stage.Run()
-            stage_water_pressure[idx] = test_helper.get_water_pressure(stage)
             displacements = test_helper.get_nodal_variable(stage, KratosGeo.TOTAL_DISPLACEMENT)
-            stage_displacement[idx]   = [displacement[1] for displacement in displacements] 
+            stage_displacement[idx]   = [displacement[1] for displacement in displacements]
 
-        y_coords = self._get_y_coordinates_of_nodes(self.mid_column_node_ids)
-
-        # calculate water pressure analytical solution for all stages and calculate the error
-        sample_height = 1.0
-        rmse_values = []
-        for idx, t_v in enumerate(self.t_vs):
-            analytical_solution = [analytical_solutions.calculate_relative_water_pressure(y_coord, sample_height, t_v) for y_coord in y_coords]
-
-            # Invert the sign of the water pressures resulting from the numerical solution, to make them match the
-            # analytical solution which assumes compressive water pressures to be positive rather than negative
-            numerical_solution = [-1.0 * stage_water_pressure[idx + 1][id - 1] for id in self.mid_column_node_ids]
-
-            errors_stage = [rel_p_numerical - rel_p_analytical for rel_p_numerical, rel_p_analytical in
-                            zip(numerical_solution, analytical_solution)]
-            rmse_values.append(math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage)))
-
-        self._check_rmse_values(rmse_values, "relative water pressure values")
+        self._check_relative_water_pressures_at_mid_column()
 
         # calculate the degree of consolidation analytical solution for all stages and calculate the error
         # Verruijt's notations
@@ -111,8 +126,8 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
         m_v = 1/(K + 4/3 * G)               # the compressibility coefficient
         beta = 0.5e-9                       # the compressibility of the water.
         n = 0.3                             # the porosity
-        delta_h0 = (-1)*m_v*sample_height*q*n*beta/(m_v+n*beta) # deformation immediately after the application of the load
-        delta_h_infinity = (-1)*m_v*sample_height*q # the final deformation
+        delta_h0 = (-1)*m_v*self.sample_height*q*n*beta/(m_v+n*beta) # deformation immediately after the application of the load
+        delta_h_infinity = (-1)*m_v*self.sample_height*q # the final deformation
 
         rmse_values = []
         for idx, t_v in enumerate(self.t_vs):
@@ -139,24 +154,7 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
         status = run_geo_settlement.run_stages(self.test_path, self.project_parameters_filenames)
         self.assertEqual(status, 0)
 
-        y_coords = self._get_y_coordinates_of_nodes(self.mid_column_node_ids)
-
-        sample_height = 1.0
-        rmse_values = []
-        for idx, t_v in enumerate(self.t_vs):
-            analytical_solution = [analytical_solutions.calculate_relative_water_pressure(y, sample_height, t_v) for y in y_coords]
-
-            output_file_path = os.path.join(self.test_path, f"1D-Consolidationtest_stage{idx+2}.post.res")
-            reader = test_helper.GiDOutputFileReader()
-            output_data = reader.read_output_from(output_file_path)
-            numerical_solution = [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", self.end_times[idx], output_data, self.mid_column_node_ids)]
-
-            errors_stage = [rel_p_numerical - rel_p_analytical for rel_p_numerical, rel_p_analytical in
-                            zip(numerical_solution, analytical_solution)]
-            rmse_values.append(math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage)))
-
-        self._check_rmse_values(rmse_values, "relative water pressure values")
-
+        self._check_relative_water_pressures_at_mid_column()
 
 
 if __name__ == '__main__':
