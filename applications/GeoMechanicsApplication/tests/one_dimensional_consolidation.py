@@ -17,7 +17,7 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         super().setUp()
 
         self.test_root = test_helper.get_file_path("one_dimensional_consolidation")
-        self.test_path = os.path.join(self.test_root, self.get_test_dir_name())
+        self.test_path = os.path.join(self.test_root, self._get_test_dir_name())
 
         shutil.rmtree(self.test_path, ignore_errors=True)
 
@@ -36,14 +36,14 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         self.end_times = [8640, 17280, 43200, 86400, 172800, 432000, 864000, 1728000, 4320000, 8640000]
         self.t_vs = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
 
-    def get_test_dir_name(self):
+    def _get_test_dir_name(self):
         raise RuntimeError("This base class does not provide a generic test directory name")
 
 class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
     """
     This class contains benchmark tests which are checked with the analytical solution
     """
-    def get_test_dir_name(self):
+    def _get_test_dir_name(self):
         return "python"
 
 
@@ -125,7 +125,7 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
 
 
 class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestBase):
-    def get_test_dir_name(self):
+    def _get_test_dir_name(self):
         return "cpp"
 
 
