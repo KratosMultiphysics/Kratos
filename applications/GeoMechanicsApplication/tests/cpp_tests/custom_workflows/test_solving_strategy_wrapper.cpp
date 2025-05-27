@@ -207,28 +207,6 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMecha
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMechanicsFastSuite)
-{
-    Model model;
-    auto& r_model_part     = CreateDummyModelPart(model);
-    auto  strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part);
-    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-
-    auto       p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    const auto original_total_displacement           = array_1d<double, 3>{1.0, 2.0, 3.0};
-    p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT) = original_total_displacement;
-
-    // Since "reset displacement" is switched on, this will set the total displacements back to zero
-    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
-
-    const auto displacement_in_time_step       = array_1d<double, 3>{3.0, 2.0, 1.0};
-    p_node->GetSolutionStepValue(DISPLACEMENT) = displacement_in_time_step;
-    strategy_wrapper.AccumulateTotalDisplacementField();
-
-    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), displacement_in_time_step);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanicsFastSuite)
 {
     Model model;

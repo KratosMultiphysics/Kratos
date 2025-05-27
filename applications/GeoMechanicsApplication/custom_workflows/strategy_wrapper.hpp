@@ -33,7 +33,6 @@ public:
     virtual void                      IncrementStepNumber()                         = 0;
     virtual void                      CloneTimeStep()                               = 0;
     virtual void                      RestorePositionsAndDOFVectorToStartOfStep()   = 0;
-    virtual void                      SaveTotalDisplacementFieldAtStartOfTimeLoop() = 0;
     virtual void                      AccumulateTotalDisplacementField()            = 0;
     virtual void                      ComputeIncrementalDisplacementField()         = 0;
     virtual void                      OutputProcess()                               = 0;
