@@ -61,7 +61,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
             y1 = y0 - l * np.sin(theta_1 - theta_2)
 
-            incident_angle = theta_1
+            # incident_angle = theta_1
 
             delta_temp = self.TemperatureVariationDueToLaser(y1, l)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
@@ -484,33 +484,35 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         Overwrites LaserDrillingTransientSolver.Finalize
         """
         super().Finalize()
-        if self.print_hole_geometry_files:
-            self.hole_theoretical_profile_file = open("hole_theoretical_profile.txt", "w")
-            for i, node_Y in enumerate(self.hole_theoretical_Y_coords):
-                if self.hole_theoretical_X_coords[i]:
-                    self.hole_theoretical_profile_file.write(
-                        str(node_Y) + " " + str(-self.hole_theoretical_X_coords[i]) + "\n"
-                    )
-            self.hole_theoretical_profile_file.close()
 
-            self.hole_theoretical_profile_file_no_z_offset_variation = open(
-                "hole_theoretical_profile_no_z_offset_variation.txt", "w"
-            )
-            for i, node_Y in enumerate(self.one_pulse_hole_theoretical_Y_coords):
-                if self.one_pulse_hole_theoretical_X_coords[i]:
-                    self.hole_theoretical_profile_file_no_z_offset_variation.write(
-                        str(node_Y) + " " + str(-self.pulse_number * self.one_pulse_hole_theoretical_X_coords[i]) + "\n"
-                    )
-            self.hole_theoretical_profile_file_no_z_offset_variation.close()
 
-            a = self.list_of_ablated_nodes_coords_Y[-1]
-            b = self.list_of_ablated_nodes_coords_X[0]
-            A = b / (a * a)
-            C = -b
-
-            parabola_Y_coords = np.linspace(0.0, a, 101)
-            self.hole_parabolical_profile = open("hole_parabolical_profile.txt", "w")
-            for Y_coords in parabola_Y_coords:
-                X_coords = A * Y_coords * Y_coords + C
-                self.hole_parabolical_profile.write(str(Y_coords) + " " + str(X_coords) + "\n")
-            self.hole_parabolical_profile.close()
+# TODO: check if this is useful. In that case, move to a process?
+#        if self.print_hole_geometry_files:
+#            self.hole_theoretical_profile_file = open("hole_theoretical_profile.txt", "w")
+#            for i, node_Y in enumerate(self.hole_theoretical_Y_coords):
+#                if self.hole_theoretical_X_coords[i]:
+#                    self.hole_theoretical_profile_file.write(
+#                        str(node_Y) + " " + str(-self.hole_theoretical_X_coords[i]) + "\n"
+#                    )
+#            self.hole_theoretical_profile_file.close()
+#
+#            self.hole_theoretical_profile_file_no_z_offset_variation = open(
+#                "hole_theoretical_profile_no_z_offset_variation.txt", "w"
+#            )
+#            for i, node_Y in enumerate(self.one_pulse_hole_theoretical_Y_coords):
+#                if self.one_pulse_hole_theoretical_X_coords[i]:
+#                    self.hole_theoretical_profile_file_no_z_offset_variation.write(
+#                        str(node_Y) + " " + str(-self.pulse_number * self.one_pulse_hole_theoretical_X_coords[i]) + "\n"
+#                    )
+#            self.hole_theoretical_profile_file_no_z_offset_variation.close()
+#            a = self.list_of_ablated_nodes_coords_Y[-1]
+#            b = self.list_of_ablated_nodes_coords_X[0]
+#            A = b / (a * a)
+#            C = -b
+#
+#            parabola_Y_coords = np.linspace(0.0, a, 101)
+#            self.hole_parabolical_profile = open("hole_parabolical_profile.txt", "w")
+#            for Y_coords in parabola_Y_coords:
+#                X_coords = A * Y_coords * Y_coords + C
+#                self.hole_parabolical_profile.write(str(Y_coords) + " " + str(X_coords) + "\n")
+#            self.hole_parabolical_profile.close()
