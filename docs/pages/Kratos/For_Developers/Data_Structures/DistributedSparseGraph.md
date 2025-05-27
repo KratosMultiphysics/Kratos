@@ -14,6 +14,8 @@ The graph is built upon a `DataCommunicator` which defines the MPI context. It i
 
 **Important Note on Thread Safety:** While `DistributedSparseGraph` coordinates data across MPI ranks, operations that modify internal graph structures (especially those involving non-local entries before `Finalize()`) use locks for thread safety. However, the underlying local graph (`SparseContiguousRowGraph`) and non-local graph buffers (`SparseGraph`) might have their own considerations if populated directly in a multi-threaded fashion outside of the provided `AddEntry`/`AddEntries` methods. The header of the code itself notes: "it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)" - this generally applies to how graph data might be assembled before being passed to this class or if manipulating its internal structures directly.
 
+For serial version see [SparseGraph](SparseGraph.md).
+
 ### Template Parameters
 
 The `DistributedSparseGraph` class has one template parameter:

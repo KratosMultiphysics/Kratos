@@ -12,6 +12,8 @@ The `DistributedSystemVector` is a data structure designed for handling distribu
 
 Each MPI process owns a local portion of the vector. The `DistributedSystemVector` manages this local data and provides mechanisms for interacting with non-local data (data owned by other processes) when necessary, particularly during the assembly phase or global reduction operations (like norm or dot product).
 
+For serial version see [SystemVector](SystemVector.md).
+
 ### Constructors
 
 `DistributedSystemVector` offers constructors tailored for parallel environments:

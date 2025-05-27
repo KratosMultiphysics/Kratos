@@ -12,6 +12,8 @@ The `DistributedCsrMatrix` class in Kratos implements a distributed Compressed S
 
 The `DistributedCsrMatrix` is crucial for large-scale simulations where a single process cannot hold the entire matrix in memory or when parallel processing is essential to achieve computational efficiency. It manages local sub-matrices (referred to as diagonal and off-diagonal blocks) and coordinates operations across these distributed parts.
 
+For serial version see [CsrMatrix](CsrMatrix.md).
+
 ### Template Parameters
 
 *   `TDataType`: The data type for the values stored in the matrix (e.g., `double`, `float`). Defaults to `double`.
