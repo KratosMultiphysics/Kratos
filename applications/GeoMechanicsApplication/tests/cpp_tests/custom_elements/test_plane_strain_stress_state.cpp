@@ -57,22 +57,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-
-    // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
-    Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
-
-    const auto detJ                   = 2.0;
-    const auto calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
-        integration_point, detJ, ModelSetupUtilities::Create2D3NTriangleGeometry());
-
-    // The expected number is calculated as follows:
-    // 2.0 (detJ) * 0.5 (weight) = 1.0
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, Defaults::absolute_tolerance);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();

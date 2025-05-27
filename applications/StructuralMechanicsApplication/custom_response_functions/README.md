@@ -3,7 +3,7 @@
 
 ### General remarks:
 
-This feature provides the framework to compute sensitivities of structural responses (e.g. displacements, strain energy or stresses) with respect to different types of design variables (e.g. nodal coordinates, material or cross-sectional properties or load intensity) with the adjoint approach. An adjoint system has to be solved for each responsefunciton. The sensitivities are then computed in a post-processing step.
+This feature provides the framework to compute sensitivities of structural responses (e.g. displacements, strain energy or stresses) with respect to different types of design variables (e.g. nodal coordinates, material or cross-sectional properties or load intensity) with the adjoint approach. An adjoint system has to be solved for each responsefunction. The sensitivities are then computed in a post-processing step.
 
 *Please note:*
 - This feature currently only works for linear problems (exception: geometric nonlinear problems exclusively modeled with TrussElement3D2N)
