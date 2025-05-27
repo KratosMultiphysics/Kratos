@@ -1342,7 +1342,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
 
     def _PrintSolution(self):
         self.OutputSolutionStep()
-        self._CorectPvtuFilesInVtuOutput()
+        self.self._CorrectPvtuFilesInVtuOutput()
         self._PrintFunctionalsToFile()
 
     def _InitializeRemeshing(self):
@@ -2027,25 +2027,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
     def _GetPhysicsSolverDistributedModelPartImporter(self):
         return self.physics_solver.distributed_model_part_importer
 
-    # def _CorectPvtuFilesInVtuOutput(self):
-    #     if (self.MpiRunOnlyRank(0)):
-    #         if (self.project_parameters.Has("output_processes")):
-    #             if (self.project_parameters["output_processes"].Has("vtu_output")):
-    #                 vtu_output_settings = self.project_parameters["output_processes"]["vtu_output"][0]
-    #                 if (vtu_output_settings.Has("Parameters")):
-    #                     vtu_output_parameters = vtu_output_settings["Parameters"]
-    #                     mp_name     = vtu_output_parameters["model_part_name"].GetString()
-    #                     folder_name = vtu_output_parameters["output_path"].GetString()
-    #                     final_it = self.opt_it
-    #                     for it in range(final_it):
-    #                         curr_it_str = str(it+1)
-    #                         file_name = f"{mp_name}_{curr_it_str}.pvtu"
-    #                         pvtu_path = Path(folder_name) / file_name
-    #                         if pvtu_path.exists():
-    #                             text = pvtu_path.read_text(encoding='utf-8')
-    #                             fixed_text = text.replace("vtu_output/", "")
-    #                             pvtu_path.write_text(fixed_text, encoding='utf-8')
-    def _CorectPvtuFilesInVtuOutput(self):
+    def _CorrectPvtuFilesInVtuOutput(self):
         if (self.MpiRunOnlyRank(0)):
             if (self.project_parameters.Has("output_processes")):
                 if (self.project_parameters["output_processes"].Has("vtu_output")):
