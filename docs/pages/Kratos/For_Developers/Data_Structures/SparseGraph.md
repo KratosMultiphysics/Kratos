@@ -1,7 +1,7 @@
 ---
 title: SparseGraph
-keywords: SparseGraph, Sparse Matrix, CSR, Distributed Computing, MPI, Parallel Linear Algebra
-tags: [SparseGraph, Data Structures, Linear Algebra, Distributed, MPI, HPC]
+keywords: SparseGraph, Sparse Matrix, CSR
+tags: [SparseGraph, Data Structures, Linear Algebra]
 sidebar: kratos_for_developers
 summary: Comprehensive documentation for the Kratos SparseGraph class, a sparse graph.
 ---
