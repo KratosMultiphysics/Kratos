@@ -214,7 +214,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
 
 
-            if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
                 iteration++;
