@@ -89,7 +89,7 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
 
         # calculate water pressure analytical solution for all stages and calculate the error
         sample_height = 1.0
-        rmse_stages = [None] * (self.number_of_stages - 1)
+        rmse_values = []
         for idx, t_v in enumerate(self.t_vs):
             analytical_solution = [analytical_solutions.calculate_relative_water_pressure(y_coord, sample_height, t_v) for y_coord in y_coords]
 
@@ -99,9 +99,9 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
 
             errors_stage = [rel_p_numerical - rel_p_analytical for rel_p_numerical, rel_p_analytical in
                             zip(numerical_solution, analytical_solution)]
-            rmse_stages[idx] = math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage))
+            rmse_values.append(math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage)))
 
-        self._check_rmse_values(rmse_stages, "relative water pressure values")
+        self._check_rmse_values(rmse_values, "relative water pressure values")
 
         # calculate the degree of consolidation analytical solution for all stages and calculate the error
         # Verruijt's notations
@@ -114,15 +114,16 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
         delta_h0 = (-1)*m_v*sample_height*q*n*beta/(m_v+n*beta) # deformation immediately after the application of the load
         delta_h_infinity = (-1)*m_v*sample_height*q # the final deformation
 
+        rmse_values = []
         for idx, t_v in enumerate(self.t_vs):
             rel_displacement = [(-1.0 * stage_displacement[idx + 1][id - 1] - delta_h0) / (delta_h_infinity - delta_h0) for id in
                             self.top_node_ids]
             analytical_degree = analytical_solutions.calculate_degree_of_1d_consolidation(t_v)
 
             errors_stage = [numerical_degree - analytical_degree for numerical_degree in rel_displacement]
-            rmse_stages[idx] = (sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5
+            rmse_values.append((sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5)
 
-        self._check_rmse_values(rmse_stages, "degree of consolidation values")
+        self._check_rmse_values(rmse_values, "degree of consolidation values")
 
         os.chdir(initial_directory)
 
@@ -141,7 +142,7 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
         y_coords = self._get_y_coordinates_of_nodes(self.mid_column_node_ids)
 
         sample_height = 1.0
-        rmse_stages = []
+        rmse_values = []
         for idx, t_v in enumerate(self.t_vs):
             analytical_solution = [analytical_solutions.calculate_relative_water_pressure(y, sample_height, t_v) for y in y_coords]
 
@@ -152,9 +153,9 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
 
             errors_stage = [rel_p_numerical - rel_p_analytical for rel_p_numerical, rel_p_analytical in
                             zip(numerical_solution, analytical_solution)]
-            rmse_stages.append(math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage)))
+            rmse_values.append(math.sqrt(sum([error * error for error in errors_stage]) / len(errors_stage)))
 
-        self._check_rmse_values(rmse_stages, "relative water pressure values")
+        self._check_rmse_values(rmse_values, "relative water pressure values")
 
 
 
