@@ -94,27 +94,24 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
     def test_1d_consolidation(self):
         """
         test 1D consolidation on elastic soil.
-
-        :return:
         """
-        # set stage parameters
-        parameters_stages = [None] * self.number_of_stages
-
         initial_directory = os.getcwd()
         os.chdir(self.test_path)
-        for idx, parameter_file_name in enumerate(self.project_parameters_filenames):
+        
+        all_stage_parameters = []
+        for parameter_file_name in self.project_parameters_filenames:
             with open(parameter_file_name, 'r') as parameter_file:
-                parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
+                all_stage_parameters.append(Kratos.Parameters(parameter_file.read()))
 
         model = Kratos.Model()
-        stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
 
-        # run stages and get water pressure/displacement results per stage
-        stage_displacement   = [None] * self.number_of_stages
-        for idx, stage in enumerate(stages):
+        # run stages and get total displacement results per stage
+        stage_total_y_displacements = []
+        for stage_parameters in all_stage_parameters:
+            stage = analysis.GeoMechanicsAnalysis(model, stage_parameters)
             stage.Run()
-            displacements = test_helper.get_nodal_variable(stage, KratosGeo.TOTAL_DISPLACEMENT)
-            stage_displacement[idx]   = [displacement[1] for displacement in displacements]
+            total_displacements = test_helper.get_nodal_variable(stage, KratosGeo.TOTAL_DISPLACEMENT)
+            stage_total_y_displacements.append([displacement[1] for displacement in total_displacements])
 
         self._check_relative_water_pressures_at_mid_column()
 
@@ -131,12 +128,10 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
 
         rmse_values = []
         for idx, t_v in enumerate(self.t_vs):
-            rel_displacement = [(-1.0 * stage_displacement[idx + 1][id - 1] - delta_h0) / (delta_h_infinity - delta_h0) for id in
+            numerical_degree_values = [(-1.0 * stage_total_y_displacements[idx + 1][id - 1] - delta_h0) / (delta_h_infinity - delta_h0) for id in
                             self.top_node_ids]
             analytical_degree = analytical_solutions.calculate_degree_of_1d_consolidation(t_v)
-
-            errors_stage = [numerical_degree - analytical_degree for numerical_degree in rel_displacement]
-            rmse_values.append((sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5)
+            rmse_values.append(self._calculate_rmse_of_differences(numerical_degree_values, [analytical_degree] * len(self.top_node_ids)))
 
         self._check_rmse_values(rmse_values, "degree of consolidation values")
 
