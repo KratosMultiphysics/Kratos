@@ -30,6 +30,9 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         for filename in input_filenames:
             shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
 
+        self.mid_column_node_ids = [5, 7, 12, 18, 24, 30, 35, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141, 146, 151, 156, 161, 166, 171, 176, 181, 187, 192, 199]
+        self.top_node_ids = [197, 198, 199, 200, 201]
+
         self.end_times = [8640, 17280, 43200, 86400, 172800, 432000, 864000, 1728000, 4320000, 8640000]
         self.t_vs = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
 
@@ -72,9 +75,8 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
             stage_displacement[idx]   = [displacement[1] for displacement in displacements] 
 
         # get y coords of all the nodes
-        node_ids = [5, 7, 12, 18, 24, 30, 35, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141, 146, 151, 156, 161, 166, 171, 176, 181, 187, 192, 199]
         post_msh_file_path = os.path.join(self.test_path, "1D-Consolidationtest_stage1.post.msh")
-        y_coords = [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=node_ids)]
+        y_coords = [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=self.mid_column_node_ids)]
 
         # calculate water pressure analytical solution for all stages and calculate the error
         sample_height = 1.0
@@ -84,7 +86,7 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
 
             # Invert the sign of the water pressures resulting from the numerical solution, to make them match the
             # analytical solution which assumes compressive water pressures to be positive rather than negative
-            numerical_solution = [-1.0 * stage_water_pressure[idx + 1][id - 1] for id in node_ids]
+            numerical_solution = [-1.0 * stage_water_pressure[idx + 1][id - 1] for id in self.mid_column_node_ids]
 
             errors_stage = [rel_p_numerical - rel_p_analytical for rel_p_numerical, rel_p_analytical in
                             zip(numerical_solution, analytical_solution)]
@@ -106,14 +108,12 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
         delta_h0 = (-1)*m_v*sample_height*q*n*beta/(m_v+n*beta) # deformation immediately after the application of the load
         delta_h_infinity = (-1)*m_v*sample_height*q # the final deformation
 
-        node_ids = [197, 198, 199, 200, 201]  # nodes at the top edge of the soil column
         for idx, t_v in enumerate(self.t_vs):
             rel_displacement = [(-1.0 * stage_displacement[idx + 1][id - 1] - delta_h0) / (delta_h_infinity - delta_h0) for id in
-                            node_ids]
-            analytical_degree_of_consolidation = [analytical_solutions.calculate_degree_of_1d_consolidation(t_v)
-                            for id in node_ids]
+                            self.top_node_ids]
+            analytical_degree = analytical_solutions.calculate_degree_of_1d_consolidation(t_v)
 
-            errors_stage = [numerical_degree - analytical_degree for numerical_degree, analytical_degree in zip(rel_displacement, analytical_degree_of_consolidation)]
+            errors_stage = [numerical_degree - analytical_degree for numerical_degree in rel_displacement]
             rmse_stages[idx] = (sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5
 
         # assert if average error in all stages is below 1 percent
@@ -135,9 +135,8 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
         status = run_geo_settlement.run_stages(self.test_path, self.project_parameters_filenames)
         self.assertEqual(status, 0)
 
-        node_ids = [5, 7, 12, 18, 24, 30, 35, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141, 146, 151, 156, 161, 166, 171, 176, 181, 187, 192, 199]
         post_msh_file_path = os.path.join(self.test_path, "1D-Consolidationtest_stage1.post.msh")
-        y_coords = [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=node_ids)]
+        y_coords = [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=self.mid_column_node_ids)]
 
         sample_height = 1.0
         rmse_stages = []
@@ -147,7 +146,7 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
             output_file_path = os.path.join(self.test_path, f"1D-Consolidationtest_stage{idx+2}.post.res")
             reader = test_helper.GiDOutputFileReader()
             output_data = reader.read_output_from(output_file_path)
-            numerical_solution = [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", self.end_times[idx], output_data, node_ids)]
+            numerical_solution = [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", self.end_times[idx], output_data, self.mid_column_node_ids)]
 
             errors_stage = [rel_p_numerical - rel_p_analytical for rel_p_numerical, rel_p_analytical in
                             zip(numerical_solution, analytical_solution)]
