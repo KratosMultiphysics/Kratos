@@ -305,8 +305,8 @@ Kratos::DenseVector<double>& local_vector_a = a.GetLocalData();
 if (local_vector_a.size() > 1) {
     local_vector_a[1] = 7.0; // Directly modifies the second local element of 'a'
 }
-// std::cout << "Vector a on rank " << r_comm.Rank() << ": ";
-// a.PrintData(std::cout); // Prints local data for each rank
+std::cout << "Vector a on rank " << r_comm.Rank() << ": ";
+a.PrintData(std::cout); // Prints local data for each rank
 ```
 
 #### **3. Distributed Assembly Process**
