@@ -202,6 +202,8 @@ private:
             "radial_basis_function_type" : "thin_plate_spline",
             "additional_polynomial_degree": 0,
             "destination_is_slave"          : true,
+            "is_origin_iga"             : false,
+            "is_destination_iga"             : false,
              "linear_solver_settings": {
                 "solver_type": "skyline_lu_factorization"
             }
