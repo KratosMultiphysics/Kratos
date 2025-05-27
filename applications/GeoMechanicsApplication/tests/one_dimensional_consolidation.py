@@ -123,27 +123,10 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
 
 
     def test_1d_consolidation(self):
-        """
-        test 1D consolidation on elastic soil.
-        """
-        initial_directory = os.getcwd()
-        os.chdir(self.test_path)
-        
-        all_stage_parameters = []
-        for parameter_file_name in self.project_parameters_filenames:
-            with open(parameter_file_name, 'r') as parameter_file:
-                all_stage_parameters.append(Kratos.Parameters(parameter_file.read()))
-
-        model = Kratos.Model()
-
-        # run stages and get total displacement results per stage
-        for stage_parameters in all_stage_parameters:
-            analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
+        test_helper.run_stages(self.test_path, self.number_of_stages)
 
         self._check_relative_water_pressures_at_mid_column()
         self._check_degree_of_consolidation()
-
-        os.chdir(initial_directory)
 
 
 class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestBase):
