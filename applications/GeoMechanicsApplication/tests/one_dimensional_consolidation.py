@@ -40,6 +40,11 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         raise RuntimeError("This base class does not provide a generic test directory name")
 
 
+    def _get_y_coordinates_of_nodes(self, node_ids):
+        post_msh_file_path = os.path.join(self.test_path, "1D-Consolidationtest_stage1.post.msh")
+        return [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=node_ids)]
+
+
     def _check_rmse_values(self, values, description):
         accuracy = 0.01
         for stage_index, value in enumerate(values):
@@ -80,9 +85,7 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
             displacements = test_helper.get_nodal_variable(stage, KratosGeo.TOTAL_DISPLACEMENT)
             stage_displacement[idx]   = [displacement[1] for displacement in displacements] 
 
-        # get y coords of all the nodes
-        post_msh_file_path = os.path.join(self.test_path, "1D-Consolidationtest_stage1.post.msh")
-        y_coords = [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=self.mid_column_node_ids)]
+        y_coords = self._get_y_coordinates_of_nodes(self.mid_column_node_ids)
 
         # calculate water pressure analytical solution for all stages and calculate the error
         sample_height = 1.0
@@ -135,8 +138,7 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
         status = run_geo_settlement.run_stages(self.test_path, self.project_parameters_filenames)
         self.assertEqual(status, 0)
 
-        post_msh_file_path = os.path.join(self.test_path, "1D-Consolidationtest_stage1.post.msh")
-        y_coords = [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=self.mid_column_node_ids)]
+        y_coords = self._get_y_coordinates_of_nodes(self.mid_column_node_ids)
 
         sample_height = 1.0
         rmse_stages = []
