@@ -131,7 +131,7 @@ class TrilinosNavierStokesMonolithicSolver(navier_stokes_monolithic_solver.Navie
                 epetra_communicator,
                 guess_row_size,
                 trilinos_linear_solver,
-                KratosFluid.PATCH_INDEX)
+                KratosCFD.PATCH_INDEX)
         else:
             builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
                 epetra_communicator,

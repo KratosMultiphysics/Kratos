@@ -59,12 +59,13 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
         return default_settings
 
     def __init__(self, model, custom_settings, is_adjoint_solver):
+        self._InitializeModelPartImporter()
+        self.InitializeDataCommunicator()
         super().__init__(model,custom_settings)
         self._DefineAdjointSolver(is_adjoint_solver)
         self._DefineElementsAndConditions()
-        self._InitializeModelPartImporter()
         # self._InitializePhysicsParameters()
-        self.InitializeDataCommunicator()
+        
         print_str = "Construction of TransportTopologyOptimizationSolver "
         if self.IsAdjoint():
             print_str += "for Adjoint problem "
@@ -156,9 +157,11 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
         super().AddVariables()
     
     def _CheckMaterialProperties(self):
-        self.MpiPrint("--|--> Conductivity: " + str(self.main_model_part.Nodes[1].GetValue(KratosMultiphysics.CONDUCTIVITY)))
-        self.MpiPrint("--|--> Decay: " + str(self.main_model_part.Nodes[1].GetValue(KratosCD.DECAY)))
-        self.MpiPrint("--|--> Convection Coefficient: " + str(self.main_model_part.Nodes[1].GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT)))
+        for node in self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes:
+            self.MpiPrint("--|--> Conductivity: " + str(node.GetValue(KratosMultiphysics.CONDUCTIVITY)))
+            self.MpiPrint("--|--> Decay: " + str(node.GetValue(KratosCD.DECAY)))
+            self.MpiPrint("--|--> Convection Coefficient: " + str(node.GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT)))
+            break
     
     def _SetTimeSchemeBufferSize(self):
         self.settings["time_scheme"].SetString("bdf2")
@@ -175,7 +178,7 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
-
+            
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
             self._set_and_fill_buffer()
 
@@ -282,6 +285,8 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
             problem_phase_str = "ADJ-T"
         else: 
             problem_phase_str = "ERROR|"
+        if self.IsNodesIdsGlobalToLocalDictionaryEmpty():
+            raise RuntimeError("Executing 'SolveSolutionStep' of FluidTopologyOptimizationSolverMpi' with self.nodes_ids_global_to_local_partition_dictionary == { }")
         self.PrintPhysicsParametersUpdateStatus(problem_phase_str)
         self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
         # Call the base fluid solver to solve current time step
@@ -300,7 +305,7 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
             new_time = current_time + dt
             self.main_model_part.CloneTimeStep(new_time)
             # self.MpiPrint("\nASK HOW TO HANDLE THIS!!!\n")
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+            # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_ADJ_T_STEP] += 1
         return new_time
     
@@ -318,12 +323,6 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
 
     def _GetTopologyOptimizationStage(self):
         return self.GetComputingModelPart().ProcessInfo.GetValue(KratosCD.TRANSPORT_TOP_OPT_PROBLEM_STAGE)
-    
-    def InitializeSolutionStep(self):
-        """This function performs all the required operations that should be executed
-        (for each step) BEFORE solving the solution step.
-        """
-        self._GetSolver().InitializeSolutionStep()
 
     def ImportModelPart(self, model_parts=None, physics_solver_distributed_model_part_importer=None):
         if (self.IsPhysics()):
@@ -335,10 +334,10 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
                     self.settings)
                 self.distributed_model_part_importer.ImportModelPart()
         else:
-                transport_mp = model_parts[0]
-                self.main_model_part = transport_mp
-                if _CheckIsDistributed():
-                    self.distributed_model_part_importer = physics_solver_distributed_model_part_importer
+            transport_mp = model_parts[0]
+            self.main_model_part = transport_mp
+            if _CheckIsDistributed():
+                self.distributed_model_part_importer = physics_solver_distributed_model_part_importer
     
     def InitializeSolutionStep(self):
         self.is_conductivity_updated = False
@@ -390,6 +389,9 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
 
     def SetNodesIdsGlobalToLocalDictionary(self, dict):
         self.nodes_ids_global_to_local_partition_dictionary = dict
+
+    def IsNodesIdsGlobalToLocalDictionaryEmpty(self):
+        return self.nodes_ids_global_to_local_partition_dictionary == {}
 
                 
             

@@ -242,7 +242,7 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
             new_time = current_time + dt
             self.main_model_part.CloneTimeStep(new_time)
             # print("\nASK HOW TO HANDLE THIS!!!\n")
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+            # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_ADJ_T_STEP] += 1
         return new_time
     
@@ -260,13 +260,6 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
 
     def _GetTopologyOptimizationStage(self):
         return self.GetComputingModelPart().ProcessInfo.GetValue(KratosCD.TRANSPORT_TOP_OPT_PROBLEM_STAGE)
-    
-    def InitializeSolutionStep(self):
-        # if (self.IsAdjoint()):
-        #     print("strat", self._GetSolutionStrategy())
-        #     print("f_w:", self.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS))
-        #     input("adjoint solver initialize sol step")
-        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def ImportModelPart(self, model_parts=None):
         if (self.IsPhysics()):

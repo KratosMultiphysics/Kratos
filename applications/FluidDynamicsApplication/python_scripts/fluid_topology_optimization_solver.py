@@ -11,7 +11,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver import NavierStokesMonolithicSolver
 
 def CreateSolver(model, custom_settings, isAdjointSolver = False):
@@ -217,7 +216,7 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
             new_time = current_time + dt
             self.main_model_part.CloneTimeStep(new_time)
             # print("\nASK HOW TO HANDLE THIS!!!\n")
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+            # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
         return new_time
     

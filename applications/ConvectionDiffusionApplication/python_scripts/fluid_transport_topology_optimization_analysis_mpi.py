@@ -8,6 +8,7 @@ import mmapy as MMA # import the MMA subroutines python library: https://github.
 import time
 
 import KratosMultiphysics as KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
@@ -15,14 +16,38 @@ import KratosMultiphysics.MeshingApplication as KratosMMG
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
-from KratosMultiphysics.FluidDynamicsApplication.fluid_topology_optimization_analysis import FluidTopologyOptimizationAnalysis
-from KratosMultiphysics.ConvectionDiffusionApplication.transport_topology_optimization_analysis import TransportTopologyOptimizationAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_topology_optimization_analysis_mpi import FluidTopologyOptimizationAnalysisMpi
+from KratosMultiphysics.ConvectionDiffusionApplication.transport_topology_optimization_analysis_mpi import TransportTopologyOptimizationAnalysisMpi
 from KratosMultiphysics.analysis_stage import AnalysisStage
-from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver
-from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver
-from KratosMultiphysics.ConvectionDiffusionApplication import fluid_transport_topology_optimization_solver
+from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver_mpi
+from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver_mpi
+from KratosMultiphysics.ConvectionDiffusionApplication import fluid_transport_topology_optimization_solver_mpi
 
-class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAnalysis):
+# MPI utilities
+# Auxiliary function to check the parallel type at runtime
+#TODO: Delete this once we come up with the final factory-based design
+def _CheckIsDistributed():
+    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
+        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        return world_data_comm.IsDistributed()
+    else:
+        return False
+# If required, import parallel applications and modules
+if _CheckIsDistributed():
+    import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.MetisApplication as KratosMetis
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
+# Importing factories
+if _CheckIsDistributed():
+    import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
+else:
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+    import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
+
+from KratosMultiphysics import DataCommunicator
+
+class FluidTransportTopologyOptimizationAnalysisMpi(TransportTopologyOptimizationAnalysisMpi):
     def __init__(self,model,parameters):
         super().__init__(model,parameters) 
 
@@ -33,8 +58,8 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         """
         This method creates the NS and ADJ_NS solvers
         """
-        self.physics_solver = fluid_transport_topology_optimization_solver.CreateSolver(self.model, self.project_parameters)
-        self.adjoint_solver = fluid_transport_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
+        self.physics_solver = fluid_transport_topology_optimization_solver_mpi.CreateSolver(self.model, self.project_parameters)
+        self.adjoint_solver = fluid_transport_topology_optimization_solver_mpi.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
 
     def _CreateSolver(self, isAdjointSolver = False):
         """
@@ -42,7 +67,7 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         isAdjointSolver == False --> physics_solver
         isAdjointSolver == True  --> adjoint_solver
         """
-        return fluid_transport_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+        return fluid_transport_topology_optimization_solver_mpi.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
     
     def PrepareSolvers(self):
         """This method prepares the NS and ADJ_NS Solvers in the AnalysisStage 
@@ -62,32 +87,7 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         problem_stage = 1: Navier Stokes + Transport solution
         problem_stage = 2: Adjoint Navier-Stokes + Adjoint Transport solution
         """
-        self._PrepareTransportSettings()
-        problem_stage = self.GetTopologyOptimizationStage()
-        if ((problem_stage == 1)): 
-            print("\n--|PHYSICS SOLUTION|")
-        elif (problem_stage == 2):
-            print("\n--|ADJOINT SOLUTION|")
-        else:   
-            print("--| UNKNOWN SOLUTION |")
-        top_opt_stage_str = self.topology_optimization_stage_str
-        print("--|" + top_opt_stage_str + "| START SOLUTION LOOP")
-        while self.KeepAdvancingSolutionLoop():
-            print("--|" + top_opt_stage_str + "| ADVANCE TIME")
-            self.time = self._AdvanceTime()
-            print("--|" + top_opt_stage_str + "| INITIALIZE SOLUTION STEP")
-            self.InitializeSolutionStep()
-            print("--|" + top_opt_stage_str + "| UPDATE PHYSICS PARAMETERS STEP")
-            self.UpdatePhysicsParametersVariables()
-            print("--|" + top_opt_stage_str + "| PREDICT")
-            self._GetSolver().Predict()
-            print("--|" + top_opt_stage_str + "| SOLVE SOLUTION STEP")
-            is_converged = self._GetSolver().SolveSolutionStep()
-            print("--|" + top_opt_stage_str + "| CHECK CONVERGENCE: skipped, it does not work! Why?")
-            # self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
-            print("--|" + top_opt_stage_str + "| FINALIZE SOLUTION STEP")
-            self.FinalizeSolutionStep()
-        print("--|" + top_opt_stage_str + "| END SOLUTION LOOP")            
+        super()._RunStageSolutionLoop()          
         
     def _GetPhysicsMainModelPartsList(self):
         return [self._GetFluidSolver().main_model_part, self._GetTransportSolver().main_model_part]
@@ -138,26 +138,26 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
             KratosMultiphysics.Logger.PrintError("Not Found Adjoint Volume Source Process", "It should be using the 'HEAT_FLUX_ADJ' variable")
 
     def _PrintFunctionals(self):
-        print("--|" + self.topology_optimization_stage_str + "| TOTAL FUNCTIONAL  :", self.functional)
-        print("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL:", self.initial_functional)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| TOTAL FUNCTIONAL  : " + str(self.functional))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " + str(self.initial_functional))
         if (abs(self.functional_weights[0]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (" + str(self.functional_weights[0]) + "):", self.weighted_functionals[0])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (" + str(self.functional_weights[0]) + "): " + str(self.weighted_functionals[0]))
         if (abs(self.functional_weights[1]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (" + str(self.functional_weights[1]) + "):", self.weighted_functionals[1])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (" + str(self.functional_weights[1]) + "): " + str(self.weighted_functionals[1]))
         if (abs(self.functional_weights[2]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "):", self.weighted_functionals[2])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "): " + str(self.weighted_functionals[2]))
         if (abs(self.functional_weights[3]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (" + str(self.functional_weights[3]) + "):", self.weighted_functionals[3])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (" + str(self.functional_weights[3]) + "): " + str(self.weighted_functionals[3]))
         if (abs(self.functional_weights[4]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Transport Scalar Functional (" + str(self.functional_weights[4]) + "):", self.weighted_functionals[4])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Transport Scalar Functional (" + str(self.functional_weights[4]) + "): " + str(self.weighted_functionals[4]))
         if (abs(self.functional_weights[5]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (" + str(self.functional_weights[5]) + "):", self.weighted_functionals[5])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (" + str(self.functional_weights[5]) + "): " + str(self.weighted_functionals[5]))
         if (abs(self.functional_weights[6]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (" + str(self.functional_weights[6]) + "):", self.weighted_functionals[6])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (" + str(self.functional_weights[6]) + "): " + str(self.weighted_functionals[6]))
         if (abs(self.functional_weights[7]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (" + str(self.functional_weights[7]) + "):", self.weighted_functionals[7])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (" + str(self.functional_weights[7]) + "): " + str(self.weighted_functionals[7]))
         if (abs(self.functional_weights[8]) > 1e-10):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "):", self.weighted_functionals[8])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "): " + str(self.weighted_functionals[8]))
 
     def _SetFunctionalWeights(self):
         super()._SetFunctionalWeights()
@@ -195,12 +195,18 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         return coupling_weights
 
     def _SetInitialFunctionals(self):
+        fluid_local_values = self.initial_fluid_functionals_values
+        fluid_total_values = self.data_communicator.SumAll(fluid_local_values)
+        self.initial_fluid_functionals_values = fluid_total_values
         self.initial_fluid_functional = np.dot(self.normalized_fluid_functional_weights, self.initial_fluid_functionals_values)
+        transport_local_values = self.initial_transport_functionals_values
+        transport_total_values = self.data_communicator.SumAll(transport_local_values)
+        self.initial_transport_functionals_values = transport_total_values
         self.initial_transport_functional = np.dot(self.normalized_transport_functional_weights, self.initial_transport_functionals_values)
         if (abs(self.initial_fluid_functional) < 1e-10):
-            print("[WARNING] Initial fluid functional is zero")
+            self.MpiPrint("[WARNING] Initial fluid functional is zero")
         if (abs(self.initial_transport_functional) < 1e-10):
-            print("[WARNING] Initial transport functional is zero")
+            self.MpiPrint("[WARNING] Initial transport functional is zero")
         self.initial_coupling_functionals = np.asarray([self.initial_fluid_functional, self.initial_transport_functional])
         self.initial_coupling_functionals_abs_value = np.abs(self.initial_coupling_functionals)
 
@@ -236,7 +242,7 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
 	    # 8: transport_scalar_source: int_{\Omega}{-Q*T}
         """
         self._SetTopologyOptimizationStage(3)
-        print("--|" + self.topology_optimization_stage_str + "| EVALUATE FUNCTIONAL VALUE")
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| EVALUATE FUNCTIONAL VALUE")
         self.EvaluateFunctionals(print_functional)
         self.EvaluateTotalFunctional()
 
@@ -273,62 +279,68 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         self.functionals = np.concatenate((self.fluid_functionals, self.transport_functionals))
         self.weighted_functionals = self.functional_weights * self.functionals
         self.functional = np.sum(self.weighted_functionals)
-        if (self.first_iteration):
-            self.initial_functional = self.functional
+        if _CheckIsDistributed():
+            self.MpiSynchronizeLocalFunctionalValues()
+        if (self.MpiRunOnlyRank(0)):
+            if (self.first_iteration):
+                self.initial_functional = self.functional
+
+    def MpiSynchronizeLocalFunctionalValues(self):
+        local_values = self.functionals
+        # Sum the values across all ranks
+        total_values = self.data_communicator.SumAll(local_values)
+        self.functionals = total_values
+        if (self.MpiRunOnlyRank(0)):
+            self.weighted_functionals  = self.functional_weights * self.functionals
+            self.functional  = np.sum(self.weighted_functionals)
 
     def _EvaluateResistanceFunctional(self, print_functional=False):
         """
         This method computes the resistance functional: int_{\Omega}{\\alpha||u||^2}
         """
         mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
         integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
         self.fluid_functionals[0] = np.dot(self.nodal_domain_sizes, integrand)
         if (self.first_iteration):
             self.initial_fluid_functionals_values[0] = self.fluid_functionals[0] 
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (no weight):", self.fluid_functionals[0])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (no weight): " + str(self.fluid_functionals[0]))
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional")
 
     def _EvaluateStrainRateFunctional(self, print_functional=False):
         """
         This method computes the Strain-Rate functional: int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}
         """
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        vel = velocity[self.element_nodes_ids[:]]
-        vel_gradient = np.matmul(np.transpose(vel, axes=(0,2,1)), self.shape_functions_derivatives)
-        vel_symmetric_gradient = 1.0/2.0 * (vel_gradient+(np.transpose(vel_gradient, axes=(0,2,1))))
+        vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes()
+        vel_symmetric_gradient = 1.0/2.0 * (vel_gradient_on_nodes+(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
         vel_symmetric_gradient_norm_squared = (np.linalg.norm(vel_symmetric_gradient, ord='fro', axis=(1, 2)))**2
-        mu = self._GetComputingModelPart().Elements[1].Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        self.fluid_functionals[1] = 2*mu* np.dot(vel_symmetric_gradient_norm_squared, self.elemental_domain_size)
+        mu = self._GetViscosity()
+        self.fluid_functionals[1] = 2.0*mu* np.dot(vel_symmetric_gradient_norm_squared, self.nodal_domain_sizes)
         if (self.first_iteration):
             self.initial_fluid_functionals_values[1] = self.fluid_functionals[1]
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (no weight):", self.fluid_functionals[1])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (no weight): " + str(self.fluid_functionals[1]))
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional")
 
     def _EvaluateVorticityFunctional(self, print_functional=False):
         """
         This method computes the Vorticity functional: int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}
         """
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        vel = velocity[self.element_nodes_ids[:]]
-        vel_gradient = np.matmul(np.transpose(vel, axes=(0,2,1)), self.shape_functions_derivatives)
-        vel_antisymmetric_gradient = 1.0/2.0 * (vel_gradient-(np.transpose(vel_gradient, axes=(0,2,1))))
+        vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes()
+        vel_antisymmetric_gradient = 0.5 * (vel_gradient_on_nodes-(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
         vel_antisymmetric_gradient_norm_squared = (np.linalg.norm(vel_antisymmetric_gradient, ord='fro', axis=(1, 2)))**2
-        mu = self._GetComputingModelPart().Elements[1].Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        self.fluid_functionals[2] = 2*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.elemental_domain_size)
+        mu = self._GetViscosity()
+        self.fluid_functionals[2] = 2.0*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
         if (self.first_iteration):
             self.initial_fluid_functionals_values[2] = self.fluid_functionals[2]
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional: (no weight)", self.fluid_functionals[2])    
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional: (no weight) " + str(self.fluid_functionals[2])) 
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional")
 
     def _EvaluateOutletTransportScalarFunctional(self, print_functional=False):
         """
@@ -358,9 +370,9 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         if (self.first_iteration):
             self.initial_transport_functionals_values[0] = self.transport_functionals[0] 
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (no weight):", self.transport_functionals[0])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (no weight): " + str(self.transport_functionals[0]))
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional")
 
     def _EvaluateFocusRegionTransportScalarFunctional(self, print_functional=False):
         """
@@ -370,79 +382,79 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
             self.SetTargetFocusRegionTransportScalar()
         t_target = self.target_focus_region_transport_scalar
         focus_mp = self._FindAdjointVolumeSourceProcess().model_part
-        focus_nodes_list = [(node.Id-1) for node in focus_mp.Nodes]
-        t_focus_sq = (np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(focus_mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))-t_target)**2
+        focus_nodes_list = [self.nodes_ids_global_to_local_partition_dictionary[node.Id] for node in self._GetLocalMeshNodes(focus_mp)]
+        t_focus_sq = (np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(focus_mp), KratosMultiphysics.TEMPERATURE, 0))-t_target)**2
         self.transport_functionals[1] = np.dot(self.nodal_domain_sizes[focus_nodes_list], t_focus_sq)
         if (self.first_iteration):
             self.initial_transport_functionals_values[1] = self.transport_functionals[1] 
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Concentration Functional (no weight):", self.transport_functionals[1])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Concentration Functional (no weight): " + str(self.transport_functionals[1]))
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Concentration Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Concentration Functional")
 
     def _EvaluateTransportScalarDiffusionFunctional(self, print_functional=False):
         """
         This method computes the Transport Scalar Diffusion functional: int_{\Omega}{D\\||grad(u)||^2}
         """
         mp = self._GetComputingModelPart()
-        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
         transport_scalar_gradient_norm_squared = (np.linalg.norm(transport_scalar_gradient, axis=1))**2
         integrand = self.conductivity * transport_scalar_gradient_norm_squared
         self.transport_functionals[2] = np.dot(integrand, self.nodal_domain_sizes)
         if (self.first_iteration):
             self.initial_transport_functionals_values[2] = self.transport_functionals[2]
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (no weight):", self.transport_functionals[2])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (no weight): " + str(self.transport_functionals[2]))
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional")
 
     def _EvaluateTransportScalarConvectionFunctional(self, print_functional=False):
         """
         This method computes the Transport Scalar Convection functional: int_{\Omega}{beta*T*dot(u,grad(T))}
         """
         mp = self._GetComputingModelPart()
-        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))
-        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        convection_velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
+        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        convection_velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         integrand = self.convection_coefficient * transport_scalar * np.einsum('ij,ij->i', convection_velocity, transport_scalar_gradient)
         self.transport_functionals[3] = np.dot(integrand, self.nodal_domain_sizes)
         if (self.first_iteration):
             self.initial_transport_functionals_values[3] = self.transport_functionals[3]
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (no weight):", self.transport_functionals[3])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (no weight): " + str(self.transport_functionals[3]))
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional")
 
     def _EvaluateTransportScalarDecayFunctional(self, print_functional=False):
         """
         This method computes the Transport Scalar Decay functional: int_{\Omega}{kT^2}
         """
         mp = self._GetComputingModelPart()
-        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))
+        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
         integrand = self.decay*(transport_scalar**2)
         self.transport_functionals[4] = np.dot(integrand, self.nodal_domain_sizes)
         if (self.first_iteration):
             self.initial_transport_functionals_values[4] = self.transport_functionals[4]
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (no weight):", self.transport_functionals[4])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (no weight): " + str(self.transport_functionals[4]))
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional")
 
     def _EvaluateTransportScalarSourceFunctional(self, print_functional=False):
         """
         This method computes the Transport Scalar Source functional: int_{\Omega}{-Q*T}
         """
         mp = self._GetComputingModelPart()
-        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.TEMPERATURE, 0))
-        transport_scalar_volume_flux = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.Nodes, KratosMultiphysics.HEAT_FLUX, 0))
+        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
+        transport_scalar_volume_flux = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.HEAT_FLUX, 0))
         integrand = -transport_scalar_volume_flux*transport_scalar
         self.transport_functionals[5] = np.dot(integrand, self.nodal_domain_sizes)
         if (self.first_iteration):
             self.initial_transport_functionals_values[5] = self.transport_functionals[5]
         if (print_functional):
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (no weight):", self.transport_functionals[5])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (no weight): " + str(self.transport_functionals[5]))
         else:
-            print("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional")
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional")
 
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
         return self._ComputeFunctionalDerivativesFluidFunctionalContribution() + self._ComputeFunctionalDerivativesTransportFunctionalContribution()
@@ -463,18 +475,18 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
             return self._GetAdjointSolver()._GetTransportSolver()
         
     def _GetFluidModelPart(self):
-        return self._GetFluidSolver.GetMainModelPart()
+        return self._GetFluidSolver().GetMainModelPart()
 
     def _GetTransportModelPart(self):
-        return self._GetTransportSolver.GetMainModelPart()
+        return self._GetTransportSolver().GetMainModelPart()
 
     def _CheckMaterialProperties(self, check = False):
         if (check):
-            print("--|CHECK| Check Physics Properties")
+            self.MpiPrint("--|CHECK| Check Physics Properties")
             self._GetSolver()._CheckMaterialProperties()
 
     def _InitializePhysicsParameters(self):
-        print("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")
         self._InitializeResistance()
         self._InitializeConductivity()
         self._InitializeDecay()
@@ -501,6 +513,14 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         self._UpdateDecay()
         self._UpdateConvectionCoefficient()
         self._UpdateTransportSource()
+
+    def _SynchronizePhysicsParametersVariables(self):
+        # FLUID
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.RESISTANCE)
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY)
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCD.DECAY)
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.CONVECTION_COEFFICIENT)
+        self._GetMainModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.HEAT_FLUX)
     
     def GetDefaultOptimizationSettings(self):
         ##settings string in json format

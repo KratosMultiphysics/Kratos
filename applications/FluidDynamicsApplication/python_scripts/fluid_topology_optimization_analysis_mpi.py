@@ -7,6 +7,7 @@ from scipy.spatial import KDTree
 from scipy.sparse import dok_matrix, lil_matrix
 import mmapy as MMA # import the MMA subroutines python library: https://github.com/arjendeetman/GCMMA-MMA-Python
 import time
+from pathlib import Path
 
 # Import Kratos
 import KratosMultiphysics as KratosMultiphysics
@@ -42,7 +43,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 import KratosMultiphysics.MeshingApplication as KratosMMG
 # Import Kratos Analysis and Solvers
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
-from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver
+from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver_mpi
 from KratosMultiphysics.ConvectionDiffusionApplication.apply_topology_optimization_pde_filter_process_mpi import ApplyTopologyOptimizationPdeFilterProcessMpi
 # Import Kratos Processes
 from KratosMultiphysics import ComputeNodalGradientProcess
@@ -66,8 +67,8 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         """
         This method creates the NS and ADJ_NS solvers
         """
-        self.physics_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters)
-        self.adjoint_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
+        self.physics_solver = fluid_topology_optimization_solver_mpi.CreateSolver(self.model, self.project_parameters)
+        self.adjoint_solver = fluid_topology_optimization_solver_mpi.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
 
     def _CreateSolver(self, isAdjointSolver = False):
         """
@@ -75,7 +76,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         isAdjointSolver == False --> physics_solver
         isAdjointSolver == True  --> adjoint_solver
         """
-        return fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+        return fluid_topology_optimization_solver_mpi.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
     
     def _GetSolver(self, force_adjoint = False):
         """
@@ -464,9 +465,8 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self.design_parameter = np.zeros(self.n_nodes) + self.non_optimization_domain_initial_value
         self.design_parameter[mask] = self.optimization_domain_initial_value
         self._SetDesignParameterCustomInitialDesign()
-        mp = self._GetComputingModelPart()
         counter = 0
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes():
             design = self.design_parameter[counter]
             counter += 1
             node.SetSolutionStepValue(KratosMultiphysics.DESIGN_PARAMETER, design)
@@ -485,9 +485,9 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
             if (sym_mp is None):
                 raise RuntimeError("Trying to exploit symmetry in a non existent symmetry plane model part")
             else:
-                self.symmetry_nodes_mask = np.zeros(len(sym_mp.GetCommunicator().LocalMesh().Nodes), dtype=int)
+                self.symmetry_nodes_mask = np.zeros(len(self._GetLocalMeshNodes(sym_mp)), dtype=int)
                 count = 0
-                for node in sym_mp.GetCommunicator().LocalMesh().Nodes:
+                for node in self._GetLocalMeshNodes(sym_mp):
                     self.symmetry_nodes_mask[count] = self.nodes_ids_global_to_local_partition_dictionary[node.Id]
                     count +=1
         else:
@@ -540,17 +540,8 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self._PreprocessGradient()
 
     def _PreprocessGradient(self):
-        self.shape_functions_derivatives = np.zeros((self.n_elements, self.nodes_in_element, self.dim))
-        self.element_nodes_ids = np.zeros((self.n_elements, self.nodes_in_element), dtype=int)
-        mp = self._GetComputingModelPart()
-        for el in mp.Elements:
-            el_geometry = el.GetGeometry()
-            global_gradients_at_nodes = self._GetShapeFunctionsDerivatives(el)
-            count_node = 0
-            for node in el_geometry:
-                self.shape_functions_derivatives[self.elements_ids_dictionary[el.Id], count_node, :] = global_gradients_at_nodes[count_node,:]
-                self.element_nodes_ids[self.elements_ids_dictionary[el.Id], count_node] = self.nodes_ids_global_to_local_partition_dictionary[node.Id]
-                count_node = count_node+1
+        """Avoided method in mpi: the velocity gradient is evaluated on the nodes insted of elements, maybe this can be improved"""
+        pass
 
     def _GetShapeFunctionsDerivatives(self, element):
         gradients = np.asarray(element.GetGeometry().ShapeFunctionDerivatives(1,0))
@@ -588,8 +579,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self._UpdateDesignParameterVariable()
 
     def _UpdateDesignParameterVariable(self):
-        mp = self._GetComputingModelPart()
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes():
             design = self.design_parameter[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
             node.SetSolutionStepValue(KratosMultiphysics.DESIGN_PARAMETER, design)
             distance = design-self.remeshing_levelset
@@ -843,8 +833,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         """
         This method computes the resistance functional: int_{Omega}{\\alpha||u||^2}
         """
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
         integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
         self.functionals[0] = np.dot(self.nodal_domain_sizes, integrand)
@@ -859,14 +848,11 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         """
         This method computes the Strain-Rate functional: int_{Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}
         """
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        vel = velocity[self.element_nodes_ids[:]]
-        vel_gradient = np.matmul(np.transpose(vel, axes=(0,2,1)), self.shape_functions_derivatives)
-        vel_symmetric_gradient = 1.0/2.0 * (vel_gradient+(np.transpose(vel_gradient, axes=(0,2,1))))
+        vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes()
+        vel_symmetric_gradient = 1.0/2.0 * (vel_gradient_on_nodes+(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
         vel_symmetric_gradient_norm_squared = (np.linalg.norm(vel_symmetric_gradient, ord='fro', axis=(1, 2)))**2
-        mu = self._GetComputingModelPart().Elements[1].Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        self.functionals[1] = 2*mu* np.dot(vel_symmetric_gradient_norm_squared, self.elemental_domain_size)
+        mu = self._GetViscosity()
+        self.functionals[1] = 2*mu* np.dot(vel_symmetric_gradient_norm_squared, self.nodal_domain_sizes)
         if (self.first_iteration):
             self.initial_functionals_values[1] = self.functionals[1]
         if (print_functional):
@@ -878,14 +864,11 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         """
         This method computes the Vorticity functional: int_{Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}
         """
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        vel = velocity[self.element_nodes_ids[:]]
-        vel_gradient = np.matmul(np.transpose(vel, axes=(0,2,1)), self.shape_functions_derivatives)
-        vel_antisymmetric_gradient = 1.0/2.0 * (vel_gradient-(np.transpose(vel_gradient, axes=(0,2,1))))
+        vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes()
+        vel_antisymmetric_gradient = 1.0/2.0 * (vel_gradient_on_nodes-(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
         vel_antisymmetric_gradient_norm_squared = (np.linalg.norm(vel_antisymmetric_gradient, ord='fro', axis=(1, 2)))**2
-        mu = self._GetComputingModelPart().Elements[1].Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        self.functionals[2] = 2*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.elemental_domain_size)
+        mu = self._GetViscosity()
+        self.functionals[2] = 2*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
         if (self.first_iteration):
             self.initial_functionals_values[2] = self.functionals[2]
         if (print_functional):
@@ -920,14 +903,12 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         return self._ComputeFunctionalDerivativesFluidPhysicsContribution()
 
     def _ComputeFunctionalDerivativesFluidFunctionalContribution(self):
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         return self.functional_weights[0]*self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
 
     def _ComputeFunctionalDerivativesFluidPhysicsContribution(self):
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        velocity_adjoint= np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)        
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        velocity_adjoint= np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)        
         return self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity_adjoint, axis=1) * self.nodal_domain_sizes
 
     def _EvaluateWSSConstraintAndDerivative(self):
@@ -938,8 +919,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         gn_int: integral over the domain of gn, used to normalize gn
         w: gn / gn_int (integral weights based on design parameter gradient)
         """
-        mp = self._GetComputingModelPart()
-        g = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        g = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.DESIGN_PARAMETER_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
         gn = np.linalg.norm(g , axis=1)
         gn_max = np.max(gn)
         if (gn_max > 1e-14):
@@ -949,7 +929,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
             # prod = np.einsum('ijk,ik->ij',  nodal_tangents_to_g, g)
             psi_vect =np.einsum('ijk,ik,ilj->il', v_grad, g, nodal_tangents_to_g)
             psi =  np.linalg.norm(psi_vect, axis=1)
-            mu = self._GetComputingModelPart().Elements[1].Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            mu = self._GetViscosity()
             self.wss_value = mu / gn_int * np.dot(psi, self.nodal_domain_sizes)
             self.wss_constraint = self.min_wss - self.wss_value
             self.constraints[self.wss_constraint_id] = self.wss_constraint
@@ -1349,10 +1329,9 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         return self.functional, self._ExtractVariableInOptimizationDomain(self.functional_derivatives_wrt_design), self.constraints, self.constraints_derivatives_wrt_design
         
     def _GetDesignParameterVariable(self):
-        mp = self._GetComputingModelPart()
         design_parameter = np.zeros(self.n_nodes)
         count = 0
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes():
             design_parameter[count] = node.GetSolutionStepValue(KratosMultiphysics.DESIGN_PARAMETER)
             count += 1
         return design_parameter
@@ -1363,6 +1342,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
 
     def _PrintSolution(self):
         self.OutputSolutionStep()
+        self._CorectPvtuFilesInVtuOutput()
         self._PrintFunctionalsToFile()
 
     def _InitializeRemeshing(self):
@@ -1456,21 +1436,19 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
 
     def _EvaluateRequiredGradients(self):
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.DESIGN_PARAMETER, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT)
-        if (self.use_wss_constraint):
-            self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_X_GRADIENT)
-            self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Y_GRADIENT)
-            if (self.dim == 3):
-                self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.VELOCITY_Z_GRADIENT)
+        self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_X_GRADIENT)
+        self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Y_GRADIENT)
+        if (self.dim == 3):
+            self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.VELOCITY_Z_GRADIENT)
 
     def _AssembleVelocityGradientOnNodes(self):
-        mp = self._GetComputingModelPart()
-        gradient_x = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY_X_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        gradient_y = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY_Y_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        gradient_x = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_X_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        gradient_y = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_Y_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
         gradient = np.zeros((self.n_nodes, self.dim, self.dim))
         gradient[:,0,:] = gradient_x
         gradient[:,1,:] = gradient_y
         if (self.dim == 3):
-            gradient_z = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY_Z_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+            gradient_z = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_Z_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
             gradient[:,2,:] = gradient_z
         return gradient
     
@@ -1707,7 +1685,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         Prepare Solver : ImportModelPart -> PrepareModelPart -> AddDofs
         """
-        self._GetAdjointSolver().ImportModelPart(model_parts=self._GetPhysicsMainModelPartsList(), physics_solver_distributed_model_part_importer=self.physics_solver.distributed_model_part_importer)
+        self._GetAdjointSolver().ImportModelPart(model_parts=self._GetPhysicsMainModelPartsList(), physics_solver_distributed_model_part_importer=self._GetPhysicsSolverDistributedModelPartImporter())
         self._GetAdjointSolver().PrepareModelPart()
         self._GetAdjointSolver().AddDofs()
 
@@ -1716,13 +1694,12 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self.nodes_ids_global_to_local_partition_dictionary = {}
         self.nodes_ids_local_partition_to_global_dictionary = {}
         count = 0
-        mp = self._GetComputingModelPart()
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes():
             self.nodes_ids_global_to_local_partition_dictionary[node.Id] = count
             self.nodes_ids_local_partition_to_global_dictionary[count]   = node.Id
             count += 1
         if (count != len(self.nodes_ids_global_to_local_partition_dictionary.keys())):
-            raise RuntimeError("Wrong reordering of nodes ids. The counted number of nodes is different from len(mp.GetCommunicator().LocalMesh().Nodes).")
+            raise RuntimeError("Wrong reordering of nodes ids. The counted number of nodes is different from len(self._GetLocalMeshNodes()).")
         self._PassNodesIdsGlobalToLocalDictionaryToSolvers()
         self.n_nodes = count
         self._EvaluateTotalNumberOfNodes()
@@ -1869,14 +1846,12 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self._CorrectNodalOptimizationDomainSizeWithSymmetry()
 
     def _UpdateNodalDomainSizeArrayFromNodalAreaVariable(self):
-        mp = self._GetComputingModelPart()
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes():
             current_rank_node_id = self.nodes_ids_global_to_local_partition_dictionary[node.Id]
             self.nodal_domain_sizes[current_rank_node_id] = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
 
     def _UpdateNodalOptimizationDomainSizeArrayFromNodalAreaVariable(self):
-        mp = self._GetOptimizationDomain()
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes(self._GetOptimizationDomain()):
             current_rank_optimization_node_id = self.global_to_opt_mask_nodes[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
             self.nodal_optimization_domain_sizes[current_rank_optimization_node_id] = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
 
@@ -1893,15 +1868,15 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         # -1: non opt
         # else: position in the optimization mask
         if (not (non_opt_mp is None)):
-            for node in non_opt_mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes(non_opt_mp):
                 self.global_to_opt_mask_nodes[self.nodes_ids_global_to_local_partition_dictionary[node.Id]] = -1
-            n_non_opt_nodes = len(non_opt_mp.GetCommunicator().LocalMesh().Nodes)
+            n_non_opt_nodes = len(self._GetLocalMeshNodes(non_opt_mp))
         else:
             n_non_opt_nodes = 0
         self.n_opt_design_parameters = self.n_nodes - n_non_opt_nodes
         self.optimization_domain_nodes_mask = np.zeros(self.n_opt_design_parameters, dtype=int)
         count_opt_nodes = 0
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes(mp):
             full_domain_to_local_rank_node_id = self.nodes_ids_global_to_local_partition_dictionary[node.Id]
             if (self.global_to_opt_mask_nodes[full_domain_to_local_rank_node_id] != -1): #if the node is only in the optimization domain, add it to the mask
                 self.optimization_domain_nodes_mask[count_opt_nodes] = full_domain_to_local_rank_node_id
@@ -1911,21 +1886,10 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
             self.MpiPrint("!!! WARNING: wrong initialization of the Optimization Domain Nodes Mask")
 
     def _UpdateFunctionalDerivativesVariable(self):
-        mp = self._GetComputingModelPart()
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
-        #     node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[node.Id-1][0])
-        # # synchronize the value across all the ranks of the data_communicator
-        # # self.MpiBarrier()
-        # mp = self._GetComputingModelPart()
-        # for node in mp.GetCommunicator().LocalMesh().Nodes:
-        #     if node.Is(KratosMultiphysics.INTERFACE):  # Only shared nodes
-        #         local_value = node.GetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE)
-        #         summed_value = self.data_communicator.SumAll(local_value)  # Sum across all ranks
-        #         node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, summed_value)  # Store the summed result
+        for node in self._GetLocalMeshNodes():
             node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[self.nodes_ids_global_to_local_partition_dictionary[node.Id]][0])
         
     def MpiSynchronizeLocalFunctionalValues(self):
-        # self.MpiBarrier()
         local_values = self.functionals
         # Sum the values across all ranks
         total_values = self.data_communicator.SumAll(local_values)
@@ -1933,14 +1897,13 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         if (self.MpiRunOnlyRank(0)):
             self.weighted_functionals  = self.functional_weights * self.functionals
             self.functional  = np.dot(self.functional_weights, self.functionals)
-        # self.MpiBarrier()
 
     def UpdatePhysicsParametersVariablesAndSynchronize(self):
         self.UpdatePhysicsParametersVariables()
         self._SynchronizePhysicsParametersVariables()
         
     def _SynchronizePhysicsParametersVariables(self):
-        self._GetMainModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.RESISTANCE)
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.RESISTANCE)
 
     def _SolveMMA(self, design_parameter, n_opt_variables, n_opt_constraints, min_value, max_value, max_outer_it, kkt_tolerance):
         # self.MpiBarrier()
@@ -2036,6 +1999,71 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         dfdx = self.CreateConstraintsDerivativesCompleteArrays(temp_dfdx, n_ranks, n_opt_variables_in_rank, n_opt_constraints)
         # self.MpiBarrier()
         return df0dx, dfdx
+    
+    def _GetViscosity(self):
+        for elem in self._GetComputingModelPart().GetCommunicator().LocalMesh().Elements:
+            mu = elem.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            break
+        return mu
+    
+    def _GetDensity(self):
+        for elem in self._GetComputingModelPart().GetCommunicator().LocalMesh().Elements:
+            rho = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
+            break
+        return rho
+    
+    def _GetLocalMeshNodes(self, mp = None):
+        if mp is None:
+            return self._GetComputingModelPart().GetCommunicator().LocalMesh().Nodes
+        else:
+            return mp.GetCommunicator().LocalMesh().Nodes
+        
+    def _GetLocalMeshElements(self, mp = None):
+        if mp is None:
+            return self._GetComputingModelPart().GetCommunicator().LocalMesh().Elements
+        else:
+            return mp.GetCommunicator().LocalMesh().Elements
+        
+    def _GetPhysicsSolverDistributedModelPartImporter(self):
+        return self.physics_solver.distributed_model_part_importer
+
+    # def _CorectPvtuFilesInVtuOutput(self):
+    #     if (self.MpiRunOnlyRank(0)):
+    #         if (self.project_parameters.Has("output_processes")):
+    #             if (self.project_parameters["output_processes"].Has("vtu_output")):
+    #                 vtu_output_settings = self.project_parameters["output_processes"]["vtu_output"][0]
+    #                 if (vtu_output_settings.Has("Parameters")):
+    #                     vtu_output_parameters = vtu_output_settings["Parameters"]
+    #                     mp_name     = vtu_output_parameters["model_part_name"].GetString()
+    #                     folder_name = vtu_output_parameters["output_path"].GetString()
+    #                     final_it = self.opt_it
+    #                     for it in range(final_it):
+    #                         curr_it_str = str(it+1)
+    #                         file_name = f"{mp_name}_{curr_it_str}.pvtu"
+    #                         pvtu_path = Path(folder_name) / file_name
+    #                         if pvtu_path.exists():
+    #                             text = pvtu_path.read_text(encoding='utf-8')
+    #                             fixed_text = text.replace("vtu_output/", "")
+    #                             pvtu_path.write_text(fixed_text, encoding='utf-8')
+    def _CorectPvtuFilesInVtuOutput(self):
+        if (self.MpiRunOnlyRank(0)):
+            if (self.project_parameters.Has("output_processes")):
+                if (self.project_parameters["output_processes"].Has("vtu_output")):
+                    vtu_output_settings = self.project_parameters["output_processes"]["vtu_output"][0]
+                    if (vtu_output_settings.Has("Parameters")):
+                        vtu_output_parameters = vtu_output_settings["Parameters"]
+                        mp_name     = vtu_output_parameters["model_part_name"].GetString()
+                        folder_name = vtu_output_parameters["output_path"].GetString()
+                        curr_it_str = str(self.opt_it)
+                        file_name = f"{mp_name}_{curr_it_str}.pvtu"
+                        pvtu_path = Path(folder_name) / file_name
+                        if pvtu_path.exists():
+                            text = pvtu_path.read_text(encoding='utf-8')
+                            fixed_text = text.replace("vtu_output/", "")
+                            pvtu_path.write_text(fixed_text, encoding='utf-8')
+
+            
+
 
 ###########################################################
 ### METHODS FOR MPI UTILITIES
