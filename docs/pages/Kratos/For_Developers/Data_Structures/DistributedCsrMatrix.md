@@ -8,7 +8,7 @@ summary: Comprehensive documentation for the Kratos DistributedCsrMatrix class, 
 
 ## DistributedCsrMatrix Class
 
-The `DistributedCsrMatrix` class in Kratos implements a distributed Compressed Sparse Row (CSR) matrix. This data structure is fundamental for parallel numerical simulations where large sparse matrices are partitioned and distributed across multiple processes, typically orchestrated via the Message Passing Interface (MPI). It extends the concepts of the serial `CsrMatrix` by incorporating mechanisms for managing data distribution, inter-process communication, and parallel assembly.
+The `DistributedCsrMatrix` class in Kratos implements a distributed Compressed Sparse Row (**CSR**) matrix. This data structure is fundamental for parallel numerical simulations where large sparse matrices are partitioned and distributed across multiple processes, typically orchestrated via the Message Passing Interface (**MPI**). It extends the concepts of the serial `CsrMatrix` by incorporating mechanisms for managing data distribution, inter-process communication, and parallel assembly.
 
 The `DistributedCsrMatrix` is crucial for large-scale simulations where a single process cannot hold the entire matrix in memory or when parallel processing is essential to achieve computational efficiency. It manages local sub-matrices (referred to as diagonal and off-diagonal blocks) and coordinates operations across these distributed parts.
 
@@ -21,7 +21,7 @@ For serial version see [CsrMatrix](CsrMatrix.md).
 
 ### Type Definitions
 
-*   `MpiIndexType`: Alias for `int`. This type is often used in MPI communication contexts, typically for counts or ranks.
+*   `MpiIndexType`: Alias for `int`. This type is often used in **MPI** communication contexts, typically for counts or ranks.
 *   `BlockMatrixType`: Alias for `CsrMatrix<TDataType, TIndexType>`. This is the type of the local matrices returned by `GetDiagonalBlock()` and `GetOffDiagonalBlock()`.
 *   `MatrixMapType`: Alias for `std::map<std::pair<TIndexType, TIndexType>, TDataType>`. Used by the `ToMap()` method.
 
@@ -29,14 +29,14 @@ For serial version see [CsrMatrix](CsrMatrix.md).
 
 Understanding these concepts is vital for using `DistributedCsrMatrix` effectively:
 
-*   **DataCommunicator**: An abstraction layer (typically wrapping MPI communicators like `MPI_Comm`) that manages communication (sending/receiving data) between different processes. Each `DistributedCsrMatrix` is associated with a `DataCommunicator`.
+*   **DataCommunicator**: An abstraction layer (typically wrapping **MPI** communicators like `MPI_Comm`) that manages communication (sending/receiving data) between different processes. Each `DistributedCsrMatrix` is associated with a `DataCommunicator`.
 *   **RowNumbering / ColNumbering (`DistributedNumbering`)**: These objects define the mapping between global row/column indices and their local counterparts on each process. They also determine which process "owns" which global rows/columns, which is key for data locality and assembly.
 *   **Diagonal Block**: The portion of the distributed matrix containing entries `(i,j)` where both the global row `i` and global column `j` are considered local to the current process, based on its `RowNumbering` and `ColNumbering`. This block is stored as a local `CsrMatrix`.
 *   **Off-Diagonal Block**: The portion of the distributed matrix containing entries `(i,j)` where the global row `i` is local to the current process, but the global column `j` is *not* local. This block is also stored as a local `CsrMatrix`. Its column indices are local representations of these non-local global columns.
 *   **DistributedVectorImporter / DistributedVectorExporter**: Utility classes crucial for SpMV-like operations.
     *   `DistributedVectorImporter` (`mpVectorImporter`): Gathers data from other processes. For `A*x`, if `A` has off-diagonal entries, the process needs the components of `x` corresponding to those non-local columns.
     *   `DistributedVectorExporter`: Scatters and sums data to other processes. For `A^T*x`, contributions to the result vector `y` might correspond to rows owned by other processes.
-*   **Assembly**: The process of constructing the matrix by adding contributions (e.g., from element stiffness matrices in FEM).
+*   **Assembly**: The process of constructing the matrix by adding contributions (e.g., from element stiffness matrices in **FEM**).
     *   Entries `(GlobalI, GlobalJ)` where `GlobalI` is a local row are assembled directly into `DiagonalBlock` or `OffDiagonalBlock`.
     *   Contributions to entries where `GlobalI` is a non-local row are temporarily stored in a cache (`mNonLocalData`). These are sent to the owning process during `FinalizeAssemble()`.
 *   **Communication Caches for Assembly**:
@@ -215,7 +215,7 @@ Understanding these concepts is vital for using `DistributedCsrMatrix` effective
 
 #### Assembly Operations
 
-Assembly updates matrix entries with contributions, typically from element matrices in Finite Element Method (FEM) simulations. The sparsity pattern (graph) must be fixed before assembly begins. Atomic operations (`#pragma omp atomic`) are used internally for thread-safe updates to matrix values during assembly.
+Assembly updates matrix entries with contributions, typically from element matrices in Finite Element Method (**FEM**) simulations. The sparsity pattern (graph) must be fixed before assembly begins. Atomic operations (`#pragma omp atomic`) are used internally for thread-safe updates to matrix values during assembly.
 
 *   `void BeginAssemble()`: Initializes the assembly. Primarily, this zeroes out `mNonLocalData` (the cache for contributions to non-local rows).
 
@@ -285,7 +285,7 @@ These operations perform `y = alpha*A*x + beta*y` or its transpose. They are fun
     *   `rX`: A `DistributedSystemVector` compatible with the matrix's column numbering.
     *   `rY`: A `DistributedSystemVector` compatible with the matrix's row numbering. `rY` is updated.
     *   **Operation Steps:**
-        1.  `mpVectorImporter->ImportData(rX)`: Gathers non-local components of `rX` needed for the `OffDiagonalBlock` product. This involves MPI communication. The imported values are stored in `mOffDiagonalValuesCache`.
+        1.  `mpVectorImporter->ImportData(rX)`: Gathers non-local components of `rX` needed for the `OffDiagonalBlock` product. This involves **MPI** communication. The imported values are stored in `mOffDiagonalValuesCache`.
         2.  `GetOffDiagonalBlock().SpMV(mOffDiagonalValuesCache, rY.GetLocalData())`: Local SpMV of `OffDiagonalBlock` with imported `rX` data, adding to `rY`'s local data.
         3.  `GetDiagonalBlock().SpMV(rX.GetLocalData(), rY.GetLocalData())`: Local SpMV of `DiagonalBlock` with local `rX` data, adding to `rY`'s local data.
 

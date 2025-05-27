@@ -8,11 +8,11 @@ summary: Comprehensive documentation for the Kratos DistributedSparseGraph class
 
 ## DistributedSparseGraph Class
 
-The `DistributedSparseGraph` class implements a distributed sparse graph data structure designed for parallel computations using MPI. It allows different MPI ranks to manage portions of a global graph, facilitating distributed assembly and storage of graph connectivity. This class is crucial for large-scale simulations where a single machine's memory is insufficient to hold the entire graph.
+The `DistributedSparseGraph` class implements a distributed sparse graph data structure designed for parallel computations using **MPI**. It allows different **MPI** ranks to manage portions of a global graph, facilitating distributed assembly and storage of graph connectivity. This class is crucial for large-scale simulations where a single machine's memory is insufficient to hold the entire graph.
 
-The graph is built upon a `DataCommunicator` which defines the MPI context. It internally creates and manages a `DistributedNumbering` object to handle the mapping between global and local row indices across ranks. Each rank stores its local portion of the graph (for rows it owns) and uses temporary storage for entries that belong to non-local rows, which are communicated during `Finalize()`.
+The graph is built upon a `DataCommunicator` which defines the **MPI** context. It internally creates and manages a `DistributedNumbering` object to handle the mapping between global and local row indices across ranks. Each rank stores its local portion of the graph (for rows it owns) and uses temporary storage for entries that belong to non-local rows, which are communicated during `Finalize()`.
 
-**Important Note on Thread Safety:** While `DistributedSparseGraph` coordinates data across MPI ranks, operations that modify internal graph structures (especially those involving non-local entries before `Finalize()`) use locks for thread safety. However, the underlying local graph (`SparseContiguousRowGraph`) and non-local graph buffers (`SparseGraph`) might have their own considerations if populated directly in a multi-threaded fashion outside of the provided `AddEntry`/`AddEntries` methods. The header of the code itself notes: "it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)" - this generally applies to how graph data might be assembled before being passed to this class or if manipulating its internal structures directly.
+**Important Note on Thread Safety:** While `DistributedSparseGraph` coordinates data across **MPI** ranks, operations that modify internal graph structures (especially those involving non-local entries before `Finalize()`) use locks for thread safety. However, the underlying local graph (`SparseContiguousRowGraph`) and non-local graph buffers (`SparseGraph`) might have their own considerations if populated directly in a multi-threaded fashion outside of the provided `AddEntry`/`AddEntries` methods. The header of the code itself notes: "it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)" - this generally applies to how graph data might be assembled before being passed to this class or if manipulating its internal structures directly.
 
 For serial version see [SparseGraph](SparseGraph.md).
 
@@ -28,7 +28,7 @@ The `DistributedSparseGraph` class has one template parameter:
 
 **`DistributedSparseGraph(DistributedNumbering<TIndexType>& rRowNumbering)`**
 Constructs a `DistributedSparseGraph`.
-- `rRowNumbering`: A reference to a `DistributedNumbering` object. This object defines how global row indices are distributed among MPI ranks and provides methods for converting between global and local indices. The `DataCommunicator` is obtained from this numbering.
+- `rRowNumbering`: A reference to a `DistributedNumbering` object. This object defines how global row indices are distributed among **MPI** ranks and provides methods for converting between global and local indices. The `DataCommunicator` is obtained from this numbering.
 
 ```cpp
 // Assuming r_comm is an MPI_Comm (e.g., MPI_COMM_WORLD)
@@ -108,7 +108,7 @@ dist_graph.AddEntries(connectivities);
 ```
 
 #### `Finalize()`
-Finalizes the graph construction. This is a collective operation that must be called on all MPI ranks.
+Finalizes the graph construction. This is a collective operation that must be called on all **MPI** ranks.
 It performs the following key steps:
 1. Exchanges information about non-local entries: If a rank tried to add an entry for a row it does not own, this information is sent to the owner rank.
 2. Populates the `mNonLocalGraph` on each rank: This graph stores, for rows owned by the current rank, which other ranks also have these rows as non-local (ghost) rows and need to know about their connectivity.
@@ -117,7 +117,7 @@ dist_graph.Finalize(); // Collective call
 ```
 
 #### `GetLocalGraph() const`
-Returns a constant reference to the local part of the graph. This graph contains entries `(GlobalRowIndex, GlobalColIndex)` where `GlobalRowIndex` is owned by the current MPI rank.
+Returns a constant reference to the local part of the graph. This graph contains entries `(GlobalRowIndex, GlobalColIndex)` where `GlobalRowIndex` is owned by the current **MPI** rank.
 The returned type is `const SparseGraph<TIndexType>&`.
 ```cpp
 const Kratos::SparseGraph<IndexType>& local_graph = dist_graph.GetLocalGraph();
@@ -131,7 +131,7 @@ for(auto it_row = local_graph.begin(); it_row != local_graph.end(); ++it_row) {
 
 #### `GetNonLocalGraph() const`
 Returns a constant reference to the non-local graph structure.
-This is a `std::map<IndexType, std::vector<int>>`. The map key is a `GlobalRowIndex` (owned by the current rank). The associated `std::vector<int>` contains the ranks of the MPI processes that have this `GlobalRowIndex` as a ghost/non-local row and therefore need to be informed about its connectivity.
+This is a `std::map<IndexType, std::vector<int>>`. The map key is a `GlobalRowIndex` (owned by the current rank). The associated `std::vector<int>` contains the ranks of the **MPI** processes that have this `GlobalRowIndex` as a ghost/non-local row and therefore need to be informed about its connectivity.
 This is primarily for internal use or advanced scenarios.
 ```cpp
 const std::map<IndexType, std::vector<int>>& non_local_graph_info = dist_graph.GetNonLocalGraph();
@@ -146,13 +146,13 @@ IndexType owner_rank = numbering.OwnerRank(global_idx);
 ```
 
 #### `Size()`
-Returns the total number of unique global row indices that have at least one entry in the graph, across all MPI ranks. This implies the "height" or number of active rows in the conceptual global matrix graph.
+Returns the total number of unique global row indices that have at least one entry in the graph, across all **MPI** ranks. This implies the "height" or number of active rows in the conceptual global matrix graph.
 ```cpp
 IndexType total_active_rows = dist_graph.Size();
 ```
 
 #### `LocalSize()`
-Returns the number of unique global row indices owned by the current MPI rank that have at least one entry in the graph.
+Returns the number of unique global row indices owned by the current **MPI** rank that have at least one entry in the graph.
 ```cpp
 IndexType local_active_rows = dist_graph.LocalSize();
 // This is equivalent to dist_graph.GetLocalGraph().Size() if GetLocalGraph().Size() counts non-empty rows.

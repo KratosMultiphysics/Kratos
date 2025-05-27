@@ -8,9 +8,9 @@ summary: Comprehensive documentation for the Kratos SystemVector class, a distri
 
 ## DistributedSystemVector Class
 
-The `DistributedSystemVector` is a data structure designed for handling distributed vectors in parallel computations, primarily utilizing MPI (Message Passing Interface). It is a cornerstone in large-scale Finite Element Method (FEM) simulations where system vectors (such as solution vectors or right-hand side vectors) are partitioned across multiple processes.
+The `DistributedSystemVector` is a data structure designed for handling distributed vectors in parallel computations, primarily utilizing **MPI** (Message Passing Interface). It is a cornerstone in large-scale Finite Element Method (**FEM**) simulations where system vectors (such as solution vectors or right-hand side vectors) are partitioned across multiple processes.
 
-Each MPI process owns a local portion of the vector. The `DistributedSystemVector` manages this local data and provides mechanisms for interacting with non-local data (data owned by other processes) when necessary, particularly during the assembly phase or global reduction operations (like norm or dot product).
+Each **MPI** process owns a local portion of the vector. The `DistributedSystemVector` manages this local data and provides mechanisms for interacting with non-local data (data owned by other processes) when necessary, particularly during the assembly phase or global reduction operations (like norm or dot product).
 
 For serial version see [SystemVector](SystemVector.md).
 
@@ -39,7 +39,7 @@ For serial version see [SystemVector](SystemVector.md).
 
 ### Operators
 
-`DistributedSystemVector` supports several operators. Most arithmetic operators work on the **local data** of each MPI process.
+`DistributedSystemVector` supports several operators. Most arithmetic operators work on the **local data** of each **MPI** process.
 
 *   **Assignment (`=`):**
     ```cpp
@@ -94,7 +94,7 @@ Key methods for managing and operating on `DistributedSystemVector`:
     ```cpp
     const DistributedNumbering<IndexType>& GetNumbering() const;
     ```
-    Returns a const reference to the `DistributedNumbering` object, which manages the mapping between global indices and local indices for each MPI process.
+    Returns a const reference to the `DistributedNumbering` object, which manages the mapping between global indices and local indices for each **MPI** process.
 
 *   **`Clear()`**
     ```cpp
@@ -118,7 +118,7 @@ Key methods for managing and operating on `DistributedSystemVector`:
     ```cpp
     IndexType LocalSize() const;
     ```
-    Returns the number of elements stored locally on the current MPI process.
+    Returns the number of elements stored locally on the current **MPI** process.
 
 *   **`GetLocalData()`**
     ```cpp
@@ -152,13 +152,13 @@ Key methods for managing and operating on `DistributedSystemVector`:
     ```cpp
     TDataType Norm() const;
     ```
-    Calculates the L2 (Euclidean) norm of the entire distributed vector. This involves calculating the norm of the local data and then performing a sum-reduction across all MPI processes using `GetComm().SumAll()`.
+    Calculates the L2 (Euclidean) norm of the entire distributed vector. This involves calculating the norm of the local data and then performing a sum-reduction across all **MPI** processes using `GetComm().SumAll()`.
 
 *   **`Dot(const DistributedSystemVector& rOtherVector, MpiIndexType gather_on_rank=0)`**
     ```cpp
     TDataType Dot(const DistributedSystemVector& rOtherVector, MpiIndexType gather_on_rank=0);
     ```
-    Computes the dot product of this vector with `rOtherVector`. The local dot product is computed, and then results are summed across MPI processes using `GetComm().Sum()`. The result is only guaranteed to be correct on `gather_on_rank`.
+    Computes the dot product of this vector with `rOtherVector`. The local dot product is computed, and then results are summed across **MPI** processes using `GetComm().Sum()`. The result is only guaranteed to be correct on `gather_on_rank`.
 
 *   **`Add(const TDataType factor, const DistributedSystemVector& rOtherVector)`**
     ```cpp
@@ -202,7 +202,7 @@ Key methods for managing and operating on `DistributedSystemVector`:
 
 ### Distributed Aspects
 
-The `DistributedSystemVector` is fundamentally designed for parallel computing environments where data is partitioned across multiple MPI processes.
+The `DistributedSystemVector` is fundamentally designed for parallel computing environments where data is partitioned across multiple **MPI** processes.
 
 *   **Data Partitioning (Local vs. Non-Local):**
     *   Each MPI process "owns" a specific range of global indices. The data corresponding to these owned indices is stored in `mLocalData` (a `DenseVector`) on that process.
@@ -221,24 +221,24 @@ The `DistributedSystemVector` is fundamentally designed for parallel computing e
             *   If `EquationId[i]` is local to the current process (determined by `GetNumbering().IsLocal(EquationId[i])`), the value `rVectorInput[i]` is atomically added to `mLocalData[local_id]`.
             *   If `EquationId[i]` is non-local, the value `rVectorInput[i]` is atomically added to `mNonLocalData[EquationId[i]]`. A `KRATOS_DEBUG_ERROR_IF` check ensures that this `EquationId[i]` was already present in `mNonLocalData` (meaning it was anticipated, e.g., from graph construction or `AddEntry`).
     3.  **`FinalizeAssemble()`:**
-        *   This method completes the assembly by performing the necessary MPI communication.
+        *   This method completes the assembly by performing the necessary **MPI** communication.
         *   The `DistributedVectorExporter` (`mpexporter`) uses the communication plan established in `BeginAssemble()` to send the accumulated values from each process's `mNonLocalData` to the processes that own those global indices.
         *   The receiving processes then add these contributions to their respective `mLocalData` entries.
 
 *   **Role of `DistributedNumbering`:**
-    *   Manages the partitioning of global indices across MPI processes.
+    *   Manages the partitioning of global indices across **MPI** processes.
     *   Provides methods like `IsLocal(GlobalId)`, `LocalId(GlobalId)`, and `GlobalId(LocalId)`.
     *   Defines the overall `Size()` of the vector and the `LocalSize()` for each process.
     *   Stores information about which process owns which range of global IDs (e.g., `GetCpuBounds()`).
 
 *   **Role of `DistributedVectorExporter`:**
     *   Created in `BeginAssemble()` based on the non-local entries this process intends to contribute to.
-    *   Manages the communication (MPI sends/receives) required in `FinalizeAssemble()` to transfer data from `mNonLocalData` of contributing processes to `mLocalData` of owning processes.
+    *   Manages the communication (**MPI** sends/receives) required in `FinalizeAssemble()` to transfer data from `mNonLocalData` of contributing processes to `mLocalData` of owning processes.
     *   The `DistributedVectorImporter` (used in the test file example) performs the reverse operation: gathering specified non-local data onto the current process.
 
 ### Code Examples
 
-Below are examples demonstrating the usage of `DistributedSystemVector`. These examples assume an MPI environment is initialized.
+Below are examples demonstrating the usage of `DistributedSystemVector`. These examples assume an **MPI** environment is initialized.
 
 #### **1. Construction**
 
