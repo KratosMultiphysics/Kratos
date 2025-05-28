@@ -1501,13 +1501,13 @@ public:
      * @param rLowPoint  Lower point of the boundingbox.
      * @param rHighPoint Higher point of the boundingbox.
      */
-    void BoundingBox(
+    virtual void BoundingBox(
         Point& rLowPoint,
         Point& rHighPoint
         ) const
     {
-        noalias(rHighPoint.Coordinates()) = this->GetPoint(0).Coordinates();
-        noalias(rLowPoint.Coordinates())= rHighPoint.Coordinates();
+        rHighPoint.Coordinates() = this->GetPoint(0).Coordinates();
+        rLowPoint.Coordinates()= rHighPoint.Coordinates();
         const SizeType dim = WorkingSpaceDimension();
 
         for (unsigned int point = 1; point < PointsNumber(); ++point ) { //The first node is already assigned, so we can start from 1
