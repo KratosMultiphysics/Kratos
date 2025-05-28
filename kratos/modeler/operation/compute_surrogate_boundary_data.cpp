@@ -60,11 +60,11 @@ void ComputeSurrogateBoundaryData::Apply() const
     auto colors = GetMeshColors();
     colors.InitializeRays(min_ray_position, number_of_divisions, "nodes");
     for(auto& r_element : r_skin_part.Elements()) {
-        Element::GeometryType& r_geometry = r_element.GetGeometry();
+        auto& r_geometry = r_element.GetGeometry();
         colors.AddGeometry(r_geometry, false);
     }
     for(auto& r_condition : r_skin_part.Conditions()) {
-        Element::GeometryType& r_geometry = r_condition.GetGeometry();
+        auto& r_geometry = r_condition.GetGeometry();
         colors.AddGeometry(r_geometry, false);
     }
     colors.CalculateNodalRayColors(min_ray_position, number_of_divisions, inside_color, outside_color);
@@ -83,7 +83,7 @@ void ComputeSurrogateBoundaryData::Apply() const
                 }
 
                 auto& nodal_data = GetNodalData(i,j,k);
-                Node::Pointer node_pointer = nodal_data.pGetNode();
+                auto node_pointer = nodal_data.pGetNode();
                 if (node_pointer) 
                 {
                     surrogate_boundary_data[node_index].IsActive() = true;
@@ -126,14 +126,14 @@ void ComputeSurrogateBoundaryData::Apply() const
     
     // Check if the file was opened successfully
     if (output_file.is_open()) {
-        output_file <<  PrintSBData(surrogate_boundary_data);
+        output_file <<  PrintSurrogateBoundaryData(surrogate_boundary_data);
         output_file.close();
     } else  
-        KRATOS_WARNING("ComputeSurrogateBoundaryData") << "Data could not be saved in file" << std::endl;
+        KRATOS_ERROR << "ComputeSurrogateBoundaryData: Data could not be saved in file" << std::endl;
 } 
 
 /// Print object's data.
-std::string ComputeSurrogateBoundaryData::PrintSBData(std::vector<SurrogateBoundaryNode>& sbdata) const 
+std::string ComputeSurrogateBoundaryData::PrintSurrogateBoundaryData(std::vector<SurrogateBoundaryNode>& rSurrogateBoundaryData) const 
 {
     std::stringstream rOStream;
     const auto n = GetNumberOfDivisions();
@@ -152,7 +152,7 @@ std::string ComputeSurrogateBoundaryData::PrintSBData(std::vector<SurrogateBound
     for (std::size_t i = 0; i < n[0]; ++i) {
         for (std::size_t j = 0; j < n[1]; ++j) {
             for (std::size_t k = 0; k < n[2]; ++k) {
-                SurrogateBoundaryNode& node = sbdata[GetNodeIndex(i,j,k)];;
+                SurrogateBoundaryNode& node = rSurrogateBoundaryData[GetNodeIndex(i,j,k)];;
                 auto& v = node.GetVectorDistance();
                 rOStream << node.IsActive() << " " << node.IsInside() << " "
                         << v[0] << " " << v[1] << " " << v[2] << std::endl;

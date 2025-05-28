@@ -79,7 +79,7 @@ private:
         void SetNodePointer(Node::Pointer pNode) { node_pointer = pNode; }
     };
 
-    std::string PrintSBData(std::vector<SurrogateBoundaryNode>& sbdata) const;
+    std::string PrintSurrogateBoundaryData(std::vector<SurrogateBoundaryNode>& sbdata) const;
 
 };
 }

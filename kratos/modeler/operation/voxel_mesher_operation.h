@@ -63,9 +63,15 @@ protected:
         return mrModeler.mKeyPlanes[Direction];
     }
 
-    std::size_t GetNodeIndex(std::size_t I, std::size_t J, std::size_t K) const;
+    std::size_t GetNodeIndex(
+        std::size_t I, 
+        std::size_t J, 
+        std::size_t K) const;
 
-    VoxelMeshGeneratorModeler::CartesianNodalData& GetNodalData(std::size_t I, std::size_t J, std::size_t K) const; 
+    VoxelMeshGeneratorModeler::CartesianNodalData& GetNodalData(
+        std::size_t I, 
+        std::size_t J, 
+        std::size_t K) const; 
 
     std::size_t CalculateCenterOfElementPosition(double Coordinate, int ThisDimension) const;
 
