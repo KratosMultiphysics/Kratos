@@ -24,7 +24,7 @@ Parameters ComputeSurrogateBoundaryData::GetDefaultParameters() const
 {
     return Parameters(R"({
         "type" : "compute_surrogate_boundary_data",
-        "model_part_name": "Undefined",
+        "model_part_name": " ",
         "outside_color": 1,
         "inside_color": -1,
         "output_path" : "distances.txt"
