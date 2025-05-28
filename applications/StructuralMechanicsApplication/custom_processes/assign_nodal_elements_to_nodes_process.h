@@ -110,11 +110,6 @@ public:
     ///@{
 
     /**
-     * @brief Execute method is used to execute the Process algorithms.
-     */
-    void Execute() override;
-
-    /**
      * @brief This function is designed for being called at the beginning of the computations
      * right after reading the model and the groups
      */
