@@ -280,15 +280,16 @@ namespace Kratos
                     Vector old_tangent = last_node.GetValue(LOCAL_TANGENT);
                     if (norm_2(old_normal) > 1e-12) 
                     {
-                        last_node.SetValue(NORMAL, (normal_vector+old_normal)/2);
-                        last_node.SetValue(LOCAL_TANGENT, (tangent_vector+old_tangent)/2);
+                        // FIXME:
+                        // last_node.SetValue(NORMAL, (normal_vector+old_normal)/2);
+                        // last_node.SetValue(LOCAL_TANGENT, (tangent_vector+old_tangent)/2);
                     }
                     else 
                     {
                         last_node.SetValue(NORMAL, normal_vector);
                         last_node.SetValue(LOCAL_TANGENT, tangent_vector);
 
-                        // FIXME: compute the curvature
+                        // compute the curvature
                         CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
                         CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
 
@@ -750,13 +751,13 @@ namespace Kratos
                     // Create 25 "fake" GaussPoints to check if the majority are inside or outside
                     const int numFakeGaussPoints = 6;
                     int numberOfInsideGaussianPoints = 0;
-                    for (int i_GPx = 0; i_GPx < numFakeGaussPoints; i_GPx++){
-                        double x_coord = j*knot_step_uv[0] + knot_step_uv[0]/(numFakeGaussPoints+1)*(i_GPx+1) + starting_pos_uv[0];
+                    for (int i_GPx = 0; i_GPx < numFakeGaussPoints+1; i_GPx++){
+                        double x_coord = j*knot_step_uv[0] + knot_step_uv[0]/(numFakeGaussPoints)*(i_GPx) + starting_pos_uv[0];
 
                         // NOTE:: The v-knot spans are upside down in the matrix!!
-                        for (int i_GPy = 0; i_GPy < numFakeGaussPoints; i_GPy++) 
+                        for (int i_GPy = 0; i_GPy < numFakeGaussPoints+1; i_GPy++) 
                         {
-                            double y_coord = i*knot_step_uv[1] + knot_step_uv[1]/(numFakeGaussPoints+1)*(i_GPy+1) + starting_pos_uv[1];
+                            double y_coord = i*knot_step_uv[1] + knot_step_uv[1]/(numFakeGaussPoints)*(i_GPy) + starting_pos_uv[1];
                             Point gaussPoint = Point(x_coord, y_coord, 0);  // GAUSSIAN POINT
                             if (isPointInsideSkinBoundary(gaussPoint, testBin, skin_model_part)) {
                                 // Sum over the number of numFakeGaussPoints per knot span
@@ -767,7 +768,7 @@ namespace Kratos
                     }
                 
                     // Mark the knot span as available or not depending on the number of Gauss Points Inside/Outside
-                    if (numberOfInsideGaussianPoints < lambda*numFakeGaussPoints*numFakeGaussPoints) {
+                    if (numberOfInsideGaussianPoints < lambda*(numFakeGaussPoints+1)*(numFakeGaussPoints+1)) {
                         knot_spans_available[idMatrix][i][j] = -1; // Cut knot spans that have been checked
                     }
                     else{

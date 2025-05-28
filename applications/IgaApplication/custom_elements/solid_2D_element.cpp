@@ -207,7 +207,10 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     
 
     //------------------------------
-    noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(trans(B), Matrix(prod(r_D, B))); //
+    // noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(trans(B), Matrix(prod(r_D, B))); //
+
+    int activation_level =  r_geometry.GetValue(ACTIVATION_LEVEL);
+    this->SetValue(ACTIVATION_LEVEL, activation_level);
 
     // // Calculating the local RHS
     for ( IndexType i = 0; i < number_of_points; ++i ) {
@@ -217,22 +220,119 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
             rRightHandSideVector[index + j] += IntToReferenceWeight * N[i] * volume_force_local[j];
     }
 
+    //FIXME: trial to compute div(sigma) * w
+    std::vector<Kratos::Matrix> shape_function_derivatives;
+    // Compute all the derivatives of the basis functions involved
+    for (int n = 1; n <= 2; n++) {
+        shape_function_derivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
+    }
+
+    // d sigma_xx / dx = r_D * d eps/dx
+    // MODIFIED
+    Matrix B_x = ZeroMatrix(3,mat_size); Matrix B_y = ZeroMatrix(3,mat_size);
+
+    Matrix DN_DXX(number_of_points,2);
+    Matrix DN_DYY(number_of_points,2);
+
+    for (IndexType i = 0; i < number_of_points; ++i)
+    {
+        DN_DXX(i,0) =  shape_function_derivatives[1](i,0);
+        DN_DXX(i,1) =  shape_function_derivatives[1](i,1);
+
+        DN_DYY(i,0) =  shape_function_derivatives[1](i,1);
+        DN_DYY(i,1) =  shape_function_derivatives[1](i,2);
+    }
+
+    CalculateB(B_x, DN_DXX); CalculateB(B_y, DN_DYY);
+
+    double x_rot = r_geometry.Center().X();
+    double y_rot = r_geometry.Center().Y();
+    if (activation_level == 2) //(x_rot > 3.0 || x_rot < 0.0 || y_rot > 1.0 || y_rot < 0.0)
+    {
+
+        // KRATOS_WATCH(r_geometry.Center())
+        // noalias(rLeftHandSideMatrix) += 1e-2*IntToReferenceWeight * prod(trans(B), Matrix(prod(r_D, B)));
+        // noalias(rLeftHandSideMatrix) -= prod(trans(B_x+B_y),r_D)*IntToReferenceWeight;
+
+        ///////
+        // Matrix DivSigmaMatrix(2, mat_size);
+
+        // Matrix DB_x(3, mat_size);
+        // Matrix DB_y(3, mat_size);
+
+        // noalias(DB_x) = prod(r_D, B_x);  // D ⋅ ∂B/∂x
+        // noalias(DB_y) = prod(r_D, B_y);  // D ⋅ ∂B/∂y
+
+        // // div(σ)_x = ∂σ_xx/∂x + ∂σ_xy/∂y
+        // row(DivSigmaMatrix, 0) = row(DB_x, 0);  // ∂σ_xx/∂x
+        // noalias(row(DivSigmaMatrix, 0)) += row(DB_y, 2);  // ∂σ_xy/∂y
+
+        // // div(σ)_y = ∂σ_xy/∂x + ∂σ_yy/∂y
+        // row(DivSigmaMatrix, 1) = row(DB_x, 2);  // ∂σ_xy/∂x
+        // noalias(row(DivSigmaMatrix, 1)) += row(DB_y, 1);  // ∂σ_yy/∂y
+
+        // Matrix d_sigma_x = prod(trans(B_x),r_D);
+        // Matrix d_sigma_y = prod(trans(B_y),r_D);
+
+        // for (IndexType i = 0; i < number_of_points; ++i) {
+        //     const SizeType i_glob = 2 * i;
+        //     for (IndexType j = 0; j < mat_size; ++j) {
+        //         rLeftHandSideMatrix(i_glob, j) -= IntToReferenceWeight * N[i] * DivSigmaMatrix(0, j);
+        //         rLeftHandSideMatrix(i_glob + 1, j) -= IntToReferenceWeight * N[i] * DivSigmaMatrix(1, j);
+
+
+        //         // rLeftHandSideMatrix(i_glob, j) -= IntToReferenceWeight * N[i] * (d_sigma_x(j, 0) + d_sigma_y(j, 2));
+        //         // rLeftHandSideMatrix(i_glob + 1, j) -= IntToReferenceWeight * N[i] * (d_sigma_x(j, 2) + d_sigma_y(j, 1));            
+        //     }
+        // }
+
+        // for (IndexType i = 0; i < number_of_points; ++i) {
+        //     for (IndexType idim = 0; idim < 2; idim++) {
+        //         const SizeType i_glob = 2*i + idim;
+
+        //         for (IndexType j = 0; j < number_of_points; ++j) {
+        //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+        //                 const SizeType j_glob = 2*j + jdim;
+
+        //                 Vector div_sigma(2);
+        //                 div_sigma[0] = (d_sigma_x(j_glob, 0) + d_sigma_y(j_glob, 2));
+        //                 div_sigma[1] = (d_sigma_x(j_glob, 2) + d_sigma_y(j_glob, 1));
+
+        //                 rLeftHandSideMatrix(i_glob, j_glob) -= 1e-3*IntToReferenceWeight * N[i] * div_sigma[idim];
+        //             }
+        //         }
+        //     }
+        // }
+
+    }
+
+    else if (activation_level == 1)
+        noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(trans(B), Matrix(prod(r_D, B)));
+
+    else 
+    {
+        KRATOS_WATCH(activation_level);
+        exit(0);
+    }
+    
 
     // RHS = ExtForces - K*temp;
     
-
     // // RHS -= K*temp
     // TO DO 
     // Should be _int{B^T * \sigma}
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,old_displacement); 
 
+    if (r_geometry.Center().X() > 1.4 && r_geometry.Center().X() < 1.5 && r_geometry.Center().Y() > 1.3)
+    {
+        for (unsigned int i = 0; i < number_of_points; i++) {
+        //     if (r_geometry[i].GetId() == 420) KRATOS_WATCH(N[i])
 
-    // for (unsigned int i = 0; i < number_of_points; i++) {
-
-    //     std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
-    //     outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-    //     outputFile.close();
-    // }
+        std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
+        outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+        outputFile.close();
+        }
+    }
     KRATOS_CATCH("")
 }
 

@@ -15,6 +15,124 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
 
+    // void BrepSBMUtilities::CreateBrepSurfaceSBMExternalIntegrationPoints(
+    //     IntegrationPointsArrayType& rIntegrationPoints,
+    //     const std::vector<double>& rSpansU,
+    //     const std::vector<double>& rSpansV,
+    //     ModelPart& rSurrogateModelPart_inner, 
+    //     ModelPart& rSurrogateModelPart_outer,
+    //     IntegrationInfo& rIntegrationInfo)
+    // {
+    //     // Loop over rSurrogateModelPart_outer and collect the vertical conditions on each y-knot span
+    //     std::vector<std::vector<double>> verticalConditionsPerRow(rSpansV.size()-1);
+
+    //     // Vector meshSizes_uv = rSurrogateModelPart_outer.GetProcessInfo().GetValue(MARKER_MESHES);
+    //     bool isOuterLoopDefined = false;
+
+    //     if (rSurrogateModelPart_outer.Conditions().size() > 0) {isOuterLoopDefined = true;}
+        
+    //     for (auto i_cond : rSurrogateModelPart_outer.Conditions()) {
+    //         if (std::abs(i_cond.GetGeometry()[0].X()-i_cond.GetGeometry()[1].X()) < 1e-13 ) {
+    //             const double direction = (i_cond.GetGeometry()[1].Y()-i_cond.GetGeometry()[0].Y())/std::abs((i_cond.GetGeometry()[1].Y()-i_cond.GetGeometry()[0].Y()));
+
+    //             int iRow1 = FindKnotSpans1D(rSpansV, i_cond.GetGeometry()[0].Y() + 1e-12*(direction));
+    //             int iRow2 = FindKnotSpans1D(rSpansV, i_cond.GetGeometry()[1].Y() - 1e-12*(direction));
+
+    //             for (int i_row = std::min(iRow1, iRow2); i_row < std::max(iRow1,iRow2)+1; i_row++) {
+    //                 verticalConditionsPerRow[i_row].push_back(i_cond.GetGeometry()[0].X());
+    //             }
+    //         }
+    //     }
+        
+    //     for (auto i_cond : rSurrogateModelPart_inner.Conditions()) {
+    //         if (std::abs(i_cond.GetGeometry()[0].X()-i_cond.GetGeometry()[1].X()) < 1e-13 ) {
+    //             // When local refining is performed, the surrogate steps might be larger that the refined knot spans
+    //             const double direction = (i_cond.GetGeometry()[1].Y()-i_cond.GetGeometry()[0].Y())/std::abs((i_cond.GetGeometry()[1].Y()-i_cond.GetGeometry()[0].Y()));
+    //             int iRow1 = FindKnotSpans1D(rSpansV, i_cond.GetGeometry()[0].Y() + 1e-12*(direction));
+    //             int iRow2 = FindKnotSpans1D(rSpansV, i_cond.GetGeometry()[1].Y() - 1e-12*(direction));
+
+    //             for (int i_row = std::min(iRow1, iRow2); i_row < std::max(iRow1,iRow2)+1; i_row++) {
+    //                 verticalConditionsPerRow[i_row].push_back(i_cond.GetGeometry()[0].X());
+    //             }
+    //         }
+    //     }
+
+    //     // Sort the vertical conditions by the x coordinate
+    //     for (IndexType iRow = 0; iRow < rSpansV.size() - 1; ++iRow) {
+    //         std::sort(verticalConditionsPerRow[iRow].begin(), verticalConditionsPerRow[iRow].end());  
+    //     }   
+        
+    //     // Loop over each row and creation of the integration points
+    //     for (IndexType j = 0; j < rSpansV.size() - 1; j++) {
+    //         int startingColumnIndex = 0;
+    //         int nextSwitchKnotSpan;
+
+    //         int verticalConditionIndex = 1;
+
+    //         if (isOuterLoopDefined){
+    //             if (verticalConditionsPerRow[j].empty()) {
+    //                 for (IndexType i = 0; i < rSpansU.size() - 1; i++) {
+
+    //                     const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+    //                     IndexType initial_integration_size = rIntegrationPoints.size();
+
+    //                     if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+    //                         rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+    //                     }
+    //                     typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+    //                     advance(integration_point_iterator, initial_integration_size);
+
+    //                     IntegrationPointUtilities::IntegrationPoints2D(
+    //                         integration_point_iterator,
+    //                         rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+    //                         rSpansU[i], rSpansU[i + 1],
+    //                         rSpansV[j], rSpansV[j + 1]);
+    //                 }
+    //                 continue;
+    //             }
+    //             nextSwitchKnotSpan = FindKnotSpans1D(rSpansU, verticalConditionsPerRow[j][0]+1e-13);
+
+    //             verticalConditionIndex = 1;
+    //             }
+    //         for (IndexType i = startingColumnIndex; i < rSpansU.size() - 1; i++) {
+                
+    //             if (i == nextSwitchKnotSpan) {
+    //                 if (verticalConditionIndex < verticalConditionsPerRow[j].size()) {
+    //                     i = FindKnotSpans1D(rSpansU, verticalConditionsPerRow[j][verticalConditionIndex]+1e-13);
+    //                 } else {
+    //                     break;
+    //                 }
+    //                 verticalConditionIndex++;
+    //                  if (verticalConditionIndex < verticalConditionsPerRow[j].size()) {
+    //                     nextSwitchKnotSpan = FindKnotSpans1D(rSpansU, verticalConditionsPerRow[j][verticalConditionIndex]+1e-13);
+    //                 }
+    //                 else {
+    //                     nextSwitchKnotSpan = rSpansU.size() - 1;
+    //                 }
+    //                 verticalConditionIndex++;
+    //             }            
+    //             const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+    //             IndexType initial_integration_size = rIntegrationPoints.size();
+
+    //             if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+    //                 rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+    //             }
+    //             typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+    //             advance(integration_point_iterator, initial_integration_size);
+
+    //             IntegrationPointUtilities::IntegrationPoints2D(
+    //                 integration_point_iterator,
+    //                 rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+    //                 rSpansU[i], rSpansU[i + 1],
+    //                 rSpansV[j], rSpansV[j + 1]);
+    //         }
+    //     }
+
+    // };
+
+
     void BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpansU,
@@ -135,9 +253,211 @@ namespace Kratos
                     rSpansU[i], rSpansU[i + 1],
                     rSpansV[j], rSpansV[j + 1]);
             }
-            
+
         }
     };
+
+
+
+    void BrepSBMUtilities::CreateBrepSurfaceSBMExternalIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansU,
+        const std::vector<double>& rSpansV,
+        ModelPart& rSurrogateModelPart_inner, 
+        ModelPart& rSurrogateModelPart_outer,
+        IntegrationInfo& rIntegrationInfo)
+    {
+        //FIXME:
+        return;
+        // Loop over rSurrogateModelPart_outer and collect the vertical conditions on each y-knot span
+        std::vector<std::vector<double>> verticalConditionsPerRow(rSpansV.size()-1);
+
+        // Vector meshSizes_uv = rSurrogateModelPart_outer.GetProcessInfo().GetValue(MARKER_MESHES);
+        bool isOuterLoopDefined = false;
+
+        if (rSurrogateModelPart_outer.Conditions().size() > 0) {isOuterLoopDefined = true;}
+        
+        for (auto i_cond : rSurrogateModelPart_outer.Conditions()) {
+            if (std::abs(i_cond.GetGeometry()[0].X()-i_cond.GetGeometry()[1].X()) < 1e-13 ) {
+                const double direction = (i_cond.GetGeometry()[1].Y()-i_cond.GetGeometry()[0].Y())/std::abs((i_cond.GetGeometry()[1].Y()-i_cond.GetGeometry()[0].Y()));
+
+                int iRow1 = FindKnotSpans1D(rSpansV, i_cond.GetGeometry()[0].Y() + 1e-12*(direction));
+                int iRow2 = FindKnotSpans1D(rSpansV, i_cond.GetGeometry()[1].Y() - 1e-12*(direction));
+
+                for (int i_row = std::min(iRow1, iRow2); i_row < std::max(iRow1,iRow2)+1; i_row++) {
+                    verticalConditionsPerRow[i_row].push_back(i_cond.GetGeometry()[0].X());
+                }
+            }
+        }
+        
+        for (auto i_cond : rSurrogateModelPart_inner.Conditions()) {
+            if (std::abs(i_cond.GetGeometry()[0].X()-i_cond.GetGeometry()[1].X()) < 1e-13 ) {
+                // When local refining is performed, the surrogate steps might be larger that the refined knot spans
+                const double direction = (i_cond.GetGeometry()[1].Y()-i_cond.GetGeometry()[0].Y())/std::abs((i_cond.GetGeometry()[1].Y()-i_cond.GetGeometry()[0].Y()));
+                int iRow1 = FindKnotSpans1D(rSpansV, i_cond.GetGeometry()[0].Y() + 1e-12*(direction));
+                int iRow2 = FindKnotSpans1D(rSpansV, i_cond.GetGeometry()[1].Y() - 1e-12*(direction));
+
+                for (int i_row = std::min(iRow1, iRow2); i_row < std::max(iRow1,iRow2)+1; i_row++) {
+                    verticalConditionsPerRow[i_row].push_back(i_cond.GetGeometry()[0].X());
+                }
+            }
+        }
+
+        // Sort the vertical conditions by the x coordinate
+        for (IndexType iRow = 0; iRow < rSpansV.size() - 1; ++iRow) {
+            std::sort(verticalConditionsPerRow[iRow].begin(), verticalConditionsPerRow[iRow].end());  
+        }   
+        
+        // Loop over each row and creation of the integration points
+        Matrix surrogate_knot_spans = ZeroMatrix(rSpansU.size(), rSpansV.size());
+        for (IndexType j = 0; j < rSpansV.size() - 1; j++) {
+            int startingColumnIndex = 0;
+            int nextSwitchKnotSpan;
+            if (verticalConditionsPerRow[j].size() > 0) {
+                // nextSwitchKnotSpan = (verticalConditionsPerRow[j][0]+1e-13)/meshSizes_uv[0];
+                nextSwitchKnotSpan = FindKnotSpans1D(rSpansU, verticalConditionsPerRow[j][0]+1e-13);
+                }
+            else {
+                nextSwitchKnotSpan = rSpansU.size() - 1;
+            }
+            int verticalConditionIndex = 1;
+
+            if (isOuterLoopDefined){
+                if (verticalConditionsPerRow[j].empty()) {continue;}
+                // startingColumnIndex = (verticalConditionsPerRow[j][0]+1e-13)/meshSizes_uv[0];
+                startingColumnIndex = FindKnotSpans1D(rSpansU, verticalConditionsPerRow[j][0]+1e-13);
+                // nextSwitchKnotSpan = (verticalConditionsPerRow[j][1]+1e-13)/meshSizes_uv[0];
+                nextSwitchKnotSpan = FindKnotSpans1D(rSpansU, verticalConditionsPerRow[j][1]+1e-13);
+                verticalConditionIndex = 2;
+                }
+            for (IndexType i = startingColumnIndex; i < rSpansU.size() - 1; i++) {
+                
+                if (i == nextSwitchKnotSpan) {
+                    if (verticalConditionIndex < verticalConditionsPerRow[j].size()) {
+                        i = FindKnotSpans1D(rSpansU, verticalConditionsPerRow[j][verticalConditionIndex]+1e-13);
+                    } else {
+                        break;
+                    }
+                    verticalConditionIndex++;
+                     if (verticalConditionIndex < verticalConditionsPerRow[j].size()) {
+                        nextSwitchKnotSpan = FindKnotSpans1D(rSpansU, verticalConditionsPerRow[j][verticalConditionIndex]+1e-13);
+                    }
+                    else {
+                        nextSwitchKnotSpan = rSpansU.size() - 1;
+                    }
+                    verticalConditionIndex++;
+                }            
+                surrogate_knot_spans(i, j) = 1.0;
+            }
+        }
+
+        bool last_visited_active = false;
+        for (IndexType j = 0; j < rSpansV.size() - 1; j++) {
+
+            for (IndexType i = 0; i < rSpansU.size() - 1; i++) {
+                
+                if (surrogate_knot_spans(i, j) == 0.0)
+                {
+                    if (i != rSpansU.size() - 2)
+                    if (surrogate_knot_spans(i+1, j) == 1.0)
+                    {
+                        // surrogate_knot_spans(i, j) = 1.0;
+
+                        const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+                        IndexType initial_integration_size = rIntegrationPoints.size();
+
+                        if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                            rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                        }
+                        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                        advance(integration_point_iterator, initial_integration_size);
+
+                        IntegrationPointUtilities::IntegrationPoints2D(
+                            integration_point_iterator,
+                            rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+                            rSpansU[i], rSpansU[i + 1],
+                            rSpansV[j], rSpansV[j + 1]);
+                    }
+
+                    if (i != 0)
+                    if (surrogate_knot_spans(i-1, j) == 1.0)
+                    {
+                        const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+                        IndexType initial_integration_size = rIntegrationPoints.size();
+
+                        if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                            rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                        }
+                        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                        advance(integration_point_iterator, initial_integration_size);
+
+                        IntegrationPointUtilities::IntegrationPoints2D(
+                            integration_point_iterator,
+                            rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+                            rSpansU[i], rSpansU[i + 1],
+                            rSpansV[j], rSpansV[j + 1]);
+                    }
+                }  
+            }
+        }
+
+        ////////////////////////////////
+        last_visited_active = false;
+        for (IndexType i = 0; i < rSpansU.size() - 1; i++) {
+
+            for (IndexType j = 0; j < rSpansV.size() - 1; j++) {
+                
+                if (surrogate_knot_spans(i, j) == 0.0)
+                {
+                    if (j != rSpansV.size() - 2)
+                    if (surrogate_knot_spans(i, j+1) == 1.0)
+                    {
+                        // surrogate_knot_spans(i, j) = 1.0;
+
+                        const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+                        IndexType initial_integration_size = rIntegrationPoints.size();
+
+                        if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                            rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                        }
+                        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                        advance(integration_point_iterator, initial_integration_size);
+
+                        IntegrationPointUtilities::IntegrationPoints2D(
+                            integration_point_iterator,
+                            rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+                            rSpansU[i], rSpansU[i + 1],
+                            rSpansV[j], rSpansV[j + 1]);
+                    }
+
+                    if (j != 0)
+                    if (surrogate_knot_spans(i, j-1) == 1.0)
+                    {
+                        const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
+
+                        IndexType initial_integration_size = rIntegrationPoints.size();
+
+                        if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                            rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                        }
+                        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                        advance(integration_point_iterator, initial_integration_size);
+
+                        IntegrationPointUtilities::IntegrationPoints2D(
+                            integration_point_iterator,
+                            rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+                            rSpansU[i], rSpansU[i + 1],
+                            rSpansV[j], rSpansV[j + 1]);
+                    }
+                }  
+            }
+        }
+
+    };
+
     ///@} // Kratos Classes
 
     int BrepSBMUtilities::FindKnotSpans1D(const std::vector<double>& rSpans, const double coord) {
