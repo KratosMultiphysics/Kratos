@@ -186,7 +186,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength,
         Vector& rBackStressVector,
-        const Vector& rPreviousStressVector
+        const Vector& rPreviousStressVector,
+        double NonVariablePlasticDissipation = 0
         )
     {
         // Material properties
@@ -209,12 +210,12 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= delta_sigma;
-            CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector, rPlasticStrainIncrement, rBackStressVector);
+            CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector, rPlasticStrainIncrement, rBackStressVector,NonVariablePlasticDissipation);
             noalias(kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
             threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
 
 
-            if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
                 iteration++;
@@ -334,11 +335,16 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         ConstitutiveLaw::Parameters& rValues,
         const Vector& rPreviousStressVector,
         const Vector& rPlasticStrainIncrement,
-        Vector& rBackStressVector
+        Vector& rBackStressVector,
+        double Kappa_p
         )
     {
         const Vector& r_kinematic_parameters = rValues.GetMaterialProperties()[KINEMATIC_PLASTICITY_PARAMETERS];
         const unsigned int kinematic_hardening_type = rValues.GetMaterialProperties()[KINEMATIC_HARDENING_TYPE];
+        double alpha_1 = 20.0;  // steepness
+        double beta_1 = 0.7;    // inflection point
+        double kappa_weight = 1.0 / (1.0 + std::exp(alpha_1 * (Kappa_p - beta_1)));
+        KRATOS_WATCH(Kappa_p)
 
         switch (static_cast<KinematicHardeningType>(kinematic_hardening_type))
         {
@@ -356,7 +362,11 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 }
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (r_kinematic_parameters[1] * pDot);
-                rBackStressVector = (rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator;
+
+                rBackStressVector = kappa_weight * ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator);
+
+                // Kappa_p = (Kappa_p >= 0.98) ? 0.98 : Kappa_p;
+                // rBackStressVector = (1 - std::pow(Kappa_p,30)) * ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator);
                 break;
 
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:

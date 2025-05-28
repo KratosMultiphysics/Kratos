@@ -132,6 +132,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
             // We get some variables
             double threshold = this->GetThreshold();
             double plastic_dissipation = this->GetPlasticDissipation();
+            double non_variable_plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain      = this->GetPlasticStrain();
             Vector back_stress_vector  = this->GetBackStressVector();
             const Vector previous_stress_vector = this->GetPreviousStressVector();
@@ -174,7 +175,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, plastic_strain, rValues,
                     characteristic_length, back_stress_vector,
-                    previous_stress_vector);
+                    previous_stress_vector, non_variable_plastic_dissipation);
 
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
@@ -302,6 +303,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
     // We get some variables
     double threshold = this->GetThreshold();
     double plastic_dissipation = this->GetPlasticDissipation();
+    double non_variable_plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain      = this->GetPlasticStrain();
     Vector back_stress_vector  = this->GetBackStressVector();
     const Vector previous_stress_vector = this->GetPreviousStressVector();
@@ -342,7 +344,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
             plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, plastic_strain, rValues,
             characteristic_length, back_stress_vector,
-            previous_stress_vector);
+            previous_stress_vector, non_variable_plastic_dissipation);
     }
 
     mPlasticDissipation = plastic_dissipation;
