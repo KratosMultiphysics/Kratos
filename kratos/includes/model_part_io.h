@@ -266,18 +266,6 @@ public:
     void WriteConditions(ConditionsContainerType const& rThisConditions) override;
 
     /**
-     * @brief Reads a new master-slave constraint.
-     * @details This method is intended to be overridden in derived classes. The base class implementation
-     * produces an error message indicating that the derived class should provide its own implementation.
-     * @param rThisNodes The container holding the nodes involved in the constraint.
-     * @param pConstraint A pointer to the master-slave constraint object that will be read.
-     */
-    void ReadNewConstraint(
-        NodesContainerType& rThisNodes,
-        MasterSlaveConstraint::Pointer& pConstraint
-        ) override;
-
-    /**
      * @brief Reads the master-slave constraints from an input source.
      * @details This method is intended to be overridden by derived classes to implement
      * the specific logic for reading master-slave constraints into the provided

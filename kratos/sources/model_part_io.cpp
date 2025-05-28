@@ -505,14 +505,6 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions
     }
 }
 
-void ModelPartIO::ReadNewConstraint(
-    NodesContainerType& rThisNodes,
-    MasterSlaveConstraint::Pointer& pConstraint
-    )
-{
-    KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
-}
-
 void ModelPartIO::ReadConstraints(
     NodesContainerType& rThisNodes,
     MasterSlaveConstraintContainerType& rConstraintContainer
