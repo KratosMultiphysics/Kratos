@@ -36,7 +36,6 @@ namespace {
     {
         Model my_model;
         ModelPart& r_voxel = my_model.CreateModelPart("Voxel");
-        r_voxel.AddNodalSolutionStepVariable(DISTANCE);
 
         r_voxel.CreateNewNode(1, -1, -1, -1);
         r_voxel.CreateNewNode(2,  1, -1, -1);
@@ -50,12 +49,6 @@ namespace {
         Element::Pointer pElement = r_voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
         GeometryPtrType p_voxel = pElement->pGetGeometry();
 
-        //Add the distances
-        PointsArrayType nodes = p_voxel->Points();
-
-        for (unsigned int i = 0; i < 8; i++) {
-            nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
-        }
         return p_voxel;
     }
 
@@ -63,7 +56,6 @@ namespace {
     {
         Model my_model;
         ModelPart& r_voxel = my_model.CreateModelPart("Voxel");
-        r_voxel.AddNodalSolutionStepVariable(DISTANCE);
 
         r_voxel.CreateNewNode(1, 0, 0, 0);
         r_voxel.CreateNewNode(2,  2, 0, 0);
@@ -77,12 +69,6 @@ namespace {
         Element::Pointer pElement = r_voxel.CreateNewElement("Element3D8N", 1, {1, 2, 3, 4, 5, 6, 7, 8}, p_properties_0);  
         GeometryPtrType p_voxel = pElement->pGetGeometry();
 
-        // Add the distances
-        PointsArrayType nodes = p_voxel->Points();
-
-        for (unsigned int i = 0; i < 8; i++) {
-            nodes[i].FastGetSolutionStepValue(DISTANCE) = rDistances[i];
-        }
         return p_voxel;
     }
 
