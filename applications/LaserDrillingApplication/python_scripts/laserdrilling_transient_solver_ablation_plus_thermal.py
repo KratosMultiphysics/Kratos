@@ -263,6 +263,11 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             Logger.PrintWarning("FluenceSuperGaussian", "KeyError: waist_radius is not in the parameters dict")
             raise KeyError
 
+        if parameters["gaussian_order"] is None:
+            raise ValueError("gaussian_order can't be None")
+        if parameters["peak_fluence"] is None:
+            raise ValueError("peak_fluence can't be None")
+
         r = position["r"]
         n = parameters["gaussian_order"]
         F_p = parameters["peak_fluence"]
@@ -326,7 +331,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             fluence = self.fluence_function(position, parameters)
             return fluence
         except TypeError as e:
-            Logger.PrintWarning("Error", "Incorrect arguments for '{f.__name__}': {e}")
+            Logger.PrintWarning("Error", f"Incorrect arguments for '{fluence.__name__}': {e}")
             raise TypeError
 
     def AxialEnergyDistribution(self, position, parameters):
@@ -396,8 +401,8 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         return beer_lambert_factor
 
     # TODO: I think this is broken and unused. Remove or rework it
-    def ComputePulseVolume(self):
-        return 0.25 * self.delta_pen * np.pi * self.omega_0**2 * (np.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
+    #     def ComputePulseVolume(self):
+    #         return 0.25 * self.delta_pen * np.pi * self.omega_0**2 * (np.log(self.F_p / (self.delta_pen * self.q_ast))) ** 2
 
     def RemoveElementsByAblation(self):
         """

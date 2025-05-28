@@ -10,6 +10,7 @@ from scipy.interpolate import interp1d
 from scipy.special import gamma as GammaFunction
 from scipy.integrate import quad
 from scipy.optimize import root_scalar
+import csv
 
 
 # from sympy import *
@@ -263,6 +264,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.F_p = self.ComputePeakFluence()
 
         elif self.fluence_type == "table":
+            self.gaussian_order = None
+            self.F_p = None
+
             if not self.laser_settings["Variables"].Has("table_filename"):
                 Logger.PrintWarning("Warning", "The filename of the file for the fluence table is not specified")
                 raise NameError
@@ -283,15 +287,28 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
             # Read the table of values into a Kratos PiecewiseLinearTable
             fluence_table = ReadCsvTableUtility(fluence_table_settings).Read()
-            # Convert the table from a Kratos table to a Python function and normalize it
-            fluence_function_normalized = self.NormalizeAxisymmetricFunction(self.TableToFunction(fluence_table))
+
+            # Convert the table from a Kratos table to a Python function
+            fluence_table_as_function = self.TableToFunction(fluence_table)
+
+            # Normalize the fluence
+            fluence_table_last_row = self.ReadLastRowCSV(fluence_table_filename)
+            fluence_table_max_r = float(fluence_table_last_row[0])
+
+            fluence_function_normalized = self.NormalizeAxisymmetricFunction(
+                fluence_table_as_function, rmin=0, rmax=fluence_table_max_r
+            )
+
             # Multiply the normalized pulse by the pulse energy to obtain a pulse with energy Q
-            self.fluence_function = lambda x: self.Q * fluence_function_normalized(x)
+            self.fluence_function = lambda position, parameters: self.Q * fluence_function_normalized(position["r"])
 
         elif self.fluence_type == "expression":
+            self.gaussian_order = None
+            self.F_p = None
+
             raise NotImplementedError
         else:
-            pass  # TODO: Load the arbitrary intensity
+            raise ValueError("Invalid fluence_type")
 
         # Axial energy distribution
         self.axial_energy_distribution_function = self.AxialDistributionBeerLambert
@@ -1603,7 +1620,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         return TableAsFunction
 
     # TODO: move out of the solver class into a sort of utility class or file?
-    def NormalizeAxisymmetricFunction(self, f, numerical_zero=1e-15):
+    def NormalizeAxisymmetricFunction(self, f, rmin=0, rmax=np.inf, numerical_zero=1e-15):
         """
         Normalizes a function f=f(r) representing the radial part of an axisymmetric function F(r, phi) = f(r)
         with 0 <= r < +inf,  0 < phi < 2pi.
@@ -1630,7 +1647,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         """
 
         # Compute the integral of r * f(r) over (0, +inf)
-        radial_integral, _ = quad(lambda r: r * f(r), 0, np.inf)
+        radial_integral, _ = quad(lambda r: r * f(r), rmin, rmax)
 
         # Check if the integral is finite and non-zero
         if not np.isfinite(radial_integral):
@@ -1645,3 +1662,41 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             return f(r) / normalization_factor
 
         return g
+
+    def ReadLastRowCSV(self, filename):
+        """
+        Reads the last row of a CSV file.
+
+        Parameters
+        ----------
+        filename : str
+            Path to the CSV file.
+
+        Returns
+        -------
+        list
+            The last row as a list of strings.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the file does not exist.
+        ValueError
+            If the file is empty.
+        """
+        try:
+            with open(filename, "r", newline="") as file:
+                # Read the last non-empty line
+                last_line = None
+                for line in file:
+                    if line.strip():  # Skip empty lines
+                        last_line = line
+                if last_line is None:
+                    raise ValueError("File is empty")
+
+                # Parse the last line as a CSV row
+                reader = csv.reader([last_line])
+                last_row = next(reader)
+                return last_row
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File {filename} not found")
