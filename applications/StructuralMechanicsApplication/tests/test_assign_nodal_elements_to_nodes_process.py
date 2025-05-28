@@ -40,14 +40,12 @@ class TestAssignNodalElementsToNodesProcess(KratosUnittest.TestCase):
 
         parameters = KratosMultiphysics.Parameters("""
         {
-            "Parameters" : {
-                "model_part_name" : "Main",
-                "nodal_mass"      : 1.0,
-                "nodal_stiffness" : [1.0, null, 0.0]
-            }
+            "model_part_name" : "Main",
+            "nodal_mass"      : 1.0,
+            "nodal_stiffness" : [1.0, null, 0.0]
         }""")
 
-        process = assign_nodal_elements_to_nodes_process.Factory(parameters, self.model)
+        process = StructuralMechanicsApplication.AssignNodalElementsToNodesProcess(self.model, parameters)
         process.Execute()
 
         self.assertEqual(len(self.model_part.Elements), len(self.model_part.Nodes))
@@ -71,16 +69,14 @@ class TestAssignNodalElementsToNodesProcess(KratosUnittest.TestCase):
 
         parameters = KratosMultiphysics.Parameters("""
         {
-            "Parameters" : {
-                "model_part_name"            : "Main",
-                "nodal_mass"                 : 1.0,
-                "nodal_inertia"              : [1.0, 1.0, 1.0],
-                "nodal_stiffness"            : [1.0, null, 0.0],
-                "nodal_rotational_stiffness" : [1.0, null, 1.0]
-            }
+            "model_part_name"            : "Main",
+            "nodal_mass"                 : 1.0,
+            "nodal_inertia"              : [1.0, 1.0, 1.0],
+            "nodal_stiffness"            : [1.0, null, 0.0],
+            "nodal_rotational_stiffness" : [1.0, null, 1.0]
         }""")
 
-        process = assign_nodal_elements_to_nodes_process.Factory(parameters, self.model)
+        process = StructuralMechanicsApplication.AssignNodalElementsToNodesProcess(self.model, parameters)
         process.Execute()
 
         self.assertEqual(len(self.model_part.Elements), len(self.model_part.Nodes))

@@ -167,6 +167,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    /// Registry current process
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics.StructuralMechanicsApplication", Process, AssignNodalElementsToNodesProcess)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, AssignNodalElementsToNodesProcess)
 
     ///@}
     ///@name Member Variables
