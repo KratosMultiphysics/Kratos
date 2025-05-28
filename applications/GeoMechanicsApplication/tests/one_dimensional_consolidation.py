@@ -27,7 +27,6 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         for filename in input_filenames:
             shutil.copy(os.path.join(self.test_root, filename), os.path.join(self.test_path, filename))
 
-        self.mid_column_node_ids = [5, 7, 12, 18, 24, 30, 35, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141, 146, 151, 156, 161, 166, 171, 176, 181, 187, 192, 199]
         self.top_node_ids = [197, 198, 199, 200, 201]
 
         self.end_times = [8640, 17280, 43200, 86400, 172800, 432000, 864000, 1728000, 4320000, 8640000]
@@ -39,23 +38,23 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         raise RuntimeError("This base class does not provide a generic test directory name")
 
 
-    def _get_y_coordinates_of_nodes(self, node_ids):
+    def _get_y_coordinates_of_all_nodes(self):
         post_msh_file_path = os.path.join(self.test_path, "1D-Consolidationtest_stage1.post.msh")
-        return [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=node_ids)]
+        return [coord[1] + 1.0 for coord in test_helper.read_coordinates_from_post_msh_file(post_msh_file_path)]
 
 
     def _get_analytical_relative_water_pressures(self, t_v, y_coordinates):
         return [analytical_solutions.calculate_relative_water_pressure(y, self.sample_height, t_v) for y in y_coordinates]
 
 
-    def _get_numerical_relative_water_pressures(self, time, stage_no, node_ids):
+    def _get_numerical_relative_water_pressures(self, time, stage_no):
         output_file_path = os.path.join(self.test_path, f"1D-Consolidationtest_stage{stage_no}.post.res")
         reader = test_helper.GiDOutputFileReader()
         output_data = reader.read_output_from(output_file_path)
         # Invert the sign of the water pressures resulting from the numerical solution, to make them match the
         # analytical solution which assumes compressive water pressures to be positive rather than negative.
         # In addition, since the load has size 1, the relative values are equal to the total values.
-        return [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", time, output_data, node_ids)]
+        return [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", time, output_data)]
 
 
     def _get_numerical_vertical_displacements(self, time, stage_no, node_ids):
@@ -70,13 +69,13 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         return math.sqrt(sum([diff * diff for diff in differences]) / len(differences))
 
 
-    def _check_relative_water_pressures_at_mid_column(self):
-        y_coordinates = self._get_y_coordinates_of_nodes(self.mid_column_node_ids)
+    def _check_relative_water_pressures(self):
+        y_coordinates = self._get_y_coordinates_of_all_nodes()
         stage_no = 2  # The first stage is not checked
         rmse_values = []
         for t_v, time in zip(self.t_vs, self.end_times):
             analytical_solution = self._get_analytical_relative_water_pressures(t_v, y_coordinates)
-            numerical_solution = self._get_numerical_relative_water_pressures(time, stage_no, self.mid_column_node_ids)
+            numerical_solution = self._get_numerical_relative_water_pressures(time, stage_no)
             rmse_values.append(self._calculate_rmse_of_differences(numerical_solution, analytical_solution))
             stage_no += 1
 
@@ -123,7 +122,7 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
     def test_1d_consolidation(self):
         test_helper.run_stages(self.test_path, self.number_of_stages)
 
-        self._check_relative_water_pressures_at_mid_column()
+        self._check_relative_water_pressures()
         self._check_degree_of_consolidation()
 
 
@@ -138,7 +137,7 @@ class KratosGeoMechanics1DConsolidationCppRoute(OneDimensionalConsolidationTestB
         status = run_geo_settlement.run_stages(self.test_path, self.project_parameters_filenames)
         self.assertEqual(status, 0)
 
-        self._check_relative_water_pressures_at_mid_column()
+        self._check_relative_water_pressures()
         self._check_degree_of_consolidation()
 
 

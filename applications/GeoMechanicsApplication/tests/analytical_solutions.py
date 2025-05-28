@@ -1,29 +1,5 @@
 import math
 
-def calculate_pore_pressure_1d_consolidation(y_coord, height, t_v):
-    """
-    Calculates the analytical solution for water pressure in 1d consolidation on linear elastic soil [@@ref@@]
-
-    :param y_coord : vertical coordinate
-    :param height  : sample height
-    :param t_v     :  dimensionless time factor
-    :return        : relative excess pore pressure
-    """
-    convergence_criterion = 1e-10
-
-    j = 1
-    rel_p_old = 1
-    rel_p = 0
-    max_iterations = 1001
-    min_iterations = 20
-    while math.fabs(rel_p_old - rel_p) > convergence_criterion and j < max_iterations or j > min_iterations:
-
-        rel_p_old = rel_p
-        rel_p = (-1) ** (j - 1) / (2 * j - 1) * math.cos((2 * j - 1) * math.pi / 2 * y_coord / height) * math.exp(
-            -1 * (2 * j - 1) ** 2 * (math.pi ** 2) / 4 * t_v) + rel_p_old
-        j += 1
-
-    return 4.0 / math.pi * rel_p
 
 def calculate_relative_water_pressure(y_coord, height, t_v):
     """
