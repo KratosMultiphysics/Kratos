@@ -487,6 +487,44 @@ public:
         }
     }
 
+    void CalculateSolutionVector(
+        const DofsArrayType& rDofSet,
+        const DofsArrayType& rEffectiveDofSet,
+        const EffectiveDofsMapType& rEffectiveDofIdMap,
+        const TSparseMatrixType& rConstraintsRelationMatrix,
+        const TSparseVectorType& rConstraintsConstantVector,
+        TSparseVectorType& rSolutionVector) const
+    {
+        // Set an auxiliary vector containing the effective solution values
+        const std::size_t n_eff_dofs = rEffectiveDofSet.size();
+        TSparseVectorType y(n_eff_dofs);
+        IndexPartition<IndexType>(rEffectiveDofSet.size()).for_each([&](IndexType Index) {
+            // Get effective DOF
+            auto p_dof = *(rEffectiveDofSet.ptr_begin() + Index);
+            auto p_dof_find = rEffectiveDofIdMap.find(p_dof);
+            KRATOS_ERROR_IF(p_dof_find == rEffectiveDofIdMap.end()) << "DOF cannot be found in DOF id map." << std::endl;
+
+            // Get value from DOF and set it in the auxiliary solution values vector
+            // Note that the corresponding row is retrieved from the effective DOF ids map
+            y[p_dof_find->second] = p_dof->GetSolutionStepValue();
+        });
+
+        // Check solution vector size
+        const std::size_t aux_size = rConstraintsConstantVector.size();
+        if (rSolutionVector.size() != aux_size) {
+            rSolutionVector = TSparseVectorType(aux_size);
+        }
+
+        // Initialize solution vector with the constaints constant vector values
+        // Note that we deliberately avoid using the copy constructor as we dont want to overwrite the constraints constant vector
+        IndexPartition<IndexType>(rSolutionVector.size()).for_each([&](IndexType i){
+            rSolutionVector[i] = rConstraintsConstantVector[i];
+        });
+
+        // Compute the solution vector as x = T * y + q
+        rConstraintsRelationMatrix.SpMV(1.0, y, 1.0, rSolutionVector); // Note that this performs the operation x = A*y + x
+    }
+
     virtual void Clear()
     {
         // Clear the system info

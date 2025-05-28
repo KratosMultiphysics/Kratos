@@ -869,12 +869,14 @@ public:
      */
     virtual void Predict(
         DofsArrayType& rDofSet,
+        DofsArrayType& rEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         TSparseMatrixType& rA,
         TSparseVectorType& rb,
         TSparseVectorType& rDx,
         TSparseVectorType& rEffectiveDx,
-        TSparseMatrixType& rConstraintsRelationMatrix)
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
     }
