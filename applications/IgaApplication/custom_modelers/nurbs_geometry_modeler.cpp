@@ -359,7 +359,7 @@ namespace Kratos
             insert_knots_w[i] = knot_w;
         }
 
-        // In some cases there is no need of add the surface geometry, AddSurfaceToModelPart is true by default
+        // In some cases there is no need of add the volume geometry, AddSurfaceToModelPart is true by default
         if (AddVolumeToModelPart) {
             // Add geometry to model part
             if( mParameters.Has("geometry_name") ){

@@ -179,9 +179,10 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
                      << "Check the reading of the mdpa file in the import mdpa modeler."<< std::endl;
     }
 
-    // Create the surrogate sub model parts inner and outer
-    ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
-    ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
+    // Create the surrogate sub model parts inner and outer 
+    // TO DO: When CreateSurrogateBoundary with Volume is implemented
+    // ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
+    // ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
 
     // If there is not neither skin_inner nor skin_outer throw an error since you are using the sbm modeler
     if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
