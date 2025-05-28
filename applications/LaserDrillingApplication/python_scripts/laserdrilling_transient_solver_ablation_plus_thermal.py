@@ -324,11 +324,11 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         fluence: float
             The fluence at the specified point
         """
-        if self.fluence_function is None:
-            Logger.PrintWarning("Error", "No function assigned to fluence_function")
+        if self.FluenceFunction is None:
+            Logger.PrintWarning("Error", "No function assigned to FluenceFunction")
             raise ValueError
         try:
-            fluence = self.fluence_function(position, parameters)
+            fluence = self.FluenceFunction(position, parameters)
             return fluence
         except TypeError as e:
             Logger.PrintWarning("Error", f"Incorrect arguments for '{fluence.__name__}': {e}")

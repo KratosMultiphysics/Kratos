@@ -254,16 +254,19 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # TODO: documentation: since the simulation is axisymmetric, only the nonegative half of the
         # Y axis is used.
         if self.fluence_type == "super-gaussian":
+            Logger.PrintInfo("Fluence type", "Using a super-gaussian fluence")
             if not self.laser_settings["Variables"].Has("gaussian_order"):
                 self.gaussian_order = 2
                 Logger.PrintWarning("Warning", "Gaussian order not specified, defaulting to order 2")
             else:
                 self.gaussian_order = self.laser_settings["Variables"]["gaussian_order"].GetInt()
 
-            self.fluence_function = self.FluenceSuperGaussian
+            self.FluenceFunction = self.FluenceSuperGaussian
             self.F_p = self.ComputePeakFluence()
 
         elif self.fluence_type == "table":
+            Logger.PrintInfo("Fluence type", "Using the fluence function specified as a table")
+
             self.gaussian_order = None
             self.F_p = None
 
@@ -286,23 +289,28 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             fluence_table_settings["filename"].SetString(fluence_table_filename)
 
             # Read the table of values into a Kratos PiecewiseLinearTable
-            fluence_table = ReadCsvTableUtility(fluence_table_settings).Read()
+            FluenceTable = ReadCsvTableUtility(fluence_table_settings).Read()
 
             # Convert the table from a Kratos table to a Python function
-            fluence_table_as_function = self.TableToFunction(fluence_table)
+            FluenceTableAsFunction = self.TableToFunction(FluenceTable)
 
             # Normalize the fluence
             fluence_table_last_row = self.ReadLastRowCSV(fluence_table_filename)
             fluence_table_max_r = float(fluence_table_last_row[0])
 
-            fluence_function_normalized = self.NormalizeAxisymmetricFunction(
-                fluence_table_as_function, rmin=0, rmax=fluence_table_max_r
+            FluenceFunctionNormalized = self.NormalizeAxisymmetricFunction(
+                FluenceTableAsFunction, rmin=0, rmax=fluence_table_max_r
             )
 
+            def FluenceFunction(position, parameters):
+                return self.Q * FluenceFunctionNormalized(position["r"])
+
             # Multiply the normalized pulse by the pulse energy to obtain a pulse with energy Q
-            self.fluence_function = lambda position, parameters: self.Q * fluence_function_normalized(position["r"])
+            self.FluenceFunction = FluenceFunction
 
         elif self.fluence_type == "expression":
+            Logger.PrintInfo("Fluence type", "Using a fluence function specified as an analytical expression")
+
             self.gaussian_order = None
             self.F_p = None
 
@@ -706,10 +714,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         Raises
         ------
         ValueError
-            If `fluence_type` is invalid, `delta_pen` or `q_ast` are not positive, `fluence_function` is not callable,
+            If `fluence_type` is invalid, `delta_pen` or `q_ast` are not positive, `FluenceFunction` is not callable,
             the computed radius is negative or non-finite, or `y` is invalid.
         TypeError
-            If `fluence_function` or `parameters` are incorrectly specified when calling `FindPulseRoot`
+            If `FluenceFunction` or `parameters` are incorrectly specified when calling `FindPulseRoot`
             or `ComputeSuperGaussianMaximumAblationRadius`.
 
         Notes
@@ -717,7 +725,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         - For `fluence_type="super-gaussian"`, the radius is computed analytically using
         `ComputeSuperGaussianMaximumAblationRadius`.
         - For `fluence_type="table"` or `"expression"`, the radius is found numerically by solving
-        `fluence_function(r, parameters) = delta_pen * q_ast` using `FindPulseRoot`.
+        `FluenceFunction(r, parameters) = delta_pen * q_ast` using `FindPulseRoot`.
         - The fluence function is expected to be a pulse function (symmetric, unimodal, peaking at
         `mu`, and monotonically decreasing for `r > mu`), consistent with Woodfield (2024).
         - `delta_pen` and `q_ast` are instance attributes defining the penetration coefficient and
@@ -753,12 +761,17 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             except (TypeError, ValueError) as e:
                 raise ValueError(f"Failed to compute super-Gaussian ablation radius: {str(e)}")
         else:  # table or expression
-            if not hasattr(self, "fluence_function") or not callable(self.fluence_function):
-                raise ValueError("fluence_function must be a callable representing a table or an expression")
+            if not hasattr(self, "FluenceFunction") or not callable(self.FluenceFunction):
+                raise ValueError("FluenceFunction must be a callable representing a table or an expression")
             try:
-                r_ast_max = self.FindPulseRoot(self.fluence_function, y, parameters=parameters)
+                # We wrap self.FluenceFunction to adapt it to the signature of F in FindPulseRoot
+                def FluenceFunctionWrapped(x, parameters=None):
+                    position = {"r": x}
+                    return self.FluenceFunction(position, parameters)
+
+                r_ast_max = self.FindPulseRoot(FluenceFunctionWrapped, y, parameters=parameters)
             except (TypeError, ValueError) as e:
-                raise ValueError(f"Failed to find root for fluence_function: {str(e)}")
+                raise ValueError(f"Failed to find root for FluenceFunction: {str(e)}")
 
         # Validate computed radius
         if not np.isfinite(r_ast_max):

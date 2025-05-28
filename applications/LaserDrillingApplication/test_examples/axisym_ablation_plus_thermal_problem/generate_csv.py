@@ -23,7 +23,6 @@ def CauchyPulse(r, parameters):
 
 
 def FluenceSuperGaussianNotNormalized(r, parameters):
-    F_p = parameters["F_p"]
     omega_0 = parameters["omega_0"]
     n = parameters["gaussian_order"]
 
@@ -40,7 +39,7 @@ v = 4
 parameters = {
     "gamma": 0.005,
     "omega_0": 0.018,
-    "gaussian_order": 2,
+    "gaussian_order": 8,
     "average_laser_power": 5,
     "pulse_frequency": 2e5,
 }
