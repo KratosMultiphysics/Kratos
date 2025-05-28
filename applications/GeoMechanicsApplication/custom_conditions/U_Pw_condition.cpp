@@ -131,4 +131,6 @@ template class UPwCondition<3, 1>;
 template class UPwCondition<3, 3>;
 template class UPwCondition<3, 4>;
 
+template class UPwCondition<3, 6>;
+template class UPwCondition<3, 8>;
 } // Namespace Kratos.

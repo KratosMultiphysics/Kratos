@@ -4,13 +4,14 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 
 class TestPressureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
 
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -66,12 +67,12 @@ class TestPressureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
 
-        cls.adjoint_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(3.0)
+        cls.adjoint_response_function = KratosSI.Responses.MeasurementResidualResponseFunction(3.0)
 
         for i, sensor in enumerate(cls.sensors):
-            sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
             cls.adjoint_response_function.AddSensor(sensor)
 
         cls.adjoint_response_function.Initialize()
@@ -84,7 +85,7 @@ class TestPressureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     def test_CalculateValue(self):
         value = 0.0
         for sensor in self.sensors:
-            value += (0.5 * sensor.GetWeight() * (sensor.CalculateValue(self.model_part) - sensor.GetValue(KratosSI.SENSOR_MEASURED_VALUE)) ** 2) ** 3.0
+            value += (0.5 * sensor.GetWeight() * (sensor.CalculateValue(self.model_part) - sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE)) ** 2) ** 3.0
         self.assertAlmostEqual(self.ref_value, value ** (1 / 3), 5)
 
     def test_CalculateGradient(self):
@@ -138,7 +139,7 @@ class TestPressureDetectionResponse(kratos_unittest.TestCase):
             response = objective.GetReponse()
             model_part = response.GetInfluencingModelPart()
 
-            # Using a process for initializing the control value works but does not work for fd testing. 
+            # Using a process for initializing the control value works but does not work for fd testing.
             # Therefore, setting here manually.
             Kratos.VariableUtils().SetNonHistoricalVariable(Kratos.PRESSURE, -0.1, model_part.Conditions)
 
@@ -173,10 +174,10 @@ class TestPressureDetectionResponseStrainSensor(kratos_unittest.TestCase):
             response = objective.GetReponse()
             model_part = response.GetInfluencingModelPart()
 
-            # Using a process for initializing the control value works but does not work for fd testing. 
+            # Using a process for initializing the control value works but does not work for fd testing.
             # Therefore, setting here manually.
             Kratos.VariableUtils().SetNonHistoricalVariable(Kratos.PRESSURE, -0.1, model_part.Conditions)
-            
+
             ref_value = response.CalculateValue()
             self.assertAlmostEqual(ref_value, 1.8206082376235158e-05, 10)
 

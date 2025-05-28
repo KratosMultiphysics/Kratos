@@ -83,7 +83,7 @@ class KratosModelParametersFactory(object):
     def ConstructListOfItems( self, items_list):
         constructed_items = []
 
-        for item in items_list:
+        for item in items_list.values():
             constructed_items.append(self.ConstructItem(item))
 
         return constructed_items

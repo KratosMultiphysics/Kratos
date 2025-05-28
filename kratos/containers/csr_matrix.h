@@ -10,9 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_CSR_MATRIX_H_INCLUDED )
-#define  KRATOS_CSR_MATRIX_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -173,9 +171,10 @@ public:
         });
     }
 
-    //move constructor
+    /// Move constructor
     CsrMatrix(CsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
     {
+        mpComm = rOtherMatrix.mpComm;
         mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
         rOtherMatrix.mIsOwnerOfData=false;
 
@@ -205,7 +204,7 @@ public:
     /// Assignment operator.
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
 
-    //move assignement operator
+    /// Move assignment operator
     CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
     {
         mpComm = rOtherMatrix.mpComm;
@@ -444,7 +443,7 @@ public:
         }
     }
 
-    //y = alpha*y + beta*A*x
+    // y = alpha*A*x + beta*y
     template<class TInputVectorType, class TOutputVectorType>
     void SpMV(const TDataType alpha,
               const TInputVectorType& x,
@@ -485,7 +484,7 @@ public:
         });
     }
 
-    //y = alpha*y + beta*A^t*x
+    // y = alpha*A^t*x + beta*y
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TDataType alpha,
                        const TInputVectorType& x,
@@ -995,5 +994,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CSR_MATRIX_H_INCLUDED  defined
