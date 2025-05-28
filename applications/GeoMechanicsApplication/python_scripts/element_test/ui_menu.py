@@ -47,8 +47,22 @@ def create_menu():
         build_ui_from_model(root, main_frame, dll_path=None, model_dict=model_dict)
 
 
-    ttk.Button(top_frame, text="Select DLL File", command=load_dll).pack(side="left")
-    ttk.Button(top_frame, text="Use Linear Elastic Model", command=load_linear_elastic).pack(side="left")
+    def handle_model_source_selection(event):
+        choice = model_source_var.get()
+        if choice == "Select DLL File":
+            load_dll()
+        elif choice == "Linear Elastic Model":
+            load_linear_elastic()
+
+    model_source_var = tk.StringVar(value="Select Model Source")
+    model_source_menu = ttk.Combobox(
+        top_frame,
+        textvariable=model_source_var,
+        values=["Select DLL File", "Linear Elastic Model"],
+        state="readonly"
+    )
+    model_source_menu.bind("<<ComboboxSelected>>", handle_model_source_selection)
+    model_source_menu.pack(side="left", padx=5)
 
     root.mainloop()
 
