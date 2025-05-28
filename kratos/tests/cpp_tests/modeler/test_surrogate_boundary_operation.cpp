@@ -150,7 +150,7 @@ End SubModelPart
 				{
 					"type" : "compute_surrogate_boundary_data",
 					"model_part_name" : "skin_model_part",
-					"output_path" : "/home/ari/Kratos/bin/Release/test/sbdata.txt"
+					"output_path" : "./bin/Release/test/sbdata.txt"
 				} 
 				]
 			})");
