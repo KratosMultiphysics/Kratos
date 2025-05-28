@@ -508,7 +508,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     // Initialize general variables for the current master element
     rVariables.Initialize();
 
-    // We initilize the Ae components
+    // We initialize the Ae components
     AeData Ae_data;
     Ae_data.Initialize();
 

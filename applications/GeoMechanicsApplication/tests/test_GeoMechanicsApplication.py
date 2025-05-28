@@ -7,7 +7,6 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from generalTests import KratosGeoMechanicsGeneralTests
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
 from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
@@ -60,6 +59,8 @@ from test_line_interface_elements import KratosGeoMechanicsInterfaceElementTests
 from test_three_dimensional_piping_validation import KratosGeoMechanicsThreeDimensionalPipingValidation
 from test_master_slave_constraints import KratosGeoMechanicsMasterSlaveConstraints
 from test_deactivation_with_structural_element import KratosGeoMechanicsDeactivationWithStructuralTest
+from test_mohr_coulomb_with_tension_cutoff import KratosGeoMechanicsMohrCoulombWithTensionTests
+from test_single_element_with_Mohr_Coulomb import KratosGeoMechanicsSingleElementWithMohrCoulomb
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -75,11 +76,7 @@ def AssembleTestSuites():
     '''
 
     # Create an array with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-
     small_test_cases = [
-                        KratosGeoMechanicsGeneralTests,
                         KratosGeoMechanicsExcavationTests,
                         KratosGeoMechanicsResetDisplacementTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
@@ -109,6 +106,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTrussBackboneMaterialTests,
                         KratosGeoMechanicsInterfaceElementTests,
                         KratosGeoMechanicsMasterSlaveConstraints,
+                        KratosGeoMechanicsSingleElementWithMohrCoulomb,
+                        KratosGeoMechanicsMohrCoulombWithTensionTests
     ]
 
     # Create an array with the selected tests
@@ -157,15 +156,15 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # add the tests to the corresponding suite,
-    smallSuite = suites['small']
-    nightSuite = suites['nightly']
-    validSuite = suites['validation']
-    allSuite = suites['all']
+    small_suite = suites['small']
+    night_suite = suites['nightly']
+    valid_suite = suites['validation']
+    all_suite = suites['all']
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
-    validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
-    allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
+    night_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
+    valid_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
+    all_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
 
     return suites
 

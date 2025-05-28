@@ -112,8 +112,8 @@ class FluidMeshingDomain(object):
         number_of_refining_boxes=self.settings["spatial_refining_box_list"].size()
         self.MeshingParameters.InitializeRefiningBoxParameters(number_of_refining_boxes)       
         # set mesh refinement in box
-        index=0    
-        for item in self.settings["spatial_refining_box_list"]:
+        index=0  
+        for item in self.settings["spatial_refining_box_list"].values():
             refining_box_list = item
             self.MeshingParameters.SetUseRefiningBox(index,refining_box_list["use_refining_box"].GetBool()) 
             self.MeshingParameters.SetRefiningBoxElementsInTransitionZone(index,refining_box_list["transition_elements"].GetInt())
