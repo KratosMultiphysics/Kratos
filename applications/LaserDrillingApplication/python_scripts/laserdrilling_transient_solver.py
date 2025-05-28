@@ -9,6 +9,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.special import gamma as GammaFunction
 from scipy.integrate import quad
+from scipy.optimize import root_scalar
 
 
 # from sympy import *
@@ -139,56 +140,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     #        """
     #        return 2.0 * self.Q / (np.pi * self.omega_0**2)  # J/mm2
 
-    def ComputePeakFluenceSuperGaussian(self):
-        """
-        Computes the peak fluence of a super-gaussian pulse from its energy and waist radius.
-        The gaussian pulse is a super-gaussian pulse of order 2.
-
-        A super-gaussian pulse has intensity I(r) = I_peak * exp(-2 (r/w_0)^n).  The total
-        energy in the pulse is the integral of I(r) from 0 to +inf, which can be evaluated
-        using https://en.wikipedia.org/wiki/Gaussian_integral#Relation_to_the_gamma_function.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        The peak fluence
-        """
-        b = self.gaussian_order
-        F_p = self.Q * b * 2 ** (2 / b) / (2 * np.pi * self.omega_0**2 * GammaFunction(2 / b))
-        return F_p  # J/mm2
-
-    def ComputePeakFluence(self):
-        if self.fluence_type != "super-gaussian":
-            # Think about this because not all distributions are peaked.
-            self.F_p = None
-        else:
-            # By default, use a super-gaussian pulse
-            peak_fluence = self.ComputePeakFluenceSuperGaussian()
-
-        return peak_fluence
-
-    def ComputeMaximumAblationRadius(self):
-        """
-        Computes the maximum radius of the ablated cavity after one pulse,
-        which corresponds to the radius at the surface of the sample.
-        Source: Woodfield 2024 eq. (7),
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        r_ast_max: float
-            The radius of the cavity at the surface
-        """
-
-        r_ast_max = self.omega_0 * np.sqrt(0.5 * np.log(self.F_p / (self.delta_pen * self.q_ast)))
-        return r_ast_max
-
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters(r"""{
@@ -310,10 +261,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
             self.fluence_function = self.FluenceSuperGaussian
             self.F_p = self.ComputePeakFluence()
-
-            # Calculate r_ast_max
-            if self.gaussian_order == 2:
-                self.r_ast_max = self.ComputeMaximumAblationRadius()
 
         elif self.fluence_type == "table":
             if not self.laser_settings["Variables"].Has("table_filename"):
@@ -503,6 +450,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             for elem in material_part_i.Elements:
                 elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, thermal_energy_per_volume_i)
 
+        # Calculated parameters (TODO: separate SetParameters into LoadParameters and CalculateParameters?)
+        # Calculate r_ast_max
+        self.r_ast_max = self.ComputeMaximumAblationRadius()
+
         # self.sigma = 0.5 * self.R_far
         # self.K = 1 / (2 * self.sigma**2)
         # import math
@@ -529,9 +480,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # self.l_s = 0.002048
         # self.l_th = 0.33 # micrometers # Thermal depth, assumed
 
-        l_th_in_meters = self.l_th * 1e-3
-        kappa_in_square_meters = self.kappa * 1e-6
-        self.thermal_penetration_time = l_th_in_meters**2 / kappa_in_square_meters
+        # l_th_in_meters = self.l_th * 1e-3
+        # kappa_in_square_meters = self.kappa * 1e-6
+        # self.thermal_penetration_time = l_th_in_meters**2 / kappa_in_square_meters
 
         # Finite Elements
         # self.n_surface_elements = 10 # number of elements
@@ -540,14 +491,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # self.surface_element_size = self.R_far / self.n_surface_elements
 
         # Debug
-        self.plot_progressive_hole_figures = False
+        # self.plot_progressive_hole_figures = False
 
-    def ComputeMaximumDepth(self):
-        # TODO: I believe that X[0] is the node at the axis of symmetry.
-        # Are we sure that X[0] is always the deepest one?
-        # Shouldn't we search for the deepest among the list?
-        maximum_depth = self.list_of_ablated_nodes_coords_X[0]
-        return maximum_depth
+    #    def ComputeMaximumDepth(self):
+    #        # TODO: I believe that X[0] is the node at the axis of symmetry.
+    #        # Are we sure that X[0] is always the deepest one?
+    #        # Shouldn't we search for the deepest among the list?
+    #        maximum_depth = self.list_of_ablated_nodes_coords_X[0]
+    #        return maximum_depth
 
     def ComputeOpticalPenetrationDepth(self):
         # TODO: Find a source for this
@@ -562,6 +513,243 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # TODO: Why modify the global self.l_s and also return its value?
         self.l_s = 0.25 * light_lambda * A / np.pi
         return self.l_s
+
+    def ComputePeakFluenceSuperGaussian(self):
+        """
+        Computes the peak fluence of a super-gaussian pulse from its energy and waist radius.
+        The gaussian pulse is a super-gaussian pulse of order 2.
+
+        A super-gaussian pulse has intensity I(r) = I_peak * exp(-2 (r/w_0)^n).  The total
+        energy in the pulse is the integral of I(r) from 0 to +inf, which can be evaluated
+        using https://en.wikipedia.org/wiki/Gaussian_integral#Relation_to_the_gamma_function.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        The peak fluence
+        """
+        b = self.gaussian_order
+        F_p = self.Q * b * 2 ** (2 / b) / (2 * np.pi * self.omega_0**2 * GammaFunction(2 / b))
+        return F_p  # J/mm2
+
+    def ComputePeakFluence(self):
+        if self.fluence_type != "super-gaussian":
+            # Think about this because not all distributions are peaked.
+            self.F_p = None
+        else:
+            # By default, use a super-gaussian pulse
+            peak_fluence = self.ComputePeakFluenceSuperGaussian()
+
+        return peak_fluence
+
+    def ComputeSuperGaussianMaximumAblationRadius(self):
+        """
+        Computes the maximum radius of the ablated cavity after one pulse,
+        which corresponds to the radius at the surface of the sample.
+        See: Woodfield 2024 eq. (7),
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        r_ast_max: float
+            The radius of the cavity at the surface
+        """
+        n = self.gaussian_order
+        r_ast_max = (
+            self.omega_0 / np.power(2, 1.0 / n) * np.power(np.log(self.F_p / (self.delta_pen * self.q_ast)), 1.0 / n)
+        )
+        return r_ast_max
+
+    def FindPulseRoot(self, F, y, parameters=None, numerical_zero=1e-5):
+        """
+        Finds the root such that F(root) = y for a pulse function F(x), which is symmetric
+        around x=mu, peaks at mu, and is monotonically decreasing for x > mu. The function F
+        may take no parameters (F(x)) or a parameters dictionary (F(x, parameters)).
+
+        Parameters
+        -----------
+        F : callable
+            The pulse function, either F(x) or F(x, parameters), taking a numeric input x.
+        y : float
+            The target value such that F(root) = y.
+        parameters : dict or None, optional
+            Dictionary of parameters for F (e.g., {"mu": 0, "sigma": 1}). If None, F is called
+            without parameters (default: None).
+        numerical_zero : float, optional
+            Threshold for checking if F(root) is close to y (default: 1e-15).
+
+        Returns
+        --------
+        float
+            The value root such that F(root) = y, with root >= mu.
+
+        Raises:
+        -------
+        ValueError
+            If F is not callable, parameters is invalid, y is invalid, no suitable upper bound
+            is found, or root-finding fails.
+        """
+        if not callable(F):
+            raise ValueError("F must be a callable function")
+
+        if parameters is not None and not isinstance(parameters, dict):
+            raise ValueError("parameters must be a dictionary or None")
+
+        if y <= 0:
+            raise ValueError("y must be positive since F(x) is assumed positive")
+
+        # Get mu (default to 0 if parameters is None or mu not provided)
+        mu = 0 if parameters is None else parameters.get("mu", 0)
+
+        # Evaluate F at peak (x=mu) to test signature and check y
+        try:
+            F_peak = F(mu) if parameters is None else F(mu, parameters)
+        except TypeError as e:
+            raise ValueError(f"F evaluation at mu failed: {str(e)}")
+
+        if F_peak < y:
+            raise ValueError(f"y={y} is greater than F at the peak, F({mu=})={F_peak}, no solution exists")
+
+        # Find x_max such that F(x_max) < y
+        x_max = mu + 0.2  # Initial guess
+        max_iterations = 100
+        step_factor = 2.0  # Increase x_max exponentially
+
+        for _ in range(max_iterations):
+            try:
+                F_x = F(x_max) if parameters is None else F(x_max, parameters)
+            except TypeError as e:
+                raise ValueError(f"F evaluation at x={x_max} failed: {str(e)}")
+
+            if F_x < y:
+                break
+            if not np.isfinite(F_x):
+                raise ValueError(f"F(x={x_max}) is {F_x}")
+            x_max = mu + (x_max - mu) * step_factor
+        else:
+            raise ValueError("Could not find x where F(x) < y after maximum iterations")
+
+        # Check if F(x_max) is valid
+        if not np.isfinite(F_x):
+            raise ValueError(f"F(x={x_max}) is {F_x}")
+
+        # Define the objective function based on parameters
+        if parameters is None:
+
+            def Objective(x):
+                return F(x) - y
+        else:
+
+            def Objective(x):
+                return F(x, parameters) - y
+
+        # Solve using root_scalar with Brent's method
+        try:
+            result = root_scalar(Objective, bracket=[mu, x_max], method="brentq")
+            if not result.converged:
+                raise ValueError("Root-finding did not converge")
+            root = result.root
+
+            # Verify solution
+            F_root = F(root) if parameters is None else F(root, parameters)
+            if abs(F_root - y) > numerical_zero:
+                raise ValueError("Solution does not satisfy F(root) = y within tolerance")
+
+            return root
+        except ValueError as e:
+            raise ValueError(f"Failed to find root: {str(e)}")
+
+    def ComputeMaximumAblationRadius(self, parameters=None):
+        """
+        Computes the maximum ablation radius for a material under a pulsed fluence.
+
+        The ablation radius is the maximum radial distance where the fluence is enough to cause ablation.
+        The fluence is modeled based on `fluence_type`, which can be a super-Gaussian (analytical solution),
+        a table-based function, or a mathematical expression (numerical root-finding via `FindPulseRoot`).
+
+        Parameters
+        ----------
+        parameters : dict, optional
+            Dictionary of parameters for the fluence function (e.g., {"F_p": 1.0, "gamma": 1.0, "mu": 0}).
+            Required if `fluence_type` is "table" or "expression" and the fluence function expects parameters,
+            or if `ComputeSuperGaussianMaximumAblationRadius` requires parameters.
+            Default is None, used for parameterless fluence functions.
+
+        Returns
+        -------
+        r_ast_max : float
+            The maximum ablation radius.
+
+        Raises
+        ------
+        ValueError
+            If `fluence_type` is invalid, `delta_pen` or `q_ast` are not positive, `fluence_function` is not callable,
+            the computed radius is negative or non-finite, or `y` is invalid.
+        TypeError
+            If `fluence_function` or `parameters` are incorrectly specified when calling `FindPulseRoot`
+            or `ComputeSuperGaussianMaximumAblationRadius`.
+
+        Notes
+        -----
+        - For `fluence_type="super-gaussian"`, the radius is computed analytically using
+        `ComputeSuperGaussianMaximumAblationRadius`.
+        - For `fluence_type="table"` or `"expression"`, the radius is found numerically by solving
+        `fluence_function(r, parameters) = delta_pen * q_ast` using `FindPulseRoot`.
+        - The fluence function is expected to be a pulse function (symmetric, unimodal, peaking at
+        `mu`, and monotonically decreasing for `r > mu`), consistent with Woodfield (2024).
+        - `delta_pen` and `q_ast` are instance attributes defining the penetration coefficient and
+        ablation threshold energy, respectively.
+
+        See Also
+        --------
+        FindPulseRoot : Numerical root-finding for pulse functions.
+        ComputeSuperGaussianMaximumAblationRadius : Analytical solution for super-Gaussian fluence.
+        """
+        # Validate fluence_type
+        if not isinstance(self.fluence_type, str):
+            raise ValueError("fluence_type must be a string")
+        valid_types = ["super-gaussian", "table", "expression"]
+        if self.fluence_type not in valid_types:
+            raise ValueError(f"fluence_type must be one of {valid_types}")
+
+        # Validate instance attributes
+        if not hasattr(self, "delta_pen") or not isinstance(self.delta_pen, (int, float)) or self.delta_pen <= 0:
+            raise ValueError("delta_pen must be a positive number")
+        if not hasattr(self, "q_ast") or not isinstance(self.q_ast, (int, float)) or self.q_ast <= 0:
+            raise ValueError("q_ast must be a positive number")
+
+        # Compute ablation limit
+        y = self.delta_pen * self.q_ast
+        if not np.isfinite(y) or y <= 0:
+            raise ValueError(f"Computed ablation limit y={y} is invalid")
+
+        # Compute ablation radius
+        if self.fluence_type == "super-gaussian":
+            try:
+                r_ast_max = self.ComputeSuperGaussianMaximumAblationRadius(parameters=parameters)
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"Failed to compute super-Gaussian ablation radius: {str(e)}")
+        else:  # table or expression
+            if not hasattr(self, "fluence_function") or not callable(self.fluence_function):
+                raise ValueError("fluence_function must be a callable representing a table or an expression")
+            try:
+                r_ast_max = self.FindPulseRoot(self.fluence_function, y, parameters=parameters)
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"Failed to find root for fluence_function: {str(e)}")
+
+        # Validate computed radius
+        if not np.isfinite(r_ast_max):
+            raise ValueError(f"Computed ablation radius r_ast_max={r_ast_max} is non-finite")
+        if r_ast_max < 0:
+            raise ValueError(f"Computed ablation radius r_ast_max={r_ast_max} is negative")
+
+        return r_ast_max
 
     def UpdateLaserRelatedParameters(self):
         # self.z_ast_max = self.ComputeMaximumDepth()
