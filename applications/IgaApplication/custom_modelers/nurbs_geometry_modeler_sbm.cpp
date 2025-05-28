@@ -134,6 +134,138 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
     CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, r_iga_model_part);
 }
 
+// 3D 
+void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D( 
+    ModelPart& rModelPart,
+    const Point& A_xyz,
+    const Point& B_xyz,
+    const Point& A_uvw,
+    const Point& B_uvw,
+    const SizeType OrderU,
+    const SizeType OrderV,
+    const SizeType OrderW,
+    const SizeType NumKnotSpansU,
+    const SizeType NumKnotSpansV,
+    const SizeType NumKnotSpansW,
+    const bool AddVolumeToModelPart)
+{   
+
+    // Call the CreateAndAddRegularGrid3D method of the base class NurbsGeometryModeler
+    NurbsGeometryModeler::CreateAndAddRegularGrid3D(rModelPart, A_xyz, B_xyz,
+        A_uvw, B_uvw, OrderU, OrderV, OrderW, NumKnotSpansU, NumKnotSpansV, NumKnotSpansW, false);
+             
+    // Create the Domain/Iga Model Part
+    const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
+    ModelPart& iga_model_part = mpModel->HasModelPart(iga_model_part_name)
+                                ? mpModel->GetModelPart(iga_model_part_name)
+                                : mpModel->CreateModelPart(iga_model_part_name);
+
+    // Create the True Model Part -> contains all the true boundary features
+    std::string skin_model_part_inner_initial_name = "SkinModelPartInnerInitial";
+    std::string skin_model_part_outer_initial_name = "SkinModelPartOuterInitial";
+    std::string skin_model_part_name;
+    if (mParameters.Has("skin_model_part_inner_initial_name")) {
+        skin_model_part_inner_initial_name = mParameters["skin_model_part_inner_initial_name"].GetString();
+
+        KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_inner_initial_name)) 
+                     << "The skin_model_part '" << skin_model_part_inner_initial_name << "' was not created in the model.\n" 
+                     << "Check the reading of the mdpa file in the import mdpa modeler."<< std::endl;
+    }
+    if (mParameters.Has("skin_model_part_outer_initial_name")) {
+        skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
+
+        KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_outer_initial_name)) 
+                     << "The skin_model_part '" << skin_model_part_outer_initial_name << "' was not created in the model.\n" 
+                     << "Check the reading of the mdpa file in the import mdpa modeler."<< std::endl;
+    }
+
+    // Create the surrogate sub model parts inner and outer
+    ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
+    ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
+
+    // If there is not neither skin_inner nor skin_outer throw an error since you are using the sbm modeler
+    if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
+        
+        // Create the breps for the outer sbm boundary
+        CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
+        // TODO: NEXT PR CreateSurrogateBoundary with Volume
+        // CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpVolume, A_uvw, B_uvw, rModelPart);
+
+        KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
+                        "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
+        return;
+    }
+    
+    if (mParameters.Has("skin_model_part_name"))
+        skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+    else
+        KRATOS_ERROR << "The skin_model_part name '" << skin_model_part_name << "' was not defined in the project parameters.\n" << std::endl;
+
+    // inner
+    mpModel->HasModelPart(skin_model_part_inner_initial_name)
+        ? mpModel->GetModelPart(skin_model_part_inner_initial_name)
+        : mpModel->CreateModelPart(skin_model_part_inner_initial_name);
+    // outer
+    mpModel->HasModelPart(skin_model_part_outer_initial_name)
+        ? mpModel->GetModelPart(skin_model_part_outer_initial_name)
+        : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
+    
+    // Skin model part refined after Snake Process
+    ModelPart& skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
+    skin_model_part.CreateSubModelPart("inner");
+    skin_model_part.CreateSubModelPart("outer");
+    
+    
+    // compute unique_knot_vector_u
+    Vector unique_knot_vector_u(2+(NumKnotSpansU-1));
+    unique_knot_vector_u[0] = mKnotVectorU[0]; unique_knot_vector_u[NumKnotSpansU] = mKnotVectorU[mKnotVectorU.size()-1];
+    for (SizeType i_knot_insertion = 0; i_knot_insertion < NumKnotSpansU-1; i_knot_insertion++) {
+        unique_knot_vector_u[i_knot_insertion+1] = mInsertKnotsU[i_knot_insertion];
+    }
+
+    // compute unique_knot_vector_v
+    Vector unique_knot_vector_v(2+(NumKnotSpansV-1));
+    unique_knot_vector_v[0] = mKnotVectorV[0]; unique_knot_vector_v[NumKnotSpansV] = mKnotVectorV[mKnotVectorV.size()-1];
+    for (SizeType i_knot_insertion = 0; i_knot_insertion < NumKnotSpansV-1; i_knot_insertion++) {
+        unique_knot_vector_v[i_knot_insertion+1] = mInsertKnotsV[i_knot_insertion];
+    }
+
+    // compute unique_knot_vector_w
+    Vector unique_knot_vector_w(2+(NumKnotSpansW-1));
+    unique_knot_vector_w[0] = mKnotVectorW[0]; unique_knot_vector_w[NumKnotSpansW] = mKnotVectorW[mKnotVectorW.size()-1];
+    for (SizeType i_knot_insertion = 0; i_knot_insertion < NumKnotSpansW-1; i_knot_insertion++) {
+        unique_knot_vector_w[i_knot_insertion+1] = mInsertKnotsW[i_knot_insertion];
+    }
+
+    // Set the value of the knot vectors
+    iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
+    iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
+    iga_model_part.SetValue(KNOT_VECTOR_W, unique_knot_vector_w);
+
+    // Create the parameters for the SnakeSbmProcess
+    Kratos::Parameters snake_parameters;
+    snake_parameters.AddString("model_part_name", iga_model_part_name);
+    snake_parameters.AddString("skin_model_part_name", skin_model_part_name);
+    snake_parameters.AddDouble("echo_level", mEchoLevel);
+    snake_parameters.AddString("skin_model_part_inner_initial_name", skin_model_part_inner_initial_name);
+    snake_parameters.AddString("skin_model_part_outer_initial_name", skin_model_part_outer_initial_name);
+    if (mParameters.Has("lambda_inner"))
+        snake_parameters.AddDouble("lambda_inner", mParameters["lambda_inner"].GetDouble());
+    if (mParameters.Has("lambda_outer"))
+        snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
+    if (mParameters.Has("number_of_inner_loops"))
+        snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
+    
+    // Create the surrogate_sub_model_part for inner and outer // TODO: extend this in 3D
+    SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
+    snake_sbm_process.Execute();
+
+    // Create the breps for the outer sbm boundary // TODO: extend this in 3D
+    CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
+    // TODO: NEXT PR CreateSurrogateBoundary with Volume
+    // CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpVolume, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, iga_model_part);
+}
+
 
 const Parameters NurbsGeometryModelerSbm::GetDefaultParameters() const
 {
