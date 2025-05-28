@@ -667,7 +667,7 @@ public:
      * @param Tolerance The tolerance to check the parallel
      * @return 0 if the planes are parallel (or nearly parallel), 1 if the planes intersect in a unique line.
      */
-    static int Compute2PlaneIntersection(
+    static int ComputeTwoPlaneIntersection(
         const array_1d<double, 3>& rPlanePoint1,
         const array_1d<double, 3>& rNormal1,
         const array_1d<double, 3>& rPlanePoint2,
@@ -680,7 +680,7 @@ public:
     /**
      * @brief Computes the intersection point between three planes.
      * @details This function determines the intersection among three planes.
-     *          It first computes the intersection line of the first two planes using Compute2PlaneIntersection.
+     *          It first computes the intersection line of the first two planes using ComputeTwoPlaneIntersection.
      *          Then, it intersects that line with the third plane. Depending on the configuration of the planes,
      *          the function returns:
      *          - 0 if all three planes are parallel (or nearly parallel),
@@ -701,7 +701,7 @@ public:
      * @param Tolerance The tolerance used for checking parallelism (default is 1.0e-12).
      * @return 0 if all planes are parallel, 1 if the intersection is a line (degenerate case), 2 if the intersection is two lines (degenerate case), 3 if the planes intersect in a unique point.
      */
-    static int Compute3PlaneIntersection(
+    static int ComputeThreePlaneIntersection(
         const array_1d<double, 3>& rPlanePoint1,
         const array_1d<double, 3>& rNormal1,
         const array_1d<double, 3>& rPlanePoint2,

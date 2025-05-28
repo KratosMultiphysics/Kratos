@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-int IntersectionUtilities::Compute2PlaneIntersection(
+int IntersectionUtilities::ComputeTwoPlaneIntersection(
     const array_1d<double, 3>& rPlanePoint1,
     const array_1d<double, 3>& rNormal1,
     const array_1d<double, 3>& rPlanePoint2,
@@ -69,7 +69,7 @@ int IntersectionUtilities::Compute2PlaneIntersection(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int IntersectionUtilities::Compute3PlaneIntersection(
+int IntersectionUtilities::ComputeThreePlaneIntersection(
     const array_1d<double, 3>& rPlanePoint1,
     const array_1d<double, 3>& rNormal1,
     const array_1d<double, 3>& rPlanePoint2,
@@ -84,7 +84,7 @@ int IntersectionUtilities::Compute3PlaneIntersection(
     )
 {
     // First, compute the intersection line between plane 1 and plane 2.
-    const int ret = Compute2PlaneIntersection(rPlanePoint1, rNormal1,
+    const int ret = ComputeTwoPlaneIntersection(rPlanePoint1, rNormal1,
                                               rPlanePoint2, rNormal2,
                                               rPoint2, rVector2,
                                               Tolerance);
@@ -100,11 +100,11 @@ int IntersectionUtilities::Compute3PlaneIntersection(
             return 0;
         } else {
             // Ambiguous configuration: two planes are parallel so no unique intersection point exists.
-            Compute2PlaneIntersection(rPlanePoint1, rNormal1,
+            ComputeTwoPlaneIntersection(rPlanePoint1, rNormal1,
                 rPlanePoint3, rNormal3,
                 rPoint1, rVector1,
                 Tolerance);
-            Compute2PlaneIntersection(rPlanePoint2, rNormal2,
+            ComputeTwoPlaneIntersection(rPlanePoint2, rNormal2,
                 rPlanePoint3, rNormal3,
                 rPoint2, rVector2,
                 Tolerance);
@@ -121,18 +121,18 @@ int IntersectionUtilities::Compute3PlaneIntersection(
         const double lineValue = MathUtils<double>::Dot(rNormal3, rPoint2);
         if (std::abs(lineValue - d3) < Tolerance) {
             // The entire line lies in plane 3.
-            Compute2PlaneIntersection(rPlanePoint3, rNormal3,
+            ComputeTwoPlaneIntersection(rPlanePoint3, rNormal3,
                 rPlanePoint1, rNormal1,
                 rPoint1, rVector1,
                 Tolerance);
             return 1;
         } else {
             // The line does not intersect plane 3 in a unique point.
-            Compute2PlaneIntersection(rPlanePoint3, rNormal3,
+            ComputeTwoPlaneIntersection(rPlanePoint3, rNormal3,
                 rPlanePoint1, rNormal1,
                 rPoint1, rVector1,
                 Tolerance);
-            Compute2PlaneIntersection(rPlanePoint2, rNormal2,
+            ComputeTwoPlaneIntersection(rPlanePoint2, rNormal2,
                 rPlanePoint1, rNormal1,
                 rPoint2, rVector2,
                 Tolerance);

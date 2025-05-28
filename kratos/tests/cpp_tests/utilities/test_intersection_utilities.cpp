@@ -758,7 +758,7 @@ namespace Kratos::Testing {
     // Two planes intersecting along the x-axis.
     //   - Plane 1: z = 0 (point: (0,0,0), normal: (0,0,1))
     //   - Plane 2: y = 0 (point: (0,0,0), normal: (0,1,0))
-    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesCompute2PlaneIntersection, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesComputeTwoPlaneIntersection, KratosCoreFastSuite)
     {
         array_1d<double, 3> plane1_point = ZeroVector(3);
         array_1d<double, 3> plane1_normal = ZeroVector(3);
@@ -770,7 +770,7 @@ namespace Kratos::Testing {
         array_1d<double, 3> intersection_point;
         array_1d<double, 3> intersection_tangent;
 
-        const int result = IntersectionUtilities::Compute2PlaneIntersection(plane1_point, plane1_normal,
+        const int result = IntersectionUtilities::ComputeTwoPlaneIntersection(plane1_point, plane1_normal,
                                                  plane2_point, plane2_normal,
                                                  intersection_point, intersection_tangent);
 
@@ -793,7 +793,7 @@ namespace Kratos::Testing {
     // Two parallel planes (both having the normal (0,0,1)).
     //   - Plane 1: z = 0 (point: (0,0,0))
     //   - Plane 2: z = 1 (point: (0,0,1))
-    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesCompute2PlaneIntersectionParallelPlanes, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesComputeTwoPlaneIntersectionParallelPlanes, KratosCoreFastSuite)
     {
         array_1d<double, 3> plane1_point = ZeroVector(3);
         array_1d<double, 3> plane1_normal = ZeroVector(3);
@@ -804,7 +804,7 @@ namespace Kratos::Testing {
         array_1d<double, 3> intersection_point;
         array_1d<double, 3> intersection_tangent;
 
-        const int result = IntersectionUtilities::Compute2PlaneIntersection(plane1_point, plane1_normal,
+        const int result = IntersectionUtilities::ComputeTwoPlaneIntersection(plane1_point, plane1_normal,
                                                      plane2_point, plane2_normal,
                                                      intersection_point, intersection_tangent);
 
@@ -812,7 +812,7 @@ namespace Kratos::Testing {
         KRATOS_EXPECT_EQ(result, 0);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesCompute3PlaneIntersectionUnique, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesComputeThreePlaneIntersectionUnique, KratosCoreFastSuite)
     {
         // Test: Three mutually perpendicular planes (x=0, y=0, z=0) intersect at (0,0,0).
         array_1d<double, 3> p1 = ZeroVector(3);
@@ -826,7 +826,7 @@ namespace Kratos::Testing {
         n3[2] = 1.0; // Plane: z = 0
 
         array_1d<double, 3> inter_point, aux_vector_1, aux_vector_2, aux_vector_3;
-        const int res = IntersectionUtilities::Compute3PlaneIntersection(p1, n1, p2, n2, p3, n3, inter_point, aux_vector_1, aux_vector_2, aux_vector_3);
+        const int res = IntersectionUtilities::ComputeThreePlaneIntersection(p1, n1, p2, n2, p3, n3, inter_point, aux_vector_1, aux_vector_2, aux_vector_3);
 
         // Expect a unique intersection point.
         KRATOS_EXPECT_EQ(res, 3);
@@ -835,7 +835,7 @@ namespace Kratos::Testing {
         KRATOS_EXPECT_LT(std::abs(inter_point[2]), 1e-12);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesCompute3PlaneIntersectionParallel, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesComputeThreePlaneIntersectionParallel, KratosCoreFastSuite)
     {
         // Test: Three parallel planes.
         // Planes: z = 0, z = 1, z = 2.
@@ -852,13 +852,13 @@ namespace Kratos::Testing {
         n3[2] = 1.0;
 
         array_1d<double, 3> inter_point, aux_vector_1, aux_vector_2, aux_vector_3;
-        const int res = IntersectionUtilities::Compute3PlaneIntersection(p1, n1, p2, n2, p3, n3, inter_point, aux_vector_1, aux_vector_2, aux_vector_3);
+        const int res = IntersectionUtilities::ComputeThreePlaneIntersection(p1, n1, p2, n2, p3, n3, inter_point, aux_vector_1, aux_vector_2, aux_vector_3);
 
         // Expect no unique intersection (all are parallel).
         KRATOS_EXPECT_EQ(res, 0);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesCompute3PlaneIntersectionOneLineCase, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesComputeThreePlaneIntersectionOneLineCase, KratosCoreFastSuite)
     {
         // Test: Intersection line degenerate case.
         // Planes 1 and 2: z = 0 and y = 0 => Intersection is x-axis.
@@ -876,13 +876,13 @@ namespace Kratos::Testing {
         n3[2] = 1.0;
 
         array_1d<double, 3> point_line_1, tangent_line_1, point_line_2, tangent_line_2;
-        const int res = IntersectionUtilities::Compute3PlaneIntersection(p1, n1, p2, n2, p3, n3, point_line_1, tangent_line_1, point_line_2, tangent_line_2);
+        const int res = IntersectionUtilities::ComputeThreePlaneIntersection(p1, n1, p2, n2, p3, n3, point_line_1, tangent_line_1, point_line_2, tangent_line_2);
 
         // Expect degenerate intersection (line) -> return 1.
         KRATOS_EXPECT_EQ(res, 1);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesCompute3PlaneIntersectionTwoLinesCase, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesComputeThreePlaneIntersectionTwoLinesCase, KratosCoreFastSuite)
     {
         // Test: Intersection 2 line degenerate case.
         // Planes 1 and 2: parallel planes z = 0 and z = 1.
@@ -900,7 +900,7 @@ namespace Kratos::Testing {
         n3[1] = 1.0;
 
         array_1d<double, 3> point_line_1, tangent_line_1, point_line_2, tangent_line_2;
-        const int res = IntersectionUtilities::Compute3PlaneIntersection(p1, n1, p2, n2, p3, n3, point_line_1, tangent_line_1, point_line_2, tangent_line_2);
+        const int res = IntersectionUtilities::ComputeThreePlaneIntersection(p1, n1, p2, n2, p3, n3, point_line_1, tangent_line_1, point_line_2, tangent_line_2);
 
         // Expect degenerate 2 lines intersection -> return 2.
         KRATOS_EXPECT_EQ(res, 2);
