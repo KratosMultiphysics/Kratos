@@ -12,61 +12,24 @@
 
 #pragma once
 
-// System includes
 #include "includes/define.h"
-
-// Project includes
 #include "small_strain_udsm_3D_law.hpp"
 
 namespace Kratos
 {
-///@addtogroup ConstitutiveModelsApplication
-///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
- */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM2DInterfaceLaw : public SmallStrainUDSM3DLaw
 {
 public:
     // The base class ConstitutiveLaw type definition
     using BaseType = ConstitutiveLaw;
 
-    /// The size type definition
+    // The size type definition
     using SizeType = std::size_t;
 
-    /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_2D;
-
-    /// Pointer definition of SmallStrainUDSM2DInterfaceLaw
+    // Pointer definition of SmallStrainUDSM2DInterfaceLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM2DInterfaceLaw);
 
-    //@}
-    //@name Life Cycle
-    //@{
-
-    /**
-     * @brief Clone method
-     */
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     using SmallStrainUDSM3DLaw::GetValue;
@@ -75,137 +38,27 @@ public:
     using SmallStrainUDSM3DLaw::SetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief Dimension of the law:
-     */
-    SizeType WorkingSpaceDimension() override { return Dimension; }
+    SizeType WorkingSpaceDimension() override;
 
-    /**
-     * @brief Voigt tensor size:
-     */
     [[nodiscard]] SizeType GetStrainSize() const override;
 
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const override { return "SmallStrainUDSM2DInterfaceLaw"; }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << "SmallStrainUDSM2DInterfaceLaw Data";
-    }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
+    [[nodiscard]] std::string Info() const override;
+    void                      PrintInfo(std::ostream& rOStream) const override;
+    void                      PrintData(std::ostream& rOStream) const override;
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues) override;
+    void UpdateInternalDeltaStrainVector(Parameters& rValues) override;
     void SetExternalStressVector(Vector& rStressVector) override;
     void SetInternalStressVector(const Vector& rStressVector) override;
     void SetInternalStrainVector(const Vector& rStrainVector) override;
-    void CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix) override;
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
+    void CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix) override;
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
     indexStress3D getIndex3D(const indexStress2DInterface index2D) const;
 
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // Class SmallStrainUDSM3DLaw
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
-///@} addtogroup block
 
 } // namespace Kratos

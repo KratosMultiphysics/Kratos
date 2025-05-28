@@ -20,7 +20,7 @@ ConstitutiveLaw::Pointer SmallStrainUDSM2DInterfaceLaw::Clone() const
     return std::make_shared<SmallStrainUDSM2DInterfaceLaw>(*this);
 }
 
-void SmallStrainUDSM2DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSM2DInterfaceLaw::UpdateInternalDeltaStrainVector(Parameters& rValues)
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
 
@@ -54,7 +54,7 @@ void SmallStrainUDSM2DInterfaceLaw::SetInternalStrainVector(const Vector& rStrai
     mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector[INDEX_2D_INTERFACE_XZ];
 }
 
-void SmallStrainUDSM2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
+void SmallStrainUDSM2DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
 {
     if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM]) {
         // transfer fortran style matrix to C++ style
@@ -88,6 +88,14 @@ indexStress3D SmallStrainUDSM2DInterfaceLaw::getIndex3D(const indexStress2DInter
     }
 }
 
+void SmallStrainUDSM2DInterfaceLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUDSM3DLaw)
+}
+
+void SmallStrainUDSM2DInterfaceLaw::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUDSM3DLaw)}
+
 Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
     if (rVariable == STATE_VARIABLES) {
@@ -113,6 +121,17 @@ void SmallStrainUDSM2DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
     }
 }
 
+SizeType SmallStrainUDSM2DInterfaceLaw::WorkingSpaceDimension() { return N_DIM_2D; }
+
 SizeType SmallStrainUDSM2DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_2D_INTERFACE; }
+
+std::string SmallStrainUDSM2DInterfaceLaw::Info() const { return "SmallStrainUDSM2DInterfaceLaw"; }
+
+void SmallStrainUDSM2DInterfaceLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
+
+void SmallStrainUDSM2DInterfaceLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUDSM2DInterfaceLaw Data";
+}
 
 } // Namespace Kratos
