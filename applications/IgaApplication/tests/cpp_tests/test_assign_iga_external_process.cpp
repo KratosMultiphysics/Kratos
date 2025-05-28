@@ -8,7 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nicolo' Antonelli
-//  Main authors:    Andrea Gorgi
+//                   Andrea Gorgi
 
 // Project includes
 #include "containers/model.h"
@@ -41,7 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessTest, KratosIgaFastSuite)
     Kratos::Parameters assign_iga_parameters(R"(
         {
             "echo_level": 0,
-            "analysis_model_part_name": "IgaModelPart",
+            "model_part_name": "IgaModelPart",
             "element_condition_list": [
                 {
                     "iga_model_part": "ConvectionDiffusionDomain",
@@ -49,6 +49,10 @@ KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessTest, KratosIgaFastSuite)
                     {
                         "variable_name": "HEAT_FLUX",
                         "value": "x+y+2*t"
+                    },
+                    {
+                        "variable_name": "BODY_FORCE",
+                        "value": ["3", "x**2", "y**2"]
                     }]
                 },
                 {
@@ -66,12 +70,14 @@ KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessTest, KratosIgaFastSuite)
     iga_model_part.GetProcessInfo().SetCurrentTime(2.0);
     
     AssignIgaExternalConditionsProcess assign_iga_condition_process(model, assign_iga_parameters);    
-    assign_iga_condition_process.Execute() ;
+    assign_iga_condition_process.ExecuteInitialize() ;
+    assign_iga_condition_process.ExecuteInitializeSolutionStep() ;
 
     const double tolerance = 1e-7;
     
     // // Ensure the number of nodes matches expectation
     KRATOS_EXPECT_NEAR(convection_diffusion_domain_sub_model_part.GetElement(1).GetValue(HEAT_FLUX), 7.0, tolerance);
+    KRATOS_EXPECT_NEAR(convection_diffusion_domain_sub_model_part.GetElement(1).GetValue(BODY_FORCE_Y), 1.0, tolerance);
     KRATOS_EXPECT_NEAR(sbm_outer_sub_model_part.GetCondition(1).GetValue(TEMPERATURE), -3.0, tolerance);
 
 }

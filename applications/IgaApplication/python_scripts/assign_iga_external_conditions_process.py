@@ -1,4 +1,3 @@
-# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication as IGA
 
