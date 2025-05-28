@@ -25,6 +25,7 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "utilities/integration_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
+#include "integration/hexahedron_gauss_lobatto_integration_points.h"
 
 namespace Kratos
 {
@@ -850,7 +851,7 @@ public:
         rResult[16] = ((1.0 - rCoordinates[0] * rCoordinates[0]) * (1.0 - rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
 
         rResult[17] = ((1.0 + rCoordinates[0]) * (1.0 - rCoordinates[1] * rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
-        
+
         rResult[18] = ((1.0 - rCoordinates[0] * rCoordinates[0]) * (1.0 + rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
 
         rResult[19] = ((1.0 - rCoordinates[0]) * (1.0 - rCoordinates[1] * rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
@@ -1430,7 +1431,7 @@ private:
                              (1.0 + integration_points[pnt].Z())) / 2.0;
             result(19, 2) = ((-1.0 + integration_points[pnt].X()) *
                              (-1.0 + integration_points[pnt].Y() * integration_points[pnt].Y())) / 4.0;
-    
+
 
             d_shape_f_values[pnt] = result;
         }
@@ -1448,7 +1449,9 @@ private:
              Quadrature<HexahedronGaussLegendreIntegrationPoints2, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
              Quadrature<HexahedronGaussLegendreIntegrationPoints3, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
              Quadrature<HexahedronGaussLegendreIntegrationPoints4, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
-             Quadrature<HexahedronGaussLegendreIntegrationPoints5, 3, IntegrationPoint<3>>::GenerateIntegrationPoints()}};
+             Quadrature<HexahedronGaussLegendreIntegrationPoints5, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
+             Quadrature<HexahedronGaussLobattoIntegrationPoints1, 3, IntegrationPoint<3>>::GenerateIntegrationPoints()
+            }};
         return integration_points;
     }
 
@@ -1467,7 +1470,10 @@ private:
              Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                  GeometryData::IntegrationMethod::GI_GAUSS_4),
              Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                 GeometryData::IntegrationMethod::GI_GAUSS_5)}};
+                 GeometryData::IntegrationMethod::GI_GAUSS_5),
+             Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                 GeometryData::IntegrationMethod::GI_LOBATTO_1)
+            }};
         return shape_functions_values;
     }
 
@@ -1486,7 +1492,10 @@ private:
              Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                  GeometryData::IntegrationMethod::GI_GAUSS_4),
              Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                 GeometryData::IntegrationMethod::GI_GAUSS_5)}};
+                 GeometryData::IntegrationMethod::GI_GAUSS_5),
+             Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                 GeometryData::IntegrationMethod::GI_LOBATTO_1)
+            }};
         return shape_functions_local_gradients;
     }
 
