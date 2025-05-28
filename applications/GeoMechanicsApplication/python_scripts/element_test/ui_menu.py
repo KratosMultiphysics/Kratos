@@ -37,7 +37,8 @@ def create_menu():
         model_dict = {
             "model_name": ["Linear Elastic"],
             "num_params": [2],
-            "param_names": [["YOUNG MODULUS", "POISSON RATIO"]]
+            "param_names": [["YOUNG MODULUS", "POISSON RATIO"]],
+            "param_units": [["kN/m²", "–"]]
         }
 
         for widget in main_frame.winfo_children():

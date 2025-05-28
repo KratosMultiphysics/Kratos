@@ -7,20 +7,23 @@ from set_triaxial_test import run_triaxial_simulation
 from ui_plot_manager import render_plots
 from ui_logger import init_log_widget, log_message, clear_log
 import traceback
+from ui_udsm_parser import input_parameters_format_to_unicode
 
 def build_ui_from_model(root, parent_frame, dll_path, model_dict):
     global fig, axes, canvas
 
-    def create_soil_input_fields(param_frame, params, default_values):
+    def create_soil_input_fields(param_frame, params, units, default_values):
         entry_widgets = {}
         ttk.Label(param_frame, text="Soil Input Parameters", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=5)
-        for param in params:
+        for i, param in enumerate(params):
+            unit = units[i] if i < len(units) else ""
             row = ttk.Frame(param_frame)
             row.pack(fill="x", padx=10, pady=2)
             ttk.Label(row, text=param).pack(side="left", padx=5)
             entry = ttk.Entry(row)
-            entry.insert(0, default_values.get(param, "N/A"))
+            entry.insert(0, default_values.get(param, "Please enter a number"))
             entry.pack(side="left", fill="x", expand=True)
+            ttk.Label(row, text=unit).pack(side="left", padx=5)
             entry_widgets[param] = entry
         return entry_widgets
 
@@ -102,7 +105,7 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
         for w in param_frame.winfo_children() + button_frame.winfo_children():
             w.destroy()
 
-        default_values = {
+        raw_defaults  = {
             "1. E": "10000", "2. n_ur": "0.3", "3. c'": "0.0", "4. f_peak": "30.0",
             "5. y_peak": "0.0", "6. s_t, cut-off": "0.0", "7. yield function (MC=1 DP=2 MNC=3 MN=4)": "1",
             "8. n_un (UMAT)": "0.3", "YOUNG_MODULUS": "10000", "POISSON_RATIO": "0.3"
@@ -111,8 +114,12 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
         selected_model = model_var.get()
         index = model_dict["model_name"].index(selected_model)
         params = model_dict["param_names"][index]
+        units = model_dict.get("param_units", [[]])[index]
 
-        entry_widgets = create_soil_input_fields(param_frame, params, default_values)
+        default_values = {
+            input_parameters_format_to_unicode(k): v for k, v in raw_defaults.items()
+        }
+        entry_widgets = create_soil_input_fields(param_frame, params, units, default_values)
         triaxial_widgets = create_triaxial_fields(param_frame)
 
         ttk.Button(button_frame, text="Run Calculation",
