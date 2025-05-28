@@ -179,8 +179,18 @@ private:
     Parameters mThisParameters;   /// The parameters (can be used for general pourposes)
 
     ///@}
+    ///@name Private Lyfe Cycle
+    ///@{
+
+    /// Copy constructor (Unaccessible method).
+    //AssignNodalElementsToNodesProcess(AssignNodalElementsToNodesProcess const& rOther);
+
+    ///@}
     ///@name Private Operators
     ///@{
+
+    /// Assignment operator (Unaccessible method).
+    AssignNodalElementsToNodesProcess& operator=(AssignNodalElementsToNodesProcess const& rOther) = delete;
 
     ///@}
     ///@name Private Operations
@@ -206,17 +216,6 @@ private:
     ///@{
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    AssignNodalElementsToNodesProcess& operator=(AssignNodalElementsToNodesProcess const& rOther) = delete;
-
-    /// Copy constructor.
-    //AssignNodalElementsToNodesProcess(AssignNodalElementsToNodesProcess const& rOther);
-
-    ///@}
-
 }; // Class AssignNodalElementsToNodesProcess
 
 ///@}

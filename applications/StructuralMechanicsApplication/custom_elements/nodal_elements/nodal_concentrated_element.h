@@ -64,6 +64,7 @@ public:
 
     /// Counted pointer of NodalConcentratedElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( NodalConcentratedElement);
+
     ///@}
 
      /**
