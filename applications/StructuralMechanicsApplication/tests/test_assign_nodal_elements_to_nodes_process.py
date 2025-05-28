@@ -2,9 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-# Import assign_nodal_elements_to_nodes_process
-import KratosMultiphysics.StructuralMechanicsApplication.assign_nodal_elements_to_nodes_process as assign_nodal_elements_to_nodes_process
-
 class TestAssignNodalElementsToNodesProcess(KratosUnittest.TestCase):
     """
     This test suite checks the correct work of the AssignNodalElementsToNodesProcess process.
