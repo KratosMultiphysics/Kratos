@@ -113,15 +113,15 @@ public:
 
     std::pair<bool, int> IsRectangleInsidePolygon(const array_1d<double, 3>& p1, const array_1d<double, 3>& p2,
                                const array_1d<double, 3>& p3, const array_1d<double, 3>& p4,
-                               std::vector<array_1d<double, 3>> polygon_vertices);
+                               std::vector<ModelPart::ConditionType> polygon_segments);
 
-    bool IsPointInsidePolygon(const array_1d<double, 3>& point, const std::vector<array_1d<double, 3>>& polygon_vertices);
+    bool IsPointInsidePolygon(const array_1d<double, 3>& point, const std::vector<ModelPart::ConditionType>& polygon_segments, bool flag = false);
 
     void CreateBrepCurveOnSurfaceIntegrationPoints(std::shared_ptr<NurbsSurfaceGeometry<3, PointerVector<Node>>> p_nurbs_surface, 
                                                ModelPart& p_intersected_elements_sub_model_part, 
                                                ModelPart* p_loop);
 
-    bool IsPointOnSegment(const array_1d<double, 3>& point, const array_1d<double, 3>& p1, const array_1d<double, 3>& p2);
+    bool IsPointOnSegment(const array_1d<double, 3>& point, const array_1d<double, 3>& p1, const array_1d<double, 3>& p2, bool flag = false);
 
 
     const Parameters GetDefaultParameters() const override
@@ -166,7 +166,8 @@ private:
     Parameters mParameters;
     SizeType mEchoLevel;
     std::vector<array_1d<double, 3>> mOuterLoopPolygon;
-    std::vector<std::vector<array_1d<double, 3>>> mVectorInnerLoopsPolygons;
+    std::vector<ModelPart::ConditionType> mOuterLoopPolygonConditions;
+    std::vector<std::vector<ModelPart::ConditionType>> mVectorInnerLoopsPolygonsConditions;
 
     ModelPart* mpBackgroundMeshModelPart = nullptr;
     ModelPart* mpSkinOuterLoopModelPart = nullptr;

@@ -38,29 +38,22 @@ namespace Kratos
         ModelPart& intersected_elements_sub_model_part = mpBackgroundMeshModelPart->CreateSubModelPart("intersected_elements");
         ModelPart& active_elements_sub_model_part = mpBackgroundMeshModelPart->CreateSubModelPart("active_elements");
 
-        // Create a vector containing the points defining the outer loop
-        for (auto condition_it_outer = mpSkinOuterLoopModelPart->ConditionsBegin(); condition_it_outer != mpSkinOuterLoopModelPart->ConditionsEnd(); condition_it_outer++){
-            GeometryType condition_geometry = condition_it_outer->GetGeometry();
-
-            // Get the points defining the line geometry
-            array_1d<double,3> line_p1 = condition_geometry.GetPoint(0).Coordinates();
-            mOuterLoopPolygon.push_back(line_p1);
+        for (auto& r_condition : mpSkinOuterLoopModelPart->Conditions()) {
+            mOuterLoopPolygonConditions.push_back(r_condition);
         }
 
         // Create a vector containing the points defining the inner loop
-        if (mNumberOfInnerLoops > 0){
-            for (IndexType i = 0; i < mNumberOfInnerLoops; i++){
-                std::vector<array_1d<double, 3>> inner_loop_polygon;
-                for (auto condition_it_inner = mpVectorSkinInnerLoops[i]->ConditionsBegin(); condition_it_inner != mpVectorSkinInnerLoops[i]->ConditionsEnd(); condition_it_inner++){
-                    GeometryType condition_geometry = condition_it_inner->GetGeometry();
+        if (mNumberOfInnerLoops > 0) {
+        for (IndexType i = 0; i < mNumberOfInnerLoops; ++i) {
+            std::vector<ModelPart::ConditionType> inner_loop_polygon_conditions;
 
-                    // Get the points defining the line geometry
-                    array_1d<double,3> line_p1 = condition_geometry.GetPoint(0).Coordinates();
-                    inner_loop_polygon.push_back(line_p1);
-                }
-                mVectorInnerLoopsPolygons.push_back(inner_loop_polygon);
+            for (auto& r_condition : mpVectorSkinInnerLoops[i]->Conditions()) {
+                inner_loop_polygon_conditions.push_back(r_condition);  
             }
+
+            mVectorInnerLoopsPolygonsConditions.push_back(inner_loop_polygon_conditions);
         }
+    }
 
         // Store elements to be added later (avoiding iterator invalidation)
         std::vector<Element::Pointer> elements_to_intersect;
@@ -81,6 +74,7 @@ namespace Kratos
         std::vector<double> knot_vector_u, knot_vector_v;
         p_nurbs_surface->SpansLocalSpace(knot_vector_u, 0);
         p_nurbs_surface->SpansLocalSpace(knot_vector_v, 0);
+        KRATOS_WATCH(knot_vector_u)
 
         double polynomial_degree_u = p_nurbs_surface->PolynomialDegreeU();
         double polynomial_degree_v = p_nurbs_surface->PolynomialDegreeV();
@@ -255,7 +249,7 @@ namespace Kratos
         array_1d<double, 3> p4{u_min, v_max, 0.0};  
 
         // Check first if the knot span is inside or outside the outer polygon using the ray tracing algorithm
-        auto is_rectangle_inside_outer_loop = IsRectangleInsidePolygon(p1, p2, p3, p4, mOuterLoopPolygon);
+        auto is_rectangle_inside_outer_loop = IsRectangleInsidePolygon(p1, p2, p3, p4, mOuterLoopPolygonConditions);
 
         //  If the knot span is outside the outer loop, return 0
         if (is_rectangle_inside_outer_loop.first == 0) return false; 
@@ -264,7 +258,7 @@ namespace Kratos
         if(mNumberOfInnerLoops > 0){
             // Iterate over all inner loops to check if the element is inside any of them
             for (IndexType i = 0; i < mNumberOfInnerLoops; i++) {
-                auto is_rectangle_inside_inner_loop = IsRectangleInsidePolygon(p1, p2, p3, p4, mVectorInnerLoopsPolygons[i]);
+                auto is_rectangle_inside_inner_loop = IsRectangleInsidePolygon(p1, p2, p3, p4, mVectorInnerLoopsPolygonsConditions[i]);
                 
                 // If the knot span is inside any inner loop, return false
                 if (is_rectangle_inside_inner_loop.first == 1) return false; 
@@ -318,7 +312,7 @@ namespace Kratos
             {p4, p1}   // Segment 4
         };
 
-        double epsilon = 1e-10;
+        double epsilon = 1e-6;
         for (auto& edge : rect_edges) {
             array_1d<double,3> condition_knot_span_edge_intersection;
             if (DoSegmentsIntersect(line_p1, line_p2, edge.first, edge.second, condition_knot_span_edge_intersection)) {
@@ -458,12 +452,12 @@ namespace Kratos
     }
 
     std::pair<bool, int>  ClassifyIntegrationPointsExtendedGradientMethodProcess::IsRectangleInsidePolygon(const array_1d<double, 3>& p1, const array_1d<double, 3>& p2,
-                               const array_1d<double, 3>& p3, const array_1d<double, 3>& p4, std::vector<array_1d<double, 3>> polygon_vertices) {
+                               const array_1d<double, 3>& p3, const array_1d<double, 3>& p4, std::vector<ModelPart::ConditionType> polygon_segments) {
         
-        bool is_p1_inside = IsPointInsidePolygon(p1, polygon_vertices);
-        bool is_p2_inside = IsPointInsidePolygon(p2, polygon_vertices);
-        bool is_p3_inside = IsPointInsidePolygon(p3, polygon_vertices);
-        bool is_p4_inside = IsPointInsidePolygon(p4, polygon_vertices);
+        bool is_p1_inside = IsPointInsidePolygon(p1, polygon_segments);
+        bool is_p2_inside = IsPointInsidePolygon(p2, polygon_segments);
+        bool is_p3_inside = IsPointInsidePolygon(p3, polygon_segments);
+        bool is_p4_inside = IsPointInsidePolygon(p4, polygon_segments);
 
         int number_of_points_inside = is_p1_inside + is_p2_inside + is_p3_inside + is_p4_inside;
 
@@ -475,16 +469,16 @@ namespace Kratos
     }
 
     // This method checks if a point is inside a polygon using the ray tracing algorithm
-    bool ClassifyIntegrationPointsExtendedGradientMethodProcess::IsPointInsidePolygon(const array_1d<double, 3>& point, const std::vector<array_1d<double, 3>>& polygon_vertices) {
-        int n = polygon_vertices.size();
+    bool ClassifyIntegrationPointsExtendedGradientMethodProcess::IsPointInsidePolygon(const array_1d<double, 3>& point, const std::vector<ModelPart::ConditionType>& polygon_segments, bool flag) {
         bool inside = false;
 
         // Loop over each edge of the polygon
-        for (int i = 0; i < n; i++) {
-            int j = (i == 0) ? (n - 1) : (i - 1);
+        for (const auto& condition : polygon_segments) {
+            const GeometryType& geometry = condition.GetGeometry();
 
-            const array_1d<double, 3>& p1 = polygon_vertices[i];
-            const array_1d<double, 3>& p2 = polygon_vertices[j];
+            // Assume the condition is a 2-point segment (e.g., Line2D2N)
+            const array_1d<double, 3>& p1 = geometry[0].Coordinates();
+            const array_1d<double, 3>& p2 = geometry[1].Coordinates();
 
             // Check if the point lies exactly on the edge
             if (IsPointOnSegment(point, p1, p2)) {
@@ -502,21 +496,21 @@ namespace Kratos
 
     // Helper function to check if a point lies on a line segment
     bool ClassifyIntegrationPointsExtendedGradientMethodProcess::IsPointOnSegment(const array_1d<double, 3>& point, 
-    const array_1d<double, 3>& p1, const array_1d<double, 3>& p2){
+    const array_1d<double, 3>& p1, const array_1d<double, 3>& p2, bool flag){
          double cross_product = (point[1] - p1[1]) * (p2[0] - p1[0]) - (point[0] - p1[0]) * (p2[1] - p1[1]);
+         double dot_product = (point[0] - p1[0]) * (p2[0] - p1[0]) + (point[1] - p1[1]) * (p2[1] - p1[1]);
+         double squared_length = (p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1]);
 
         // Check if the point is collinear with the edge (cross product ≈ 0)
-        if (std::abs(cross_product) > 1e-9) {
+        if (std::abs(cross_product) > 1e-6) {
             return false;
         }
 
         // Check if the point lies within the segment bounds
-        double dot_product = (point[0] - p1[0]) * (p2[0] - p1[0]) + (point[1] - p1[1]) * (p2[1] - p1[1]);
         if (dot_product < 0) {
             return false;
         }
 
-        double squared_length = (p2[0] - p1[0]) * (p2[0] - p1[0]) + (p2[1] - p1[1]) * (p2[1] - p1[1]);
         return dot_product <= squared_length;
     }
 
