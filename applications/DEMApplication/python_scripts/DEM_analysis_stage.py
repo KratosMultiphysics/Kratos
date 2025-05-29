@@ -103,6 +103,9 @@ class DEMAnalysisStage(AnalysisStage):
         self.translational_scheme = self.SetTranslationalScheme()
         self.rotational_scheme = self.SetRotationalScheme()
 
+        # RVE analysis
+        self.rve_utils = self.SetRVEUtilities()
+
         # Define control variables
         self.p_frequency = 100   # activate every 100 steps
         self.step_count = 0
@@ -210,6 +213,32 @@ class DEMAnalysisStage(AnalysisStage):
 
         return rotational_scheme
 
+    def SetRVEUtilities(self):
+        rve_settings = self.DEM_parameters["rve_analysis_settings"]
+        self.rve_analysis                     = rve_settings["RVEAnalysis"].GetBool()
+        self.rve_evaluation_frequency         = rve_settings["RVEEvaluationFrequency"].GetInt()
+        self.rve_write_frequency              = rve_settings["RVEWriteFrequency"].GetInt()
+        self.rve_consolidation_stop_criterion = rve_settings["RVEConsolidationStopCriterion"].GetString()
+        self.rve_consolidation_limit_value    = rve_settings["RVEConsolidationLimitValue"].GetDouble()
+        self.rve_inner_volume_offset          = rve_settings["RVEInnerVolumeOffset"].GetDouble()
+
+        self.rve_consolidation_velocity = []
+        for vel in rve_settings["RVEConsolidationVelocity"].values():
+            self.rve_consolidation_velocity.append(vel.GetDouble())
+
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_ANALYSIS, self.rve_analysis)
+        
+        if not self.rve_analysis:
+            return None
+        else:
+            return self.GetRVEUtility()
+
+    def GetRVEUtility(self):
+        if self.DEM_parameters["Dimension"].GetInt() == 2:
+            return RVEWallBoundary2D(self.rve_evaluation_frequency, self.rve_write_frequency, self.rve_consolidation_velocity, self.rve_consolidation_stop_criterion, self.rve_consolidation_limit_value, self.rve_inner_volume_offset)
+        else:
+            raise Exception('Error: The selected RVE utility is not implemented')
+
     def SetSolver(self):        # TODO why is this still here. -> main_script calls retrocompatibility
         return self._CreateSolver()
 
@@ -300,6 +329,9 @@ class DEMAnalysisStage(AnalysisStage):
         self.SetInlet()
 
         self.SetInitialNodalValues()
+
+        if self.rve_utils is not None:
+            self.rve_utils.Initialize(self.spheres_model_part, self.rigid_face_model_part)
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
@@ -701,6 +733,9 @@ class DEMAnalysisStage(AnalysisStage):
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
+        if self.rve_utils is not None:
+            self.rve_utils.FinalizeSolutionStep()
+
         #Phantom Walls
         self.RunAnalytics(self.time)
 
@@ -745,6 +780,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
+        if self.rve_utils is not None:
+            self.rve_utils.Finalize()
 
         self.CleanUpOperations()
 
