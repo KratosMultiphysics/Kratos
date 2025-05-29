@@ -300,12 +300,12 @@ public:
                 
                 // Call  "BrepSBMUtilities::CreateBrepVolumeSbmIntegrationPoints"
                 BrepSbmUtilitiesType::CreateBrepVolumeSbmIntegrationPoints(
-                    rIntegrationPoints,
                     spans_u, 
                     spans_v,
                     spans_w,
                     *mpSurrogateOuterLoopGeometries,
                     *mpSurrogateInnerLoopGeometries,
+                    rIntegrationPoints,
                     rIntegrationInfo); 
             }
             // body-fitted case

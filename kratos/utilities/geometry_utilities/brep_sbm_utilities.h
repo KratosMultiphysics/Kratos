@@ -78,12 +78,12 @@ public:
      * @param rIntegrationInfo Object containing integration settings.
      */
     static void CreateBrepVolumeSbmIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpansU,
         const std::vector<double>& rSpansV,
         const std::vector<double>& rSpansW,
         GeometrySurrogateArrayType& rOuterLoops,
         GeometrySurrogateArrayType& rInnerLoops,
+        IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo);
 
 private:
