@@ -1,5 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
+from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
 def Factory(settings, Model):
     if not isinstance(settings, Parameters):
@@ -26,21 +27,21 @@ class ApplyLoadVectorDamProcess(Process):
             x_params.AddValue("model_part_name",settings["model_part_name"])
             x_params.AddEmptyValue("value").SetDouble(self.value[0])
             x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
-            self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, x_params))
+            self.components_process_list.append(AssignScalarVariableProcess(Model, x_params))
 
         if abs(self.value[1])>1.0e-15:
             y_params = Parameters("{}")
             y_params.AddValue("model_part_name",settings["model_part_name"])
             y_params.AddEmptyValue("value").SetDouble(self.value[1])
             y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
-            self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, y_params))
+            self.components_process_list.append(AssignScalarVariableProcess(Model, y_params))
 
         if abs(self.value[2])>1.0e-15:
             z_params = Parameters("{}")
             z_params.AddValue("model_part_name",settings["model_part_name"])
             z_params.AddEmptyValue("value").SetDouble(self.value[2])
             z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
-            self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, z_params))
+            self.components_process_list.append(AssignScalarVariableProcess(Model, z_params))
 
     def ExecuteInitialize(self):
 

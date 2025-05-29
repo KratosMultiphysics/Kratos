@@ -1,5 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
+from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
 ## In this case, the scalar value is automatically fixed.
 
@@ -21,10 +22,10 @@ class ImposeFaceHeatFluxProcess(Process):
             if settings["table"].GetInt() == 0:
                 t_uniform = Parameters("{}")
                 t_uniform.AddValue("model_part_name",settings["model_part_name"])
-                t_uniform.AddEmptyValue("is_fixed").SetBool(False)
+                t_uniform.AddEmptyValue("constrained").SetBool(False)
                 t_uniform.AddValue("variable_name",settings["variable_name"])
                 t_uniform.AddValue("value",settings["value"])
-                self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, t_uniform))
+                self.components_process_list.append(AssignScalarVariableProcess(Model, t_uniform))
             else:
                 self.components_process_list.append(DamFixTemperatureConditionProcess(model_part, settings))
 
