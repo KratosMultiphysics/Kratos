@@ -50,10 +50,14 @@ class GeoMechanicsAnalysis(AnalysisStage):
     def Initialize(self):
         super().Initialize()
 
+        # Displacement and rotation variables are defined as stage displacement and rotation,
+        # so they need to be reset at the start of a stage
+        self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
         if self.reset_displacements:
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-            self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+            self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_DISPLACEMENT)
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
@@ -86,12 +90,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-
-        # store total displacement field for reset_displacements
-        if self._GetSolver().settings["reset_displacements"].GetBool():
-            old_total_displacements = [node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT)
-                                       for node in self._GetSolver().GetComputingModelPart().Nodes]
-
         self._GetSolver().solving_strategy.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
@@ -167,15 +165,12 @@ class GeoMechanicsAnalysis(AnalysisStage):
             if not converged:
                 raise RuntimeError('The maximum number of cycles is reached without convergence!')
 
-            if self._GetSolver().settings["reset_displacements"].GetBool():
-                for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
-                    self._CalculateTotalDisplacement(node, old_total_displacements[idx])
-
             if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
-                incr_process = KratosGeo.CalculateIncrementalDisplacementProcess(
-                    self._GetSolver().GetComputingModelPart(), Kratos.Parameters())
+                KratosGeo.CalculateIncrementalDisplacementProcess(
+                    self._GetSolver().GetComputingModelPart(), Kratos.Parameters()).Execute()
 
-                incr_process.Execute()
+                for node in self._GetSolver().GetComputingModelPart().Nodes:
+                    self._CalculateTotalDisplacement(node)
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
@@ -199,9 +194,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
     def _CreateSolver(self):
         return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
 
-    def _CalculateTotalDisplacement(self, node, old_total_displacement):
-        stage_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-        total_displacement = old_total_displacement + stage_displacement
+    def _CalculateTotalDisplacement(self, node):
+        total_displacement = node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT) + node.GetSolutionStepValue(KratosGeo.INCREMENTAL_DISPLACEMENT)
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
     def _GetOrderOfProcessesInitialization(self):
