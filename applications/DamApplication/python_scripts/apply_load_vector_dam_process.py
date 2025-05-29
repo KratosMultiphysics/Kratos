@@ -1,19 +1,17 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DamApplication import *
+import KratosMultiphysics
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
 def Factory(settings, Model):
-    if not isinstance(settings, Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyLoadVectorDamProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 
-class ApplyLoadVectorDamProcess(Process):
+class ApplyLoadVectorDamProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
-        Process.__init__(self)
+        KratosMultiphysics.Process.__init__(self)
 
-        model_part = Model[settings["model_part_name"].GetString()]
         variable_name = settings["variable_name"].GetString()
 
         self.components_process_list = []
@@ -23,30 +21,30 @@ class ApplyLoadVectorDamProcess(Process):
         self.value = [self.direction[0]*self.factor,self.direction[1]*self.factor,self.direction[2]*self.factor]
 
         if abs(self.value[0])>1.0e-15:
-            x_params = Parameters("{}")
+            x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
             x_params.AddEmptyValue("value").SetDouble(self.value[0])
             x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
             self.components_process_list.append(AssignScalarVariableProcess(Model, x_params))
 
         if abs(self.value[1])>1.0e-15:
-            y_params = Parameters("{}")
+            y_params = KratosMultiphysics.Parameters("{}")
             y_params.AddValue("model_part_name",settings["model_part_name"])
             y_params.AddEmptyValue("value").SetDouble(self.value[1])
             y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
             self.components_process_list.append(AssignScalarVariableProcess(Model, y_params))
 
         if abs(self.value[2])>1.0e-15:
-            z_params = Parameters("{}")
+            z_params = KratosMultiphysics.Parameters("{}")
             z_params.AddValue("model_part_name",settings["model_part_name"])
             z_params.AddEmptyValue("value").SetDouble(self.value[2])
             z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
             self.components_process_list.append(AssignScalarVariableProcess(Model, z_params))
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
 
         for component in self.components_process_list:
-            component.ExecuteInitialize()
+            component.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
 

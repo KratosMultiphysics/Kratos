@@ -77,7 +77,26 @@
             "loads_variable_list"                  : []
         }
     },
-    "output_configuration"       : {},
+    "output_configuration"       : {
+        "result_file_configuration" : {
+            "gidpost_flags"        : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteElementsOnly",
+                "MultiFileFlag"         : "MultipleFiles"
+            },
+            "output_control_type"  : "time_s",
+            "output_interval"      : 3600.0,
+            "start_output_results" : 0,
+            "body_output"          : true,
+            "node_output"          : false,
+            "skin_output"          : false,
+            "plane_output"         : [],
+            "nodal_results"        : ["DISPLACEMENT","TEMPERATURE"],
+            "gauss_point_results"  : []
+        },
+        "point_data_configuration"  : []
+    },
     "constraints_process_list"   : [{
         "python_module" : "apply_constraint_vector_dam_table_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
@@ -98,7 +117,7 @@
             "model_part_name" : "MainModelPart.INITIALTEMPERATURE_Temperature_Auto1",
             "variable_name"   : "TEMPERATURE",
             "interval"        : [0.0,0.0],
-            "constrained"        : false,
+            "constrained"     : false,
             "value"           : 8.3,
             "table"           : 0
         }
@@ -110,7 +129,7 @@
             "model_part_name"                                  : "MainModelPart.CONSTANTRESERVOIRTEMPERATURE_Reservoir_temperature:_Constant_Parts_Auto1",
             "variable_name"                                    : "TEMPERATURE",
             "interval"                                         : [0.0,0.0],
-            "is_fixed"                                         : true,
+            "constrained"                                      : true,
             "Gravity_Direction"                                : "Z",
             "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
             "Water_temp"                                       : 0.0,

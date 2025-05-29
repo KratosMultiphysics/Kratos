@@ -1,22 +1,22 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DamApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.DamApplication as KratosDam
 
 def Factory(settings, Model):
     if(not isinstance(settings,Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ImposeGroutingReferenceTemperatureProcess(Model, settings["Parameters"])
 
-class ImposeGroutingReferenceTemperatureProcess(Process):
+class ImposeGroutingReferenceTemperatureProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
 
-        Process.__init__(self)
+        KratosMultiphysics.Process.__init__(self)
         model_part = Model[settings["model_part_name"].GetString()]
 
-        self.process = DamGroutingReferenceTemperatureProcess(model_part, settings)
+        self.process = KratosDam.DamGroutingReferenceTemperatureProcess(model_part, settings)
 
 
-    def ExecuteInitialize(self):
-        self.process.ExecuteInitialize()
+    def ExecuteBeforeSolutionLoop(self):
+        self.process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         pass
