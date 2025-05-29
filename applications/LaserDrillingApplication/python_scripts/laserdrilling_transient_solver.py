@@ -300,17 +300,19 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
             # Read the table of values into a Kratos PiecewiseLinearTable
             FluenceTable = ReadCsvTableUtility(fluence_table_settings).Read()
-            # Release the numpy array since we are not going to be using it
-            del fluence_table_np
 
             # Convert the table from a Kratos table to a Python function
             FluenceTableAsFunction = self.TableToFunction(FluenceTable)
 
-            # Normalize the fluence
             fluence_table_max_r = fluence_table_np[-1, 0]
+            del fluence_table_np  # We are not going to be using the table as a np array
 
+            # Extend the pulse so that beyond the values specified in the table its image is 0
+            FluenceTableExtended = self.ExtendFunction(FluenceTableAsFunction, xmax=fluence_table_max_r)
+
+            # Normalize the fluence
             FluenceFunctionNormalized = self.NormalizeAxisymmetricFunction(
-                FluenceTableAsFunction, rmin=0, rmax=fluence_table_max_r
+                FluenceTableExtended, rmin=0, rmax=fluence_table_max_r
             )
 
             def FluenceFunction(position, parameters):
@@ -1709,11 +1711,73 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         return TableAsFunction
 
-    def ExtendFunction(self, f, xmin, xmax):
+    def ExtendFunction(self, f, xmax, xmin=0):
         """
-        Extends a function f that is only defined in the interval (xmin,xmax) by setting it to 0 elsehwere.
+        Extends a function f defined on the interval (xmin, xmax) by setting its value to zero outside
+        this interval. The returned function f_extended is a piecewise function that returns f(x) for
+        xmin <= x <= xmax and 0 for x < xmin or x > xmax.
+
+        Parameters
+        ----------
+        f : callable
+            The function to extend, defined on the open interval (xmin, xmax). Must take a single
+            float input and return a float output.
+        xmin : float
+            The lower bound of the interval where f is defined.
+        xmax : float
+            The upper bound of the interval where f is defined, must be greater than xmin.
+
+        Returns
+        -------
+        callable
+            The extended function f_extended, defined for all real numbers. Returns f(x) for
+            xmin <= x <= xmax and 0 otherwise.
+
+        Raises
+        ------
+        ValueError
+            If f is not callable, xmin >= xmax, or f(xmin) or f(xmax) are non-finite.
+        TypeError
+            If xmin or xmax are not numbers.
         """
-        pass
+        # Validate inputs
+        if not callable(f):
+            raise ValueError("f must be callable")
+        if not isinstance(xmin, (int, float)) or not isinstance(xmax, (int, float)):
+            raise TypeError("xmin and xmax must be numbers")
+        if not np.isfinite(xmin) or not np.isfinite(xmax):
+            raise ValueError("xmin and xmax must be finite")
+        if xmin >= xmax:
+            raise ValueError("xmin must be less than xmax")
+
+        # Test function evaluation at boundaries
+        try:
+            f_xmin = f(xmin)
+            f_xmax = f(xmax)
+        except Exception as e:
+            raise ValueError(f"Function evaluation failed at boundaries: {str(e)}")
+
+        if not np.isfinite(f_xmin) or not np.isfinite(f_xmax):
+            raise ValueError("f(xmin) and f(xmax) must be finite")
+
+        # Define the extended function
+        def f_extended(x):
+            """
+            Piecewise function that extends f(x) to zero outside [xmin, xmax].
+
+            Args
+                x : float
+                    Input value to evaluate.
+
+            Returns
+                float
+                    f(x) if xmin <= x <= xmax, 0 otherwise.
+            """
+            if xmin <= x <= xmax:
+                return f(x)
+            return 0.0
+
+        return f_extended
 
     # TODO: move out of the solver class into a sort of utility class or file?
     def NormalizeAxisymmetricFunction(self, f, rmin=0, rmax=np.inf, numerical_zero=1e-15):

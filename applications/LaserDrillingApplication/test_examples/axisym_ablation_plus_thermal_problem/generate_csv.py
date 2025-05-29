@@ -64,8 +64,8 @@ CauchyPulseNormalized = LDTSAPT.NormalizeAxisymmetricFunction(
     lambda r: CauchyPulse(r, parameters), rmin=0, rmax=x_arr.max()
 )
 
-# y_arr = CauchyPulse(x_arr, parameters)
-y_arr = FluenceSuperGaussianNotNormalized(x_arr, parameters)
+y_arr = CauchyPulse(x_arr, parameters)
+# y_arr = FluenceSuperGaussianNotNormalized(x_arr, parameters)
 y_arr_normalized = CauchyPulseNormalized(x_arr)
 
 y_pulse = y_arr_normalized * Q
