@@ -48,7 +48,7 @@ class DamBofangConditionTemperatureProcess : public Process
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "constrained"                                         : false,
+                "constrained"                                      : false,
                 "Gravity_Direction"                                : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
                 "Surface_Temp"                                     : 0.0,
