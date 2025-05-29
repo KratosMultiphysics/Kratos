@@ -77,26 +77,7 @@
             "loads_variable_list"                  : []
         }
     },
-    "output_configuration"       : {
-        "result_file_configuration" : {
-            "gidpost_flags"        : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteElementsOnly",
-                "MultiFileFlag"         : "MultipleFiles"
-            },
-            "output_control_type"  : "time_s",
-            "output_interval"      : 3600.0,
-            "start_output_results" : 0,
-            "body_output"          : true,
-            "node_output"          : false,
-            "skin_output"          : false,
-            "plane_output"         : [],
-            "nodal_results"        : ["DISPLACEMENT","TEMPERATURE"],
-            "gauss_point_results"  : []
-        },
-        "point_data_configuration"  : []
-    },
+    "output_configuration"       : {},
     "constraints_process_list"   : [{
         "python_module" : "apply_constraint_vector_dam_table_process",
         "kratos_module" : "KratosMultiphysics.DamApplication",
