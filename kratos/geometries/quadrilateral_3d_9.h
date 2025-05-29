@@ -24,6 +24,7 @@
 #include "geometries/line_3d_3.h"
 #include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
+#include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 
 namespace Kratos
 {
@@ -1676,6 +1677,8 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1699,7 +1702,9 @@ private:
                 Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
@@ -1722,7 +1727,9 @@ private:
                 Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
                 ( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
-                ( GeometryData::IntegrationMethod::GI_GAUSS_5 )
+                ( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
+                ( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;
