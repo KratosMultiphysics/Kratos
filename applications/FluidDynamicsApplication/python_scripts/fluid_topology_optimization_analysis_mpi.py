@@ -837,6 +837,8 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
         integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
         self.functionals[0] = np.dot(self.nodal_domain_sizes, integrand)
+        if _CheckIsDistributed():
+            self.functionals[0] = self.MpiSynchronizeLocalValue(self.functionals[0])
         if (self.first_iteration):
             self.initial_functionals_values[0] = self.functionals[0] 
         if (print_functional):
@@ -853,6 +855,8 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         vel_symmetric_gradient_norm_squared = (np.linalg.norm(vel_symmetric_gradient, ord='fro', axis=(1, 2)))**2
         mu = self._GetViscosity()
         self.functionals[1] = 2*mu* np.dot(vel_symmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        if _CheckIsDistributed():
+            self.functionals[1] = self.MpiSynchronizeLocalValue(self.functionals[1])
         if (self.first_iteration):
             self.initial_functionals_values[1] = self.functionals[1]
         if (print_functional):
@@ -869,6 +873,8 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         vel_antisymmetric_gradient_norm_squared = (np.linalg.norm(vel_antisymmetric_gradient, ord='fro', axis=(1, 2)))**2
         mu = self._GetViscosity()
         self.functionals[2] = 2*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        if _CheckIsDistributed():
+            self.functionals[2] = self.MpiSynchronizeLocalValue(self.functionals[2])
         if (self.first_iteration):
             self.initial_functionals_values[2] = self.functionals[2]
         if (print_functional):
@@ -1099,21 +1105,28 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
             file.write("\n")
 
     def _EvaluateDesignParameterChange(self):
-        old_design_parameter_norm = np.linalg.norm(1-self.old_design_parameter)
-        self.design_parameter_change = np.linalg.norm(self.design_parameter-self.old_design_parameter)
-        if (old_design_parameter_norm > 1e-10):
-            # change evaluated on the amount of fluid, that's why we have ||(1-design)-(1-old_design)|| / ||1-old_design||
-            self.design_parameter_change /= old_design_parameter_norm
-        else:
-            # change evaluated on the amount of fluid, that's why we have ||design-old_design|| / ||old_design||
-            old_design_parameter_norm = np.linalg.norm(self.old_design_parameter)
-            self.design_parameter_change /= old_design_parameter_norm
-        if (self.opt_it > 1):
-            design_parameter_converged = (self.design_parameter_change < self.design_parameter_change_toll)
-        else:
             design_parameter_converged = False
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| DESIGN PARAMETER CHANGE: " + str(self.design_parameter_change))
-        return design_parameter_converged        
+            design_parameter_per_rank = self.data_communicator.AllGathervDoubles(self.design_parameter)
+            old_design_parameter_per_rank = self.data_communicator.AllGathervDoubles(self.old_design_parameter)
+            if (self.MpiRunOnlyRank(0)):
+                design_parameter = np.concatenate(design_parameter_per_rank)
+                old_design_parameter = np.concatenate(old_design_parameter_per_rank)
+                old_design_parameter_norm = np.linalg.norm(1-old_design_parameter)
+                self.design_parameter_change = np.linalg.norm(design_parameter-old_design_parameter)
+                if (old_design_parameter_norm > 1e-10):
+                    # change evaluated on the amount of fluid, that's why we have ||(1-design)-(1-old_design)|| / ||1-old_design||
+                    self.design_parameter_change /= old_design_parameter_norm
+                else:
+                    # change evaluated on the amount of fluid, that's why we have ||design-old_design|| / ||old_design||
+                    old_design_parameter_norm = np.linalg.norm(self.old_design_parameter)
+                    self.design_parameter_change /= old_design_parameter_norm
+                if (self.opt_it > 1):
+                    design_parameter_converged = (self.design_parameter_change < self.design_parameter_change_toll)
+                else:
+                    design_parameter_converged = False
+            design_parameter_converged = self.data_communicator.Broadcast(design_parameter_converged, source_rank=0)
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| DESIGN PARAMETER CHANGE: " + str(self.design_parameter_change))
+            return design_parameter_converged       
 
     def _ResetFunctionalOutput(self):
         with open("functional_history.txt", "w") as file:
@@ -1342,7 +1355,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
 
     def _PrintSolution(self):
         self.OutputSolutionStep()
-        self.self._CorrectPvtuFilesInVtuOutput()
+        self._CorrectPvtuFilesInVtuOutput()
         self._PrintFunctionalsToFile()
 
     def _InitializeRemeshing(self):
@@ -1750,8 +1763,6 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self.EvaluateFunctionals(print_functional)
         self.functional = np.dot(self.functional_weights, self.functionals)
         self.weighted_functionals = self.functional_weights * self.functionals
-        if _CheckIsDistributed():
-            self.MpiSynchronizeLocalFunctionalValues()
         if (self.MpiRunOnlyRank(0)):
             if (self.first_iteration):
                     self.initial_functional = self.functional
@@ -1779,7 +1790,6 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
 
     def EvaluateDesignParameterIntegralInOptimizationDomain(self):
         if _CheckIsDistributed():
-            # self.MpiBarrier()
             local_design_parameter_integral = np.dot(self.design_parameter, self.nodal_optimization_domain_sizes)
             total_design_parameter_integral = self.data_communicator.SumAll(local_design_parameter_integral)
             self.design_parameter_integral  = total_design_parameter_integral
@@ -1838,7 +1848,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self._CorrectNodalDomainSizeWithSymmetry()
 
     def _ComputeNodalOptimizationDomainSize(self):
-        self.nodal_optimization_domain_sizes = np.zeros(self.n_opt_design_parameters)
+        self.nodal_optimization_domain_sizes = np.zeros(self.n_nodes)
         mp = self._GetOptimizationDomain()
         nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(mp, self.dim)
         nodal_area_process.Execute()
@@ -1847,13 +1857,11 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
 
     def _UpdateNodalDomainSizeArrayFromNodalAreaVariable(self):
         for node in self._GetLocalMeshNodes():
-            current_rank_node_id = self.nodes_ids_global_to_local_partition_dictionary[node.Id]
-            self.nodal_domain_sizes[current_rank_node_id] = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+            self.nodal_domain_sizes[self.nodes_ids_global_to_local_partition_dictionary[node.Id]] = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
 
     def _UpdateNodalOptimizationDomainSizeArrayFromNodalAreaVariable(self):
         for node in self._GetLocalMeshNodes(self._GetOptimizationDomain()):
-            current_rank_optimization_node_id = self.global_to_opt_mask_nodes[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
-            self.nodal_optimization_domain_sizes[current_rank_optimization_node_id] = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+            self.nodal_optimization_domain_sizes[self.nodes_ids_global_to_local_partition_dictionary[node.Id]] = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
 
     def _ComputeOptimizationDomainNodesMask(self):
         """
@@ -1898,6 +1906,11 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
             self.weighted_functionals  = self.functional_weights * self.functionals
             self.functional  = np.dot(self.functional_weights, self.functionals)
 
+    def MpiSynchronizeLocalValue(self, local_value):
+        # Sum the values across all ranks
+        total_value = self.data_communicator.SumAll(local_value)
+        return total_value
+
     def UpdatePhysicsParametersVariablesAndSynchronize(self):
         self.UpdatePhysicsParametersVariables()
         self._SynchronizePhysicsParametersVariables()
@@ -1906,10 +1919,8 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.RESISTANCE)
 
     def _SolveMMA(self, design_parameter, n_opt_variables, n_opt_constraints, min_value, max_value, max_outer_it, kkt_tolerance):
-        # self.MpiBarrier()
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| SOLVE MMA")
         # MMA PARAMETERS INITIALIZATION
-        # self.MpiBarrier()
         rank = self.data_communicator.Rank()
         n_opt_variables_in_rank = self.data_communicator.AllGatherInts([n_opt_variables])
         n_ranks = len(n_opt_variables_in_rank)
@@ -2001,26 +2012,26 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         return df0dx, dfdx
     
     def _GetViscosity(self):
-        for elem in self._GetComputingModelPart().GetCommunicator().LocalMesh().Elements:
+        for elem in self._GetMainModelPart().GetCommunicator().LocalMesh().Elements:
             mu = elem.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
             break
         return mu
     
     def _GetDensity(self):
-        for elem in self._GetComputingModelPart().GetCommunicator().LocalMesh().Elements:
+        for elem in self._GetMainModelPart().GetCommunicator().LocalMesh().Elements:
             rho = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
             break
         return rho
     
     def _GetLocalMeshNodes(self, mp = None):
         if mp is None:
-            return self._GetComputingModelPart().GetCommunicator().LocalMesh().Nodes
+            return self._GetMainModelPart().GetCommunicator().LocalMesh().Nodes
         else:
             return mp.GetCommunicator().LocalMesh().Nodes
         
     def _GetLocalMeshElements(self, mp = None):
         if mp is None:
-            return self._GetComputingModelPart().GetCommunicator().LocalMesh().Elements
+            return self._GetMainModelPart().GetCommunicator().LocalMesh().Elements
         else:
             return mp.GetCommunicator().LocalMesh().Elements
         
@@ -2043,9 +2054,6 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
                             text = pvtu_path.read_text(encoding='utf-8')
                             fixed_text = text.replace("vtu_output/", "")
                             pvtu_path.write_text(fixed_text, encoding='utf-8')
-
-            
-
 
 ###########################################################
 ### METHODS FOR MPI UTILITIES
@@ -2075,6 +2083,9 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
             return True
         else:
             return False
+    
+    def MpiNotRunOnlyRank(self, rank=0):
+        return not self.MpiRunOnlyRank(rank)
         
     def MpiPrint(self, text_to_print="", rank=0, set_barrier=False):
         if (not _CheckIsDistributed()):

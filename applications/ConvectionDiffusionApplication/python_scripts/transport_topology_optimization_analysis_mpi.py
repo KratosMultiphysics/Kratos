@@ -162,7 +162,7 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
         return transport_weights
 
     def _EvaluateRequiredGradients(self):
-        super()._EvaluateRequiredGradients()
+        self._ComputeScalarVariableNodalGradient(KratosMultiphysics.DESIGN_PARAMETER, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT)
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.TEMPERATURE_ADJ, KratosMultiphysics.TEMPERATURE_ADJ_GRADIENT)
 
@@ -203,6 +203,8 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
             integral_value    += cond_transport_scalar*size
             integral_value_sq += cond_transport_scalar_sq*size
         self.functionals[3] = 0.5 * integral_value_sq
+        if _CheckIsDistributed():
+            self.functionals[3] = self.MpiSynchronizeLocalValue(self.functionals[3])
         self.avg_outlet_transport_scalar_diff = integral_value*size
         if (self.first_iteration):
             self.initial_functionals_values[3] = self.functionals[3] 
@@ -220,6 +222,8 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
         focus_nodes_list = [self.nodes_ids_global_to_local_partition_dictionary[node.Id] for node in focus_mp.GetCommunicator().LocalMesh().Nodes]
         t_focus_sq = (np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(focus_mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.TEMPERATURE, 0))-t_target)**2
         self.functionals[4] = np.dot(self.nodal_domain_sizes[focus_nodes_list], t_focus_sq)
+        if _CheckIsDistributed():
+            self.functionals[4] = self.MpiSynchronizeLocalValue(self.functionals[4])
         if (self.first_iteration):
             self.initial_functionals_values[4] = self.functionals[4] 
         if (print_functional):
@@ -236,6 +240,8 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
         transport_scalar_gradient_norm_squared = (np.linalg.norm(transport_scalar_gradient, axis=1))**2
         integrand = self.conductivity * transport_scalar_gradient_norm_squared
         self.functionals[5] = np.dot(integrand, self.nodal_domain_sizes)
+        if _CheckIsDistributed():
+            self.functionals[5] = self.MpiSynchronizeLocalValue(self.functionals[5])
         if (self.first_iteration):
             self.initial_functionals_values[5] = self.functionals[5]
         if (print_functional):
@@ -253,6 +259,8 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
         convection_velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         integrand = self.convection_coefficient * transport_scalar * np.einsum('ij,ij->i', convection_velocity, transport_scalar_gradient)
         self.functionals[6] = np.dot(integrand, self.nodal_domain_sizes)
+        if _CheckIsDistributed():
+            self.functionals[6] = self.MpiSynchronizeLocalValue(self.functionals[6])
         if (self.first_iteration):
             self.initial_functionals_values[6] = self.functionals[6]
         if (print_functional):
@@ -268,6 +276,8 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
         transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.TEMPERATURE, 0))
         integrand = self.decay*(transport_scalar**2)
         self.functionals[7] = np.dot(integrand, self.nodal_domain_sizes)
+        if _CheckIsDistributed():
+            self.functionals[7] = self.MpiSynchronizeLocalValue(self.functionals[7])
         if (self.first_iteration):
             self.initial_functionals_values[7] = self.functionals[7]
         if (print_functional):
@@ -284,6 +294,8 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
         transport_scalar_volume_flux = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(mp.GetCommunicator().LocalMesh().Nodes, KratosMultiphysics.HEAT_FLUX, 0))
         integrand = -transport_scalar_volume_flux*transport_scalar
         self.functionals[8] = np.dot(integrand, self.nodal_domain_sizes)
+        if _CheckIsDistributed():
+            self.functionals[8] = self.MpiSynchronizeLocalValue(self.functionals[8])
         if (self.first_iteration):
             self.initial_functionals_values[8] = self.functionals[8]
         if (print_functional):
