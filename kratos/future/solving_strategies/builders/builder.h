@@ -36,7 +36,7 @@ namespace Kratos::Future
 ///@{
 
 /**
- * @class AssemblyHelper
+ * @class Builder
  * @ingroup KratosCore
  * @brief Utility class for handling the build
  * @details This class collects the methods required to
@@ -44,7 +44,7 @@ namespace Kratos::Future
  * @author Ruben Zorrilla
  */
 template<class TThreadLocalStorage, class TSparseMatrixType, class TSparseVectorType, class TSparseGraphType>
-class AssemblyHelper
+class Builder
 {
 public:
     ///@name Type Definitions
@@ -66,8 +66,8 @@ public:
         PrescribedDiagonal
     };
 
-    /// Pointer definition of AssemblyHelper
-    KRATOS_CLASS_POINTER_DEFINITION(AssemblyHelper);
+    /// Pointer definition of Builder
+    KRATOS_CLASS_POINTER_DEFINITION(Builder);
 
     /// Size type definition
     using SizeType = std::size_t;
@@ -104,10 +104,10 @@ public:
     ///@{
 
     /// Default constructor.
-    AssemblyHelper() = delete;
+    Builder() = delete;
 
     /// Constructor with model part
-    AssemblyHelper(
+    Builder(
         const ModelPart& rModelPart,
         Parameters AssemblySettings = Parameters(R"({})"))
     : mpModelPart(&rModelPart)
@@ -151,7 +151,7 @@ public:
         mEchoLevel = AssemblySettings["echo_level"].GetInt();
     }
 
-    virtual ~AssemblyHelper() = default;
+    virtual ~Builder() = default;
 
     ///@}
     ///@name Operations
@@ -232,7 +232,7 @@ public:
 
         //TODO: This is always thrown as the mEquationSystemSize is already in the graph. I'd use the move (not implemented constructor)
         if (!rSparseGraph.IsEmpty()) {
-            KRATOS_WARNING("AssemblyHelper") << "Provided sparse graph is not empty and will be cleared." << std::endl;
+            KRATOS_WARNING("Builder") << "Provided sparse graph is not empty and will be cleared." << std::endl;
             rSparseGraph.Clear();
         }
 
@@ -549,14 +549,14 @@ public:
     {
         auto p_aux = std::make_unique<ElementAssemblyFunctionType>(rElementAssemblyFunction);
         mpElementAssemblyFunction.swap(p_aux);
-        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Element assembly function set." << std::endl;
+        KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Element assembly function set." << std::endl;
     }
 
     void SetConditionAssemblyFunction(ConditionAssemblyFunctionType rConditionAssemblyFunction)
     {
         auto p_aux = std::make_unique<ConditionAssemblyFunctionType>(rConditionAssemblyFunction);
         mpConditionAssemblyFunction.swap(p_aux);
-        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Condition assembly function set." << std::endl;
+        KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Condition assembly function set." << std::endl;
     }
 
     //TODO: For sure we'll need to modify this one
@@ -564,7 +564,7 @@ public:
     {
         auto p_aux = std::make_unique<ConstraintAssemblyFunctionType>(rConstraintAssemblyFunction);
         mpConstraintAssemblyFunction.swap(p_aux);
-        KRATOS_INFO_IF("AssemblyHelper", mEchoLevel > 1) << "Constraint assembly function set." << std::endl;
+        KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Constraint assembly function set." << std::endl;
     }
 
     ///@}
@@ -1034,8 +1034,8 @@ private:
         TSparseVectorType& rConstraintsConstantVector)
     {
         // Clear the provided effective DOFs map
-        KRATOS_WARNING_IF("AssemblyHelper", !rEffectiveDofSet.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
-        KRATOS_WARNING_IF("AssemblyHelper", !rEffectiveDofIdMap.empty()) << "Provided effective DOFs ids map is not empty. About to clear it." << std::endl;
+        KRATOS_WARNING_IF("Builder", !rEffectiveDofSet.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
+        KRATOS_WARNING_IF("Builder", !rEffectiveDofIdMap.empty()) << "Provided effective DOFs ids map is not empty. About to clear it." << std::endl;
         rEffectiveDofSet.clear();
         rEffectiveDofIdMap.clear();
 
@@ -1405,7 +1405,7 @@ private:
     }
 
     ///@}
-}; // Class AssemblyHelper
+}; // Class Builder
 
 ///@}
 ///@name Input and output

@@ -33,7 +33,7 @@
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
-#include "future/solving_strategies/schemes/assembly_helper.h"
+#include "future/solving_strategies/builders/builder.h"
 #endif
 
 namespace Kratos::Future
@@ -141,7 +141,7 @@ public:
      */
     explicit StaticScheme(StaticScheme& rOther)
     {
-        //TODO: Check this... particularly the mpAssemblyHelper pointer
+        //TODO: Check this... particularly the mpBuilder pointer
     }
 
     /** Destructor.
@@ -304,7 +304,7 @@ public:
 
             // Fill the current values vector
             TSparseVectorType x(rEffectiveDofIdMap.size());
-            (this->GetAssemblyHelper()).CalculateSolutionVector(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, x);
+            (this->GetBuilder()).CalculateSolutionVector(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, x);
 
             // Update DOFs with solution values
             block_for_each(rDofSet, [&x](DofType& rDof){
