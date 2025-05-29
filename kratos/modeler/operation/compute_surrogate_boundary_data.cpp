@@ -24,7 +24,7 @@ Parameters ComputeSurrogateBoundaryData::GetDefaultParameters() const
 {
     return Parameters(R"({
         "type" : "compute_surrogate_boundary_data",
-        "model_part_name": " ",
+        "model_part_name": "Undefined",
         "outside_color": 1,
         "inside_color": -1,
         "output_path" : "distances.txt"
@@ -129,7 +129,7 @@ void ComputeSurrogateBoundaryData::Apply() const
         output_file <<  PrintSurrogateBoundaryData(surrogate_boundary_data);
         output_file.close();
     } else  
-        KRATOS_ERROR << "ComputeSurrogateBoundaryData: Data could not be saved in file" << std::endl;
+        KRATOS_WARNING("ComputeSurrogateBoundaryData") << "Data could not be saved in file" << std::endl;
 } 
 
 /// Print object's data.
