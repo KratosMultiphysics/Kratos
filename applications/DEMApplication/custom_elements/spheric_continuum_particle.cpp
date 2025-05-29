@@ -252,7 +252,7 @@ namespace Kratos {
         }*/
 
         //TODO: temporary code 
-        bool do_adjust_bond_contact_area = false;
+        bool do_adjust_bond_contact_area = true;
         if (do_adjust_bond_contact_area) {
             const double bond_contact_area_scale_factor = 1.5;
             const double bond_contact_mean_area_old = 5736e-12;
