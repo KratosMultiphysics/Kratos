@@ -267,7 +267,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.F_p = self.ComputePeakFluence()
 
         elif self.fluence_type == "table":
-            Logger.PrintInfo("Fluence type", "Using the fluence function specified as a table")
+            Logger.PrintInfo(
+                "Fluence type",
+                "Using the fluence function specified as a table (not necessarily with the correct energy)",
+            )
 
             self.gaussian_order = None
             self.F_p = None
@@ -320,7 +323,17 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
             # Multiply the normalized pulse by the pulse energy to obtain a pulse with energy Q
             self.FluenceFunction = FluenceFunction
+        elif self.fluence_type == "table-correct-energy":
+            # TODO: implement
+            Logger.PrintInfo(
+                "Fluence type",
+                "Using the fluence function specified as a table with the correct normalization to total pulse energy",
+            )
 
+            self.gaussian_order = None
+            self.F_p = None
+
+            raise NotImplementedError
         elif self.fluence_type == "expression":
             Logger.PrintInfo("Fluence type", "Using a fluence function specified as an analytical expression")
 
@@ -935,7 +948,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.SetParameters()
 
-        # TODO: change python arrays into numpy arrays?
+        # TODO: change python arrays into numpy arrays? Into a modelpart?
         # TODO: Explain what these are
         self.list_of_decomposed_nodes_coords = []
         self.list_of_decomposed_nodes_coords_X = []

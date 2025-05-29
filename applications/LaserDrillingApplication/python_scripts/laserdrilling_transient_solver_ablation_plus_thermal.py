@@ -32,19 +32,30 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         return self.rho * (E_m_H + E_m_C + E_m_O) / W_m  # J/mm3
 
     def ImposeTemperatureIncreaseDueToLaserWithRefraction(self):
+        """
+        TODO: kinda broken:
+        1. For some meshes, it fails
+        2. I think it only works for a gaussian (order 2) pulse because it assumes the hole is parabolic
+           like Woodfield 2024 says. But we now have other pulse shapes.
+        3. Are we sure this is working even for pulse 1, when the sample is still flat?
+
+        """
         # TODO: add a test that compares the case without refraction to the case with refraction at normal incidence
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
         print("\nPulse number", self.pulse_number, "\n")
 
         self.hole_profile_in_Y_zero_file = open("hole_profile_in_Y_zero.txt", "w")
-
         # TODO: why approximate this instead of interpolationg like it is done in ImposeTemperatureIncreaseDueToLaser?
         # Equation of the approximated hole shape (as a parabola)
         # x(y) = A * y^2 + C
-        a = Y[-1]
+        a = Y[
+            -1
+        ]  # TODO: what is this? If this is supposed to be the Y coordinate of the decomposed node with higher Y, we need to order Y first. Possibly X as well.
         b = X[0]
-        A = b / (a * a)
+        A = b / (
+            a * a
+        )  # TODO: I think this breaks if the mesh contains a node with y=0 and it happens to be the last node in Y
         C = -b
 
         for node in self.main_model_part.Nodes:

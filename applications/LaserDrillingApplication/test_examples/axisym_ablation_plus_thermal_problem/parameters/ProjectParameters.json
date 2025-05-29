@@ -46,7 +46,7 @@
             "condition_name" : "AxisymmetricThermalFace"
         },
         "compute_vaporisation"              : false,
-        "consider_material_refraction"      : true,
+        "consider_material_refraction"      : false,
         "adjust_T_field_after_ablation"     : false,
         "print_hole_geometry_files"         : false,
         "print_debug_info"                  : false,

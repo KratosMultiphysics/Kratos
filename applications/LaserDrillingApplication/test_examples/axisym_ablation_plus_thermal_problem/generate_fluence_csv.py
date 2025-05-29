@@ -41,7 +41,7 @@ v = 4
 
 parameters = {
     "gamma": 0.005,
-    "omega_0": 0.02,
+    "omega_0": 16.12e-3 / 2,
     "gaussian_order": 2,
     "average_laser_power": 5,
     "pulse_frequency": 2e5,
@@ -64,8 +64,8 @@ CauchyPulseNormalized = LDTSAPT.NormalizeAxisymmetricFunction(
     lambda r: CauchyPulse(r, parameters), rmin=0, rmax=x_arr.max()
 )
 
-y_arr = CauchyPulse(x_arr, parameters)
-# y_arr = FluenceSuperGaussianNotNormalized(x_arr, parameters)
+# y_arr = CauchyPulse(x_arr, parameters)
+y_arr = FluenceSuperGaussianNotNormalized(x_arr, parameters)
 y_arr_normalized = CauchyPulseNormalized(x_arr)
 
 y_pulse = y_arr_normalized * Q
