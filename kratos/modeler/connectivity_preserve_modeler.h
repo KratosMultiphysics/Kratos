@@ -271,6 +271,9 @@ private:
     /// The pointer to the Model object.
     Model* mpModel = nullptr;
 
+    /// If the constraints are preserved when duplicating the model part (could be relevant for cases where we don't want to preserve them because physical reasons). True by default.
+    bool mPreserveConstraints = true;
+
     ///@}
 };
 
