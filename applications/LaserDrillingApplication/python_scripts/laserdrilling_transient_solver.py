@@ -10,7 +10,6 @@ from scipy.interpolate import interp1d
 from scipy.special import gamma as GammaFunction
 from scipy.integrate import quad
 from scipy.optimize import root_scalar
-import csv
 
 
 # from sympy import *
@@ -200,13 +199,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         """
         # Laser parameters
         if not self.laser_settings["Variables"].Has("average_laser_power"):
-            self.average_laser_power = 18
+            self.average_laser_power = 18  # W
         else:
             self.average_laser_power = self.laser_settings["Variables"]["average_laser_power"].GetDouble()
 
         # pulse frequency = repetition rate
         if not self.laser_settings["Variables"].Has("pulse_frequency"):
-            self.pulse_frequency = 2e5
+            self.pulse_frequency = 2e5  # Pulses per second (Hz)
         else:
             self.pulse_frequency = self.laser_settings["Variables"]["pulse_frequency"].GetDouble()
 
@@ -214,7 +213,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.time_jump_between_pulses = 1.0 / self.pulse_frequency  # TODO: rename to something like pulse_period?
 
         if not self.laser_settings["Variables"].Has("beam_waist_diameter"):
-            self.beam_waist_diameter = 0.0179
+            self.beam_waist_diameter = 16.12e-3  # mm
         else:
             self.beam_waist_diameter = self.laser_settings["Variables"]["beam_waist_diameter"].GetDouble()
 
@@ -225,17 +224,17 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.omega_0 = self.beam_waist_diameter / 2  # Waist radius (m) of the Gaussian laser spot (Woodfield 2024)
 
         if not self.laser_settings["Variables"].Has("Rayleigh_length"):
-            self.rayleigh_length = 0.409
+            self.rayleigh_length = 360.4e-3  # mm
         else:
             self.rayleigh_length = self.laser_settings["Variables"]["Rayleigh_length"].GetDouble()
 
         if not self.laser_settings["Variables"].Has("focus_Z_offset"):
-            self.focus_z_offset = 0.4
+            self.focus_z_offset = 0.4  # mm
         else:
             self.focus_z_offset = self.laser_settings["Variables"]["focus_Z_offset"].GetDouble()
 
         if not self.laser_settings["Variables"].Has("reference_T_after_laser"):
-            self.reference_T_after_laser = 298.15
+            self.reference_T_after_laser = 298.15  # K
         else:
             self.reference_T_after_laser = self.laser_settings["Variables"]["reference_T_after_laser"].GetDouble()
 
@@ -251,8 +250,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         # Choose the fluence function: either a super-gaussian, a function from a table or
         # a function from an expression
-        # TODO: documentation: since the simulation is axisymmetric, only the nonegative half of the
-        # Y axis is used.
+        # TODO: documentation: since the simulation is axisymmetric, the pulse in the table has to be
+        # symmetric around x=0, peak at 0, and be monotonically decreasing. The table must only contain
+        # values for x>=0 (-inf < x < +inf as a 3D coordinate, 0 <= r < +inf when we think of an
+        # axisymmetric "slice"). The y values must be nonnegative.
+
         if self.fluence_type == "super-gaussian":
             Logger.PrintInfo("Fluence type", "Using a super-gaussian fluence")
             if not self.laser_settings["Variables"].Has("gaussian_order"):
@@ -276,6 +278,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             else:
                 fluence_table_filename = self.laser_settings["Variables"]["table_filename"].GetString()
 
+            # Load the table, check that the pulse specified in it peaks at 0, is decreasing and is positive
+            fluence_table_np = np.loadtxt(fluence_table_filename, delimiter=",")
+            try:
+                self.CheckPulseTableProperties(fluence_table_np)
+                Logger.PrintInfo("Info", "Fluence table validation succeeded")
+            except (ValueError, TypeError) as e:
+                Logger.PrintWarning("Error", f"Fluence table validation failed: {str(e)}")
+
             fluence_table_settings = KratosMultiphysics.Parameters("""{
                 "name"             : "csv_table",
                 "filename"         : "",
@@ -290,13 +300,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
             # Read the table of values into a Kratos PiecewiseLinearTable
             FluenceTable = ReadCsvTableUtility(fluence_table_settings).Read()
+            # Release the numpy array since we are not going to be using it
+            del fluence_table_np
 
             # Convert the table from a Kratos table to a Python function
             FluenceTableAsFunction = self.TableToFunction(FluenceTable)
 
             # Normalize the fluence
-            fluence_table_last_row = self.ReadLastRowCSV(fluence_table_filename)
-            fluence_table_max_r = float(fluence_table_last_row[0])
+            fluence_table_max_r = fluence_table_np[-1, 0]
 
             FluenceFunctionNormalized = self.NormalizeAxisymmetricFunction(
                 FluenceTableAsFunction, rmin=0, rmax=fluence_table_max_r
@@ -324,7 +335,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # self.spot_diameter = self.ComputeSpotDiameter()
 
         if not self.material_settings["Variables"].Has("VAPORISATION_TEMPERATURE"):
-            self.T_e = 1000.0
+            self.T_e = 1000.0  # K
         else:
             self.T_e = self.material_settings["Variables"]["VAPORISATION_TEMPERATURE"].GetDouble()
 
@@ -339,12 +350,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.ionization_alpha = 1.0  # self.material_settings['Variables']['IONIZATION_ALPHA'].GetDouble()
 
         if not self.material_settings["Variables"].Has("PENETRATION_DEPTH"):
-            self.l_s = 0.002148  # mm.
+            self.l_s = 0.2148e-3  # mm.
         else:
             self.l_s = self.material_settings["Variables"]["PENETRATION_DEPTH"].GetDouble()
 
         if not self.material_settings["Variables"].Has("ABLATION_THRESHOLD"):
-            self.F_th = 0.010667  # J/mm2
+            self.F_th = 0.010667  # J/mm2 ?
         else:
             self.F_th = self.material_settings["Variables"]["ABLATION_THRESHOLD"].GetDouble()
 
@@ -570,7 +581,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         return peak_fluence
 
-    def ComputeSuperGaussianMaximumAblationRadius(self):
+    def ComputeSuperGaussianMaximumAblationRadius(self, parameters=None):
         """
         Computes the maximum radius of the ablated cavity after one pulse,
         which corresponds to the radius at the surface of the sample.
@@ -780,6 +791,72 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             raise ValueError(f"Computed ablation radius r_ast_max={r_ast_max} is negative")
 
         return r_ast_max
+
+    def CheckPulseTableProperties(self, arr):
+        """
+        Validates that a NumPy array representing (x, y) pairs satisfies specific properties for a pulse
+        function table: all x values (first column) are non-negative, all y values (second column) are
+        non-negative, and y values are monotonically decreasing.
+
+        Parameters
+        ----------
+        arr : ndarray
+            2D NumPy array of shape (n, m) where n >= 1 (number of pairs) and m >= 2 (at least x and y
+            columns). The first column contains x values (e.g., radial distances), and the second column
+            contains y values (e.g., fluence or energy).
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If arr is not a 2D NumPy array, has fewer than 2 columns, is empty, contains non-finite values,
+            or violates any of the required properties (negative x, negative y, or non-monotonically
+            decreasing y).
+        TypeError
+            If arr is not a NumPy array.
+
+        Notes
+        -----
+        - Assumes arr represents a pulse function table, such as fluence vs. radial distance
+        - Monotonicity is checked by ensuring each y value is greater than or equal to the next
+        (non-strict monotonicity).
+        """
+
+        # Validate input type
+        if not isinstance(arr, np.ndarray):
+            raise TypeError("arr must be a NumPy array")
+
+        # Check array dimensions
+        if arr.ndim != 2:
+            raise ValueError("arr must be a 2D array")
+        if arr.shape[0] < 1:
+            raise ValueError("arr must have at least one row")
+        if arr.shape[1] < 2:
+            raise ValueError("arr must have at least two columns (x and y)")
+
+        # Check for finite values
+        if not np.all(np.isfinite(arr)):
+            raise ValueError("arr contains non-finite values (NaN or Inf)")
+
+        # Extract x and y
+        x = arr[:, 0]
+        y = arr[:, 1]
+
+        # Check x >= 0
+        if not np.all(x >= 0):
+            raise ValueError("All x values must be non-negative")
+
+        # Check y >= 0
+        if not np.all(y >= 0):
+            raise ValueError("All y values must be non-negative")
+
+        # Check y is monotonically decreasing (y[i] >= y[i+1])
+        if arr.shape[0] > 1:  # Only check if more than one row
+            if not np.all(np.diff(y) <= 0):
+                raise ValueError("y values must be monotonically decreasing (y[i] >= y[i+1])")
 
     def UpdateLaserRelatedParameters(self):
         # self.z_ast_max = self.ComputeMaximumDepth()
@@ -1632,6 +1709,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         return TableAsFunction
 
+    def ExtendFunction(self, f, xmin, xmax):
+        """
+        Extends a function f that is only defined in the interval (xmin,xmax) by setting it to 0 elsehwere.
+        """
+        pass
+
     # TODO: move out of the solver class into a sort of utility class or file?
     def NormalizeAxisymmetricFunction(self, f, rmin=0, rmax=np.inf, numerical_zero=1e-15):
         """
@@ -1675,41 +1758,3 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             return f(r) / normalization_factor
 
         return g
-
-    def ReadLastRowCSV(self, filename):
-        """
-        Reads the last row of a CSV file.
-
-        Parameters
-        ----------
-        filename : str
-            Path to the CSV file.
-
-        Returns
-        -------
-        list
-            The last row as a list of strings.
-
-        Raises
-        ------
-        FileNotFoundError
-            If the file does not exist.
-        ValueError
-            If the file is empty.
-        """
-        try:
-            with open(filename, "r", newline="") as file:
-                # Read the last non-empty line
-                last_line = None
-                for line in file:
-                    if line.strip():  # Skip empty lines
-                        last_line = line
-                if last_line is None:
-                    raise ValueError("File is empty")
-
-                # Parse the last line as a CSV row
-                reader = csv.reader([last_line])
-                last_row = next(reader)
-                return last_row
-        except FileNotFoundError:
-            raise FileNotFoundError(f"File {filename} not found")

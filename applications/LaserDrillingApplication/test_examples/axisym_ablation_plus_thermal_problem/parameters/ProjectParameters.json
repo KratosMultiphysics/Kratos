@@ -14,7 +14,7 @@
         "domain_size"                        : 2,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "axisym_ablation_plus_thermal_problem"
+            "input_filename" : "meshes/square_with_finer_corner.gid/square_with_finer_corner"
         },
         "material_import_settings"           : {
             "materials_filename" : "parameters/MaterialsParameters.json",

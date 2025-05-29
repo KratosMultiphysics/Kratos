@@ -14,7 +14,7 @@
                 "ABLATION_THRESHOLD": 0.003,
                 "THERMAL_DEPTH": 0.00025,
                 "ENTHALPY": 4e5,
-                "OPTICAL_PENETRATION_DEPTH": 5e-4,
+                "OPTICAL_PENETRATION_DEPTH": 0.5e-3,
                 "ENERGY_PER_VOLUME_THRESHOLD": 10.0,
                 "REFRACTIVE_INDEX": 1.5,
                 "VAPORISATION_TEMPERATURE" : 1000.0

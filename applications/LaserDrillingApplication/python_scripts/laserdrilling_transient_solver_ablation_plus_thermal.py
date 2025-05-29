@@ -12,8 +12,9 @@ def CreateSolver(model, custom_settings):
 
 
 class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_solver.LaserDrillingTransientSolver):
-    def __init__(self, model, custom_settings):
-        super().__init__(model, custom_settings)
+    def __init__(self, model=None, custom_settings=None):
+        if model is not None and custom_settings is not None:
+            super().__init__(model, custom_settings)
 
     def SolveSolutionStep(self):
         """
