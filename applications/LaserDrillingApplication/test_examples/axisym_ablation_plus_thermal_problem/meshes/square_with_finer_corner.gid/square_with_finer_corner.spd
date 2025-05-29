@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="utf-8"?><!-- -*- coding: utf-8; mode: SGML -*- -->
+<Kratos_data version="9.5.1">
+  <style show_menubutton_about="0" show_menubutton_search="1"/>
+  <groups>
+    <group n="piece" onoff="1" color="#999999" type=""/>
+  </groups>
+  <units/>
+  <!-- Fill this fields to automatically active an App without the init window -->
+  <hiddenfield n="activeapp" active="0" v="ConvectionDiffusion" state="disabled"/>
+  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="close" actualize="1" actualize_tree="1"/>
+  <appLink n="ThermicLauncher" public="1" pn="Thermic" active="0" appid="ThermicLauncher" prefix="ThermicLauncher"/>
+  <container n="ConvectionDiffusion" pn="Convection-diffusion" icon="app" prefix="CNVDFF" tree_state="open" open_window="0">
+    <container n="StageInfo" pn="Analysis Type" help="Analysis information" icon="analysis" state="normal" open_window="0" tree_state="close">
+      <value n="AnalysisType" pn="Analysis type" un="CNVDFFAnalysisType" v="non_linear" values="linear,non_linear" dict="linear,Linear,non_linear,Non-linear" help="Analysis type" actualize="1" actualize_tree="1"/>
+      <value n="SolStrat" pn="Solution Strategy" un="CNVDFFSolStrat" v="stationary" values="stationary,transient" dict="[GetSolutionStrategies App ConvectionDiffusion]" actualize_tree="1"/>
+      <value n="Scheme" pn="Scheme" un="CNVDFFScheme" v="stationary_scheme" values="stationary_scheme" dict="[GetSchemes]" actualize_tree="1" state="disabled"/>
+    </container>
+    <condition n="CNVDFFParts" pn="Parts" ov="[CheckGeometry 1]" icon="reservoir16" help="Select your group" un="CNVDFFParts" update_proc="UpdateParts" tree_state="active,open,selected">
+      <value n="Element" pn="Element" v="EulerianConvDiff2D" dict="[GetElements ElementType ConvectionDiffusion]" actualize="1" values="EulerianConvDiff2D" state="hidden">
+        <dependencies node="../value[@n!='Material']" actualize="1"/>
+      </value>
+      <value n="ConstitutiveLaw" pn="Material type" v="ConvectionDiffusionLaw" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="">
+        <dependencies node="../value[@n!='Material']" actualize="1"/>
+      </value>
+      <value n="Material" pn="Material" state="disabled" help="Choose a material from the database" v="Air" values="[GetMaterialsList]">
+        <edit_command n="Edit materials" pn="Edit materials" icon="refresh.png" proc="EditDatabaseList"/>
+      </value>
+      <value n="DENSITY" pn="Density" v="1.225" units="kg/m^3" unit_magnitude="Density" help="Density" string_is="double" state="[PartParamState]" show_in_window="1"/>
+      <value n="CONDUCTIVITY" pn="Thermal conductivity" v="0.024" units="W/(m*K)" unit_magnitude="Power/(L*Temp)" help="Thermal conductivity" string_is="double" state="[PartParamState]" show_in_window="1"/>
+      <value n="SPECIFIC_HEAT" pn="Specific heat" v="1012.0" units="J/(kg*K)" unit_magnitude="Energy/(M*Temp)" help="Specific heat" string_is="double" state="[PartParamState]" show_in_window="1"/>
+      <group n="piece" ov="surface" tree_state="close">
+        <value n="Element" pn="Element" dict="[GetElements ElementType ConvectionDiffusion]" actualize="1" values="EulerianConvDiff2D" state="hidden" v="EulerianConvDiff2D"/>
+        <value n="ConstitutiveLaw" pn="Material type" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="ConvectionDiffusionLaw" tree_state="close"/>
+        <value n="Material" pn="Material" state="disabled" help="Choose a material from the database" values="[GetMaterialsList]" v="Air" tree_state="close"/>
+        <value n="DENSITY" pn="Density" unit_magnitude="Density" help="Density" string_is="double" state="[PartParamState]" show_in_window="1" v="1.225" units="kg/m^3" tree_state="close"/>
+        <value n="CONDUCTIVITY" pn="Thermal conductivity" unit_magnitude="Power/(L*Temp)" help="Thermal conductivity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.024" units="W/(m*K)" tree_state="close"/>
+        <value n="SPECIFIC_HEAT" pn="Specific heat" unit_magnitude="Energy/(M*Temp)" help="Specific heat" string_is="double" state="[PartParamState]" show_in_window="1" v="1012.0" units="J/(kg*K)" tree_state="close"/>
+      </group>
+    </condition>
+    <container n="Intervals" pn="Time intervals" un="Intervals" icon="time2" open_window="0" tree_state="close">
+      <blockdata n="Interval" pn="Interval" name="Initial" sequence="1" icon="time3" editable_name="unique" sequence_type="non_void_disabled" help="Interval">
+        <value n="IniTime" pn="Start time" v="0.0" state="disabled" help="When do the interval starts?"/>
+        <value n="EndTime" pn="End time" v="0.0" state="disabled" help="When do the interval ends?"/>
+      </blockdata>
+      <blockdata n="Interval" pn="Interval" name="Total" sequence="1" icon="time3" editable_name="unique" sequence_type="non_void_disabled" help="Interval">
+        <value n="IniTime" pn="Start time" v="0.0" state="disabled" help="When do the interval starts?"/>
+        <value n="EndTime" pn="End time" v="End" state="disabled" help="When do the interval ends?"/>
+      </blockdata>
+      <blockdata n="Interval" pn="Interval" name="Custom1" sequence="1" icon="time3" editable_name="unique" sequence_type="non_void_disabled" help="Interval">
+        <value n="IniTime" pn="Start time" v="0.0" help="When do the interval starts?"/>
+        <value n="EndTime" pn="End time" v="0.5" help="When do the interval ends?"/>
+      </blockdata>
+    </container>
+    <container n="InitialConditions" pn="Initial Conditions" un="CNVDFFNodalConditions" icon="air" open_window="0" tree_state="close">
+      <condition n="TEMPERATURE" pn="Temperature" ov="point,line,surface" ovm="" icon="shells16" help="Temperature" state="[CheckNodalConditionState]" update_proc="[OkNewCondition]" check="UpdateTree">
+        <value n="constrained" pn="Imposed" v="false" values="true,false" help="Imposed" state="hidden" show_in_window="1"/>
+        <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies value="No" node="../value[@n='value']" att1="state" v1="normal"/>
+          <dependencies value="Yes" node="../value[@n='value']" att1="state" v1="hidden"/>
+          <dependencies value="No" node="../value[@n='function_value']" att1="state" v1="hidden"/>
+          <dependencies value="Yes" node="../value[@n='function_value']" att1="state" v1="normal"/>
+        </value>
+        <value n="function_value" pn="Function" v="" help="Value" state="hidden" show_in_window="1" cal_state="normal"/>
+        <value n="value" pn="Value" v="0.0" units="K" unit_magnitude="Temp" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+        <value n="Interval" pn="Time interval" v="Initial" values="[getIntervals]" help="Temperature" state="hidden"/>
+      </condition>
+    </container>
+    <container n="BoundaryConditions" pn="Conditions" un="CNVDFFBC" icon="nodal" open_window="0" tree_state="close">
+      <condition n="HeatFlux2D" pn="External heat flux" ov="line" ovm="" icon="shells16" help="Applies an external thermal load" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree">
+        <value n="constrained" pn="Imposed" v="false" values="true,false" help="Imposed" state="hidden" show_in_window="1"/>
+        <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies value="No" node="../value[@n='value']" att1="state" v1="normal"/>
+          <dependencies value="Yes" node="../value[@n='value']" att1="state" v1="hidden"/>
+          <dependencies value="No" node="../value[@n='function_value']" att1="state" v1="hidden"/>
+          <dependencies value="Yes" node="../value[@n='function_value']" att1="state" v1="normal"/>
+        </value>
+        <value n="function_value" pn="Function" v="" help="Value" state="hidden" show_in_window="1" cal_state="normal"/>
+        <value n="value" pn="Value" v="0.0" units="W/m^2" unit_magnitude="Power/L^2" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+        <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="Applies an external thermal load" state="normal"/>
+      </condition>
+      <condition n="HeatFlux3D" pn="External heat flux" ov="surface" ovm="" icon="shells16" help="Applies an external thermal load" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree">
+        <value n="constrained" pn="Imposed" v="false" values="true,false" help="Imposed" state="hidden" show_in_window="1"/>
+        <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies value="No" node="../value[@n='value']" att1="state" v1="normal"/>
+          <dependencies value="Yes" node="../value[@n='value']" att1="state" v1="hidden"/>
+          <dependencies value="No" node="../value[@n='function_value']" att1="state" v1="hidden"/>
+          <dependencies value="Yes" node="../value[@n='function_value']" att1="state" v1="normal"/>
+        </value>
+        <value n="function_value" pn="Function" v="" help="Value" state="hidden" show_in_window="1" cal_state="normal"/>
+        <value n="value" pn="Value" v="0.0" units="W/m^2" unit_magnitude="Power/L^2" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+        <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="Applies an external thermal load" state="normal"/>
+      </condition>
+      <condition n="ImposedTemperature2D" pn="Imposed temperature" ov="point,line" ovm="" icon="shells16" help="Imposes a fixed temperature" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree">
+        <value n="constrained" pn="Imposed" v="true" values="true,false" help="Imposed" state="hidden" show_in_window="1"/>
+        <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies value="No" node="../value[@n='value']" att1="state" v1="normal"/>
+          <dependencies value="Yes" node="../value[@n='value']" att1="state" v1="hidden"/>
+          <dependencies value="No" node="../value[@n='function_value']" att1="state" v1="hidden"/>
+          <dependencies value="Yes" node="../value[@n='function_value']" att1="state" v1="normal"/>
+        </value>
+        <value n="function_value" pn="Function" v="" help="Value" state="hidden" show_in_window="1" cal_state="normal"/>
+        <value n="value" pn="Value" v="0.0" units="K" unit_magnitude="Temp" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+        <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="Imposes a fixed temperature" state="normal"/>
+      </condition>
+      <condition n="ImposedTemperature3D" pn="Imposed temperature" ov="point,line,surface" ovm="" icon="shells16" help="Imposes a fixed temperature" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree">
+        <value n="constrained" pn="Imposed" v="true" values="true,false" help="Imposed" state="hidden" show_in_window="1"/>
+        <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies value="No" node="../value[@n='value']" att1="state" v1="normal"/>
+          <dependencies value="Yes" node="../value[@n='value']" att1="state" v1="hidden"/>
+          <dependencies value="No" node="../value[@n='function_value']" att1="state" v1="hidden"/>
+          <dependencies value="Yes" node="../value[@n='function_value']" att1="state" v1="normal"/>
+        </value>
+        <value n="function_value" pn="Function" v="" help="Value" state="hidden" show_in_window="1" cal_state="normal"/>
+        <value n="value" pn="Value" v="0.0" units="K" unit_magnitude="Temp" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+        <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="Imposes a fixed temperature" state="normal"/>
+      </condition>
+      <condition n="ThermalFace2D" pn="Thermal face conditions" ov="line" ovm="" icon="shells16" help="Assigns the thermal behaviour of the boundary. If it is not set, adiabatic behaviour is assumed" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree">
+        <value n="ambient_temperature" pn="Ambient temperature" v="273.15" units="K" unit_magnitude="Temp" help="Set the ambient temperature. Only required if convection or radiation are considered" string_is="double" state="[ConditionParameterState]" show_in_window="1"/>
+        <value n="add_ambient_radiation" pn="Add ambient radiation" v="false" values="true,false" help="Add the ambient radiation contribution" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies condition="@v='true'" node="../value[@n='emissivity']" att1="state" v1="normal"/>
+          <dependencies condition="@v!='true'" node="../value[@n='emissivity']" att1="state" v1="hidden"/>
+        </value>
+        <value n="emissivity" pn="Emissivity" v="0.0" help="Emissivity" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="hidden"/>
+        <value n="add_ambient_convection" pn="Add ambient convection" v="false" values="true,false" help="Add the ambient convection contribution" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies condition="@v='true'" node="../value[@n='convection_coefficient']" att1="state" v1="normal"/>
+          <dependencies condition="@v!='true'" node="../value[@n='convection_coefficient']" att1="state" v1="hidden"/>
+        </value>
+        <value n="convection_coefficient" pn="Convection coefficient" v="0.0" units="W/m^2/K" unit_magnitude="Power/L^2/Temp" help="Convection coefficient" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="hidden"/>
+        <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="Assigns the thermal behaviour of the boundary. If it is not set, adiabatic behaviour is assumed" state="normal"/>
+      </condition>
+      <condition n="ThermalFace3D" pn="Thermal face conditions" ov="surface" ovm="" icon="shells16" help="Assigns the thermal behaviour of the boundary. If it is not set, adiabatic behaviour is assumed" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree">
+        <value n="ambient_temperature" pn="Ambient temperature" v="273.15" units="K" unit_magnitude="Temp" help="Set the ambient temperature. Only required if convection or radiation are considered" string_is="double" state="[ConditionParameterState]" show_in_window="1"/>
+        <value n="add_ambient_radiation" pn="Add ambient radiation" v="false" values="true,false" help="Add the ambient radiation contribution" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies condition="@v='true'" node="../value[@n='emissivity']" att1="state" v1="normal"/>
+          <dependencies condition="@v!='true'" node="../value[@n='emissivity']" att1="state" v1="hidden"/>
+        </value>
+        <value n="emissivity" pn="Emissivity" v="0.0" help="Emissivity" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="hidden"/>
+        <value n="add_ambient_convection" pn="Add ambient convection" v="false" values="true,false" help="Add the ambient convection contribution" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
+          <dependencies condition="@v='true'" node="../value[@n='convection_coefficient']" att1="state" v1="normal"/>
+          <dependencies condition="@v!='true'" node="../value[@n='convection_coefficient']" att1="state" v1="hidden"/>
+        </value>
+        <value n="convection_coefficient" pn="Convection coefficient" v="0.0" units="W/m^2/K" unit_magnitude="Power/L^2/Temp" help="Convection coefficient" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="hidden"/>
+        <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="Assigns the thermal behaviour of the boundary. If it is not set, adiabatic behaviour is assumed" state="normal"/>
+      </condition>
+    </container>
+    <container n="SolutionStrat" pn="Solution" un="CNVDFFSolutionParameters" icon="solution" help="Solution Strategy" open_window="0" tree_state="close">
+      <!-- Parallelism -->
+      <container n="ParallelType" pn="Parallel configuration" un="Parallelization" help="Parallel type" icon="parallel" open_window="1">
+        <value n="ParallelSolutionType" pn="Parallelization" un="ParallelType" v="OpenMP" values="OpenMP,MPI" help="Parallelization type" actualize="1" actualize_tree="1"/>
+        <value n="MPINumberOfProcessors" pn="Number of nodes" v="1" help="Number of processors" state="[getStateFromXPathValue {string(../value[@n='ParallelSolutionType']/@v)} MPI]"/>
+        <value n="OpenMPNumberOfThreads" pn="Number of processors" v="1" help="Number of threads" state="[getStateFromXPathValue {string(../value[@n='ParallelSolutionType']/@v)} OpenMP]"/>
+      </container>
+      <!-- Linear solvers -->
+      <!-- Strategy parameters -->
+      <container n="StratParams" pn="Strategy parameters" un="CNVDFFStratParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
+        <value n="line_search" pn="Line search" state="[checkStateByUniqueName CNVDFFAnalysisType non_linear]" v="No" help="Switch on/off line search" values="Yes,No"/>
+        <value n="echo_level" pn="Echo level" state="[SolStratParamState]" v="0" help="Echo level" values="0,1,2,3" dict="0,0,1,1,2,2,3,3"/>
+        <value n="compute_reactions" pn="Compute reactions" state="[SolStratParamState]" v="No" help="Compute reactions" values="Yes,No"/>
+        <value n="max_iteration" pn="Maximum iterations" state="[SolStratParamState]" v="10" help="This number will break the iterative loop when reached"/>
+        <value n="convergence_criterion" pn="Convergence criterion" state="[SolStratParamState]" v="residual_criterion" help="These are the available convergence criteria for the nonlinear iteration" actualize_tree="1" values="residual_criterion,displacement_criterion,and_criterion,or_criterion" dict="residual_criterion,Residual criterion,displacement_criterion,Temperature criterion,and_criterion,And criterion,or_criterion,Or criterion"/>
+        <value n="solution_relative_tolerance" pn="Temperature relative tolerance" state="[SolStratParamState]" v="1e-5" help="Relative temperature tolerance employed in the nonlinear iteration"/>
+        <value n="solution_absolute_tolerance" pn="Temperature absolute tolerance" state="[SolStratParamState]" v="1e-7" help="Absolute temperature tolerance employed in the nonlinear iteration"/>
+        <value n="residual_relative_tolerance" pn="Residual relative tolerance" state="[SolStratParamState]" v="1e-5" help="Relative residual tolerance employed in the nonlinear iteration"/>
+        <value n="residual_absolute_tolerance" pn="Residual absolute tolerance" state="[SolStratParamState]" v="1e-7" help="Absolute residual tolerance employed in the nonlinear iteration"/>
+      </container>
+      <!-- Body (volume) term addition -->
+      <container n="BodyForce" pn="Body force" un="CNVDFFBodyForce" help="Body forces" open_window="0" icon="therm">
+        <value n="BodyForceValue" pn="Volume heat source" v="0.0" help="Volumetric heat added per unit volume" unit_magnitude="Power/L^3" units="W/m^3"/>
+      </container>
+      <!-- Time paremeters (transient strategy) -->
+      <container n="TimeParameters" pn="Time parameters" un="CNVDFFTimeParameters" help="Time parameters" open_window="0" state="[checkStateByUniqueName CNVDFFSolStrat transient]" icon="time4">
+        <value n="StartTime" pn="Start time" v="0.0" help=""/>
+        <value n="EndTime" pn="End time" v="1.0" help=""/>
+        <value n="DeltaTime" pn="Delta time" v="0.01" help="User-defined time step"/>
+      </container>
+      <container help="Linear Solver" n="linear_solver_settings" pn="Linear Solver" un="CNVDFFstationarylinear_solver_settings" state="[SolverEntryState]" solstratname="stationary" open_window="0" icon="solver">
+        <value n="Solver" pn="Solver" v="AutomaticOpenMP" values="[GetSolversValues]" dict="[GetSolvers]" actualize="1" update_proc="UpdateTree"/>
+        <value n="max_iteration" pn="Max iterations" state="[SolverParamState]" v="200"/>
+        <value n="tolerance" pn="Tolerance" state="[SolverParamState]" v="1e-7"/>
+        <value n="preconditioner_type" pn="Preconditioner type" state="[SolverParamState]" v="None" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
+        <value n="scaling" pn="Scaling" state="[SolverParamState]" v="No" values="Yes,No"/>
+        <value n="max_levels" pn="Max. levels" state="[SolverParamState]" v="3"/>
+        <value n="symmetric" pn="Symmetric" state="[SolverParamState]" v="No" values="Yes,No"/>
+        <value n="reform_preconditioner_at_each_step" pn="Reform preconditioner at each step" state="[SolverParamState]" v="Yes" values="Yes,No"/>
+        <value n="overlap_level" pn="Overlap level" state="[SolverParamState]" v="1"/>
+        <value n="gmres_krylov_space_dimension" pn="Krylov space dimension" state="[SolverParamState]" v="100"/>
+        <value n="provide_coordinates" pn="Provide coordinates" state="[SolverParamState]" v="No" values="Yes,No"/>
+        <value n="smoother_type" pn="Smoother type" state="[SolverParamState]" v="ilu0" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
+        <value n="krylov_type" pn="Krylov type" state="[SolverParamState]" v="lgmres" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
+        <value n="coarsening_type" pn="Coarsening type" state="[SolverParamState]" v="aggregation" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
+        <value n="use_block_matrices_if_possible" pn="Use block matrices if possible" state="[SolverParamState]" v="No" values="Yes,No"/>
+      </container>
+      <container help="Linear Solver" n="linear_solver_settings" pn="Linear Solver" un="CNVDFFtransientlinear_solver_settings" state="[SolverEntryState]" solstratname="transient" open_window="0" icon="solver">
+        <value n="Solver" pn="Solver" v="AutomaticOpenMP" values="[GetSolversValues]" dict="[GetSolvers]" actualize="1" update_proc="UpdateTree"/>
+        <value n="max_iteration" pn="Max iterations" state="[SolverParamState]" v="200"/>
+        <value n="tolerance" pn="Tolerance" state="[SolverParamState]" v="1e-7"/>
+        <value n="preconditioner_type" pn="Preconditioner type" state="[SolverParamState]" v="None" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
+        <value n="scaling" pn="Scaling" state="[SolverParamState]" v="No" values="Yes,No"/>
+        <value n="max_levels" pn="Max. levels" state="[SolverParamState]" v="3"/>
+        <value n="symmetric" pn="Symmetric" state="[SolverParamState]" v="No" values="Yes,No"/>
+        <value n="reform_preconditioner_at_each_step" pn="Reform preconditioner at each step" state="[SolverParamState]" v="Yes" values="Yes,No"/>
+        <value n="overlap_level" pn="Overlap level" state="[SolverParamState]" v="1"/>
+        <value n="gmres_krylov_space_dimension" pn="Krylov space dimension" state="[SolverParamState]" v="100"/>
+        <value n="provide_coordinates" pn="Provide coordinates" state="[SolverParamState]" v="No" values="Yes,No"/>
+        <value n="smoother_type" pn="Smoother type" state="[SolverParamState]" v="ilu0" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
+        <value n="krylov_type" pn="Krylov type" state="[SolverParamState]" v="lgmres" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
+        <value n="coarsening_type" pn="Coarsening type" state="[SolverParamState]" v="aggregation" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
+        <value n="use_block_matrices_if_possible" pn="Use block matrices if possible" state="[SolverParamState]" v="No" values="Yes,No"/>
+      </container>
+    </container>
+    <container n="Results" pn="Results" un="Results" state="normal" open="1" open_window="0" icon="results" tree_state="close">
+      <container n="OnElement" pn="On element" un="ElementResults" icon="triangle" help="Activate the results you want to see in the elements" state="[ActiveIfAnyPartState]" open_window="0"/>
+      <container n="OnNodes" pn="On nodes" un="NodalResults" icon="point3d" help="Activate the results you want to see in the nodes" open_window="1">
+        <value n="PARTITION_INDEX" pn="Partition index" v="Yes" values="Yes,No" help="" state="[checkStateByUniqueName ParallelType MPI]"/>
+        <value n="TEMPERATURE" pn="Temperature" v="Yes" values="Yes,No" state="[CheckNodalConditionState TEMPERATURE]"/>
+      </container>
+      <container n="GiDOutput" pn="GiD-Output" un="GiDOutput" state="normal" open="1" open_window="0" icon="results">
+        <value n="EnableGiDOutput" pn="Enable output" v="Yes" values="Yes,No" un="EnableGiDOutput" help="Writing output for GiD or not">
+          <dependencies value="No" node="../container" att1="state" v1="hidden"/>
+          <dependencies value="Yes" node="../container" att1="state" v1="normal"/>
+        </value>
+        <container n="GiDOptions" pn="Options" un="GiDOptions" help="GiD postprocess options" open_window="1" icon="options">
+          <value n="FolderName" pn="Folder name" v="gid_output" help="This folder will be created to store the GiD results"/>
+          <value n="FileLabel" pn="File Label" v="time" values="time,step" dict="time,Time,step,Step" help=""/>
+          <value n="OutputControlType" pn="Units used for output frequency" v="time" values="time,step" dict="time,Time (s),step,Steps" help="" update_proc="spdAux::RequestRefresh">
+            <dependencies node="../value" actualize="1"/>
+          </value>
+          <value n="OutputDeltaTime" pn="Time between outputs (s)" v="1.0" help="Output will be printed in intervals of this time" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} time]"/>
+          <value n="OutputDeltaStep" pn="Time steps between outputs" v="1" help="Output will be printed in intervals of this number of steps" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} step]"/>
+          <value n="BodyOutput" pn="Body output" v="Yes" values="Yes,No" help="The interior of the volume is printed"/>
+          <value n="NodeOutput" pn="Node output" v="No" values="Yes,No" help="The nodes are printed as a separate layer"/>
+          <value n="SkinOutput" pn="Skin output" v="No" values="Yes,No" help=""/>
+          <value n="GiDPostMode" pn="Result format" v="GiD_PostBinary" values="GiD_PostBinary,GiD_PostAscii,GiD_PostAsciiZipped" dict="GiD_PostBinary,Binary,GiD_PostAscii,Ascii,GiD_PostAsciiZipped,Ascii zipped" help="GiD result file format"/>
+          <value n="GiDWriteMeshFlag" pn="Write deformed mesh" v="WriteDeformed" values="WriteDeformed,WriteUndeformed" dict="WriteDeformed,Write deformed,WriteUndeformed, Write undeformed" help="Write the GiD deformed or undeformed mesh"/>
+          <value n="GiDWriteConditionsFlag" pn="Write conditions" v="WriteConditions" values="WriteConditions,WriteElementsOnly,WriteConditionsOnly" dict="WriteConditions,Write conditions,WriteElementsOnly,Write elements only,WriteConditionsOnly,Write conditions only" help="Write the conditions or only element to the GiD result file"/>
+          <value n="GiDMultiFileFlag" pn="Result file" v="SingleFile" values="SingleFile,MultipleFiles" dict="SingleFile,Single,MultipleFiles,Multiple" help="Write one GiD result file or multiple files"/>
+          <value n="EchoLevel" pn="Verbosity of terminal output" v="0" values="0,1,2,3" help="Verbosity on screen output during process. \n0 -&gt; Low verbosity \n3 -&gt; High verbosity"/>
+        </container>
+        <container n="CutPlanes" pn="Cut planes" un="CutPlanes" icon="cut" state="normal" open_window="0">
+          <blockdata n="CutPlane" name="CutPlane" editable_name="unique" sequence="1" can_delete_last_item="1" icon="slice">
+            <value n="point" pn="Point" fieldtype="vector" dimensions="3" format="%.6g" v="0.0,0.0,0.0" pick_point="1"/>
+            <value n="normal" pn="Normal" fieldtype="vector" dimensions="3" format="%.6g" v="0.0,0.0,0.0" pick_point="0"/>
+          </blockdata>
+        </container>
+      </container>
+      <container n="VtkOutput" pn="Vtk-Output" un="VtkOutput" state="normal" open="1" open_window="0" icon="results">
+        <value n="EnableVtkOutput" pn="Enable output" v="Yes" values="Yes,No" un="EnableVtkOutput" help="Writing output for Vtk or not"/>
+        <container n="VtkOptions" pn="Options" un="VtkOptions" help="Vtk postprocess options" open_window="1" icon="options" state="[checkStateByUniqueName EnableVtkOutput Yes]">
+          <value n="VtkFileFormat" pn="Result format" v="ascii" values="ascii,binary" dict="ascii,Ascii,binary,Binary" help="Vtk result file format"/>
+          <value n="OutputControlType" pn="Units used for output frequency" v="step" values="time,step" dict="time,Time (s),step,Steps" help="" update_proc="spdAux::RequestRefresh">
+            <dependencies node="../value" actualize="1"/>
+          </value>
+          <value n="OutputDeltaTime" pn="Time between outputs (s)" v="1.0" help="Output will be printed in intervals of this time" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} time]"/>
+          <value n="OutputDeltaStep" pn="Time steps between outputs" v="1" help="Output will be printed in intervals of this number of steps" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} step]"/>
+        </container>
+      </container>
+    </container>
+    <condition n="GenericModelParts" pn="Add SubModelPart" un="GenericSubmodelPart" ov="point,line,surface,volume" icon="generic" tree_state="close">
+      <value n="WriteNodes" pn="Write nodes" v="True" values="True,False" state="disabled"/>
+      <value n="WriteElements" pn="Write elements" v="False" values="True,False" state="[ShowInWriteMode Entitites]"/>
+      <value n="WriteConditions" pn="Write conditions" v="True" values="True,False" state="[ShowInWriteMode Entitites]"/>
+    </condition>
+    <container n="materials" pn="Materials" un="CNVDFFMaterials" icon="material16" help="Materials database" open_window="0" tree_state="close">
+      <blockdata n="material" name="Steel" sequence="1" editable_name="unique" icon="material16" help="Material definition" morebutton="0">
+        <value n="DENSITY" pn="Density" v="7850" units="kg/m^3" unit_magnitude="Density" help="Density" string_is="double" state="" show_in_window="1"/>
+        <value n="CONDUCTIVITY" pn="Thermal conductivity" v="50.0" units="W/(m*K)" unit_magnitude="Power/(L*Temp)" help="Thermal conductivity" string_is="double" state="" show_in_window="1"/>
+        <value n="SPECIFIC_HEAT" pn="Specific heat" v="460.0" units="J/(kg*K)" unit_magnitude="Energy/(M*Temp)" help="Specific heat" string_is="double" state="" show_in_window="1"/>
+      </blockdata>
+      <blockdata n="material" name="Gold" sequence="1" editable_name="unique" icon="material16" help="Material definition" morebutton="0">
+        <value n="DENSITY" pn="Density" v="19300" units="kg/m^3" unit_magnitude="Density" help="Density" string_is="double" state="" show_in_window="1"/>
+        <value n="CONDUCTIVITY" pn="Thermal conductivity" v="310.0" units="W/(m*K)" unit_magnitude="Power/(L*Temp)" help="Thermal conductivity" string_is="double" state="" show_in_window="1"/>
+        <value n="SPECIFIC_HEAT" pn="Specific heat" v="125.6" units="J/(kg*K)" unit_magnitude="Energy/(M*Temp)" help="Specific heat" string_is="double" state="" show_in_window="1"/>
+      </blockdata>
+      <blockdata n="material" name="Air" sequence="1" editable_name="unique" icon="material16" help="Material definition" morebutton="0">
+        <value n="DENSITY" pn="Density" v="1.225" units="kg/m^3" unit_magnitude="Density" help="Density" string_is="double" state="" show_in_window="1"/>
+        <value n="CONDUCTIVITY" pn="Thermal conductivity" v="0.024" units="W/(m*K)" unit_magnitude="Power/(L*Temp)" help="Thermal conductivity" string_is="double" state="" show_in_window="1"/>
+        <value n="SPECIFIC_HEAT" pn="Specific heat" v="1012.0" units="J/(kg*K)" unit_magnitude="Energy/(M*Temp)" help="Specific heat" string_is="double" state="" show_in_window="1"/>
+      </blockdata>
+      <blockdata n="material" name="Water" sequence="1" editable_name="unique" icon="material16" help="Material definition" morebutton="0">
+        <value n="DENSITY" pn="Density" v="1000" units="kg/m^3" unit_magnitude="Density" help="Density" string_is="double" state="" show_in_window="1"/>
+        <value n="CONDUCTIVITY" pn="Thermal conductivity" v="0.58" units="W/(m*K)" unit_magnitude="Power/(L*Temp)" help="Thermal conductivity" string_is="double" state="" show_in_window="1"/>
+        <value n="SPECIFIC_HEAT" pn="Specific heat" v="4181.3" units="J/(kg*K)" unit_magnitude="Energy/(M*Temp)" help="Specific heat" string_is="double" state="" show_in_window="1"/>
+      </blockdata>
+    </container>
+  </container>
+  <appLink n="Structural" public="1" pn="Structural" active="0" appid="Structural" prefix="ST"/>
+  <appLink n="FluidLauncher" public="1" pn="Fluid" active="0" appid="FluidLauncher" prefix="FLL"/>
+  <appLink n="Fluid" public="0" pn="Fluid" active="0" appid="Fluid" prefix="FL"/>
+  <appLink n="CompressibleFluid" public="0" pn="Compressible Fluid" active="0" appid="CompressibleFluid" prefix="CF"/>
+  <appLink n="EmbeddedFluid" public="0" pn="Embedded fluid" active="0" appid="EmbeddedFluid" prefix="EMBFL"/>
+  <appLink n="Buoyancy" public="0" pn="Buoyancy" active="0" appid="Buoyancy" prefix="Buoyancy_"/>
+  <appLink n="ConjugateHeatTransfer" public="0" pn="Conjugate heat transfer" active="0" appid="ConjugateHeatTransfer" prefix="CHT"/>
+  <appLink n="FSI" public="1" pn="FSI" active="0" appid="FSI" prefix="FSI"/>
+  <appLink n="Dam" public="1" pn="Dam" active="0" appid="Dam" prefix="Dam"/>
+  <appLink n="StenosisWizard" public="1" pn="Stenosis Wizard" active="0" appid="StenosisWizard" prefix="StenosisWizard" is_tool="1"/>
+  <appLink n="Stent" public="1" pn="Stent" active="0" appid="Stent" prefix="Stent" is_tool="1"/>
+  <appLink n="DEMLauncher" public="1" pn="DEM" active="0" appid="DEMLauncher" prefix="DEMLauncher"/>
+  <appLink n="DEM" public="0" pn="DEM" active="0" appid="DEM" prefix="DEM"/>
+  <appLink n="MPM" public="1" pn="MPM" active="0" appid="MPM" prefix="MPM"/>
+  <appLink n="CDEM" public="0" pn="Cohesive DEM" active="0" appid="CDEM" prefix="CDEM"/>
+  <appLink n="ShallowWater" public="1" pn="Shallow water" active="0" appid="ShallowWater" prefix="SW"/>
+  <appLink n="MdpaGenerator" public="1" pn="Mdpa Generator" active="0" appid="MdpaGenerator" prefix="MDPAGen_" is_tool="1"/>
+  <appLink n="Examples" public="1" pn="Examples" active="0" appid="Examples" prefix="EXA_" is_tool="1"/>
+  <blockdata n="units" pn="Units" icon="units" open_window="0" tree_state="close">
+    <value n="units_mesh" pn="Mesh units" unit_mesh_definition="1"/>
+    <value n="units_system" pn="Units system" units_system_definition="1">
+      <dependencies node="//*[@unit_definition or @unit_mesh_definition='1']" att1="change_units_system" v1="{@v}"/>
+    </value>
+  </blockdata>
+  <procs>
+    <proc n="UpdateParts" args="args">
+			
+				return [spdAux::ProcUpdateParts $domNode $args]
+			
+		</proc>
+    <proc n="OkNewCondition" args="args">
+			
+				return [spdAux::ProcOkNewCondition $domNode $args]
+			
+		</proc>
+    <proc n="GetElements" args="args">
+			
+				return [spdAux::ProcGetElements $domNode $args]
+			
+		</proc>
+    <proc n="GetElementsDict" args="args">
+			
+				return [spdAux::ProcGetElementsDict $domNode $args]
+			
+		</proc>
+    <proc n="GetElementsValues" args="args">
+			
+				return [spdAux::ProcGetElementsValues $domNode $args]
+			
+		</proc>
+    <proc n="GetSolutionStrategies" args="args">
+			
+				return [spdAux::ProcGetSolutionStrategies $domNode $args]
+			
+		</proc>
+    <proc n="GetSchemes" args="args">
+			
+				return [spdAux::ProcGetSchemes $domNode $args]
+			
+		</proc>
+    <proc n="GetConstitutiveLaws" args="args">
+			
+				return [spdAux::ProcGetConstitutiveLaws $domNode $args]
+			
+		</proc>
+    <proc n="GetAllConstitutiveLaws" args="args">
+			
+				return [spdAux::ProcGetAllConstitutiveLaws $domNode $args]
+			
+		</proc>
+    <proc n="GetSolvers" args="args">
+			
+				return [spdAux::ProcGetSolvers $domNode $args]
+			
+		</proc>
+    <proc n="GetSolversValues" args="args">
+			
+				return [spdAux::ProcGetSolversValues $domNode $args]
+			
+		</proc>
+    <proc n="GetSolverParameterValues" args="args">
+			
+				return [spdAux::ProcGetSolverParameterValues $domNode $args]
+			
+		</proc>
+    <proc n="GetSolverParameterDict" args="args">
+			
+				return [spdAux::ProcGetSolverParameterDict $domNode $args]
+			
+		</proc>
+    <proc n="CheckNodalConditionState" args="args">
+			
+				return [spdAux::ProcCheckNodalConditionState $domNode $args]
+			
+		</proc>
+    <proc n="CheckNodalConditionOutputState" args="args">
+			
+				return [spdAux::ProcCheckNodalConditionOutputState $domNode $args]
+			
+		</proc>
+    <proc n="RefreshTree" args="args">
+			
+				spdAux::RequestRefresh
+			
+		</proc>
+    <proc n="checkStateByUniqueName" args="args">
+			
+				return [spdAux::ProccheckStateByUniqueName $domNode $args]
+			
+		</proc>
+    <proc n="SolverParamState" args="args">
+			
+				return [spdAux::ProcSolverParamState $domNode $args]
+			
+		</proc>
+    <proc n="PartParamValue" args="args">
+			
+				return [spdAux::ProcPartParamValue $domNode $args]
+			
+		</proc>
+    <proc n="GetParts" args="args">
+			
+				return [spdAux::ProcGetParts $domNode $args]
+			
+		</proc>
+    <proc n="PartParamState" args="args">
+			
+				return [spdAux::ProcPartParamState $domNode $args]
+			
+		</proc>
+    <proc n="SolverEntryState" args="args">
+			
+				return [spdAux::ProcSolverEntryState $domNode $args]
+			
+		</proc>
+    <proc n="CheckDimension" args="args">
+			
+				return [spdAux::ProcCheckDimension $domNode $args]
+			
+		</proc>
+    <proc n="getStateFromXPathValue" args="args">
+			
+				return [spdAux::ProcgetStateFromXPathValue $domNode $args]
+			
+		</proc>
+    <proc n="getStateFromXPathValueDisabled" args="args">
+			
+				return [spdAux::ProcgetStateFromXPathValueDisabled $domNode $args]
+			
+		</proc>
+    <proc n="get_materials_list_simple" args="args">
+			
+				return [spdAux::ProcGet_materials_list_simple $domNode {*}$args]
+			
+		</proc>
+    <proc n="give_materials_list" args="args">
+			
+				return [spdAux::ProcGetMaterialsList $domNode {*}$args]
+			
+		</proc>
+    <proc n="edit_database_list" args="args">
+			
+			if { $dict eq "" } {
+					foreach node [[$domNode parent] selectNodes value|container/value] {
+						dict set dict [$node @n] [get_domnode_attribute $node v]
+						dict set dict_units [$node @n] [get_domnode_attribute $node units]
+					}
+				}
+				spdAux::ProcEditDatabaseList $domNode $dict $dict_units $boundary_conds $args
+				#return [spdAux::ProcEdit_database_list $domNode {*}$args]
+			
+		</proc>
+    <proc n="CambioMat" args="args">
+			
+				return [spdAux::ProcCambioMat $domNode $args]
+			
+		</proc>
+    <proc n="ConditionState" args="args">
+			
+				return [spdAux::ProcConditionState $domNode $args]
+			
+		</proc>
+    <proc n="ConditionParameterState" args="args">
+			
+				return [spdAux::ProcConditionParameterState $domNode $args]
+			
+		</proc>
+    <proc n="SolStratParamState" args="args">
+			
+				return [spdAux::ProcSolStratParamState $domNode $args]
+			
+		</proc>
+    <proc n="SchemeParamState" args="args">
+			
+				return [spdAux::ProcSchemeParamState $domNode $args]
+			
+		</proc>
+    <proc n="ConstLawOutputState" args="args">
+			
+				return [spdAux::ProcConstLawOutputState $domNode $args]
+			
+		</proc>
+    <proc n="ElementOutputState" args="args">
+			
+				return [spdAux::ProcElementOutputState $domNode $args]
+			
+		</proc>
+    <proc n="ActiveIfAnyPartState" args="args">
+			
+				return [spdAux::ProcActiveIfAnyPartState $domNode $args]
+			
+		</proc>
+    <proc n="ActiveIfRestartAvailable" args="args">
+			
+				return [spdAux::ProcActiveIfRestartAvailable $domNode $args]
+			
+		</proc>
+    <proc n="DisableIfUniqueName" args="args">
+			
+				catch {[get_domnode_attribute $domNode dict]}
+				return [spdAux::ProcDisableIfUniqueName $domNode $args]
+			
+		</proc>
+    <proc n="HideIfUniqueName" args="args">
+			
+				catch {[get_domnode_attribute $domNode dict]}
+				return [spdAux::ProcHideIfUniqueName $domNode $args]
+			
+		</proc>
+    <proc n="CheckGeometry" args="args">
+			
+				return [spdAux::ProcCheckGeometry $domNode $args]
+			
+		</proc>
+    <proc n="UpdateTree" args="args">
+			
+				gid_groups_conds::actualize_conditions_window
+			
+		</proc>
+    <proc n="DirectorVectorNonZero" args="args">
+			
+				return [spdAux::ProcDirectorVectorNonZero $domNode $args]
+			
+		</proc>
+    <proc n="ShowInMode" args="args">
+			
+				return [spdAux::ProcShowInMode $domNode $args]
+			
+		</proc>
+    <proc n="ShowInWriteMode" args="args">
+			
+				return [spdAux::ProcShowInWriteMode $domNode $args]
+			
+		</proc>
+    <proc n="UpdateDictAndReturnState" args="args">
+			
+				set dict [spdAux::ProcGetConstitutiveLaws $domNode]
+				$domNode setAttribute dict $dict
+				set values [split [get_domnode_attribute $domNode values] ","]
+				set value [get_domnode_attribute $domNode v]
+				if {$value ni $values} {set value [lindex $values 0]; $domNode setAttribute v $value}
+				return "normal"
+			
+		</proc>
+    <proc n="getIntervals" args="args">
+			
+				return [spdAux::ProcGetIntervals $domNode $args]
+			
+		</proc>
+    <proc n="getTimeFunctions" args="args">
+			
+				set lista [::spdAux::getTimeFunctions]
+				if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+					$domNode setAttribute v [lindex $lista 0]
+				}
+				set res [spdAux::ListToValues $lista]
+				return $res
+			
+		</proc>
+    <proc n="getFields" args="args">
+			
+				set lista [::spdAux::getFields]
+				if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+					$domNode setAttribute v [lindex $lista 0]
+				}
+				set res [spdAux::ListToValues $lista]
+				return $res
+			
+		</proc>
+    <proc n="loads_function_time" args="load_name">
+			
+				return [spdAux::chk_loads_function_time $domNode $load_name]
+		
+		</proc>
+    <proc n="FileDict" args="args">
+			
+				return [spdAux::ProcFileDict $domNode $args]
+			
+		</proc>
+    <proc n="AddFile" args="args">
+			
+				if {[get_domnode_attribute $domNode v] eq "- Add new file"} {
+					spdAux::AddFile $domNode
+				}
+			
+		</proc>
+    <proc n="GetFilesValues" args="args">
+			
+				return [spdAux::ProcGetFilesValues $domNode]
+			
+		</proc>
+    <proc n="GetMaterialsList" args="args">
+			
+				spdAux::ProcGetMaterialsList $domNode {*}$args
+			
+		</proc>
+    <proc n="EditDatabaseList" args="args">
+			
+				if { $dict eq "" } {
+					foreach node [[$domNode parent] selectNodes value|container/value] {
+						dict set dict [$node @n] [get_domnode_attribute $node v]
+						dict set dict_units [$node @n] [get_domnode_attribute $node units]
+					}
+				}
+				spdAux::ProcEditDatabaseList $domNode $dict $dict_units $boundary_conds $args
+			
+		</proc>
+    <proc n="Fixity" args="args">
+	  
+		return "normal"
+	  
+	</proc>
+    <proc n="CheckIdOnMyParent" args="args">
+	  
+		set r "hidden"
+		set parent [$domNode parent]
+		set wantedname [lindex $args 0]
+		set wantedvalue [lindex $args 1]
+		#W "wantedname $wantedname wantedvalue $wantedvalue"
+		foreach v [$parent getElementsByTagName value] {
+			if {[$v @n] eq $wantedname} {
+				if {[$v @v] eq $wantedvalue} {
+					set r "normal"
+					break
+				} else {
+					set r "hidden"
+				}
+			}
+		}
+		return $r
+	  
+	</proc>
+  </procs>
+  <container n="files" state="hidden"/>
+  <container n="interval_groups" state="hidden"/>
+  <translations>
+    <translation pn="User defined"/>
+  </translations>
+  <blockdata n="Internal data" state="hidden">
+    <value n="lognoter_file" v=""/>
+    <value n="spd_file" v="/var/home/lluis/KratosUbuntu24/applications/LaserDrillingApplication/test_examples/axisym_ablation_plus_thermal_problem/meshes/square_with_finer_corner.gid/square_with_finer_corner.spd"/>
+  </blockdata>
+  <display_options frame_width="353" is_frame_open="1" view_conditions_search="0" conditions_search_values=""/>
+  <global_preferences>
+    <units>
+      <unit_magnitude_user_sel n="Density" values="kg/m^3"/>
+      <unit_magnitude_user_sel n="Power/(L*Temp)" values="W/(m*K)"/>
+      <unit_magnitude_user_sel n="Energy/(M*Temp)" values="J/(kg*K)"/>
+    </units>
+    <tree_preferences/>
+  </global_preferences>
+</Kratos_data>
+

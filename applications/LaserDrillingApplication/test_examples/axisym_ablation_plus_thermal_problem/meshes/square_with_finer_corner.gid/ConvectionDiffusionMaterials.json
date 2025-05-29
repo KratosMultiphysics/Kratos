@@ -1,0 +1,14 @@
+{
+    "properties" : [{
+        "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables" : {
+                "DENSITY"       : 1.225,
+                "CONDUCTIVITY"  : 0.024,
+                "SPECIFIC_HEAT" : 1012.0
+            },
+            "Tables"    : null
+        }
+    }]
+}

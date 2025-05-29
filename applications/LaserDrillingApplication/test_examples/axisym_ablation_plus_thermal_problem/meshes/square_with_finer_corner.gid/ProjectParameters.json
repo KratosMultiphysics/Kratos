@@ -1,0 +1,111 @@
+{
+    "analysis_stage"   : "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis",
+    "problem_data"     : {
+        "problem_name"  : "square_with_finer_corner",
+        "parallel_type" : "OpenMP",
+        "time_step"     : 1.0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.99,
+        "echo_level"    : 0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "stationary",
+        "analysis_type"                      : "non_linear",
+        "model_part_name"                    : "ThermalModelPart",
+        "domain_size"                        : 2,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "square_with_finer_corner"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "ConvectionDiffusionMaterials.json"
+        },
+        "line_search"                        : false,
+        "echo_level"                         : 0,
+        "compute_reactions"                  : false,
+        "max_iteration"                      : 10,
+        "convergence_criterion"              : "residual_criterion",
+        "solution_relative_tolerance"        : 1e-5,
+        "solution_absolute_tolerance"        : 1e-7,
+        "residual_relative_tolerance"        : 1e-5,
+        "residual_absolute_tolerance"        : 1e-7,
+        "problem_domain_sub_model_part_list" : ["CNVDFFParts_piece"],
+        "processes_sub_model_part_list"      : [],
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list" : [],
+        "constraints_process_list"        : [],
+        "list_other_processes"            : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
+                "variable_name"   : "HEAT_FLUX",
+                "value"           : 0.0,
+                "constrained"     : false
+            }
+        }]
+    },
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "Parameters"    : {
+                "model_part_name"        : "ThermalModelPart",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"               : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"                  : "time",
+                        "output_control_type"         : "time",
+                        "output_interval"             : 1.0,
+                        "body_output"                 : true,
+                        "node_output"                 : false,
+                        "skin_output"                 : false,
+                        "plane_output"                : [],
+                        "nodal_results"               : ["TEMPERATURE"],
+                        "nodal_nonhistorical_results" : [],
+                        "gauss_point_results"         : []
+                    },
+                    "point_data_configuration"  : []
+                },
+                "output_name"            : "gid_output/square_with_finer_corner"
+            }
+        }],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "Parameters"    : {
+                "model_part_name"                             : "ThermalModelPart",
+                "output_control_type"                         : "step",
+                "output_interval"                             : 1,
+                "file_format"                                 : "ascii",
+                "output_precision"                            : 7,
+                "output_sub_model_parts"                      : false,
+                "output_path"                                 : "vtk_output",
+                "save_output_files_in_folder"                 : true,
+                "nodal_solution_step_data_variables"          : ["TEMPERATURE"],
+                "nodal_data_value_variables"                  : [],
+                "element_data_value_variables"                : [],
+                "condition_data_value_variables"              : [],
+                "gauss_point_variables_extrapolated_to_nodes" : []
+            }
+        }]
+    },
+    "restart_options"  : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    }
+}
