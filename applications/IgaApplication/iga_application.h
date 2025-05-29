@@ -41,7 +41,7 @@
 #include "custom_conditions/support_laplacian_condition.h"
 #include "custom_conditions/support_conv_diff_condition.h"
 #include "custom_conditions/sbm_laplacian_condition.h"
-#include "custom_conditions/sbm_laplacian_neumann_condition.h"
+#include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_support_lagrange_condition.h"
 #include "custom_conditions/support_laplacian_lagrange_condition.h"
 #include "custom_conditions/support_solid_2D_condition.h"
@@ -154,7 +154,7 @@ private:
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SupportConvDiffCondition mSupportConvDiffCondition;
     const SBMLaplacianCondition mSBMLaplacianCondition;
-    const SBMLaplacianNeumannCondition mSBMLaplacianNeumannCondition;
+    const SbmLaplacianConditionNeumann mSBMLaplacianConditionNeumann;
     const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
     const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;
     const SupportSolid2DCondition mSupportSolid2DCondition;
