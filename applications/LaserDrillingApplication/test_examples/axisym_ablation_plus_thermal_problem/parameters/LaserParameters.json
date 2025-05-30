@@ -10,7 +10,7 @@
                 "Rayleigh_length": 360.4e-3,
                 "focus_Z_offset" : 0.4,
                 "reference_T_after_laser" : 0.0,
-                "fluence_type" : "table",
+                "fluence_type" : "super-gaussian",
                 "table_filename" : "fluence_table.csv",
                 "gaussian_order": 2
 

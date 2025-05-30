@@ -4,7 +4,7 @@
         "problem_name"  : "axisym_ablation_plus_thermal_problem",
         "parallel_type" : "OpenMP",
         "start_time"    : 0.0,
-        "end_time"      : 20e-6,
+        "end_time"      : 16e-6,
         "echo_level"    : 0
     },
     "solver_settings"  : {
@@ -98,7 +98,21 @@
                 "output_name"            : "gid_output/axisym_ablation_plus_thermal_problem"
             }
         }],
-        "vtk_output": []
+        "vtk_output": [
+          {
+              "python_module": "vtk_output_process",
+              "kratos_module": "KratosMultiphysics",
+              "process_name": "VtkOutputProcess",
+              "Parameters": {
+                  "model_part_name": "ThermalModelPart",
+                  "output_path": "vtk_output",
+                  "file_format": "ascii",
+                  "output_control_type": "step",
+                  "output_interval": 1,
+                  "gauss_point_variables_extrapolated_to_nodes": ["TEMPERATURE"]
+              }
+          }
+      ]
     },
     "restart_options"  : {
         "SaveRestart"      : false,
