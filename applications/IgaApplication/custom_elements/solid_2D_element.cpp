@@ -370,13 +370,13 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         // Vector meshSize_uv = this->GetValue(MARKER_MESHES);
         // double h = std::min(meshSize_uv[0], meshSize_uv[1]);
 
-        double h = 3;
+        // double h = 300;
 
-        double nu = std::min(0.25 * h * norm_2(div_sigma)/norm_grad_u, 1*GetProperties()[YOUNG_MODULUS]*h);
+        // double nu = std::min(0.25 * h * norm_2(div_sigma)/norm_grad_u, 100*GetProperties()[YOUNG_MODULUS]*h);
 
 
-        // aggiungo al LHS: ν * IntToReferenceWeight * divStab
-        noalias(rLeftHandSideMatrix) += nu * IntToReferenceWeight * divStab;
+        // // aggiungo al LHS: ν * IntToReferenceWeight * divStab
+        // noalias(rLeftHandSideMatrix) += nu * IntToReferenceWeight * divStab;
     }
     else 
     {
