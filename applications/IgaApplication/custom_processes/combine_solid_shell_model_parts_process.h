@@ -70,9 +70,10 @@ public:
 
     /// Constructor
 
-   CombineSolidShellModelPartsProcess(Model& mModel) : 
+   CombineSolidShellModelPartsProcess(Model& mModel, Parameters ThisParameters) :
        Process(),
-       _Model(mModel){};
+       _Model(mModel),
+       _Parameters(ThisParameters) {};
 
 
     /// Destructor.
@@ -99,6 +100,7 @@ public:
         GeometryType::IntegrationPointsArrayType& GlobalCoordinates_IntegrationPoints_Shell);
     void GetIntergrationPointsFromInterfacePart(ModelPart& mModelPart, GeometryType::IntegrationPointsArrayType& aaa);
     void writeVTKFile(const std::string& filename, const PointerVector<CouplingGeometry<Node>> Coupled_Quadrature_Point_Geometries, size_t selectpart);
+    void ReadNormalVectors(const std::string& filename, vector<array_1d<double, 3>>& vectors, ModelPart& SolidModelPart);
 
         
     ///@}
@@ -122,13 +124,21 @@ public:
     {
     }
 
+
+
+protected:
+    ///@name Protected Members
+    ///@{
+
+    Parameters mParameters; /// Configuration parameters for the Modeler.
+
 private:
     ///@name Member Variables
     ///@{
 
     //Model part and different settings
     Model& _Model;
-
+    Parameters _Parameters;
     ///@}
 
 }; // Class CombineSolidShellModelPartsProcess

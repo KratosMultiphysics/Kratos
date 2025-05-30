@@ -53,7 +53,7 @@ void AddCustomProcessesToPython(
         .def(py::init<Model&, Parameters >())
         ;
     py::class_<CombineSolidShellModelPartsProcess, CombineSolidShellModelPartsProcess::Pointer, Process>(m, "CombineSolidShellModelPartsProcess")
-        .def(py::init<Model&>())
+        .def(py::init<Model&, Parameters >())
         ;
 
 }

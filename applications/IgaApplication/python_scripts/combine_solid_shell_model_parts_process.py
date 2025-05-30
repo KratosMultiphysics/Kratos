@@ -23,13 +23,11 @@ class CombineSolidShellModelPartsProcess(KratosMultiphysics.Process):
         model -- the container of the different model parts.
         params -- Kratos parameters containing solver settings.
         """
-        #print("Minas: Constructor of CombineSolidShellModelPartsProcess!!!")
-
         KratosMultiphysics.Process.__init__(self)
-
+        
+        self.params = params
         ## Overwrite the default settings with user-provided parameters
-        self.CombinedModel = model
-        self.CombineSolidShellModelPartsProcess =  IGA.CombineSolidShellModelPartsProcess(self.CombinedModel)
+        self.CombineSolidShellModelPartsProcess =  IGA.CombineSolidShellModelPartsProcess(model,params)
 
     def ExecuteInitialize(self):
         # Get the model parts which divide the problem
