@@ -253,7 +253,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # TODO: documentation: since the simulation is axisymmetric, the pulse in the table has to be
         # symmetric around x=0, peak at 0, and be monotonically decreasing. The table must only contain
         # values for x>=0 (-inf < x < +inf as a 3D coordinate, 0 <= r < +inf when we think of an
-        # axisymmetric "slice"). The y values must be nonnegative.
+        # axisymmetric "slice"). The y values must be nonnegative. The table must be sorted.
 
         if self.fluence_type == "super-gaussian":
             Logger.PrintInfo("Fluence type", "Using a super-gaussian fluence")
@@ -266,75 +266,56 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.FluenceFunction = self.FluenceSuperGaussian
             self.F_p = self.ComputePeakFluence()
 
-        elif self.fluence_type == "table":
-            Logger.PrintInfo(
-                "Fluence type",
-                "Using the fluence function specified as a table (not necessarily with the correct energy)",
-            )
-
-            self.gaussian_order = None
-            self.F_p = None
-
+        if self.fluence_type in ["table", "table-correct-energy"]:
+            # Check for table filename
             if not self.laser_settings["Variables"].Has("table_filename"):
-                Logger.PrintWarning("Warning", "The filename of the file for the fluence table is not specified")
-                raise NameError
-            else:
-                fluence_table_filename = self.laser_settings["Variables"]["table_filename"].GetString()
+                Logger.PrintWarning("Warning", "Fluence table filename is not specified")
+                raise KeyError("Fluence table filename not specified in laser_settings['Variables']")
 
-            # Load the table, check that the pulse specified in it peaks at 0, is decreasing and is positive
-            fluence_table_np = np.loadtxt(fluence_table_filename, delimiter=",")
+            fluence_table_filename = self.laser_settings["Variables"]["table_filename"].GetString()
+
+            # Load and validate table
             try:
+                fluence_table_np = np.loadtxt(fluence_table_filename, delimiter=",")
                 self.CheckPulseTableProperties(fluence_table_np)
                 Logger.PrintInfo("Info", "Fluence table validation succeeded")
+            except FileNotFoundError:
+                Logger.PrintWarning("Error", f"Fluence table file '{fluence_table_filename}' not found")
+                raise
             except (ValueError, TypeError) as e:
                 Logger.PrintWarning("Error", f"Fluence table validation failed: {str(e)}")
-
-            fluence_table_settings = KratosMultiphysics.Parameters("""{
-                "name"             : "csv_table",
-                "filename"         : "",
-                "delimiter"        : ",",
-                "skiprows"         : 0,
-                "first_column_id"  : 0,
-                "second_column_id" : 1,
-                "table_id"         : -1,
-                "na_replace"       : 0.0
-            }""")
-            fluence_table_settings["filename"].SetString(fluence_table_filename)
-
-            # Read the table of values into a Kratos PiecewiseLinearTable
-            FluenceTable = ReadCsvTableUtility(fluence_table_settings).Read()
-
-            # Convert the table from a Kratos table to a Python function
-            FluenceTableAsFunction = self.TableToFunction(FluenceTable)
+                raise
 
             fluence_table_max_r = fluence_table_np[-1, 0]
-            del fluence_table_np  # We are not going to be using the table as a np array
-
-            # Extend the pulse so that beyond the values specified in the table its image is 0
-            FluenceTableExtended = self.ExtendFunction(FluenceTableAsFunction, xmax=fluence_table_max_r)
-
-            # Normalize the fluence
-            FluenceFunctionNormalized = self.NormalizeAxisymmetricFunction(
-                FluenceTableExtended, rmin=0, rmax=fluence_table_max_r
-            )
-
-            def FluenceFunction(position, parameters):
-                return self.Q * FluenceFunctionNormalized(position["r"])
-
-            # Multiply the normalized pulse by the pulse energy to obtain a pulse with energy Q
-            self.FluenceFunction = FluenceFunction
-        elif self.fluence_type == "table-correct-energy":
-            # TODO: implement
-            Logger.PrintInfo(
-                "Fluence type",
-                "Using the fluence function specified as a table with the correct normalization to total pulse energy",
-            )
 
             self.gaussian_order = None
             self.F_p = None
 
-            raise NotImplementedError
-        elif self.fluence_type == "expression":
+            if self.fluence_type == "table":
+                Logger.PrintInfo(
+                    "Fluence type",
+                    "Using the fluence function specified as a table (not necessarily with the correct energy)",
+                )
+
+                self.FluenceFunction = self.LoadFluenceFromTable(
+                    fluence_table_filename, fluence_table_max_r, normalize=True
+                )
+
+            elif self.fluence_type == "table-correct-energy":
+                # Assume the table provided by the user is correctly normalized to the total pulse energy
+                Logger.PrintInfo(
+                    "Fluence type",
+                    "Using the fluence function specified as a table with the correct normalization to total pulse energy",
+                )
+
+                self.FluenceFunction = self.LoadFluenceFromTable(
+                    fluence_table_filename, fluence_table_max_r, normalize=False
+                )
+
+            # We are not going to be using the table as a np array
+            del fluence_table_np
+
+        if self.fluence_type == "expression":
             Logger.PrintInfo("Fluence type", "Using a fluence function specified as an analytical expression")
 
             self.gaussian_order = None
@@ -828,16 +809,17 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         ------
         ValueError
             If arr is not a 2D NumPy array, has fewer than 2 columns, is empty, contains non-finite values,
-            or violates any of the required properties (negative x, negative y, or non-monotonically
-            decreasing y).
+            or violates any of the required properties (negative x, negative y, non-strictly increasing x,
+            or non-monotonically decreasing y).
         TypeError
             If arr is not a NumPy array.
 
         Notes
         -----
         - Assumes arr represents a pulse function table, such as fluence vs. radial distance
-        - Monotonicity is checked by ensuring each y value is greater than or equal to the next
-        (non-strict monotonicity).
+        - x values must be strictly increasing (x[i] < x[i+1]) to ensure the table is sorted.
+        - y values must be non-strictly monotonically decreasing (y[i] >= y[i+1]).
+
         """
 
         # Validate input type
@@ -863,6 +845,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # Check x >= 0
         if not np.all(x >= 0):
             raise ValueError("All x values must be non-negative")
+
+        # Check x is strictly increasing (x[i] < x[i+1])
+        if arr.shape[0] > 1:  # Only check if more than one row
+            if not np.all(np.diff(x) > 0):
+                raise ValueError("x values must be strictly increasing (x[i] < x[i+1])")
 
         # Check y >= 0
         if not np.all(y >= 0):
@@ -1835,3 +1822,96 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             return f(r) / normalization_factor
 
         return g
+
+
+def LoadFluenceFromTable(self, fluence_table_filename, fluence_table_max_r, normalize=False):
+    """
+    Load a laser pulse fluence profile from a CSV file containing (x, y) pairs, convert it to a function,
+    and extend it to return zero beyond the specified maximum radius. Optionally normalize the profile
+    to represent the total energy of the laser pulse.
+
+    The CSV file should contain at least two columns, where x typically represents radial position (r)
+    and y represents the radial part of fluence.
+
+    The function is extended to return 0 for r > fluence_table_max_r.
+
+    If normalize=True, the function is scaled to integrate to the total pulse energy (self.Q).
+
+    Parameters
+    ----------
+    fluence_table_filename : str
+        Path to the CSV file containing (x, y) pairs for the fluence profile.
+    fluence_table_max_r : float
+        Maximum radial position beyond which the fluence is set to zero.
+    normalize : bool, optional
+        If True, normalize the fluence profile to integrate to 1 and scale by self.Q (pulse energy).
+        If False, use the raw fluence values from the table. Default is False.
+
+    Returns
+    -------
+    FluenceFunction: callable
+        A function that takes a position dictionary (with key 'r') and parameters, returning the
+        fluence value at that radial position.
+
+    Raises
+    ------
+    AttributeError
+        If self.Q is not defined when normalize=True.
+    RuntimeError
+        If the table reading or function conversion fails in Kratos utilities.
+
+    Notes
+    -----
+    - Assumes the CSV file uses comma as delimiter and has numeric data.
+    - The returned function expects position as a dictionary with key 'r' (radial position).
+    """
+
+    # Configure table settings
+    fluence_table_settings = KratosMultiphysics.Parameters("""{
+        "name"             : "csv_table",
+        "filename"         : "",
+        "delimiter"        : ",",
+        "skiprows"         : 0,
+        "first_column_id"  : 0,
+        "second_column_id" : 1,
+        "table_id"         : -1,
+        "na_replace"       : 0.0
+    }""")
+    fluence_table_settings["filename"].SetString(fluence_table_filename)
+
+    # Read table
+    try:
+        FluenceTable = ReadCsvTableUtility(fluence_table_settings).Read()
+    except Exception as e:
+        raise RuntimeError(f"Failed to read fluence table: {str(e)}")
+
+    # Convert to function
+    FluenceTableAsFunction = self.TableToFunction(FluenceTable)
+    if not callable(FluenceTableAsFunction):
+        raise RuntimeError("TableToFunction did not return a callable function")
+
+    # Extend function
+    FluenceTableExtended = self.ExtendFunction(FluenceTableAsFunction, xmax=fluence_table_max_r)
+    if not callable(FluenceTableExtended):
+        raise RuntimeError("ExtendFunction did not return a callable function")
+
+    if normalize:
+        # Check for pulse energy
+        if not hasattr(self, "Q") or not isinstance(self.Q, (int, float)) or self.Q <= 0:
+            raise AttributeError("self.Q must be a positive scalar when normalize=True")
+
+        # Normalize
+        FluenceFunctionNormalized = self.NormalizeAxisymmetricFunction(
+            FluenceTableExtended, rmin=0, rmax=fluence_table_max_r
+        )
+        if not callable(FluenceFunctionNormalized):
+            raise RuntimeError("NormalizeAxisymmetricFunction did not return a callable function")
+
+        def FluenceFunction(position, parameters):
+            return self.Q * FluenceFunctionNormalized(position["r"])
+    else:
+
+        def FluenceFunction(position, parameters):
+            return FluenceTableExtended(position["r"])
+
+    return FluenceFunction
