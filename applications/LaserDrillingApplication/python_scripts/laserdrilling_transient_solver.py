@@ -33,6 +33,7 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistrib
 
 from KratosMultiphysics import Logger
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
+from KratosMultiphysics import BasicGenericFunctionUtility
 
 
 def CreateSolver(model, custom_settings):
@@ -241,12 +242,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # self.z_ast_max = 0.0  # TODO: Parameter? Remove, since the spot_diameter is unused?
 
         # Fluence
-        table_fluence_types = ["table-not-normalized", "table-normalized"]
-        expression_fluence_types = ["expression"]
-        self.valid_fluence_types = ["super-gaussian"] + table_fluence_types + expression_fluence_types
+        table_fluence_types = ["table_not_normalized", "table_normalized"]
+        expression_fluence_types = ["expression_normalized"]
+        self.valid_fluence_types = ["super_gaussian"] + table_fluence_types + expression_fluence_types
 
         if not self.laser_settings["Variables"].Has("fluence_type"):
-            self.fluence_type = "super-gaussian"
+            self.fluence_type = "super_gaussian"
             self.gaussian_order = 2
             Logger.PrintWarning("Warning", "Fluence type not specified, defaulting to a super-gaussian of order 2")
         else:
@@ -259,7 +260,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # values for x>=0 (-inf < x < +inf as a 3D coordinate, 0 <= r < +inf when we think of an
         # axisymmetric "slice"). The y values must be nonnegative. The table must be sorted.
 
-        if self.fluence_type == "super-gaussian":
+        if self.fluence_type == "super_gaussian":
             Logger.PrintInfo("Fluence type", "Using a super-gaussian fluence")
             if not self.laser_settings["Variables"].Has("gaussian_order"):
                 self.gaussian_order = 2
@@ -271,6 +272,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.F_p = self.ComputePeakFluence()
 
         elif self.fluence_type in table_fluence_types:
+            self.gaussian_order = None
+            self.F_p = None
+
             # Check for table filename
             if not self.laser_settings["Variables"].Has("table_filename"):
                 Logger.PrintWarning("Warning", "Fluence table filename is not specified")
@@ -292,10 +296,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
             fluence_table_max_r = fluence_table_np[-1, 0]
 
-            self.gaussian_order = None
-            self.F_p = None
-
-            if self.fluence_type == "table-not-normalized":
+            if self.fluence_type == "table_not_normalized":
                 Logger.PrintInfo(
                     "Fluence type",
                     "Using the fluence function specified as a table (not necessarily with the correct energy)",
@@ -305,7 +306,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                     fluence_table_filename, fluence_table_max_r, normalize=True
                 )
 
-            elif self.fluence_type == "table-normalized":
+            elif self.fluence_type == "table_normalized":
                 # Assume the table provided by the user is correctly normalized to the total pulse energy
                 Logger.PrintInfo(
                     "Fluence type",
@@ -320,12 +321,48 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             del fluence_table_np
 
         elif self.fluence_type in expression_fluence_types:
-            Logger.PrintInfo("Fluence type", "Using a fluence function specified as an analytical expression")
-
             self.gaussian_order = None
             self.F_p = None
 
-            raise NotImplementedError
+            Logger.PrintInfo(
+                "Fluence type",
+                "Using a fluence function specified as an analytical expression in Python syntax. Pitfalls:\n\
+                    1.- Use x as the radial coordinate\n\
+                    2.- Operator associativity; in case of doubt, use parentheses\n\
+                    3.- Check your locale (e.g. if '.' or ',' is used as decimal point)",
+            )
+
+            # Check for expression_normalized
+            if not self.laser_settings["Variables"].Has("expression_normalized"):
+                Logger.PrintWarning("Warning", "expression_normalized is not specified")
+                raise KeyError("Fluence expression not specified in laser_settings['Variables']")
+
+            fluence_expression = self.laser_settings["Variables"]["expression_normalized"].GetString()
+            # The user can input the expression in terms of x, BasicGenericFunctionUtility requires
+            # the string to only contain x,y,z,t,X,Y,Z
+            if not fluence_expression.strip():
+                Logger.PrintWarning("Error", "Fluence expression is empty or contains only whitespace")
+                raise ValueError("Fluence expression cannot be empty")
+
+            # Create a Python function from the expression in the parameters file
+            # See kratos/utilities/function_parser_utility.h
+            try:
+                fluence_function_aux = BasicGenericFunctionUtility(fluence_expression)
+            except Exception as e:
+                Logger.PrintWarning("Error", f"Failed to parse fluence expression: {str(e)}")
+                raise ValueError(f"Invalid fluence expression: {str(e)}")
+
+            # Wrap the function call
+            def FluenceFunction(position, parameters):
+                try:
+                    # BasicGenericFunctionUtility generates a function that requires 7 parameters
+                    fluence = fluence_function_aux.CallFunction(position["r"], 0, 0, 0, 0, 0, 0)
+                    return fluence
+                except (NameError, SyntaxError, ValueError, TypeError, KeyError) as e:
+                    Logger.PrintWarning("Error", f"Evaluating the fluence function failed: {str(e)}")
+                    raise
+
+            self.FluenceFunction = FluenceFunction
         else:
             raise ValueError("Invalid fluence_type")
 
@@ -572,7 +609,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         return F_p  # J/mm2
 
     def ComputePeakFluence(self):
-        if self.fluence_type != "super-gaussian":
+        if self.fluence_type != "super_gaussian":
             # Think about this because not all distributions are peaked.
             self.F_p = None
         else:
@@ -733,7 +770,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         Notes
         -----
-        - For `fluence_type="super-gaussian"`, the radius is computed analytically using
+        - For `fluence_type="super_gaussian"`, the radius is computed analytically using
         `ComputeSuperGaussianMaximumAblationRadius`.
         - For `fluence_type="table"` or `"expression"`, the radius is found numerically by solving
         `FluenceFunction(r, parameters) = delta_pen * q_ast` using `FindPulseRoot`.
@@ -765,7 +802,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             raise ValueError(f"Computed ablation limit y={y} is invalid")
 
         # Compute ablation radius
-        if self.fluence_type == "super-gaussian":
+        if self.fluence_type == "super_gaussian":
             try:
                 r_ast_max = self.ComputeSuperGaussianMaximumAblationRadius(parameters=parameters)
             except (TypeError, ValueError) as e:
