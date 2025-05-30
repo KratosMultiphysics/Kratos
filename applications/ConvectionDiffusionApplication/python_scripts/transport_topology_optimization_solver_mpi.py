@@ -157,7 +157,7 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
         super().AddVariables()
     
     def _CheckMaterialProperties(self):
-        for node in self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes():
             self.MpiPrint("--|--> Conductivity: " + str(node.GetValue(KratosMultiphysics.CONDUCTIVITY)))
             self.MpiPrint("--|--> Decay: " + str(node.GetValue(KratosCD.DECAY)))
             self.MpiPrint("--|--> Convection Coefficient: " + str(node.GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT)))
@@ -168,9 +168,9 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
         self.min_buffer_size = 1
 
     def PrepareModelPart(self):
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY, 0.0, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.DECAY, 0.0, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONVECTION_COEFFICIENT, 0.0, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY, 0.0, self._GetLocalMeshNodes())
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.DECAY, 0.0, self._GetLocalMeshNodes())
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONVECTION_COEFFICIENT, 0.0, self._GetLocalMeshNodes())
         if not self.is_restarted():
             # Import material properties
             materials_imported = self.import_materials()
@@ -192,48 +192,44 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
 
     def _UpdateConductivityVariable(self, conductivity):
         self.is_conductivity_updated = True
-        mp = self.GetComputingModelPart()
         if isinstance(conductivity, (int, float)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
              node.SetValue(KratosMultiphysics.CONDUCTIVITY, conductivity)
         elif isinstance(conductivity, (np.ndarray, list)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
                 node.SetValue(KratosMultiphysics.CONDUCTIVITY, conductivity[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
             raise TypeError(f"Unsupported input type in '_UpdateConductivityVariable' : {type(conductivity)}")
         
     def _UpdateDecayVariable(self, decay):
         self.is_decay_updated = True
-        mp = self.GetComputingModelPart()
         if isinstance(decay, (int, float)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
              node.SetValue(KratosCD.DECAY, decay)
         elif isinstance(decay, (np.ndarray, list)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
                 node.SetValue(KratosCD.DECAY, decay[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
             raise TypeError(f"Unsupported input type in '_UpdateDecayVariable' : {type(decay)}")
 
     def _UpdateConvectionCoefficientVariable(self, convection_coefficient):
         self.is_convection_coefficient_updated = True
-        mp = self.GetComputingModelPart()
         if isinstance(convection_coefficient, (int, float)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
              node.SetValue(KratosMultiphysics.CONVECTION_COEFFICIENT, convection_coefficient)
         elif isinstance(convection_coefficient, (np.ndarray, list)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
                 node.SetValue(KratosMultiphysics.CONVECTION_COEFFICIENT, convection_coefficient[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
             raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(convection_coefficient)}")
         
     def _UpdateTransportSourceVariable(self, transport_source):
         self.is_transport_source_updated = True
-        mp = self.GetComputingModelPart()
         if isinstance(transport_source, (int, float)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
              node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, transport_source)
         elif isinstance(transport_source, (np.ndarray, list)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
                 node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, transport_source[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
             raise TypeError(f"Unsupported input type in '_UpdateDecayVariable' : {type(transport_source)}")
@@ -247,8 +243,7 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
             self._SetNonConstantConvectiveVelocity()
     
     def _SetConstantConvectiveVelocity(self, velocity):
-        mp = self.GetComputingModelPart()
-        for node in mp.GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes():
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, KratosMultiphysics.Vector(velocity))
 
     def _SetNonConstantConvectiveVelocity(self):
@@ -392,6 +387,12 @@ class TransportTopologyOptimizationSolverMpi(ConvectionDiffusionTransientSolver)
 
     def IsNodesIdsGlobalToLocalDictionaryEmpty(self):
         return self.nodes_ids_global_to_local_partition_dictionary == {}
+    
+    def _GetLocalMeshNodes(self, mp = None):
+        if mp is None:
+            return self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes
+        else:
+            return mp.GetCommunicator().LocalMesh().Nodes
 
                 
             

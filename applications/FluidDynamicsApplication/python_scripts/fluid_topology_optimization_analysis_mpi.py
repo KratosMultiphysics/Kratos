@@ -521,7 +521,13 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         return [model_part.GetNode(node_id) for node_id in node_ids]
     
     def _GetModelPartNodesIds(self, model_part):
-        return [node.Id for node in model_part.Nodes]
+        model_part_nodes = self._GetLocalMeshNodes()
+        return [node.Id for node in model_part_nodes]
+            
+    def _ExtractListOfNodesFromNodesDictionary(self, model_part):
+        model_part_nodes_ids = self._GetModelPartNodesIds(model_part)
+        nodes_list = [self.nodes_ids_global_to_local_partition_dictionary[node_id] for node_id in model_part_nodes_ids]
+        return nodes_list
 
     def _ExtractVariableInOptimizationDomain(self, variable):
         return variable[self.optimization_domain_nodes_mask]
@@ -617,7 +623,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         domain = physics_parameters["domain"].GetString()
         mp = self._GetSubModelPart(self._GetMainModelPart(), domain)
         if (mp is not None):
-                nodes_ids = self.nodes_ids_global_to_local_partition_dictionary[self._GetModelPartNodesIds(mp)]
+                nodes_ids = self._ExtractListOfNodesFromNodesDictionary(mp)
         else:
             nodes_ids = np.arange(self.n_nodes)
         interpolation_method = (physics_parameters["interpolation_method"].GetString()).lower()

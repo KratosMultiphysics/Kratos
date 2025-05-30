@@ -201,13 +201,13 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
 
         # Transfer the obtained properties to the nodes
         if set_density:
-            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self._GetLocalMeshNodes())
         if set_viscosity:
-            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self._GetLocalMeshNodes())
         if set_sound_velocity:
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self._GetLocalMeshNodes())
         if set_resistance:
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCFD.RESISTANCE, resistance, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCFD.RESISTANCE, resistance, self._GetLocalMeshNodes())
 
     def AddDofs(self):
         dofs_and_reactions_to_add = []
@@ -299,12 +299,11 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
 
     def _UpdateResistanceVariable(self, resistance):
         self.is_resistance_updated = True
-        mp = self.GetComputingModelPart()
         if isinstance(resistance, (int, float)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
              node.SetValue(KratosCFD.RESISTANCE, resistance)
         elif isinstance(resistance, (np.ndarray, list)): 
-            for node in mp.GetCommunicator().LocalMesh().Nodes:
+            for node in self._GetLocalMeshNodes():
                 node.SetValue(KratosCFD.RESISTANCE, resistance[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
             raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(resistance)}")
@@ -318,7 +317,7 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
             self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating RESISTANCE variable")
 
     def _CheckMaterialProperties(self):
-        for node in self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes:
+        for node in self._GetLocalMeshNodes():
             self.MpiPrint("--|--> Resistance: " + node.GetValue(KratosCFD.RESISTANCE))
             break
 
@@ -358,6 +357,12 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
 
     def IsNodesIdsGlobalToLocalDictionaryEmpty(self):
         return self.nodes_ids_global_to_local_partition_dictionary == {}
+    
+    def _GetLocalMeshNodes(self, mp = None):
+        if mp is None:
+            return self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes
+        else:
+            return mp.GetCommunicator().LocalMesh().Nodes
         
 
 
