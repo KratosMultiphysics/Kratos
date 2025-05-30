@@ -1305,12 +1305,12 @@ private:
             GeometryType::ShapeFunctionsGradientsType dN_dX_container;
             if (GetGeometry().LocalSpaceDimension() == 1) {
                 dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+                std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                               dN_dX_container.begin(), std::divides<>());
             } else {
                 GetGeometry().ShapeFunctionsIntegrationPointsGradients(
                     dN_dX_container, det_J_container, this->GetIntegrationMethod());
             }
-            std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
-                           dN_dX_container.begin(), std::divides<>());
 
             return dN_dX_container;
         };
