@@ -98,12 +98,28 @@ protected:
     virtual void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
         SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part = true);
 
+    
+    /**
+     * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
+     * @param PointA Lower point of bounding box.
+     * @param PointB Upper point of bounding box.
+     * @param Order  Polynomial degree in each direction u,v,w.
+     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
+     * @note The CP'S are defined as nodes and added to the rModelPart.
+     **/
+    virtual void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+        SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW, bool add_volume_to_model_part = true);
+
+
     NurbsSurfaceGeometryPointerType mpSurface;
+    NurbsVolumeGeometryPointerType mpVolume;
 
     Vector mKnotVectorU;
     Vector mKnotVectorV;
+    Vector mKnotVectorW;
     std::vector<double> mInsertKnotsU;
     std::vector<double> mInsertKnotsV;
+    std::vector<double> mInsertKnotsW;
     
 
 private:
@@ -113,18 +129,6 @@ private:
     ///@}
     ///@name Private Operations
     
-
-    /**
-     * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
-     * @param PointA Lower point of bounding box.
-     * @param PointB Upper point of bounding box.
-     * @param Order  Polynomial degree in each direction u,v,w.
-     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
-     * @note The CP'S are defined as nodes and added to the rModelPart.
-     **/
-    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
-       SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
-
 };
 
 } // End namesapce Kratos
