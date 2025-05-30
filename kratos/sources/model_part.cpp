@@ -1897,7 +1897,7 @@ void ModelPart::AddGeometry(
     else /// Check if geometry id already used, is done within the geometry container.
     {
         auto existing_geometry_it = mGeometries.find(pNewGeometry->Id());
-        if( existing_geometry_it == mGeometries.end()) //node did not exist
+        if( existing_geometry_it == mGeometries.end()) //geometry did not exist
         {
             mGeometries.insert(pNewGeometry);
         }
