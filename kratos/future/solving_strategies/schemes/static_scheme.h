@@ -33,7 +33,7 @@
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
-#include "future/solving_strategies/schemes/assembly_helper.h"
+#include "future/solving_strategies/builders/builder.h"
 #endif
 
 namespace Kratos::Future
@@ -141,7 +141,7 @@ public:
      */
     explicit StaticScheme(StaticScheme& rOther)
     {
-        //TODO: Check this... particularly the mpAssemblyHelper pointer
+        //TODO: Check this... particularly the mpBuilder pointer
     }
 
     /** Destructor.
@@ -273,14 +273,16 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    virtual void Predict(
+    void Predict(
         DofsArrayType& rDofSet,
+        DofsArrayType& rEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         TSparseMatrixType& rA,
         TSparseVectorType& rb,
         TSparseVectorType& rDx,
         TSparseVectorType& rEffectiveDx,
-        TSparseMatrixType& rConstraintsRelationMatrix) override
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector) override
     {
         KRATOS_TRY
 
@@ -296,20 +298,23 @@ public:
         const std::size_t n_constraints_glob = r_comm.SumAll(n_constraints_loc);
 
         if (n_constraints_glob != 0) {
-            const auto& r_process_info = r_model_part.GetProcessInfo();
+            // Assemble constraints constant vector and apply it to the DOF set
+            // Note that the constant vector is applied only once in here as we then solve for the solution increment
+            this->BuildMasterSlaveConstraints(rDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
-            block_for_each(r_constraints, [&r_process_info](MasterSlaveConstraint& rConstraint){
-                rConstraint.ResetSlaveDofs(r_process_info);
+            // Fill the current values vector
+            TSparseVectorType x(rEffectiveDofIdMap.size());
+            (this->GetBuilder()).CalculateSolutionVector(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, x);
+
+            // Update DOFs with solution values
+            block_for_each(rDofSet, [&x](DofType& rDof){
+                rDof.GetSolutionStepValue() = x[rDof.EquationId()];
             });
 
-            block_for_each(r_constraints, [&r_process_info](MasterSlaveConstraint& rConstraint){
-                rConstraint.Apply(r_process_info);
-            });
-
-            // The following is needed since we need to eventually compute time derivatives after applying master-slave relations
-            rDx.SetValue(0.0);
-            rEffectiveDx.SetValue(0.0);
-            this->Update(rDofSet, rEffectiveDofIdMap, rA, rb, rDx, rEffectiveDx, rConstraintsRelationMatrix);
+            // If the mesh is to be updated, call the MoveMesh() method
+            if (this->GetMoveMesh()) {
+                this->MoveMesh();
+            }
         }
 
         KRATOS_CATCH("")

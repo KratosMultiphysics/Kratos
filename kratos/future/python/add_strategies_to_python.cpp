@@ -21,7 +21,7 @@
 
 // Future Extensions
 #include "future/python/add_strategies_to_python.h"
-#include "future/solving_strategies/schemes/assembly_helper.h"
+#include "future/solving_strategies/builders/builder.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/implicit_strategy.h"
@@ -34,8 +34,8 @@ namespace py = pybind11;
 
 void AddStrategiesToPython(py::module& m)
 {
-    using ImplicitAssemblyHelper = Future::AssemblyHelper<Future::ImplicitThreadLocalStorage<>, CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
-    py::class_<ImplicitAssemblyHelper, typename ImplicitAssemblyHelper::Pointer>(m, "ImplicitAssemblyHelper")
+    using ImplicitBuilder = Future::Builder<Future::ImplicitThreadLocalStorage<>, CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    py::class_<ImplicitBuilder, typename ImplicitBuilder::Pointer>(m, "ImplicitBuilder")
         .def(py::init<ModelPart &, Parameters>())
         // .def("Execute",&Future::Process::Execute)
         // .def("Info",&Future::Process::Info)

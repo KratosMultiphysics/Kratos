@@ -33,7 +33,8 @@
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/amgcl_solver.h"
-#include "future/solving_strategies/schemes/assembly_helper.h"
+#include "future/solving_strategies/builders/builder.h"
+#include "future/solving_strategies/builders/block_builder.h"
 #endif
 
 namespace Kratos::Future
@@ -121,7 +122,8 @@ public:
     using TLSType = ImplicitThreadLocalStorage<DataType>;
 
     /// Assembly helper type
-    using AssemblyHelperType = Future::AssemblyHelper<TLSType, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
+    //FIXME: This should be set in the constructor
+    using BuilderType = Future::BlockBuilder<TLSType, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
 
     /// DoF type definition
     using DofType = Dof<DataType>;
@@ -130,7 +132,7 @@ public:
     using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Effective DOFs map type definition
-    using EffectiveDofsMapType = typename AssemblyHelperType::EffectiveDofsMapType;
+    using EffectiveDofsMapType = typename BuilderType::EffectiveDofsMapType;
 
     ///@}
     ///@name Life Cycle
@@ -159,7 +161,7 @@ public:
         // Set up the assembly helper
         Parameters build_settings = ThisParameters["build_settings"];
         build_settings.AddInt("echo_level", ThisParameters["echo_level"].GetInt());
-        mpAssemblyHelper = Kratos::make_unique<AssemblyHelperType>(rModelPart, build_settings);
+        mpBuilder = Kratos::make_unique<BuilderType>(rModelPart, build_settings);
     }
 
     /** Copy Constructor.
@@ -168,7 +170,7 @@ public:
       : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
       , mSchemeSolutionStepIsInitialized(rOther.mSchemeSolutionStepIsInitialized)
     {
-        //TODO: Check this... particularly the mpAssemblyHelper pointer
+        //TODO: Check this... particularly the mpBuilder pointer
     }
 
     /** Destructor.
@@ -349,7 +351,7 @@ public:
 
         KRATOS_ERROR_IF(rDofSet.empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
 
-        const SizeType equation_system_size = mpAssemblyHelper->SetUpSystemIds(rDofSet);
+        const SizeType equation_system_size = mpBuilder->SetUpSystemIds(rDofSet);
 
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
 
@@ -374,7 +376,7 @@ public:
 
         // Call the assembly helper to allocate and initialize the required vectors
         // Note that this also allocates the required reaction vectors (e.g., elimination build)
-        (this->GetAssemblyHelper()).ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rpDx, rpEffectiveDx, CalculateReactions);
+        (this->GetBuilder()).ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rpDx, rpEffectiveDx, CalculateReactions);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
 
@@ -391,7 +393,7 @@ public:
         KRATOS_TRY
 
         // Call the assembly helper to set the master-slave constraints
-        (this->GetAssemblyHelper()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
+        (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
@@ -449,7 +451,7 @@ public:
         };
 
         TLSType aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
+        auto& r_assembly_helper = GetBuilder();
         r_assembly_helper.SetElementAssemblyFunction(elem_func);
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
         r_assembly_helper.Assemble(rLHS, rRHS, aux_tls);
@@ -507,7 +509,7 @@ public:
         };
 
         TLSType aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
+        auto& r_assembly_helper = GetBuilder();
         r_assembly_helper.SetElementAssemblyFunction(elem_func);
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
         r_assembly_helper.Assemble(rRHS, aux_tls);
@@ -565,7 +567,7 @@ public:
         };
 
         TLSType aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
+        auto& r_assembly_helper = GetBuilder();
         r_assembly_helper.SetElementAssemblyFunction(elem_func);
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
         r_assembly_helper.Assemble(rLHS, aux_tls);
@@ -623,7 +625,7 @@ public:
         };
 
         TLSType aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
+        auto& r_assembly_helper = GetBuilder();
         r_assembly_helper.SetElementAssemblyFunction(elem_func);
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
         r_assembly_helper.Assemble(rMassMatrix, aux_tls);
@@ -681,7 +683,7 @@ public:
         };
 
         TLSType aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
+        auto& r_assembly_helper = GetBuilder();
         r_assembly_helper.SetElementAssemblyFunction(elem_func);
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
         r_assembly_helper.Assemble(rDampingMatrix, aux_tls);
@@ -721,7 +723,7 @@ public:
             };
 
             TLSType aux_tls;
-            auto& r_assembly_helper = GetAssemblyHelper();
+            auto& r_assembly_helper = GetBuilder();
             r_assembly_helper.SetConstraintAssemblyFunction(const_func);
             r_assembly_helper.AssembleMasterSlaveConstraints(rDofSet, rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, aux_tls);
 
@@ -748,7 +750,7 @@ public:
 
             const auto timer_constraints = BuiltinTimer();
 
-            auto& r_assembly_helper = GetAssemblyHelper();
+            auto& r_assembly_helper = GetBuilder();
             r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, *rpEffectiveRhs, *rpDx, *rpEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints apply time: " << timer_constraints << std::endl;
@@ -776,7 +778,7 @@ public:
 
             const auto timer_constraints = BuiltinTimer();
 
-            auto& r_assembly_helper = GetAssemblyHelper();
+            auto& r_assembly_helper = GetBuilder();
             r_assembly_helper.ApplyMasterSlaveConstraints(rpRhs, *rpEffectiveRhs, *rpDx, *rpEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints apply time (RightHandSide only): " << timer_constraints << std::endl;
@@ -797,7 +799,7 @@ public:
         TSparseMatrixType& rLHS,
         TSparseVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(rDofArray, rDofIdMap, rLHS, rRHS);
+        GetBuilder().ApplyDirichletConditions(rDofArray, rDofIdMap, rLHS, rRHS);
     }
 
     virtual void ApplyDirichletConditions(
@@ -805,7 +807,7 @@ public:
         const EffectiveDofsMapType& rDofIdMap,
         TSparseVectorType& rRHS)
     {
-        GetAssemblyHelper().ApplyDirichletConditions(rDofArray, rDofIdMap, rRHS);
+        GetBuilder().ApplyDirichletConditions(rDofArray, rDofIdMap, rRHS);
     }
 
     //TODO: Think about the dynamic case and the mass and damping matrices!!
@@ -854,7 +856,7 @@ public:
         };
 
         TLSType aux_tls;
-        auto& r_assembly_helper = GetAssemblyHelper();
+        auto& r_assembly_helper = GetBuilder();
         r_assembly_helper.SetElementAssemblyFunction(elem_func);
         r_assembly_helper.SetConditionAssemblyFunction(cond_func);
         r_assembly_helper.CalculateReactionsRightHandSide(rDofSet, rRHS, aux_tls);
@@ -869,12 +871,14 @@ public:
      */
     virtual void Predict(
         DofsArrayType& rDofSet,
+        DofsArrayType& rEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         TSparseMatrixType& rA,
         TSparseVectorType& rb,
         TSparseVectorType& rDx,
         TSparseVectorType& rEffectiveDx,
-        TSparseMatrixType& rConstraintsRelationMatrix)
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
     }
@@ -983,7 +987,7 @@ public:
         mSchemeSolutionStepIsInitialized = false;
 
         // Clear the assembly helper
-        GetAssemblyHelper().Clear();
+        GetBuilder().Clear();
 
         KRATOS_CATCH("")
     }
@@ -1233,14 +1237,14 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    AssemblyHelperType& GetAssemblyHelper()
+    BuilderType& GetBuilder()
     {
-        return *mpAssemblyHelper;
+        return *mpBuilder;
     }
 
-    AssemblyHelperType& GetAssemblyHelper() const
+    BuilderType& GetBuilder() const
     {
-        return *mpAssemblyHelper;
+        return *mpBuilder;
     }
 
     ///@}
@@ -1273,7 +1277,7 @@ private:
 
     ModelPart* mpModelPart = nullptr;
 
-    typename AssemblyHelperType::UniquePointer mpAssemblyHelper = nullptr;
+    typename BuilderType::UniquePointer mpBuilder = nullptr;
 
     ///@}
     ///@name Private Operators

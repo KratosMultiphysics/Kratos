@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(StaticScheme, KratosCoreFastSuite)
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
-            "build_type" : "block"
+            "name" : "block_builder"
         }
     })");
     using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
@@ -234,7 +234,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
-            "build_type" : "block"
+            "name" : "block_builder"
         }
     })");
     auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
@@ -300,7 +300,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraint, KratosCoreFastSuite)
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
-            "build_type" : "block"
+            "name" : "block_builder"
         }
     })");
     auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
@@ -364,7 +364,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraint, KratosCoreFas
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
-            "build_type" : "block"
+            "name" : "block_builder"
         }
     })");
     auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
@@ -438,7 +438,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraints, KratosCoreF
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
-            "build_type" : "block"
+            "name" : "block_builder"
         }
     })");
     auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
@@ -517,7 +517,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraints, KratosCoreFastSuite)
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
-            "build_type" : "block"
+            "name" : "block_builder"
         }
     })");
     auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
@@ -592,7 +592,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraint, KratosCor
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
         "build_settings" : {
-            "build_type" : "block"
+            "name" : "block_builder"
         }
     })");
     auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);

@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementFlags, KratosHDF5TestSuite)
     for (auto& r_write_element : r_write_model_part.Elements()) {
         HDF5::ElementType& r_read_element =
             r_read_model_part.Elements()[r_write_element.Id()];
-        CompareDataValueContainers(r_read_element.GetData(), r_read_element,
+        CompareDataValueContainers({"SLIP", "ACTIVE", "STRUCTURE"}, r_read_element.GetData(), r_read_element,
                                    r_write_element.GetData(), r_write_element);
     }
 }
