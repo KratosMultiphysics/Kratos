@@ -154,7 +154,7 @@ private:
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SupportConvDiffCondition mSupportConvDiffCondition;
     const SBMLaplacianCondition mSBMLaplacianCondition;
-    const SbmLaplacianConditionNeumann mSBMLaplacianConditionNeumann;
+    const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
     const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
     const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;
     const SupportSolid2DCondition mSupportSolid2DCondition;
