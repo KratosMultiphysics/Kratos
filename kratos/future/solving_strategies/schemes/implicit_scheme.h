@@ -34,6 +34,7 @@
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/solving_strategies/builders/builder.h"
+#include "future/solving_strategies/builders/block_builder.h"
 #endif
 
 namespace Kratos::Future
@@ -121,7 +122,8 @@ public:
     using TLSType = ImplicitThreadLocalStorage<DataType>;
 
     /// Assembly helper type
-    using BuilderType = Future::Builder<TLSType, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
+    //FIXME: This should be set in the constructor
+    using BuilderType = Future::BlockBuilder<TLSType, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
 
     /// DoF type definition
     using DofType = Dof<DataType>;

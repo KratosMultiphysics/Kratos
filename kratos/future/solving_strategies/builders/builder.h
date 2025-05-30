@@ -69,9 +69,6 @@ public:
     /// Pointer definition of Builder
     KRATOS_CLASS_POINTER_DEFINITION(Builder);
 
-    /// Size type definition
-    using SizeType = std::size_t;
-
     /// Data type definition from sparse matrix
     using DataType = typename TSparseMatrixType::DataType;
 
@@ -109,30 +106,30 @@ public:
     /// Constructor with model part
     Builder(
         const ModelPart& rModelPart,
-        Parameters AssemblySettings = Parameters(R"({})"))
+        Parameters Settings = Parameters(R"({})"))
     : mpModelPart(&rModelPart)
     {
         Parameters default_parameters( R"({
-            "build_type" : "block",
+            "name" : "builder",
             "scaling_type" : "max_diagonal",
             "echo_level" : 0
         })");
-        AssemblySettings.ValidateAndAssignDefaults(default_parameters);
+        Settings.ValidateAndAssignDefaults(default_parameters);
 
         // Set build type
-        const std::string build_type = AssemblySettings["build_type"].GetString();
-        if (build_type == "block") {
+        const std::string build_type = Settings["name"].GetString();
+        if (build_type == "block_builder") {
             mBuildType = BuildType::Block;
-        } else if (build_type == "elimination") {
+        } else if (build_type == "elimination_builder") {
             mBuildType = BuildType::Elimination;
         } else {
             KRATOS_ERROR << "Provided 'build_type' is '" << build_type << "'. Available options are:\n"
-            << "\t- 'block'\n"
-            << "\t- 'elimination'" << std::endl;
+            << "\t- 'block_builder'\n"
+            << "\t- 'elimination_builder'" << std::endl;
         }
 
         // Set scaling type
-        const std::string scaling_type = AssemblySettings["scaling_type"].GetString();
+        const std::string scaling_type = Settings["scaling_type"].GetString();
         if (mBuildType == BuildType::Block) {
             if (scaling_type == "no_scaling") {
                 mScalingType = ScalingType::NoScaling;
@@ -148,7 +145,7 @@ public:
         }
 
         // Set verbosity level
-        mEchoLevel = AssemblySettings["echo_level"].GetInt();
+        mEchoLevel = Settings["echo_level"].GetInt();
     }
 
     virtual ~Builder() = default;
@@ -248,7 +245,7 @@ public:
         }
     }
 
-    virtual SizeType SetUpSystemIds(const DofsArrayType& rDofSet)
+    virtual std::size_t SetUpSystemIds(const DofsArrayType& rDofSet)
     {
         if (mBuildType == BuildType::Block) {
             // Set up the DOFs equation global ids
@@ -340,13 +337,104 @@ public:
         TSparseVectorType& rConstraintsConstantVector,
         TThreadLocalStorage& rTLS)
     {
-        //TODO: Do it as the other assembly functions
-        if (mBuildType == BuildType::Block) {
-            AssembleMasterSlaveConstraintsImplementation<BuildType::Block>(rDofSet, rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
-        } else if (mBuildType == BuildType::Elimination) {
-            AssembleMasterSlaveConstraintsImplementation<BuildType::Elimination>(rDofSet, rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, rTLS);
-        } else {
-            KRATOS_ERROR << "Build type not supported." << std::endl;
+        // Getting constraints to be assembled
+        const auto& r_consts = mpModelPart->MasterSlaveConstraints();
+        const auto& r_process_info = mpModelPart->GetProcessInfo();
+
+        // Getting constraints container data
+        auto consts_begin = r_consts.begin();
+        const std::size_t n_consts = r_consts.size();
+
+        // Initialize constraints arrays
+        rConstraintsRelationMatrix.SetValue(0.0);
+        rConstraintsConstantVector.SetValue(0.0);
+
+        // We clear the inactive DOFs set
+        mInactiveSlaveDofs.clear();
+
+        rConstraintsRelationMatrix.BeginAssemble();
+        rConstraintsConstantVector.BeginAssemble();
+
+        #pragma omp parallel firstprivate(rDofIdMap, consts_begin, r_process_info)
+        {
+            // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
+            std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+
+            // Assemble constraints
+            if (mpConstraintAssemblyFunction != nullptr) {
+                # pragma omp for schedule(guided, 512) nowait
+                for (int k = 0; k < n_consts; ++k) {
+                    // Calculate local contributions
+                    auto it_const = consts_begin + k;
+                    const bool assemble_const = (*mpConstraintAssemblyFunction)(it_const, r_process_info, rTLS);
+
+                    // Set the master and slave equation ids
+                    // Note that the slaves follow the system equation ids while the masters use the effective map ones
+                    const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
+                    auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
+                    const std::size_t n_slaves = r_slave_dofs.size();
+                    if (r_slave_eq_ids.size() != n_slaves) {
+                        r_slave_eq_ids.resize(n_slaves);
+                    }
+                    for (IndexType i_slave = 0; i_slave < n_slaves; ++i_slave) {
+                        r_slave_eq_ids[i_slave] = (*(r_slave_dofs.begin() + i_slave))->EquationId();
+                    }
+
+                    const auto& r_master_dofs = it_const->GetMasterDofsVector();
+                    auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
+                    const std::size_t n_masters = r_master_dofs.size();
+                    if (r_master_eq_ids.size() != n_masters) {
+                        r_master_eq_ids.resize(n_masters);
+                    }
+                    for (IndexType i_master = 0; i_master < n_masters; ++i_master) {
+                        auto p_master = *(r_master_dofs.begin() + i_master);
+                        auto p_master_find = rDofIdMap.find(p_master);
+                        KRATOS_ERROR_IF(p_master_find == rDofIdMap.end()) << "Master DOF cannot be found in DOF ids map." << std::endl;
+                        r_master_eq_ids[i_master] = p_master_find->second;
+                    }
+
+                    // Assemble the constraints local contributions to the global system
+                    if (assemble_const) {
+                        // Assemble relation matrix contribution
+                        const auto& r_loc_T = GetThreadLocalStorageContainer(rConstraintsRelationMatrix, rTLS);
+                        rConstraintsRelationMatrix.Assemble(r_loc_T, r_slave_eq_ids, r_master_eq_ids);
+
+                        // Assemble constant vector contribution
+                        const auto& r_loc_v = GetThreadLocalStorageContainer(rConstraintsConstantVector, rTLS);
+                        rConstraintsConstantVector.Assemble(r_loc_v, r_slave_eq_ids);
+                    } else {
+                        auxiliar_inactive_slave_dofs.insert(r_slave_eq_ids.begin(), r_slave_eq_ids.end());
+                    }
+                }
+
+                // We merge all the sets in one thread
+                #pragma omp critical
+                {
+                    mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
+                }
+            }
+        }
+
+        rConstraintsRelationMatrix.FinalizeAssemble();
+        rConstraintsConstantVector.FinalizeAssemble();
+
+        // Setting the missing effective but not constrain-related DOFs into the T and C system
+        // For doing so we loop the standard DOF array (the one from elements and conditions)
+        // We search for each DOF in the effective DOF ids map, if present it means its effective
+        IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
+            const auto p_dof = *(rDofSet.ptr_begin() + Index);
+            const auto p_dof_find = rDofIdMap.find(p_dof);
+            if (p_dof_find != rDofIdMap.end()) {
+                rConstraintsConstantVector[p_dof->EquationId()] = 0.0;
+                rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->second) = 1.0;
+            }
+        });
+
+        // Setting inactive slave dofs in the T and C system
+        //TODO: Can't this be parallel?
+        for (auto eq_id : mInactiveSlaveDofs) {
+            rConstraintsConstantVector[eq_id] = 0.0;
+            rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
         }
     }
 
@@ -540,7 +628,7 @@ public:
     ///@name Input and output
     ///@{
 
-    SizeType GetEquationSystemSize() const
+    std::size_t GetEquationSystemSize() const
     {
         return mEquationSystemSize;
     }
@@ -580,9 +668,9 @@ private:
 
     double mScalingValue;
 
-    SizeType mEchoLevel;
+    std::size_t mEchoLevel;
 
-    SizeType mEquationSystemSize = 0; /// Number of degrees of freedom of the problem to be solved
+    std::size_t mEquationSystemSize = 0; /// Number of degrees of freedom of the problem to be solved
 
     //TODO: study performance if we get rid of the pointer to the assembly function (pass them by argument)
     std::unique_ptr<ElementAssemblyFunctionType> mpElementAssemblyFunction = nullptr; // Pointer to the function to be called in the elements assembly
@@ -619,8 +707,8 @@ private:
         // Getting entities container data
         auto elems_begin = r_elems.begin();
         auto conds_begin = r_conds.begin();
-        const SizeType n_elems = r_elems.size();
-        const SizeType n_conds = r_conds.size();
+        const std::size_t n_elems = r_elems.size();
+        const std::size_t n_conds = r_conds.size();
 
         // Initialize RHS and LHS assembly
         rRHS.BeginAssemble();
@@ -678,8 +766,8 @@ private:
         // Getting entities container data
         auto elems_begin = r_elems.begin();
         auto conds_begin = r_conds.begin();
-        const SizeType n_elems = r_elems.size();
-        const SizeType n_conds = r_conds.size();
+        const std::size_t n_elems = r_elems.size();
+        const std::size_t n_conds = r_conds.size();
 
         // Initialize LHS assembly
         rLHS.BeginAssemble();
@@ -735,8 +823,8 @@ private:
         // Getting entities container data
         auto elems_begin = r_elems.begin();
         auto conds_begin = r_conds.begin();
-        const SizeType n_elems = r_elems.size();
-        const SizeType n_conds = r_conds.size();
+        const std::size_t n_elems = r_elems.size();
+        const std::size_t n_conds = r_conds.size();
 
         // Initialize RHS and LHS assembly
         rRHS.BeginAssemble();
@@ -793,7 +881,7 @@ private:
         } else if (TBuildType == BuildType::Elimination) {
             const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
             const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
-            const SizeType loc_size = r_loc_rhs.size();
+            const std::size_t loc_size = r_loc_rhs.size();
 
             for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
                 IndexType i_glob = r_loc_eq_ids[i_loc];
@@ -824,7 +912,7 @@ private:
 
         } else if (TBuildType == BuildType::Elimination) {
             const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
-            const SizeType loc_size = r_loc_lhs.size1();
+            const std::size_t loc_size = r_loc_lhs.size1();
 
             for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
                 IndexType i_glob = r_loc_eq_ids[i_loc];
@@ -858,7 +946,7 @@ private:
 
         } else if (TBuildType == BuildType::Elimination) {
             const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
-            const SizeType loc_size = r_loc_rhs.size();
+            const std::size_t loc_size = r_loc_rhs.size();
             for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
                 IndexType i_glob = r_loc_eq_ids[i_loc];
                 if constexpr (!TAssembleReactionVector) {
@@ -933,7 +1021,7 @@ private:
         // Set the free DOFs vector (0 means fixed / 1 means free)
         // Note that we initialize to 1 so we start assuming all free
         // Also note that the type is uint_8 for the sake of efficiency
-        const SizeType system_size = rLHS.size1();
+        const std::size_t system_size = rLHS.size1();
         std::vector<uint8_t> free_dofs_vector(system_size, 1);
 
         // Loop the DOFs to find which ones are fixed
@@ -967,7 +1055,7 @@ private:
         // Set the free DOFs vector (0 means fixed / 1 means free)
         // Note that we initialize to 1 so we start assuming all free
         // Also note that the type is uint_8 for the sake of efficiency
-        const SizeType system_size = rLHS.size1();
+        const std::size_t system_size = rLHS.size1();
         std::vector<uint8_t> free_dofs_vector(system_size, 1);
 
         // Loop the DOFs to find which ones are fixed
@@ -1042,7 +1130,7 @@ private:
         //FIXME: Do the IsActiveConstraints in here and set a flag that stays "forever"
 
         // Check if there are constraints to build the effective DOFs map and the corresponding arrays
-        const SizeType n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
+        const std::size_t n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
         if (n_constraints) {
 
             // Auxiliary set to store the unordered effective DOFs (masters from constraints and standard ones)
@@ -1185,7 +1273,7 @@ private:
 
         // Getting constraints container data
         auto consts_begin = r_consts.begin();
-        const SizeType n_consts = r_consts.size();
+        const std::size_t n_consts = r_consts.size();
 
         // Initialize constraints arrays
         rConstraintsRelationMatrix.SetValue(0.0);
@@ -1216,7 +1304,7 @@ private:
                     // Note that the slaves follow the system equation ids while the masters use the effective map ones
                     const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
                     auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
-                    const SizeType n_slaves = r_slave_dofs.size();
+                    const std::size_t n_slaves = r_slave_dofs.size();
                     if (r_slave_eq_ids.size() != n_slaves) {
                         r_slave_eq_ids.resize(n_slaves);
                     }
@@ -1226,7 +1314,7 @@ private:
 
                     const auto& r_master_dofs = it_const->GetMasterDofsVector();
                     auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
-                    const SizeType n_masters = r_master_dofs.size();
+                    const std::size_t n_masters = r_master_dofs.size();
                     if (r_master_eq_ids.size() != n_masters) {
                         r_master_eq_ids.resize(n_masters);
                     }
@@ -1316,7 +1404,7 @@ private:
         if constexpr (TBuildType == BuildType::Block) {
             // Get the effective size as the number of master DOFs
             // Note that this matches the number of columns in the constraints relation matrix
-            const SizeType n_master = rConstraintsRelationMatrix.size2();
+            const std::size_t n_master = rConstraintsRelationMatrix.size2();
 
             // Initialize the effective RHS
             if (rEffectiveRhs.size() != n_master) {
@@ -1369,7 +1457,7 @@ private:
         if constexpr (TBuildType == BuildType::Block) {
             // Get the effective size as the number of master DOFs
             // Note that this matches the number of columns in the constraints relation matrix
-            const SizeType n_master = rConstraintsRelationMatrix.size2();
+            const std::size_t n_master = rConstraintsRelationMatrix.size2();
 
             // Initialize the effective RHS
             if (rEffectiveRhs.size() != n_master) {
