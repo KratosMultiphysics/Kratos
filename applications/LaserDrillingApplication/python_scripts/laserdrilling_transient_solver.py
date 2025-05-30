@@ -241,6 +241,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # self.z_ast_max = 0.0  # TODO: Parameter? Remove, since the spot_diameter is unused?
 
         # Fluence
+        table_fluence_types = ["table-not-normalized", "table-normalized"]
+        expression_fluence_types = ["expression"]
+        self.valid_fluence_types = ["super-gaussian"] + table_fluence_types + expression_fluence_types
+
         if not self.laser_settings["Variables"].Has("fluence_type"):
             self.fluence_type = "super-gaussian"
             self.gaussian_order = 2
@@ -266,7 +270,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.FluenceFunction = self.FluenceSuperGaussian
             self.F_p = self.ComputePeakFluence()
 
-        elif self.fluence_type in ["table", "table-correct-energy"]:
+        elif self.fluence_type in table_fluence_types:
             # Check for table filename
             if not self.laser_settings["Variables"].Has("table_filename"):
                 Logger.PrintWarning("Warning", "Fluence table filename is not specified")
@@ -291,7 +295,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.gaussian_order = None
             self.F_p = None
 
-            if self.fluence_type == "table":
+            if self.fluence_type == "table-not-normalized":
                 Logger.PrintInfo(
                     "Fluence type",
                     "Using the fluence function specified as a table (not necessarily with the correct energy)",
@@ -301,7 +305,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                     fluence_table_filename, fluence_table_max_r, normalize=True
                 )
 
-            elif self.fluence_type == "table-correct-energy":
+            elif self.fluence_type == "table-normalized":
                 # Assume the table provided by the user is correctly normalized to the total pulse energy
                 Logger.PrintInfo(
                     "Fluence type",
@@ -315,7 +319,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             # We are not going to be using the table as a np array
             del fluence_table_np
 
-        elif self.fluence_type == "expression":
+        elif self.fluence_type in expression_fluence_types:
             Logger.PrintInfo("Fluence type", "Using a fluence function specified as an analytical expression")
 
             self.gaussian_order = None
@@ -746,9 +750,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # Validate fluence_type
         if not isinstance(self.fluence_type, str):
             raise ValueError("fluence_type must be a string")
-        valid_types = ["super-gaussian", "table", "expression"]
-        if self.fluence_type not in valid_types:
-            raise ValueError(f"fluence_type must be one of {valid_types}")
+        if self.fluence_type not in self.valid_fluence_types:
+            raise ValueError(f"fluence_type must be one of {self.valid_fluence_types}")
 
         # Validate instance attributes
         if not hasattr(self, "delta_pen") or not isinstance(self.delta_pen, (int, float)) or self.delta_pen <= 0:

@@ -37,7 +37,6 @@ def FluenceSuperGaussianNotNormalized(r, parameters):
 n = 100
 x_arr = np.linspace(0, 0.03, n)
 
-v = 4
 
 parameters = {
     "gamma": 0.005,
@@ -55,20 +54,28 @@ print(f"{F_p=}")
 
 
 # Ablation threshold
-delta_pen = 10.0  # J/cm2 ?
-q_ast = 5e-4  # m ?
+q_ast = 10.0  # J/cm3 ?
+delta_pen = 5e-4  # m ?
 F_thresh = delta_pen * q_ast
 
 LDTSAPT = LaserDrillingTransientSolverAblationPlusThermal()
+
 CauchyPulseNormalized = LDTSAPT.NormalizeAxisymmetricFunction(
     lambda r: CauchyPulse(r, parameters), rmin=0, rmax=x_arr.max()
 )
+FluenceSuperGaussianNormalized = LDTSAPT.NormalizeAxisymmetricFunction(
+    lambda r: FluenceSuperGaussianNotNormalized(r, parameters), rmin=0, rmax=x_arr.max()
+)
 
 # y_arr = CauchyPulse(x_arr, parameters)
-y_arr = FluenceSuperGaussianNotNormalized(x_arr, parameters)
-y_arr_normalized = CauchyPulseNormalized(x_arr)
+# y_arr = FluenceSuperGaussianNotNormalized(x_arr, parameters)
+y_arr = FluenceSuperGaussianNormalized(x_arr)
+y_arr *= Q
 
-y_pulse = y_arr_normalized * Q
+y_arr_cauchy_normalized = CauchyPulseNormalized(x_arr)
+
+
+y_cauchy_pulse = y_arr_cauchy_normalized * Q
 
 print("x_arr")
 for x in x_arr:
@@ -79,11 +86,11 @@ for y in y_arr:
     print(f"{y},")
 
 print("Cauchy normalized")
-for y in y_arr_normalized:
+for y in y_arr_cauchy_normalized:
     print(f"{y},")
 
 plt.plot(x_arr, y_arr, ".", label="Raw curve")
-plt.plot(x_arr, y_pulse, ".", label=f"Cauchy pulse {Q=}")
+plt.plot(x_arr, y_cauchy_pulse, ".", label=f"Cauchy pulse {Q=}")
 plt.hlines(y=F_thresh, xmin=x_arr.min(), xmax=x_arr.max(), label="delta_pen*q_ast")
 plt.legend()
 
