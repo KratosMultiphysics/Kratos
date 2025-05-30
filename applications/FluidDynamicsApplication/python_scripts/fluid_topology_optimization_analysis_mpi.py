@@ -521,7 +521,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         return [model_part.GetNode(node_id) for node_id in node_ids]
     
     def _GetModelPartNodesIds(self, model_part):
-        model_part_nodes = self._GetLocalMeshNodes()
+        model_part_nodes = self._GetLocalMeshNodes(model_part)
         return [node.Id for node in model_part_nodes]
             
     def _ExtractListOfNodesFromNodesDictionary(self, model_part):
