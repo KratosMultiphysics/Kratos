@@ -273,7 +273,7 @@ namespace Kratos
             std::vector<array_1d<double, 3>> curve_derivatives(2, ZeroVector(3));
             CoordinatesArrayType best_projected_vertex;
             
-            std::string projection_layer_name = "";
+            std::string projection_layer_name = slave_layer_name;
             ProjectToSkinBoundary(mrSlaveSkinModelPart, projection_layer_name, vertex, best_projected_vertex, curve_derivatives, 10); // FIXME:
 
             projected_slave_vertices_on_true.push_back(best_projected_vertex);
@@ -301,6 +301,8 @@ namespace Kratos
             Vector slave_tangent_on_vertex_deformed = ZeroVector(3);
 
             GetDeformedPosition(skin_vertex_slave, *mrSlaveModelPart, mSparseBrepMatrixSlave, skin_vertex_slave_deformed);
+
+            // KRATOS_WATCH(skin_vertex_slave_deformed)
 
             GetDeformedGradient(skin_vertex_slave, *mrSlaveModelPart, mSparseBrepMatrixSlave, skin_vertex_gradient_deformation, skin_vertex_hessian_deformation);
 
@@ -364,6 +366,8 @@ namespace Kratos
 
             if (has_converged_at_least_once)
             {
+
+                // KRATOS_WATCH("converged!")
                 master_projections_on_true_of_slave_vertices.push_back(best_projected_point_master);
                 normal_projections_on_master_of_slave_vertices.push_back(normal_vector);
 
@@ -431,7 +435,7 @@ namespace Kratos
             ProjectBackToSurrogateBoundary(*mrMasterModelPart, skin_vertex_master, mSparseBrepMatrixMaster, normal_vector,
                                             brep_id, projection_brep_local_variable);
             
-            // KRATOS_ERROR_IF(best_brep_id == -1) << "::[IgaContactProcessSbm]:: No brep found for the master skin node " 
+            // KRATOS_ERROR_IF(brep_id == -1) << "::[IgaContactProcessSbm]:: No brep found for the master skin node " 
             //                                 << skin_vertex_master << std::endl;
 
             if (brep_id == -1)
@@ -471,20 +475,20 @@ namespace Kratos
             std::vector<double> spans;
             master_brep_geometry->SpansLocalSpace(spans);
 
-            for (IndexType i = 0; i < brep_local_coord_backward_projections.size(); i++) 
-            {
-                if (brep_id_backward_projections[i] == master_brep_id) {
-                    spans.push_back(brep_local_coord_backward_projections[i]);
-                }
-            }
+            // for (IndexType i = 0; i < brep_local_coord_backward_projections.size(); i++) 
+            // {
+            //     if (brep_id_backward_projections[i] == master_brep_id) {
+            //         spans.push_back(brep_local_coord_backward_projections[i]);
+            //     }
+            // }
 
-            std::sort(spans.begin(), spans.end());
+            // std::sort(spans.begin(), spans.end());
 
-            // remove duplicates with tolerance
-            auto last = std::unique(spans.begin(), spans.end(), [](double a, double b) {
-                return std::abs(a - b) < 1e-4;
-            });
-            spans.erase(last, spans.end());
+            // // remove duplicates with tolerance
+            // auto last = std::unique(spans.begin(), spans.end(), [](double a, double b) {
+            //     return std::abs(a - b) < 1e-4;
+            // });
+            // spans.erase(last, spans.end());
             
             ///////////////////////////////////////////
             GeometriesArrayType geometries;
@@ -760,6 +764,8 @@ namespace Kratos
                 
                 new_slave_skin_node->SetValue(NEIGHBOUR_GEOMETRY, quadrature_point_list(0));
 
+                // KRATOS_WATCH(quadrature_point_list(0)->Center())
+
                 result_geometries_contact(count_contact_gp_master) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCouplingGeometry2D(
                                                     gp_in_brep, quadrature_point_list(0));
                 
@@ -947,143 +953,143 @@ namespace Kratos
 
             if (r_geometry_slave.GetValue(ACTIVATION_LEVEL) == 1) 
             {
-                std::vector<double> spans;
-                slave_brep_geometry->SpansLocalSpace(spans);
+                // std::vector<double> spans;
+                // slave_brep_geometry->SpansLocalSpace(spans);
 
-                for (IndexType i = 0; i < brep_local_coord_forward_projections.size(); i++) 
-                {
-                    if (brep_id_forward_projections[i] == slave_brep_id) {
-                        spans.push_back(brep_local_coord_forward_projections[i]);
-                    }
-                }
+                // for (IndexType i = 0; i < brep_local_coord_forward_projections.size(); i++) 
+                // {
+                //     if (brep_id_forward_projections[i] == slave_brep_id) {
+                //         spans.push_back(brep_local_coord_forward_projections[i]);
+                //     }
+                // }
 
-                std::sort(spans.begin(), spans.end());
+                // std::sort(spans.begin(), spans.end());
 
-                // remove duplicates with tolerance
-                auto last = std::unique(spans.begin(), spans.end(), [](double a, double b) {
-                    return std::abs(a - b) < 1e-4;
-                });
-                spans.erase(last, spans.end());
+                // // remove duplicates with tolerance
+                // auto last = std::unique(spans.begin(), spans.end(), [](double a, double b) {
+                //     return std::abs(a - b) < 1e-4;
+                // });
+                // spans.erase(last, spans.end());
 
-                // remove duplicates with tolerance
-                std::vector<double> spans_final(2);
+                // // remove duplicates with tolerance
+                // std::vector<double> spans_final(2);
 
-                if (slave_brep_geometry->GetValue(IDENTIFIER) == "first_vertex_activated")
-                {
-                    spans_final[0] = spans[spans.size()-1];
-                    spans_final[1] = spans[spans.size()-2];
-                }
-                else if (slave_brep_geometry->GetValue(IDENTIFIER) == "last_vertex_activated")
-                {
-                    spans_final[0] = spans[0];
-                    spans_final[1] = spans[1];
-                }
-                else
-                {
-                    KRATOS_ERROR << "ERROR IN THE CREATION OF THE MORTAR SPACE FOR THE SLAVE BOUNDARY " << std::endl;
-                }
+                // if (slave_brep_geometry->GetValue(IDENTIFIER) == "first_vertex_activated")
+                // {
+                //     spans_final[0] = spans[spans.size()-1];
+                //     spans_final[1] = spans[spans.size()-2];
+                // }
+                // else if (slave_brep_geometry->GetValue(IDENTIFIER) == "last_vertex_activated")
+                // {
+                //     spans_final[0] = spans[0];
+                //     spans_final[1] = spans[1];
+                // }
+                // else
+                // {
+                //     KRATOS_ERROR << "ERROR IN THE CREATION OF THE MORTAR SPACE FOR THE SLAVE BOUNDARY " << std::endl;
+                // }
                 
-                ///////////////////////////////////////////
-                GeometriesArrayType geometries;
-                SizeType shape_function_derivatives_order = 3;
-                if (mParameters.Has("shape_function_derivatives_order")) {
-                    shape_function_derivatives_order = mParameters["shape_function_derivatives_order"].GetInt();
-                }
-                else {
-                    KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 4)
-                        << "shape_function_derivatives_order is not provided and thus being considered as 3. " << std::endl;
-                }
+                // ///////////////////////////////////////////
+                // GeometriesArrayType geometries;
+                // SizeType shape_function_derivatives_order = 3;
+                // if (mParameters.Has("shape_function_derivatives_order")) {
+                //     shape_function_derivatives_order = mParameters["shape_function_derivatives_order"].GetInt();
+                // }
+                // else {
+                //     KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 4)
+                //         << "shape_function_derivatives_order is not provided and thus being considered as 3. " << std::endl;
+                // }
 
-                std::string quadrature_method = mParameters.Has("quadrature_method")
-                    ? mParameters["integration_rule"].GetString()
-                    : "GAUSS";
-                IntegrationInfo integration_info = slave_brep_geometry->GetDefaultIntegrationInfo();
+                // std::string quadrature_method = mParameters.Has("quadrature_method")
+                //     ? mParameters["integration_rule"].GetString()
+                //     : "GAUSS";
+                // IntegrationInfo integration_info = slave_brep_geometry->GetDefaultIntegrationInfo();
 
-                if (mParameters.Has("number_of_integration_points_per_span")) {
-                    for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
-                        integration_info.SetNumberOfIntegrationPointsPerSpan(i, mParameters["number_of_integration_points_per_span"].GetInt());
-                    }
-                }
+                // if (mParameters.Has("number_of_integration_points_per_span")) {
+                //     for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                //         integration_info.SetNumberOfIntegrationPointsPerSpan(i, mParameters["number_of_integration_points_per_span"].GetInt());
+                //     }
+                // }
                 
-                for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
-                    if (quadrature_method == "GAUSS") {
-                        integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
-                    }
-                    else if (quadrature_method == "EXTENDED_GAUSS") {
-                        integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
-                    }
-                    else if (quadrature_method == "GRID") {
-                        integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
-                    }
-                    else {
-                        KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
-                            << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
-                    }
-                }
+                // for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                //     if (quadrature_method == "GAUSS") {
+                //         integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
+                //     }
+                //     else if (quadrature_method == "EXTENDED_GAUSS") {
+                //         integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+                //     }
+                //     else if (quadrature_method == "GRID") {
+                //         integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+                //     }
+                //     else {
+                //         KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
+                //             << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
+                //     }
+                // }
 
 
-                IntegrationPointsArrayType integration_points;
-                IntegrationPointUtilities::CreateIntegrationPoints1D(integration_points, spans_final, integration_info);
+                // IntegrationPointsArrayType integration_points;
+                // IntegrationPointUtilities::CreateIntegrationPoints1D(integration_points, spans_final, integration_info);
 
-                slave_brep_geometry->CreateQuadraturePointGeometries(geometries, shape_function_derivatives_order, integration_points, integration_info, false);
+                // slave_brep_geometry->CreateQuadraturePointGeometries(geometries, shape_function_derivatives_order, integration_points, integration_info, false);
             
-                for (auto it = geometries.ptr_begin(); it != geometries.ptr_end(); ++it) {
+                // for (auto it = geometries.ptr_begin(); it != geometries.ptr_end(); ++it) {
                     
-                    std::vector<array_1d<double, 3>> curve_derivatives(2, ZeroVector(3));
-                    CoordinatesArrayType best_projection = ZeroVector(3);
+                //     std::vector<array_1d<double, 3>> curve_derivatives(2, ZeroVector(3));
+                //     CoordinatesArrayType best_projection = ZeroVector(3);
 
-                    std::string projection_layer_name = "";
+                //     std::string projection_layer_name = "";
 
-                    ProjectToSkinBoundary(mrSlaveSkinModelPart, projection_layer_name, (*it)->Center(), best_projection, curve_derivatives, 10);
+                //     ProjectToSkinBoundary(mrSlaveSkinModelPart, projection_layer_name, (*it)->Center(), best_projection, curve_derivatives, 10);
 
-                    IndexType id_new_node_slave = mrSlaveSkinModelPart->GetRootModelPart().Nodes().size()+1;
-                    auto new_slave_skin_node = new Node(id_new_node_slave, best_projection);
-                    // mrSlaveSkinModelPart->GetSubModelPart(projection_layer_name).AddNode(new_slave_skin_node);
+                //     IndexType id_new_node_slave = mrSlaveSkinModelPart->GetRootModelPart().Nodes().size()+1;
+                //     auto new_slave_skin_node = new Node(id_new_node_slave, best_projection);
+                //     // mrSlaveSkinModelPart->GetSubModelPart(projection_layer_name).AddNode(new_slave_skin_node);
 
-                    //FIXME: To do automatically in some way
-                    Vector force_vector = ZeroVector(3); 
-                    // force_vector[1] = -0.3;
-                    new_slave_skin_node->SetValue(FORCE, force_vector);
+                //     //FIXME: To do automatically in some way
+                //     Vector force_vector = ZeroVector(3); 
+                //     // force_vector[1] = -0.3;
+                //     new_slave_skin_node->SetValue(FORCE, force_vector);
 
-                    NodePointerVector empty_vector;
-                    empty_vector.push_back(new_slave_skin_node); // Just it_node-plane neighbours
-                    (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
+                //     NodePointerVector empty_vector;
+                //     empty_vector.push_back(new_slave_skin_node); // Just it_node-plane neighbours
+                //     (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
 
-                    std::ofstream outputFile2("txt_files/Cut_Elements_Coordinates.txt", std::ios::app);
-                        outputFile2 <<  new_slave_skin_node->X() << " " << new_slave_skin_node->Y() << " "  << (*it)->Center().X() << " " << (*it)->Center().Y() <<"\n";
-                        outputFile2.close();
+                //     std::ofstream outputFile2("txt_files/Cut_Elements_Coordinates.txt", std::ios::app);
+                //         outputFile2 <<  new_slave_skin_node->X() << " " << new_slave_skin_node->Y() << " "  << (*it)->Center().X() << " " << (*it)->Center().Y() <<"\n";
+                //         outputFile2.close();
 
-                    // compute normals and useful info
-                    std::vector<CoordinatesArrayType> global_space_derivatives_slave;
-                    CoordinatesArrayType tangent_vector_slave = curve_derivatives[1];
-                    double tangent_magnitude_slave = norm_2(tangent_vector_slave);
-                    tangent_vector_slave /= tangent_magnitude_slave;
-                    Vector normal_vector_slave = ZeroVector(3);
-                    normal_vector_slave[0] = tangent_vector_slave[1];
-                    normal_vector_slave[1] = -tangent_vector_slave[0];
+                //     // compute normals and useful info
+                //     std::vector<CoordinatesArrayType> global_space_derivatives_slave;
+                //     CoordinatesArrayType tangent_vector_slave = curve_derivatives[1];
+                //     double tangent_magnitude_slave = norm_2(tangent_vector_slave);
+                //     tangent_vector_slave /= tangent_magnitude_slave;
+                //     Vector normal_vector_slave = ZeroVector(3);
+                //     normal_vector_slave[0] = tangent_vector_slave[1];
+                //     normal_vector_slave[1] = -tangent_vector_slave[0];
 
-                    new_slave_skin_node->SetValue(NORMAL, normal_vector_slave);
-                    new_slave_skin_node->SetValue(LOCAL_TANGENT, tangent_vector_slave);
+                //     new_slave_skin_node->SetValue(NORMAL, normal_vector_slave);
+                //     new_slave_skin_node->SetValue(LOCAL_TANGENT, tangent_vector_slave);
 
-                    std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-                    outputFile <<  new_slave_skin_node->X() << " " << new_slave_skin_node->Y() << " "  << (*it)->Center().X() << " " << (*it)->Center().Y() <<"\n";
-                    outputFile.close();
+                //     std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+                //     outputFile <<  new_slave_skin_node->X() << " " << new_slave_skin_node->Y() << " "  << (*it)->Center().X() << " " << (*it)->Center().Y() <<"\n";
+                //     outputFile.close();
 
-                    new_condition_list.push_back(
-                        rReferenceCondition.Create(rIdCounter, (*it), mpPropSlave));
+                //     new_condition_list.push_back(
+                //         rReferenceCondition.Create(rIdCounter, (*it), mpPropSlave));
                     
-                    new_condition_list.GetContainer()[count_cond]->SetValue(MARKER_MESHES, meshSizes_uv);
+                //     new_condition_list.GetContainer()[count_cond]->SetValue(MARKER_MESHES, meshSizes_uv);
                                     
-                    // for (SizeType i = 0; i < (*it)->size(); ++i) {
-                    //     // These are the control points associated with the basis functions involved in the condition we are creating
-                    //     // rModelPart.AddNode((*it)->pGetPoint(i));
-                    //     mrContactModelPart->GetParentModelPart().Nodes().push_back((*it)->pGetPoint(i));
-                    // }
-                    rIdCounter++;
-                    count_cond++;
-                }
+                //     // for (SizeType i = 0; i < (*it)->size(); ++i) {
+                //     //     // These are the control points associated with the basis functions involved in the condition we are creating
+                //     //     // rModelPart.AddNode((*it)->pGetPoint(i));
+                //     //     mrContactModelPart->GetParentModelPart().Nodes().push_back((*it)->pGetPoint(i));
+                //     // }
+                //     rIdCounter++;
+                //     count_cond++;
+                // }
 
-                mrContactModelPart->GetParentModelPart().AddConditions(new_condition_list.begin(), new_condition_list.end());
+                // mrContactModelPart->GetParentModelPart().AddConditions(new_condition_list.begin(), new_condition_list.end());
             
             }
             else

@@ -40,7 +40,7 @@
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
 #include "custom_conditions/support_conv_diff_condition.h"
-#include "custom_conditions/sbm_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_support_lagrange_condition.h"
 #include "custom_conditions/support_laplacian_lagrange_condition.h"
@@ -153,7 +153,7 @@ private:
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SupportConvDiffCondition mSupportConvDiffCondition;
-    const SBMLaplacianCondition mSBMLaplacianCondition;
+    const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
     const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
     const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;

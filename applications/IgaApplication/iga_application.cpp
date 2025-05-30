@@ -56,7 +56,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportConvDiffCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSBMLaplacianCondition(0, Condition::GeometryType::Pointer(
+    , mSbmLaplacianConditionDirichlet(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmLaplacianConditionNeumann(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -112,8 +112,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportLaplacianCondition", mSupportLaplacianCondition)
     KRATOS_REGISTER_CONDITION("SupportConvDiffCondition", mSupportConvDiffCondition)
-    KRATOS_REGISTER_CONDITION("SBMLaplacianCondition", mSBMLaplacianCondition)
-    KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumannn", mSbmLaplacianConditionNeumann)
+    KRATOS_REGISTER_CONDITION("SbmLaplacianConditionDirichlet", mSbmLaplacianConditionDirichlet)
+    KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
     KRATOS_REGISTER_CONDITION("SBMSupportLagrangeCondition", mSBMSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportLaplacianLagrangeCondition", mSupportLaplacianLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportSolid2DCondition", mSupportSolid2DCondition)

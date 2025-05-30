@@ -251,7 +251,7 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     {
 
         // KRATOS_WATCH(r_geometry.Center())
-        // noalias(rLeftHandSideMatrix) += 1e-2*IntToReferenceWeight * prod(trans(B), Matrix(prod(r_D, B)));
+        // noalias(rLeftHandSideMatrix) += 1e-3*IntToReferenceWeight * prod(trans(B), Matrix(prod(r_D, B)));
         // noalias(rLeftHandSideMatrix) -= prod(trans(B_x+B_y),r_D)*IntToReferenceWeight;
 
         ///////
@@ -307,8 +307,77 @@ void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     }
 
     else if (activation_level == 1)
+    {
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(trans(B), Matrix(prod(r_D, B)));
 
+            // --- TERMINE AGGIUNTIVO: ν · ∫ div(u)·div(w) dV ---
+        // costruisco il vettore divB = [∂N1/∂x; ∂N1/∂y; ∂N2/∂x; ∂N2/∂y; …]
+        Vector divB(mat_size);
+        for(IndexType i = 0; i < number_of_points; ++i) {
+            divB(2*i)   = DN_DX(i,0);  // ∂Ni/∂x
+            divB(2*i+1) = DN_DX(i,1);  // ∂Ni/∂y
+        }
+
+        // costruisco la matrice outer_prod(divB, divB)
+        Matrix divStab = ZeroMatrix(mat_size, mat_size);
+        for(IndexType i = 0; i < mat_size; ++i) {
+            for(IndexType j = 0; j < mat_size; ++j) {
+                divStab(i,j) = IntToReferenceWeight* divB(i) * divB(j);
+            }
+        }
+
+        // recupero ν (per es. viscosità o altro coefficiente)
+        // const double nu = 10;
+
+
+
+        Matrix DivSigmaMatrix(2, mat_size);
+
+        Matrix DB_x(3, mat_size);
+        Matrix DB_y(3, mat_size);
+
+        noalias(DB_x) = prod(r_D, B_x);  // D ⋅ ∂B/∂x
+        noalias(DB_y) = prod(r_D, B_y);  // D ⋅ ∂B/∂y
+
+        // div(σ)_x = ∂σ_xx/∂x + ∂σ_xy/∂y
+        row(DivSigmaMatrix, 0) = row(DB_x, 0);  // ∂σ_xx/∂x
+        noalias(row(DivSigmaMatrix, 0)) += row(DB_y, 2);  // ∂σ_xy/∂y
+
+        // div(σ)_y = ∂σ_xy/∂x + ∂σ_yy/∂y
+        row(DivSigmaMatrix, 1) = row(DB_x, 2);  // ∂σ_xy/∂x
+        noalias(row(DivSigmaMatrix, 1)) += row(DB_y, 1);  // ∂σ_yy/∂y
+
+        Vector div_sigma = prod(DivSigmaMatrix, old_displacement);
+
+
+        Matrix grad_u(2, 2);
+        grad_u.clear(); // mette tutti gli elementi a zero
+
+        for(IndexType a = 0; a < number_of_points; ++a) {
+            const SizeType idx = 2*a;
+            const double u_ax = old_displacement[idx];     // componente x di u_a
+            const double u_ay = old_displacement[idx + 1]; // componente y di u_a
+
+            // ∂N_a/∂x = DN_DX(a,0),  ∂N_a/∂y = DN_DX(a,1)
+            grad_u(0,0) += u_ax * DN_DX(a,0);
+            grad_u(0,1) += u_ax * DN_DX(a,1);
+            grad_u(1,0) += u_ay * DN_DX(a,0);
+            grad_u(1,1) += u_ay * DN_DX(a,1);
+        }
+
+        const double norm_grad_u = norm_frobenius(grad_u) +1e-8;
+        
+        // Vector meshSize_uv = this->GetValue(MARKER_MESHES);
+        // double h = std::min(meshSize_uv[0], meshSize_uv[1]);
+
+        double h = 3;
+
+        double nu = std::min(0.25 * h * norm_2(div_sigma)/norm_grad_u, 1*GetProperties()[YOUNG_MODULUS]*h);
+
+
+        // aggiungo al LHS: ν * IntToReferenceWeight * divStab
+        noalias(rLeftHandSideMatrix) += nu * IntToReferenceWeight * divStab;
+    }
     else 
     {
         KRATOS_WATCH(activation_level);

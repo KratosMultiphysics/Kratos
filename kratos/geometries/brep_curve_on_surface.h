@@ -614,6 +614,25 @@ public:
         mQuadraturePointGeometries = rResultGeometries;
     }
 
+
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo,
+        bool SaveResultGeometries)
+    {
+        mpCurveOnSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
+
+        if (SaveResultGeometries)
+            mQuadraturePointGeometries = rResultGeometries;
+    }
+
     void GetQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries)
     {

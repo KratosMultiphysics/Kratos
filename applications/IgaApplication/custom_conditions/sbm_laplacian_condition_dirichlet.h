@@ -22,15 +22,15 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class KRATOS_API(IGA_APPLICATION) SbmLaplacianConditionNeumann
+class KRATOS_API(IGA_APPLICATION) SbmLaplacianConditionDirichlet
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of SbmLaplacianConditionNeumann
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmLaplacianConditionNeumann);
+    /// Counted pointer definition of SbmLaplacianConditionDirichlet
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmLaplacianConditionDirichlet);
 
     /// Size types
     using SizeType = std::size_t;
@@ -41,14 +41,14 @@ public:
     ///@{
 
     /// Constructor with Id and geometry
-    SbmLaplacianConditionNeumann(
+    SbmLaplacianConditionDirichlet(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    SbmLaplacianConditionNeumann(
+    SbmLaplacianConditionDirichlet(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -56,11 +56,11 @@ public:
     {};
 
     /// Default constructor
-    SbmLaplacianConditionNeumann() : Condition()
+    SbmLaplacianConditionDirichlet() : Condition()
     {};
 
     /// Destructor
-    virtual ~SbmLaplacianConditionNeumann() override
+    virtual ~SbmLaplacianConditionDirichlet() override
     {};
 
     ///@}
@@ -74,7 +74,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SbmLaplacianConditionNeumann>(
+        return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(
             NewId, pGeom, pProperties);
     };
 
@@ -85,7 +85,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SbmLaplacianConditionNeumann>(
+        return Kratos::make_intrusive<SbmLaplacianConditionDirichlet>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -146,11 +146,6 @@ public:
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
-    
-    void FinalizeSolutionStep(
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     ///@}
     ///@name Check
     ///@{
@@ -166,14 +161,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"SbmLaplacianConditionNeumann\" #" << Id();
+        buffer << "\"SbmLaplacianConditionDirichlet\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"SbmLaplacianConditionNeumann\" #" << Id();
+        rOStream << "\"SbmLaplacianConditionDirichlet\" #" << Id();
     }
 
     /// Print object's data.
@@ -217,7 +212,7 @@ private:
      * 
      * @param H_sum_vec 
      */
-    void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
+    void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
     
     /**
      * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -251,16 +246,16 @@ private:
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;
-    array_1d<double, 3> mTrueNormal;
-    double mTrueDotSurrogateNormal;
     Vector mDistanceVector;
     unsigned int mDim;
+    double mPenalty;
+    double mNitschePenalty;
     IndexType mBasisFunctionsOrder;
     NodeType* mpProjectionNode;
 
     ///@}
 
-}; // Class SbmLaplacianConditionNeumann
+}; // Class SbmLaplacianConditionDirichlet
 
 }  // namespace Kratos.
 

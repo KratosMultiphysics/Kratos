@@ -39,6 +39,8 @@ namespace Kratos
             mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
 
+            SetValue(SKIN_MASTER_COORDINATES, r_geometry.GetValue(NEIGHBOUR_NODES)[0]);
+
         } else
             KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
@@ -56,6 +58,8 @@ namespace Kratos
     )
     {
         KRATOS_TRY
+
+        int bc_type = GetProperties()[ACTIVATION_LEVEL];
         // loopIdentifier is inner or outer
         std::string loopIdentifier = this->GetValue(IDENTIFIER);
         
@@ -171,10 +175,17 @@ namespace Kratos
         int basisFunctionsOrder;
 
         
-
         // Compute basis function order (Note: it is not allow to use different orders in different directions)
         basisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
-        
+
+        //FIXME: 
+        double x = r_geometry.Center().X();
+        double y = r_geometry.Center().Y();
+        // if ((x >= 0.5 && x <= 0.9) || (x >= 1.5 && x <= 1.9) && y > 1.0)
+        //     basisFunctionsOrder = 1;
+
+        // // if (std::abs(normal_parameter_space[0]) > 0.2 && y > 1.0)
+        //     basisFunctionsOrder = 1;
         
 
         const Matrix& N = r_geometry.ShapeFunctionsValues();
@@ -192,7 +203,6 @@ namespace Kratos
         noalias(DN_DX) = prod(DN_De[0],InvJ0);
 
         Matrix H = ZeroMatrix(1, number_of_nodes);
-        Matrix H_sum = ZeroMatrix(1, number_of_nodes);
 
         // Compute all the derivatives of the basis functions involved
         std::vector<Matrix> nShapeFunctionDerivatives;
@@ -203,6 +213,7 @@ namespace Kratos
 
         // Neumann (Taylor expansion of the gradient)
         Matrix Hgrad = ZeroMatrix(number_of_nodes, 2);
+        Matrix H_grad_extension = ZeroMatrix(number_of_nodes, 2);
         for (IndexType i = 0; i < number_of_nodes; ++i)
         {
             H(0, i) = N(0, i);
@@ -226,6 +237,9 @@ namespace Kratos
             }
             Hgrad(i,0) =  DN_DX(i,0) + H_taylor_term_X;
             Hgrad(i,1) =  DN_DX(i,1) + H_taylor_term_Y;
+
+            H_grad_extension(i,0) = H_taylor_term_X;
+            H_grad_extension(i,1) = H_taylor_term_Y;
         }    
 
         const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
@@ -238,6 +252,10 @@ namespace Kratos
         GetValuesVector(old_displacement);
 
         //----------------------------------------------
+
+        Matrix B_extension = ZeroMatrix(3,mat_size);
+
+        CalculateB(B_extension, H_grad_extension);
 
         Matrix B_sum = ZeroMatrix(3,mat_size);
 
@@ -272,6 +290,8 @@ namespace Kratos
         const Matrix& r_D = Values.GetConstitutiveMatrix();
 
         //------------------------------
+        Matrix DB_extension = prod(r_D, B_extension); //
+
         Matrix DB_sum = prod(r_D, B_sum); //
 
         Matrix DB = prod(r_D, B); //
@@ -289,6 +309,12 @@ namespace Kratos
         n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1];
         double curvature = projection_node.GetValue(CURVATURE);
 
+        double penalty = 1;
+        // true_tau = -true_tau;
+        // true_tau[2] = 0.0;
+        // true_tau = true_tau / MathUtils<double>::Norm(true_tau);
+        const double tau_n_tilde = true_tau[0] * normal_parameter_space[0] + true_tau[1] * normal_parameter_space[1]; 
+
 
         // n_ntilde /= (1.0+curvature_sign*curvature*norm_2(d));
 
@@ -302,18 +328,68 @@ namespace Kratos
                     const int id1 = 2*idim;
                     const int iglob = 2*i+idim;
 
+                    //FIXME: OLD VERSION
+                    // for (IndexType jdim = 0; jdim < 2; jdim++) {
+                    //     const int id2 = (id1+2)%3;
+                    //     const int jglob = 2*j+jdim;
+
+                    //     // FLUX STANDARD TERM
+                    //     rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
+                    
+                        
+                    //     // SBM TERM
+                    //     rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor * n_ntilde;
+                    // }
+
+
+                    //FIXME: NEW VERSION
                     for (IndexType jdim = 0; jdim < 2; jdim++) {
                         const int id2 = (id1+2)%3;
                         const int jglob = 2*j+jdim;
 
-                        // -()
-                        rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
-                    
-                        
-                        rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor * n_ntilde;
+                        Vector sigma_u_n(2);
+                        sigma_u_n[0] = (DB(0, jglob)* normal_parameter_space[0] + DB(2, jglob)* normal_parameter_space[1]);
+                        sigma_u_n[1] = (DB(2, jglob)* normal_parameter_space[0] + DB(1, jglob)* normal_parameter_space[1]);
 
-                        // rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor 
-                        //                                     * n_ntilde/(1+curvature*norm_2(d));
+                        Vector extension_sigma_u_n(2);
+                        extension_sigma_u_n[0] = (DB_extension(0, jglob)* true_n[0] + DB_extension(2, jglob)* true_n[1]);
+                        extension_sigma_u_n[1] = (DB_extension(2, jglob)* true_n[0] + DB_extension(1, jglob)* true_n[1]);
+
+                        Vector sigma_u_t(2);
+                        sigma_u_t[0] = (DB(0, jglob)* true_tau[0] + DB(2, jglob)* true_tau[1]);
+                        sigma_u_t[1] = (DB(2, jglob)* true_tau[0] + DB(1, jglob)* true_tau[1]);
+
+                        if (bc_type == 1)
+                        {
+                            const double sigma_u_t_t =  sigma_u_t[0]*true_tau[0] + sigma_u_t[1]*true_tau[1];
+
+                            const double extension_sigma_u_n_t = extension_sigma_u_n[0]*true_tau[0] + extension_sigma_u_n[1]*true_tau[1];
+
+                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*sigma_u_t_t * true_tau[idim] * tau_n_tilde * integration_factor;
+
+                            rLeftHandSideMatrix(iglob, jglob) += H(0,i)*extension_sigma_u_n_t * true_n[idim] * tau_n_tilde *integration_factor;
+                        }
+                        else if (bc_type == 0)
+                        {
+                            // -FLUX STANDARD TEM()
+                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*sigma_u_t[idim] * tau_n_tilde * integration_factor;
+                        }
+                    
+                        // SBM FACTOR
+                        rLeftHandSideMatrix(iglob, jglob) += H(0,i)*extension_sigma_u_n[idim] * penalty*integration_factor * n_ntilde;
+
+
+                        // SBM OLD TERM
+                        // rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor * n_ntilde;
+
+
+                        // Nitsche like term
+                        Vector sigma_w_n(2);
+                        sigma_w_n[0] = (DB(0, iglob)* normal_parameter_space[0] + DB(2, iglob)* normal_parameter_space[1]);
+                        sigma_w_n[1] = (DB(2, iglob)* normal_parameter_space[0] + DB(1, iglob)* normal_parameter_space[1]);
+
+                        // rLeftHandSideMatrix(iglob, jglob) += (sigma_w_n[0]*extension_sigma_u_n[0] + sigma_w_n[1]*extension_sigma_u_n[1]) 
+                        //                                     * integration_factor;
 
                     }
                 }
@@ -344,8 +420,8 @@ namespace Kratos
             Vector g_N = ZeroVector(2);
 
             // // When "analysis_type" is "linear" temper = 0
-            // const double x = projection[0];
-            // const double y = projection[1];
+            const double x = projection[0];
+            const double y = projection[1];
 
             // const double x = r_geometry.Center().X();
             // const double y = r_geometry.Center().Y();
@@ -354,11 +430,19 @@ namespace Kratos
             // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * true_n[0]; 
             // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * true_n[1]; 
 
+
+            // Vector g_T = ZeroVector(2);
+
+            // g_T[0] = E/(1-nu)*(sin(x)*sinh(y)) * true_tau[0]; 
+            // g_T[1] = E/(1-nu)*(sin(x)*sinh(y)) * true_tau[1]; 
+
+            
+
             // polynomial 1
-            // g_N[0] = E/(1-nu*nu)*(2*nu*x*y+2*x*y) * true_n[0]
-            //         + E/(2*(1+nu)) * (x*x + y*y) * true_n[1]; 
-            // g_N[1] = E/(2*(1+nu)) * (x*x + y*y) * true_n[0]
-            //         + E/(1-nu*nu)*(2*nu*x*y+2*x*y) * true_n[1]; 
+            g_N[0] = E/(1-nu*nu)*(2*nu*x*y+2*x*y) * true_n[0]
+                    + E/(2*(1+nu)) * (x*x + y*y) * true_n[1]; 
+            g_N[1] = E/(2*(1+nu)) * (x*x + y*y) * true_n[0]
+                    + E/(1-nu*nu)*(2*nu*x*y+2*x*y) * true_n[1]; 
 
             // polynomial 2
             // double sigma_xx = E / (1 - nu * nu) * (0.2 * nu * x + 2 * x * y + 1.0 * x);
@@ -374,13 +458,27 @@ namespace Kratos
             g_N[0] = projection_node.GetValue(FORCE_X);
             g_N[1] = projection_node.GetValue(FORCE_Y);
 
+            const double g_N_T = g_N[0]*true_tau[0] + g_N[1]*true_tau[1];
+
             for (IndexType i = 0; i < number_of_nodes; i++) {
                 
-                for (IndexType zdim = 0; zdim < 2; zdim++) {
-                    
-                    rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * n_ntilde * IntToReferenceWeight;
+                for (IndexType idim = 0; idim < 2; idim++) {
+                    const int iglob = 2*i+idim;
+                    Vector sigma_w_n(2);
+                    sigma_w_n[0] = (DB(0, iglob)* normal_parameter_space[0] + DB(2, iglob)* normal_parameter_space[1]);
+                    sigma_w_n[1] = (DB(2, iglob)* normal_parameter_space[0] + DB(1, iglob)* normal_parameter_space[1]);
 
-                    // rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * n_ntilde/(1+curvature*norm_2(d)) * IntToReferenceWeight;
+                    // rRightHandSideVector[2*i+idim] += (sigma_w_n[0]*g_N[0] + sigma_w_n[1]*g_N[1]) * IntToReferenceWeight;
+                    
+                    rRightHandSideVector[2*i+idim] += H(0,i)*g_N[idim] * n_ntilde* penalty * IntToReferenceWeight;
+
+                    if (bc_type == 1)
+                    {
+                        rRightHandSideVector[2*i+idim] += H(0,i)*g_N_T *true_n[idim] * tau_n_tilde * IntToReferenceWeight;
+                    }
+                    // rRightHandSideVector[2*i+idim] += H(0,i)*g_T[idim] * tau_n_tilde* penalty * IntToReferenceWeight;
+
+                    // rRightHandSideVector[2*i+idim] += H(0,i)*g_N[idim] * n_ntilde/(1+curvature*norm_2(d)) * IntToReferenceWeight;
 
                 }
             }
@@ -389,12 +487,19 @@ namespace Kratos
             
         }
 
-        // for (unsigned int i = 0; i < number_of_nodes; i++) {
-
-        //         std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-        //         outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-        //         outputFile.close();
-        //     }
+        if (r_geometry.Center().X() > 1.4 && r_geometry.Center().X() < 1.5 && r_geometry.Center().Y() > 1.3)
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+                // if (r_geometry[i].GetId() == 420) 
+                // {
+                //     KRATOS_WATCH(r_geometry[i].Coordinates())
+                //     KRATOS_WATCH(DN_DX(i,0))
+                //     KRATOS_WATCH(DN_DX(i,1))
+                // }
+            
+                std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+                outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+                outputFile.close();
+            }
         KRATOS_CATCH("")
     }
 
@@ -562,6 +667,9 @@ namespace Kratos
         SetValue(NORMAL_STRESS, sigma_n);
 
         this->SetValue(NORMAL_MASTER, mTrueNormal);
+
+
+        this->SetValue(STRESS_MASTER, stress_vector);
     }
 
 

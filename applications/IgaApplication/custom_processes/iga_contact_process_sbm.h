@@ -258,6 +258,46 @@ private:
 
     static unsigned long long Factorial(int n); 
 
+    static std::vector<IndexType> FindClosestBrepId(
+        const CoordinatesArrayType& rPointGlobalCoordinates, 
+        const ModelPart& rModelPart,
+        const SparseMatrixType& SparseBrepMatrix);
+
+
+
+    
+    bool ProjectPointViaRayTracingToMasterCurveDeformed(
+        const CoordinatesArrayType& point_slave_deformed,
+        const Vector& normal_slave_deformed,
+        const NurbsCurveGeometryType& master_curve,
+        const ModelPart& master_model_part,
+        const SparseMatrixType& sparse_matrix_master,
+        CoordinatesArrayType& rBestProjectedPoint,
+        CoordinatesArrayType& rBestProjectedPointLocalCoords,
+        double& rBestDistance,
+        double tolerance = 1e-8,
+        int max_iter = 100,
+        int n_initial_guesses = 5);
+
+    
+    static bool ProjectToSkinBoundary(
+        const ModelPart* ModelPart,
+        std::string &rLayerName,
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rProjectedPoint,
+        std::vector<array_1d<double, 3>>& rCurveDerivatives,
+        int n_initial_guesses = 10);
+
+    
+    static bool ProjectBackToSurrogateBoundary(
+        const ModelPart &rSurrogateModelPart,
+        const CoordinatesArrayType& rSkinPoint,
+        const SparseMatrixType& rSparseBrepMatrix,
+        const Vector & rSkinNormal,
+        IndexType& rBrepId,
+        double& rSurrogateProjection
+    );
+
     ///@}
     ///@name Input and output
     ///@{

@@ -37,6 +37,8 @@ namespace Kratos
             mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
 
+            SetValue(SKIN_MASTER_COORDINATES, this->GetValue(NEIGHBOUR_CONDITIONS)[0].GetGeometry()[0]);
+
         } else
             KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 

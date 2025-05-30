@@ -286,6 +286,8 @@ void LaplacianIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProces
         }
     } 
 
+    SetValue(CAUCHY_STRESS_VECTOR, rOutput_gradient);
+
 
     #pragma omp critical
     {

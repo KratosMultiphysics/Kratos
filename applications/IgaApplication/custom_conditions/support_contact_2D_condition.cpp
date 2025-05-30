@@ -269,7 +269,7 @@ namespace Kratos
 
         Vector normal_mean = normal_physical_space; // - (1-gamma)*slave_normal_physical_space;
 
-        if (this->GetValue(ACTIVATION_LEVEL) == 1) {
+        if (this->GetValue(ACTIVATION_LEVEL) == 3) {
 
             // MASTER
             Matrix DB_master = prod(r_D_master,B_master);

@@ -106,8 +106,8 @@ namespace Kratos
 
         // INITIALIZE AND RESIZE 
 
-        double penalty_master = 1e2;// 50;// (*mpPropMaster)[PENALTY_FACTOR];
-        double penalty_slave =  1e2;// 50;//(*mpPropSlave)[PENALTY_FACTOR];
+        double penalty_master = 1e-4;// 50;// (*mpPropMaster)[PENALTY_FACTOR];
+        double penalty_slave =  1e-4;// 50;//(*mpPropSlave)[PENALTY_FACTOR];
 
         Vector penalty_vector = ZeroVector(2);
         penalty_vector[0] = penalty_master; penalty_vector[1] = penalty_slave;
@@ -247,7 +247,7 @@ namespace Kratos
         if (std::abs(inner_prod(normal_surrogate_master_3D, normal_true_master)) < 1e-8)
         {
             // normal_true_master = normal_surrogate_master_3D;
-            return;
+            // return;
         }
 
         this->SetValue(NORMAL_MASTER, normal_true_master);
@@ -260,7 +260,7 @@ namespace Kratos
         if (std::abs(inner_prod(normal_surrogate_slave_3D, normal_true_slave)) < 1e-8) 
         {
             // normal_true_slave = normal_surrogate_slave_3D;
-            return;
+            // return;
         }
 
         double curvature_true_master = projection_node_master.GetValue(CURVATURE);
@@ -282,10 +282,10 @@ namespace Kratos
         // KRATOS_WATCH("---------------")
         
 
-        // KRATOS_ERROR_IF(n_ntilde_master <= 0) << ":::[SbmContact2DCondition]::: Error. Master: Negative n_ntilde_master" 
-        //             << r_geometry_master.Center() << normal_surrogate_master_3D << normal_true_master <<  std::endl;
-        // KRATOS_ERROR_IF(n_ntilde_slave <= 0) << ":::[SbmContact2DCondition]::: Error. Slave: Negative n_ntilde_slave" 
-        //             << r_geometry_slave.Center() << normal_surrogate_slave_3D << normal_true_slave <<  std::endl;
+        KRATOS_ERROR_IF(n_ntilde_master <= 0) << ":::[SbmContact2DCondition]::: Error. Master: Negative n_ntilde_master" 
+                    << r_geometry_master.Center() << normal_surrogate_master_3D << normal_true_master <<  std::endl;
+        KRATOS_ERROR_IF(n_ntilde_slave <= 0) << ":::[SbmContact2DCondition]::: Error. Slave: Negative n_ntilde_slave" 
+                    << r_geometry_slave.Center() << normal_surrogate_slave_3D << normal_true_slave <<  std::endl;
 
         Matrix H_master = ZeroMatrix(1, number_of_nodes_master);       Matrix H_slave = ZeroMatrix(1, number_of_nodes_slave);
         Matrix H_sum_master = ZeroMatrix(1, number_of_nodes_master);   Matrix H_sum_slave = ZeroMatrix(1, number_of_nodes_slave);
@@ -298,9 +298,9 @@ namespace Kratos
         //TODO:
         double x = r_geometry_master.Center().X();
         double y = r_geometry_master.Center().Y();
-        // if ((x >= 0.3 && x <= 0.7))
-        //     basis_functions_order_master = 1;
-        //     basis_functions_order_slave = 1;
+        if ((x >= 0.3 && x <= 0.7))
+            basis_functions_order_master = 1;
+            basis_functions_order_slave = 1;
 
 
         for (int n = 1; n <= basis_functions_order_master; n++) {
@@ -539,7 +539,7 @@ namespace Kratos
                             rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_t_t * tau_true_master[idim] * tau_n_tilde_master * integration_weight_master;
 
                             //  rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_t_n * normal_true_master[idim] * tau_n_tilde_master * integration_weight_master;
-                            rLeftHandSideMatrix(iglob, jglob) += H_master(0,i)*extension_sigma_u_n_t * normal_true_master[idim] * tau_n_tilde_master *integration_weight_master;
+                            rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*extension_sigma_u_n_t * normal_true_master[idim] * tau_n_tilde_master *integration_weight_master;
                         }
                     }
                 }
@@ -623,23 +623,23 @@ namespace Kratos
                             rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*sigma_u_t_t * tau_true_slave[idim] * tau_n_tilde_slave * integration_weight_slave;
 
                             //  rLeftHandSideMatrix(iglob, jglob) -= H_master(0,i)*sigma_u_t_n * normal_true_master[idim] * tau_n_tilde_master * integration_weight_slave;
-                            rLeftHandSideMatrix(iglob, jglob) += H_slave(0,i)*extension_sigma_u_n_t * normal_true_slave[idim] * tau_n_tilde_slave *integration_weight_slave;
+                            rLeftHandSideMatrix(iglob, jglob) -= H_slave(0,i)*extension_sigma_u_n_t * normal_true_slave[idim] * tau_n_tilde_slave *integration_weight_slave;
                         }
                     }
                 }
                 
             }
-        n_ntilde_master *= 2;
-        n_ntilde_slave *= 0;
+        // n_ntilde_master *= 2;
+        // n_ntilde_slave *= 0;
         // exit(0);
         // //***************
         // NITSCHE CONSTANT TERMS  */
 
-        int active_constant_nitsche_terms = 0;
+        int active_constant_nitsche_terms = 1;
         // Nitsche Constant Term on Master
 
         // -0.5*[theta*gamma_1*(n_ntilde_1) (E(sigma_1(u)) \dot n_1) \dot n_1) *  (E(sigma_1(v)) \dot n_1) \dot n_1)] 
-        // if (this->GetValue(ACTIVATION_LEVEL) != 0)
+        // if (this->GetValue(ACTIVATION_LEVEL) == 3 || this->GetValue(ACTIVATION_LEVEL) == 1)
         for (IndexType i = 0; i < number_of_nodes_master; i++)
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int iglob = 2*i+idim;
@@ -674,7 +674,7 @@ namespace Kratos
 
         // -0.5*[theta*gamma_2*(n_ntilde_2) (E(sigma_2(u)) \dot n_2) \dot n_2) *  (E(sigma_2(v)) \dot n_2) \dot n_2)] 
         // if (!projection_node_slave.GetValue(NEIGHBOUR_GEOMETRY)->GetValue(IS_ASSEMBLED))
-        // if (this->GetValue(ACTIVATION_LEVEL) != 0)
+        // if (this->GetValue(ACTIVATION_LEVEL) == 3 || this->GetValue(ACTIVATION_LEVEL) == 2)
             for (IndexType i = 0; i < number_of_nodes_slave; i++)
                 for (IndexType idim = 0; idim < 2; idim++) {
                     const int iglob = 2*i+idim + 2*number_of_nodes_master;

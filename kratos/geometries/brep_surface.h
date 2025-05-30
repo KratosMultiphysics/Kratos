@@ -449,6 +449,29 @@ public:
     /* Creates integration points on the nurbs surface of this geometry.
      * @param return integration points.
      */
+    void CreateIntegrationPoints2(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const
+    {   
+        bool is_sbm = mpNurbsSurface->GetValue(IS_SBM) ;
+        if (is_sbm == 0) {
+            return;
+        }
+        else {
+            std::vector<double> spans_u;
+            std::vector<double> spans_v;
+            mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+            mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+
+            BrepSBMUtilities::CreateBrepSurfaceSBMExternalIntegrationPoints(
+                rIntegrationPoints,
+                spans_u, spans_v,
+                *mpSurrogateModelPart_inner, 
+                *mpSurrogateModelPart_outer,
+                rIntegrationInfo);
+        }
+    }
+
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
@@ -488,21 +511,64 @@ public:
      *
      * @see quadrature_point_geometry.h
      */
+
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo)
+    {
+        IntegrationPointsArrayType IntegrationPoints;
+        CreateIntegrationPoints(IntegrationPoints, rIntegrationInfo);
+
+        this->CreateQuadraturePointGeometries(
+            rResultGeometries,
+            NumberOfShapeFunctionDerivatives,
+            IntegrationPoints,
+            rIntegrationInfo);
+
+        // Set activation level for first batch
+        for (auto& r_ip : rResultGeometries) {
+            r_ip.SetValue(ACTIVATION_LEVEL, 1.0);
+        }
+
+        // Create second batch
+        IntegrationPointsArrayType IntegrationPoints2;
+        CreateIntegrationPoints2(IntegrationPoints2, rIntegrationInfo);
+
+        GeometriesArrayType secondResultGeometries;  // <== TEMP CONTAINER
+
+        this->CreateQuadraturePointGeometries(
+            secondResultGeometries,
+            NumberOfShapeFunctionDerivatives,
+            IntegrationPoints2,
+            rIntegrationInfo);
+
+        // Set activation level for second batch (optional)
+        for (auto& r_ip : secondResultGeometries) {
+            r_ip.SetValue(ACTIVATION_LEVEL, 2.0);  // or 2.0, etc., depending on your logic
+        }
+
+        // Append second batch into the original result
+        for (IndexType i = 0; i < secondResultGeometries.size(); ++i) {
+            rResultGeometries.push_back(secondResultGeometries(i));  // share the pointer
+        }
+
+    }
+
+
+
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        KRATOS_WATCH("CreateQuadraturePointGeometries")
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
-        }
-        KRATOS_WATCH("End CreateQuadraturePointGeometries")
-    }
+        }    }
 
     ///@}
     ///@name Shape Function

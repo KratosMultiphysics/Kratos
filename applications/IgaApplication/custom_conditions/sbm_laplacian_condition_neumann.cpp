@@ -151,6 +151,8 @@ void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
+    this->SetValue(SKIN_MASTER_COORDINATES, mpProjectionNode->Coordinates());
+
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
@@ -256,6 +258,8 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     const auto& r_integration_points = r_geometry.IntegrationPoints();
     
     const Matrix& H = r_geometry.ShapeFunctionsValues();
+
+    this->SetValue(SKIN_MASTER_COORDINATES, mpProjectionNode->Coordinates());
     
     // Assembly
     Vector t_N(number_of_nodes);
@@ -265,6 +269,51 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     }
     // Neumann Contributions
     noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
+}
+
+void SbmLaplacianConditionNeumann::FinalizeSolutionStep
+    (const ProcessInfo& rCurrentProcessInfo)
+{
+    //---------- SET STRESS VECTOR VALUE ---------------------------------------------------------------
+    
+    const auto& r_geometry = GetGeometry();
+    const unsigned int number_of_points = r_geometry.size();
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
+    Vector temp(number_of_points);
+    // RHS = ExtForces - K*temp;
+    for (IndexType i = 0; i < number_of_points; i++) {
+        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
+    }
+
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    
+    // Initialize DN_DX
+    Matrix DN_DX(number_of_nodes,mDim);
+
+    // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
+    noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[0],InvJ0);
+    
+    const Matrix& H = r_geometry.ShapeFunctionsValues();
+
+    // compute gradient Taylor expansion contribution: grad_H_sum
+    Matrix grad_H_sum = ZeroMatrix(3, number_of_nodes);
+    ComputeGradientTaylorExpansionContribution(grad_H_sum);
+
+    Vector d_u = prod(grad_H_sum, temp);
+
+    double sigma_n = d_u[0] * mTrueNormal[0] + d_u[1] * mTrueNormal[1] + d_u[2] * mTrueNormal[2];
+    
+
+    this->SetValue(NORMAL_MASTER, mTrueNormal);
+    this->SetValue(NORMAL_GAP, sigma_n);
+
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, d_u);
 }
 
 void SbmLaplacianConditionNeumann::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)

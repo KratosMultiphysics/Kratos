@@ -275,17 +275,34 @@ public:
         {
             KRATOS_INFO_IF("::[ActiveSetCriteria]:: Starting Post Criteria of Contact sub model part ", this->GetEchoLevel() >= 1) 
                             << contact_sub_model_part.Name();
+
+            int count_cond = 0;
+
+            int n_cond = contact_sub_model_part.Conditions().size(); 
+
+            Vector length = ZeroVector(n_cond);
+            Vector check_per_segment = ZeroVector(n_cond);
+
+            Vector check_per_segment_stress_master = ZeroVector(n_cond);
+            Vector check_per_segment_gap_master = ZeroVector(n_cond);
+            Vector per_segment_tangent_gap_master = ZeroVector(n_cond);
+
+            Vector check_per_segment_stress_slave = ZeroVector(n_cond);
+            Vector check_per_segment_gap_slave = ZeroVector(n_cond);
+            Vector per_segment_tangent_gap_slave = ZeroVector(n_cond);
         
             if (contact_sub_model_part.NumberOfConditions() == 0) return true;
 
             
             double toll_tangent_distance = 1e-1;
-            double toll = 0;//1e-9;
+            double toll_gap = 0;//-1e-3;
 
             int n_CP = (contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
             int p = (int) sqrt(n_CP);
+
+            int n_GP_per_segment = 2*p+1;
             
-            int n_cond = contact_sub_model_part.Conditions().size(); 
+            // int n_cond = contact_sub_model_part.Conditions().size(); 
 
             int n_changes = 0;
             int n_active = 0;
@@ -319,13 +336,28 @@ public:
                 double check_value_master = normal_gap_master;// - sigma_nn_master/young_modulus_master/10;
                 double check_value_slave = normal_gap_slave;// - sigma_nn_slave/young_modulus_slave/10;
 
-
-
                 double tangent_gap_master = norm_2(gap + normal_master*normal_gap_master);
                 double tangent_gap_slave = norm_2(gap - normal_slave*normal_gap_slave);
 
+
+                // int segment_index = (int) count_cond/n_GP_per_segment;
+
+                // double weight = i_cond->GetValue(INTEGRATION_WEIGHT);
+                
+                // length[segment_index] += weight;
+                // check_per_segment_gap_master[segment_index] += weight*check_value_master;
+                // check_per_segment_stress_master[segment_index] += weight*sigma_nn_master/young_modulus_master;
+                // per_segment_tangent_gap_master[segment_index] += weight*tangent_gap_master;
+
+                // check_per_segment_gap_slave[segment_index] += weight*check_value_slave;
+                // check_per_segment_stress_slave[segment_index] += weight*sigma_nn_slave/young_modulus_slave;
+                // per_segment_tangent_gap_slave[segment_index] += weight*tangent_gap_slave;
+
+                // count_cond++;
+
                 
                 // // FIXME:
+                // // if (i_cond->GetGeometry().GetGeometryPart(0).Center().X() <= 0.4305620486218446)
                 // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.4305620486218446)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
@@ -335,7 +367,9 @@ public:
                 //     }
                 //     n_active ++;
                 // }
-                // else if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > 0.4305620486218446)
+                // else 
+                // // if (i_cond->GetGeometry().GetGeometryPart(0).Center().X() > 0.4305620486218446)
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > 0.4305620486218446)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
                 //     {
@@ -343,10 +377,9 @@ public:
                 //         n_changes++;
                 //     }
                 // }
-
-                if (check_value_master > 0 && tangent_gap_master < toll_tangent_distance)
+                if (check_value_master >= toll_gap && tangent_gap_master < toll_tangent_distance)
                 {
-                    if (check_value_slave > 0 && tangent_gap_slave < toll_tangent_distance) //BOTH ACTIVE
+                    if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //BOTH ACTIVE
                     {
                         if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
                         {
@@ -366,7 +399,7 @@ public:
                 } 
                 else if (sigma_nn_master/young_modulus_master > 0)
                 {
-                    if (check_value_slave > 0 && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
+                    if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
                     {
                         if (i_cond->GetValue(ACTIVATION_LEVEL) != 2)
                         {
@@ -375,7 +408,8 @@ public:
                         }
                         n_active++;
                     }
-                    else if (sigma_nn_slave/young_modulus_slave > 0) // NONE ACTIVE
+                    else
+                     if (sigma_nn_slave/young_modulus_slave > 0) // NONE ACTIVE
                     {
                         if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
                         {
@@ -384,8 +418,62 @@ public:
                         }
                     }
                 }
+                
 
             }
+
+
+            // count_cond = 0;
+            // for (auto i_cond(contact_sub_model_part.Conditions().begin()); i_cond != contact_sub_model_part.Conditions().end(); ++i_cond)
+            // {
+            //     int segment_index = (int) count_cond/n_GP_per_segment;
+
+            //     if (check_per_segment_gap_master[segment_index]/length[segment_index] >= toll_gap && per_segment_tangent_gap_master[segment_index]/length[segment_index] < toll_tangent_distance)
+            //     {
+            //         if (check_per_segment_gap_slave[segment_index]/length[segment_index] >= toll_gap && per_segment_tangent_gap_slave[segment_index]/length[segment_index] < toll_tangent_distance) //BOTH ACTIVE
+            //         {
+            //             if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
+            //             {
+            //                 i_cond->SetValue(ACTIVATION_LEVEL, 3);
+            //                 n_changes++;
+            //             }
+            //         }
+            //         else if (check_per_segment_stress_slave[segment_index]/length[segment_index] > 0)  // ONLY MASTER ACTIVE
+            //         {
+            //             if (i_cond->GetValue(ACTIVATION_LEVEL) != 1)
+            //             {
+            //                 i_cond->SetValue(ACTIVATION_LEVEL, 1);
+            //                 n_changes++;
+            //             }
+            //         }
+            //         n_active++;
+            //     } 
+            //     else if (check_per_segment_stress_master[segment_index]/length[segment_index] > 0)
+            //     {
+            //         if (check_per_segment_gap_slave[segment_index]/length[segment_index] >= toll_gap && per_segment_tangent_gap_slave[segment_index]/length[segment_index] < toll_tangent_distance) //ONLY SLAVE ACTIVE
+            //         {
+            //             if (i_cond->GetValue(ACTIVATION_LEVEL) != 2)
+            //             {
+            //                 i_cond->SetValue(ACTIVATION_LEVEL, 2);
+            //                 n_changes++;
+            //             }
+            //             n_active++;
+            //         }
+            //         else
+            //          if (check_per_segment_stress_slave[segment_index]/length[segment_index] > 0) // NONE ACTIVE
+            //         {
+            //             if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
+            //             {
+            //                 i_cond->SetValue(ACTIVATION_LEVEL, 0);
+            //                 n_changes++;
+            //             }
+            //         }
+            //     }
+
+            //     count_cond++;
+
+            // }
+
             if (n_active == 0) 
                 KRATOS_WATCH("[Warning]:: zero active contact conditions")
                                                                                 
