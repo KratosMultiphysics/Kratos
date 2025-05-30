@@ -71,7 +71,7 @@ int IntersectionUtilities::ComputeTriangleLineIntersection(
     rIntersectionPoint = rLinePoint1 + r*dir;
 
     // Check if the intersection point is inside the triangle
-    if (PointInTriangle(rTrianglePoint1, rTrianglePoint2, rTrianglePoint3, rIntersectionPoint)) {
+    if (PointInTriangle(rTrianglePoint1, rTrianglePoint2, rTrianglePoint3, rIntersectionPoint, Epsilon)) {
         return 1;
     }
     return 0;
