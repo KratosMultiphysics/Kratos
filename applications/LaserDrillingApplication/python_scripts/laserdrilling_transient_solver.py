@@ -266,7 +266,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.FluenceFunction = self.FluenceSuperGaussian
             self.F_p = self.ComputePeakFluence()
 
-        if self.fluence_type in ["table", "table-correct-energy"]:
+        elif self.fluence_type in ["table", "table-correct-energy"]:
             # Check for table filename
             if not self.laser_settings["Variables"].Has("table_filename"):
                 Logger.PrintWarning("Warning", "Fluence table filename is not specified")
@@ -315,7 +315,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             # We are not going to be using the table as a np array
             del fluence_table_np
 
-        if self.fluence_type == "expression":
+        elif self.fluence_type == "expression":
             Logger.PrintInfo("Fluence type", "Using a fluence function specified as an analytical expression")
 
             self.gaussian_order = None
@@ -1823,95 +1823,94 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         return g
 
+    def LoadFluenceFromTable(self, fluence_table_filename, fluence_table_max_r, normalize=False):
+        """
+        Load a laser pulse fluence profile from a CSV file containing (x, y) pairs, convert it to a function,
+        and extend it to return zero beyond the specified maximum radius. Optionally normalize the profile
+        to represent the total energy of the laser pulse.
 
-def LoadFluenceFromTable(self, fluence_table_filename, fluence_table_max_r, normalize=False):
-    """
-    Load a laser pulse fluence profile from a CSV file containing (x, y) pairs, convert it to a function,
-    and extend it to return zero beyond the specified maximum radius. Optionally normalize the profile
-    to represent the total energy of the laser pulse.
+        The CSV file should contain at least two columns, where x typically represents radial position (r)
+        and y represents the radial part of fluence.
 
-    The CSV file should contain at least two columns, where x typically represents radial position (r)
-    and y represents the radial part of fluence.
+        The function is extended to return 0 for r > fluence_table_max_r.
 
-    The function is extended to return 0 for r > fluence_table_max_r.
+        If normalize=True, the function is scaled to integrate to the total pulse energy (self.Q).
 
-    If normalize=True, the function is scaled to integrate to the total pulse energy (self.Q).
+        Parameters
+        ----------
+        fluence_table_filename : str
+            Path to the CSV file containing (x, y) pairs for the fluence profile.
+        fluence_table_max_r : float
+            Maximum radial position beyond which the fluence is set to zero.
+        normalize : bool, optional
+            If True, normalize the fluence profile to integrate to 1 and scale by self.Q (pulse energy).
+            If False, use the raw fluence values from the table. Default is False.
 
-    Parameters
-    ----------
-    fluence_table_filename : str
-        Path to the CSV file containing (x, y) pairs for the fluence profile.
-    fluence_table_max_r : float
-        Maximum radial position beyond which the fluence is set to zero.
-    normalize : bool, optional
-        If True, normalize the fluence profile to integrate to 1 and scale by self.Q (pulse energy).
-        If False, use the raw fluence values from the table. Default is False.
+        Returns
+        -------
+        FluenceFunction: callable
+            A function that takes a position dictionary (with key 'r') and parameters, returning the
+            fluence value at that radial position.
 
-    Returns
-    -------
-    FluenceFunction: callable
-        A function that takes a position dictionary (with key 'r') and parameters, returning the
-        fluence value at that radial position.
+        Raises
+        ------
+        AttributeError
+            If self.Q is not defined when normalize=True.
+        RuntimeError
+            If the table reading or function conversion fails in Kratos utilities.
 
-    Raises
-    ------
-    AttributeError
-        If self.Q is not defined when normalize=True.
-    RuntimeError
-        If the table reading or function conversion fails in Kratos utilities.
+        Notes
+        -----
+        - Assumes the CSV file uses comma as delimiter and has numeric data.
+        - The returned function expects position as a dictionary with key 'r' (radial position).
+        """
 
-    Notes
-    -----
-    - Assumes the CSV file uses comma as delimiter and has numeric data.
-    - The returned function expects position as a dictionary with key 'r' (radial position).
-    """
+        # Configure table settings
+        fluence_table_settings = KratosMultiphysics.Parameters("""{
+            "name"             : "csv_table",
+            "filename"         : "",
+            "delimiter"        : ",",
+            "skiprows"         : 0,
+            "first_column_id"  : 0,
+            "second_column_id" : 1,
+            "table_id"         : -1,
+            "na_replace"       : 0.0
+        }""")
+        fluence_table_settings["filename"].SetString(fluence_table_filename)
 
-    # Configure table settings
-    fluence_table_settings = KratosMultiphysics.Parameters("""{
-        "name"             : "csv_table",
-        "filename"         : "",
-        "delimiter"        : ",",
-        "skiprows"         : 0,
-        "first_column_id"  : 0,
-        "second_column_id" : 1,
-        "table_id"         : -1,
-        "na_replace"       : 0.0
-    }""")
-    fluence_table_settings["filename"].SetString(fluence_table_filename)
+        # Read table
+        try:
+            FluenceTable = ReadCsvTableUtility(fluence_table_settings).Read()
+        except Exception as e:
+            raise RuntimeError(f"Failed to read fluence table: {str(e)}")
 
-    # Read table
-    try:
-        FluenceTable = ReadCsvTableUtility(fluence_table_settings).Read()
-    except Exception as e:
-        raise RuntimeError(f"Failed to read fluence table: {str(e)}")
+        # Convert to function
+        FluenceTableAsFunction = self.TableToFunction(FluenceTable)
+        if not callable(FluenceTableAsFunction):
+            raise RuntimeError("TableToFunction did not return a callable function")
 
-    # Convert to function
-    FluenceTableAsFunction = self.TableToFunction(FluenceTable)
-    if not callable(FluenceTableAsFunction):
-        raise RuntimeError("TableToFunction did not return a callable function")
+        # Extend function
+        FluenceTableExtended = self.ExtendFunction(FluenceTableAsFunction, xmax=fluence_table_max_r)
+        if not callable(FluenceTableExtended):
+            raise RuntimeError("ExtendFunction did not return a callable function")
 
-    # Extend function
-    FluenceTableExtended = self.ExtendFunction(FluenceTableAsFunction, xmax=fluence_table_max_r)
-    if not callable(FluenceTableExtended):
-        raise RuntimeError("ExtendFunction did not return a callable function")
+        if normalize:
+            # Check for pulse energy
+            if not hasattr(self, "Q") or not isinstance(self.Q, (int, float)) or self.Q <= 0:
+                raise AttributeError("self.Q must be a positive scalar when normalize=True")
 
-    if normalize:
-        # Check for pulse energy
-        if not hasattr(self, "Q") or not isinstance(self.Q, (int, float)) or self.Q <= 0:
-            raise AttributeError("self.Q must be a positive scalar when normalize=True")
+            # Normalize
+            FluenceFunctionNormalized = self.NormalizeAxisymmetricFunction(
+                FluenceTableExtended, rmin=0, rmax=fluence_table_max_r
+            )
+            if not callable(FluenceFunctionNormalized):
+                raise RuntimeError("NormalizeAxisymmetricFunction did not return a callable function")
 
-        # Normalize
-        FluenceFunctionNormalized = self.NormalizeAxisymmetricFunction(
-            FluenceTableExtended, rmin=0, rmax=fluence_table_max_r
-        )
-        if not callable(FluenceFunctionNormalized):
-            raise RuntimeError("NormalizeAxisymmetricFunction did not return a callable function")
+            def FluenceFunction(position, parameters):
+                return self.Q * FluenceFunctionNormalized(position["r"])
+        else:
 
-        def FluenceFunction(position, parameters):
-            return self.Q * FluenceFunctionNormalized(position["r"])
-    else:
+            def FluenceFunction(position, parameters):
+                return FluenceTableExtended(position["r"])
 
-        def FluenceFunction(position, parameters):
-            return FluenceTableExtended(position["r"])
-
-    return FluenceFunction
+        return FluenceFunction
