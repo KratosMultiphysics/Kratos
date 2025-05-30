@@ -35,6 +35,7 @@
 #include "custom_conditions/coupling_solidshell_penalty_condition.h" // Minas
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
+#include "custom_conditions/coupling_solidshell_nitsche_condition.h" // Minas
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
@@ -148,6 +149,7 @@ private:
     const CouplingSolidShellPenaltyCondition mCouplingSolidShellPenaltyCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
+    const CouplingSolidShellNitscheCondition mCouplingSolidShellNitscheCondition; //Minas
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;

@@ -11,6 +11,7 @@
 // System includes
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "containers/model.h"
 
 // External includes
@@ -24,65 +25,63 @@ namespace Kratos
 {
 	void CombineSolidShellModelPartsProcess::ExecuteInitialize() {
 
-		// Get (trimming) curve from shell model part that lies on the coupling inerface 
-		// Should be done before CombineModelParts(), because CombineModelParts() 
-		// reorders geometry IDs
+		// 1. Get (trimming) curve from shell model part that lies on the coupling inerface of the shell
+		// Should be done before CombineModelParts(), because CombineModelParts() reorders geometry IDs
 		ModelPart& IgaModelPart = _Model.GetModelPart("IgaModelPart");
 		Geometry<Node>& ShellCurveOnCouplingInterface = IgaModelPart.GetGeometry(6);
 
-		// Get integration points of the solid part model lying on the coupling inerface 
+		// 2. Get integration points of the solid part model lying on the coupling inerface
 		ModelPart& SolidModelPart_NeumannBC = _Model.GetModelPart("NurbsMesh").GetSubModelPart("Neumann_BC");
-				
-		// For the solid part, there is 1 quadrature point per condition 
-		const SizeType num_integration_points = SolidModelPart_NeumannBC.Conditions().size();
-		PointerVector<Geometry<Node>> master_quadrature_points_geometry; //TO DO: geometry type may not be correct
 
-		PointerVector<Geometry<Node>> slave_quadrature_points_geometry(num_integration_points); //TO DO: idem
+		// 3. Project each integration point from Solid to Shell midsurface 
+		const SizeType num_integration_points = SolidModelPart_NeumannBC.Conditions().size();
+		PointerVector<Geometry<Node>> master_quadrature_points_geometry; 
 		CoordinatesArrayType integration_points_global_coords_vector(3);
 		IntegrationPointsArrayType integration_points_slave_local_coords_vector(num_integration_points);
-		CoordinatesArrayType local_slave_coords = ZeroVector(3); 
-		size_t i = 0;
-			
-		for (auto it_condition = SolidModelPart_NeumannBC.ConditionsBegin(); it_condition != SolidModelPart_NeumannBC.ConditionsEnd(); ++it_condition) {
-			master_quadrature_points_geometry.push_back( (it_condition->pGetGeometry() )) ;
+		CoordinatesArrayType local_slave_coords = ZeroVector(3);
+		size_t ii = 0;
 
-			integration_points_global_coords_vector[0] = master_quadrature_points_geometry(i)->IntegrationPoints()[0].X();
-			integration_points_global_coords_vector[1] = master_quadrature_points_geometry(i)->IntegrationPoints()[0].Y();
-			integration_points_global_coords_vector[2] = master_quadrature_points_geometry(i)->IntegrationPoints()[0].Z();
+			// Check  Read normals Vectors for Solid Triangles on the Interface
+			//vector<array_1d<double, 3>> vectorsNomralVectors(SolidModelPart_NeumannBC.NumberOfConditions());
+			//ReadNormalVectors("Queso_NormalVectors_Interface.txt", vectorsNomralVectors, SolidModelPart_NeumannBC);
+
+		for (auto it_condition = SolidModelPart_NeumannBC.ConditionsBegin(); it_condition != SolidModelPart_NeumannBC.ConditionsEnd(); ++it_condition) {
+			master_quadrature_points_geometry.push_back((it_condition->pGetGeometry()));
+
+			integration_points_global_coords_vector[0] = master_quadrature_points_geometry(ii)->IntegrationPoints()[0].X();
+			integration_points_global_coords_vector[1] = master_quadrature_points_geometry(ii)->IntegrationPoints()[0].Y();
+			integration_points_global_coords_vector[2] = master_quadrature_points_geometry(ii)->IntegrationPoints()[0].Z();
 
 			ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(integration_points_global_coords_vector, local_slave_coords);
-			integration_points_slave_local_coords_vector[i][0] = local_slave_coords[0];
-			integration_points_slave_local_coords_vector[i][1] = local_slave_coords[1];
-			integration_points_slave_local_coords_vector[i][2] = local_slave_coords[2];
+			integration_points_slave_local_coords_vector[ii][0] = local_slave_coords[0];
+			integration_points_slave_local_coords_vector[ii][1] = local_slave_coords[1];
+			integration_points_slave_local_coords_vector[ii][2] = local_slave_coords[2];
 
 			std::vector<array_1d<double, 3>> derivatives(3);
 			ShellCurveOnCouplingInterface.GlobalSpaceDerivatives(derivatives, local_slave_coords, 0);
 			CoordinatesArrayType& rProjectedPointGlobalCoordinates = derivatives[0];
-			
-			i += 1;
+
+			ii += 1;
 		}
-		IndexType NumberOfShapeFunctionDerivatives = 2;
 
+		// 4. Create CreateQuadraturePointGeometries for the shell
+		IndexType NumberOfShapeFunctionDerivatives = 3;
 		IntegrationInfo rIntegrationInfo = ShellCurveOnCouplingInterface.GetDefaultIntegrationInfo();
-		
+		PointerVector<Geometry<Node>> slave_quadrature_points_geometry(num_integration_points);
+
 		ShellCurveOnCouplingInterface.CreateQuadraturePointGeometries(
-				slave_quadrature_points_geometry, // GeometriesArrayType
-				NumberOfShapeFunctionDerivatives, // IndexType
-				integration_points_slave_local_coords_vector,
-				rIntegrationInfo); //IntegrationInfo is not used, yet has to be passed to function
-		
+			slave_quadrature_points_geometry, // GeometriesArrayType
+			NumberOfShapeFunctionDerivatives, // IndexType
+			integration_points_slave_local_coords_vector,
+			rIntegrationInfo); //IntegrationInfo is not used, yet has to be passed to function
+
+		// 5. Create CoupingGeometries
 		PointerVector<CouplingGeometry<Node>> Coupled_Quadrature_Point_Geometries(num_integration_points);
-		
-		for (SizeType i = 0; i < num_integration_points; ++i) { 
-			Coupled_Quadrature_Point_Geometries(i) = Kratos::make_shared<CouplingGeometry<Node>>(master_quadrature_points_geometry(i), slave_quadrature_points_geometry(i)); 
-			if (i < 1) {
-				std::cout << " Print the geometry Info for master of coupled geometry" << master_quadrature_points_geometry(i)->Info() << std::endl;
-				std::cout << " Print the geometry Info for slave of coupled geometry" << slave_quadrature_points_geometry(i)->Info() << std::endl;
+		for (SizeType i = 0; i < num_integration_points; ++i) {
+			Coupled_Quadrature_Point_Geometries(i) = Kratos::make_shared<CouplingGeometry<Node>>(master_quadrature_points_geometry(i), slave_quadrature_points_geometry(i));
+		}
 
-			}
-		}		
-
-		// Remove conditions which belong to Neumann_BC (NurbsMesh)
+		// 6. Remove conditions which belong to Neumann_BC (NurbsMesh)
 		std::vector<size_t> ConditionsIds;
 		for (auto& cond_it = _Model.GetModelPart("NurbsMesh").ConditionsBegin(); cond_it != _Model.GetModelPart("NurbsMesh").ConditionsEnd(); ++cond_it) {
 			if (_Model.GetModelPart("NurbsMesh").GetSubModelPart("Neumann_BC").HasCondition(cond_it->Id())) {
@@ -93,20 +92,21 @@ namespace Kratos
 			_Model.GetModelPart("NurbsMesh").RemoveConditionFromAllLevels(*cond_it);
 		}
 
-		//Combine Model Parts merged the two model parts to one without deleted the original ones
+		// 7. Combine Model Parts merged the two model parts to one without deleted the original ones
 		CombineModelParts();
 
+		// 8. Remove submodel parts which are not longer needed.
 		_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("NurbsMesh").RemoveSubModelPart("Neumann_BC");
-		//_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").RemoveSubModelPart("Load_3");
-		
-		// assign each coupling geometry to the coupling condition
+		//_Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").RemoveSubModelPart("Load_3"); 
+
+		// 9. Assign each coupling geometry to a coupling (penalty/nitsche) condition
 		ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("CouplingInterface");
-		std::string name = "CouplingSolidShellPenaltyCondition";
-		//std::string name = "CouplingPenaltyCondition";
+
+		std::string name = _Parameters["coupling_method"].GetString();;
 		const Condition& rReferenceCondition = KratosComponents<Condition>::Get(name);
 
 		ModelPart::ConditionsContainerType new_condition_list;
-		IndexType condition_id = interface_model_part.GetParentModelPart().NumberOfConditions() + 1; // To be deleted
+		IndexType condition_id = interface_model_part.GetParentModelPart().NumberOfConditions() + 1; 
 
 		for (SizeType i = 0; i < Coupled_Quadrature_Point_Geometries.size(); ++i) {
 			PropertiesPointerType pProperty;
@@ -122,20 +122,28 @@ namespace Kratos
 			condition_id++;
 		}
 
+		// 10. Add conditions to interface model part
 		interface_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
 
-		// Assign the p_properties to the model part's elements and conditions.
+		// 11. Assign the p_properties to the model part's conditions.
 		auto& r_conditions_array = interface_model_part.Conditions();
-
 		auto& p_prop = interface_model_part.pGetProperties(3); // TO DO: ID is preset to three (StructuralMaterials.json). Generalize it later
-
 		block_for_each(
 			r_conditions_array,
 			[&p_prop](Condition& rCondition)
 			{ rCondition.SetProperties(p_prop); }
 		);
 
-		// Set Flags
+		// 11.5) Assign properties from master and slave geometries to coupling condition (as in nitsche_stabilization_model_part_process.cpp)
+		SizeType prop_id = (interface_model_part.ConditionsBegin()->pGetProperties())->Id();
+		if (name == "CouplingSolidShellNitscheCondition") {
+			Properties::Pointer master_properties = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("NurbsMesh").ElementsBegin()->pGetProperties();
+			Properties::Pointer slave_properties = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").ElementsBegin()->pGetProperties();
+			interface_model_part.pGetProperties(prop_id)->AddSubProperties(master_properties);
+			interface_model_part.pGetProperties(prop_id)->AddSubProperties(slave_properties);
+		}
+
+		// 12. Set Flags
 		const auto flagX = IgaFlags::FIX_DISPLACEMENT_X;
 		const auto flagY = IgaFlags::FIX_DISPLACEMENT_Y;
 		const auto flagZ = IgaFlags::FIX_DISPLACEMENT_Z;
@@ -144,8 +152,8 @@ namespace Kratos
 		varUtility.SetFlag(flagX, thisbool, interface_model_part.Conditions());
 		varUtility.SetFlag(flagY, thisbool, interface_model_part.Conditions());
 		varUtility.SetFlag(flagZ, thisbool, interface_model_part.Conditions());
-				
-		// Write points to VTK
+
+		// 13. Write points to VTK
 		std::string filename = "data/Intergration_Points_on_Solid1_Coupling_Surface.vtk";
 		size_t selectpart = 0;
 		writeVTKFile(filename, Coupled_Quadrature_Point_Geometries, selectpart);
@@ -154,10 +162,11 @@ namespace Kratos
 		selectpart = 1;
 		writeVTKFile(filename, Coupled_Quadrature_Point_Geometries, selectpart);
 
+		
 	}
 
-	void CombineSolidShellModelPartsProcess::CombineModelParts(){
-		
+	void CombineSolidShellModelPartsProcess::CombineModelParts() {
+
 		ModelPart& SolidModelPart = _Model.GetModelPart("NurbsMesh");
 		ModelPart& ShellModelPart = _Model.GetModelPart("IgaModelPart");
 		ModelPart& CoupledModelPart = _Model.GetModelPart("CoupledSolidShellModelPart");
@@ -239,8 +248,8 @@ namespace Kratos
 		CoupleIdCounter = mModelPart.NumberOfGeometries() + 1;
 	}
 
-	void CombineSolidShellModelPartsProcess::ReorderNodeIds(size_t& CoupleIdCounter, ModelPart& mModelPart){
-		
+	void CombineSolidShellModelPartsProcess::ReorderNodeIds(size_t& CoupleIdCounter, ModelPart& mModelPart) {
+
 		IndexType counter = 0;
 		for (auto it = mModelPart.Nodes().begin(); it != mModelPart.Nodes().end(); it++) {
 			it->SetId(CoupleIdCounter + counter);
@@ -291,15 +300,15 @@ namespace Kratos
 		CoupleIdCounter = mModelPart.NumberOfProperties() + 1;
 	}
 
-	void CombineSolidShellModelPartsProcess::writeVTKFile(const std::string& filename,const PointerVector<CouplingGeometry<Node>> Coupled_Quadrature_Point_Geometries, size_t selectpart) {
-		
-		
+	void CombineSolidShellModelPartsProcess::writeVTKFile(const std::string& filename, const PointerVector<CouplingGeometry<Node>> Coupled_Quadrature_Point_Geometries, size_t selectpart) {
+
+
 		// Open the file in write mode, which creates or overwrites the file
-			std::ofstream file(filename, std::ios::trunc);
-			if (!file.is_open()) {
-				std::cerr << "Error opening file: " << filename << std::endl;
-				return;
-			}
+		std::ofstream file(filename, std::ios::trunc);
+		if (!file.is_open()) {
+			std::cerr << "Error opening file: " << filename << std::endl;
+			return;
+		}
 		// No need to check if the file is open; proceed directly to writing
 		auto this_size = Coupled_Quadrature_Point_Geometries.size();
 		file << "# vtk DataFile Version 3.0\n";
@@ -307,22 +316,14 @@ namespace Kratos
 		file << "ASCII\n";
 		file << "DATASET POLYDATA\n";
 		file << "POINTS " << this_size << " double\n";
-		
+
 		for (size_t i = 0; i < Coupled_Quadrature_Point_Geometries.size(); i++) {
 			auto& rCoupled_Quadrature_Point_Geometry = *(Coupled_Quadrature_Point_Geometries(i));
 
 			auto& Geometry = *(rCoupled_Quadrature_Point_Geometry.pGetGeometryPart(selectpart));
 			auto& integrationpoint = Geometry.IntegrationPoints();
 			CoordinatesArrayType XYZ_coos;
-			//Geometry.GlobalCoordinates(XYZ_coos,integrationpoint[0]);
 			auto point = Geometry.Center();
-
-			std::vector<array_1d<double, 3>> derivatives(3);
-			//auto ParentGeometry = Geometry.GetGeometryParent(0);
-			//ParentGeometry.GlobalSpaceDerivatives(derivatives, integrationpoint[0], 0);
-			CoordinatesArrayType& rProjectedPointGlobalCoordinates = derivatives[0];
-			//for (auto& it_intpoints = integrationpoint.begin(); it_intpoints != integrationpoint.end(); it_intpoints++) {
-				//file << XYZ_coos[0] << " " << XYZ_coos[1] << " " << XYZ_coos[2] << "\n";
 			file << point.X() << " " << point.Y() << " " << point.Z() << "\n";
 
 			//}
@@ -332,44 +333,51 @@ namespace Kratos
 		std::cout << "VTK file written successfully: " << filename << std::endl;
 	}
 
-	//void CombineSolidShellModelPartsProcess::projectIntergrationPointsToMidsurface(GeometryType& ShellCurveOnCouplingInterface,
-	//	GeometryType::IntegrationPointsArrayType& IntegrationPointsArray, GeometryType::IntegrationPointsArrayType& GlobalCoordinates_IntegrationPoints_Shell)
-	//{
-	//	double X, Y, Z;
-	//	for (auto& it_IntegrationPoints = IntegrationPointsArray.begin(); it_IntegrationPoints != IntegrationPointsArray.end(); it_IntegrationPoints++) {
-	//		// The coordinates from IntegrationPointType must be converted GeometryType::CoordinatesArrayType to be passed to ProjectedPointGlobalToLocalSpace
-	//		X = it_IntegrationPoints->X();
-	//		Y = it_IntegrationPoints->Y();
-	//		Z = it_IntegrationPoints->Z();
-	//		std::array<double, 3> array1 = { X,Y,Z };
-	//		CoordinatesArrayType IntegrationPointGlobalCoos(3, array1);
-	//		array_1d<double, 3> ProjectedPointLocalCoordinates(1, { 0 });
+	void CombineSolidShellModelPartsProcess::ReadNormalVectors(const std::string& filename, vector<array_1d<double, 3>>& vectors, ModelPart& SolidModelPart) {
 
-	//		ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(IntegrationPointGlobalCoos, ProjectedPointLocalCoordinates);
-	//		std::vector<array_1d<double, 3>> derivatives(3);
-	//		ShellCurveOnCouplingInterface.GlobalSpaceDerivatives(derivatives, ProjectedPointLocalCoordinates, 0);
-	//		CoordinatesArrayType& rProjectedPointGlobalCoordinates = derivatives[0];
+		// Open the text file named 
+		std::ifstream inputFile("Queso_NormalVectors_Interface.txt");
+		KRATOS_ERROR_IF_NOT(inputFile.is_open()) << ":: ReadNormalVectors :: Error opening the file!" << std::endl;
+		std::string line;
 
-	//		GeometryType::IntegrationPointType GlobalCoordinate_IntegrationPoint(rProjectedPointGlobalCoordinates[0], rProjectedPointGlobalCoordinates[1],
-	//			rProjectedPointGlobalCoordinates[2], 0);
-	//		GlobalCoordinates_IntegrationPoints_Shell.push_back(GlobalCoordinate_IntegrationPoint);
+		// Count how many nomral vectors are associated with the corresponding integration point 
+		size_t NumberOfAssociatedNormalVector = 0;
 
-	//	}
-	//}
+		while (std::getline(inputFile, line)) {
+			// Read each line of Queso_NormalVectors_Interface
+			// First 3 numbers are components of normal vector
+			//Last 3 numbers are the coordinates of the integration point
+			std::stringstream iss(line);
+			double num;
+			array_1d<double, 3> normal;
+			array_1d<double, 3> Coordinates;
+			for (int i = 0; i < 6 && iss >> num; ++i) {
+				if (i < 3) normal[i] = num;
+				if (i >= 3 && i < 6) Coordinates[i - 3] = num;
+			}
 
-	//void CombineSolidShellModelPartsProcess::GetIntergrationPointsFromInterfacePart
-	//(ModelPart& mModelPart, GeometryType::IntegrationPointsArrayType& IntegrationPointsArray) {
-	//	for (auto& it_condition = mModelPart.ConditionsBegin(); it_condition != mModelPart.ConditionsEnd(); it_condition++) {
-	//		auto cGeometry = it_condition->GetGeometry();
-	//		const GeometryType::IntegrationPointsArrayType& IntegrationPointsArrayPerCondition = it_condition->GetGeometry().IntegrationPoints();
-	//		for (auto& it_intpoints = IntegrationPointsArrayPerCondition.begin(); it_intpoints != IntegrationPointsArrayPerCondition.end(); it_intpoints++) {
-	//			IntegrationPointsArray.push_back(*it_intpoints);
-	//		}
-	//		for (auto& it_geometry = cGeometry.begin(); it_geometry != cGeometry.end(); it_geometry++) {
-	//			auto cGeometry = it_condition->GetGeometry();
-	//		}
-	//	}
+			// Match normal vector with the correct Integration Point
+			double XX, YY, ZZ, diff;
+			size_t cond_it = -1;
 
-	//}
+			for (auto it_condition = SolidModelPart.ConditionsBegin(); it_condition != SolidModelPart.ConditionsEnd(); ++it_condition) {
+				cond_it += 1;
+				XX = (SolidModelPart.ConditionsBegin() + cond_it)->pGetGeometry()->IntegrationPoints()[0].X();
+				YY = (SolidModelPart.ConditionsBegin() + cond_it)->pGetGeometry()->IntegrationPoints()[0].Y();
+				ZZ = (SolidModelPart.ConditionsBegin() + cond_it)->pGetGeometry()->IntegrationPoints()[0].Z();
 
-	} // namespace Kratos
+				diff = abs(Coordinates[0] - XX) + abs(Coordinates[1] - YY) + abs(Coordinates[2] - ZZ);
+				if (diff < 1E-14) {
+					vectors[cond_it] = normal;
+					NumberOfAssociatedNormalVector += 1;
+					break;
+				}
+			}
+		}
+		KRATOS_ERROR_IF(NumberOfAssociatedNormalVector != SolidModelPart.NumberOfConditions()) << "Not all vectors where associated with the corresponding normals";
+		inputFile.close();
+
+	}
+
+
+} // namespace Kratos
