@@ -124,19 +124,26 @@ void ConnectivityPreserveModeler::GenerateModelPart(
     KRATOS_CATCH("");
 }
 
-
 void ConnectivityPreserveModeler::SetupModelPart()
 {
+    // Retrieve origin model part
     ModelPart& r_origin_model_part = mpModel->GetModelPart(mParameters["origin_model_part_name"].GetString());
 
+    // Retrieve destination model part
     const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
     if (!mpModel->HasModelPart(destination_model_part_name)) {
         mpModel->CreateModelPart(destination_model_part_name, r_origin_model_part.GetBufferSize());
     }
     ModelPart& r_destination_model_part = mpModel->GetModelPart(destination_model_part_name);
 
+    // Retrieve the element name
     const std::string element_name = mParameters["reference_element"].GetString();
+
+    // Retrieve the condition name
     const std::string condition_name = mParameters["reference_condition"].GetString();
+
+    // Initialize mPreserveConstraints
+    mPreserveConstraints = mParameters["preserve_constraints"].GetBool();
 
     if (element_name != "") {
         if (condition_name != "") {
@@ -167,7 +174,8 @@ const Parameters ConnectivityPreserveModeler::GetDefaultParameters() const
         "origin_model_part_name"        : "undefined_origin_model_part_name",
         "destination_model_part_name"   : "undefined_destination_model_part_name",
         "reference_element"             : "",
-        "reference_condition"           : ""
+        "reference_condition"           : "",
+        "preserve_constraints"          : true
     })");
 }
 
@@ -201,12 +209,16 @@ void ConnectivityPreserveModeler::ResetModelPart(ModelPart& rDestinationModelPar
     VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Nodes());
     VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Elements());
     VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Conditions());
-    VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.MasterSlaveConstraints());
+    if (mPreserveConstraints) {
+        VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.MasterSlaveConstraints());
+    }
 
     rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     rDestinationModelPart.RemoveElementsFromAllLevels(TO_ERASE);
     rDestinationModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
-    rDestinationModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+    if (mPreserveConstraints) {
+        rDestinationModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+    }
 }
 
 void ConnectivityPreserveModeler::CopyCommonData(
@@ -239,7 +251,9 @@ void ConnectivityPreserveModeler::CopyCommonData(
     rDestinationModelPart.Geometries() = rOriginModelPart.Geometries();
 
     // Assign the master slave constraints to the new model part
-    rDestinationModelPart.MasterSlaveConstraints() = rOriginModelPart.MasterSlaveConstraints();
+    if (mPreserveConstraints) {
+        rDestinationModelPart.MasterSlaveConstraints() = rOriginModelPart.MasterSlaveConstraints();
+    }
 }
 
 void ConnectivityPreserveModeler::DuplicateElements(
@@ -371,13 +385,15 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
         }
 
         // Execute only if there are MasterSlaveConstraints in the destination
-        if (rDestinationModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            ids.clear();
-            ids.reserve(i_part->NumberOfMasterSlaveConstraints());
-            for (const auto& r_constraint : i_part->MasterSlaveConstraints()) {
-                ids.push_back(r_constraint.Id());
+        if (mPreserveConstraints) {
+            if (rDestinationModelPart.NumberOfMasterSlaveConstraints() > 0) {
+                ids.clear();
+                ids.reserve(i_part->NumberOfMasterSlaveConstraints());
+                for (const auto& r_constraint : i_part->MasterSlaveConstraints()) {
+                    ids.push_back(r_constraint.Id());
+                }
+                r_destination_part.AddMasterSlaveConstraints(ids, 0);
             }
-            r_destination_part.AddMasterSlaveConstraints(ids, 0);
         }
 
         // Duplicate the Communicator for this SubModelPart
