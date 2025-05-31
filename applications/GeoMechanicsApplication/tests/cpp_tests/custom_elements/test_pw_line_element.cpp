@@ -14,6 +14,7 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_line_element.h"
+#include "custom_elements/integration_coefficient_modifier_for_line_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -431,8 +432,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithGeometryInput
         CalculationContribution::Permeability, CalculationContribution::Compressibility,
         CalculationContribution::FluidBodyFlow};
     const auto                         p_properties = std::make_shared<Properties>();
-    const TransientPwLineElement<2, 3> element(
-        0, p_geometry, p_properties, contributions, nullptr);
+    const TransientPwLineElement<2, 3> element(0, p_geometry, p_properties, contributions, nullptr);
 
     // Act
     const auto p_created_element = element.Create(1, p_geometry, p_properties);
@@ -452,8 +452,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithNodeInput, Kr
         CalculationContribution::Permeability, CalculationContribution::Compressibility,
         CalculationContribution::FluidBodyFlow};
     const TransientPwLineElement<2, 3> element(
-        0, std::make_shared<Triangle2D3<Node>>(AddThreeNodes()), p_properties,
-        contributions, nullptr);
+        0, std::make_shared<Triangle2D3<Node>>(AddThreeNodes()), p_properties, contributions, nullptr);
 
     // Act
     const auto p_created_element = element.Create(1, AddThreeNodes(), p_properties);
@@ -534,8 +533,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput2, Krat
         CalculationContribution::FluidBodyFlow};
     const auto                         p_properties = std::make_shared<Properties>();
     const TransientPwLineElement<2, 3> element_with_coincident_nodes(
-        1, std::make_shared<Triangle2D3<Node>>(AddThreeCoincidentNodes()), p_properties,
-        contributions, nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(AddThreeCoincidentNodes()), p_properties, contributions, nullptr);
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
@@ -543,8 +541,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput2, Krat
                                       "Error: DomainSize (0) is smaller than 1e-15 for element 1")
 
     const TransientPwLineElement<2, 3> element_with_correct_domain_size(
-        1, std::make_shared<Triangle2D3<Node>>(AddThreeNodes()), p_properties,
-        contributions, nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(AddThreeNodes()), p_properties, contributions, nullptr);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
                                       "Error: Missing variable WATER_PRESSURE on node 1")
 
@@ -734,9 +731,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_Initialize, KratosGeoMechanicsF
     const std::vector<CalculationContribution> contributions = {
         CalculationContribution::Permeability, CalculationContribution::Compressibility,
         CalculationContribution::FluidBodyFlow};
-    TransientPwLineElement<2, 3> element(
-        0, std::make_shared<Triangle2D3<Node>>(AddThreeCoincidentNodes()),
-        std::make_shared<Properties>(), contributions, nullptr);
+    TransientPwLineElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(AddThreeCoincidentNodes()),
+                                         std::make_shared<Properties>(), contributions, nullptr);
     const auto dummy_process_info = ProcessInfo{};
 
     // Act

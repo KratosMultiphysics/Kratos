@@ -21,8 +21,6 @@
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
-#include "custom_utilities/output_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 #include "filter_compressibility_calculator.h"
@@ -32,9 +30,8 @@
 #include "includes/constitutive_law.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "integration_coefficient_modifier_for_line_element.h"
+#include "integration_coefficients_calculator.h"
 #include "permeability_calculator.h"
-#include "stress_state_policy.h"
 #include "utilities/geometry_utilities.h"
 
 #include <numeric>
