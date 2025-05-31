@@ -100,8 +100,6 @@ public:
         /// Nodal variables
         array_1d<double, TNumNodes>        PressureVector;
         array_1d<double, TNumNodes>        DtPressureVector;
-        array_1d<double, TNumNodes * TDim> DisplacementVector;
-        array_1d<double, TNumNodes * TDim> VelocityVector;
         array_1d<double, TNumNodes * TDim> VolumeAcceleration;
 
         /// Variables computed at each GP
@@ -562,21 +560,6 @@ public:
 
         rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
         GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
-
-        KRATOS_CATCH("")
-    }
-
-    void InitializeNodalDisplacementVariables(ElementVariables& rVariables)
-    {
-        KRATOS_TRY
-
-        const GeometryType& r_geometry = this->GetGeometry();
-
-        // Nodal variables
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.DisplacementVector,
-                                                                     r_geometry, DISPLACEMENT);
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VelocityVector,
-                                                                     r_geometry, VELOCITY);
 
         KRATOS_CATCH("")
     }
