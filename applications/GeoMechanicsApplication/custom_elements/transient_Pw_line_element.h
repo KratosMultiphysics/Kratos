@@ -53,11 +53,9 @@ public:
 
     TransientPwLineElement(IndexType                                       NewId,
                            const GeometryType::Pointer&                    pGeometry,
-                           std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                            const std::vector<CalculationContribution>&     rContributions,
                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
         : Element(NewId, pGeometry),
-          mpStressStatePolicy{std::move(pStressStatePolicy)},
           mContributions(rContributions),
           mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
@@ -66,11 +64,9 @@ public:
     TransientPwLineElement(IndexType                                       NewId,
                            const GeometryType::Pointer&                    pGeometry,
                            const PropertiesType::Pointer&                  pProperties,
-                           std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                            const std::vector<CalculationContribution>&     rContributions,
                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
         : Element(NewId, pGeometry, pProperties),
-          mpStressStatePolicy{std::move(pStressStatePolicy)},
           mContributions(rContributions),
           mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
@@ -79,14 +75,14 @@ public:
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return make_intrusive<TransientPwLineElement>(
-            NewId, GetGeometry().Create(rThisNodes), pProperties, nullptr,
+            NewId, GetGeometry().Create(rThisNodes), pProperties,
             mContributions, this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties,
-                                                      nullptr, mContributions,
+                                                      mContributions,
                                                       this->CloneIntegrationCoefficientModifier());
     }
 
