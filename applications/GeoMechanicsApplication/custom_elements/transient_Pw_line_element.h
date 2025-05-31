@@ -236,28 +236,8 @@ public:
     }
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION ||
-            rVariable == BISHOP_COEFFICIENT || rVariable == DERIVATIVE_OF_SATURATION ||
-            rVariable == RELATIVE_PERMEABILITY || rVariable == HYDRAULIC_HEAD) {
-            BaseTypeCalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        } else {
-            if (rOutput.size() != mRetentionLawVector.size())
-                rOutput.resize(mRetentionLawVector.size());
-
-            std::fill(rOutput.begin(), rOutput.end(), 0.0);
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void BaseTypeCalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                               std::vector<double>&    rOutput,
-                                              const ProcessInfo&      rCurrentProcessInfo)
+                                              const ProcessInfo&      rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -727,29 +707,8 @@ public:
     std::vector<RetentionLaw::Pointer> GetRetentionLawVector() const { return mRetentionLawVector; }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if (rVariable == PERMEABILITY_MATRIX) {
-            BaseTypeCalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-        } else {
-            if (rOutput.size() != mRetentionLawVector.size())
-                rOutput.resize(mRetentionLawVector.size());
-
-            for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-                rOutput[i].resize(TDim, TDim, false);
-                noalias(rOutput[i]) = ZeroMatrix(TDim, TDim);
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void BaseTypeCalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                               std::vector<Matrix>&    rOutput,
-                                              const ProcessInfo&      rCurrentProcessInfo)
+                                              const ProcessInfo&      rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
