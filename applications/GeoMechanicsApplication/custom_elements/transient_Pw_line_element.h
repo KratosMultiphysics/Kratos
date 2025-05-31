@@ -74,15 +74,14 @@ public:
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(
-            NewId, GetGeometry().Create(rThisNodes), pProperties,
-            mContributions, this->CloneIntegrationCoefficientModifier());
+        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes),
+                                                      pProperties, mContributions,
+                                                      this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties,
-                                                      mContributions,
+        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, mContributions,
                                                       this->CloneIntegrationCoefficientModifier());
     }
 
@@ -191,7 +190,7 @@ public:
         KRATOS_TRY
 
         if (GetGeometry().LocalSpaceDimension() == 1) {
-            //there is no need to calculate the discharge for a line element
+            // there is no need to calculate the discharge for a line element
             return;
         }
         std::vector<array_1d<double, 3>> FluidFlux;
@@ -236,8 +235,8 @@ public:
     }
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                              std::vector<double>&    rOutput,
-                                              const ProcessInfo&      rCurrentProcessInfo) override
+                                      std::vector<double>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -248,9 +247,8 @@ public:
         auto& r_properties = this->GetProperties();
         rOutput.resize(number_of_integration_points);
 
-        if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION ||
-                   rVariable == BISHOP_COEFFICIENT || rVariable == DERIVATIVE_OF_SATURATION ||
-                   rVariable == RELATIVE_PERMEABILITY) {
+        if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION || rVariable == BISHOP_COEFFICIENT ||
+            rVariable == DERIVATIVE_OF_SATURATION || rVariable == RELATIVE_PERMEABILITY) {
             ElementVariables Variables;
             this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
@@ -334,7 +332,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
-                                      const ProcessInfo&                   rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -703,8 +701,8 @@ public:
     std::vector<RetentionLaw::Pointer> GetRetentionLawVector() const { return mRetentionLawVector; }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                              std::vector<Matrix>&    rOutput,
-                                              const ProcessInfo&      rCurrentProcessInfo) override
+                                      std::vector<Matrix>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -922,7 +920,8 @@ private:
         return FluidBodyFlowCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeIntegrationCoefficientsGetter(),
             MakeProjectedGravityForIntegrationPointsGetter(), MakeNContainerGetter(),
-            MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter(), MakeNodalVariableGetter());
+            MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter(),
+            MakeNodalVariableGetter());
     }
 
     auto MakePropertiesGetter()
@@ -979,8 +978,8 @@ private:
             GeometryType::ShapeFunctionsGradientsType dN_dX_container;
             if (GetGeometry().LocalSpaceDimension() == 1) {
                 dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-                std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
-                               dN_dX_container.begin(), std::divides<>());
+                std::transform(dN_dX_container.begin(), dN_dX_container.end(),
+                               det_J_container.begin(), dN_dX_container.begin(), std::divides<>());
             } else {
                 GetGeometry().ShapeFunctionsIntegrationPointsGradients(
                     dN_dX_container, det_J_container, this->GetIntegrationMethod());

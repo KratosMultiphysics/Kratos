@@ -12,8 +12,8 @@
 
 #include "fluid_body_flow_calculator.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "includes/cfd_variables.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -39,14 +39,14 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     const auto               projected_gravity_on_integration_points =
         mInputProvider.GetProjectedGravityAtIntegrationPoints();
     const auto pressure_vector = mInputProvider.GetNodalValues(WATER_PRESSURE);
-    const auto nc_container = mInputProvider.GetNContainer();
-    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-                nc_container, pressure_vector);
+    const auto nc_container    = mInputProvider.GetNContainer();
+    const auto fluid_pressures =
+        GeoTransportEquationUtilities::CalculateFluidPressures(nc_container, pressure_vector);
     const auto fluid_body_vector_length = shape_function_gradients[0].size1();
     auto       result                   = Vector{ZeroVector(fluid_body_vector_length)};
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
-         retention_law_parameters.SetFluidPressure(fluid_pressures[integration_point_index]);
+        retention_law_parameters.SetFluidPressure(fluid_pressures[integration_point_index]);
         const auto relative_permeability =
             mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(
                 retention_law_parameters);

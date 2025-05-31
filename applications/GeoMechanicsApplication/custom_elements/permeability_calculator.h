@@ -29,7 +29,7 @@ public:
                       std::function<Vector()>                        GetIntegrationCoefficients,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
-                      std::function<const Matrix&()>                             GetNContainer)
+                      std::function<const Matrix&()> GetNContainer)
             : GetElementProperties(std::move(GetElementProperties)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
