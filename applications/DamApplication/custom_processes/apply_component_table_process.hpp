@@ -42,7 +42,7 @@ public:
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed": false,
+                "constrained": false,
                 "value" : 1.0,
                 "table" : 1,
                 "interval":[
@@ -61,7 +61,7 @@ public:
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
+        mis_fixed = rParameters["constrained"].GetBool();
         minitial_value = rParameters["value"].GetDouble();
 
         unsigned int TableId = rParameters["table"].GetInt();
@@ -87,7 +87,7 @@ public:
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
 

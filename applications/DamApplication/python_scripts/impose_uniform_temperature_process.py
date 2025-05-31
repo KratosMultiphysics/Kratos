@@ -1,36 +1,37 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DamApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.DamApplication as KratosDam
+from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
-## This process sets the value of a scalar variable using the ApplyConstantScalarValueProcess.
+## This proces sets the value of a scalar variable using the AssignScalarVariableProcess.
 ## In this case, the scalar value is not automatically fixed, so the fixicity must be introduced before.
 
 def Factory(settings, Model):
-    if not isinstance(settings, Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ImposeUniformTemperatureProcess(Model, settings["Parameters"])
 
-class ImposeUniformTemperatureProcess(Process):
+class ImposeUniformTemperatureProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings ):
 
-        Process.__init__(self)
+        KratosMultiphysics.Process.__init__(self)
         model_part = Model[settings["model_part_name"].GetString()]
 
         if settings["table"].GetInt() == 0:
-            param = Parameters("{}")
+            param = KratosMultiphysics.Parameters("{}")
             param.AddValue("model_part_name",settings["model_part_name"])
-            param.AddValue("is_fixed",settings["is_fixed"])
+            param.AddValue("constrained",settings["constrained"])
             param.AddValue("variable_name",settings["variable_name"])
             param.AddValue("value",settings["value"])
-            if settings["is_fixed"].GetBool():
-                self.process = DamFixTemperatureConditionProcess(model_part, settings)
+            if settings["constrained"].GetBool():
+                self.process = KratosDam.DamFixTemperatureConditionProcess(model_part, settings)
             else:
-                self.process = ApplyConstantScalarValueProcess(model_part, param)
+                self.process = AssignScalarVariableProcess(Model, param)
         else:
-            self.process = DamFixTemperatureConditionProcess(model_part, settings)
+            self.process = KratosDam.DamFixTemperatureConditionProcess(model_part, settings)
 
-    def ExecuteInitialize(self):
-        self.process.ExecuteInitialize()
+    def ExecuteBeforeSolutionLoop(self):
+        self.process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         self.process.ExecuteInitializeSolutionStep()
