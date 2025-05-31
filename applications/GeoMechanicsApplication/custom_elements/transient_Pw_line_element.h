@@ -284,11 +284,7 @@ public:
             // Map initial material property to gauss points, as required for the output
             std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
         } else {
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
-                    rVariable, rOutput[integration_point]);
-            }
+            std::fill(rOutput.begin(), rOutput.end(), 0.0);
         }
 
         KRATOS_CATCH("")
@@ -723,9 +719,9 @@ public:
             GeoElementUtilities::FillPermeabilityMatrix(PermeabilityMatrix, this->GetProperties());
             std::fill_n(rOutput.begin(), number_of_integration_points, PermeabilityMatrix);
         } else {
-            for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-                rOutput[i] = ZeroMatrix(TDim, TDim);
-                rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
+            for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
+                rOutput[i].resize(TDim, TDim, false);
+                noalias(rOutput[i]) = ZeroMatrix(TDim, TDim);
             }
         }
 
