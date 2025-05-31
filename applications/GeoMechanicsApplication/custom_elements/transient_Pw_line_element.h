@@ -357,52 +357,6 @@ public:
                     std::inner_product(shape_function_values.begin(), shape_function_values.end(),
                                        nodal_hydraulic_head.begin(), 0.0);
             }
-        } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
-            size_t variable_index = 0;
-            if (rVariable == CONFINED_STIFFNESS) {
-                if (TDim == 2) {
-                    variable_index = INDEX_2D_PLANE_STRAIN_XX;
-                } else if (TDim == 3) {
-                    variable_index = INDEX_3D_XX;
-                } else {
-                    KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
-                                 << " in element: " << this->Id() << std::endl;
-                }
-            } else if (rVariable == SHEAR_STIFFNESS) {
-                if (TDim == 2) {
-                    variable_index = INDEX_2D_PLANE_STRAIN_XY;
-                } else if (TDim == 3) {
-                    variable_index = INDEX_3D_XZ;
-                } else {
-                    KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
-                                 << " in element: " << this->Id() << std::endl;
-                }
-            }
-
-            ElementVariables Variables;
-            this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-            const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-            const auto deformation_gradients = CalculateDeformationGradients();
-            auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-                deformation_gradients, b_matrices, Variables.DisplacementVector,
-                Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
-
-            ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
-            ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-            ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-            std::vector<Matrix> constitutive_matrices;
-            this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
-                                                 Variables.NContainer, Variables.DN_DXContainer,
-                                                 strain_vectors, mStressVector, constitutive_matrices);
-
-            std::transform(constitutive_matrices.begin(), constitutive_matrices.end(),
-                           rOutput.begin(), [variable_index](const Matrix& constitutive_matrix) {
-                return constitutive_matrix(variable_index, variable_index);
-            });
-        } else if (rVariable == GEO_SHEAR_CAPACITY) {
-            OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
         } else if (r_properties.Has(rVariable)) {
             // Map initial material property to gauss points, as required for the output
             std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
@@ -429,77 +383,7 @@ public:
 
         rOutput.resize(number_of_integration_points);
 
-        if (rVariable == CAUCHY_STRESS_VECTOR) {
-            for (unsigned int integration_point = 0;
-                 integration_point < mConstitutiveLawVector.size(); ++integration_point) {
-                rOutput[integration_point].resize(mStressVector[integration_point].size(), false);
-                rOutput[integration_point] = mStressVector[integration_point];
-            }
-        } else if (rVariable == TOTAL_STRESS_VECTOR) {
-            ElementVariables Variables;
-            this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-            ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, this->GetProperties(), rCurrentProcessInfo);
-            ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-            ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
-            const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-            const auto deformation_gradients = CalculateDeformationGradients();
-            auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-                deformation_gradients, b_matrices, Variables.DisplacementVector,
-                Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
-            std::vector<Matrix> constitutive_matrices;
-            this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
-                                                 Variables.NContainer, Variables.DN_DXContainer,
-                                                 strain_vectors, mStressVector, constitutive_matrices);
-            const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
-                constitutive_matrices, this->GetProperties());
-            const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-                Variables.NContainer, Variables.PressureVector);
-            const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < mConstitutiveLawVector.size(); ++integration_point) {
-                rOutput[integration_point] =
-                    mStressVector[integration_point] +
-                    PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[integration_point] *
-                        bishop_coefficients[integration_point] * fluid_pressures[integration_point] *
-                        this->GetStressStatePolicy().GetVoigtVector();
-            }
-        } else if (rVariable == ENGINEERING_STRAIN_VECTOR) {
-            ElementVariables Variables;
-            this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < mConstitutiveLawVector.size(); ++integration_point) {
-                noalias(Variables.Np) = row(Variables.NContainer, integration_point);
-
-                Matrix J0;
-                Matrix InvJ0;
-                this->CalculateDerivativesOnInitialConfiguration(
-                    Variables.detJInitialConfiguration, J0, InvJ0,
-                    Variables.GradNpTInitialConfiguration, integration_point);
-
-                // Calculating operator B
-                Variables.B =
-                    this->CalculateBMatrix(Variables.GradNpTInitialConfiguration, Variables.Np);
-
-                // Compute infinitesimal strain
-                Variables.StrainVector = StressStrainUtilities::CalculateCauchyStrain(
-                    Variables.B, Variables.DisplacementVector);
-                rOutput[integration_point].resize(Variables.StrainVector.size(), false);
-                rOutput[integration_point] = Variables.StrainVector;
-            }
-        } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-            ElementVariables Variables;
-            this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-            const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-            const auto deformation_gradients = CalculateDeformationGradients();
-            rOutput                          = StressStrainUtilities::CalculateStrains(
-                deformation_gradients, b_matrices, Variables.DisplacementVector,
-                Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
-        } else if (r_properties.Has(rVariable)) {
+        if (r_properties.Has(rVariable)) {
             // Map initial material property to integration points, as required for the output
             std::fill_n(rOutput.begin(), mConstitutiveLawVector.size(), r_properties.GetValue(rVariable));
         } else {
@@ -527,50 +411,6 @@ public:
             return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
         });
         return result;
-    }
-
-    void CalculateAnyOfMaterialResponse(const std::vector<Matrix>&   rDeformationGradients,
-                                        ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                        const Matrix&                rNuContainer,
-                                        const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
-                                        std::vector<Vector>& rStrainVectors,
-                                        std::vector<Vector>& rStressVectors,
-                                        std::vector<Matrix>& rConstitutiveMatrices)
-    {
-        if (rStrainVectors.size() != rDeformationGradients.size()) {
-            rStrainVectors.resize(rDeformationGradients.size());
-            std::fill(rStrainVectors.begin(), rStrainVectors.end(),
-                      ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
-        }
-        if (rStressVectors.size() != rDeformationGradients.size()) {
-            rStressVectors.resize(rDeformationGradients.size());
-            std::fill(rStressVectors.begin(), rStressVectors.end(),
-                      ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
-        }
-        if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
-            rConstitutiveMatrices.resize(rDeformationGradients.size());
-            std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                      ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
-                                 this->GetStressStatePolicy().GetVoigtSize()));
-        }
-
-        const auto determinants_of_deformation_gradients =
-            GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
-
-        for (unsigned int integration_point = 0; integration_point < rDeformationGradients.size();
-             ++integration_point) {
-            // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a
-            // pointer to an implicitly converted object
-            const auto shape_function_values = Vector{row(rNuContainer, integration_point)};
-            ConstitutiveLawUtilities::SetConstitutiveParameters(
-                rConstitutiveParameters, rStrainVectors[integration_point],
-                rConstitutiveMatrices[integration_point], shape_function_values,
-                rDNu_DXContainer[integration_point], rDeformationGradients[integration_point],
-                determinants_of_deformation_gradients[integration_point]);
-            rConstitutiveParameters.SetStressVector(rStressVectors[integration_point]);
-
-            mConstitutiveLawVector[integration_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
-        }
     }
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
@@ -748,24 +588,6 @@ public:
         GeometryUtils::ShapeFunctionsGradients(r_dn_de, rInvJ0, rDNu_DX0);
 
         KRATOS_CATCH("")
-    }
-
-    std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
-                                           const Matrix& rNContainer) const
-    {
-        std::vector<Matrix> result;
-        result.reserve(rDN_DXContainer.size());
-        for (unsigned int integration_point = 0; integration_point < rDN_DXContainer.size(); ++integration_point) {
-            result.push_back(this->CalculateBMatrix(rDN_DXContainer[integration_point],
-                                                    row(rNContainer, integration_point)));
-        }
-
-        return result;
-    }
-
-    Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
-    {
-        return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
     }
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
@@ -993,40 +815,7 @@ public:
 
         rOutput.resize(number_of_integration_points);
 
-        if (rVariable == CAUCHY_STRESS_TENSOR) {
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] =
-                    MathUtils<double>::StressVectorToTensor(mStressVector[integration_point]);
-            }
-        } else if (rVariable == TOTAL_STRESS_TENSOR) {
-            std::vector<Vector> StressVector;
-            this->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < mConstitutiveLawVector.size(); ++integration_point) {
-                rOutput[integration_point] =
-                    MathUtils<double>::StressVectorToTensor(StressVector[integration_point]);
-            }
-        } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
-            std::vector<Vector> strain_vector;
-            CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < mConstitutiveLawVector.size(); ++integration_point) {
-                rOutput[integration_point] =
-                    MathUtils<double>::StrainVectorToTensor(strain_vector[integration_point]);
-            }
-        } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
-            std::vector<Vector> strain_vector;
-            CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < mConstitutiveLawVector.size(); ++integration_point) {
-                rOutput[integration_point] =
-                    MathUtils<double>::StrainVectorToTensor(strain_vector[integration_point]);
-            }
-        } else if (rVariable == PERMEABILITY_MATRIX) {
+        if (rVariable == PERMEABILITY_MATRIX) {
             // If the permeability of the element is a given property
             BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
             GeoElementUtilities::FillPermeabilityMatrix(PermeabilityMatrix, this->GetProperties());
@@ -1041,15 +830,7 @@ public:
         KRATOS_CATCH("")
     }
 
-protected:
-    StressStatePolicy& GetStressStatePolicy() const
-    {
-        std::abort();
-        return *mpStressStatePolicy;
-    }
-
 private:
-    std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<CalculationContribution>  mContributions;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
