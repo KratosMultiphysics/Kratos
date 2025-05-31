@@ -268,64 +268,7 @@ public:
         auto& r_properties = this->GetProperties();
         rOutput.resize(number_of_integration_points);
 
-        if (rVariable == VON_MISES_STRESS) {
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] =
-                    StressStrainUtilities::CalculateVonMisesStress(mStressVector[integration_point]);
-            }
-        } else if (rVariable == MEAN_EFFECTIVE_STRESS) {
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] =
-                    StressStrainUtilities::CalculateMeanStress(mStressVector[integration_point]);
-            }
-        } else if (rVariable == MEAN_STRESS) {
-            std::vector<Vector> stress_vector;
-            CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] =
-                    StressStrainUtilities::CalculateMeanStress(stress_vector[integration_point]);
-            }
-        } else if (rVariable == ENGINEERING_VON_MISES_STRAIN) {
-            std::vector<Vector> strain_vector;
-            CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] =
-                    StressStrainUtilities::CalculateVonMisesStrain(strain_vector[integration_point]);
-            }
-        } else if (rVariable == ENGINEERING_VOLUMETRIC_STRAIN) {
-            std::vector<Vector> strain_vector;
-            CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] =
-                    StressStrainUtilities::CalculateTrace(strain_vector[integration_point]);
-            }
-        } else if (rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN) {
-            std::vector<Vector> strain_vector;
-            CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] =
-                    StressStrainUtilities::CalculateVonMisesStrain(strain_vector[integration_point]);
-            }
-        } else if (rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN) {
-            std::vector<Vector> strain_vector;
-            CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo);
-
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] =
-                    StressStrainUtilities::CalculateTrace(strain_vector[integration_point]);
-            }
-        } else if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION ||
+        if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION ||
                    rVariable == BISHOP_COEFFICIENT || rVariable == DERIVATIVE_OF_SATURATION ||
                    rVariable == RELATIVE_PERMEABILITY) {
             ElementVariables Variables;
@@ -835,7 +778,6 @@ private:
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
-    std::vector<Vector>                   mStressVector;
 
     void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
     {
