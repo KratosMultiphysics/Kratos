@@ -84,18 +84,11 @@ public:
 
     struct ElementVariables {
         /// Properties variables
-        bool   IgnoreUndrained;
-        bool   UseHenckyStrain;
-        bool   ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
 
         double                            BiotCoefficient;
         double                            BiotModulusInverse;
         BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
-
-        /// ProcessInfo variables
-        double VelocityCoefficient;
-        double DtPressureCoefficient;
 
         /// Nodal variables
         array_1d<double, TNumNodes>        PressureVector;
@@ -108,32 +101,19 @@ public:
         array_1d<double, TDim>                        BodyAcceleration;
         array_1d<double, TDim>                        SoilGamma;
 
-        /// Constitutive Law parameters
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;
         Matrix GradNpTInitialConfiguration;
-
-        Matrix                                    F;
         Vector                                    detJContainer;
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
-        /// Retention Law parameters
-        double DegreeOfSaturation;
         double RelativePermeability;
-        double BishopCoefficient;
 
         // needed for updated Lagrangian:
         double detJ;
         double detJInitialConfiguration;
         double IntegrationCoefficient;
-        double IntegrationCoefficientInitialConfiguration;
-
-        // Auxiliary Variables
-        Matrix UVoigtMatrix;
     };
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
@@ -509,9 +489,6 @@ public:
         // Properties variables
         this->InitializeProperties(rVariables);
 
-        // ProcessInfo variables
-        rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
-
         // Nodal Variables
         this->InitializeNodalPorePressureVariables(rVariables);
         this->InitializeNodalVolumeAccelerationVariables(rVariables);
@@ -537,9 +514,7 @@ public:
             rVariables.DN_DXContainer, rVariables.detJContainer, this->GetIntegrationMethod());
 
         // Retention law
-        rVariables.DegreeOfSaturation   = 1.0;
         rVariables.RelativePermeability = 1.0;
-        rVariables.BishopCoefficient    = 1.0;
 
         KRATOS_CATCH("")
     }
@@ -549,14 +524,6 @@ public:
         KRATOS_TRY
 
         const PropertiesType& r_properties = this->GetProperties();
-
-        rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
-        rVariables.UseHenckyStrain =
-            r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
-
-        rVariables.ConsiderGeometricStiffness = r_properties.Has(CONSIDER_GEOMETRIC_STIFFNESS)
-                                                    ? r_properties[CONSIDER_GEOMETRIC_STIFFNESS]
-                                                    : false;
 
         rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
         GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
