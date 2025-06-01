@@ -30,9 +30,11 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         self.top_node_ids = [197, 198, 199, 200, 201]
 
         self.end_times = [8640, 17280, 43200, 86400, 172800, 432000, 864000, 1728000, 4320000, 8640000]
-        self.t_vs = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
 
-        self.sample_height = 1.0
+        c_v = 1.0 / 864000.0  # consolidation coefficient
+        self.h = 1.0  # sample height
+        self.t_vs = [c_v * t / (self.h * self.h) for t in self.end_times]
+
 
     def _get_test_dir_name(self):
         raise RuntimeError("This base class does not provide a generic test directory name")
@@ -44,7 +46,7 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
 
 
     def _get_analytical_relative_water_pressures(self, t_v, y_coordinates):
-        return [analytical_solutions.calculate_relative_water_pressure(y, self.sample_height, t_v) for y in y_coordinates]
+        return [analytical_solutions.calculate_relative_water_pressure(y, self.h, t_v) for y in y_coordinates]
 
 
     def _get_numerical_relative_water_pressures(self, time, stage_no):
@@ -57,10 +59,12 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         return [-1.0 * pw for pw in reader.nodal_values_at_time("WATER_PRESSURE", time, output_data)]
 
 
-    def _get_numerical_vertical_displacements(self, time, stage_no, node_ids):
+    def _get_numerical_settlement_values(self, time, stage_no, node_ids):
         output_file_path = os.path.join(self.test_path, f"1D-Consolidationtest_stage{stage_no}.post.res")
         reader = test_helper.GiDOutputFileReader()
         output_data = reader.read_output_from(output_file_path)
+        # Settlement corresponds to downward total displacement. Invert the sign of the total displacement values to
+        # make them match the analytical solution which assumes the settlement values to be positive.
         return [-1.0 * u[1] for u in reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data, node_ids)]
 
 
@@ -91,13 +95,13 @@ class OneDimensionalConsolidationTestBase(KratosUnittest.TestCase):
         m_v = 1/(K + 4/3 * G)               # the compressibility coefficient
         beta = 0.5e-9                       # the compressibility of the water.
         n = 0.3                             # the porosity
-        delta_h0 = (-1)*m_v*self.sample_height*q*n*beta/(m_v+n*beta) # deformation immediately after the application of the load
-        delta_h_infinity = (-1)*m_v*self.sample_height*q # the final deformation
+        delta_h0 = (-1) * m_v * self.h * q * n * beta / (m_v + n * beta) # deformation immediately after the application of the load
+        delta_h_infinity = (-1) * m_v * self.h * q # the final deformation
 
         stage_no = 2  # The first stage is not checked
         rmse_values = []
         for t_v, time in zip(self.t_vs, self.end_times):
-            settlement_values = self._get_numerical_vertical_displacements(time, stage_no, self.top_node_ids)
+            settlement_values = self._get_numerical_settlement_values(time, stage_no, self.top_node_ids)
             numerical_degree_values = [(u_y - delta_h0) / (delta_h_infinity - delta_h0) for u_y in settlement_values]
             analytical_degree = analytical_solutions.calculate_degree_of_1d_consolidation(t_v)
             rmse_values.append(self._calculate_rmse_of_differences(numerical_degree_values, [analytical_degree] * len(self.top_node_ids)))
