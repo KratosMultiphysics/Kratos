@@ -10,9 +10,9 @@
                 "Rayleigh_length": 360.4e-3,
                 "focus_Z_offset" : 0.4,
                 "reference_T_after_laser" : 0.0,
-                "fluence_type" : "expression_normalized",
-                "gaussian_order": 8,
-                "table_filename" : "fluence_table_2.csv",
+                "fluence_type" : "super_gaussian",
+                "gaussian_order": 2,
+                "table_filename" : "fluence_table.csv",
                 "expression_normalized" : "30*exp(-((x*1e3)**8))"
 
             },
