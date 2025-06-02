@@ -215,9 +215,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(support_model_part_inner.NumberOfConditions(), 110)
         self.assertEqual(support_model_part_outer.NumberOfNodes(), 2250)
         self.assertEqual(support_model_part_outer.NumberOfConditions(), 250)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 16200)
+        self.assertEqual(computational_model_part.NumberOfNodes(), 7371)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
-        self.assertEqual(computational_model_part.NumberOfElements(), 1800)
+        self.assertEqual(computational_model_part.NumberOfElements(), 819)
 
         self.assertEqual(support_model_part_inner.GetConditions()[323].Info(), "\"SbmLaplacianConditionDirichlet\" #323")
         self.assertEqual(support_model_part_inner.GetConditions()[432].Info(), "\"SbmLaplacianConditionDirichlet\" #432")
