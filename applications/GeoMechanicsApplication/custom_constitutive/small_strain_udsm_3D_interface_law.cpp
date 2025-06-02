@@ -10,10 +10,6 @@
 //  Main authors:    Vahid Galavi
 //
 
-// System includes
-
-// External includes
-
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
 
 namespace Kratos
@@ -24,7 +20,7 @@ ConstitutiveLaw::Pointer SmallStrainUDSM3DInterfaceLaw::Clone() const
     return std::make_shared<SmallStrainUDSM3DInterfaceLaw>(*this);
 }
 
-void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(Parameters& rValues)
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
 
@@ -38,9 +34,9 @@ void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(Constitutive
 
 void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    rStressVector(INDEX_3D_INTERFACE_ZZ) = mStressVector[INDEX_3D_ZZ];
-    rStressVector(INDEX_3D_INTERFACE_YZ) = mStressVector[INDEX_3D_YZ];
-    rStressVector(INDEX_3D_INTERFACE_XZ) = mStressVector[INDEX_3D_XZ];
+    rStressVector[INDEX_3D_INTERFACE_ZZ] = mStressVector[INDEX_3D_ZZ];
+    rStressVector[INDEX_3D_INTERFACE_YZ] = mStressVector[INDEX_3D_YZ];
+    rStressVector[INDEX_3D_INTERFACE_XZ] = mStressVector[INDEX_3D_XZ];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
@@ -63,7 +59,7 @@ void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrai
     mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector[INDEX_3D_INTERFACE_XZ];
 }
 
-void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
+void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
 {
     if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM]) {
         // transfer fortran style matrix to C++ style
@@ -99,6 +95,14 @@ indexStress3D SmallStrainUDSM3DInterfaceLaw::getIndex3D(const indexStress3DInter
     }
 }
 
+void SmallStrainUDSM3DInterfaceLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUDSM3DLaw)
+}
+
+void SmallStrainUDSM3DInterfaceLaw::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUDSM3DLaw)}
+
 Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
     if (rVariable == STATE_VARIABLES) {
@@ -125,5 +129,17 @@ void SmallStrainUDSM3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
     }
 }
 
+SizeType SmallStrainUDSM3DInterfaceLaw::WorkingSpaceDimension() { return N_DIM_3D; }
+
 SizeType SmallStrainUDSM3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_3D_INTERFACE; }
+
+std::string SmallStrainUDSM3DInterfaceLaw::Info() const { return "SmallStrainUDSM3DInterfaceLaw"; }
+
+void SmallStrainUDSM3DInterfaceLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
+
+void SmallStrainUDSM3DInterfaceLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUDSM3DInterfaceLaw Data";
+}
+
 } // namespace Kratos
