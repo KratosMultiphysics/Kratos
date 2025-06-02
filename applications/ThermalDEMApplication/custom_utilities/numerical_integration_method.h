@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(NUMERICAL_INTEGRATION_METHOD_H_INCLUDED)
-#define NUMERICAL_INTEGRATION_METHOD_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -79,5 +78,3 @@ namespace Kratos
 
   }; // Class NumericalIntegrationMethod
 } // namespace Kratos
-
-#endif // NUMERICAL_INTEGRATION_METHOD_H_INCLUDED

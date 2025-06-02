@@ -20,6 +20,7 @@
 #include <sstream>
 #include <cstddef>
 #include <utility>
+#include <type_traits>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
@@ -28,6 +29,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "containers/key_generator.h"
+#include "utilities/type_traits.h"
 
 namespace Kratos
 {
@@ -647,10 +649,45 @@ public:
     template <class InputIterator>
     void insert(InputIterator first, InputIterator last)
     {
-        // first sorts the input iterators and make the input unique.
-        std::sort(first, last, CompareKey());
-        auto new_last = std::unique(first, last, EqualKeyTo());
-        SortedInsert(first, new_last);
+        // We copy always the input range to a temp not to have the input range mutated.
+        std::vector<TPointerType> temp;
+        temp.reserve(std::distance(first, last));
+        for (auto it = first; it != last; ++it) {
+            temp.push_back(GetPointer(it));
+        }
+        std::sort(temp.begin(), temp.end(), CompareKey());
+        auto new_last = std::unique(temp.begin(), temp.end(), EqualKeyTo());
+        SortedInsert(temp.begin(), new_last);
+
+        // KRATOS_ERROR << "HELLO THERE";
+    }
+
+
+    /**
+     * @brief Inserts elements from a r_value container.
+     * @details This method is used to insert all values from an r valued container.
+     *          This mutates the r valued input container to be sorted and unique if it is not the type of PointerVectorSet.
+     *          If it is the type of the PointerVectorSet, then it doesn't mutate the input container.
+     *
+     * @warning The move assumes the ownership of the container, hence the the rContainer may be mutated. if the TContainer is of type std::shared_ptr or intrusive_ptr
+     *          then, there will always be a null pointer at the end past position of the unique sorted list since the std::unique uses the move assignment operator
+     *          within its algorithm. Therefore, the new_last created here will have the correct pointer to the object, and the rContainer will have a nullptr in the
+     *          corresponding place. Therefore, if this method is called once, and if it used with a container type which is not PointerVectorSet, please do not use
+     *          the input rContainer anymore. It will segfault unless the PointerVectorSet is created with raw pointers. [This is because since c++11 std::unique uses the move assignment operator]
+     * @tparam TContainer
+     * @param rContainer
+     */
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void insert(TContainer&& rContainer)
+    {
+        if constexpr(!std::is_same_v<BaseType<TContainer>, PointerVectorSet>) {
+            std::sort(rContainer.begin(), rContainer.end(), CompareKey());
+            auto new_last = std::unique(rContainer.begin(), rContainer.end(), EqualKeyTo());
+            SortedInsert(rContainer.begin(), new_last);
+        } else {
+            SortedInsert(rContainer.begin(), rContainer.end());
+        }
+
     }
 
     /**
@@ -663,6 +700,20 @@ public:
      * @param last Other PointerVectorSet ending iterator
      */
     void insert(PointerVectorSet::const_iterator first, PointerVectorSet::const_iterator last)
+    {
+        SortedInsert(first, last);
+    }
+
+    /**
+     * @brief Insert elements from another PointerVectorSet range.
+     * @details This function inserts element pointers from another PointerVectorSet range specified by first and last into the current set.
+     * Since, PointerVectorSet is assumed to be sorted and unique, the incoming PointerVectorSet is not
+     * sorted and made unique again. This will not insert any elements in the incoming set, if there exists an element with a key
+     * which is equal to an element's key in the input range.
+     * @param first Other PointerVectorSet starting iterator
+     * @param last Other PointerVectorSet ending iterator
+     */
+    void insert(PointerVectorSet::iterator first, PointerVectorSet::iterator last)
     {
         SortedInsert(first, last);
     }
@@ -784,9 +835,9 @@ public:
      * @param Key The key to count.
      * @return The number of elements with the specified key (0 or 1).
      */
-    size_type count(const key_type& Key)
+    size_type count(const key_type& Key) const
     {
-        return find(Key) == mData.end() ? 0 : 1;
+        return find(Key) == const_iterator(mData.end()) ? 0 : 1;
     }
 
     /**
@@ -807,6 +858,11 @@ public:
     int capacity()
     {
         return mData.capacity();
+    }
+
+    void shrink_to_fit()
+    {
+        mData.shrink_to_fit();
     }
 
     /**
@@ -1022,6 +1078,17 @@ private:
         }
 
         /**
+        * @brief Compare an object with the stored key.
+        * @details This function checks if the key stored in this `EqualKeyTo` object is equal to the extracted key from the object of type `TDataType`.
+        * @param a An object of type `TDataType`.
+        * @return True if the stored key is equal to the extracted key from `a`, false otherwise.
+        */
+        bool operator()(const TDataType& a) const
+        {
+            return TEqualType()(mKey, TGetKeyType()(a));
+        }
+
+        /**
         * @brief Compare two pointers to objects with each other.
         * @details This function checks if the extracted keys from two pointers to objects of type `TPointerType` are equal using the specified equality function and key extraction function.
         * @param a The pointer to the first object of type `TPointerType`.
@@ -1069,47 +1136,44 @@ private:
         if (empty()) {
             mData.reserve(std::distance(first, last));
             for (auto it = first; it != last; ++it) {
-                mData.push_back(TPointerType(&GetReference(it)));
+                mData.push_back(GetPointer(it));
             }
         } else {
-            // first find the largest range
-            const auto lower_bound_first = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
-            const auto upper_bound_last = std::upper_bound(lower_bound_first, mData.end(), KeyOf(GetReference(last-1)), CompareKey());
-
-            // then find the compact sub range
-            const auto upper_bound_first = std::upper_bound(lower_bound_first, upper_bound_last, KeyOf(GetReference(first)), CompareKey());
-            const auto lower_bound_last = std::lower_bound(lower_bound_first, upper_bound_last, KeyOf(GetReference(last-1)), CompareKey());
-
-            if (lower_bound_first == lower_bound_last &&
-                lower_bound_first == upper_bound_first &&
-                lower_bound_first == upper_bound_last)
-            {
-                // all 4 bounds are equal, hence this can be inserted without checking further
+            if (KeyOf(GetReference(first)) > KeyOf(*(mData.back()))) {
+                // all are pointing to the end of the vector, hence pushing back.
                 mData.reserve(mData.size() + std::distance(first, last));
-                if (lower_bound_first == mData.end()) {
-                    for (auto it = first; it != last; ++it) {
-                        mData.push_back(TPointerType(&GetReference(it)));
-                    }
-                } else {
-                    // now if the capacity of the new mData is larger than the existing
-                    // capacity, then the current lower_bound_first is invalidated.
-                    // hence needs to find it again.
-                    const auto new_lower_bound = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
-                    auto current_pos = new_lower_bound - 1;
-                    for (auto it = first; it != last; ++it) {
-                        current_pos = mData.insert(current_pos + 1, TPointerType(&GetReference(it)));
-                    }
+                for (auto it = first; it != last; ++it) {
+                    mData.push_back(GetPointer(it));
                 }
             } else {
-                auto p_current_itr = mData.begin();
-                // now add the new elements
-                for (auto it = first; it != last; ++it) {
-                    // find the lower bound element.
-                    p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(GetReference(it)), CompareKey());
-                    if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(GetReference(it)))(*p_current_itr)) {
-                        p_current_itr = mData.insert(p_current_itr, TPointerType(&GetReference(it)));
+                TContainerType temp;
+                temp.reserve(mData.size() + std::distance(first, last));
+                auto p_existing_data_itr = mData.begin();
+
+                CompareKey key_comparator;
+
+                while (p_existing_data_itr != mData.end() && first != last) {
+                    if (key_comparator(*p_existing_data_itr, KeyOf(GetReference(first)))) {
+                        temp.push_back(GetPointer(p_existing_data_itr++));
+                    } else if (EqualKeyTo(KeyOf(GetReference(p_existing_data_itr)))(*first)) {
+                        // here we keep the old entity, and discard the new entity.
+                        temp.push_back(GetPointer(p_existing_data_itr++));
+                        ++first;
+                    } else {
+                        temp.push_back(GetPointer(first++));
                     }
                 }
+
+                // now either p_existing_data_itr reached the end or first reached the end,
+                // hence we add the remaining without checking
+                for (; p_existing_data_itr != mData.end(); ++p_existing_data_itr) {
+                    temp.push_back(GetPointer(p_existing_data_itr));
+                }
+                for (; first != last; ++first) {
+                    temp.push_back(GetPointer(first));
+                }
+
+                mData.swap(temp);
             }
         }
 
@@ -1177,6 +1241,30 @@ private:
             return *Iterator;
         } else if constexpr(std::is_same_v<iterator_value_type, pointer>) {
             return **Iterator;
+        } else {
+            static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
+            return 0;
+        }
+    }
+
+    template<class TIteratorType>
+    inline TPointerType GetPointer(TIteratorType Iterator) const
+    {
+        // It is difficult to use std::iterator_traits to get the value
+        // type of the iterator because, boost::indirect has a value type
+        // which is harder to guess, and cryptic. Hence, using the decltype.
+        using iterator_value_type = std::decay_t<decltype(*Iterator)>;
+
+        if constexpr(std::is_same_v<TIteratorType, iterator> || std::is_same_v<TIteratorType, reverse_iterator>) {
+            // if the TIteratorType is of boost::indirect_iterator type, then we can get the pointer by dereferencing.
+            return *(Iterator.base());
+        } else if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<TPointerType>>) {
+            // this supports any type of pointers
+            return *Iterator;
+        } else if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<value_type>> && std::is_same_v<TPointerType, Kratos::intrusive_ptr<std::decay_t<decltype(*Iterator)>>>) {
+            // now the *iterator points to a value type. Then we can only return the pointer if
+            // the PointerVectorSet is of the type with intrusive_ptrs. Then we can safely construct the intrusive ptrs
+            return TPointerType(&*Iterator);
         } else {
             static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
             return 0;

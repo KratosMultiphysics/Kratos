@@ -46,7 +46,6 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using BaseType::mConstitutiveLawVector;
-    using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
 
     using ElementVariables = typename BaseType::ElementVariables;
@@ -54,14 +53,20 @@ public:
     explicit SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    SteadyStatePwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
+    SteadyStatePwElement(IndexType                          NewId,
+                         const NodesArrayType&              ThisNodes,
+                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
-    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
+    SteadyStatePwElement(IndexType                          NewId,
+                         GeometryType::Pointer              pGeometry,
+                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -69,8 +74,9 @@ public:
     SteadyStatePwElement(IndexType                          NewId,
                          GeometryType::Pointer              pGeometry,
                          PropertiesType::Pointer            pProperties,
-                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -121,8 +127,7 @@ private:
     void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
     // Assignment operator.
-    SteadyStatePwElement&
-    operator=(SteadyStatePwElement const& rOther);
+    SteadyStatePwElement& operator=(SteadyStatePwElement const& rOther);
 
     // Copy constructor.
     SteadyStatePwElement(SteadyStatePwElement const& rOther);

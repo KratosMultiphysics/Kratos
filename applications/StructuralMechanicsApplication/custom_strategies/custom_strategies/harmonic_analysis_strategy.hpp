@@ -87,6 +87,8 @@ public:
 
     typedef DenseVector<ComplexType> ComplexVectorType;
 
+    typedef std::vector<std::size_t> EquationIdVectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -265,7 +267,6 @@ public:
             if (r_force_vector.size() != system_size)
                 r_force_vector.resize(system_size, false);
             r_force_vector = ZeroVector( system_size );
-            p_builder_and_solver->BuildRHS(p_scheme,r_model_part,r_force_vector);
 
             KRATOS_INFO_IF("Force Vector Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << force_vector_build_time << std::endl;
@@ -413,6 +414,25 @@ public:
         const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
 
         auto& f = *mpForceVector;
+        TSparseSpace::SetToZero(f);
+
+        // Build the RHS manually to avoid the residual formulation
+        IndexPartition<std::size_t>(r_model_part.NumberOfConditions()).for_each(
+        std::tuple<DenseVectorType, EquationIdVectorType>{},
+        [&r_model_part, &r_process_info, &f](const std::size_t Index, auto& rTLS) {
+            auto& r_condition = *(r_model_part.ConditionsBegin() + Index);
+
+            auto& rhs = std::get<0>(rTLS);
+            auto& equation_id = std::get<1>(rTLS);
+
+            r_condition.CalculateRightHandSide(rhs, r_process_info);
+            r_condition.EquationIdVector(equation_id, r_process_info);
+
+            // Assemble into global vector
+            for (IndexType i = 0; i < equation_id.size(); ++i) {
+                AtomicAdd(f[equation_id[i]], rhs[i]);
+            }
+        });
 
         ComplexType mode_weight;
         ComplexVectorType modal_displacement;

@@ -91,7 +91,7 @@ static void UpdateFunctionNonHist(NodeType& rNode,
                             const double Value,
                             const double Factor)
 {
-    rNode.GetValue(rVariable) = Value * Factor;
+    rNode.SetValue(rVariable, Value * Factor);
 }
 
 static void UpdateFunctionNonHistWithAdd(NodeType& rNode,
@@ -310,7 +310,7 @@ private:
     std::vector<MapperInterfaceInfoPointerType>& mrInterfaceInfos;
     MapperInterfaceInfoPointerType mrpRefInterfaceInfo;
 
-    friend class Kratos::Serializer; // Adding "Kratos::" is nedded bcs of the "MapperUtilities"-namespace
+    friend class Kratos::Serializer; // Adding "Kratos::" is needed bcs of the "MapperUtilities"-namespace
 
     virtual void save(Kratos::Serializer& rSerializer) const;
     virtual void load(Kratos::Serializer& rSerializer);

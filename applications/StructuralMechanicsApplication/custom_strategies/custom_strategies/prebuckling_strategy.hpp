@@ -244,9 +244,9 @@ public:
      * @details
      * {
      * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic informations
+     * 1 -> Printing time and basic information
      * 2 -> Printing linear solver data
-     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
      * }
      */
     void SetEchoLevel(int Level) override
@@ -451,7 +451,7 @@ public:
 
         // Update loadfactor increment
         double delta_load_multiplier = 0.0;
-        if( mLoadStepIteration == 1) // inital load increment
+        if( mLoadStepIteration == 1) // initial load increment
         {
             delta_load_multiplier = mInitialLoadIncrement*(mLambda + mLambdaPrev);
         }

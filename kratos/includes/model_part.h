@@ -18,11 +18,13 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include <type_traits>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/key_hash.h"
 #include "includes/serializer.h"
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
@@ -39,6 +41,8 @@
 #include "includes/master_slave_constraint.h"
 #include "containers/variable.h"
 #include "containers/variable_data.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/type_traits.h"
 
 namespace Kratos
 {
@@ -94,6 +98,15 @@ public:
         Kratos_Ghost,
         Kratos_Ownership_Size
     };
+
+    ///@}
+    ///@name Class definitions
+    ///@{
+
+    /// @brief Templated class to get corresponding container and its information from a mesh.
+    /// @tparam TContainerType  The type of the container to be retrieved.
+    template<class TContainerType>
+    struct Container {};
 
     ///@}
     ///@name Type Definitions
@@ -356,47 +369,29 @@ public:
     template<class TIteratorType >
     void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
     {
-        KRATOS_TRY
-        ModelPart::NodesContainerType  aux;
-        ModelPart::NodesContainerType  aux_root; //they may not exist in the root
-        ModelPart* root_model_part = &this->GetRootModelPart();
+        EntityRangeChecker<NodesContainerType>()(this, nodes_begin, nodes_end);
 
-        for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
-        {
-            auto it_found = root_model_part->Nodes().find(it->Id());
-            if(it_found == root_model_part->NodesEnd()) //node does not exist in the top model part
-            {
-                aux_root.push_back( *(it.base()) ); //node does not exist
-                aux.push_back( *(it.base()) );
-            }
-            else //if it does exist verify it is the same node
-            {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
-                else
-                    aux.push_back( *(it.base()) );
-            }
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().Nodes());
+        }, nodes_begin, nodes_end);
+    }
+
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void AddNodes(TContainer&& rInputContainer)
+    {
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<NodesContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+
+            InsertEntities([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().Nodes());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddNodes(rInputContainer);
         }
-
-        //now add to the root model part
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-            root_model_part->Nodes().push_back( *(it.base()) );
-        root_model_part->Nodes().Unique();
-
-        //add to all of the leaves
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Nodes().push_back( *(it.base()) );
-
-            current_part->Nodes().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
     }
 
     /** Inserts a node in the current mesh.
@@ -694,46 +689,29 @@ public:
     template<class TIteratorType >
     void AddMasterSlaveConstraints(TIteratorType constraints_begin,  TIteratorType constraints_end, IndexType ThisIndex = 0)
     {
-        KRATOS_TRY
-        ModelPart::MasterSlaveConstraintContainerType  aux;
-        ModelPart::MasterSlaveConstraintContainerType  aux_root;
-        ModelPart* root_model_part = &this->GetRootModelPart();
+        EntityRangeChecker<MasterSlaveConstraintContainerType>()(this, constraints_begin, constraints_end);
 
-        for(TIteratorType it = constraints_begin; it!=constraints_end; it++)
-        {
-            auto it_found = root_model_part->MasterSlaveConstraints().find(it->Id());
-            if(it_found == root_model_part->MasterSlaveConstraintsEnd()) //node does not exist in the top model part
-            {
-                aux_root.push_back( *(it.base()) );
-                aux.push_back( *(it.base()) );
-            }
-            else //if it does exist verify it is the same node
-            {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new master-slave constraint with Id :" << it_found->Id() << ", unfortunately a (different) master-slave constraint with the same Id already exists" << std::endl;
-                else
-                    aux.push_back( *(it.base()) );
-            }
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().MasterSlaveConstraints());
+        }, constraints_begin, constraints_end);
+    }
+
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void AddMasterSlaveConstraints(TContainer&& rInputContainer)
+    {
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<MasterSlaveConstraintContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+
+            InsertEntities([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().MasterSlaveConstraints());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddMasterSlaveConstraints(rInputContainer);
         }
-
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->MasterSlaveConstraints().push_back( *(it.base()) );
-        root_model_part->MasterSlaveConstraints().Unique();
-
-        //add to all of the leaves
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
-
-            current_part->MasterSlaveConstraints().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
     }
 
     /**
@@ -1042,46 +1020,29 @@ public:
     template<class TIteratorType >
     void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
     {
-        KRATOS_TRY
-        ModelPart::ElementsContainerType  aux;
-        ModelPart::ElementsContainerType  aux_root;
-        ModelPart* root_model_part = &this->GetRootModelPart();
+        EntityRangeChecker<ElementsContainerType>()(this, elements_begin, elements_end);
 
-        for(TIteratorType it = elements_begin; it!=elements_end; it++)
-        {
-            auto it_found = root_model_part->Elements().find(it->Id());
-            if(it_found == root_model_part->ElementsEnd()) //node does not exist in the top model part
-            {
-                aux_root.push_back( *(it.base()) );
-                aux.push_back( *(it.base()) );
-            }
-            else //if it does exist verify it is the same node
-            {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new element with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
-                else
-                    aux.push_back( *(it.base()) );
-            }
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().Elements());
+        }, elements_begin, elements_end);
+    }
+
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void AddElements(TContainer&& rInputContainer)
+    {
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<ElementsContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+
+            InsertEntities([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().Elements());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddElements(rInputContainer);
         }
-
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->Elements().push_back( *(it.base()) );
-        root_model_part->Elements().Unique();
-
-        //add to all of the leaves
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Elements().push_back( *(it.base()) );
-
-            current_part->Elements().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
     }
 
     /// Creates new element with a node ids list.
@@ -1228,52 +1189,34 @@ public:
      */
     void AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex = 0);
 
-    /** Inserts a list of pointers to nodes
+    /** Inserts a list of pointers to conditions
      */
     template<class TIteratorType >
     void AddConditions(TIteratorType conditions_begin,  TIteratorType conditions_end, IndexType ThisIndex = 0)
     {
-        KRATOS_TRY
-        ModelPart::ConditionsContainerType  aux;
-        ModelPart::ConditionsContainerType  aux_root;
-        ModelPart* root_model_part = &this->GetRootModelPart();
+        EntityRangeChecker<ConditionsContainerType>()(this, conditions_begin, conditions_end);
 
-        for(TIteratorType it = conditions_begin; it!=conditions_end; it++)
-        {
-            auto it_found = root_model_part->Conditions().find(it->Id());
-            if(it_found == root_model_part->ConditionsEnd()) //node does not exist in the top model part
-            {
-                aux.push_back( *(it.base()) );
-                aux_root.push_back( *(it.base()) );
-            }
-            else //if it does exist verify it is the same node
-            {
-                if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
-                else
-                    aux.push_back( *(it.base()) );
-            }
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().Conditions());
+        }, conditions_begin, conditions_end);
+    }
+
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void AddConditions(TContainer&& rInputContainer)
+    {
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<ConditionsContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+
+            InsertEntities([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().Conditions());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddConditions(rInputContainer);
         }
-
-        //now add to the root model part
-        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
-                root_model_part->Conditions().push_back( *(it.base()) );
-        root_model_part->Conditions().Unique();
-
-        //add to all of the leaves
-
-        ModelPart* current_part = this;
-        while(current_part->IsSubModelPart())
-        {
-            for(auto it = aux.begin(); it!=aux.end(); it++)
-                current_part->Conditions().push_back( *(it.base()) );
-
-            current_part->Conditions().Unique();
-
-            current_part = &(current_part->GetParentModelPart());
-        }
-
-        KRATOS_CATCH("")
     }
 
     /// Creates new condition with a node ids list.
@@ -1525,42 +1468,68 @@ public:
     void AddGeometries(TIteratorType GeometryBegin,  TIteratorType GeometriesEnd, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        std::vector<GeometryType::Pointer> aux, aux_root;
+
         ModelPart* p_root_model_part = &this->GetRootModelPart();
 
-        for(TIteratorType it = GeometryBegin; it!=GeometriesEnd; it++) {
-            auto it_found = p_root_model_part->Geometries().find(it->Id());
-            if(it_found == p_root_model_part->GeometriesEnd()) { // Geometry does not exist in the top model part
-                aux_root.push_back( it.operator->() );
-                aux.push_back( it.operator->() );
-            } else { // If it does exist verify it is the same geometry
-                if (GeometryType::HasSameGeometryType(*it, *it_found)) { // Check the geometry type and connectivities
-                    for (IndexType i_pt = 0; i_pt < it->PointsNumber(); ++i_pt) {
-                        KRATOS_ERROR_IF((*it)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << it->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+        block_for_each(GeometryBegin, GeometriesEnd, [p_root_model_part](const auto& prGeometry) {
+            const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
+            const auto& r_geometries = p_root_model_part->Geometries();
+            auto it_found = r_geometries.find(r_geometry.Id());
+            if (it_found != p_root_model_part->GeometriesEnd()) {
+                if (GeometryType::HasSameGeometryType(r_geometry, *it_found)) { // Check the geometry type and connectivities
+                    for (IndexType i_pt = 0; i_pt < r_geometry.PointsNumber(); ++i_pt) {
+                        KRATOS_ERROR_IF((r_geometry)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << r_geometry.Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
                     }
-                    aux.push_back( it_found.operator->() ); // If the Id, type and connectivities are the same add the existing geometry
-                } else if(&(*it_found) != &(*it)) { // Check if the pointee coincides
+                } else if(&(*it_found) != &r_geometry) { // Check if the pointee coincides
                     KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
-                } else {
-                    aux.push_back( it.operator->() );
                 }
             }
+        });
+
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->Geometries());
+        }, GeometryBegin, GeometriesEnd);
+
+        KRATOS_CATCH("")
+    }
+
+
+    /// Inserts a list of geometries to a submodelpart provided their iterators
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void AddGeometries(TContainer&& rInputContainer)
+    {
+        KRATOS_TRY
+
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            ModelPart* p_root_model_part = &this->GetRootModelPart();
+
+            block_for_each(rInputContainer.begin(), rInputContainer.end(), [p_root_model_part](const auto& prGeometry) {
+                const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
+                const auto& r_geometries = p_root_model_part->Geometries();
+                auto it_found = r_geometries.find(r_geometry.Id());
+                if (it_found != p_root_model_part->GeometriesEnd()) {
+                    if (GeometryType::HasSameGeometryType(r_geometry, *it_found)) { // Check the geometry type and connectivities
+                        for (IndexType i_pt = 0; i_pt < r_geometry.PointsNumber(); ++i_pt) {
+                            KRATOS_ERROR_IF((r_geometry)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << r_geometry.Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+                        }
+                    } else if(&(*it_found) != &r_geometry) { // Check if the pointee coincides
+                        KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
+                    }
+                }
+            });
+
+            InsertEntities([](ModelPart* pModelPart) {
+                return &(pModelPart->Geometries());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddGeometries(rInputContainer);
         }
 
-        // Add to root model part
-        for(auto& p_geom : aux_root) {
-            p_root_model_part->AddGeometry(p_geom);
-        }
 
-        // Add to all of the leaves
-        ModelPart* p_current_part = this;
-        while(p_current_part->IsSubModelPart()) {
-            for(auto& p_geom : aux) {
-                p_current_part->AddGeometry(p_geom);
-            }
-
-            p_current_part = &(p_current_part->GetParentModelPart());
-        }
 
         KRATOS_CATCH("")
     }
@@ -1989,6 +1958,193 @@ private:
     ///@{
 
     /**
+     * @brief Provides a mechanism to get the reference from given input with some types.
+     * @details The range addition methods in the model parts are used with following types:
+     *              - std::vector<Entity::Pointer>::iterator -> dereference will give the Entity::Pointer
+     *              - PointerVectorSet<Entity>::iterator -> dereference will give the Entity
+     *              - PointerVectorSet<Entity>::ptr_iterator -> dereference will give the Entity::Pointer.
+     *          This functor generalizes and gives the reference from a given entity.
+     *
+     * @tparam TReturnValueType
+     */
+    template<class TReturnValueType>
+    struct ReferenceGetter
+    {
+        template<class TInputValueType>
+        inline static const TReturnValueType& Get(const TInputValueType& rInputValue) {
+            if constexpr(std::is_same_v<TReturnValueType, std::remove_cv_t<TInputValueType>>) {
+                return rInputValue;
+            } else if constexpr(std::is_same_v<TReturnValueType, std::remove_cv_t<std::decay_t<decltype(*rInputValue)>>>) {
+                return *rInputValue;
+            } else if constexpr(std::is_same_v<TReturnValueType, std::remove_cv_t<std::decay_t<decltype(**rInputValue)>>>) {
+                return **rInputValue;
+            } else {
+                static_assert(!std::is_same_v<TInputValueType, TInputValueType>, "Unsupported value type.");
+                return TReturnValueType{};
+            }
+        }
+    };
+
+    /**
+     * @brief Generalized checker to check whether if an item being inserted is already there, if so whether the item is the same.
+     *
+     * @tparam TContainerType
+     */
+    template<class TContainerType>
+    struct EntityRangeChecker{
+        template<class TIterator>
+        void operator()(ModelPart* pModelPart, TIterator begin, TIterator end) {
+            KRATOS_TRY
+
+            ModelPart* p_root_model_part = &pModelPart->GetRootModelPart();
+
+            block_for_each(begin, end, [&](const auto& prEntity) {
+                const auto& r_entity = ReferenceGetter<typename TContainerType::value_type>::Get(prEntity);
+                const auto& r_entities = Container<TContainerType>::GetContainer(p_root_model_part->GetMesh()); // TODO: This is only required to only trigger a find, not a sort. Once the find is fixed, then we can simplify this.
+                auto it_found = r_entities.find(r_entity.Id());
+                KRATOS_ERROR_IF(it_found != r_entities.end() && &r_entity != &*it_found)
+                    << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
+                    << r_entity.Id() << " to root model part " << p_root_model_part->FullName()
+                    << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
+                    << " with the same Id already exists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
+                    << " to " << pModelPart->FullName() << " ]."
+                    << std::endl;
+            });
+            KRATOS_CATCH("");
+        }
+    };
+
+    template<class TContainerType>
+    static bool IsSubSet(
+        const TContainerType& rContainer,
+        typename TContainerType::iterator begin,
+        typename TContainerType::iterator end)
+    {
+        // do nothing if the given range is empty.
+        if (std::distance(begin, end) == 0) {
+            return true;
+        }
+
+        // check if the given [begin, end) range is a subset of the given PointerVectorSet.
+        auto current_pvs_begin_it = rContainer.find(begin->Id());
+        if (current_pvs_begin_it != rContainer.end() && &*(current_pvs_begin_it.base()) == &*(begin.base())) {
+            // memory location pointing to begin is in the rContainer. then check the same for the end.
+            auto current_pvs_end_it = rContainer.find((end - 1)->Id());
+            return current_pvs_end_it != rContainer.end() && &*(current_pvs_end_it.base()) == &*((end - 1).base());
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief Generalized method to add entities to the current model part and all the parent model parts.
+     * @details Following cases are considered
+     *              1. TIterator not being the type of the PointerVectorSet::iterator
+     *              2. TIterator being the type of PointerVectorSet::iterator
+     *                  a. [begin, end) defines a subrange in the considered PointerVectorSet.
+     *                  b. [begin, end) does not define a subrange in the considered PointerVectorSet.
+     *
+     *  - In the case 1:
+     *          - We have to make sure that the range [begin, end) is not always sorted and made unique when inserted to
+     *            current model part and the parent model part. This requires constructing an auxiliary TContainerType container
+     *            to add the items in the range.
+     *                  -- This will keep on increasing the capacity of the current PVS as well as all the
+     *                     parent PVS containers.
+     *
+     *  - In the case 2a:
+     *          - If it defines a subrange, we don't have to do anything. We can simply skip the insertion on the current PVS as
+     *            well as in all the parents because they must already have the subrange.
+     *                  -- This will keep the same capacity of the PVS.
+     *
+     *  - In the case 2b:
+     *          - If does not define a subrange and it is of type PVS, hence they are sorted and made unique. So we don't need
+     *            an auxiliary here as well.
+     *                  -- This will keep on increasing the capacity of the current PVS as well as all the
+     *                     parent PVS containers.
+     *
+     * @tparam TContainerGetter
+     * @tparam TIterator
+     * @param rContainerGetter
+     * @param begin
+     * @param end
+     */
+    template<class TContainerGetter, class TIterator>
+    void InsertEntityRange(
+        const TContainerGetter& rContainerGetter,
+        TIterator begin,
+        TIterator end)
+    {
+        KRATOS_TRY
+
+        using container_type = std::remove_pointer_t<decltype(std::declval<TContainerGetter>()(std::declval<ModelPart*>()))>;
+
+        ModelPart* p_current_part = this;
+
+        if constexpr(!std::is_same_v<typename container_type::iterator, std::remove_cv_t<TIterator>> &&
+                     !std::is_same_v<typename container_type::const_iterator, std::remove_cv_t<TIterator>>) {
+            // this represents the case 1.
+            container_type aux;
+            aux.insert(begin, end);
+
+            // we add to all the parents and the current model part
+            while (p_current_part->IsSubModelPart()) {
+                rContainerGetter(p_current_part)->insert(aux.begin(), aux.end());
+                p_current_part = &(p_current_part->GetParentModelPart());
+            }
+
+            // now we add to the root model part
+            rContainerGetter(p_current_part)->insert(aux.begin(), aux.end());
+        } else {
+            // this represents the case 2.
+            // now the iterators belong to PVS::iterator, hence no sorting or making them to unique will occur.
+            bool is_sub_set = IsSubSet(*rContainerGetter(p_current_part), begin, end);
+            while (p_current_part->IsSubModelPart() && !is_sub_set) {
+                rContainerGetter(p_current_part)->insert(begin, end);
+                p_current_part = &(p_current_part->GetParentModelPart());
+                is_sub_set = IsSubSet(*rContainerGetter(p_current_part), begin, end);
+            }
+
+            // now we do the same for the root model part
+            if (!is_sub_set) {
+                rContainerGetter(p_current_part)->insert(begin, end);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    template<class TContainerGetter, class TInputContainer, std::enable_if_t<IsRValueContainer<TInputContainer>::value, bool> = true>
+    void InsertEntities(
+        const TContainerGetter& rContainerGetter,
+        TInputContainer&& rInputContainer)
+    {
+        KRATOS_TRY
+
+        using container_type = std::remove_pointer_t<decltype(std::declval<TContainerGetter>()(std::declval<ModelPart*>()))>;
+
+        ModelPart* p_current_part = this;
+
+        if constexpr(!std::is_same_v<BaseType<TInputContainer>, container_type>) {
+            // this represents the case 1.
+            container_type aux;
+            aux.insert(std::move(rInputContainer));
+
+            // we add to all the parents and the current model part
+            while (p_current_part->IsSubModelPart()) {
+                rContainerGetter(p_current_part)->insert(aux.begin(), aux.end());
+                p_current_part = &(p_current_part->GetParentModelPart());
+            }
+
+            // now we add to the root model part
+            rContainerGetter(p_current_part)->insert(aux.begin(), aux.end());
+        } else {
+            InsertEntityRange(rContainerGetter, rInputContainer.begin(), rInputContainer.end());
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief This method trims a string in the different components to access recursively to any subproperty
      * @param rStringName The given name to be trimmed
      * @return The list of indexes
@@ -2068,6 +2224,31 @@ private:
 ///@name Type Definitions
 ///@{
 
+template <> struct ModelPart::Container<ModelPart::NodesContainerType> {
+    static std::string GetEntityName() { return "node"; }
+    static NodesContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Nodes(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::ConditionsContainerType> {
+    static std::string GetEntityName() { return "condition"; }
+    static ConditionsContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Conditions(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::ElementsContainerType> {
+    static std::string GetEntityName() { return "element"; }
+    static ElementsContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Elements(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::MasterSlaveConstraintContainerType> {
+    static std::string GetEntityName() { return "master-slave-constraint"; }
+    static MasterSlaveConstraintContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.MasterSlaveConstraints(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::GeometriesMapType> {
+    static std::string GetEntityName() { return "geometry"; }
+    // TODO: Can be used once we move the geometries container to meshes.
+    // static GeometriesMapType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
+};
 
 ///@}
 ///@name Input and output

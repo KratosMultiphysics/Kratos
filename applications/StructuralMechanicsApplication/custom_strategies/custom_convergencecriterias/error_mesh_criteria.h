@@ -231,7 +231,7 @@ public:
     }
 
     ///@}
-    ///@name Acces
+    ///@name Access
     ///@{
 
     ///@}

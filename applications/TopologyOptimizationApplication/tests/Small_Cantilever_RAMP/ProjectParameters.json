@@ -47,7 +47,6 @@
 		"python_module" : "assign_vector_variable_process",
         	"kratos_module" : "KratosMultiphysics",
         	"Parameters"    : {
-                "mesh_id"         : 0,
         	    "model_part_name" : "Structure.DISPLACEMENT_disp",
         	    "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],

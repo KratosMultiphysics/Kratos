@@ -10,8 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_CONDITION_H_INCLUDED )
-#define  KRATOS_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -669,6 +668,11 @@ public:
      * the Output is given on integration points and characterizes the condition
      * Calculate(..) methods are: OPTIONAL
      */
+    virtual void Calculate(const Variable<int >& rVariable,
+               int& Output,
+               const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     virtual void Calculate(const Variable<double >& rVariable,
                double& Output,
@@ -678,6 +682,12 @@ public:
 
     virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
                array_1d<double,3>& Output,
+               const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void Calculate(const Variable< array_1d<double,6> >& rVariable,
+               array_1d<double,6>& Output,
                const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -1205,5 +1215,4 @@ KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Condition >, NEIGHBOUR_CONDITIONS)
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 } // namespace Kratos.
-#endif // KRATOS_CONDITION_H_INCLUDED  defined
 

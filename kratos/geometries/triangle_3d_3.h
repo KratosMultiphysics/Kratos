@@ -26,7 +26,6 @@
 #include "geometries/plane_3d.h"
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
-#include "integration/triangle_collocation_integration_points.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/intersection_utilities.h"
@@ -209,7 +208,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -279,7 +278,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor does not copy the points and new
@@ -297,14 +296,34 @@ public:
      */
     ~Triangle3D3() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Triangle3D3;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Linear_Order;
     }
 
     ///@}
@@ -471,7 +490,7 @@ public:
     }
 
     /**
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @brief This method calculates and returns area or surface area of this geometry depending on its dimension.
      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area
@@ -505,7 +524,7 @@ public:
     // }
 
     /**
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @brief This method calculates and returns length, area or volume of this geometry depending on its dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -728,7 +747,7 @@ public:
      */
     double InradiusToLongestEdgeQuality() const override
     {
-        constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+        constexpr double normFactor = 1.0; // TODO: This normalization coefficient is not correct.
 
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -919,55 +938,7 @@ public:
         const CoordinatesArrayType& rPoint
         ) const override
     {
-        // Initialize
-        noalias(rResult) = ZeroVector(3);
-
-        // Tangent vectors
-        array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
-        tangent_xi /= norm_2(tangent_xi);
-        array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
-        tangent_eta /= norm_2(tangent_eta);
-
-        // The center of the geometry
-        const auto center = this->Center();
-
-        // Computation of the rotation matrix
-        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
-        for (IndexType i = 0; i < 3; ++i) {
-            rotation_matrix(0, i) = tangent_xi[i];
-            rotation_matrix(1, i) = tangent_eta[i];
-        }
-
-        // Destination point rotated
-        CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
-        noalias(aux_point_to_rotate) = rPoint - center.Coordinates();
-        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
-
-        // Points of the geometry
-        array_1d<CoordinatesArrayType, 3> points_rotated;
-        for (IndexType i = 0; i < 3; ++i) {
-            noalias(aux_point_to_rotate) = this->GetPoint(i).Coordinates() - center.Coordinates();
-            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
-        }
-
-        // Compute the Jacobian matrix and its determinant
-        BoundedMatrix<double, 2, 2> J;
-        J(0,0) = points_rotated[1][0] - points_rotated[0][0];
-        J(0,1) = points_rotated[2][0] - points_rotated[0][0];
-        J(1,0) = points_rotated[1][1] - points_rotated[0][1];
-        J(1,1) = points_rotated[2][1] - points_rotated[0][1];
-        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
-
-        // Compute eta and xi
-        const double eta = (J(1,0)*(points_rotated[0][0] - destination_point_rotated[0]) +
-                            J(0,0)*(destination_point_rotated[1] - points_rotated[0][1])) / det_J;
-        const double xi  = (J(1,1)*(destination_point_rotated[0] - points_rotated[0][0]) +
-                            J(0,1)*(points_rotated[0][1] - destination_point_rotated[1])) / det_J;
-
-        rResult(0) = xi;
-        rResult(1) = eta;
-
-        return rResult;
+        return GeometryUtils::PointLocalCoordinatesStraightEdgesTriangle(*this, rResult, rPoint);
     }
 
     ///@}
@@ -1050,10 +1021,10 @@ public:
             }
             sum_coordinates += rProjectionPointLocalCoordinates[i];
         }
-        
+
         // Clipping to line y=1-x
         if (sum_coordinates>1.0){
-            for(unsigned int i = 0 ; i < 2 ; i++){ 
+            for(unsigned int i = 0 ; i < 2 ; i++){
                 rProjectionPointLocalCoordinates[i] /= sum_coordinates;
             }
         }
@@ -1204,7 +1175,7 @@ public:
      */
     /**
      * Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
+     * method. This method calculates jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which jacobians has to
@@ -1238,7 +1209,7 @@ public:
      * TODO: implemented but not yet tested
      */
     /**
-       * Jacobian in given point. This method calculate jacobian
+       * Jacobian in given point. This method calculates jacobian
        * matrix in given point.
        *
        * @param rPoint point which jacobians has to
@@ -1292,7 +1263,7 @@ public:
 
     /**
      * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
+     * given integration method. This method calculates determinant
      * of jacobian in given integration point of given integration
      * method.
      *
@@ -1317,7 +1288,7 @@ public:
 
     /**
      * Determinant of jacobian in given point.
-     * This method calculate determinant of jacobian
+     * This method calculates determinant of jacobian
      * matrix in given point.
      * @param rPoint point which determinant of jacobians has to
      * be calculated in it.
@@ -1340,7 +1311,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -1357,7 +1328,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -1389,7 +1360,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -1510,6 +1481,12 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Triangle3D3N";
+    }
 
     /**
      * Turn back information as a string.
@@ -1866,12 +1843,7 @@ private:
                 Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -1894,17 +1866,7 @@ private:
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
-                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
-                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
-                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
-                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
-                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1923,12 +1885,7 @@ private:
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
