@@ -686,3 +686,30 @@ class GiDOutputFileReader:
             return result
         else:
             return element_results
+
+
+def read_coordinates_from_post_msh_file(file_path, node_ids=None):
+    node_map = {}
+
+    with open(file_path, "r") as post_msh_file:
+        reading_coordinates = False
+        for line in post_msh_file:
+            line = line.strip()
+            if line == "Coordinates":
+                reading_coordinates = True
+                continue
+
+            if line == "End Coordinates":
+                reading_coordinates = False
+
+            if reading_coordinates:
+                numbers = line.split()  # [node ID, x, y, z]
+                node_map[int(numbers[0])] = tuple([float(number) for number in numbers[1:]])
+
+    if node_ids is None:
+        return list(node_map.values())
+
+    result = []
+    for id in node_ids:
+        result.append(node_map[id])
+    return result
