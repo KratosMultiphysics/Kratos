@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
-#include "membrane_element.hpp"
+#include "mpm_soft_stiffness.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
@@ -27,14 +27,14 @@ namespace Kratos
 {
 
 // Constructor
-MembraneElement::MembraneElement( IndexType NewId, GeometryType::Pointer pGeometry )
+MPMSoftStiffnessElement::MPMSoftStiffnessElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {
 
 }
 
 // Constructor
-MembraneElement::MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+MPMSoftStiffnessElement::MPMSoftStiffnessElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element( NewId, pGeometry, pProperties )
 {
 
@@ -43,32 +43,32 @@ MembraneElement::MembraneElement(IndexType NewId, GeometryType::Pointer pGeometr
 //***********************************************************************************
 //***********************************************************************************
 
-Element::Pointer MembraneElement::Create(
+Element::Pointer MPMSoftStiffnessElement::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties) const
 
 {
-    return Kratos::make_intrusive< MembraneElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< MPMSoftStiffnessElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //***********************************************************************************
 //***********************************************************************************
 
-Element::Pointer MembraneElement::Create(
+Element::Pointer MPMSoftStiffnessElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 
 {
-    return Kratos::make_intrusive< MembraneElement >(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive< MPMSoftStiffnessElement >(NewId, pGeom, pProperties);
 }
 
 
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::EquationIdVector(
+void MPMSoftStiffnessElement::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -98,7 +98,7 @@ void MembraneElement::EquationIdVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::GetDofList(
+void MPMSoftStiffnessElement::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -122,7 +122,7 @@ void MembraneElement::GetDofList(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void MPMSoftStiffnessElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -153,7 +153,7 @@ void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::CalculateLeftHandSide(
+void MPMSoftStiffnessElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 
@@ -164,7 +164,7 @@ void MembraneElement::CalculateLeftHandSide(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::CalculateRightHandSide(
+void MPMSoftStiffnessElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 
@@ -184,7 +184,7 @@ void MembraneElement::CalculateRightHandSide(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::CalculateLocalSystem(
+void MPMSoftStiffnessElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -198,7 +198,7 @@ void MembraneElement::CalculateLocalSystem(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::GetValuesVector(
+void MPMSoftStiffnessElement::GetValuesVector(
     Vector& rValues,
     int Step) const
 {
@@ -222,7 +222,7 @@ void MembraneElement::GetValuesVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::GetFirstDerivativesVector(
+void MPMSoftStiffnessElement::GetFirstDerivativesVector(
     Vector& rValues,
     int Step) const
 {
@@ -246,7 +246,7 @@ void MembraneElement::GetFirstDerivativesVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::GetSecondDerivativesVector(
+void MPMSoftStiffnessElement::GetSecondDerivativesVector(
     Vector& rValues,
     int Step) const
 {
@@ -267,7 +267,7 @@ void MembraneElement::GetSecondDerivativesVector(
 }
 
 template <class T>
-void MembraneElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
+void MPMSoftStiffnessElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
     const T& rLocalReferenceBaseVectors)
 {
     const double e_g_11 = inner_prod(rTransformedBaseVectors[0],rLocalReferenceBaseVectors[0]);
@@ -286,7 +286,7 @@ void MembraneElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix,
     rTransformationMatrix(2,2) = (e_g_11*e_g_22) + (e_g_12*e_g_21);
 }
 
-void MembraneElement::TransformStrains(Vector& rStrains,
+void MPMSoftStiffnessElement::TransformStrains(Vector& rStrains,
   Vector& rReferenceStrains, const Matrix& rTransformationMatrix)
 {
     // use contravariant basevectors here
@@ -298,7 +298,7 @@ void MembraneElement::TransformStrains(Vector& rStrains,
     rStrains[2]*=2.0; // include E12 and E21 for voigt strain vector
 }
 
-void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors){
+void MPMSoftStiffnessElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors){
 
     Vector pre_stress = ZeroVector(3);
     if (GetProperties().Has(PRESTRESS_VECTOR)){
@@ -332,7 +332,7 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
     noalias(rStress) += pre_stress;
 }
 
-void MembraneElement::MaterialResponse(Vector& rStress,
+void MPMSoftStiffnessElement::MaterialResponse(Vector& rStress,
     const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
     const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix,const SizeType& rIntegrationPointNumber,
     Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo)
@@ -366,7 +366,7 @@ void MembraneElement::MaterialResponse(Vector& rStress,
     rStress += initial_stress;
 }
 
-void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
+void MPMSoftStiffnessElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
     const Matrix& rTransformationMatrix)
 {
     Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric-rReferenceCoVariantMetric);
@@ -374,7 +374,7 @@ void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rRefere
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
-void MembraneElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
+void MPMSoftStiffnessElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
     const array_1d<Vector,2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
 {
     Matrix current_covariant_metric_derivative = ZeroMatrix(2);
@@ -384,7 +384,7 @@ void MembraneElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matri
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
-void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
+void MPMSoftStiffnessElement::Derivative2StrainGreenLagrange(Vector& rStrain,
  const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
  const Matrix& rTransformationMatrix)
 {
@@ -397,7 +397,7 @@ void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
-void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const
+void MPMSoftStiffnessElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const
 {
     Vector3 g3 = ZeroVector(3);
     MathUtils<double>::CrossProduct(g3, rReferenceBaseVectors[0], rReferenceBaseVectors[1]);
@@ -405,7 +405,7 @@ void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vect
     KRATOS_ERROR_IF(rDetJacobi<std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;
 }
 
-void MembraneElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
+void MPMSoftStiffnessElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors)
 {
     rMetric = ZeroMatrix(2);
@@ -421,7 +421,7 @@ void MembraneElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
     }
 }
 
-void MembraneElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
+void MPMSoftStiffnessElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
 {
     rMetric = ZeroMatrix(2);
@@ -438,7 +438,7 @@ void MembraneElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
     }
 }
 
-void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
+void MPMSoftStiffnessElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const Matrix& rShapeFunctionGradientValues, const SizeType DofR)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -450,7 +450,7 @@ void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBas
     }
 }
 
-void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
+void MPMSoftStiffnessElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const
 {
     // pass/call this ShapeFunctionsLocalGradients[pnt]
@@ -476,7 +476,7 @@ void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[1] = g2;
 }
 
-void MembraneElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant)
+void MPMSoftStiffnessElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant)
 {
     rMetric = ZeroMatrix(2);
     for (SizeType i=0;i<2;++i){
@@ -486,7 +486,7 @@ void MembraneElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& 
     }
 }
 
-void MembraneElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric)
+void MPMSoftStiffnessElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric)
 {
     rMetric = ZeroMatrix(2);
     rMetric(0,0) = rCovariantMetric(1,1);
@@ -496,7 +496,7 @@ void MembraneElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovaria
     rMetric /= (rCovariantMetric(1,1)*rCovariantMetric(0,0)) - (rCovariantMetric(1,0)*rCovariantMetric(0,1));
 }
 
-void MembraneElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
+void MPMSoftStiffnessElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
     const array_1d<Vector,2> rCovariantBaseVectors)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -507,7 +507,7 @@ void MembraneElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[1] = rContraVariantMetric(1,0)*rCovariantBaseVectors[0] + rContraVariantMetric(1,1)*rCovariantBaseVectors[1];
 }
 
-void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo)
+void MPMSoftStiffnessElement::InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -568,7 +568,7 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
     }
 }
 
-void MembraneElement::ReferenceLumpingFactors(Vector& rResult) const
+void MPMSoftStiffnessElement::ReferenceLumpingFactors(Vector& rResult) const
 {
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
@@ -604,7 +604,7 @@ void MembraneElement::ReferenceLumpingFactors(Vector& rResult) const
 }
 
 
-void MembraneElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
+void MPMSoftStiffnessElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
     const Matrix& rMaterialTangentModulus,const SizeType& rPositionI,
     const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
     const array_1d<Vector,2>& rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
@@ -623,7 +623,7 @@ void MembraneElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
     rEntryIJ += inner_prod(stress_derivative,strain_derivative);
  }
 
-void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
+void MPMSoftStiffnessElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
  const Vector& rStressVector, const SizeType& rPositionI,
  const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
  const Matrix& rTransformationMatrix)
@@ -637,7 +637,7 @@ void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
  }
 
 
-void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,
+void MPMSoftStiffnessElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
@@ -712,7 +712,7 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
     }
 }
 
-void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
+void MPMSoftStiffnessElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const array_1d<Vector,2>& rLocalBaseVectors){
 
     // create local cartesian coordinate system aligned to global material vectors (orthotropic)
@@ -736,7 +736,7 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     }
 }
 
-void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+void MPMSoftStiffnessElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
                         std::vector< Vector >& rOutput,
                         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -919,7 +919,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 }
 
 
-void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+void MPMSoftStiffnessElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
      const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase)
 {
     // attention: this is not in the local orthonogal coordinate system
@@ -945,7 +945,7 @@ void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& 
     rDetDeformationGradient = MathUtils<double>::Det(rDeformationGradient);
 }
 
-void MembraneElement::CalculateOnIntegrationPoints(
+void MPMSoftStiffnessElement::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -1008,7 +1008,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void MPMSoftStiffnessElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
         rOutput = ZeroMatrix(3);
@@ -1049,7 +1049,7 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
     }
 }
 
-void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void MPMSoftStiffnessElement::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == STRAIN_ENERGY) {
         const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
@@ -1154,7 +1154,7 @@ void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutp
     }
 }
 
-void MembraneElement::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+void MPMSoftStiffnessElement::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
@@ -1213,7 +1213,7 @@ void MembraneElement::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
     KRATOS_CATCH("");
 }
 
-void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
+void MPMSoftStiffnessElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -1243,7 +1243,7 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     KRATOS_CATCH("")
 }
 
-void MembraneElement::CalculateLumpedMassVector(
+void MPMSoftStiffnessElement::CalculateLumpedMassVector(
     VectorType& rLumpedMassVector,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -1274,7 +1274,7 @@ void MembraneElement::CalculateLumpedMassVector(
     KRATOS_CATCH("")
 }
 
-void MembraneElement::AddExplicitContribution(
+void MPMSoftStiffnessElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     const Variable<double >& rDestinationVariable,
@@ -1302,7 +1302,7 @@ void MembraneElement::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-void MembraneElement::CalculateDampingMatrix(
+void MPMSoftStiffnessElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
@@ -1312,7 +1312,7 @@ void MembraneElement::CalculateDampingMatrix(
         GetGeometry().WorkingSpaceDimension()*GetGeometry().size());
 }
 
-const Parameters MembraneElement::GetSpecifications() const
+const Parameters MPMSoftStiffnessElement::GetSpecifications() const
 {
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["static","implicit","explicit"],
@@ -1342,7 +1342,7 @@ const Parameters MembraneElement::GetSpecifications() const
     return specifications;
 }
 
-void MembraneElement::AddExplicitContribution(
+void MPMSoftStiffnessElement::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
@@ -1388,7 +1388,7 @@ void MembraneElement::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) const
+void MPMSoftStiffnessElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
@@ -1413,7 +1413,7 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
     KRATOS_CATCH("")
 }
 
-double MembraneElement::CalculateReferenceArea() const
+double MPMSoftStiffnessElement::CalculateReferenceArea() const
 {
     KRATOS_TRY;
     const auto& r_geom = GetGeometry();
@@ -1441,7 +1441,7 @@ double MembraneElement::CalculateReferenceArea() const
 
 
 
-void MembraneElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
+void MPMSoftStiffnessElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
 {
     // make sure to divide rNonPrincipalVector[2]/2 if strains are passed
     rPrincipalVector = ZeroVector(2);
@@ -1451,7 +1451,7 @@ void MembraneElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rN
 
 //***********************************************************************************
 //***********************************************************************************
-int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int MPMSoftStiffnessElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -1497,13 +1497,13 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_CATCH("");
 }
 
-void MembraneElement::save(Serializer& rSerializer) const
+void MPMSoftStiffnessElement::save(Serializer& rSerializer) const
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
       rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
     }
 
-    void MembraneElement::load(Serializer& rSerializer)
+    void MPMSoftStiffnessElement::load(Serializer& rSerializer)
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
       rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);

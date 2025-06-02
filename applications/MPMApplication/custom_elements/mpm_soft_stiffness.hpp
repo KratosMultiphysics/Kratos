@@ -21,22 +21,22 @@
 namespace Kratos
 {
 
-  class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MembraneElement
+  class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MPMSoftStiffnessElement
     : public Element
   {
   public:
 
-    // Counted pointer of MembraneElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MembraneElement);
+    // Counted pointer of MPMSoftStiffnessElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MPMSoftStiffnessElement);
 
     // Constructor using an array of nodes
-    MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMSoftStiffnessElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     // Constructor using an array of nodes with properties
-    MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMSoftStiffnessElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    ~MembraneElement() = default;
+    ~MPMSoftStiffnessElement() = default;
 
 
 
@@ -395,7 +395,7 @@ namespace Kratos
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    MembraneElement() = default;
+    MPMSoftStiffnessElement() = default;
 
     void save(Serializer& rSerializer) const override;
 
@@ -403,6 +403,6 @@ namespace Kratos
 
     ///@}
 
-  };	// class MembraneElement.
+  };	// class MPMSoftStiffnessElement.
 
 }	// namespace Kratos.
