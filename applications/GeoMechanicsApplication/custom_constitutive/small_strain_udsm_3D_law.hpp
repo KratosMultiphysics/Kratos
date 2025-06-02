@@ -12,16 +12,19 @@
 
 #pragma once
 
-#include "includes/define.h"
 #include <iostream>
 #include <string>
 
 #include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
+#include "includes/define.h"
 #include "includes/serializer.h"
 
 namespace Kratos
 {
+
+class ConstitutiveLawDimension;
+
 /*
    - structure of the functions in PLAXIS UDSM:
    - Function to get stress, stiffness matrix, attribute, number of state variables, ...
@@ -78,7 +81,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM3DLaw : public Consti
 public:
     using SizeType = std::size_t;
 
-    static constexpr SizeType Dimension                 = N_DIM_3D;
     static constexpr SizeType Sig0Size                  = 20;
     static constexpr SizeType StressVectorSize          = 6;
     static constexpr SizeType StrainIncrementVectorSize = 12;
@@ -87,7 +89,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM3DLaw);
 
     //@}
-    SmallStrainUDSM3DLaw() = default;
+    SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
@@ -216,6 +218,8 @@ private:
     // See section 16.2 "Implementation of User Defined (UD) soil Models in calculations program"
     // of the Plaxis documentation for the array sizes
     array_1d<double, Sig0Size> mSig0{Sig0Size, 0.0};
+
+    std::unique_ptr<ConstitutiveLawDimension> mpDimension;
 
     // to load UDSM and functions
     bool loadUDSM(const Properties& rMaterialProperties);

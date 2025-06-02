@@ -12,6 +12,7 @@
 
 #include <algorithm>
 
+#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 
@@ -159,9 +160,40 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw& rOther)
     KRATOS_CATCH("")
 }
 
+SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension)
+    : mpDimension(std::move(pDimension))
+{
+    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i) {
+        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j) {
+            mMatrixD[i][j] = 0.0;
+        }
+    }
+}
+
 ConstitutiveLaw::Pointer SmallStrainUDSM3DLaw::Clone() const
 {
-    return std::make_shared<SmallStrainUDSM3DLaw>(*this);
+    auto pResult                    = std::make_shared<SmallStrainUDSM3DLaw>();
+    pResult->mStressVector          = mStressVector;
+    pResult->mDeltaStrainVector     = mDeltaStrainVector;
+    pResult->mStrainVectorFinalized = mStrainVectorFinalized;
+    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i) {
+        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j) {
+            pResult->mMatrixD[i][j] = mMatrixD[i][j];
+        }
+    }
+    pResult->mpGetParamCount          = mpGetParamCount;
+    pResult->mpGetStateVarCount       = mpGetStateVarCount;
+    pResult->mpUserMod                = mpUserMod;
+    pResult->mIsModelInitialized      = mIsModelInitialized;
+    pResult->mIsUDSMLoaded            = mIsUDSMLoaded;
+    pResult->mAttributes              = mAttributes;
+    pResult->mProjectDirectory        = mProjectDirectory;
+    pResult->mStateVariables          = mStateVariables;
+    pResult->mStateVariablesFinalized = mStateVariablesFinalized;
+    pResult->mSig0                    = mSig0;
+    if (mpDimension) pResult->mpDimension = mpDimension->Clone();
+
+    return pResult;
 }
 
 SmallStrainUDSM3DLaw& SmallStrainUDSM3DLaw::operator=(SmallStrainUDSM3DLaw const& rOther)
@@ -218,9 +250,9 @@ void SmallStrainUDSM3DLaw::GetLawFeatures(Features& rFeatures)
     KRATOS_CATCH("")
 }
 
-SizeType SmallStrainUDSM3DLaw::WorkingSpaceDimension() { return Dimension; }
+SizeType SmallStrainUDSM3DLaw::WorkingSpaceDimension() { return mpDimension->GetDimension(); }
 
-SizeType SmallStrainUDSM3DLaw::GetStrainSize() const { return VOIGT_SIZE_3D; }
+SizeType SmallStrainUDSM3DLaw::GetStrainSize() const { return mpDimension->GetStrainSize(); }
 
 ConstitutiveLaw::StrainMeasure SmallStrainUDSM3DLaw::GetStrainMeasure()
 {
