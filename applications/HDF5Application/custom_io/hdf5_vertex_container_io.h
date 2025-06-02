@@ -74,8 +74,6 @@ private:
 
     std::string mPathPrefix;
 
-    bool mWriteIDs;
-
     ///@}
 }; // class VertexContainerCoordinateIO
 
