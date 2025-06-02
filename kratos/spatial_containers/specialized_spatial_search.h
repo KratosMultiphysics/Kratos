@@ -20,7 +20,6 @@
 #include "includes/kratos_parameters.h"
 #include "spatial_containers/point_object.h"
 #include "spatial_containers/spatial_search.h"
-#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -264,103 +263,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method prepares the search
-     * @param rStructure The structure to be searched
-     * @param rInput The input to be searched
-     * @param rResults The results
-     * @param rResultsDistance The results distance
-     * @tparam TContainer The container type
-     * @tparam TResultType The result type
-     */
-    template<class TContainer, class TResultType>
-    std::vector<typename PointObject<typename TContainer::value_type>::Pointer> PrepareSearch(
-        const TContainer& rStructure,
-        const TContainer& rInput,
-        TResultType& rResults,
-        VectorDistanceType& rResultsDistance
-        )
-    {
-        // Some definitions
-        using ObjectType = typename TContainer::value_type;
-        using PointType = PointObject<ObjectType>;
-        using PointTypePointer = typename PointType::Pointer;
-        using PointVector = std::vector<PointTypePointer>;
-
-        // Creating the points
-        PointVector points;
-        const std::size_t structure_size = rStructure.size();
-        points.reserve(structure_size);
-        const auto it_begin = rStructure.begin();
-        for (std::size_t i = 0; i < structure_size; ++i) {
-            auto it = it_begin + i;
-            points.push_back(PointTypePointer(new PointType(*(it.base()))));
-        }
-
-        // Resizing the results
-        const std::size_t input_size = rInput.size();
-        if (rResults.size() != input_size) {
-            rResults.resize(input_size);
-        }
-        if (rResultsDistance.size() != input_size) {
-            rResultsDistance.resize(input_size);
-        }
-
-        return points;
-    }
-
-    /**
-     * @brief This method performs the search in parallel
-     * @param rInput The input container
-     * @param rRadius The radius array
-     * @param rSearch The spatial search
-     * @param rResults The results
-     * @param rResultsDistance The results distance
-     * @tparam TContainer The container type
-     * @tparam TSpatialContainer The spatial container type
-     * @tparam TResultType The result type
-     */
-    template<class TContainer, class TSpatialContainer, class TResultType>
-    void ParallelSearch(
-        const TContainer& rInput,
-        const RadiusArrayType& rRadius,
-        TSpatialContainer& rSearch,
-        TResultType& rResults,
-        VectorDistanceType& rResultsDistance
-        )
-    {
-        // Some definitions
-        using ObjectType = typename TContainer::value_type;
-        using PointType = PointObject<ObjectType>;
-        using PointTypePointer = typename PointType::Pointer;
-        using PointVector = std::vector<PointTypePointer>;
-        using DistanceVector = std::vector<double>;
-        const std::size_t input_size = rInput.size();
-
-        // Retrieving parameters
-        const int allocation_size = mParameters["allocation_size"].GetInt();
-
-        // Performing search
-        IndexPartition<std::size_t>(input_size).for_each([&](std::size_t i) {
-            auto it = rInput.begin() + i;
-            PointType aux_point(*(it.base()));
-            PointVector results(allocation_size);
-            DistanceVector results_distances(allocation_size);
-            const std::size_t number_of_results = rSearch.SearchInRadius(aux_point, rRadius[i], results.begin(), results_distances.begin(), allocation_size);
-            if (number_of_results > 0) {
-                auto& r_results = rResults[i];
-                auto& r_results_distance = rResultsDistance[i];
-                r_results.reserve(number_of_results);
-                r_results_distance.reserve(number_of_results);
-                for (std::size_t j = 0; j < number_of_results; ++j) {
-                    auto p_point = results[j];
-                    r_results.push_back(p_point->pGetObject());
-                    r_results_distance.push_back(results_distances[j]);
-                }
-            }
-        });
-    }
 
     ///@}
     ///@name Un accessible methods

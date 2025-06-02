@@ -50,7 +50,7 @@ namespace Kratos
  * @class AssociativePlasticDamageModel
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a parallel rule of mixture (classic law of mixture)
- * @details This constitutive law unifies the High cycle, Ultra Low cycle and Low cicle fatigue processes
+ * @details This constitutive law unifies the High cycle, Ultra Low cycle and Low cycle fatigue processes
  * by means of a plastic damage model. Source: A thermodynamically consistent plastic-damage framework for
 localized failure in quasi-brittle solids: Material model and strain
 localization analysis (Wu and Cervera https://doi.org/10.1016/j.ijsolstr.2016.03.005)
@@ -602,6 +602,19 @@ public:
      * in the minimization of the implicit function
      */
     ResidualFunctionType ExponentialHardeningImplicitFunctionDerivative();
+
+    /**
+     * @brief Implicit function that relates the
+     * plastic-damage energy dissipation with the
+     * uniaxial stress threshold
+     */
+    ResidualFunctionType CurveByPointsHardeningImplicitFunction();
+
+    /**
+     * @brief Implicit function derivative to be used
+     * in the minimization of the implicit function
+     */
+    ResidualFunctionType CurveByPointsHardeningImplicitFunctionDerivative();
 protected:
 
     ///@name Protected static Member Variables

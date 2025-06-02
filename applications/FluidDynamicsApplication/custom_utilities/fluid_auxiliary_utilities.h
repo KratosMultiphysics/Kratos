@@ -11,8 +11,7 @@
 //                   Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_FLUID_AUXILIARY_UTILITIES_H)
-#define KRATOS_FLUID_AUXILIARY_UTILITIES_H
+#pragma once
 
 // System includes
 
@@ -61,7 +60,19 @@ public:
      * @return true The element is split
      * @return false The element is not split
      */
-    static inline bool IsSplit(const Vector& rElementDistancesVector);
+    static inline bool IsSplit(const Vector& rElementDistancesVector)
+    {
+        std::size_t n_pos(0);
+        std::size_t n_neg(0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] > 0.0)
+                n_pos++;
+            else
+                n_neg++;
+        }
+        return (n_pos > 0 && n_neg > 0) ? true : false;
+    }
 
     /**
      * @brief Checks if an element is positive
@@ -70,7 +81,16 @@ public:
      * @return true The element is positive
      * @return false The element is not positive
      */
-    static inline bool IsPositive(const Vector &rElementDistancesVector);
+    static inline bool IsPositive(const Vector &rElementDistancesVector)
+    {
+        std::size_t n_pos (0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] > 0.0)
+                n_pos++;
+        }
+        return (n_pos == pts_number) ? true : false;
+    }
 
     /**
      * @brief Checks if an element is negative
@@ -79,7 +99,16 @@ public:
      * @return true The element is negative
      * @return false The element is not negative
      */
-    static inline bool IsNegative(const Vector &rElementDistancesVector);
+    static inline bool IsNegative(const Vector &rElementDistancesVector)
+    {
+        std::size_t n_neg (0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] < 0.0)
+                n_neg++;
+        }
+        return n_neg == pts_number;
+    }
 
     /**
      * @brief Calculate the fluid volume
@@ -102,6 +131,30 @@ public:
     static double CalculateFluidPositiveVolume(const ModelPart& rModelPart);
 
     /**
+     * @brief Calculate the fluid negative volume in cut elements
+     * For the given model part, this function calculates the total negative fluid volume fraction in the cut elements.
+     * It is assumed that a unique element geometry type it is present in the mesh.
+     * Only simplex geometries (linear triangle and tetrahedron) are supported.
+     * The negative fraction must be described in terms of a continuous level set function stored
+     * in the variable DISTANCE of the historical database
+     * @param rModelPart The model part to calculate the negative volume
+     * @return double Fluid negative volume over the cut elements
+     */
+    static double CalculateFluidCutElementsNegativeVolume(const ModelPart &rModelPart);
+
+    /**
+     * @brief Calculate the fluid positive volume in cut elements
+     * For the given model part, this function calculates the total positive fluid volume fraction in the cut elements.
+     * It is assumed that a unique element geometry type it is present in the mesh.
+     * Only simplex geometries (linear triangle and tetrahedron) are supported.
+     * The positive fraction must be described in terms of a continuous level set function stored
+     * in the variable DISTANCE of the historical database
+     * @param rModelPart The model part to calculate the positive volume
+     * @return double Fluid positive volume over the cut elements
+     */
+    static double CalculateFluidCutElementsPositiveVolume(const ModelPart &rModelPart);
+
+    /**
      * @brief Calculate the fluid negative volume
      * For the given model part, this function calculates the total negative fluid volume fraction.
      * It is assumed that a unique element geometry type it is present in the mesh.
@@ -115,7 +168,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions
-     * This method calculates the flow rate throught the given model part conditions
+     * This method calculates the flow rate through the given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @return double Flow rate
@@ -124,7 +177,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions (positive subdomain)
-     * This method calculates the flow rate throught the positive part of given model part conditions
+     * This method calculates the flow rate through the positive part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @return double Flow rate
@@ -133,7 +186,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions (negative subdomain)
-     * This method calculates the flow rate throught the negative part of given model part conditions
+     * This method calculates the flow rate through the negative part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @return double Flow rate
@@ -142,7 +195,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions (positive subdomain)
-     * This method calculates the flow rate throught the positive part of given model part conditions
+     * This method calculates the flow rate through the positive part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
@@ -154,7 +207,7 @@ public:
 
     /**
      * @brief Calculate the flow rate through the given model part conditions (negative subdomain)
-     * This method calculates the flow rate throught the negative part of given model part conditions
+     * This method calculates the flow rate through the negative part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
@@ -200,6 +253,15 @@ public:
         ModelPart& rModelPart,
         const bool CalculateNodalNeighbours = true);
 
+    /**
+     * @brief Postprocess the midpoint nodes pressure in P2P1 elements
+     * This function takes the edges' midpoint nodes in P2P1 elements and postprocess the pressure, which
+     * is assumed to be stored in PRESSURE historical variable, from the edges' endpoint values.
+     * Note that the nodal flag VISITED is used to mark the nodes which pressure has been already set.
+     * @param rModelPart The model part to which the pressure is to be postprocessed
+     */
+    static void PostprocessP2P1ContinuousPressure(ModelPart& rModelPart);
+
     ///@}
 private:
 
@@ -215,7 +277,7 @@ private:
      * @brief Auxiliary function to bypass the positive and negative standard methods
      * This auxiliary function shouldn't be called from outside and serves to
      * avoid the reimplementation for positive and negative subdomains
-     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and vice-versa
      * @param rModelPart The model part to calculate the flow rate
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @return double Flow rate
@@ -242,8 +304,8 @@ private:
     /**
      * @brief Auxiliary function to bypass the positive and negative subdomain check
      * This auxiliary function shouldn't be called from outside and serves to
-     * standarize the implementation of the methods that check for an either positive or negative subdomain
-     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * standardize the implementation of the methods that check for an either positive or negative subdomain
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and vice-versa
      * @param rElementDistancesVector Vector containing the distance values at each node
      * @return true If agrees the template argument
      * @return false If not agrees the template argument
@@ -255,7 +317,7 @@ private:
      * @brief Auxiliary function to bypass the calculation of modified shape functions
      * This auxiliary function shouldn't be called from outside and serves to
      * avoid checking for positive and negative methods of the modified shape functions
-     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and vice-versa
      * @param rpModShapeFunc Pointer to the modified shape functions utility of the condition parent
      * @param FaceId Parent geometry face id corresponding the condition of interest
      * @param rShapeFunctions Matrix container to store the computed shape functions
@@ -270,10 +332,33 @@ private:
         std::vector<array_1d<double,3>>& rNormals,
         Vector& rWeights);
 
+    /**
+     * @brief Auxilary function to postprocess one P2P1 edge pressure
+     * This function postprocesses the PRESSURE in a P2P1 element edge midpoint.
+     * Once the pressure value is set, the node is marked as VISITED.
+     * @param rGeometry Reference to current element geometry
+     * @param PostNodeLocalId Local id of the node to which the pressure is to be set
+     * @param EdgeNodeLocalIdI Local id of the i-node of the edge to which previous node belongs
+     * @param EdgeNodeLocalIdJ Local id of the j-node of the edge to which previous node belongs
+     */
+    static void PostprocessP2P1NodePressure(
+        GeometryType& rGeometry,
+        const std::size_t PostNodeLocalId,
+        const std::size_t EdgeNodeLocalIdI,
+        const std::size_t EdgeNodeLocalIdJ)
+    {
+        if (rGeometry[PostNodeLocalId].IsNot(VISITED)) {
+            rGeometry[PostNodeLocalId].SetLock();
+            const double p_i = rGeometry[EdgeNodeLocalIdI].FastGetSolutionStepValue(PRESSURE);
+            const double p_j = rGeometry[EdgeNodeLocalIdJ].FastGetSolutionStepValue(PRESSURE);
+            rGeometry[PostNodeLocalId].FastGetSolutionStepValue(PRESSURE) = 0.5 * (p_i + p_j);
+            rGeometry[PostNodeLocalId].Set(VISITED, true);
+            rGeometry[PostNodeLocalId].UnSetLock();
+        }
+    }
+
 };
 
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_FLUID_AUXILIARY_UTILITIES_H

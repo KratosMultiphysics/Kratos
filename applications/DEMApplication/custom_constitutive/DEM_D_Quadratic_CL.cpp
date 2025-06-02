@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////
 
 //TODO: // Here this Quadratic model is established for Parallel Bond Model only.
-        // It CAN NOT BE USED AS AN INDEPENDENT CANTACT MODEL UNTIL IT IS COMPLETED.
+        // It CAN NOT BE USED AS AN INDEPENDENT CONTACT MODEL UNTIL IT IS COMPLETED.
 
 #include "DEM_D_Quadratic_CL.h"
 #include "custom_elements/spheric_particle.h"
@@ -96,6 +96,10 @@ namespace Kratos {
  
         mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
         mKt = mKn / (2.0 * (equiv_poisson + 1.0));
+    }
+
+    double DEM_D_Quadratic::GetTangentialStiffness() {
+        return mKt;
     }
 
 } //namespace Kratos

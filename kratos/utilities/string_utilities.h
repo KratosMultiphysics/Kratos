@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #pragma once
@@ -54,7 +55,7 @@ namespace StringUtilities
      * @param rString The string to be transformed into snake_case
      * @return The string in snake_case
      */
-    std::string KRATOS_API(KRATOS_CORE) ConvertCamelCaseToSnakeCase(const std::string& rString);
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) ConvertCamelCaseToSnakeCase(const std::string& rString);
 
     /**
      *  @brief Convert snake_case to CamelCase.
@@ -64,7 +65,7 @@ namespace StringUtilities
      *          - contains special characters other than underscores    (?![a-z0-9_])
      *          - contains repeated underscores                         __+
      */
-    std::string KRATOS_API(KRATOS_CORE) ConvertSnakeCaseToCamelCase(const std::string& rString);
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) ConvertSnakeCaseToCamelCase(const std::string& rString);
 
     /**
      * @brief Erase first occurrence of given  substring from main string.
@@ -72,7 +73,7 @@ namespace StringUtilities
      * @param rToErase The string to remove
      * @return The string without the part to remove
      */
-    std::string KRATOS_API(KRATOS_CORE) ErasePartialString(
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) ErasePartialString(
         const std::string& rMainString,
         const std::string& rToErase
         );
@@ -83,7 +84,7 @@ namespace StringUtilities
      * @param rToCheck The string to search
      * @return True if the substring is found and false otherwise
      */
-    bool KRATOS_API(KRATOS_CORE) ContainsPartialString(
+    [[nodiscard]] bool KRATOS_API(KRATOS_CORE) ContainsPartialString(
         const std::string& rMainString,
         const std::string& rToCheck
         );
@@ -93,7 +94,7 @@ namespace StringUtilities
      * @param rString The string to be transformed
      * @return The string without white spaces
      */
-    std::string KRATOS_API(KRATOS_CORE) RemoveWhiteSpaces(const std::string& rString);
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) RemoveWhiteSpaces(const std::string& rString);
 
     /**
      * @brief This method splits a string by a delimiter
@@ -101,7 +102,7 @@ namespace StringUtilities
      * @param Delimiter The delimiter by which the string is to be splitted
      * @return a vector containing the splitted string
      */
-    std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringByDelimiter(
+    [[nodiscard]] std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringByDelimiter(
         const std::string& rString,
         const char Delimiter
         );
@@ -113,10 +114,86 @@ namespace StringUtilities
      * @param rStringToReplace The string which replaces the substring
      * @return The string updated with the new substring
      */
-    std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(
         const std::string& rInputString,
         const std::string& rStringToBeReplaced,
         const std::string& rStringToReplace
+        );
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc from left and right. Same as "strip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) Trim(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc from left. Same as "lstrip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) TrimLeft(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc and right. Same as "rstrip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) TrimRight(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
+    /**
+     * @brief Splits a string into a vector of words.
+     * @details This function takes an input string and splits it into individual words using
+     * whitespace as the delimiter. The extraction operator (>>) automatically skips
+     * whitespace characters (such as spaces and tabs), ensuring that each word is properly
+     * isolated and stored in the resulting vector.
+     * @param rText The input string to be split into words.
+     * @return std::vector<std::string> A vector containing all the words extracted from the input string.
+     */
+    [[nodiscard]] std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringIntoAVector(const std::string& rText);
+
+    /**
+     * @brief Converts a string representation of a list into a vector of values.
+     * @details This function takes a string that represents a list of values (optionally enclosed
+     * in square brackets) and converts it into a std::vector of type TType. The conversion process
+     * involves the following steps:
+     *   1. Trimming any leading or trailing whitespace from the input string.
+     *   2. Removing the outer square brackets '[' and ']' if present.
+     *   3. Checking if the string is empty after trimming; if so, it returns an empty vector.
+     *   4. Splitting the string by commas to isolate individual elements.
+     *   5. Trimming whitespace from each element and attempting to convert it to type TType.
+     * During the conversion of each element, if the conversion fails (for example, due to
+     * invalid format, extra characters, or out-of-range values), a warning is logged via KRATOS_WARNING.
+     * @tparam TType The type of the elements to be extracted and converted from the string.
+     * @param rInputString The input string containing the list of values.
+     * @return std::vector<TType> A vector containing the converted values of type TType.
+     */
+    template <typename TType>
+    [[nodiscard]] std::vector<TType> KRATOS_API(KRATOS_CORE) StringToVector(const std::string& rInputString);
+
+    /**
+     * @brief Counts space-separated values in a string until a token starting with a specific prefix is found.
+     * @details It reads tokens separated by whitespace from the input string. The count
+     * includes tokens encountered *before* a token that starts with the `rStopPrefix`.
+     * If no token starts with `rStopPrefix`, all tokens are counted.
+     * If `rStopPrefix` is an empty string, it's considered to match the beginning of any token,
+     * so the function will return 0 (as the "stop" condition is met before the first token).
+     * @param rInputString The string containing values to be counted.
+     * @param rStopPrefix The prefix that indicates a token at which counting should stop.
+     * @return The number of values counted before encountering a token starting with `rStopPrefix`.
+     */
+    [[nodiscard]] std::size_t KRATOS_API(KRATOS_CORE) CountValuesUntilPrefix(
+        const std::string& rInputString,
+        const std::string& rStopPrefix = ""
         );
 
     /**

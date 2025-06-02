@@ -7,6 +7,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
+from KratosMultiphysics.OptimizationApplication.utilities.response_utilities import EvaluateResponseExpression
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 import numpy
 import datetime
 
@@ -20,14 +22,20 @@ class StandardizedNLOPTObjective(ResponseRoutine):
 
     """
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 2):
+        # backward compatibility
+        if parameters.Has("response_name"):
+            IssueDeprecationWarning(self.__class__.__name__, "\"response_name\" is deprecated. Please use \"response_expression\".")
+            parameters.AddString("response_expression", parameters["response_name"].GetString())
+            parameters.RemoveValue("response_name")
+
         default_parameters = Kratos.Parameters("""{
-            "response_name": "",
-            "type"         : "",
-            "scaling"      : 1.0
+            "response_expression": "",
+            "type"               : "",
+            "scaling"            : 1.0
         }""")
         parameters.ValidateAndAssignDefaults(default_parameters)
 
-        response = optimization_problem.GetResponse(parameters["response_name"].GetString())
+        response = EvaluateResponseExpression(parameters["response_expression"].GetString(), optimization_problem)
 
         super().__init__(master_control, response)
 
@@ -167,7 +175,7 @@ class StandardizedNLOPTObjective(ResponseRoutine):
             CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
             self.LogOptimizationStep()
             self.__optimization_problem.AdvanceStep()
-            # convert numpy arry to expression
+            # convert numpy array to expression
             new_control_field_exp = master_control.GetEmptyField()
             number_of_entities = []
             shapes = []

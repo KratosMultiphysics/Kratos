@@ -35,24 +35,6 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-
-    // If we are restarting, the constitutive law will be already defined
-    if (mpConstitutiveLaw == nullptr)
-    {
-      const Properties &r_properties = this->GetProperties();
-      KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-          << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
-          << r_properties.Id() << "." << std::endl;
-      mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
-    }
-
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
   int TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
@@ -156,7 +138,7 @@ namespace Kratos
     }
 
     // Check constitutive law
-    return mpConstitutiveLaw->Check(r_properties, r_geometry, rCurrentProcessInfo);
+    return this->mpConstitutiveLaw->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
     return ierr;
 
@@ -779,7 +761,7 @@ namespace Kratos
 
     double RHSi = 0;
     if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-    { // it must be checked once at the begining only
+    { // it must be checked once at the beginning only
       array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
       // double posX=(this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X())/3.0;

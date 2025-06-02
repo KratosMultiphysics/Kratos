@@ -37,7 +37,7 @@ namespace Kratos
 
   }
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   NewtonianFluid3DLaw& NewtonianFluid3DLaw::operator=(const NewtonianFluid3DLaw& rOther)

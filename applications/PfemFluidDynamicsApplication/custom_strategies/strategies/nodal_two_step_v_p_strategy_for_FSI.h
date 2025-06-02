@@ -230,7 +230,7 @@ namespace Kratos
 			double pressureNorm = 0;
 			double velocityNorm = 0;
 
-			InitializeSolutionStep(); // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
+			FillNodalSFDVector(); // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
 			for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
 			{
 				if (BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -238,7 +238,7 @@ namespace Kratos
 
 				if (it == 0)
 				{
-					ComputeNodalVolumeAndAssignFlagToElementType(); // it assings NODAL_VOLUME to fluid and SOLID_NODAL_VOLUME to solid. Interface nodes have both
+					ComputeNodalVolumeAndAssignFlagToElementType(); // it assigns NODAL_VOLUME to fluid and SOLID_NODAL_VOLUME to solid. Interface nodes have both
 					this->InitializeNonLinearIterations();			// it fills SOLID_NODAL_SFD_NEIGHBOURS for solids and NODAL_SFD_NEIGHBOURS for fluids
 				}
 				CalcNodalStrainsAndStresses(); // it computes stresses and strains for fluid and solid nodes
@@ -764,41 +764,10 @@ namespace Kratos
 			// }
 		}
 
-		void InitializeSolutionStep() override
-		{
-			FillNodalSFDVector();
-		}
-
-		void FillNodalSFDVector()
-		{
-
-			ModelPart &rModelPart = BaseType::GetModelPart();
-
-			for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-			{
-				this->InitializeNodalVariablesForRemeshedDomain(itNode);
-
-				InitializeNodalVariablesForSolidRemeshedDomain(itNode);
-
-				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == false)
-				{
-					this->SetNeighboursOrderToNode(itNode); // it assigns neighbours to inner nodes, filling NODAL_SFD_NEIGHBOURS_ORDER
-					if (itNode->Is(SOLID))
-					{
-						SetNeighboursOrderToSolidNode(itNode); // it assigns neighbours to solid inner nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER
-					}
-				}
-				else
-				{
-					SetNeighboursOrderToInterfaceNode(itNode); // it assigns neighbours to interface nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids
-				}
-			}
-		}
-
 		void SetNeighboursOrderToSolidNode(ModelPart::NodeIterator itNode)
 		{
 			NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-			unsigned int neighbourNodes = neighb_nodes.size() + 1; // +1 becausealso the node itself must be considered as nieghbor node
+			unsigned int neighbourNodes = neighb_nodes.size() + 1; // +1 because the node itself must also be considered as a neighbor node
 			Vector &rNodeOrderedNeighbours = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
 
 			if (rNodeOrderedNeighbours.size() != neighbourNodes)
@@ -814,8 +783,8 @@ namespace Kratos
 				{
 					rNodeOrderedNeighbours[k + 1] = neighb_nodes[k].Id();
 				}
-				}
 			}
+		}
 
 		void SetNeighboursOrderToInterfaceNode(ModelPart::NodeIterator itNode)
 		{
@@ -1055,10 +1024,8 @@ namespace Kratos
 					this->InitializeNodalVariablesForRemeshedDomain(itNode);
 					InitializeNodalVariablesForSolidRemeshedDomain(itNode);
 				}
-
 			}
 			//   }
-
 		}
 
 		void CopyValuesToSolidNonInterfaceNodes(ModelPart::NodeIterator itNode)
@@ -1639,7 +1606,6 @@ namespace Kratos
 				}
 			}
 			// }
-
 		}
 
 		void ComputeAndStoreNodalDeformationGradientForSolidNode(ModelPart::NodeIterator itNode, double theta)
@@ -1678,7 +1644,7 @@ namespace Kratos
 
 				if (neighSize > 0)
 				{
-					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
+					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId because this has also the considered node ID at the beginning
 					{
 						dNdXi = rNodalSFDneigh[firstRow];
 						dNdYi = rNodalSFDneigh[firstRow + 1];
@@ -1825,7 +1791,7 @@ namespace Kratos
 
 				if (neighSize > 0)
 				{
-					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
+					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId because this has also the considered node ID at the beginning
 					{
 						unsigned int other_neigh_nodes_id = nodalSFDneighboursId[i + 1];
 						for (unsigned int k = 0; k < neighNodesSize; k++)
@@ -2088,6 +2054,34 @@ namespace Kratos
 		///@}
 		///@name Un accessible methods
 		///@{
+
+	private:
+	
+		void FillNodalSFDVector()
+		{
+
+			ModelPart &rModelPart = BaseType::GetModelPart();
+
+			for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+			{
+				this->InitializeNodalVariablesForRemeshedDomain(itNode);
+
+				InitializeNodalVariablesForSolidRemeshedDomain(itNode);
+
+				if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == false)
+				{
+					this->SetNeighboursOrderToNode(itNode); // it assigns neighbours to inner nodes, filling NODAL_SFD_NEIGHBOURS_ORDER
+					if (itNode->Is(SOLID))
+					{
+						SetNeighboursOrderToSolidNode(itNode); // it assigns neighbours to solid inner nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER
+					}
+				}
+				else
+				{
+					SetNeighboursOrderToInterfaceNode(itNode); // it assigns neighbours to interface nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids
+				}
+			}
+		}
 
 		/// Assignment operator.
 		NodalTwoStepVPStrategyForFSI &operator=(NodalTwoStepVPStrategyForFSI const &rOther) {}

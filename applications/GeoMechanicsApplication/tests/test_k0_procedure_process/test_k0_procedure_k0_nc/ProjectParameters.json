@@ -30,7 +30,7 @@
     "reform_dofs_at_each_step": false,
     "nodal_smoothing": false,
     "block_builder": true,
-    "solution_type": "K0-Procedure",
+    "solution_type": "quasi_static",
     "scheme_type": "Newmark",
     "reset_displacements": true,
     "strategy_type": "linear",
@@ -236,7 +236,7 @@
         }
       }
     ],
-    "auxilliary_process_list": [
+    "auxiliary_process_list": [
       {
         "python_module": "apply_k0_procedure_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",

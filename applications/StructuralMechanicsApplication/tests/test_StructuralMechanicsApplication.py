@@ -1,7 +1,6 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import run_cpp_unit_tests
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
@@ -28,6 +27,7 @@ from test_set_moving_load_process import TestSetMovingLoadProcess as TTestSetMov
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
 from test_patch_test_small_displacement_mixed_volumetric_strain import TestPatchTestSmallDisplacementMixedVolumetricStrain as TTestPatchTestSmallDisplacementMixedVolumetricStrain
+from test_patch_test_small_displacement_shifted_boundary import TestPatchTestSmallDisplacementShiftedBoundary as TestPatchTestSmallDisplacementShiftedBoundary
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
@@ -89,6 +89,8 @@ from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnal
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
 from test_adjoint_loading_conditions import TestAdjointLoadingConditions as TTestAdjointLoadingConditions
+# Explicit dynamics reactions tests
+from test_explicit_central_differences_reactions import TestExplicitCentralDifferencesReactions as TTestExplicitCentralDifferencesReactions
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -96,6 +98,14 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
+from structural_mechanics_test_factory import MixedUEElementTest as TMixedUEElementTest
+from structural_mechanics_test_factory import LinearTruss2D2NTest as TLinearTruss2D2NTest
+from structural_mechanics_test_factory import LinearTruss2D3NTest as TLinearTruss2D3NTest
+from structural_mechanics_test_factory import LinearTruss3DTest as TLinearTruss3DTest
+from structural_mechanics_test_factory import TimoshenkoBeam3D2NTest as TTimoshenkoBeam3D2NTest
+from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
+from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
+from structural_mechanics_test_factory import TimoshenkoCurvedBeam2D3NTest as TTimoshenkoCurvedBeam2D3NTest
 from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -154,6 +164,7 @@ from structural_mechanics_test_factory import Simple3D2NTrussNonLinearTensionPla
 from structural_mechanics_test_factory import Simple3D2NBeamCrTest as T3D2NBeamCrTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrNonLinearTest as T3D2NBeamCrNonLinearTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
+from structural_mechanics_test_factory import SimpleSemiRigid3D2NBeamCrLinearTest as T3D2NBeamCrLinearSemiRigidTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
 from structural_mechanics_test_factory import Simple2D2NBeamCrTest as T2D2NBeamCrTest
 from structural_mechanics_test_factory import Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest as T3D2NNLDispCtrlTest
@@ -241,8 +252,8 @@ from structural_response_function_test_factory import TestEigenfrequencyResponse
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -278,6 +289,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallDisplacementMixedVolumetricStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestSmallDisplacementShiftedBoundary]))
     # Shells
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
@@ -328,6 +340,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryUtility]))
     # Set moving load process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSetMovingLoadProcess]))
+    # Explicit dynamics reactions tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestExplicitCentralDifferencesReactions]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -339,6 +353,14 @@ def AssembleTestSuites():
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
+    # smallSuite.addTest(TMixedUEElementTest('test_execution')) //FIXME: Activate once we finish the quadratures
+    smallSuite.addTest(TLinearTruss2D2NTest('test_execution'))
+    smallSuite.addTest(TLinearTruss2D3NTest('test_execution'))
+    smallSuite.addTest(TLinearTruss3DTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoBeam3D2NTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
@@ -370,8 +392,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSprismMembranePatchTests('test_execution'))
     nightSuite.addTest(TSprismBendingPatchTests('test_execution'))
     # Mixed displacement - volumetric strain tests
-    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
-    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCookMembrane]))
     # Membrane tests
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicDiagonalTests('test_execution'))
@@ -388,6 +409,7 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
+    nightSuite.addTest(T3D2NBeamCrLinearSemiRigidTest('test_execution'))
     nightSuite.addTest(T3D2NNLDispCtrlTest('test_execution'))
     # Shell tests
     nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))
@@ -448,7 +470,7 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
 
     ### Adding Validation Tests
-    # For very long tests that should not be in nighly and you can use to validate
+    # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(nightSuite) # Validation contains all the tests
     # SPRISM tests
@@ -510,10 +532,6 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    # run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

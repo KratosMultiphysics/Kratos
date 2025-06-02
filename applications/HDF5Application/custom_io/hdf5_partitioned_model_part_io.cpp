@@ -66,6 +66,7 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     // Write ghost nodes.
     Internals::PointsData<Internals::NodesIO> ghost_points(mPrefix + "/Nodes/Ghost", mpFile);
     ghost_points.Write(ghost_nodes, Internals::NodesIO{}, Parameters(R"({})"));
+    WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
 
     KRATOS_CATCH("");
 }

@@ -1,4 +1,6 @@
+from typing import Dict, Any
 import sys,os
+import math
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -9,9 +11,16 @@ sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
 
-def get_file_path(fileName):
+def get_file_path(filename):
     import os
-    return os.path.join(os.path.dirname(__file__), fileName)
+    return os.path.join(os.path.dirname(__file__), filename)
+
+
+def make_geomechanics_analysis(model, project_parameters_file_path):
+    with open(project_parameters_file_path, 'r') as f:
+        project_parameters = Kratos.Parameters(f.read())
+
+    return analysis.GeoMechanicsAnalysis(model, project_parameters)
 
 
 def run_kratos(file_path, model=None):
@@ -126,6 +135,14 @@ def get_velocity(simulation):
 
     return get_nodal_variable(simulation, Kratos.VELOCITY)
 
+def get_temperature(simulation):
+    """
+    Gets the temperature from kratos simulation
+ 
+    :param simulation:
+    :return:
+    """
+    return get_nodal_variable(simulation, Kratos.TEMPERATURE)
 
 def get_water_pressure(simulation):
     """
@@ -360,9 +377,8 @@ def get_force(simulation):
     model_part = simulation._list_of_output_processes[0].model_part
     elements = model_part.Elements
 
-    Force = [element.CalculateOnIntegrationPoints(
+    return [element.CalculateOnIntegrationPoints(
         Kratos.FORCE, model_part.ProcessInfo)[0] for element in elements]
-    return Force
 
 
 def get_moment(simulation):
@@ -386,7 +402,6 @@ def compute_distance(point1, point2):
     :param point2:
     :return: distance
     """
-    import math
     return math.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
 
 
@@ -409,6 +424,88 @@ def find_closest_index_greater_than_value(input_list, value):
         if value < list_value:
             return index
     return None
+
+
+def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two values are almost equal.
+
+    Args:
+        - expected (Any): Expected value.
+        - actual (Any): Actual value.
+
+    Returns:
+        - True if the values are almost equal, False otherwise.
+
+    """
+    # check if the value is a dictionary and check the dictionary
+    if isinstance(expected, dict):
+        return are_dictionaries_almost_equal(expected, actual)
+    elif isinstance(expected, str):
+        return expected == actual
+    elif isinstance(expected, (list, tuple, set)):
+        return are_iterables_almost_equal(expected, actual)
+    elif expected is None:
+        return actual is None
+    elif isinstance(expected, (float, int, complex)):
+        return math.isclose(expected, actual, abs_tol=abs_tolerance)
+    else:
+        raise TypeError(f"Unsupported type {type(expected)}")
+
+
+def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
+                               abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two iterables are almost equal.
+
+    Args:
+        - expected (list, tuple, set): Expected iterable.
+        - actual (list, tuple, set): Actual iterable.
+
+    Returns:
+        - True if the iterables are almost equal, False otherwise.
+
+    """
+    # check if the value is a list, tuple or set and compare the values
+    if len(expected) != len(actual):
+        return False
+
+    for v_i, actual_i in zip(expected, actual):
+        if not are_values_almost_equal(v_i, actual_i, abs_tolerance):
+            return False
+
+    return True
+
+
+def are_dictionaries_almost_equal(expected: Dict[Any, Any],
+                                  actual: Dict[Any, Any],
+                                  abs_tolerance: float = 1e-7) -> bool:
+    """
+    Checks whether two dictionaries are equal.
+
+    Args:
+        - expected: Expected dictionary.
+        - actual: Actual dictionary.
+
+    Returns:
+        - True if the dictionaries are equal, False otherwise.
+
+    """
+    if len(expected) != len(actual):
+        return False
+
+    for k, v in expected.items():
+
+        # check if key is present in both dictionaries
+        if k not in actual:
+            return False
+
+        # check if values are almost equal
+        if not are_values_almost_equal(v, actual[k], abs_tolerance):
+            return False
+
+    # all checks passed
+    return True
 
 
 class GiDOutputFileReader:
@@ -492,7 +589,7 @@ class GiDOutputFileReader:
         value = {"node": int(words[0])}
         if self.result_type == "Scalar":
             value["value"] = float(words[1])
-        elif self.result_type == "Vector":
+        elif self.result_type == "Vector" or self.result_type == "Matrix":
             value["value"] = [float(x) for x in words[1:]]
         self.output_data["results"][self.result_name][-1]["values"].append(value)
 
@@ -508,8 +605,10 @@ class GiDOutputFileReader:
         value = self.output_data["results"][self.result_name][-1]["values"][-1]["value"]
         if self.result_type == "Scalar":
             value.append(float(words[0]))
-        elif self.result_type == "Matrix":
+        elif self.result_type == "Matrix" or self.result_type == "Vector":
             value.append([float(x) for x in words])
+        else:
+            raise RuntimeError(f'Unsupported result type "{self.result_type}"')
 
     def _process_begin_of_block(self, line):
         assert(self.current_block_name is None)  # nested blocks are not supported
@@ -529,7 +628,7 @@ class GiDOutputFileReader:
     @staticmethod
     def get_values_at_time(time, property_results):
         for time_results in property_results:
-            if time_results["time"] == time:
+            if math.isclose(time_results["time"], time):
                 return time_results["values"]
 
     @staticmethod
@@ -537,3 +636,80 @@ class GiDOutputFileReader:
         for node_results in time_results:
             if node_results["node"] == node:
                 return node_results["value"]
+
+    @staticmethod
+    def nodal_values_at_time(result_item_name, time, output_data, node_ids=None):
+        if node_ids and node_ids != sorted(node_ids):
+            raise RuntimeError("Node IDs must be sorted")
+
+        matching_item = None
+        for item in output_data["results"][result_item_name]:
+            if math.isclose(item["time"], time):
+                matching_item = item
+                break
+        if matching_item is None:
+            raise RuntimeError(f"'{result_item_name}' does not have results at time {time}")
+
+        if matching_item["location"] != "OnNodes":
+            raise RuntimeError(f"'{result_item_name}' is not a nodal result")
+
+        if not node_ids: # return all values
+            return [item["value"] for item in matching_item["values"]]
+
+        return [item["value"] for item in matching_item["values"] if item["node"] in node_ids]
+
+    @staticmethod
+    def element_integration_point_values_at_time(result_item_name, time, output_data, element_ids=None, integration_point_indices=None):
+        if element_ids and element_ids != sorted(element_ids):
+            raise RuntimeError("Element IDs must be sorted")
+
+        matching_item = None
+        for item in output_data["results"][result_item_name]:
+            if math.isclose(item["time"], time):
+                matching_item = item
+                break
+        if matching_item is None:
+            raise RuntimeError(f"'{result_item_name}' does not have results at time {time}")
+
+        if matching_item["location"] != "OnGaussPoints":
+            raise RuntimeError(f"'{result_item_name}' is not an integration point result")
+
+        if element_ids:
+            element_results = [item["value"] for item in matching_item["values"] if item["element"] in element_ids]
+        else:
+            element_results = [item["value"] for item in matching_item["values"]]
+
+        if integration_point_indices:
+            result = []
+            for element_result in element_results:
+                result.append([item for index, item in enumerate(element_result) if index in integration_point_indices])
+            return result
+        else:
+            return element_results
+
+
+def read_coordinates_from_post_msh_file(file_path, node_ids=None):
+    node_map = {}
+
+    with open(file_path, "r") as post_msh_file:
+        reading_coordinates = False
+        for line in post_msh_file:
+            line = line.strip()
+            if line == "Coordinates":
+                reading_coordinates = True
+                continue
+
+            if line == "End Coordinates":
+                reading_coordinates = False
+
+            if reading_coordinates:
+                numbers = line.split()  # [node ID, x, y, z]
+                node_map[int(numbers[0])] = tuple([float(number) for number in numbers[1:]])
+
+    if node_ids is None:
+        return list(node_map.values())
+
+    result = []
+    for id in node_ids:
+        result.append(node_map[id])
+    return result
