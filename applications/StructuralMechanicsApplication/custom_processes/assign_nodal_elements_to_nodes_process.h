@@ -29,9 +29,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The size definition
-    using SizeType = std::size_t;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -60,6 +57,9 @@ public:
     /// The index definition
     using IndexType = std::size_t;
 
+    /// The size definition
+    using SizeType = std::size_t;
+
     /// Geometric type definitions
     using GeometryType = Geometry<Node>;
 
@@ -71,6 +71,9 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /// Default constructor.
+    AssignNodalElementsToNodesProcess() = default;
 
     /**
      * @brief Default constructor.
@@ -84,11 +87,11 @@ public:
 
     /**
      * @brief Default constructor.
-     * @param rThisModelPart The model part to compute
+     * @param rModelPart The model part to compute
      * @param ThisParameters The parameters of configuration
      */
     AssignNodalElementsToNodesProcess(
-        ModelPart& rThisModelPart,
+        ModelPart& rModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
@@ -180,22 +183,16 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;   /// The main model part
-    Parameters mThisParameters;   /// The parameters (can be used for general pourposes)
+    ModelPart* mpThisModelPart;   /// The main model part pointer
+    Parameters mThisParameters;   /// The parameters (can be used for general purposes)
 
     ///@}
     ///@name Private Lyfe Cycle
     ///@{
 
-    /// Copy constructor (Unaccessible method).
-    //AssignNodalElementsToNodesProcess(AssignNodalElementsToNodesProcess const& rOther);
-
     ///@}
     ///@name Private Operators
     ///@{
-
-    /// Assignment operator (Unaccessible method).
-    AssignNodalElementsToNodesProcess& operator=(AssignNodalElementsToNodesProcess const& rOther) = delete;
 
     ///@}
     ///@name Private Operations

@@ -37,9 +37,9 @@ AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
 /***********************************************************************************/
 
 AssignNodalElementsToNodesProcess::AssignNodalElementsToNodesProcess(
-    ModelPart& rThisModelPart,
+    ModelPart& rModelPart,
     Parameters ThisParameters
-    ) : mrThisModelPart(rThisModelPart),
+    ) : mpThisModelPart(&rModelPart),
         mThisParameters(ThisParameters)
 {
     KRATOS_TRY
@@ -104,7 +104,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     KRATOS_TRY
 
     // Assuming the number of properties is ordered
-    ModelPart& r_root_model_part = mrThisModelPart.GetRootModelPart();
+    ModelPart& r_root_model_part = mpThisModelPart->GetRootModelPart();
     const SizeType number_properties = r_root_model_part.NumberOfProperties();
     Properties::Pointer p_properties = r_root_model_part.HasProperties(number_properties + 1) ? r_root_model_part.pGetProperties(number_properties + 1) : r_root_model_part.CreateNewProperties(number_properties + 1);
 
@@ -112,8 +112,8 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     const SizeType domain_size = r_root_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
     // We assign the properties to the model part
-    if (mrThisModelPart.Name() != r_root_model_part.Name()) {
-        mrThisModelPart.AddProperties(p_properties);
+    if (mpThisModelPart->Name() != r_root_model_part.Name()) {
+        mpThisModelPart->AddProperties(p_properties);
     }
 
     // We assign values for the not null properties
@@ -209,10 +209,10 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
         p_properties->SetValue(CONSIDER_RAYLEIGH_DAMPING, true);
     }
     PointerVector<Node> aux_node_array(1);
-    const auto it_node_begin = mrThisModelPart.NodesBegin();
+    const auto it_node_begin = mpThisModelPart->NodesBegin();
     aux_node_array(0) = *(it_node_begin).base();
 
-    const SizeType number_of_nodes = mrThisModelPart.Nodes().size();
+    const SizeType number_of_nodes = mpThisModelPart->Nodes().size();
 
     GeometryType::Pointer p_dummy_geom = GetPointGeometryFromNode(aux_node_array, domain_size);
     const Element& r_reference_element = NodalConcentratedElement(0, p_dummy_geom);
@@ -234,13 +234,13 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     // Adding to the model part
     ElementsArrayType aux_elems;
     aux_elems.GetContainer() = auxiliary_elements_vector;
-    mrThisModelPart.AddElements(aux_elems.begin(), aux_elems.end());
+    mpThisModelPart->AddElements(aux_elems.begin(), aux_elems.end());
 
     // We Initialize the elements
-    EntitiesUtilities::InitializeEntities<Element>(mrThisModelPart);
+    EntitiesUtilities::InitializeEntities<Element>(*mpThisModelPart);
 
     // Inactive by default
-    VariableUtils().SetFlag(ACTIVE, false, mrThisModelPart.Elements());
+    VariableUtils().SetFlag(ACTIVE, false, mpThisModelPart->Elements());
 
     // Set the flag ACTIVE
     this->Set(ACTIVE, false);
@@ -259,7 +259,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
     if (mThisParameters["interval"][0].GetDouble() > 0.0 || mThisParameters["interval"][1].GetDouble() < 1e30) {
         if (this->IsNot(ACTIVE)) {
             // Initialize initial displacement and rotation
-            block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
+            block_for_each(mpThisModelPart->Elements(), [&](Element& rElement) {
                 if (rElement.Has(NODAL_INITIAL_DISPLACEMENT)) {
                     rElement.SetValue(NODAL_INITIAL_DISPLACEMENT, rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT));
                 }
@@ -268,13 +268,13 @@ void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
                 }
             });
             // Set the flag ACTIVE
-            VariableUtils().SetFlag(ACTIVE, true, mrThisModelPart.Elements());
+            VariableUtils().SetFlag(ACTIVE, true, mpThisModelPart->Elements());
             this->Set(ACTIVE, true);
         }
     } else {
         if (this->Is(ACTIVE)) {
             // Set the flag ACTIVE
-            VariableUtils().SetFlag(ACTIVE, false, mrThisModelPart.Elements());
+            VariableUtils().SetFlag(ACTIVE, false, mpThisModelPart->Elements());
             this->Set(ACTIVE, false);
         }
     }
@@ -287,7 +287,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
 
 AssignNodalElementsToNodesProcess::GeometryType::Pointer AssignNodalElementsToNodesProcess::GetPointGeometryFromNode(
     PointerVector<Node>& rArrayNodes,
-    const SizeType Dimension
+    const AssignNodalElementsToNodesProcess::SizeType Dimension
     )
 {
     if (Dimension == 2) {
