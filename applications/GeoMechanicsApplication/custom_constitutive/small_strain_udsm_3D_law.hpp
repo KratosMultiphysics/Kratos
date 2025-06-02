@@ -12,17 +12,13 @@
 
 #pragma once
 
-// System includes
 #include "includes/define.h"
 #include <iostream>
 #include <string>
 
-// Project includes
+#include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
 #include "includes/serializer.h"
-
-// Application includes
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -77,41 +73,12 @@ using pF_UserMod          = void (*)(int*,
                             int*,
                             int*);
 
-///@addtogroup ConstitutiveModelsApplication
-///@{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
- */
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM3DLaw : public ConstitutiveLaw
 {
 public:
-    /// The size type definition
     using SizeType = std::size_t;
 
-    /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_3D;
-
+    static constexpr SizeType Dimension                 = N_DIM_3D;
     static constexpr SizeType Sig0Size                  = 20;
     static constexpr SizeType StressVectorSize          = 6;
     static constexpr SizeType StrainIncrementVectorSize = 12;
@@ -120,174 +87,53 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM3DLaw);
 
     //@}
-    //@name Life Cycle
-    //@{
-
-    /**
-     * @brief Default constructor.
-     */
     SmallStrainUDSM3DLaw() = default;
 
-    /**
-     * @brief Clone method
-     */
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-     * Copy constructor.
-     */
     SmallStrainUDSM3DLaw(SmallStrainUDSM3DLaw const& rOther);
 
-    /**
-     * @brief Destructor.
-     */
     ~SmallStrainUDSM3DLaw() override = default;
 
-    // Assignment operator:
     SmallStrainUDSM3DLaw& operator=(SmallStrainUDSM3DLaw const& rOther);
 
-    /**
-     * @brief This function is designed to be called once to check compatibility with element
-     * @param rFeatures The Features of the law
-     */
     void GetLawFeatures(Features& rFeatures) override;
 
-    /**
-     * @brief Dimension of the law:
-     */
-    SizeType WorkingSpaceDimension() override { return Dimension; }
+    SizeType WorkingSpaceDimension() override;
 
-    /**
-     * @brief Voigt tensor size:
-     */
     [[nodiscard]] SizeType GetStrainSize() const override;
 
-    /**
-     * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
-     * @return the expected strain measure
-     */
     StrainMeasure GetStrainMeasure() override;
-
-    /**
-     * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in Voigt notation)
-     * @return the expected stress measure
-     */
     StressMeasure GetStressMeasure() override;
 
-    /**
-     * @brief Computes the material response:
-     * @details PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponsePK1(Parameters& rValues) override;
+    void CalculateMaterialResponsePK2(Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
-    /**
-     * @brief Computes the material response:
-     * @details PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1(Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
 
-    /**
-     * @brief Computes the material response:
-     * @details Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response:
-     * @details Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Updates the material response:
-     * @details Cauchy stresses and Internal Variables
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief It calculates the value of a specified variable (double case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<double>&      rVariable,
-                           double&                      rValue) override;
-
-    /**
-     * @brief It calculates the value of a specified variable (Vector case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<Vector>&      rVariable,
-                           Vector&                      rValue) override;
-
-    /**
-     * @brief It calculates the value of a specified variable (Matrix case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<Matrix>&      rVariable,
-                           Matrix&                      rValue) override;
-
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rVariable, double& rValue) override;
+    Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rVariable, Vector& rValue) override;
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rVariable, Matrix& rValue) override;
     using ConstitutiveLaw::CalculateValue;
 
-    // @brief This function provides the place to perform checks on the completeness of the input.
-    // @details It is designed to be called only once (or anyway, not often) typically at the beginning
-    //          of the calculations, so to verify that nothing is missing from the input or that
-    //          no common error is found.
     [[nodiscard]] int Check(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const ProcessInfo&  rCurrentProcessInfo) const override;
 
-    /**
-     * This is to be called at the very beginning of the calculation
-     * (e.g. from InitializeElement) in order to initialize all relevant
-     * attributes of the constitutive law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
     void InitializeMaterial(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const Vector&       rShapeFunctionsValues) override;
 
-    /**
-     * Initialize the material response in terms of Cauchy stresses
-     * @see Parameters
-     */
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
-    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy(Parameters& rValues) override;
+    void InitializeMaterialResponsePK1(Parameters& rValues) override;
+    void InitializeMaterialResponsePK2(Parameters& rValues) override;
+    void InitializeMaterialResponseKirchhoff(Parameters& rValues) override;
 
-    /**
-     * This can be used in order to reset all internal variables of the
-     * constitutive law (e.g. if a model should be reset to its reference state)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
     void ResetMaterial(const Properties&   rMaterialProperties,
                        const GeometryType& rElementGeometry,
                        const Vector&       rShapeFunctionsValues) override;
@@ -300,35 +146,11 @@ public:
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
 
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    [[nodiscard]] std::string Info() const override { return "SmallStrainUDSM3DLaw"; }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << "SmallStrainUDSM3DLaw Data";
-    }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
+    [[nodiscard]] std::string Info() const override;
+    void                      PrintInfo(std::ostream& rOStream) const override;
+    void                      PrintData(std::ostream& rOStream) const override;
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
     enum IDTASK : int {
         INITIALISATION = 1,
         STRESS_CALCULATION,
@@ -345,9 +167,6 @@ protected:
         USE_TANGENT_MATRIX
     };
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
     array_1d<double, VOIGT_SIZE_3D> mStressVector{VOIGT_SIZE_3D, 0.0};
 
     array_1d<double, StrainIncrementVectorSize> mDeltaStrainVector{StrainIncrementVectorSize, 0.0};
@@ -355,58 +174,31 @@ protected:
 
     double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    virtual void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues);
-    virtual void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters& rValues);
+    virtual void UpdateInternalDeltaStrainVector(Parameters& rValues);
+    virtual void UpdateInternalStrainVectorFinalized(Parameters& rValues);
     virtual void SetExternalStressVector(Vector& rStressVector);
     virtual void SetInternalStressVector(const Vector& rStressVector);
     virtual void SetInternalStrainVector(const Vector& rStrainVector);
-    virtual void CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix);
+    virtual void CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix);
 
-    void CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix);
-    void CalculateStress(ConstitutiveLaw::Parameters& rValues, Vector& rStressVector);
+    void CalculateConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix);
+    void CalculateStress(Parameters& rValues, Vector& rStressVector);
 
     // returns 1 if the stiffness matrix of the material is non-symmetric
-    int getIsNonSymmetric() { return mAttributes[IS_NON_SYMMETRIC]; }
+    int getIsNonSymmetric();
 
     // returns 1 if the stiffness matrix of the material is stress dependent
-    int getIsStressDependent() { return mAttributes[IS_STRESS_DEPENDENT]; }
+    int getIsStressDependent();
 
     // returns 1 if material is time dependent
-    int getIsTimeDependent() { return mAttributes[IS_TIME_DEPENDENT]; }
+    int getIsTimeDependent();
 
     // returns 1 if the stiffness matrix of the material is tangential
-    int getUseTangentMatrix() { return mAttributes[USE_TANGENT_MATRIX]; }
+    int getUseTangentMatrix();
 
     array_1d<double, Sig0Size>& GetSig0();
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
     pF_GetParamCount    mpGetParamCount    = nullptr;
     pF_GetStateVarCount mpGetStateVarCount = nullptr;
     pF_UserMod          mpUserMod          = nullptr;
@@ -414,7 +206,6 @@ private:
     bool mIsModelInitialized = false;
     bool mIsUDSMLoaded       = false;
 
-    // AttributesUDSM mAttributes;
     array_1d<int, 4> mAttributes;
 
     std::vector<int> mProjectDirectory;
@@ -426,87 +217,25 @@ private:
     // of the Plaxis documentation for the array sizes
     array_1d<double, Sig0Size> mSig0{Sig0Size, 0.0};
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
     // to load UDSM and functions
     bool loadUDSM(const Properties& rMaterialProperties);
     bool loadUDSMWindows(const Properties& rMaterialProperties);
     bool loadUDSMLinux(const Properties& rMaterialProperties);
 
-    // Set number of MaterialParameters
     void CallUDSM(int* IDTask, ConstitutiveLaw::Parameters& rValues);
 
-    // Set state variables to zero
     void ResetStateVariables(const Properties& rMaterialProperties);
 
-    // set number of StateVariables
     void SetAttributes(const Properties& rMaterialProperties);
 
-    // set number of StateVariables
     int GetNumberOfStateVariablesFromUDSM(const Properties& rMaterialProperties);
 
-    // get number of MaterialParameters
     SizeType          GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
     [[nodiscard]] int GetStateVariableIndex(const Variable<double>& rVariable) const;
 
-    ///@}
-    ///@name Serialization
-    ///@{
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("InitializedModel", mIsModelInitialized);
-        rSerializer.save("Attributes", mAttributes);
-        rSerializer.save("Sig0", mSig0);
-        rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-        rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("InitializedModel", mIsModelInitialized);
-        rSerializer.load("Attributes", mAttributes);
-        rSerializer.load("Sig0", mSig0);
-        rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-        rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
-    }
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // Class SmallStrainUDSM3DLaw
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
-///@} addtogroup block
 
 } // namespace Kratos

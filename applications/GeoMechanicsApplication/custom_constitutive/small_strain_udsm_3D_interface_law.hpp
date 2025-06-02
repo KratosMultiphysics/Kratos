@@ -43,8 +43,8 @@ public:
     [[nodiscard]] SizeType GetStrainSize() const override;
 
     [[nodiscard]] std::string Info() const override;
-    void PrintInfo(std::ostream& rOStream) const override;
-    void PrintData(std::ostream& rOStream) const override;
+    void                      PrintInfo(std::ostream& rOStream) const override;
+    void                      PrintData(std::ostream& rOStream) const override;
 
 protected:
     void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues) override;

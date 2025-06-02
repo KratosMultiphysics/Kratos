@@ -10,7 +10,6 @@
 //  Main authors:    Vahid Galavi
 //
 
-// System includes
 #include <algorithm>
 
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
@@ -218,6 +217,8 @@ void SmallStrainUDSM3DLaw::GetLawFeatures(Features& rFeatures)
 
     KRATOS_CATCH("")
 }
+
+SizeType SmallStrainUDSM3DLaw::WorkingSpaceDimension() { return Dimension; }
 
 SizeType SmallStrainUDSM3DLaw::GetStrainSize() const { return VOIGT_SIZE_3D; }
 
@@ -704,6 +705,14 @@ void SmallStrainUDSM3DLaw::CalculateStress(ConstitutiveLaw::Parameters& rValues,
     KRATOS_CATCH("")
 }
 
+int SmallStrainUDSM3DLaw::getIsNonSymmetric() { return mAttributes[IS_NON_SYMMETRIC]; }
+
+int SmallStrainUDSM3DLaw::getIsStressDependent() { return mAttributes[IS_STRESS_DEPENDENT]; }
+
+int SmallStrainUDSM3DLaw::getIsTimeDependent() { return mAttributes[IS_TIME_DEPENDENT]; }
+
+int SmallStrainUDSM3DLaw::getUseTangentMatrix() { return mAttributes[USE_TANGENT_MATRIX]; }
+
 array_1d<double, SmallStrainUDSM3DLaw::Sig0Size>& SmallStrainUDSM3DLaw::GetSig0() { return mSig0; }
 
 void SmallStrainUDSM3DLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& rValues)
@@ -939,6 +948,37 @@ void SmallStrainUDSM3DLaw::SetValue(const Variable<Vector>& rVariable, const Vec
             << " components, but got one with " << rValue.size() << "components\n";
         std::copy(rValue.begin(), rValue.end(), mSig0.begin());
     }
+}
+
+std::string SmallStrainUDSM3DLaw::Info() const { return "SmallStrainUDSM3DLaw"; }
+
+void SmallStrainUDSM3DLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
+
+void SmallStrainUDSM3DLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUDSM3DLaw Data";
+}
+
+void SmallStrainUDSM3DLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+
+    rSerializer.save("InitializedModel", mIsModelInitialized);
+    rSerializer.save("Attributes", mAttributes);
+    rSerializer.save("Sig0", mSig0);
+    rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
+    rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
+}
+
+void SmallStrainUDSM3DLaw::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+
+    rSerializer.load("InitializedModel", mIsModelInitialized);
+    rSerializer.load("Attributes", mAttributes);
+    rSerializer.load("Sig0", mSig0);
+    rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
+    rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
 }
 
 } // Namespace Kratos
