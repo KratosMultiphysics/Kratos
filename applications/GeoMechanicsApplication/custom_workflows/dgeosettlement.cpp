@@ -72,7 +72,10 @@ double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
 
 double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
 {
-    return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
+    // The provided default value here must match the one found in GeoMechanicsAnalysis.__init__
+    return rProjectParameters["solver_settings"]["time_stepping"].Has("max_delta_time_factor")
+               ? rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble()
+               : 1000.0;
 }
 
 std::optional<double> GetUserMinDeltaTimeFrom(const Parameters& rProjectParameters)
@@ -347,9 +350,13 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 
     GetMainModelPart().CloneTimeStep();
 
-    if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool()) {
-        ResetValuesOfNodalVariable(DISPLACEMENT);
-        ResetValuesOfNodalVariable(ROTATION);
+    // Displacement and rotation variables are defined as stage displacement and rotation,
+    // so they need to be reset at the start of a stage
+    ResetValuesOfNodalVariable(DISPLACEMENT);
+    ResetValuesOfNodalVariable(ROTATION);
+
+    if (GetResetDisplacementsFrom(rProjectParameters)) {
+        ResetValuesOfNodalVariable(TOTAL_DISPLACEMENT);
 
         VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
     }
