@@ -20,6 +20,11 @@ This also decreases memory fragmentation, and freeing structures
 # include "recycle.h"
 #endif
 
+#ifndef WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif // WIN32
+
 reroot *remkroot(size)
 size_t  size;
 {
@@ -59,14 +64,14 @@ struct reroot *r;
       memset(temp, 0, r->size);
    }
    else
-   {  /* allocate a new block of nodes */
-      r->numleft = r->size*((ub4)1<<r->logsize);
+   {  /* allocate a new block of G_nodes */
+      r->numleft =(word)(r->size*(size_t)((ub4)1<<r->logsize));
       if (r->numleft < REMAX) ++r->logsize;
       temp = (recycle *)remalloc(sizeof(recycle) + r->numleft, 
 				 "recycle.c, data");
       temp->next = r->list;
       r->list = temp;
-      r->numleft-=r->size;
+      r->numleft-=(word)(r->size);
       temp = (recycle *)((char *)(r->list+1)+r->numleft);
    }
    return (char *)temp;
@@ -79,10 +84,13 @@ char   *purpose;
   char *x = (char *)malloc(len);
   if (!x)
   {
-    fprintf(stderr, "malloc of %u failed for %s\n", 
+    fprintf(stderr, "GiDPost: malloc of %u failed for %s\n", 
 	    ( unsigned int)len, purpose);
     exit(SUCCESS);
   }
   return x;
 }
 
+#ifndef WIN32
+#pragma GCC diagnostic pop
+#endif // WIN32

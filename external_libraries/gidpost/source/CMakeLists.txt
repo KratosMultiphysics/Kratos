@@ -1,41 +1,52 @@
+#include (ExternalProject)
 set (gidpost_source 
-  gidpost.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
+  gidpost.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
   gidpostHash.c hashtab.c recycle.c lookupa.c)
 
-add_definitions(-DNDEBUG)
-message("WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)")
+# find  package already done in  ../CmakeLists.txt
+# find_package(HDF5)
+# if (HDF5_FOUND)
+#   option (ADD_HDF5_SUPPORT "Use HDF5" ON)
+# endif(HDF5_FOUND)
 
-find_package(HDF5)
-if (HDF5_FOUND)
-  option (HDF5 "Use HDF5" OFF)
-endif(HDF5_FOUND)
-
-if (HDF5)
+if (ENABLE_HDF5)
   set (hdf5_source hdf5c.c gidpostHDF5.c)
-endif (HDF5)
+endif (ENABLE_HDF5)
 
-if (BUILD_SHARED_LIBS)
+if (ENABLE_SHARED_LIBS)
   set (LIB_TYPE SHARED)
-else (BUILD_SHARED_LIBS)
+else (ENABLE_SHARED_LIBS)
   set (LIB_TYPE STATIC)
-endif (BUILD_SHARED_LIBS)
+endif (ENABLE_SHARED_LIBS)
 
 add_library (gidpost ${LIB_TYPE} ${gidpost_source} ${hdf5_source})
 
-if (BUILD_SHARED_LIBS)
+if (ENABLE_SHARED_LIBS)
   add_definitions (-DGIDPOST_EXPORTS)
-endif (BUILD_SHARED_LIBS)
+endif (ENABLE_SHARED_LIBS)
 
 if (MSVC)
   add_definitions (-D_CRT_SECURE_NO_DEPRECATE)
 endif (MSVC)
 
-if (HDF5)
+# if()
+#   set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
+# endif()
+if ( ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+  target_compile_options( gidpost PRIVATE "$<$<CONFIG:Debug>:-Wall>")
+  target_compile_options( gidpost PRIVATE "$<$<CONFIG:Debug>:-Wextra>")
+  target_compile_options( gidpost PRIVATE "$<$<CONFIG:Debug>:-Wconversion>")
+  # add_compile_options( "$<$<CONFIG:Debug>:-Wall>")
+  # add_compile_options( "$<$<CONFIG:Debug>:-Wextra>")
+endif()
+
+if (ENABLE_HDF5)
   include_directories(${HDF5_INCLUDE_DIRS})
   target_link_libraries(gidpost ${HDF5_LIBRARIES})
-endif (HDF5)
+endif (ENABLE_HDF5)
 
-find_package(ZLIB REQUIRED)
+# find  package already done in  ../CmakeLists.txt
+# find_package(ZLIB REQUIRED)
 if (ZLIB_FOUND)
   include_directories(${ZLIB_INCLUDE_DIRS})
   target_link_libraries(gidpost ${ZLIB_LIBRARIES})
@@ -59,5 +70,4 @@ install (TARGETS gidpost
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 
-install (FILES gidpost.h ${gidpost_BINARY_DIR}/gidpost_config.h
-  DESTINATION include)
+install( FILES gidpost.h gidpost_types.h gidpost_functions.h gidpost_functions_deprecated.h DESTINATION include )

@@ -5,371 +5,761 @@
 #include <stdlib.h>
 
 #include "hdf5c.h"
+#include "hdf5.h"
+#include "H5public.h"
+#include "H5LTpublic.h"
 
-static hid_t global_file_id=0;
-static hid_t global_group_id=0;
-static char global_group_path[1024];
-static struct hdf5c_buffer global_hdf5c_buffer[MAX_CONCURRENT_DATASETS];
-static char errorBuffer[1024];
+// #define MAX_CONCURRENT_DATASETS 20
 
-int hdf5c_open(const char* zFile,OpenType otype)
-{
+typedef enum _OpenType {
+  Read_OT,
+  Write_OT,
+  Create_OT
+} OpenType;
+
+struct hdf5c_buffer {
+  int used;
+  hid_t file_id;
+  char datasetname[ 1024 ];
+  int memsize, size, num_int, num_real;
+  int *intarray[ 20 ];
+  double *doublearray[ 20 ];
+};
+
+#ifdef NDEBUG
+#define print_error( str)
+#else
+static void _print_stderr( const char *str ) {
+  fprintf( stderr, "gidpost hdf5 error: %s\n", str );
+}
+#define print_error( str)      _print_stderr( str);
+#define HDF5_DEBUG
+#endif
+
+typedef struct _CPostHdf5File {
+   hid_t file_id;
+   hid_t group_id;
+   char group_path[ 1024 ];
+   struct hdf5c_buffer file_buffer[ MAX_CONCURRENT_DATASETS ];
+   char error_buffer[ 8192 ];
+} CPostHdf5File;
+
+
+const char *hdf5c_f_get_version() {
+  static char *version_str = NULL;
+
+  if ( !version_str ) {
+    char buf[ 1024 ];
+    unsigned major_number, minor_number, patch_number;
+    hbool_t is_thread_safe = 0;
+
+    // retrieve the library version
+    herr_t h5_error = H5get_libversion( &major_number, &minor_number, &patch_number );
+    if ( h5_error >= 0 ) {
+      // is this a thread-safe library build?
+      h5_error = H5is_library_threadsafe( &is_thread_safe );
+    }
+    if ( h5_error >= 0 ) {
+      snprintf( buf, 1024, "HDF5 %d.%d.%d  ( Thread-safety %s )", major_number, minor_number, patch_number, ( is_thread_safe > 0 ) ? "enabled" : "disabled" );
+      version_str = strdup( buf );
+    }
+  }
+  return version_str;
+}
+
+// -1 on error
+int hdf5c_f_is_thread_safe( void ) {
+  int ret_value = -1;
+  hbool_t is_thread_safe = 0;
+  // is this a thread-safe library build?
+  herr_t h5_error = H5is_library_threadsafe( &is_thread_safe );
+  if ( h5_error >= 0 ) { // ok
+    ret_value = is_thread_safe ? 1 : 0;
+  } else {
+    ret_value = -1;
+  }
+  return ret_value;
+}
+
+// returns -1 if error
+int checkHDF5threadSafe( void ) {
+    unsigned major_number, minor_number, patch_number;
+    static hbool_t is_thread_safe = 0;
+    static int checked = 0;
+
+    if ( !checked ) {
+      // retrieve the library version
+      herr_t h5_error = H5get_libversion( &major_number, &minor_number, &patch_number );
+      if ( h5_error < 0 ) {
+	    return -1;
+      }
+      // is this a thread-safe library build?
+      h5_error = H5is_library_threadsafe( &is_thread_safe );
+      if ( h5_error < 0 ) {
+	    return -1;
+      }
+
+      printf( "Welcome to HDF5 %d.%d.%d  ( Thread-safety %s )\n", major_number, minor_number, patch_number, ( is_thread_safe > 0 ) ? "enabled" : "disabled" );
+      checked = 1;
+    }
+    return ( is_thread_safe > 0 ) ? 0 : -1;
+}
+
+CPostHdf5File *new_CPostHdf5File( void ) {
+  // thrread safety checking is done when opening second hdf5 file in gidpostHDF5.c new_CurrentHdf5WriteData()
+  // int fail = checkHDF5threadSafe();
+  // if ( fail ) {
+  //   return NULL;
+  // }
+   CPostHdf5File *obj = ( CPostHdf5File * )malloc( sizeof( CPostHdf5File ));
+   if ( obj ) {
+     memset( obj, 0, sizeof( CPostHdf5File ) );
+   }
+   // obj->file_id = 0;
+   // obj->file_id = 0;
+   // obj->group_path[ 0] = '\0';
+   // for ( int i = 0; i < MAX_CONCURRENT_DATASETS; i++ ) {
+   //   memset( &( obj->file_buffer[ i ] ), 0, sizeof( struct hdf5c_buffer ) );
+   // }
+   // obj->error_buffer[ 0] = '\0';
+   return obj;
+}
+
+
+void delete_CPostHdf5File( CPostHdf5File *obj ) {
+  free( obj );
+}
+
+#define H5_GID_COMPRESSION_LEVEL   1
+/*
+  // with the H5Cpp interface:
+  // Using level 1 because:
+  // level 6 too costly, is 4 times slower than level 1 and only gets 6,6 % reduction
+  // level 2 is 12 % slower and only 1,9 % size reduction
+  #define H5_GID_COMPRESSION_LEVEL   6
+*/
+
+int hdf5c_f_open( CPostHdf5File *obj, const char *zFile, OpenType otype ) {
+  if ( obj == NULL ) {
+    return -1;
+  }
+
   int i,is_hdf5;
   hid_t file_id;
   unsigned int flags=H5F_ACC_RDWR;
   
   H5Eset_auto(H5E_DEFAULT,NULL,NULL);
-  
+
   is_hdf5=H5Fis_hdf5(zFile);
   if(is_hdf5<=0 && otype==Read_OT){
-    sprintf(errorBuffer,"File '%s' does not exists or is not in hdf5 format",zFile);
+    sprintf(obj->error_buffer,"File '%s' does not exists or is not in hdf5 format",zFile);
+    print_error( obj->error_buffer);
     return -1;
   }
   if(is_hdf5 && otype!=Create_OT){
     if(otype==Read_OT) flags=H5F_ACC_RDONLY;
     file_id=H5Fopen(zFile,flags,H5P_DEFAULT);
     if(file_id<0){
-      sprintf(errorBuffer,"Could not open file '%s'",zFile);
+      sprintf(obj->error_buffer,"Could not open file '%s'",zFile);
+      print_error( obj->error_buffer);
       return -1;
     }
-  } else {
-    file_id=H5Fcreate(zFile, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  } else { // Create_OT
+#if H5_VERSION_GE( 1, 10, 0)
+    // https://docs.hdfgroup.org/archive/support/HDF5/Tutor/swmr.html
+    hid_t fapl = H5Pcreate( H5P_FILE_ACCESS );
+    herr_t status = H5Pset_libver_bounds( fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST );
+    if ( status < 0) {
+      sprintf( obj->error_buffer, "could not create file '%s' (set_libver_bounds failed) ",zFile);
+      print_error( obj->error_buffer);
+      return -1;
+    }
+    // it is one of opening with flag H5F_ACC_SWMR_WRITE or using H5Fstart_swmr_write() once after H5Dcreate().
+    file_id = H5Fcreate( zFile, H5F_ACC_TRUNC | H5F_ACC_SWMR_WRITE, H5P_DEFAULT, fapl );
+    // file_id = H5Fcreate( zFile, H5F_ACC_TRUNC , H5P_DEFAULT, fapl );
+    // H5Pclose( fapl);
+#else // H5_VERSION_GE( 1, 10, 0)
+    file_id = H5Fcreate( zFile, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+#endif // H5_VERSION_GE( 1, 10, 0)
     if(file_id<0){
-      sprintf(errorBuffer,"could not create file '%s'",zFile);
+      sprintf(obj->error_buffer,"could not create file '%s'",zFile);
+      print_error( obj->error_buffer);
       return -1;
     }
   }
-  global_file_id=file_id;
+  obj->file_id=file_id;
   for(i=0;i<MAX_CONCURRENT_DATASETS;i++){
-    global_hdf5c_buffer[i].used=0;
-    global_hdf5c_buffer[i].file_id=file_id;
-    memset(global_hdf5c_buffer[i].intarray,0,20*sizeof(int*));
-    memset(global_hdf5c_buffer[i].doublearray,0,20*sizeof(double*));
+    obj->file_buffer[i].used=0;
+    obj->file_buffer[i].file_id=file_id;
+    memset(obj->file_buffer[i].intarray,0,20*sizeof(int*));
+    memset(obj->file_buffer[i].doublearray,0,20*sizeof(double*));
   }
-  strcpy(errorBuffer,"");
+  strcpy(obj->error_buffer,"");
   return 0;
 }
 
-hid_t hdf5cM_open(const char* zFile,OpenType otype)
-{
-  int is_hdf5;
-  hid_t file_id;
-  unsigned int flags=H5F_ACC_RDWR;
-  
-  H5Eset_auto(H5E_DEFAULT,NULL,NULL);
-  
-  is_hdf5=H5Fis_hdf5(zFile);
-  if(is_hdf5<=0 && otype==Read_OT){
-    sprintf(errorBuffer,"File '%s' does not exists or is not in hdf5 format",zFile);
+int hdf5c_f_init( CPostHdf5File *obj, const char *zFile ) {
+  /* this is equal to hdf5c_open(zFile,Create_OT) for compatibility */
+  return hdf5c_f_open( obj, zFile, Create_OT);
+}
+
+int hdf5c_f_end( CPostHdf5File *obj ) {
+  if ( obj == NULL ) {
     return -1;
   }
-  if(is_hdf5 && otype!=Create_OT){
-    if(otype==Read_OT) flags=H5F_ACC_RDONLY;
-    file_id=H5Fopen(zFile,flags,H5P_DEFAULT);
-    if(file_id<0){
-      sprintf(errorBuffer,"Could not open file '%s'",zFile);
-      return -1;
-    }
-  } else {
-    file_id=H5Fcreate(zFile, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    if(file_id<0){
-      sprintf(errorBuffer,"could not create file '%s'",zFile);
-      return -1;
-    }
-  }
-  strcpy(errorBuffer,"");
-  return file_id;
-}
 
-int hdf5c_init(const char* zFile)
-{
-  return hdf5c_open(zFile,Create_OT);
-}
-
-int hdf5c_end()
-{
-  int i,j;
-  herr_t ht_ret;
-  if(global_group_id>=0){
-    H5Gclose(global_group_id);
-    global_group_id=0;
+  int i, j;
+  herr_t ht_ret = 0;
+  if ( obj->group_id > 0 ) {
+    H5Gclose( obj->group_id );
+    obj->group_id = 0;
   }
-  if(global_hdf5c_buffer[0].file_id>0)
-    ht_ret=H5Fclose (global_hdf5c_buffer[0].file_id);
-  for(i=0;i<MAX_CONCURRENT_DATASETS;i++){
-    for(j=0;j<20;j++){
-      if(global_hdf5c_buffer[i].intarray[j]) free(global_hdf5c_buffer[i].intarray[j]);
-      if(global_hdf5c_buffer[i].doublearray[j]) free(global_hdf5c_buffer[i].doublearray[j]);
+  if ( obj->file_buffer[ 0 ].file_id > 0 ) {
+    ht_ret = H5Fclose( obj->file_buffer[ 0 ].file_id );
+    if ( ht_ret < 0) {
+      sprintf( obj->error_buffer, "Error closing hdf5 file");
+      print_error( obj->error_buffer);
     }
   }
+  for ( i = 0; i < MAX_CONCURRENT_DATASETS; i++ ) {
+    for ( j = 0; j < 20; j++ ) {
+      if ( obj->file_buffer[ i ].intarray[ j ] ) {
+        free( obj->file_buffer[ i ].intarray[ j ] );
+        obj->file_buffer[ i ].intarray[ j ] = NULL;
+      }
+      if ( obj->file_buffer[ i ].doublearray[ j ] ) {
+        free( obj->file_buffer[ i ].doublearray[ j ] );
+        obj->file_buffer[ i ].doublearray[ j ] = NULL;
+      }
+    }
+  }
+
   return ht_ret;
 }
 
-int hdf5cM_end(hid_t file_id)
-{
-  herr_t ht_ret;
-  
-  ht_ret=H5Fclose(file_id);
-  return ht_ret;
+int hdf5c_f_flush( CPostHdf5File *obj ) {
+  if ( obj == NULL ) {
+    return -1;
+  }
+  herr_t status = H5Fflush( obj->file_id, H5F_SCOPE_GLOBAL );
+  if ( status < 0 ) {
+    print_error( "Can not flush hdf5 file" );
+  }
+  return status;
 }
 
-int hdf5c_flush()
-{
-  return H5Fflush(global_file_id,H5F_SCOPE_GLOBAL);
+int hdf5c_f_flush_dataset( CPostHdf5File *obj, hid_t dataset_id, const char *name, const char *str_type ) {
+  // not using flush data set, it seems that ?corrupts' hdf5's tables and program crashes at the end
+  return 0;
+  if ( obj == NULL ) {
+    return -1;
+  }
+  herr_t status = H5Fflush(  obj->file_buffer[ dataset_id ].file_id, H5F_SCOPE_GLOBAL );
+  if ( status < 0 ) {
+    char buf[ 1024];
+    sprintf( buf, "Can not flush hdf5 dataset/array name '%s' of type '%s'", name, str_type );
+    print_error( buf );
+  }
+  return status;
 }
 
-int hdf5cM_flush(hid_t file_id)
-{
-  return H5Fflush(file_id,H5F_SCOPE_GLOBAL);
-}
-
-char* hdf5c_last_error()
-{
-  return errorBuffer;
+char *hdf5c_f_last_error( CPostHdf5File *obj ) {
+  return obj ? obj->error_buffer : NULL;
 }
 
 /*################################################################################
  *    write functions
  *################################################################################*/
 
-int hdf5c_create_group(const char* name)
-{
-  hid_t ht_group;
-
-  ht_group=H5Gopen(global_file_id,name,H5P_DEFAULT);
-  if(ht_group>=0){
-    H5Gclose(ht_group);
-    return 0;
-  }
-  ht_group=H5Gcreate(global_file_id,name,0,H5P_DEFAULT,H5P_DEFAULT);
-  if(ht_group<0){
-    sprintf(errorBuffer,"name '%s'. error creating group",name);
+int hdf5c_f_create_group( CPostHdf5File *obj, const char *name ) {
+  if ( obj == NULL ) {
     return -1;
   }
-  H5Gclose (ht_group);
+
+  H5G_info_t g_info;
+  herr_t herr = H5Gget_info_by_name( obj->file_id, name, &g_info, H5P_DEFAULT);
+  if ( herr >=0) // it exists
+    return 0;
+
+  hid_t ht_group = 0;
+  // ht_group=H5Gopen(obj->file_id,name,H5P_DEFAULT);
+  // if(ht_group>=0){
+  //   H5Gclose(ht_group);
+  //   return 0;
+  // }
+  ht_group=H5Gcreate(obj->file_id,name,0,H5P_DEFAULT,H5P_DEFAULT);
+  if(ht_group<0){
+    sprintf(obj->error_buffer,"name '%s'. error creating group",name);
+    print_error( obj->error_buffer);
+    return -1;
+  } else {
+    H5Gclose (ht_group);
+  }
   return 1;
 }
 
-int hdf5c_start_dataset(const char* name,int num_int,int num_real)
-{
+int hdf5c_f_set_attribute( CPostHdf5File *obj, const char *name, const char *attname, const char *value ) {
+  if ( obj == NULL ) {
+    return -1;
+  }
+
+  herr_t ht_err = 0;
+
+  /*
+    ht_err=H5LTset_attribute_char(obj->file_buffer.file_id,name,attname,value,strlen(value));
+  */
+  if ( value) {
+    ht_err = H5LTset_attribute_string( obj->file_id, name, attname, value );
+  } else {
+    ht_err = -1;
+  }
+  if ( ht_err < 0 ) {
+    sprintf( obj->error_buffer, "cannot set attribute '%s' to '%s'", name, value ? value : "(NULL)" );
+    print_error( obj->error_buffer);
+    return -1;
+  }
+  return 0;
+}
+
+int hdf5c_f_start_dataset( CPostHdf5File *obj, const char *name, int num_int, int num_real ) {
+  if ( obj == NULL ) {
+    return -1;
+  }
+
   int i,dataset_id;
-  hid_t ht_group;
   
   for(dataset_id=0;dataset_id<MAX_CONCURRENT_DATASETS;dataset_id++)
-    if(!global_hdf5c_buffer[dataset_id].used) break;
+    if(!obj->file_buffer[dataset_id].used) break;
   if(dataset_id==MAX_CONCURRENT_DATASETS){
-    sprintf(errorBuffer,"Too many concurrent datasets n=%d",MAX_CONCURRENT_DATASETS);
+    sprintf(obj->error_buffer,"Too many concurrent datasets n=%d",MAX_CONCURRENT_DATASETS);
+    print_error( obj->error_buffer);
     return -1;
   }
   
   if(strlen(name)>1023){
-    sprintf(errorBuffer,"name '%s'. too long",name);
+    sprintf(obj->error_buffer,"name '%s'. too long",name);
+    print_error( obj->error_buffer);
     return -1;
   }
-  strcpy(global_hdf5c_buffer[dataset_id].datasetname,name);
-  ht_group=H5Gopen(global_hdf5c_buffer[dataset_id].file_id,name,H5P_DEFAULT);
-  if(ht_group<0){
-    ht_group=H5Gcreate(global_hdf5c_buffer[dataset_id].file_id,name,0,H5P_DEFAULT,H5P_DEFAULT);
+  strcpy(obj->file_buffer[dataset_id].datasetname,name);
+  // hid_t ht_group = 0;
+  // ht_group=H5Gopen(obj->file_buffer[dataset_id].file_id,name,H5P_DEFAULT);
+  H5G_info_t g_info;
+  herr_t herr = H5Gget_info_by_name( obj->file_buffer[dataset_id].file_id, name, &g_info, H5P_DEFAULT);
+  if ( herr < 0) {
+    hid_t ht_group=H5Gcreate(obj->file_buffer[dataset_id].file_id,name,0,H5P_DEFAULT,H5P_DEFAULT);
     if(ht_group<0){
-      sprintf(errorBuffer,"name '%s'. error creating group",name);
+      sprintf(obj->error_buffer,"name '%s'. error creating group",name);
+      print_error( obj->error_buffer);
       return -1;
+    } else {
+      H5Gclose (ht_group);
     }
   }
-  H5Fclose (ht_group);
   
-  global_hdf5c_buffer[dataset_id].used=1;
-  if(global_hdf5c_buffer[dataset_id].memsize==0){
-    global_hdf5c_buffer[dataset_id].memsize=10000;
+  obj->file_buffer[dataset_id].used=1;
+  if(obj->file_buffer[dataset_id].memsize==0){
+    obj->file_buffer[dataset_id].memsize=10000;
   }
-  for(i=global_hdf5c_buffer[dataset_id].num_int;i<num_int;i++){
-    if(!global_hdf5c_buffer[dataset_id].intarray[i])
-      global_hdf5c_buffer[dataset_id].intarray[i]=(int*) malloc(( size_t)global_hdf5c_buffer[dataset_id].memsize*sizeof(int));
+  for(i=obj->file_buffer[dataset_id].num_int;i<num_int;i++){
+    if(!obj->file_buffer[dataset_id].intarray[i])
+      obj->file_buffer[dataset_id].intarray[i]=(int*) malloc(( size_t)obj->file_buffer[dataset_id].memsize*sizeof(int));
   }
-  global_hdf5c_buffer[dataset_id].num_int=num_int;
-  for(i=global_hdf5c_buffer[dataset_id].num_real;i<num_real;i++){
-    if(!global_hdf5c_buffer[dataset_id].doublearray[i])
-      global_hdf5c_buffer[dataset_id].doublearray[i]=(double*) malloc(( size_t)global_hdf5c_buffer[dataset_id].memsize*sizeof(double));
+  obj->file_buffer[dataset_id].num_int=num_int;
+  for(i=obj->file_buffer[dataset_id].num_real;i<num_real;i++){
+    if(!obj->file_buffer[dataset_id].doublearray[i])
+      obj->file_buffer[dataset_id].doublearray[i]=(double*) malloc(( size_t)obj->file_buffer[dataset_id].memsize*sizeof(double));
   }
-  global_hdf5c_buffer[dataset_id].num_real=num_real;
-  global_hdf5c_buffer[dataset_id].size=0;
+  obj->file_buffer[dataset_id].num_real=num_real;
+  obj->file_buffer[dataset_id].size=0;
   return dataset_id;
 }
 
-int hdf5c_addto_dataset(int dataset_id,int intvalues[],double doublevalues[])
-{
+int hdf5c_f_add_to_dataset( CPostHdf5File *obj, int dataset_id, const int intvalues[],
+                            const double doublevalues[] ) {
+  if ( obj == NULL ) {
+    return -1;
+  }
+
   int i;
-  if(global_hdf5c_buffer[dataset_id].size==global_hdf5c_buffer[dataset_id].memsize){
-    global_hdf5c_buffer[dataset_id].memsize*=2;
-    for(i=0;i<20;i++){
-      if(global_hdf5c_buffer[dataset_id].intarray[i])
-	global_hdf5c_buffer[dataset_id].intarray[i]=realloc(global_hdf5c_buffer[dataset_id].intarray[i],
-							    ( size_t)global_hdf5c_buffer[dataset_id].memsize*sizeof(int));
-      if(global_hdf5c_buffer[dataset_id].doublearray[i])
-	global_hdf5c_buffer[dataset_id].doublearray[i]=realloc(global_hdf5c_buffer[dataset_id].doublearray[i],
-							       ( size_t)global_hdf5c_buffer[dataset_id].memsize*sizeof(double));
+  if ( obj->file_buffer[ dataset_id ].size == obj->file_buffer[ dataset_id ].memsize ) {
+    obj->file_buffer[ dataset_id ].memsize *= 2;
+    for ( i = 0; i < 20; i++ ) {
+      if ( obj->file_buffer[ dataset_id ].intarray[ i ] ) {
+        obj->file_buffer[ dataset_id ].intarray[ i ] =
+            realloc( obj->file_buffer[ dataset_id ].intarray[ i ], ( size_t )obj->file_buffer[ dataset_id ].memsize * sizeof( int ) );
+      }
+      if ( obj->file_buffer[ dataset_id ].doublearray[ i ] ) {
+        obj->file_buffer[ dataset_id ].doublearray[ i ] =
+            realloc( obj->file_buffer[ dataset_id ].doublearray[ i ], ( size_t )obj->file_buffer[ dataset_id ].memsize * sizeof( double ) );
+      }
     }
   }
-  for(i=0;i<global_hdf5c_buffer[dataset_id].num_int;i++)
-    global_hdf5c_buffer[dataset_id].intarray[i][global_hdf5c_buffer[dataset_id].size]=intvalues[i];
-  for(i=0;i<global_hdf5c_buffer[dataset_id].num_real;i++)
-    global_hdf5c_buffer[dataset_id].doublearray[i][global_hdf5c_buffer[dataset_id].size]=doublevalues[i];
-  global_hdf5c_buffer[dataset_id].size++;
+  for ( i = 0; i < obj->file_buffer[ dataset_id ].num_int; i++ ) {
+    obj->file_buffer[ dataset_id ].intarray[ i ][ obj->file_buffer[ dataset_id ].size ] = intvalues[ i ];
+  }
+  for ( i = 0; i < obj->file_buffer[ dataset_id ].num_real; i++ ) {
+    obj->file_buffer[ dataset_id ].doublearray[ i ][ obj->file_buffer[ dataset_id ].size ] = doublevalues[ i ];
+  }
+  obj->file_buffer[ dataset_id ].size++;
   return 0;
 }
 
-int hdf5c_create_int_dataset(int dataset_id,char* name,int compress,int length,int* intarray)
-{
-  hsize_t dims[1],chunk_size[1] ;
-  hid_t ht_err,plist,sid,dataset;
-
-  dims[0]= ( hsize_t)length;
-  if(compress>0){
-    chunk_size[0]= ( hsize_t)length;
-    plist=H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_chunk(plist, 1, chunk_size);
-    H5Pset_deflate(plist, ( unsigned int)compress);
-    sid = H5Screate_simple(1, dims, NULL);
-    dataset = H5Dcreate(global_hdf5c_buffer[dataset_id].file_id,name,H5T_NATIVE_INT,sid,
-		        H5P_DEFAULT,plist,H5P_DEFAULT);
-    ht_err=H5Dwrite(dataset,H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,intarray);
-    H5Dclose(dataset);
-    H5Sclose(sid);
-    H5Pclose(plist);
-  } else {
-    ht_err=H5LTmake_dataset_int(global_hdf5c_buffer[dataset_id].file_id,name,1,dims,intarray);
+static int hdf5c_f_create_int_dataset_from_buffer( CPostHdf5File *obj, int dataset_id, char *name,
+                                                   int compress, int length, int *intarray ) {
+  if ( obj == NULL ) {
+    return -1;
   }
-  if(ht_err<0){
-    sprintf(errorBuffer,"cannot set array name '%s'",name);
+  if ( length <= 0) {
+    char buf[ 1024];
+    sprintf( buf, "create_int_dataset: Empty array, data set not created for '%s'", name);
+    print_error( buf);
+    return 0; // -1;
+  }
+
+  herr_t ht_err = 0;
+  hid_t plist, sid, dataset;
+  hsize_t dims[ 1 ];
+  dims[ 0 ] = ( hsize_t )length;
+
+  if ( ( compress > 0) && ( length > 0) ) {
+    hsize_t chunk_size[ 1 ];
+    chunk_size[ 0 ] = ( hsize_t )length;
+    plist = H5Pcreate( H5P_DATASET_CREATE );
+    ht_err = H5Pset_chunk( plist, 1, chunk_size );
+    if ( ht_err < 0 ) {
+      sprintf( obj->error_buffer, "cannot H5Pset_chunk size to %d for array name '%s'",
+               ( int )chunk_size[ 0 ], name );
+      print_error( obj->error_buffer );
+    }
+    H5Pset_deflate( plist, ( unsigned int )compress );
+    sid = H5Screate_simple( 1, dims, NULL );
+    dataset = H5Dcreate( obj->file_buffer[ dataset_id ].file_id, name, H5T_NATIVE_INT, sid,
+                         H5P_DEFAULT, plist, H5P_DEFAULT );
+    // ht_err = H5Fstart_swmr_write( obj->file_buffer[ dataset_id ].file_id );
+    ht_err = H5Dwrite( dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, intarray );
+    if ( ht_err < 0 ) {
+      sprintf( obj->error_buffer, "error writing int dataset/array name '%s'", name );
+      print_error( obj->error_buffer );
+    }
+    // hid_t sid_write = H5Screate_simple( 1, dims, NULL );
+    // ht_err = H5Dwrite( dataset, H5T_NATIVE_INT, sid_write, sid, H5P_DEFAULT, intarray );
+    // H5Oenable_mdc_flushes( dataset );
+    // H5Sclose( sid_write );
+    H5Sclose( sid );
+    H5Pclose( plist );
+    H5Dclose( dataset );
+    // hdf5c_f_flush_dataset( obj, dataset_id, name, "H5T_NATIVE_INT");
+  } else {
+    // no compression or empty dataset
+    ht_err =
+        H5LTmake_dataset_int( obj->file_buffer[ dataset_id ].file_id, name, 1, dims, intarray );
+  }
+  if ( ht_err < 0 ) {
+    sprintf( obj->error_buffer, "cannot set array name '%s'", name );
+    print_error( obj->error_buffer );
     return -1;
   }
   return 0;
 }
 
-int hdf5c_create_double_dataset(int dataset_id,char* name,int compress,int length,double* doublearray)
-{
-  hsize_t dims[1],chunk_size[1] ;
-  hid_t ht_err,plist,sid,dataset;
-
-  dims[0]=( hsize_t)length;
-  if(compress>0){
-    chunk_size[0]=( hsize_t)length;
-    plist=H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_chunk(plist, 1, chunk_size);
-    H5Pset_deflate(plist, ( unsigned int)compress);
-    sid = H5Screate_simple(1, dims, NULL);
-    dataset = H5Dcreate(global_hdf5c_buffer[dataset_id].file_id,name,H5T_NATIVE_DOUBLE,sid,
-		        H5P_DEFAULT,plist,H5P_DEFAULT);
-    ht_err=H5Dwrite(dataset,H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,doublearray);
-    H5Dclose(dataset);
-    H5Sclose(sid);
-    H5Pclose(plist);
-  } else {
-    ht_err=H5LTmake_dataset_double(global_hdf5c_buffer[dataset_id].file_id,name,1,dims,doublearray);
+static int hdf5c_f_create_double_dataset_from_buffer( CPostHdf5File *obj, int dataset_id,
+                                                      char *name, int compress, int length,
+                                                      double *doublearray ) {
+  if ( obj == NULL ) {
+    return -1;
   }
-  if(ht_err<0){
-    sprintf(errorBuffer,"cannot set array name '%s'",name);
+  if ( length <= 0) {
+    char buf[ 1024];
+    sprintf( buf, "create_double_dataset: Empty array, data set not created for '%s'", name);
+    print_error( buf);
+    return 0; // -1;
+  }
+
+  herr_t ht_err = 0;
+  hid_t plist, sid, dataset;
+  hsize_t dims[ 1 ];
+  dims[ 0 ] = ( hsize_t )length;
+
+  if ( ( compress > 0) && ( length > 0) ) {
+    hsize_t chunk_size[ 1 ];
+    chunk_size[ 0 ] = ( hsize_t )length;
+    plist = H5Pcreate( H5P_DATASET_CREATE );
+    ht_err = H5Pset_chunk( plist, 1, chunk_size );
+    if ( ht_err < 0 ) {
+      sprintf( obj->error_buffer, "cannot H5Pset_chunk size to %d for array name '%s'",
+               ( int )chunk_size[ 0 ], name );
+      print_error( obj->error_buffer );
+    }
+    H5Pset_deflate( plist, ( unsigned int )compress );
+    sid = H5Screate_simple( 1, dims, NULL );
+    dataset = H5Dcreate( obj->file_buffer[ dataset_id ].file_id, name, H5T_NATIVE_DOUBLE, sid,
+                         H5P_DEFAULT, plist, H5P_DEFAULT );
+    // ht_err = H5Fstart_swmr_write( obj->file_buffer[ dataset_id ].file_id );
+    ht_err = H5Dwrite( dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, doublearray );
+      if ( ht_err < 0 ) {
+        sprintf( obj->error_buffer, "error writing double dataset/array name '%s'", name );
+        print_error( obj->error_buffer );
+      }
+    // hid_t sid_write = H5Screate_simple( 1, dims, NULL );
+    // ht_err = H5Dwrite( dataset, H5T_NATIVE_DOUBLE, sid_write, sid, H5P_DEFAULT, doublearray );
+    // H5Oenable_mdc_flushes( dataset );
+    // H5Sclose( sid_write );
+    H5Sclose( sid );
+    H5Pclose( plist );
+    H5Dclose( dataset );
+    // hdf5c_f_flush_dataset( obj, dataset_id, name, "H5T_NATIVE_DOUBLE");
+  } else {
+    // no compression or empty dataset
+    ht_err = H5LTmake_dataset_double( obj->file_buffer[ dataset_id ].file_id, name, 1, dims,
+                                      doublearray);
+  }
+  if ( ht_err < 0 ) {
+    sprintf( obj->error_buffer, "cannot set array name '%s'", name );
+    print_error( obj->error_buffer );
     return -1;
   }
   return 0;
 }
-  
-int hdf5c_end_dataset(int dataset_id)
-{
-  int i,fail,inum=1;
-  int compress=6;
-  char buf[2048];
-  for(i=0;i<global_hdf5c_buffer[dataset_id].num_int;i++){
-    sprintf(buf,"%s/%d",global_hdf5c_buffer[dataset_id].datasetname,inum);
-    fail=hdf5c_create_int_dataset(dataset_id,buf,compress,global_hdf5c_buffer[dataset_id].size,
-      global_hdf5c_buffer[dataset_id].intarray[i]);
-    if(fail<0) return fail;
+
+int hdf5c_f_end_dataset( CPostHdf5File *obj, int dataset_id ) {
+  if ( obj == NULL ) {
+    return -1;
+  }
+
+  int i, fail, inum = 1;
+  int compress = H5_GID_COMPRESSION_LEVEL;
+  char buf[ 2048 ];
+  for ( i = 0; i < obj->file_buffer[ dataset_id ].num_int; i++ ) {
+    sprintf( buf, "%s/%d", obj->file_buffer[ dataset_id ].datasetname, inum );
+    fail = hdf5c_f_create_int_dataset_from_buffer( obj, dataset_id, buf, compress,
+                                                   obj->file_buffer[ dataset_id ].size,
+                                                   obj->file_buffer[ dataset_id ].intarray[ i ] );
+    if ( fail < 0 )
+      return fail;
     inum++;
   }
-  for(i=0;i<global_hdf5c_buffer[dataset_id].num_real;i++){
-    sprintf(buf,"%s/%d",global_hdf5c_buffer[dataset_id].datasetname,inum);
-    fail=hdf5c_create_double_dataset(dataset_id,buf,compress,global_hdf5c_buffer[dataset_id].size,
-      global_hdf5c_buffer[dataset_id].doublearray[i]);
-    if(fail<0) return fail;
+  for ( i = 0; i < obj->file_buffer[ dataset_id ].num_real; i++ ) {
+    sprintf( buf, "%s/%d", obj->file_buffer[ dataset_id ].datasetname, inum );
+    fail = hdf5c_f_create_double_dataset_from_buffer(
+        obj, dataset_id, buf, compress, obj->file_buffer[ dataset_id ].size,
+        obj->file_buffer[ dataset_id ].doublearray[ i ] );
+    if ( fail < 0 )
+      return fail;
     inum++;
   }
-  global_hdf5c_buffer[dataset_id].used=0;
+  obj->file_buffer[ dataset_id ].used = 0;
   return 0;
 }
- 
-int hdf5c_set_attribute(const char* name,const char* attname,const char* value)
-{
-  hid_t ht_err;
-  
-  /*
-    ht_err=H5LTset_attribute_char(global_hdf5c_buffer.file_id,name,attname,value,strlen(value));
-  */
-  ht_err=H5LTset_attribute_string(global_file_id,name,attname,value);
-  if(ht_err<0){
-    sprintf(errorBuffer,"cannot set attribute to '%s'",name);
+
+const char *getDatasetTypeString( const t_hdf5c_dataset_type ds_type) {
+    const char *ret_str = "Unknown type";
+    switch ( ds_type ) {
+    case HDF5C_DATASET_INTEGER:
+      ret_str = "HDF5C_DATASET_INTEGER";
+      break;
+    case HDF5C_DATASET_DOUBLE:
+      ret_str = "HDF5C_DATASET_DOUBLE";
+      break;
+    case HDF5C_DATASET_NONE:
+      ret_str = "HDF5C_DATASET_NONE";
+      break;
+    }
+    return ret_str;
+}
+
+static int _hdf5c_f_create_dataset( CPostHdf5File *obj, const char *dataset_name,
+                                    int dataset_subindex, int compress, int length,
+                                    t_hdf5c_dataset_type ds_type, const void *data_array ) {
+  if ( obj == NULL ) {
     return -1;
   }
-  return 0;
+  if ( length <= 0) {
+    char buf[ 1024];
+    sprintf( buf, "create_dataset: Empty array, data set not created for '%s'", dataset_name);
+    print_error( buf);
+    return 0; // -1;
+  }
+
+  char name_dataset_subtable[ 2048 ];
+  snprintf( name_dataset_subtable, 2048, "%s/%d", dataset_name, dataset_subindex );
+
+  hsize_t dims[ 1 ];
+  herr_t ht_err = 0;
+  int fail = 0;
+  
+  dims[ 0 ] = ( hsize_t )length;
+  if (( compress > 0) && ( length > 0)) {
+    hid_t dataset_id = 0;
+    hid_t type_id = H5T_NATIVE_INT;
+    switch ( ds_type ) {
+    case HDF5C_DATASET_INTEGER:
+      type_id = H5T_NATIVE_INT;
+      break;
+    case HDF5C_DATASET_DOUBLE:
+      type_id = H5T_NATIVE_DOUBLE;
+      break;
+    case HDF5C_DATASET_NONE:
+      fail = -1;
+      ht_err = -1;
+      break;
+    }
+    if ( !fail ) {
+      hsize_t chunk_size[ 1 ];
+      chunk_size[ 0 ] = ( hsize_t )length;
+      hid_t plist = H5Pcreate( H5P_DATASET_CREATE );
+      ht_err = H5Pset_chunk( plist, 1, chunk_size );
+      if ( ht_err < 0 ) {
+        sprintf( obj->error_buffer, "cannot H5Pset_chunk size to %d for array name '%s'",
+                 ( int )chunk_size[ 0 ], name_dataset_subtable );
+        print_error( obj->error_buffer );
+      }
+      H5Pset_deflate( plist, ( unsigned int )compress );
+      hid_t sid = H5Screate_simple( 1, dims, NULL );
+      dataset_id = H5Dcreate( obj->file_id, name_dataset_subtable, type_id, sid, H5P_DEFAULT,
+                              plist, H5P_DEFAULT );
+      // ht_err = H5Fstart_swmr_write( obj->file_buffer[ dataset_id ].file_id );
+      ht_err = H5Dwrite( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data_array );
+      if ( ht_err < 0 ) {
+        sprintf( obj->error_buffer, "error writing '%s' dataset/array name '%s'",
+                 getDatasetTypeString( ds_type), name_dataset_subtable );
+        print_error( obj->error_buffer );
+      }
+      // hid_t sid_write = H5Screate_simple( 1, dims, NULL );
+      // ht_err = H5Dwrite( dataset_id, type_id, sid_write, sid, H5P_DEFAULT, data_array );
+      // H5Oenable_mdc_flushes( dataset_id );
+      // H5Sclose( sid_write );
+      H5Sclose( sid );
+      H5Pclose( plist );
+      H5Dclose( dataset_id );
+      // hdf5c_f_flush_dataset( obj, dataset_id, name_dataset_subtable, getDatasetTypeString( type_id));
+    }
+  } else {
+    // no compression or empty dataset
+    switch ( ds_type ) {
+    case HDF5C_DATASET_INTEGER:
+      ht_err = H5LTmake_dataset_int( obj->file_id, name_dataset_subtable, 1, dims,
+                                     ( const int * )data_array );
+      break;
+    case HDF5C_DATASET_DOUBLE:
+      ht_err = H5LTmake_dataset_double( obj->file_id, name_dataset_subtable, 1, dims,
+                                        ( const double * )data_array );
+      break;
+    case HDF5C_DATASET_NONE:
+      fail = -1;
+      ht_err = -1;
+      break;
+    }
+  }
+  if ( ht_err < 0 ) {
+    sprintf( obj->error_buffer, "cannot set array name '%s' with type '%s'", name_dataset_subtable, getDatasetTypeString( ds_type) );
+    print_error( obj->error_buffer );
+    fail = -1;
+  } else {
+    fail = 0;
+  }
+  return fail;
+}
+
+// hdf5c_write_dataset_list = hdf5c_f_start_dataset() + hdf5c_f_add_to_dataset() +
+// hdf5c_f_end_dataset()
+int hdf5c_write_dataset_list( CPostHdf5File *obj, const char *name, int num_datasets, int num_values, 
+			      t_hdf5c_dataset_type *data_types, const void **data_values ) {
+  if ( obj == NULL ) {
+    return -1;
+  }
+
+  if ( strlen( name ) > 1023 ) {
+    sprintf( obj->error_buffer, "name '%s'. too long", name );
+    print_error( obj->error_buffer);
+    return -1;
+  }
+
+  // check if name exists, if not, create it.
+  // hid_t ht_group = 0;
+  // ht_group = H5Gopen( obj->file_id, name, H5P_DEFAULT );
+  H5G_info_t g_info;
+  herr_t herr = H5Gget_info_by_name( obj->file_id, name, &g_info, H5P_DEFAULT);
+  if ( herr < 0) {
+    hid_t ht_group = H5Gcreate( obj->file_id, name, 0, H5P_DEFAULT, H5P_DEFAULT );
+    if ( ht_group < 0 ) {
+      sprintf( obj->error_buffer, "name '%s'. error creating group", name );
+      print_error( obj->error_buffer);
+      return -1;
+    } else {
+      H5Gclose( ht_group );
+    }
+  }
+
+  // write datasets: ids, x, y, z
+  int compress = H5_GID_COMPRESSION_LEVEL;
+  int dataset_subindex = 1; 
+  int fail = 0;
+  for ( int idx_data = 0; ( idx_data < num_datasets) && ( data_types[ idx_data] != HDF5C_DATASET_NONE) && data_values[ idx_data]; idx_data++ ) {
+    t_hdf5c_dataset_type current_type = data_types[ idx_data ];
+    const void *current_data = data_values[ idx_data ];
+    fail = _hdf5c_f_create_dataset( obj, name, dataset_subindex, compress, num_values, current_type, current_data );
+    if ( fail ) {
+      break;
+    }
+    dataset_subindex++;
+  }
+
+  return fail;
 }
 
 /*################################################################################
  *    Read functions
  *################################################################################*/
 
-int hdf5c_num_children(const char* group_path)
-{
-  hid_t ht_err;
-  hsize_t num_obj;
-
-  if(global_group_id>=0) H5Gclose(global_group_id);
-  global_group_id=H5Gopen(global_file_id,group_path,H5P_DEFAULT);
-  if(global_group_id<0){
-    sprintf(errorBuffer,"Could not find group '%s'",group_path);
+int hdf5c_f_num_children( CPostHdf5File *obj, const char *group_path ) {
+  if ( obj == NULL ) {
     return -1;
   }
-  strcpy(global_group_path,group_path);
+
+  herr_t ht_err = 0;
+  hsize_t num_obj;
+
+  if( obj->group_id > 0) {
+    H5Gclose( obj->group_id);
+    obj->group_id = 0;
+  }
+  obj->group_id=H5Gopen(obj->file_id,group_path,H5P_DEFAULT);
+  if(obj->group_id<0){
+    sprintf(obj->error_buffer,"Could not find group '%s'",group_path);
+    print_error( obj->error_buffer);
+    return -1;
+  }
+  strcpy(obj->group_path,group_path);
   
-  ht_err=H5Gget_num_objs(global_group_id,&num_obj);
+  ht_err=H5Gget_num_objs(obj->group_id,&num_obj);
 
   if(ht_err<0){
-    sprintf(errorBuffer,"group '%s' is not a correct group",group_path);
+    sprintf(obj->error_buffer,"group '%s' is not a correct group",group_path);
+    print_error( obj->error_buffer);
     return -1;
   }
   return (int)num_obj;
 }
 
-int hdf5cM_num_children(hid_t file_id,const char* group_path)
-{
-  hid_t ht_err;
-  hsize_t num_obj;
-  hid_t group_id;
-  
-  group_id=H5Gopen(file_id,group_path,H5P_DEFAULT);
-  if(group_id<0){
-    sprintf(errorBuffer,"Could not find group '%s'",group_path);
+int hdf5c_f_get_children_name( CPostHdf5File *obj, const char *group_path, int index, char *name, int max_len ) {
+  if ( obj == NULL ) {
     return -1;
   }
 
-  ht_err=H5Gget_num_objs(group_id,&num_obj);
-
-  if(ht_err<0){
-    sprintf(errorBuffer,"group '%s' is not a correct group",group_path);
-    return -1;
-  }
-  H5Gclose(group_id);
-  return (int)num_obj;
-}
-
-int hdf5c_get_children_name(const char* group_path,int index,char* name,int max_len)
-{
   ssize_t len,len0;
-  if(global_group_id<=0 || strcmp(group_path,global_group_path)!=0){
-    if(global_group_id>=0) H5Gclose(global_group_id);
-    global_group_id=H5Gopen(global_file_id,group_path,H5P_DEFAULT);
-    if(global_group_id<0){
-      sprintf(errorBuffer,"Could not find group '%s'",group_path);
+  if(obj->group_id<=0 || strcmp(group_path,obj->group_path)!=0){
+    if ( obj->group_id > 0) {
+        H5Gclose(obj->group_id);
+        obj->group_id = 0;
+    }
+    obj->group_id=H5Gopen(obj->file_id,group_path,H5P_DEFAULT);
+    if(obj->group_id<0){
+      sprintf(obj->error_buffer,"Could not find group '%s'",group_path);
+      print_error( obj->error_buffer);
       return -1;
     }
-    strcpy(global_group_path,group_path);
+    strcpy(obj->group_path,group_path);
   }
   if((int)strlen(group_path)>=max_len-10) return -1;
   strcpy(name,group_path);
@@ -377,1451 +767,190 @@ int hdf5c_get_children_name(const char* group_path,int index,char* name,int max_
     strcat(name,"/");
   }
   len0= ( ssize_t)strlen(name);
-  len=H5Gget_objname_by_idx(global_group_id,index,&name[len0],max_len-len0);
+  len=H5Gget_objname_by_idx(obj->group_id, ( hsize_t)index,&name[len0],( size_t)max_len-( size_t)len0);
   return ( int)( len+len0);
 }
 
-int hdf5cM_get_children_name(hid_t file_id,const char* group_path,int index,char* name,int max_len)
-{  
-  hid_t group_id;
-  ssize_t len,len0;
-  group_id=H5Gopen(file_id,group_path,H5P_DEFAULT);
-
-  if(group_id<=0 ){
-    if(group_id>=0) H5Gclose(group_id);
-    group_id=H5Gopen(file_id,group_path,H5P_DEFAULT);
-    if(group_id<0){
-      sprintf(errorBuffer,"Could not find group '%s'",group_path);
-      return -1;
-    }
-  }  
-  if((int)strlen(group_path)>=max_len-10){
-    H5Gclose(group_id);
+int hdf5c_f_get_attribute( CPostHdf5File *obj, const char *obj_name, char *att_name, char *value, int max_len ) {
+  if ( obj == NULL ) {
     return -1;
   }
-  strcpy(name,group_path);
-  if(name[strlen(name)-1]!='/'){
-    strcat(name,"/");
-  }
-  len0= ( ssize_t)strlen(name);
-  len=H5Gget_objname_by_idx(group_id,index,&name[len0],max_len-len0);
-  H5Gclose(group_id);
-  return ( int)( len+len0);
-}
 
-int hdf5c_get_attribute(const char* obj_name,char* att_name,char* value,int max_len)
-{
   int rank;
-  hid_t ht_err;
+  herr_t ht_err = 0;
   hsize_t dims[10];
   size_t  type_size;
   H5T_class_t class_id;
   
-  ht_err=H5LTget_attribute_info(global_file_id,obj_name,att_name, dims,&class_id,&type_size);
+  ht_err=H5LTget_attribute_info(obj->file_id,obj_name,att_name, dims,&class_id,&type_size);
   if(ht_err<0){
-    sprintf(errorBuffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
+    sprintf(obj->error_buffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
+    print_error( obj->error_buffer);
     return -1;
   }  
   if(class_id==H5T_INTEGER) {
     if(type_size!=1){
-      sprintf(errorBuffer,"name '%s' cannot be retrieved. Bad type %d. Has to be one array of char",
-	obj_name,class_id);
+      sprintf( obj->error_buffer,
+               "name '%s' cannot be retrieved. Bad type %d. Has to be one array of char",
+	           obj_name,class_id);
+      print_error( obj->error_buffer);
       return -1;
     }
-    ht_err=H5LTget_attribute_ndims(global_file_id,obj_name,att_name,&rank);
+    ht_err=H5LTget_attribute_ndims(obj->file_id,obj_name,att_name,&rank);
     /*
       rank is 1 for H5T_INTEGER
     */
     if(ht_err<0 || rank!=1){
-      sprintf(errorBuffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
+      sprintf(obj->error_buffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
+      print_error( obj->error_buffer);
       return -1;
     }
     if(dims[0]>= ( hsize_t)max_len) return -1;
-    ht_err=H5LTget_attribute_char(global_file_id,obj_name,att_name,value);
+    ht_err=H5LTget_attribute_char(obj->file_id,obj_name,att_name,value);
   } else if (class_id==H5T_STRING){
     if(type_size<1){
-      sprintf(errorBuffer,"name '%s' cannot be retrieved. Bad type %d. Has to be one array of char",
-	obj_name,class_id);
+      sprintf( obj->error_buffer,
+               "name '%s' cannot be retrieved. Bad type %d. Has to be one array of char",
+	           obj_name,class_id);
+      print_error( obj->error_buffer);
       return -1;
     }
-    ht_err=H5LTget_attribute_ndims(global_file_id,obj_name,att_name,&rank);
+    ht_err=H5LTget_attribute_ndims(obj->file_id,obj_name,att_name,&rank);
     /*
       rank is 0 for H5T_STRING
     */
     if(ht_err<0 || rank!=0){
-      sprintf(errorBuffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
+      sprintf(obj->error_buffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
+      print_error( obj->error_buffer);
       return -1;
     }
     if((int)type_size>=max_len) return -1;
-    ht_err=H5LTget_attribute_string(global_file_id,obj_name,att_name,value);
+    ht_err=H5LTget_attribute_string(obj->file_id,obj_name,att_name,value);
   } else {
-    sprintf(errorBuffer,"name '%s' cannot be retrieved. Bad type %d Has to be one array of char or a string",
-      obj_name,class_id);
+    sprintf( obj->error_buffer,
+             "name '%s' cannot be retrieved. Bad type %d Has to be one array of char or a string",
+             obj_name,class_id);
+    print_error( obj->error_buffer);
     return -1;
   }
   return 0;
 }
 
-int hdf5cM_get_attribute(hid_t file_id,const char* obj_name,char* att_name,char* value,int max_len)
-{
-  int rank;
-  hid_t ht_err;
-  hsize_t dims[10];
-  size_t  type_size;
-  H5T_class_t class_id;
-  
-  ht_err=H5LTget_attribute_info(file_id,obj_name,att_name, dims,&class_id,&type_size);
-  if(ht_err<0){
-    sprintf(errorBuffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
-    return -1;
-  }  
-  if(class_id==H5T_INTEGER) {
-    if(type_size!=1){
-      sprintf(errorBuffer,"name '%s' cannot be retrieved. Bad type %d. Has to be one array of char",
-	obj_name,class_id);
-      return -1;
-    }
-    ht_err=H5LTget_attribute_ndims(file_id,obj_name,att_name,&rank);
-    /*
-      rank is 1 for H5T_INTEGER
-    */
-    if(ht_err<0 || rank!=1){
-      sprintf(errorBuffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
-      return -1;
-    }
-    if(dims[0]>=( hsize_t)max_len) return -1;
-    ht_err=H5LTget_attribute_char(file_id,obj_name,att_name,value);
-  } else if (class_id==H5T_STRING){
-    if(type_size<1){
-      sprintf(errorBuffer,"name '%s' cannot be retrieved. Bad type %d. Has to be one array of char",
-	obj_name,class_id);
-      return -1;
-    }
-    ht_err=H5LTget_attribute_ndims(file_id,obj_name,att_name,&rank);
-    /*
-      rank is 0 for H5T_STRING
-    */
-    if(ht_err<0 || rank!=0){
-      sprintf(errorBuffer,"name '%s'. Attribute cannot be retrieved '%s'",obj_name,att_name);
-      return -1;
-    }
-    if((int)type_size>=max_len) return -1;
-    ht_err=H5LTget_attribute_string(file_id,obj_name,att_name,value);
-  } else {
-    sprintf(errorBuffer,"name '%s' cannot be retrieved. Bad type %d Has to be one array of char or a string",
-      obj_name,class_id);
+int hdf5c_f_open_dataset_list( CPostHdf5File *obj, const char *obj_name, int *num_int, int *num_real ) {
+  if ( obj == NULL ) {
     return -1;
   }
-  return 0;
-}
 
-int hdf5c_open_dataset_list(const char* obj_name,int* num_int,int* num_real)
-{
   int i,rank,idx;
   hsize_t num;
   char name[1024];
   
-  hid_t ht_err,ht_dataset,ht_type;
+  herr_t ht_err = 0;
+  hid_t ht_dataset,ht_type;
   hsize_t dims[1];
   H5T_class_t class_id;
   size_t type_size;
 
-  num=( hsize_t)hdf5c_num_children(obj_name);
+  num=( hsize_t)hdf5c_f_num_children( obj, obj_name);
   if(num<=0) return -1;
   
-  global_hdf5c_buffer[0].num_int=global_hdf5c_buffer[0].num_real=0;
+  obj->file_buffer[0].num_int=obj->file_buffer[0].num_real=0;
   
   for(i=0;i< ( int)num;i++){
-    hdf5c_get_children_name(obj_name,i,name,1024);
-    ht_err=H5LTget_dataset_ndims(global_file_id,name,&rank);
+    hdf5c_f_get_children_name( obj, obj_name,i,name,1024);
+    ht_err=H5LTget_dataset_ndims(obj->file_id,name,&rank);
     if(ht_err<0 || rank!=1){
-      sprintf(errorBuffer,"dataset name '%s' cannot be retrieved",name);
+      sprintf(obj->error_buffer,"dataset name '%s' cannot be retrieved",name);
+      print_error( obj->error_buffer);
       return -1;
     }
-    ht_err=H5LTget_dataset_info (global_file_id,name,dims,&class_id,NULL);
+    ht_err=H5LTget_dataset_info (obj->file_id,name,dims,&class_id,NULL);
     if(ht_err<0){
-      sprintf(errorBuffer,"dataset name '%s' cannot be retrieved",name);
+      sprintf(obj->error_buffer,"dataset name '%s' cannot be retrieved",name);
+      print_error( obj->error_buffer);
       return -1;
     }
-    ht_dataset=H5Dopen(global_file_id,name,H5P_DEFAULT);
+    ht_dataset=H5Dopen(obj->file_id,name,H5P_DEFAULT);
     ht_type=H5Dget_type(ht_dataset);
     type_size=H5Tget_size(ht_type);
     H5Dclose(ht_dataset);
     H5Tclose(ht_type);
     
     if(class_id==H5T_INTEGER){
-      idx=global_hdf5c_buffer[0].num_int;
-      global_hdf5c_buffer[0].intarray[idx]=malloc(((size_t)dims[0])*sizeof(int));
-      ht_err=H5LTread_dataset_int (global_file_id,name,global_hdf5c_buffer[0].intarray[idx]);
+      idx=obj->file_buffer[0].num_int;
+      obj->file_buffer[0].intarray[idx]=malloc(((size_t)dims[0])*sizeof(int));
+      ht_err=H5LTread_dataset_int (obj->file_id,name,obj->file_buffer[0].intarray[idx]);
       if(ht_err<0){
-	sprintf(errorBuffer,"array name '%s' cannot be retrieved",name);
-	return -1;
+	    sprintf(obj->error_buffer,"array name '%s' cannot be retrieved",name);
+        print_error( obj->error_buffer);
+	    return -1;
       }
-      global_hdf5c_buffer[0].num_int++;
+      obj->file_buffer[0].num_int++;
     }
     else if(class_id==H5T_FLOAT && type_size==4){
-      sprintf(errorBuffer,"4 byte floats not supported");
+      sprintf(obj->error_buffer,"4 byte floats not supported");
+      print_error( obj->error_buffer);
       return -1;
     }
     else if(class_id==H5T_FLOAT && type_size==8){
-      idx=global_hdf5c_buffer[0].num_real;
-      global_hdf5c_buffer[0].doublearray[idx]=malloc(((size_t)dims[0])*sizeof(double));
-      ht_err=H5LTread_dataset_double(global_file_id,name,global_hdf5c_buffer[0].doublearray[idx]);
+      idx=obj->file_buffer[0].num_real;
+      obj->file_buffer[0].doublearray[idx]=malloc(((size_t)dims[0])*sizeof(double));
+      ht_err=H5LTread_dataset_double(obj->file_id,name,obj->file_buffer[0].doublearray[idx]);
       if(ht_err<0){
-	sprintf(errorBuffer,"array name '%s' cannot be retrieved",name);
-	return -1;
+	    sprintf(obj->error_buffer,"array name '%s' cannot be retrieved",name);
+        print_error( obj->error_buffer);
+	    return -1;
       }
-      global_hdf5c_buffer[0].num_real++;
+      obj->file_buffer[0].num_real++;
     }
     else {
-      sprintf(errorBuffer,"array name '%s' cannot be retrieved. unknown type=%d,%lud",
-	name,class_id,type_size);
+      sprintf( obj->error_buffer,
+               "array name '%s' cannot be retrieved. unknown type=%d,%llu",
+	           name,class_id,( long long unsigned int)type_size);
+      print_error( obj->error_buffer);
       return -1;
     }
-    global_hdf5c_buffer[0].size=(int)dims[0];
+    obj->file_buffer[0].size=(int)dims[0];
   }
-  global_hdf5c_buffer[0].used=1;
-  *num_int=global_hdf5c_buffer[0].num_int;
-  *num_real=global_hdf5c_buffer[0].num_real;
-  return global_hdf5c_buffer[0].size;
+  obj->file_buffer[0].used=1;
+  *num_int=obj->file_buffer[0].num_int;
+  *num_real=obj->file_buffer[0].num_real;
+  return obj->file_buffer[0].size;
 }
 
-int hdf5cM_open_dataset_list(hid_t file_id,struct hdf5c_buffer* hdf5c_buffer,const char* obj_name,
-  int* num_int,int* num_real)
-{
-  int i,rank,idx;
-  hsize_t num;
-  char name[1024];
-  
-  hid_t ht_err,ht_dataset,ht_type;
-  hsize_t dims[1];
-  H5T_class_t class_id;
-  size_t type_size;
-
-  num=( hsize_t)hdf5cM_num_children(file_id,obj_name);
-  if(num<=0) return -1;  
-  
-  hdf5c_buffer->used=0;
-  hdf5c_buffer->file_id=file_id;
-  memset(hdf5c_buffer->intarray,0,20*sizeof(int*));
-  memset(hdf5c_buffer->doublearray,0,20*sizeof(double*));
-  hdf5c_buffer->num_int=hdf5c_buffer->num_real=0;
-  
-  for(i=0;i< ( int)num;i++){
-    hdf5cM_get_children_name(file_id,obj_name,i,name,1024);
-    ht_err=H5LTget_dataset_ndims(file_id,name,&rank);
-    if(ht_err<0 || rank!=1){
-      sprintf(errorBuffer,"dataset name '%s' cannot be retrieved",name);
-      return -1;
-    }
-    ht_err=H5LTget_dataset_info (file_id,name,dims,&class_id,NULL);
-    if(ht_err<0){
-      sprintf(errorBuffer,"dataset name '%s' cannot be retrieved",name);
-      return -1;
-    }
-    ht_dataset=H5Dopen(file_id,name,H5P_DEFAULT);
-    ht_type=H5Dget_type(ht_dataset);
-    type_size=H5Tget_size(ht_type);
-    H5Dclose(ht_dataset);
-    H5Tclose(ht_type);
-    
-    if(class_id==H5T_INTEGER){
-      idx=hdf5c_buffer->num_int;
-      hdf5c_buffer->intarray[idx]=malloc(((size_t)dims[0])*sizeof(int));
-      ht_err=H5LTread_dataset_int (file_id,name,hdf5c_buffer->intarray[idx]);
-      if(ht_err<0){
-	sprintf(errorBuffer,"array name '%s' cannot be retrieved",name);
-	return -1;
-      }
-      hdf5c_buffer->num_int++;
-    }
-    else if(class_id==H5T_FLOAT && type_size==4){
-      sprintf(errorBuffer,"4 byte floats not supported");
-      return -1;
-    }
-    else if(class_id==H5T_FLOAT && type_size==8){
-      idx=hdf5c_buffer->num_real;
-      hdf5c_buffer->doublearray[idx]=malloc(((size_t)dims[0])*sizeof(double));
-      ht_err=H5LTread_dataset_double(file_id,name,hdf5c_buffer->doublearray[idx]);
-      if(ht_err<0){
-	sprintf(errorBuffer,"array name '%s' cannot be retrieved",name);
-	return -1;
-      }
-      hdf5c_buffer->num_real++;
-    }
-    else {
-      sprintf(errorBuffer,"array name '%s' cannot be retrieved. unknown type=%d,%lud",
-	name,class_id,type_size);
-      return -1;
-    }
-    hdf5c_buffer->size=(int)dims[0];
+int hdf5c_f_give_dataset_list_values( CPostHdf5File *obj, int index, int int_values[], double double_values[] ) {
+  if ( obj == NULL ) {
+    return -1;
   }
-  hdf5c_buffer->used=1;
-  *num_int=hdf5c_buffer->num_int;
-  *num_real=hdf5c_buffer->num_real;
-  return hdf5c_buffer->size;
-}
 
-int hdf5c_give_dataset_list_values(int index,int int_values[],double double_values[])
-{
   int i;
-  if(index<0 || index>=global_hdf5c_buffer[0].size){
+  if(index<0 || index>=obj->file_buffer[0].size){
     return -1;
   }
-  for(i=0;i<global_hdf5c_buffer[0].num_int;i++){
-    int_values[i]=global_hdf5c_buffer[0].intarray[i][index];
+  for(i=0;i<obj->file_buffer[0].num_int;i++){
+    int_values[i]=obj->file_buffer[0].intarray[i][index];
   }
-  for(i=0;i<global_hdf5c_buffer[0].num_real;i++){
-    double_values[i]=global_hdf5c_buffer[0].doublearray[i][index];
+  for(i=0;i<obj->file_buffer[0].num_real;i++){
+    double_values[i]=obj->file_buffer[0].doublearray[i][index];
   }
   return 0;
 }
 
-int hdf5cM_give_dataset_list_values(struct hdf5c_buffer* hdf5c_buffer,int index,int int_values[],double double_values[])
-{
+int hdf5c_f_close_dataset_list( CPostHdf5File *obj ) {
+  if ( obj == NULL ) {
+    return -1;
+  }
+
   int i;
-  if(index<0 || index>=hdf5c_buffer->size){
-    return -1;
+  for ( i = 0; i < obj->file_buffer[ 0 ].num_int; i++ ) {
+    free( obj->file_buffer[ 0 ].intarray[ i ] );
+    obj->file_buffer[ 0 ].intarray[ i ] = NULL;
   }
-  for(i=0;i<hdf5c_buffer->num_int;i++){
-    int_values[i]=hdf5c_buffer->intarray[i][index];
+  for ( i = 0; i < obj->file_buffer[ 0 ].num_real; i++ ) {
+    free( obj->file_buffer[ 0 ].doublearray[ i ] );
+    obj->file_buffer[ 0 ].doublearray[ i ] = NULL;
   }
-  for(i=0;i<hdf5c_buffer->num_real;i++){
-    double_values[i]=hdf5c_buffer->doublearray[i][index];
-  }
+  obj->file_buffer[ 0 ].num_int = obj->file_buffer[ 0 ].num_real = 0;
+  obj->file_buffer[ 0 ].used = 0;
   return 0;
 }
-
-int hdf5c_close_dataset_list()
-{
-  int i;
-  for(i=0;i<global_hdf5c_buffer[0].num_int;i++){
-    free(global_hdf5c_buffer[0].intarray[i]);
-    global_hdf5c_buffer[0].intarray[i]=NULL;
-  }
-  for(i=0;i<global_hdf5c_buffer[0].num_real;i++){
-    free(global_hdf5c_buffer[0].doublearray[i]);
-    global_hdf5c_buffer[0].doublearray[i]=NULL;
-  }
-  global_hdf5c_buffer[0].num_int=global_hdf5c_buffer[0].num_real=0;
-  global_hdf5c_buffer[0].used=0;
-  return 0;
-}
-
-int hdf5cM_close_dataset_list(struct hdf5c_buffer* hdf5c_buffer)
-{
-  int i,j;
-  for(i=0;i<hdf5c_buffer->num_int;i++){
-    free(hdf5c_buffer->intarray[i]);
-    hdf5c_buffer->intarray[i]=NULL;
-  }
-  for(i=0;i<hdf5c_buffer->num_real;i++){
-    free(hdf5c_buffer->doublearray[i]);
-    hdf5c_buffer->doublearray[i]=NULL;
-  }
-  hdf5c_buffer->num_int=hdf5c_buffer->num_real=0;
-  hdf5c_buffer->used=0;
-  
-  for(j=0;j<20;j++){
-    if(hdf5c_buffer->intarray[j]) free(hdf5c_buffer->intarray[j]);
-    if(hdf5c_buffer->doublearray[j]) free(hdf5c_buffer->doublearray[j]);
-  }
-  return 0;
-}
-
-/*###############################################################################
- *    All functions until the end are literally copied from library: HDF5_HL
- *###############################################################################*/
-
-/*-------------------------------------------------------------------------
-* Function: H5LTset_attribute_string
-*
-* Purpose: Creates and writes a string attribute named attr_name and attaches
-*          it to the object specified by the name obj_name.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: July 23, 2001
-*
-* Comments: If the attribute already exists, it is overwritten
-*
-* Modifications:
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTset_attribute_string( hid_t loc_id,
-		                const char *obj_name,
-		                const char *attr_name,
-		                const char *attr_data )
-{
-    hid_t      attr_type;
-    hid_t      attr_space_id;
-    hid_t      attr_id;
-    hid_t      obj_id;
-    int        has_attr;
-    size_t     attr_size;
-
-    /* Open the object */
-    if ((obj_id = H5Oopen(loc_id, obj_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    /* Create the attribute */
-    if ( (attr_type = H5Tcopy( H5T_C_S1 )) < 0 )
-	goto out;
-
-    attr_size = strlen( attr_data ) + 1; /* extra null term */
-
-    if ( H5Tset_size( attr_type, (size_t)attr_size) < 0 )
-	goto out;
-
-    if ( H5Tset_strpad( attr_type, H5T_STR_NULLTERM ) < 0 )
-	goto out;
-
-    if ( (attr_space_id = H5Screate( H5S_SCALAR )) < 0 )
-	goto out;
-
-    /* Verify if the attribute already exists */
-    has_attr = H5LT_find_attribute(obj_id, attr_name);
-
-    /* The attribute already exists, delete it */
-    if(has_attr == 1)
-	if(H5Adelete(obj_id, attr_name) < 0)
-	    goto out;
-
-    /* Create and write the attribute */
-
-    if((attr_id = H5Acreate2(obj_id, attr_name, attr_type, attr_space_id, H5P_DEFAULT, H5P_DEFAULT)) < 0)
-	goto out;
-
-    if(H5Awrite(attr_id, attr_type, attr_data) < 0)
-	goto out;
-
-    if(H5Aclose(attr_id) < 0)
-	goto out;
-
-    if(H5Sclose(attr_space_id) < 0)
-	goto out;
-
-    if(H5Tclose(attr_type) < 0)
-	goto out;
-
-    /* Close the object */
-    if(H5Oclose(obj_id) < 0)
-	return -1;
-
-    return 0;
-
-out:
-
-    H5Oclose(obj_id);
-    return -1;
-}
-
-
-
-
-
-/*-------------------------------------------------------------------------
-* Function: H5LT_set_attribute_numerical
-*
-* Purpose: Private function used by H5LTset_attribute_int and H5LTset_attribute_float
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: July 25, 2001
-*
-* Comments:
-*
-*-------------------------------------------------------------------------
-*/
-
-
-herr_t H5LT_set_attribute_numerical( hid_t loc_id,
-		                    const char *obj_name,
-		                    const char *attr_name,
-		                    size_t size,
-		                    hid_t tid,
-		                    const void *data )
-{
-
-    hid_t      obj_id, sid, attr_id;
-    hsize_t    dim_size=size;
-    int        has_attr;
-
-    /* Open the object */
-    if ((obj_id = H5Oopen(loc_id, obj_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    /* Create the data space for the attribute. */
-    if ( (sid = H5Screate_simple( 1, &dim_size, NULL )) < 0 )
-	goto out;
-
-    /* Verify if the attribute already exists */
-    has_attr = H5LT_find_attribute(obj_id, attr_name);
-
-    /* The attribute already exists, delete it */
-    if(has_attr == 1)
-	if(H5Adelete(obj_id, attr_name) < 0)
-	    goto out;
-
-    /* Create the attribute. */
-    if((attr_id = H5Acreate2(obj_id, attr_name, tid, sid, H5P_DEFAULT, H5P_DEFAULT)) < 0)
-	goto out;
-
-    /* Write the attribute data. */
-    if(H5Awrite(attr_id, tid, data) < 0)
-	goto out;
-
-    /* Close the attribute. */
-    if(H5Aclose(attr_id) < 0)
-	goto out;
-
-    /* Close the dataspace. */
-    if(H5Sclose(sid) < 0)
-	goto out;
-
-    /* Close the object */
-    if(H5Oclose(obj_id) < 0)
-	return -1;
-
-    return 0;
-
-out:
-    H5Oclose(obj_id);
-    return -1;
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LT_make_dataset
-*
-* Purpose: Creates and writes a dataset of a type tid
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Quincey Koziol, koziol@hdfgroup.org
-*
-* Date: October 10, 2007
-*
-*-------------------------------------------------------------------------
-*/
-
-static herr_t
-H5LT_make_dataset_numerical( hid_t loc_id,
-		            const char *dset_name,
-		            int rank,
-		            const hsize_t *dims,
-		            hid_t tid,
-		            const void *data )
-{
-    hid_t   did = -1, sid = -1;
-
-    /* Create the data space for the dataset. */
-    if((sid = H5Screate_simple(rank, dims, NULL)) < 0)
-	return -1;
-
-    /* Create the dataset. */
-    if((did = H5Dcreate2(loc_id, dset_name, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
-	goto out;
-
-    /* Write the dataset only if there is data to write */
-    if(data)
-	if(H5Dwrite(did, tid, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
-	    goto out;
-
-    /* End access to the dataset and release resources used by it. */
-    if(H5Dclose(did) < 0)
-	return -1;
-
-    /* Terminate access to the data space. */
-    if(H5Sclose(sid) < 0)
-	return -1;
-
-    return 0;
-
-out:
-    H5E_BEGIN_TRY {
-	H5Dclose(did);
-	H5Sclose(sid);
-    } H5E_END_TRY;
-    return -1;
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTget_dataset_ndims
-*
-* Purpose: Gets the dimensionality of a dataset.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 4, 2001
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTget_dataset_ndims( hid_t loc_id,
-		             const char *dset_name,
-		             int *rank )
-{
-    hid_t       did = -1;
-    hid_t       sid = -1;
-
-    /* Open the dataset. */
-    if((did = H5Dopen2(loc_id, dset_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    /* Get the dataspace handle */
-    if((sid = H5Dget_space(did)) < 0)
-	goto out;
-
-    /* Get rank */
-    if((*rank = H5Sget_simple_extent_ndims(sid)) < 0)
-	goto out;
-
-    /* Terminate access to the dataspace */
-    if(H5Sclose(sid) < 0)
-	goto out;
-
-    /* End access to the dataset */
-    if(H5Dclose(did))
-	return -1;
-
-    return 0;
-
-out:
-    H5E_BEGIN_TRY {
-	H5Dclose(did);
-	H5Sclose(sid);
-    } H5E_END_TRY;
-    return -1;
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTget_dataset_info
-*
-* Purpose: Gets information about a dataset.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 4, 2001
-*  Modified: February 28, 2006: checked for NULL parameters
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTget_dataset_info( hid_t loc_id,
-		            const char *dset_name,
-		            hsize_t *dims,
-		            H5T_class_t *type_class,
-		            size_t *type_size )
-{
-    hid_t       did = -1;
-    hid_t       tid = -1;
-    hid_t       sid = -1;
-
-    /* open the dataset. */
-    if((did = H5Dopen2(loc_id, dset_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    /* get an identifier for the datatype. */
-    tid = H5Dget_type(did);
-
-    /* get the class. */
-    if(type_class != NULL)
-	*type_class = H5Tget_class(tid);
-
-    /* get the size. */
-    if(type_size!=NULL)
-	*type_size = H5Tget_size(tid);
-
-    if(dims != NULL) {
-	/* get the dataspace handle */
-	if((sid = H5Dget_space(did)) < 0)
-	    goto out;
-
-	/* get dimensions */
-	if(H5Sget_simple_extent_dims(sid, dims, NULL) < 0)
-	    goto out;
-
-	/* terminate access to the dataspace */
-	if(H5Sclose(sid) < 0)
-	    goto out;
-    } /* end if */
-
-    /* release the datatype. */
-    if(H5Tclose(tid))
-	return -1;
-
-    /* end access to the dataset */
-    if(H5Dclose(did))
-	return -1;
-
-    return 0;
-
-out:
-    H5E_BEGIN_TRY {
-	H5Tclose(tid);
-	H5Sclose(sid);
-	H5Dclose(did);
-    } H5E_END_TRY;
-    return -1;
-
-}
-
-
-/*-------------------------------------------------------------------------
-* Function: find_attr
-*
-* Purpose: operator function used by H5LT_find_attribute
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: June 21, 2001
-*
-* Comments:
-*
-* Modifications:
-*
-*-------------------------------------------------------------------------
-*/
-static herr_t
-find_attr(hid_t loc_id, const char *name, const H5A_info_t *ainfo,
-	  void *op_data)
-{
-    int ret = H5_ITER_CONT;
-
-    /* Shut compiler up */
-    loc_id = loc_id; ainfo = ainfo;
-
-    /* Define a positive value for return value if the attribute was found. This will
-    * cause the iterator to immediately return that positive value,
-    * indicating short-circuit success
-    */
-    if(strcmp(name, (char *)op_data) == 0)
-	ret = H5_ITER_STOP;
-
-    return ret;
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTfind_attribute
-*
-* Purpose: Inquires if an attribute named attr_name exists attached to
-*          the object loc_id.
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: May 17, 2006
-*
-* Comments:
-*  Calls the private version of the function
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTfind_attribute( hid_t loc_id, const char* attr_name )
-{
-    return H5LT_find_attribute(loc_id,attr_name);
-}
-
-
-
-/*-------------------------------------------------------------------------
-* Function: H5LT_find_attribute
-*
-* Purpose: Inquires if an attribute named attr_name exists attached to the object loc_id.
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: June 21, 2001
-*
-* Comments:
-*  The function uses H5Aiterate2 with the operator function find_attr
-*
-* Return:
-*  Success: The return value of the first operator that
-*              returns non-zero, or zero if all members were
-*              processed with no operator returning non-zero.
-*
-*  Failure: Negative if something goes wrong within the
-*              library, or the negative value returned by one
-*              of the operators.
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t
-H5LT_find_attribute( hid_t loc_id, const char* attr_name )
-{
-    return H5Aiterate2(loc_id, H5_INDEX_NAME, H5_ITER_INC, NULL, find_attr, (void *)attr_name);
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTget_attribute_ndims
-*
-* Purpose: Gets the dimensionality of an attribute.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 4, 2001
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTget_attribute_ndims( hid_t loc_id,
-		               const char *obj_name,
-		               const char *attr_name,
-		               int *rank )
-{
-    hid_t       attr_id;
-    hid_t       sid;
-    hid_t       obj_id;
-
-    /* Open the object */
-    if((obj_id = H5Oopen(loc_id, obj_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    /* Open the attribute. */
-    if((attr_id = H5Aopen(obj_id, attr_name, H5P_DEFAULT)) < 0)
-    {
-	H5Oclose(obj_id);
-	return -1;
-    }
-
-    /* Get the dataspace handle */
-    if((sid = H5Aget_space(attr_id)) < 0)
-	goto out;
-
-    /* Get rank */
-    if((*rank = H5Sget_simple_extent_ndims(sid)) < 0)
-	goto out;
-
-    /* Terminate access to the attribute */
-    if ( H5Sclose( sid ) < 0 )
-	goto out;
-
-    /* End access to the attribute */
-    if ( H5Aclose( attr_id ) )
-	goto out;;
-
-    /* Close the object */
-    if(H5Oclose(obj_id) < 0 )
-	return -1;
-
-    return 0;
-
-out:
-    H5Aclose( attr_id );
-    H5Oclose(obj_id);
-    return -1;
-
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTget_attribute_info
-*
-* Purpose: Gets information about an attribute.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 4, 2001
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTget_attribute_info( hid_t loc_id,
-		              const char *obj_name,
-		              const char *attr_name,
-		              hsize_t *dims,
-		              H5T_class_t *type_class,
-		              size_t *type_size )
-{
-    hid_t       attr_id;
-    hid_t       tid;
-    hid_t       sid;
-    hid_t       obj_id;
-
-    /* Open the object */
-    if((obj_id = H5Oopen(loc_id, obj_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    /* Open the attribute. */
-    if((attr_id = H5Aopen(obj_id, attr_name, H5P_DEFAULT)) < 0)
-    {
-	H5Oclose(obj_id);
-	return -1;
-    }
-
-    /* Get an identifier for the datatype. */
-    tid = H5Aget_type(attr_id);
-
-    /* Get the class. */
-    *type_class = H5Tget_class(tid);
-
-    /* Get the size. */
-    *type_size = H5Tget_size( tid );
-
-    /* Get the dataspace handle */
-    if ( (sid = H5Aget_space( attr_id )) < 0 )
-	goto out;
-
-    /* Get dimensions */
-    if ( H5Sget_simple_extent_dims( sid, dims, NULL) < 0 )
-	goto out;
-
-    /* Terminate access to the dataspace */
-    if ( H5Sclose( sid ) < 0 )
-	goto out;
-
-    /* Release the datatype. */
-    if ( H5Tclose( tid ) )
-	goto out;
-
-    /* End access to the attribute */
-    if ( H5Aclose( attr_id ) )
-	goto out;
-
-    /* Close the object */
-    if(H5Oclose(obj_id) < 0 )
-	return -1;
-
-    return 0;
-
-out:
-    H5Tclose(tid);
-    H5Aclose(attr_id);
-    H5Oclose(obj_id);
-    return -1;
-
-}
-
-  /*-------------------------------------------------------------------------
-* Function: H5LTset_attribute_char
-*
-* Purpose: Create and write an attribute.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: November 7, 2001
-*
-* Comments:
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTset_attribute_char( hid_t loc_id,
-		              const char *obj_name,
-		              const char *attr_name,
-		              const char *data,
-		              size_t size )
-{
-
-    if ( H5LT_set_attribute_numerical( loc_id, obj_name, attr_name, size,
-	H5T_NATIVE_CHAR, data ) < 0 )
-	return -1;
-
-    return 0;
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LT_get_attribute_mem
-*
-* Purpose: Reads an attribute named attr_name with the memory type mem_type_id
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 19, 2002
-*
-* Comments: Private function
-*
-* Modifications:
-*
-*-------------------------------------------------------------------------
-*/
-
-
-static herr_t H5LT_get_attribute_mem(hid_t loc_id,
-		                     const char *obj_name,
-		                     const char *attr_name,
-		                     hid_t mem_type_id,
-		                     void *data)
-{
-    /* identifiers */
-    hid_t obj_id = -1;
-    hid_t attr_id = -1;
-
-    /* Open the object */
-    if((obj_id = H5Oopen(loc_id, obj_name, H5P_DEFAULT)) < 0)
-	goto out;
-
-    if((attr_id = H5Aopen(obj_id, attr_name, H5P_DEFAULT)) < 0)
-	goto out;
-
-    if(H5Aread(attr_id, mem_type_id, data) < 0)
-	goto out;
-
-    if(H5Aclose(attr_id) < 0)
-	goto out;
-    attr_id = -1;
-
-    /* Close the object */
-    if(H5Oclose(obj_id) < 0)
-	goto out;
-    obj_id = -1;
-
-    return 0;
-
-out:
-    if(attr_id > 0)
-	H5Aclose(attr_id);
-    return -1;
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LT_get_attribute_disk
-*
-* Purpose: Reads an attribute named attr_name with the datatype stored on disk
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 19, 2002
-*
-* Comments:
-*
-* Modifications:
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LT_get_attribute_disk( hid_t loc_id,
-		               const char *attr_name,
-		               void *attr_out )
-{
-    /* identifiers */
-    hid_t attr_id;
-    hid_t attr_type;
-
-    if(( attr_id = H5Aopen(loc_id, attr_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    if((attr_type = H5Aget_type(attr_id)) < 0)
-	goto out;
-
-    if(H5Aread(attr_id, attr_type, attr_out) < 0)
-	goto out;
-
-    if(H5Tclose(attr_type) < 0)
-	goto out;
-
-    if ( H5Aclose( attr_id ) < 0 )
-	return -1;;
-
-    return 0;
-
-out:
-    H5Tclose( attr_type );
-    H5Aclose( attr_id );
-    return -1;
-}
-
-
-/*-------------------------------------------------------------------------
-* Function: H5LTget_attribute_string
-*
-* Purpose: Reads an attribute named attr_name
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 19, 2002
-*
-* Comments:
-*
-* Modifications:
-*
-*-------------------------------------------------------------------------
-*/
-
-
-herr_t H5LTget_attribute_string( hid_t loc_id,
-		                const char *obj_name,
-		                const char *attr_name,
-		                char *data )
-{
-    /* identifiers */
-    hid_t      obj_id;
-
-    /* Open the object */
-    if ((obj_id = H5Oopen( loc_id, obj_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    /* Get the attribute */
-    if ( H5LT_get_attribute_disk( obj_id, attr_name, data ) < 0 )
-	return -1;
-
-    /* Close the object */
-    if(H5Oclose(obj_id) < 0)
-	return -1;
-
-    return 0;
-
-}
-
-
-/*-------------------------------------------------------------------------
-* Function: H5LTget_attribute_char
-*
-* Purpose: Reads an attribute named attr_name
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 19, 2002
-*
-* Comments:
-*
-* Modifications:
-*
-*-------------------------------------------------------------------------
-*/
-herr_t H5LTget_attribute_char( hid_t loc_id,
-		              const char *obj_name,
-		              const char *attr_name,
-		              char *data )
-{
-    /* Get the attribute */
-    if(H5LT_get_attribute_mem(loc_id, obj_name, attr_name, H5T_NATIVE_CHAR, data) < 0)
-	return -1;
-
-    return 0;
-}
-
-
-/*-------------------------------------------------------------------------
-* Function: H5LTmake_dataset_char
-*
-* Purpose: Creates and writes a dataset of H5T_NATIVE_CHAR type
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 14, 2001
-*
-* Comments:
-*
-* Modifications:
-*
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTmake_dataset_char( hid_t loc_id,
-		             const char *dset_name,
-		             int rank,
-		             const hsize_t *dims,
-		             const char *data )
-{
-    return(H5LT_make_dataset_numerical(loc_id, dset_name, rank, dims, H5T_NATIVE_CHAR, data));
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTmake_dataset_int
-*
-* Purpose: Creates and writes a dataset of H5T_NATIVE_INT type
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 14, 2001
-*
-* Comments:
-*
-* Modifications:
-*
-*
-*-------------------------------------------------------------------------
-*/
-
-
-
-herr_t H5LTmake_dataset_int( hid_t loc_id,
-		            const char *dset_name,
-		            int rank,
-		            const hsize_t *dims,
-		            const int *data )
-{
-    return(H5LT_make_dataset_numerical(loc_id, dset_name, rank, dims, H5T_NATIVE_INT, data));
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTmake_dataset_double
-*
-* Purpose: Creates and writes a dataset of H5T_NATIVE_DOUBLE type
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 14, 2001
-*
-* Comments:
-*
-* Modifications:
-*
-*
-*-------------------------------------------------------------------------
-*/
-
-
-herr_t H5LTmake_dataset_double( hid_t loc_id,
-		               const char *dset_name,
-		               int rank,
-		               const hsize_t *dims,
-		               const double *data )
-{
-    return(H5LT_make_dataset_numerical(loc_id, dset_name, rank, dims, H5T_NATIVE_DOUBLE, data));
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTmake_dataset_float
-*
-* Purpose: Creates and writes a dataset of H5T_NATIVE_FLOAT type
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: September 14, 2001
-*
-* Comments:
-*
-* Modifications:
-*
-*
-*-------------------------------------------------------------------------
-*/
-
-
-herr_t H5LTmake_dataset_float( hid_t loc_id,
-		              const char *dset_name,
-		              int rank,
-		              const hsize_t *dims,
-		              const float *data )
-{
-    return(H5LT_make_dataset_numerical(loc_id, dset_name, rank, dims, H5T_NATIVE_FLOAT, data));
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LT_read_dataset
-*
-* Purpose: Reads a dataset from disk.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Quincey Koziol, koziol@hdfgroup.org
-*
-* Date: October 8, 2007
-*
-*-------------------------------------------------------------------------
-*/
-
-static herr_t
-H5LT_read_dataset_numerical(hid_t loc_id, const char *dset_name, hid_t tid, void *data)
-{
-    hid_t   did;
-
-    /* Open the dataset. */
-    if((did = H5Dopen2(loc_id, dset_name, H5P_DEFAULT)) < 0)
-	return -1;
-
-    /* Read */
-    if(H5Dread(did, tid, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
-	goto out;
-
-    /* End access to the dataset and release resources used by it. */
-    if(H5Dclose(did))
-	return -1;
-
-    return 0;
-
-out:
-    H5Dclose(did);
-    return -1;
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTread_dataset_char
-*
-* Purpose: Reads a dataset from disk.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: November 5, 2001
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTread_dataset_char( hid_t loc_id,
-		             const char *dset_name,
-		             char *data )
-{
-    return(H5LT_read_dataset_numerical(loc_id, dset_name, H5T_NATIVE_CHAR, data));
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTread_dataset_int
-*
-* Purpose: Reads a dataset from disk.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: November 5, 2001
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTread_dataset_int( hid_t loc_id,
-		            const char *dset_name,
-		            int *data )
-{
-    return(H5LT_read_dataset_numerical(loc_id, dset_name, H5T_NATIVE_INT, data));
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTread_dataset_float
-*
-* Purpose: Reads a dataset from disk.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: November 5, 2001
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTread_dataset_float( hid_t loc_id,
-		              const char *dset_name,
-		              float *data )
-{
-    return(H5LT_read_dataset_numerical(loc_id, dset_name, H5T_NATIVE_FLOAT, data));
-}
-
-/*-------------------------------------------------------------------------
-* Function: H5LTread_dataset_double
-*
-* Purpose: Reads a dataset from disk.
-*
-* Return: Success: 0, Failure: -1
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: November 5, 2001
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t H5LTread_dataset_double( hid_t loc_id,
-		               const char *dset_name,
-		               double *data )
-{
-    return(H5LT_read_dataset_numerical(loc_id, dset_name, H5T_NATIVE_DOUBLE, data));
-}
-
-/*-------------------------------------------------------------------------
-* Function: find_dataset
-*
-* Purpose: operator function used by H5LTfind_dataset
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: June 21, 2001
-*
-* Comments:
-*
-* Modifications:
-*
-*-------------------------------------------------------------------------
-*/
-
-static herr_t
-find_dataset(hid_t loc_id, const char *name, const H5L_info_t *linfo, void *op_data)
-{
-    /* Define a default zero value for return. This will cause the iterator to continue if
-    * the dataset is not found yet.
-    */
-    int ret = 0;
-
-    /* Shut the compiler up */
-    loc_id = loc_id;
-    linfo = linfo;
-
-    /* Define a positive value for return value if the dataset was found. This will
-    * cause the iterator to immediately return that positive value,
-    * indicating short-circuit success
-    */
-    if(strcmp(name, (char *)op_data) == 0)
-	ret = 1;
-
-    return ret;
-}
-
-
-/*-------------------------------------------------------------------------
-* Function: H5LTfind_dataset
-*
-* Purpose:  Inquires if a dataset named dset_name exists attached
-*           to the object loc_id.
-*
-* Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
-*
-* Date: July 15, 2001
-*
-* Return:
-*     Success: The return value of the first operator that
-*              returns non-zero, or zero if all members were
-*              processed with no operator returning non-zero.
-*
-*      Failure:    Negative if something goes wrong within the
-*              library, or the negative value returned by one
-*              of the operators.
-*
-*-------------------------------------------------------------------------
-*/
-
-herr_t
-H5LTfind_dataset( hid_t loc_id, const char *dset_name )
-{
-    return H5Literate(loc_id, H5_INDEX_NAME, H5_ITER_INC, 0, find_dataset, (void *)dset_name);
-}
-  
-  
-  
-  

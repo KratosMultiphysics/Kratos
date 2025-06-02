@@ -1,4 +1,4 @@
-/* gidpost 2.0 */
+/* gidpost */
 /*
  *  gidpostInt.cc --
  *
@@ -14,8 +14,27 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#include "gidpostHDF5.h"  // for GiD_FlushPostFile_HDF5
 
 static int ByteOrderCheck = 0x91d;  /* Magic number */
+
+/* format to print reals to string, customizable only once at the begin*/
+static char format_real[100]={"%.9g"};
+
+GIDPOST_API int GiD_PostSetFormatReal(GP_CONST char * f){
+  strcpy(format_real,f);
+  return 0;
+}
+
+GIDPOST_API GP_CONST char* GiD_PostGetFormatReal() {
+  return format_real;
+}
+
+/* special format to not truncate time steps converted to string, not customizable but centralize its use*/
+GIDPOST_API GP_CONST char* GiD_PostGetFormatStep(){
+  static const char format_step[]={"%.16g"};
+  return format_step;
+}
 
 struct _CBufferValues
 {
@@ -30,7 +49,7 @@ struct _CBufferValues
   int next_type;
 };
 
-CBufferValues* CBufferValues_Create();
+CBufferValues* CBufferValues_Create( void );
 void CBufferValues_Destroy(CBufferValues* this);
 
 #define NMAX_DIMS 4
@@ -47,7 +66,8 @@ static SResultTypeInfo _ResultTypeInfo[] = {
   {"MainMatrix",              {12, 0, 0, 0}},
   {"LocalAxes",               {3,  0, 0, 0}},
   {"ComplexScalar",           {2,  0, 0, 0}},
-  {"ComplexVector",           {4,  6, 0, 0}}
+  {"ComplexVector",           {4,  6, 0, 0}},
+  {"ComplexMatrix",           {6, 12, 0, 0}}
   /* Vector2 */
   /* Vector3 */
 };
@@ -91,7 +111,7 @@ void GetResultTypeMinMaxValues(GiD_ResultType type, size_t *min, size_t *max)
  */
 
 static
-CPostFile *CPostFile_Create()
+CPostFile *CPostFile_Create( void )
 {
   CPostFile *this = (CPostFile*)malloc(sizeof(CPostFile));
   assert(this);
@@ -103,8 +123,12 @@ CPostFile *CPostFile_Create()
   this->gauss_written = 0;
   this->flag_isgroup = 0;
   this->flag_begin_values = 0;
+  this->has_mesh = 0;
+  this->has_meshgroup = 0;
   this->level_mesh = POST_UNDEFINED;
   this->level_res  = POST_UNDEFINED;
+  this->stack_pos = -1;
+  this->local_axes_format[ 0 ] = '\0';
 
   this->ptr_Open             = NULL;
   this->ptr_Close            = NULL;
@@ -118,11 +142,17 @@ CPostFile *CPostFile_Create()
   this->ptr_WriteInteger     = NULL;
   this->ptr_WriteDouble      = NULL;
   this->ptr_WriteValuesVA    = NULL;
-  this->ptr_WriteValues      = NULL;    
+  this->ptr_WriteValues      = NULL;  
+  this->ptr_WriteValuesNS    = NULL;    
+  this->ptr_WriteValuesNSV   = NULL;    
   this->ptr_Write2D          = NULL;
   this->ptr_Write3D          = NULL;
   this->ptr_WriteElement     = NULL;
   this->ptr_WritePostHeader  = NULL;
+  this->ptr_WritePostHeaderIGA=NULL;
+
+  this->m_post_mode = GiD_PostUndefined;
+  this->m_hdf5_file = NULL;
 
   return this;
 }
@@ -152,15 +182,60 @@ int CPostFile_Open(CPostFile* this, GP_CONST char * str)
 int CPostFile_Close(CPostFile* this)
 {
   assert(this);
+  if ( this->m_post_mode == GiD_PostHDF5 ) {
+    // already closed before with GiD_ClosePostResultFile_HDF5()
+    return 0;
+  }
   assert(this->ptr_Close);
   return (*this->ptr_Close)(this);
 }
 
+post_state CPostFile_TopState( CPostFile* this )
+{
+  return ( this->stack_pos < 0 ) ? POST_UNDEFINED : this->stack_state[this->stack_pos];
+}
+
+int CPostFile_PushState( CPostFile* this, post_state s )
+{
+  assert( this->stack_pos < STACK_STATE_SIZE - 1 );
+  if ( this->stack_pos < STACK_STATE_SIZE - 1 )
+    {
+      this->stack_state[++this->stack_pos] = s;
+      return 0;
+    }
+  else
+    {
+      return -1;
+    }
+}
+
+post_state CPostFile_PopState(CPostFile* this)
+{
+  post_state top;
+  if ( this->stack_pos < 0)
+    {
+      return POST_UNDEFINED;
+    }
+  top = this->stack_state[this->stack_pos--];
+  return top;
+}
+
 int CPostFile_Flush(CPostFile* this)
 {
-  assert(this);
+  int res=0;
+  assert(this);  
+#ifdef ENABLE_HDF5
+  if(this->m_post_mode==GiD_PostHDF5) {
+    res=GiD_FlushPostFile_HDF5(this->m_hdf5_file);
+  } else {
+    assert(this->ptr_Flush);
+    res=(*this->ptr_Flush)(this);
+  }
+#else //ENABLE_HDF5
   assert(this->ptr_Flush);
-  return (*this->ptr_Flush)(this);
+  res=(*this->ptr_Flush)(this);
+#endif //ENABLE_HDF5
+  return res;
 }
 
 int CPostFile_IsBinary(CPostFile* this)
@@ -240,12 +315,25 @@ int CPostFile_WriteValuesVA(CPostFile* this, int id, int num_comp, ...)
   return ret;
 }
 
-int CPostFile_WriteValues(CPostFile* this, int id, int n, double* values)
-{
+int CPostFile_WriteValues( CPostFile *this, int id, int n, GP_CONST double *values ) {
   assert(this);
   assert(this->ptr_WriteValues);
   
   return (*this->ptr_WriteValues)(this, id, n, values);
+}
+
+int CPostFile_WriteValuesNS( CPostFile *this, int id, int n, GP_CONST double *values ) {
+  assert(this);
+  assert(this->ptr_WriteValuesNS);
+  
+  return (*this->ptr_WriteValuesNS)(this, id, n, values);
+}
+
+int CPostFile_WriteValuesNSV( CPostFile *this, int id, int n, int num_comp, GP_CONST double *values ) {
+  assert(this);
+  assert(this->ptr_WriteValuesNSV);
+  
+  return (*this->ptr_WriteValuesNSV)(this, id, n, num_comp, values);
 }
 
 int CPostFile_Write2D(CPostFile *this, double x, double y )
@@ -264,8 +352,7 @@ int CPostFile_Write3D(CPostFile *this, double x, double y, double z )
   return (*this->ptr_Write3D)(this, x, y, z);
 }
 
-int CPostFile_WriteElement(CPostFile* this, int id, int n, int nid[])
-{
+int CPostFile_WriteElement( CPostFile *this, int id, int n, GP_CONST int nid[] ) {
   assert(this);
   assert(this->ptr_WriteElement);
   
@@ -422,10 +509,15 @@ int CPostAscii_WriteInteger(CPostFile* this, int i, int op)
 static
 int CPostAscii_WriteDouble(CPostFile* this, double x, int op)
 {
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format," %s",GiD_PostGetFormatReal());
+    create_format=0;
+  }
   assert(this);
   assert(op!=0);
-  
-  fprintf(this->m_FILE, " %g", x);
+  fprintf(this->m_FILE,local_format, x);
   if (op==2) {
     fprintf(this->m_FILE, "\n");
   }
@@ -437,15 +529,21 @@ int CPostAscii_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
 {
   int i;
   double value;
-
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format," %s",GiD_PostGetFormatReal());
+    create_format=0;
+  }
   assert(this);
   assert(this->m_FILE);
   
-  if (this->m_LastID != id) /* Hey this is only useful when writting values for gauss points in elements !!!! */
+  if (this->m_LastID != id) /* Hey this is only useful when writing values for gauss points in elements !!!! */
     fprintf(this->m_FILE, "%d", id);
+  
   for (i = 0; i < num_comp; i++) {
     value = va_arg(ap, double);
-    fprintf(this->m_FILE, " %g", value);
+    fprintf(this->m_FILE, local_format, value);
   }
   fprintf(this->m_FILE, "\n");
   this->m_LastID = id;
@@ -453,18 +551,68 @@ int CPostAscii_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
   return 0;
 }
 
-static
-int CPostAscii_WriteValues(CPostFile* this, int id, int n, double *buffer)
-{
+static int CPostAscii_WriteValues( CPostFile *this, int id, int n, GP_CONST double *buffer ) {
   int i;
-
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format," %s",GiD_PostGetFormatReal());
+    create_format=0;
+  }
   assert(this);
   
-  if (this->m_LastID != id) /* Hey this is only useful when writting values for gauss points in elements !!!! */
+  if (this->m_LastID != id) /* Hey this is only useful when writing values for gauss points in elements !!!! */
     fprintf(this->m_FILE, "%d", id);
   for ( i = 0; i < n; i++ )
-    fprintf(this->m_FILE, " %g", buffer[i]);
+    fprintf(this->m_FILE, local_format, buffer[i]);
   fprintf(this->m_FILE, "\n");
+  this->m_LastID = id;
+  return 0;
+}
+
+static int CPostAscii_WriteValuesNS( CPostFile *this, int id, int n, GP_CONST double *buffer ) {
+  int i;
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format,"%s\n",GiD_PostGetFormatReal());
+    create_format=0;
+  }
+  assert(this);
+  
+  //write surface Id
+  if (this->m_LastID != id) /* Hey this is only useful when writing values for gauss points in elements !!!! */
+    fprintf(this->m_FILE, "%d\n", id);
+
+  //write values
+  for ( i = 0; i < n; i++ ) {
+    if ( buffer[i] == GP_UNKNOWN) fprintf(this->m_FILE, "NR\n");
+    else fprintf(this->m_FILE, local_format, buffer[i]);
+  }
+  this->m_LastID = id;
+  return 0;
+}
+
+static int CPostAscii_WriteValuesNSV( CPostFile *this, int id, int n, int num_comp, GP_CONST double *buffer ) {
+  int i;
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format,"%s ",GiD_PostGetFormatReal());
+    create_format=0;
+  }
+  assert(this);
+  
+  //write surface Id
+  if (this->m_LastID != id) /* Hey this is only useful when writing values for gauss points in elements !!!! */
+    fprintf(this->m_FILE, "%d\n", id);
+
+  //write values
+  for ( i = 0; i < n*num_comp; i++ ) {
+    if ( buffer[i] == GP_UNKNOWN) fprintf(this->m_FILE, "NR ");
+    else fprintf(this->m_FILE,local_format,buffer[i]);
+    if ( (i+1) % num_comp == 0) fprintf(this->m_FILE, "\n");
+  }
   this->m_LastID = id;
   return 0;
 }
@@ -472,24 +620,32 @@ int CPostAscii_WriteValues(CPostFile* this, int id, int n, double *buffer)
 static
 int CPostAscii_Write2D(CPostFile *this, double x, double y )
 {
-  char line[256];
-
-  sprintf(line, "%g %g", x, y);
+  static char line[256];
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format,"%s %s",GiD_PostGetFormatReal(),GiD_PostGetFormatReal());
+    create_format=0;
+  }
+  sprintf(line,local_format, x, y);
   return CPostAscii_WriteString(this, line);
 }
 
 static
 int CPostAscii_Write3D(CPostFile *this, double x, double y, double z )
 {
-  char line[256];
-
-  sprintf(line, "%g %g %g", x, y, z);
+  static char line[256];
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format,"%s %s %s",GiD_PostGetFormatReal(),GiD_PostGetFormatReal(),GiD_PostGetFormatReal());
+    create_format=0;
+  }
+  sprintf(line,local_format,x,y,z);
   return CPostAscii_WriteString(this, line);
 }
 
-static
-int CPostAscii_WriteElement(CPostFile* this, int id, int n, int nid[])
-{
+static int CPostAscii_WriteElement( CPostFile *this, int id, int n, GP_CONST int nid[] ) {
   int i;
 
   assert(this);
@@ -506,7 +662,7 @@ int CPostAscii_WriteElement(CPostFile* this, int id, int n, int nid[])
 static
 int CPostAscii_WritePostHeader(CPostFile *this)
 {
-  return CPostAscii_WriteString(this, "GiD Post Results File 1.0");
+  return CPostAscii_WriteString(this, "GiD Post Results File 1.2");
 }
 
 static
@@ -527,6 +683,8 @@ void CPostAscii_Init(CPostFile* this)
   this->ptr_WriteDouble      = &CPostAscii_WriteDouble;
   this->ptr_WriteValuesVA    = &CPostAscii_WriteValuesVA;
   this->ptr_WriteValues      = &CPostAscii_WriteValues;
+  this->ptr_WriteValuesNS    = &CPostAscii_WriteValuesNS;
+  this->ptr_WriteValuesNSV   = &CPostAscii_WriteValuesNSV;
   this->ptr_Write2D          = &CPostAscii_Write2D;
   this->ptr_Write3D          = &CPostAscii_Write3D;
   this->ptr_WriteElement     = &CPostAscii_WriteElement;
@@ -653,10 +811,16 @@ int CPostAsciiZ_WriteInteger(CPostFile* this, int i, int op)
 static
 int CPostAsciiZ_WriteDouble(CPostFile* this, double x, int op)
 {
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format," %s",GiD_PostGetFormatReal());
+    create_format=0;
+  }
   assert(this);
   assert(op!=0);
 
-  gzprintf(this->m_FILE, " %g", x);
+  gzprintf(this->m_FILE,local_format,x);
   if (op==2) {
     gzprintf(this->m_FILE, "\n");
   }
@@ -669,14 +833,19 @@ int CPostAsciiZ_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
 {
   int i;
   double value;
-
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format," %s",GiD_PostGetFormatReal());
+    create_format=0;
+  }
   assert(this);
   
-  if (this->m_LastID != id) /* Hey this is only useful when writting values for gauss points in elements !!!! */
+  if (this->m_LastID != id) /* Hey this is only useful when writing values for gauss points in elements !!!! */
     gzprintf(this->m_FILE, "%d", id);
   for (i = 0; i < num_comp; i++) {
     value = va_arg(ap, double);
-    gzprintf(this->m_FILE, " %g", value);
+    gzprintf(this->m_FILE,local_format,value);
   }
   gzprintf(this->m_FILE, "\n");
   this->m_LastID = id;
@@ -684,29 +853,84 @@ int CPostAsciiZ_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
   return 0;
 }
 
-static
-int CPostAsciiZ_WriteValues(CPostFile* this, int id, int n, double * buffer)
-{
+static int CPostAsciiZ_WriteValues( CPostFile *this, int id, int n, GP_CONST double *buffer ) {
   int i;
-
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format," %s",GiD_PostGetFormatReal());
+    create_format=0;
+  }
   assert(this);
   
-  if (this->m_LastID != id) /* Hey this is only useful when writting values for gauss points in elements !!!! */
+  if (this->m_LastID != id) /* Hey this is only useful when writing values for gauss points in elements !!!! */
     gzprintf(this->m_FILE, "%d", id);
   for ( i = 0; i < n; i++ )
-    gzprintf(this->m_FILE, " %g", buffer[i]);
+    gzprintf(this->m_FILE,local_format,buffer[i]);
   gzprintf(this->m_FILE, "\n");
   this->m_LastID = id;
 
   return 0;
 }
 
+static int CPostAsciiZ_WriteValuesNS( CPostFile *this, int id, int n, GP_CONST double *buffer ) {
+  int i;
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format,"%s\n",GiD_PostGetFormatReal());
+    create_format=0;
+  }
+  assert(this);
+  
+  //write surface Id
+  if (this->m_LastID != id) /* Hey this is only useful when writing values for gauss points in elements !!!! */
+    fprintf(this->m_FILE, "%d\n", id);
+
+  //write values
+  for ( i = 0; i < n; i++ ) {
+    if ( buffer[i] == GP_UNKNOWN) fprintf(this->m_FILE, "NR\n");
+    else fprintf(this->m_FILE, local_format,buffer[i]);
+  }
+  this->m_LastID = id;
+  return 0;
+}
+
+static int CPostAsciiZ_WriteValuesNSV( CPostFile *this, int id, int n, int num_comp, GP_CONST double *buffer ) {
+  int i;
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format,"%s ",GiD_PostGetFormatReal());
+    create_format=0;
+  }
+  assert(this);
+  
+  //write surface Id
+  if (this->m_LastID != id) /* Hey this is only useful when writing values for gauss points in elements !!!! */
+    fprintf(this->m_FILE, "%d\n", id);
+
+  //write values
+  for ( i = 0; i < n*num_comp; i++ ) {
+    if ( buffer[i] == GP_UNKNOWN) fprintf(this->m_FILE, "NR ");
+    else fprintf(this->m_FILE,local_format,buffer[i]);
+    if ( (i+1) % num_comp == 0) fprintf(this->m_FILE, "\n");
+  }
+  this->m_LastID = id;
+  return 0;
+}
+
 static
 int CPostAsciiZ_Write2D(CPostFile *this, double x, double y )
 {
-  char line[256];
-
-  sprintf(line, "%g %g", x, y);
+  static char line[256];
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format,"%s %s",GiD_PostGetFormatReal(),GiD_PostGetFormatReal());
+    create_format=0;
+  }
+  sprintf(line,local_format,x,y);
   return CPostAsciiZ_WriteString(this, line);
 }
 
@@ -714,14 +938,17 @@ static
 int CPostAsciiZ_Write3D(CPostFile *this, double x, double y, double z )
 {
   char line[256];
-
-  sprintf(line, "%g %g %g", x, y, z);
+  static char local_format[100];
+  static int create_format=1;
+  if(create_format){
+    sprintf(local_format,"%s %s %s",GiD_PostGetFormatReal(),GiD_PostGetFormatReal(),GiD_PostGetFormatReal());
+    create_format=0;
+  }
+  sprintf(line,local_format,x,y,z);
   return CPostAsciiZ_WriteString(this, line);
 }
 
-static
-int CPostAsciiZ_WriteElement(CPostFile* this, int id, int n, int nid[] )
-{
+static int CPostAsciiZ_WriteElement( CPostFile *this, int id, int n, GP_CONST int nid[] ) {
   int i;
 
   assert(this);
@@ -738,8 +965,9 @@ int CPostAsciiZ_WriteElement(CPostFile* this, int id, int n, int nid[] )
 static
 int CPostAsciiZ_WritePostHeader(CPostFile *this)
 {
-  return CPostAsciiZ_WriteString(this, "GiD Post Results File 1.0");
+  return CPostAsciiZ_WriteString(this, "GiD Post Results File 1.2");
 }
+
 
 static
 void CPostAsciiZ_Init(CPostFile* this)
@@ -761,6 +989,8 @@ void CPostAsciiZ_Init(CPostFile* this)
   this->ptr_WriteDouble      = &CPostAsciiZ_WriteDouble;
   this->ptr_WriteValuesVA    = &CPostAsciiZ_WriteValuesVA;
   this->ptr_WriteValues      = &CPostAsciiZ_WriteValues;
+  this->ptr_WriteValuesNS    = &CPostAsciiZ_WriteValuesNS;
+  this->ptr_WriteValuesNSV   = &CPostAsciiZ_WriteValuesNSV;
   this->ptr_WriteElement     = &CPostAsciiZ_WriteElement;
   this->ptr_WritePostHeader  = &CPostAsciiZ_WritePostHeader;
 }
@@ -779,6 +1009,10 @@ CPostFile* CPostBinary_Create()
   this = CPostFile_Create();
   CPostBinary_Init(this);
   return this;
+}
+
+CPostFile *CPostHdf5_Create() {
+  return CPostFile_Create();
 }
 
 static int CPostBinary_Close(CPostFile *this);
@@ -922,7 +1156,7 @@ int CPostBinary_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
   assert(this);
   assert(this->m_FILE);
 
-  if ( this->m_LastID != id ) { /* Hey this is only useful when writting values for gauss points in elements !!!! */
+  if ( this->m_LastID != id ) { /* Hey this is only useful when writing values for gauss points in elements !!!! */
     gzwrite(this->m_FILE, &id, sizeof(id));
     this->m_LastID = id;
   }
@@ -933,16 +1167,14 @@ int CPostBinary_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
   return 0;  
 } 
 
-static
-int CPostBinary_WriteValues(CPostFile* this, int id, int n, double * buffer)
-{
+static int CPostBinary_WriteValues( CPostFile *this, int id, int n, GP_CONST double *buffer ) {
   int i;
   float value;
 
   assert(this);
   assert(this->m_FILE);
 
-  if ( this->m_LastID != id ) { /* Hey this is only useful when writting values for gauss points in elements !!!! */
+  if ( this->m_LastID != id ) { /* Hey this is only useful when writing values for gauss points in elements !!!! */
     gzwrite(this->m_FILE, &id, sizeof(id));
     this->m_LastID = id;
   }
@@ -951,6 +1183,41 @@ int CPostBinary_WriteValues(CPostFile* this, int id, int n, double * buffer)
     gzwrite(this->m_FILE, &value, sizeof(value));
   }
   return 0;  
+} 
+
+static int CPostBinary_WriteValuesNS( CPostFile *this, int id, int n, GP_CONST double *buffer ) {
+  int i;
+  float value;
+  assert(this);
+  //write surface Id
+  gzwrite(this->m_FILE, &id, sizeof(id));
+  //write amount of values (else without the geometry is not possible to read it)
+  gzwrite(this->m_FILE, &n, sizeof(n));
+  //write values
+  for ( i = 0; i < n; i++ ) {
+    value = (float) buffer[i];
+    gzwrite(this->m_FILE, &value, sizeof(value));
+  }
+  return 0;
+}
+
+static int CPostBinary_WriteValuesNSV( CPostFile *this, int id, int n, int num_comp, GP_CONST double *buffer ) {
+  int i;
+  float value;
+  int num_values=n*num_comp;
+  assert(this);
+  
+  //write surface Id
+  gzwrite(this->m_FILE, &id, sizeof(id));
+  //write amount of values (else without the geometry is not possible to read it)
+  gzwrite(this->m_FILE, &num_values, sizeof(num_values));
+  //write values
+  for ( i = 0; i < num_values; i++ ) {
+    value = (float) buffer[i];
+    gzwrite(this->m_FILE, &value, sizeof(value));
+  }
+  this->m_LastID = id;
+  return 0;
 } 
 
 static
@@ -984,9 +1251,7 @@ int CPostBinary_Write3D(CPostFile* this, double x, double y, double z )
   return 0;
 }
 
-static
-int CPostBinary_WriteElement(CPostFile* this, int id, int n, int nid[] )
-{
+static int CPostBinary_WriteElement( CPostFile *this, int id, int n, GP_CONST int nid[] ) {
   int i;
   
   assert(this);
@@ -1000,8 +1265,8 @@ int CPostBinary_WriteElement(CPostFile* this, int id, int n, int nid[] )
   switch ( CPostFile_MatchConnectivity(this, n) ) {
     case 0:
       /* match exactly */
-      i = 1;
-      /* so write material 1 */
+      i = 0;
+      /* so write material 0 == no material */
       gzwrite(this->m_FILE, &i, sizeof(int));
     case 1:
       /* match connectivity and material
@@ -1017,8 +1282,9 @@ int CPostBinary_WriteElement(CPostFile* this, int id, int n, int nid[] )
 static
 int CPostBinary_WritePostHeader(CPostFile* this)
 {
-  return CPostBinary_WriteString(this, "GiDPostEx1.1");
+  return CPostBinary_WriteString(this, "GiDPostEx1.2");
 }
+
 
 static
 void CPostBinary_Init(CPostFile* this)
@@ -1040,6 +1306,8 @@ void CPostBinary_Init(CPostFile* this)
   this->ptr_WriteDouble      = &CPostBinary_WriteDouble;
   this->ptr_WriteValuesVA    = &CPostBinary_WriteValuesVA;
   this->ptr_WriteValues      = &CPostBinary_WriteValues;
+  this->ptr_WriteValuesNS    = &CPostBinary_WriteValuesNS;
+  this->ptr_WriteValuesNSV   = &CPostBinary_WriteValuesNSV;
   this->ptr_WriteElement     = &CPostBinary_WriteElement;
   this->ptr_WritePostHeader  = &CPostBinary_WritePostHeader;
 }
@@ -1062,7 +1330,7 @@ void CBufferValues_Init(CBufferValues* this)
   this->next_type = 0;
 }
 
-CBufferValues* CBufferValues_Create()
+CBufferValues* CBufferValues_Create( void )
 {
   CBufferValues* this = (CBufferValues*)malloc(sizeof(CBufferValues));
   CBufferValues_Init(this);
@@ -1082,6 +1350,7 @@ void CBufferValues_Destroy(CBufferValues* this)
     free(this->buffer_types);
     this->buffer_types = NULL;
   }
+  free(this);
 }
 
 void CPostFile_ResultGroupOnBegin(CPostFile* this) 

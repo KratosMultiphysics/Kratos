@@ -79,8 +79,8 @@ htab *t;
  * move everything from the old array to the new array,
  * then free the old array.
  */
-static void hgrow( t)
-htab  *t;    /* table */
+static void hgrow( htab  *t)
+    /* table */
 {
   register ub4     newsize = (ub4)1<<(++t->logsize);
   register ub4     newmask = newsize-1;
@@ -116,7 +116,7 @@ htab  *t;    /* table */
 }
 
 /* hcreate - create a hash table initially of size power(2,logsize) */
-htab *gid_hcreate(logsize)
+htab *hcreate(logsize)
 word  logsize;    /* log base 2 of the size of the hash table */
 {
   ub4 i,len;
@@ -136,7 +136,7 @@ word  logsize;    /* log base 2 of the size of the hash table */
 }
 
 /* hdestroy - destroy the hash table and free all its memory */
-void htabdestroy( t)
+void hdestroy( t)
 htab  *t;    /* the table */
 {
   /* hitem *h; */
@@ -260,7 +260,7 @@ htab *t;      /* the hash table */
 word hfirst(t)
 htab  *t;    /* the hash table */
 {
-  t->apos = t->mask;
+  t->apos = (ub4)(t->mask);
   (void)hnbucket(t);
   return (t->ipos != (hitem *)0);
 }
@@ -366,4 +366,44 @@ htab  *t;
   }
 }
 
+#if 0
 
+// this example is for linux/macos
+// as they use different versions of hcreate/hdestroy as the ones above implemented
+// the above ones are similar to hcreate_r / hsearch_r / hdestroy_r
+#include <search.h>
+
+void pp() {
+  static char *data[] = { "alpha",  "bravo", "charlie", "delta",  "echo",     "foxtrot", "golf",   "hotel",  "india",
+                          "juliet", "kilo",  "lima",    "mike",   "november", "oscar",   "papa",   "quebec", "romeo",
+                          "sierra", "tango", "uniform", "victor", "whisky",   "x-ray",   "yankee", "zulu" };
+
+  ENTRY e, *ep;
+  int i;
+
+  hcreate( 30 );
+
+  for ( i = 0; i < 24; i++ ) {
+    e.key = data[ i ];
+    /* data is just an integer, instead of a
+       pointer to something */
+    e.data = ( void * )i;
+    ep = hsearch( e, ENTER );
+    /* there should be no failures */
+    if ( ep == NULL ) {
+      fprintf( stderr, "entry failed\n" );
+      exit( EXIT_FAILURE );
+    }
+  }
+
+  for ( i = 22; i < 26; i++ ) {
+    /* print two entries from the table, and
+       show that two are not in the table */
+    e.key = data[ i ];
+    ep = hsearch( e, FIND );
+    printf( "%9.9s -> %9.9s:%d\n", e.key, ep ? ep->key : "NULL", ep ? ( int )( ep->data ) : 0 );
+  }
+  hdestroy();
+  exit( EXIT_SUCCESS );
+}
+#endif // if 0
