@@ -114,7 +114,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -134,7 +134,7 @@ public:
      */
     AlternativeQSVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -172,7 +172,7 @@ public:
     /**
      * Returns a pointer to a new FluidElement element, created using given input
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */

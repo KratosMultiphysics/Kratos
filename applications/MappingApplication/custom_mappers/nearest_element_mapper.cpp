@@ -139,7 +139,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
         mInterfaceInfos[found_idx]->GetValue(rOriginIds, MapperInterfaceInfo::InfoType::Dummy);
 
-        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
 
         if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
         rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
@@ -149,7 +149,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
 void NearestElementLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLevel) const
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
 
     rOStream << "NearestElementLocalSystem based on " << mpNode->Info();
     if (EchoLevel > 3) {

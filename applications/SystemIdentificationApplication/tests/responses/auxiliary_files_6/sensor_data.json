@@ -1,0 +1,30 @@
+{
+    "list_of_sensors": [
+        {
+            "name": "strain_xx_1",
+            "strain_type": "strain_xz",
+            "strain_variable": "GREEN_LAGRANGE_STRAIN_TENSOR",
+            "type": "strain_sensor",
+            "variable_data": {},
+            "weight": 1.0,
+            "location": [
+                0.4,
+                0.4,
+                0.75
+            ]
+        },
+        {
+            "name": "strain_xz_1",
+            "strain_type": "strain_xz",
+            "strain_variable": "GREEN_LAGRANGE_STRAIN_TENSOR",
+            "type": "strain_sensor",
+            "variable_data": {},
+            "weight": 1.0,
+            "location": [
+                0.2,
+                0.2,
+                0.25
+            ]
+        }
+    ]
+}

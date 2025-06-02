@@ -99,29 +99,29 @@
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/transient_Pw_line_element.h"
+#include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
 // Element policies
 #include "custom_elements/axisymmetric_stress_state.h"
+#include "custom_elements/integration_coefficient_modifier_for_axisymmetric_element.h"
+#include "custom_elements/integration_coefficient_modifier_for_line_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 
 // geo structural element
-#include "custom_elements/geo_cr_beam_element_2D2N.hpp"
-#include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
-#include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/geo_curved_beam_element.hpp"
-#include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
+#include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
+#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
@@ -305,27 +305,39 @@ private:
     const TransientPwLineElement<2, 2> mTransientPwLineElement2D2N{
         0,
         Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow},
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<2, 3> mTransientPwLineElement2D3N{
         0,
         Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow},
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<2, 4> mTransientPwLineElement2D4N{
         0,
         Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow},
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<2, 5> mTransientPwLineElement2D5N{
         0,
         Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow},
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<3, 2> mTransientPwLineElement3D2N{
         0,
         Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow},
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientPwLineElement<3, 3> mTransientPwLineElement3D3N{
         0,
         Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow},
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
 
     const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
@@ -508,48 +520,62 @@ private:
     // small strain axisymmtric elements:
     const UPwSmallStrainElement<2, 3> mUPwSmallStrainAxisymmetricElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 4> mUPwSmallStrainAxisymmetricElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 6> mUPwSmallStrainAxisymmetricElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 8> mUPwSmallStrainAxisymmetricElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 9> mUPwSmallStrainAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 10> mUPwSmallStrainAxisymmetricElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainElement<2, 15> mUPwSmallStrainAxisymmetricElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     const UPwSmallStrainFICElement<2, 3> mUPwSmallStrainAxisymmetricFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwSmallStrainFICElement<2, 4> mUPwSmallStrainAxisymmetricFICElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     // interface elements
     const UPwSmallStrainInterfaceElement<2, 4> mUPwSmallStrainInterfaceElement2D4N{
@@ -658,60 +684,66 @@ private:
     // Updated-Lagrangian axisymmetric elements
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianAxisymmetricElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 4> mUPwUpdatedLagrangianAxisymmetricElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 6> mUPwUpdatedLagrangianAxisymmetricElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 8> mUPwUpdatedLagrangianAxisymmetricElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 9> mUPwUpdatedLagrangianAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 10> mUPwUpdatedLagrangianAxisymmetricElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianElement<2, 15> mUPwUpdatedLagrangianAxisymmetricElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     const UPwUpdatedLagrangianFICElement<2, 3> mUPwUpdatedLagrangianAxisymmetricFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UPwUpdatedLagrangianFICElement<2, 4> mUPwUpdatedLagrangianAxisymmetricFICElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<AxisymmetricStressState>()};
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
     // geo structural element
-    const GeoCrBeamElement2D2N mGeoCrBeamElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
-    const GeoCurvedBeamElement<2, 3> mGeoCurvedBeamElement2D3N{
-        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
 
     // transient one-phase temperature elements:
     const TransientThermalElement<2, 3> mTransientThermalElement2D3N{
@@ -740,17 +772,23 @@ private:
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27))};
 
     const TransientThermalElement<2, 2> mTransientThermalLineElement2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientThermalElement<2, 3> mTransientThermalLineElement2D3N{
-        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
+        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientThermalElement<2, 4> mTransientThermalLineElement2D4N{
-        0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4))};
+        0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientThermalElement<2, 5> mTransientThermalLineElement2D5N{
-        0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5))};
+        0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientThermalElement<3, 2> mTransientThermalLineElement3D2N{
-        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     const TransientThermalElement<3, 3> mTransientThermalLineElement3D3N{
-        0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
+        0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
 
     // conditions
     const UPwForceCondition<2, 1> mUPwForceCondition2D1N{
@@ -770,6 +808,10 @@ private:
         0, Kratos::make_shared<Triangle3D3<NodeType>>(Condition::GeometryType::PointsArrayType(3))};
     const UPwFaceLoadCondition<3, 4> mUPwFaceLoadCondition3D4N{
         0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
+    const UPwFaceLoadCondition<3, 6> mUPwFaceLoadCondition3D6N{
+        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6))};
+    const UPwFaceLoadCondition<3, 8> mUPwFaceLoadCondition3D8N{
+        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
 
     const UPwNormalFaceLoadCondition<2, 2> mUPwNormalFaceLoadCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
@@ -897,6 +939,10 @@ private:
         0, Kratos::make_shared<Triangle3D3<NodeType>>(Condition::GeometryType::PointsArrayType(3))};
     const UPwLysmerAbsorbingCondition<3, 4> mUPwLysmerAbsorbingCondition3D4N{
         0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
+    const UPwLysmerAbsorbingCondition<3, 6> mUPwLysmerAbsorbingCondition3D6N{
+        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6))};
+    const UPwLysmerAbsorbingCondition<3, 8> mUPwLysmerAbsorbingCondition3D8N{
+        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
 
     const GeoTNormalFluxCondition<2, 2> mGeoTNormalFluxCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
@@ -963,6 +1009,11 @@ private:
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
+
+    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
+    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
+
+    const InterfaceCoulombWithTensionCutOff mInterfaceCoulombWithTensionCutOff;
 
     ///@}
 

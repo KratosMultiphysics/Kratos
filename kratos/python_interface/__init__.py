@@ -167,24 +167,3 @@ def _ImportApplication(application, application_name):
 
 def IsDistributedRun():
     return KratosGlobals.Kernel.IsDistributedRun()
-
-
-# iterating through the parameters is deprecated
-# the following wraps the __iter__ method to issue a deprecation warning
-list_deprecation_warnings = []
-orig_iter = Parameters.__iter__
-import inspect
-def iter_wrapper(self):
-    # get information where the function is called
-    # this is necessary to issue the deprecation warning only
-    # once per call location
-    frame = inspect.stack()[1]
-    filename = frame.filename
-    line_number = frame.lineno
-    tup = (filename, line_number)
-    # issue deprecation warning only once, providing file name and line number
-    if tup not in list_deprecation_warnings:
-        list_deprecation_warnings.append(tup)
-        print(f'Deprecated method called in "{frame.filename}" in line {frame.lineno}: Iterating through "Parameters" object is deprecated, please use the "values" method instead')
-    return orig_iter(self)
-Parameters.__iter__ = iter_wrapper

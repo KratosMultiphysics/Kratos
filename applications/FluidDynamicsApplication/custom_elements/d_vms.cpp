@@ -562,9 +562,9 @@ void DVMS<TElementData>::AddMassLHS(
     }
 
     /* Note on OSS and full projection: Riccardo says that adding the terms provided by
-     * AddMassStabilization (and incluiding their corresponding terms in the projeciton)
+     * AddMassStabilization (and including their corresponding terms in the projection)
      * could help reduce the non-linearity of the coupling between projection and u,p
-     * However, leaving them on gives a lot of trouble whith the Bossak scheme:
+     * However, leaving them on gives a lot of trouble with the Bossak scheme:
      * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
      * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
      */

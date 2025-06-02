@@ -10,8 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_DEM_VARIABLES_H_INCLUDED )
-#define  KRATOS_DEM_VARIABLES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -163,5 +162,3 @@ namespace Kratos
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
-
-#endif // KRATOS_DEM_VARIABLES_H_INCLUDED  defined

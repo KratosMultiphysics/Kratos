@@ -110,7 +110,7 @@ namespace Kratos
 
         //Constructors.
 
-        /// Default constuctor.
+        /// Default constructor.
         /**
          * @param NewId Index number of the new element (optional)
          */
@@ -136,7 +136,7 @@ namespace Kratos
             Element(NewId, pGeometry)
         {}
 
-        /// Constuctor using geometry and properties.
+        /// Constructor using geometry and properties.
         /**
          * @param NewId Index of the new element
          * @param pGeometry Pointer to a geometry object
@@ -445,7 +445,7 @@ namespace Kratos
         void GetVelocityValues(Vector& rValues,
                                const int Step = 0) const ;
 
-        /// Determine integration point weights and shape funcition derivatives from the element's geometry.
+        /// Determine integration point weights and shape function derivatives from the element's geometry.
         virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
                                            Matrix& rNContainer,
                                            Vector& rGaussWeights);
@@ -477,7 +477,7 @@ namespace Kratos
         /**
          * @brief EquivalentStrainRate Calculate the second invariant of the strain rate tensor GammaDot = (2SijSij)^0.5.
          *
-         * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this funcition being
+         * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this function being
          * defined on all fluid elements.
          *
          * @param rDN_DX Shape function derivatives at the integration point.
@@ -488,7 +488,7 @@ namespace Kratos
 
         /// Add integration point contribution to the mass matrix.
         /**
-         * A constistent mass matrix is used.
+         * A consistent mass matrix is used.
          * @param rMassMatrix The local matrix where the result will be added.
          * @param rN Elemental shape functions.
          * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
@@ -562,7 +562,7 @@ namespace Kratos
                                         const double Weight);
 
 
-        /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
+        /// Write the convective operator evaluated at this point (for each nodal function) to an array
         /**
          * Evaluate the convective operator for each node's shape function at an arbitrary point
          * @param rResult Output vector
