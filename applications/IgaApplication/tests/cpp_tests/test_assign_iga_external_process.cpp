@@ -24,7 +24,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessTest, KratosIgaFastSuite)
 {
     
-    Model model;
+    Model model; 
     ModelPart& iga_model_part = model.CreateModelPart("IgaModelPart");
     
     iga_model_part.CreateNewProperties(0);
