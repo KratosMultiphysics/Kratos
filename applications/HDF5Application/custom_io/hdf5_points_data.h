@@ -37,6 +37,10 @@ namespace Internals
 ///@{
 
 /// A class representing points in a mesh.
+/**
+ * @tparam TContainerDataIO A IO class which have the ContainerType defined in public scope
+ *                          with SetValue, GetValue methods implemented.
+*/
 template<class TContainerDataIO>
 class PointsData
 {
