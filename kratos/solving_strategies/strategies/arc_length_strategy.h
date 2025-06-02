@@ -125,9 +125,9 @@ class ArcLengthStrategy
         if (ThisParameters["loads_sub_model_part_list"].size() > 0) {
             mSubModelPartList.resize(ThisParameters["loads_sub_model_part_list"].size());
             mVariableNames.resize(ThisParameters["loads_variable_list"].size());
-        
+
             KRATOS_ERROR_IF(mSubModelPartList.size() != mVariableNames.size()) << "For each SubModelPart there must be a corresponding nodal Variable" << std::endl;
-        
+
             const auto& r_sub_model_parts_names = ThisParameters["loads_sub_model_part_list"].GetStringArray();
             for (std::size_t i = 0; i < mVariableNames.size(); i++) {
                 mSubModelPartList[i] = &( r_model_part.GetSubModelPart(r_sub_model_parts_names[i]));
@@ -193,16 +193,20 @@ class ArcLengthStrategy
 
                 // Shaping correctly the system
                 this->mpBuilderAndSolver->SetUpSystem(r_model_part);
+
+                this->mpBuilderAndSolver->ResizeAndInitializeVectors(this->mpScheme, this->mpA, this->mpDx, this->mpb, r_model_part);
             }
 
             // Compute initial radius (mRadius_0)
-            this->mpBuilderAndSolver->ResizeAndInitializeVectors(this->mpScheme, this->mpA, this->mpDx, this->mpb, r_model_part);
             TSystemMatrixType& rA  = *(this->mpA);
             TSystemVectorType& rDx = *(this->mpDx);
             TSystemVectorType& rb  = *(this->mpb);
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
+
+            this->mpBuilderAndSolver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+            this->mpScheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
             this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, rA, rDx, rb);
 
@@ -228,7 +232,7 @@ class ArcLengthStrategy
 
             KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "Strategy Initialized" << std::endl;
         }
-    
+
         BaseType::InitializeSolutionStep();
         SaveInitializeSystemVector(mpf);
         InitializeSystemVector(mpDxf);
@@ -250,7 +254,7 @@ class ArcLengthStrategy
         ModelPart& r_model_part  = BaseType::GetModelPart();
 
         const std::size_t iteration_number = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
-    
+
         // Update the radius
         mRadius = mRadius * std::sqrt(double(mDesiredIterations) / double(iteration_number));
         if (mRadius > mMaxRadiusFactor*mRadius_0) {
@@ -269,6 +273,8 @@ class ArcLengthStrategy
      */
     bool SolveSolutionStep() override
     {
+        KRATOS_TRY
+
         KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
         KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
         mInsideIterationLoop = false;
@@ -300,6 +306,7 @@ class ArcLengthStrategy
 
         // Now we compute Dxf
         this->mpBuilderAndSolver->Build(this->mpScheme, r_model_part, r_A, r_b);
+        this->mpBuilderAndSolver->ApplyConstraints(this->mpScheme, r_model_part, r_A, r_b);
         this->mpBuilderAndSolver->ApplyDirichletConditions(this->mpScheme, r_model_part, r_A, r_Dx, r_b);
         TSparseSpace::Assign(r_b, 1.0, r_f);
         this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
@@ -340,8 +347,9 @@ class ArcLengthStrategy
             TSparseSpace::SetToZero(r_b);
             TSparseSpace::SetToZero(r_Dxf);
 
-            // We compute r_Dxf 
+            // We compute r_Dxf
             this->mpBuilderAndSolver->Build(this->mpScheme, r_model_part, r_A, r_b);
+            this->mpBuilderAndSolver->ApplyConstraints(this->mpScheme, r_model_part, r_A, r_b);
             this->mpBuilderAndSolver->ApplyDirichletConditions(this->mpScheme, r_model_part, r_A, r_Dxf, r_b);
             TSparseSpace::Assign(r_b, 1.0, r_f);
             this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
@@ -383,6 +391,8 @@ class ArcLengthStrategy
         if (BaseType::mCalculateReactionsFlag)
             this->mpBuilderAndSolver->CalculateReactions(this->mpScheme, r_model_part, r_A, r_Dx, r_b);
         return is_converged;
+
+        KRATOS_CATCH("")
     }
 
     /**
