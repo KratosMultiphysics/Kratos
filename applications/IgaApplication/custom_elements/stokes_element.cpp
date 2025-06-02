@@ -117,7 +117,7 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != num_dofs_per_node)
         rLeftHandSideMatrix.resize(num_dofs_per_node,num_dofs_per_node,false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points); //resetting LHS
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(num_dofs_per_node,num_dofs_per_node); //resetting LHS
     
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != num_dofs_per_node)
