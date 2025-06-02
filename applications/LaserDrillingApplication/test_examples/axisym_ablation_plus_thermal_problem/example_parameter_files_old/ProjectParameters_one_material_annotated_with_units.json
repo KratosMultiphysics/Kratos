@@ -1,0 +1,24 @@
+{
+    "properties" : [{
+        "model_part_name" : "ThermalModelPart.CNVDFFParts_piece",
+        "properties_id"   : 1,
+        "Material"        : {
+            "compute_optical_penetration_depth_using_refractive_index": false,
+            "compute_energy_per_unit_volume_threshold_using_enthalpy_and_ionization": false,
+            "Variables" : {
+                "DENSITY"       : 1.72E-06, // kg/mm3
+                "CONDUCTIVITY"  : 3.00E-04, // Thermal or electrical? Units?
+                "SPECIFIC_HEAT" : 1500.0, // J/(K kg)
+                "IONIZATION_ALPHA": 0.95, // What is this?
+                "PENETRATION_DEPTH": 0.0006, // What is this?
+                "ABLATION_THRESHOLD": 0.003, // What is this?
+                "THERMAL_DEPTH": 0.00025, // What is this?
+                "ENTHALPY": 4e5, // J
+                "OPTICAL_PENETRATION_DEPTH": 5e-4, // mm
+                "ENERGY_PER_VOLUME_THRESHOLD": 10.0, // J/mm3 q_asterisk in Woodfield
+                "REFRACTIVE_INDEX": 1.5
+            },
+            "Tables" : null
+        }
+    }]
+}
