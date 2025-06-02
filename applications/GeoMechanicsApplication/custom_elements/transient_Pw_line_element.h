@@ -413,47 +413,6 @@ public:
         return result;
     }
 
-    std::vector<Matrix> CalculateDeformationGradients() const
-    {
-        const auto number_of_integration_points =
-            this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-        std::vector<Matrix> result;
-        result.reserve(number_of_integration_points);
-        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
-             ++integration_point) {
-            result.push_back(CalculateDeformationGradient(integration_point));
-        }
-
-        return result;
-    }
-
-    Matrix CalculateDeformationGradient(unsigned int GPoint) const
-    {
-        KRATOS_TRY
-
-        // Calculation of derivative of shape function with respect to reference
-        // configuration derivative of shape function (displacement)
-        Matrix J0;
-        Matrix InvJ0;
-        Matrix DNu_DX0;
-        double detJ0;
-        this->CalculateDerivativesOnInitialConfiguration(detJ0, J0, InvJ0, DNu_DX0, GPoint);
-
-        // Calculating current Jacobian in order to find deformation gradient
-        Matrix J;
-        Matrix InvJ;
-        double detJ;
-        this->CalculateJacobianOnCurrentConfiguration(detJ, J, InvJ, GPoint);
-
-        KRATOS_ERROR_IF(detJ < 0.0)
-            << "ERROR:: Element " << this->Id() << " is inverted. DetJ: " << detJ << std::endl
-            << "This usually indicates that the deformations are too large for the mesh size." << std::endl;
-
-        return prod(J, InvJ0);
-
-        KRATOS_CATCH("")
-    }
-
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const
     {
         KRATOS_TRY
