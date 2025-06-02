@@ -74,23 +74,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             y1 = y0 - l * np.sin(theta_1 - theta_2)
 
             # incident_angle = theta_1
-
-            delta_temp = self.TemperatureVariationDueToLaser(y1, l)
-            old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-            new_temp = old_temp + delta_temp
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
-            node.SetSolutionStepValue(
-                KratosMultiphysics.TEMPERATURE, 1, new_temp
-            )  # TODO: why override the previous time step?
-
-            if y0 < 1e-8:
-                self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
-
-            # delta_pen = self.delta_pen
-            # F_p = self.F_p
-            # omega_0 = self.omega_0
-
-            # q_energy_per_volume = self.EnergyPerVolumeWoodfield(y1, l, delta_pen, F_p, omega_0) * np.cos(incident_angle)
             position = {"r": y1, "z": l}  # TODO: verify that r equals y1 and z equals l
             parameters = {
                 "gaussian_order": self.gaussian_order,
@@ -99,6 +82,24 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
                 "waist_radius": self.omega_0,
                 "optical_penetration_depth": self.delta_pen,
             }
+
+            delta_temp = self.TemperatureVariationDueToLaser(position, parameters)
+            old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            new_temp = old_temp + delta_temp
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
+            node.SetSolutionStepValue(
+                KratosMultiphysics.TEMPERATURE, 1, new_temp
+            )  # TODO: why override the previous time step?
+
+            # if y0 < 1e-8:
+            #     self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
+
+            # delta_pen = self.delta_pen
+            # F_p = self.F_p
+            # omega_0 = self.omega_0
+
+            # q_energy_per_volume = self.EnergyPerVolumeWoodfield(y1, l, delta_pen, F_p, omega_0) * np.cos(incident_angle)
+
             q_energy_per_volume = self.EnergyPerVolume(position, parameters)
 
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
@@ -148,8 +149,17 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             distance_to_surface = F(radius)
             z = node.X - distance_to_surface
 
+            position = {"r": radius, "z": z}
+            parameters = {
+                "gaussian_order": self.gaussian_order,
+                "delta_pen": self.delta_pen,
+                "peak_fluence": self.F_p,
+                "waist_radius": self.omega_0,
+                "optical_penetration_depth": self.delta_pen,
+            }
+
             # Apply the increase in temperature caused by the laser on each node
-            delta_temp = self.TemperatureVariationDueToLaser(radius, z)
+            delta_temp = self.TemperatureVariationDueToLaser(position, parameters)
             old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             new_temp = old_temp + delta_temp
 
@@ -166,14 +176,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             """
             # TODO: unused?
             # q_energy_per_volume = self.EnergyPerVolumeWoodfield(radius, z, delta_pen, F_p, omega_0)
-            position = {"r": radius, "z": z}
-            parameters = {
-                "gaussian_order": self.gaussian_order,
-                "delta_pen": self.delta_pen,
-                "peak_fluence": self.F_p,
-                "waist_radius": self.omega_0,
-                "optical_penetration_depth": self.delta_pen,
-            }
+
             q_energy_per_volume = self.EnergyPerVolume(position, parameters)
 
             node.SetValue(LaserDrillingApplication.THERMAL_ENERGY_PER_VOLUME, q_energy_per_volume)
@@ -196,7 +199,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             )
             elem.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume_elemental[0])
 
-    def TemperatureVariationDueToLaser(self, r, z):
+    def TemperatureVariationDueToLaser(self, position, parameters=None):
         """
         Computes the temperature increase caused by the laser in a specified position.
 
@@ -222,14 +225,14 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
         # q_energy_per_volume = self.EnergyPerVolumeWoodfield(radius, z, delta_pen, F_p, omega_0)
 
-        position = {"r": r, "z": z}  # TODO: verify that r equals y1 and z equals l
-        parameters = {
-            "gaussian_order": self.gaussian_order,
-            "delta_pen": self.delta_pen,
-            "peak_fluence": self.F_p,
-            "waist_radius": self.omega_0,
-            "optical_penetration_depth": self.delta_pen,
-        }
+        # position = {"r": r, "z": z}  # TODO: verify that r equals y1 and z equals l
+        # parameters = {
+        #     "gaussian_order": self.gaussian_order,
+        #     "delta_pen": self.delta_pen,
+        #     "peak_fluence": self.F_p,
+        #     "waist_radius": self.omega_0,
+        #     "optical_penetration_depth": self.delta_pen,
+        # }
         q_energy_per_volume = self.EnergyPerVolume(position, parameters)
         delta_temp = q_energy_per_volume / (self.rho * self.cp)
 
@@ -267,13 +270,13 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
         if "gaussian_order" not in parameters:
             Logger.PrintWarning("FluenceSuperGaussian", "KeyError: gaussian_order is not in the parameters dict")
-            raise KeyError
+            raise KeyError("FluenceSuperGaussian - KeyError: gaussian_order is not in the parameters dict")
         if "peak_fluence" not in parameters:
             Logger.PrintWarning("FluenceSuperGaussian", "KeyError: peak_fluence is not in the parameters dict")
-            raise KeyError
+            raise KeyError("FluenceSuperGaussian - KeyError: peak_fluence is not in the parameters dict")
         if "waist_radius" not in parameters:
             Logger.PrintWarning("FluenceSuperGaussian", "KeyError: waist_radius is not in the parameters dict")
-            raise KeyError
+            raise KeyError("FluenceSuperGaussian - KeyError: waist_radius is not in the parameters dict")
 
         if parameters["gaussian_order"] is None:
             raise ValueError("gaussian_order can't be None")
@@ -287,10 +290,10 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
         if n % 2 != 0:
             Logger.PrintWarning(
-                "Warning",
+                "Error",
                 "The gaussian order needs to be an even nonnegative integer",
             )
-            raise ValueError
+            raise ValueError("The gaussian order needs to be an even nonnegative integer")
 
         fluence = F_p * np.exp(-2.0 * (r / omega_0) ** n)
 
@@ -368,10 +371,12 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             Logger.PrintWarning("Error", "No function assigned to axial_energy_distribution")
             raise ValueError
         try:
-            axial_energy_distribution = self.axial_energy_distribution_function(position, parameters)
-            return axial_energy_distribution
+            axial_energy_distribution_factor = self.axial_energy_distribution_function(position, parameters)
+            return axial_energy_distribution_factor
         except TypeError as e:
-            Logger.PrintWarning("Error", "Incorrect arguments for '{f.__name__}': {e}")
+            Logger.PrintWarning(
+                "Error", f"Incorrect arguments for '{self.axial_energy_distribution_function.__name__}': {e}"
+            )
             raise TypeError
 
     def AxialDistributionBeerLambert(self, position, parameters):
@@ -397,13 +402,15 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
 
         if "z" not in position:
             Logger.PrintWarning("AxialDistributionBeerLambert", "KeyError: z is not in the position dict")
-            raise KeyError
+            raise KeyError("AxialDistributionBeerLambert - KeyError: z is not in the position dict")
 
         if "optical_penetration_depth" not in parameters:
             Logger.PrintWarning(
                 "AxialDistributionBeerLambert", "KeyError: optical_penetration_depth is not in the parameters dict"
             )
-            raise KeyError
+            raise KeyError(
+                "AxialDistributionBeerLambert - KeyError: optical_penetration_depth is not in the parameters dict"
+            )
 
         z = position["z"]
         delta_pen = parameters["optical_penetration_depth"]
