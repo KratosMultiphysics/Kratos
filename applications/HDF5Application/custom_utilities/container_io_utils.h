@@ -447,7 +447,7 @@ public:
         const IndexType Id,
         const array_1d<double, 3>& rCoordinates) const
     {
-        KRATOS_ERROR << "Reading vertices are not allowed.";
+        KRATOS_ERROR << "Reading vertices is not allowed.";
     }
 
     ///@}
