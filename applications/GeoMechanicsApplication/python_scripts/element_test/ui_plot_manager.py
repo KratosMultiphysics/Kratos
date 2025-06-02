@@ -16,7 +16,7 @@ def render_plots(figs, axes, canvas):
         x, y = _plot_traces(fig, ax)
 
         _configure_axis_labels(ax, x_label, y_label)
-        _configure_plot_layout(ax, i, x, y)
+        _configure_plot_layout(fig, ax, i, x, y)
 
     canvas.draw()
     canvas.get_tk_widget().config(width=2, height=7)
@@ -44,13 +44,17 @@ def _configure_axis_labels(ax, x_label, y_label):
     ax.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
 
 
-def _configure_plot_layout(ax, index, x, y):
+def _configure_plot_layout(fig, ax, index, x, y):
     ax.set_title(_get_title(index))
     ax.invert_xaxis()
 
-    if index in [1, 2, 4]:
+    if index in [1, 2]:
         ax.invert_yaxis()
         ax.set_ylim(0, np.min(y) * 1.2)
+    elif index in [4]:
+        axis_name = fig.layout['yaxis']
+        yaxis_obj = axis_name.range
+        ax.set_ylim(yaxis_obj[0], yaxis_obj[1])
     else:
         ax.set_ylim(0, np.max(y) * 1.2)
 

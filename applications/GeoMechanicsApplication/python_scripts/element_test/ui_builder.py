@@ -65,7 +65,7 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
             log_message(f"Input error: {error}", "error")
             return None
 
-    def run_simulation(entry_widgets, triaxial_widgets, model_var):
+    def run_simulation(entry_widgets, triaxial_widgets, model_var, mohr_checkbox, cohesion_var, phi_var):
         clear_log()
         log_message("Starting triaxial calculation...", "info")
         log_message("Validating input...", "info")
@@ -79,10 +79,18 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
         log_message("Calculating...", "info")
         root.update_idletasks()
 
+        if mohr_checkbox.get():
+            c_idx = int(cohesion_var.get())
+            phi_idx = int(phi_var.get())
+            cohesion_phi_indices = (c_idx, phi_idx)
+        else:
+            cohesion_phi_indices = None
+
         try:
             if dll_path:
                 index = model_dict["model_name"].index(model_var.get()) + 1
-                figs = run_triaxial_simulation(dll_path, index, umat_params, n_steps, duration, eps_max, sigma_init)
+                figs = run_triaxial_simulation(dll_path, index, umat_params, n_steps, duration, eps_max, sigma_init,
+                                               cohesion_phi_indices=cohesion_phi_indices)
             else:
                 figs = run_triaxial_simulation(
                     dll_path="",
@@ -91,7 +99,8 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
                     num_steps=n_steps,
                     end_time=duration,
                     maximum_strain=eps_max,
-                    initial_effective_cell_pressure=sigma_init
+                    initial_effective_cell_pressure=sigma_init,
+                    cohesion_phi_indices=cohesion_phi_indices
                 )
             render_plots(figs, axes, canvas)
             log_message("Simulation completed successfully.", "info")
@@ -123,7 +132,35 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
         triaxial_widgets = create_triaxial_fields(param_frame)
 
         ttk.Button(button_frame, text="Run Calculation",
-                   command=lambda: run_simulation(entry_widgets, triaxial_widgets, model_var)).pack(pady=5)
+                   command=lambda: run_simulation(entry_widgets, triaxial_widgets, model_var, mohr_checkbox,
+                                                  cohesion_var, phi_var)).pack(pady=5)
+
+        mohr_checkbox = tk.BooleanVar()
+        cohesion_var = tk.StringVar(value="3")
+        phi_var = tk.StringVar(value="4")
+
+        def toggle_mohr_options():
+            if mohr_checkbox.get():
+                c_label.pack()
+                c_dropdown.pack()
+                phi_label.pack()
+                phi_dropdown.pack()
+            else:
+                c_label.pack_forget()
+                c_dropdown.pack_forget()
+                phi_label.pack_forget()
+                phi_dropdown.pack_forget()
+
+        ttk.Checkbutton(param_frame, text="Mohr-Coulomb Model", variable=mohr_checkbox,
+                        command=toggle_mohr_options).pack(anchor="w", padx=10, pady=(10, 5))
+
+        c_label = ttk.Label(param_frame, text="Cohesion Index (1-based)")
+        c_dropdown = ttk.Combobox(param_frame, textvariable=cohesion_var,
+                                  values=[str(i+1) for i in range(len(params))], state="readonly")
+
+        phi_label = ttk.Label(param_frame, text="Friction Angle Index (1-based)")
+        phi_dropdown = ttk.Combobox(param_frame, textvariable=phi_var,
+                                    values=[str(i+1) for i in range(len(params))], state="readonly")
 
 
     model_var = tk.StringVar(root)

@@ -10,7 +10,8 @@ from triaxial import TriaxialTest, TriaxialTestRunner
 
 from triaxial_plots import plot_delta_sigma, plot_volumetric_strain, plot_sigma, plot_p_q, plot_mohr_coulomb_circle
 
-def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_time, maximum_strain, initial_effective_cell_pressure):
+def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_time, maximum_strain, initial_effective_cell_pressure,
+                            cohesion_phi_indices=None):
     tmp_folder = tempfile.mkdtemp(prefix="triaxial_")
 
     src_dir = 'test_triaxial'
@@ -28,6 +29,7 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
     mdpa_path = os.path.join(tmp_folder, "triaxial.mdpa")
 
     material_editor = MaterialEditor(json_file_path)
+
     if dll_path:
         material_editor._update_material_properties({
             "IS_FORTRAN_UDSM": True,
@@ -57,6 +59,17 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
     runner = TriaxialTestRunner(output_files, tmp_folder)
     reshaped_values_by_time, vertical_strain, volumetric_strain, von_mise_stress, mean_effective_stresses = runner.run()
 
+    cohesion = None
+    friction_angle = None
+
+    if cohesion_phi_indices:
+        c_idx, phi_idx = cohesion_phi_indices
+        cohesion = float(umat_parameters[c_idx - 1])
+        friction_angle = float(umat_parameters[phi_idx - 1])
+    else:
+        cohesion = None
+        friction_angle = None
+
     sigma1_list = []
     sigma3_list = []
     eigenvector_list = []
@@ -73,13 +86,11 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
 
     sigma_diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
 
-    cohesion, friction_angle = TriaxialTest(json_file_path).read_umat_parameters()
-
     figs = [
         plot_delta_sigma(vertical_strain, sigma_diff),
         plot_volumetric_strain(vertical_strain, volumetric_strain),
         plot_sigma(sigma1_list, sigma3_list),
         plot_p_q(mean_effective_stresses, von_mise_stress),
-        plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1], cohesion, friction_angle),
+        plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1], cohesion=cohesion, friction_angle=friction_angle),
     ]
     return figs

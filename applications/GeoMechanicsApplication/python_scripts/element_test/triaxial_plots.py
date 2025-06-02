@@ -154,16 +154,12 @@ def plot_volumetric_strain(vertical_strain, volumetric_strain):
     )
     return fig
 
-def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
+def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion=None, friction_angle=None):
     center = (sigma_1 + sigma_3) / 2
     radius = (sigma_1 - sigma_3) / 2
     theta = np.linspace(0, np.pi, 200)
     sigma = center + radius * np.cos(theta)
     tau = radius * np.sin(theta)
-
-    phi_rad = np.radians(friction_angle)
-    x_line = np.linspace(0, sigma_1, 200)
-    y_line = x_line * np.tan(phi_rad) - cohesion
 
     fig = go.Figure()
 
@@ -175,13 +171,17 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
         line=dict(color='blue', width=2)
     ))
 
-    fig.add_trace(go.Scatter(
-        x=x_line,
-        y=y_line,
-        mode='lines',
-        name="Mobilized Shear Stress = σ' * tan(ϕ°) + c",
-        line=dict(color='red', width=2, dash='dash')
-    ))
+    if cohesion is not None and friction_angle is not None:
+        phi_rad = np.radians(friction_angle)
+        x_line = np.linspace(0, sigma_1, 200)
+        y_line = x_line * np.tan(phi_rad) - cohesion
+        fig.add_trace(go.Scatter(
+            x=x_line,
+            y=y_line,
+            mode='lines',
+            name="Mobilized Shear Stress = σ' * tan(ϕ°) + c",
+            line=dict(color='red', width=2, dash='dash')
+        ))
 
     fig.update_layout(
         title=dict(
@@ -200,7 +200,7 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
             tickcolor='black',
             ticklen=5,
             mirror=True,
-            autorange='reversed'
+            autorange=True
         ),
         yaxis=dict(
             title="τ (Mobilized Shear Stress) [kN/m²]",
@@ -212,7 +212,8 @@ def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion, friction_angle):
             tickcolor='black',
             ticklen=5,
             mirror=True,
-            autorange='reversed'
+            autorange=False,
+            range=[0, -2*np.max(np.abs(tau))]
         ),
         template='plotly_white',
         xaxis_scaleanchor="y"
