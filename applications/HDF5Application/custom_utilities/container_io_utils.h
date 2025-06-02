@@ -419,7 +419,7 @@ public:
     ///@}
 };
 
-class VerticesIO
+class VertexIO
 {
 public:
     ///@name Type definitions

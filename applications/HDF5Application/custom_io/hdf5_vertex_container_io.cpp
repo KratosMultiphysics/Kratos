@@ -55,7 +55,7 @@ void VertexContainerCoordinateIO::Write(
     const Detail::VertexContainerType& rVertices,
     Parameters Attributes)
 {
-    BaseType::Write(rVertices, Internals::VerticesIO{}, Attributes);
+    BaseType::Write(rVertices, Internals::VertexIO{}, Attributes);
 }
 
 template<class TVertexDataIOType>
