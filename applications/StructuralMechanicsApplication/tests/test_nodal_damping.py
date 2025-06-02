@@ -73,9 +73,6 @@ class NodalDampingTests(KratosUnittest.TestCase):
     def test_nodal_damping(self):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("sdof")
-        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        mp.CreateNewProperties(1)
-        
         self._add_variables(mp)
 
         # Create node
@@ -114,9 +111,6 @@ class NodalDampingTests(KratosUnittest.TestCase):
     def test_nodal_damping_explicit(self):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("sdof")
-        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        mp.CreateNewProperties(1)
-
         self._add_variables(mp,explicit_dynamics=True)
 
         # Create node
@@ -174,12 +168,10 @@ def _set_dirichlet_bc(node,init_displacement,init_velocity):
     node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,init_displacement)
 
 def _create_element(mp,mass,stiffness,damping):
-    prop = mp.GetProperties()[1]
-    element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], prop)
+    element = mp.CreateNewElement("NodalConcentratedDampedElement3D1N", 1, [1], None)
     element.SetValue(KratosMultiphysics.NODAL_MASS,mass)
     element.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[0,stiffness,0])
     element.SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0,damping,0])
-    element.Initialize(mp.ProcessInfo)
 
 def _return_parameters_analytical_solution(stiffness,mass,damping,init_displacement,init_velocity):
     omega = sqrt(stiffness/mass)
