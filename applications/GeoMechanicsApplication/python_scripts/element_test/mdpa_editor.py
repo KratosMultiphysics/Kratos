@@ -29,11 +29,10 @@ class MdpaEditor:
         replacer = self._replacer_factory(prescribed_displacement)
         new_text, count = re.subn(pattern, replacer, self.raw_text)
         if count == 0:
-            log_message(f"Could not update maximum strain.", "Warning")
+            log_message("Could not update maximum strain.", "Warning")
         else:
             self.raw_text = new_text
         MdpaEditor.save(self)
-        # messagebox.showinfo("Success", f"'$maximum_strain' replaced with {prescribed_displacement}")
 
     def update_initial_effective_cell_pressure(self, initial_effective_cell_pressure):
         pattern = r'(\s*)\$initial_effective_cell_pressure\b'
@@ -41,11 +40,10 @@ class MdpaEditor:
         replacer = self._replacer_factory(initial_effective_cell_pressure)
         new_text, count = re.subn(pattern, replacer, self.raw_text)
         if count == 0:
-            log_message(f"Could not update initial effective cell pressure.", "Warning")
+            log_message("Could not update initial effective cell pressure.", "Warning")
         else:
             self.raw_text = new_text
         MdpaEditor.save(self)
-        #     messagebox.showinfo("Success", f"'$initial_effective_cell_pressure' replaced with {initial_effective_cell_pressure}")
 
     def update_first_timestep(self, num_steps):
         first_timestep = 1.0 / num_steps
@@ -54,11 +52,10 @@ class MdpaEditor:
         replacer = self._replacer_factory(first_timestep)
         new_text, count = re.subn(pattern, replacer, self.raw_text)
         if count == 0:
-            messagebox.showwarning("Warning", "Could not find '$first_timestep' to update.")
+            log_message("Could not apply the first time step.", "Warning")
         else:
             self.raw_text = new_text
         MdpaEditor.save(self)
-        #     messagebox.showinfo("Success", f"'$first_timestep' replaced with {first_timestep}")
 
     def update_end_time(self, end_time):
         pattern = r'\$end_time\b'
@@ -67,10 +64,9 @@ class MdpaEditor:
         new_text, count = re.subn(pattern, replacement, self.raw_text)
 
         if count == 0:
-            messagebox.showwarning("Warning", "Could not find '$end_time' to update.")
+            log_message("Could not update the end time.", "Warning")
         else:
             self.raw_text = new_text
         MdpaEditor.save(self)
-            # messagebox.showinfo("Success", f"'$end_time' replaced with {end_time}")
 
 

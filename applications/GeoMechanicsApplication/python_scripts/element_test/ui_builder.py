@@ -105,7 +105,7 @@ def build_ui_from_model(root, parent_frame, dll_path, model_dict):
             render_plots(figs, axes, canvas)
             log_message("Simulation completed successfully.", "info")
 
-        except Exception as e:
+        except Exception:
             traceback_str = traceback.format_exc()
             log_message("An error occurred during simulation:", "error")
             log_message(traceback_str, "error")
