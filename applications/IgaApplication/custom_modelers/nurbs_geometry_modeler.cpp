@@ -105,17 +105,8 @@ namespace Kratos
     ///@}
     ///@name Private Operations
     ///@{
-    void NurbsGeometryModeler::CreateAndAddRegularGrid2D( 
-        ModelPart& r_model_part, 
-        const Point& A_xyz, 
-        const Point& B_xyz,
-        const Point& A_uvw, 
-        const Point& B_uvw, 
-        SizeType OrderU, 
-        SizeType OrderV,
-        SizeType NumKnotSpansU,
-        SizeType NumKnotSpansV,
-        bool AddSurfaceToModelPart)
+    void NurbsGeometryModeler::CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
+        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool AddSurfaceToModelPart)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
@@ -259,19 +250,8 @@ namespace Kratos
     }
 
 
-    void NurbsGeometryModeler::CreateAndAddRegularGrid3D( 
-        ModelPart& r_model_part,
-        const Point& A_xyz,
-        const Point& B_xyz,
-        const Point& A_uvw,
-        const Point& B_uvw,
-        SizeType OrderU,
-        SizeType OrderV,
-        SizeType OrderW,
-        SizeType NumKnotSpansU,
-        SizeType NumKnotSpansV,
-        SizeType NumKnotSpansW,
-        bool AddVolumeToModelPart)
+    void NurbsGeometryModeler::CreateAndAddRegularGrid3D(ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+        SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW, bool AddVolumeToModelPart)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() || B_xyz.Z() <= A_xyz.Z() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;

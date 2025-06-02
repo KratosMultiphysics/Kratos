@@ -156,35 +156,20 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
              
     // Create the Domain/Iga Model Part
     const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
-    ModelPart& iga_model_part = mpModel->HasModelPart(iga_model_part_name)
+    ModelPart& r_iga_model_part = mpModel->HasModelPart(iga_model_part_name)
                                 ? mpModel->GetModelPart(iga_model_part_name)
                                 : mpModel->CreateModelPart(iga_model_part_name);
 
     // Create the True Model Part -> contains all the true boundary features
-    std::string skin_model_part_inner_initial_name = "SkinModelPartInnerInitial";
-    std::string skin_model_part_outer_initial_name = "SkinModelPartOuterInitial";
     std::string skin_model_part_name;
-    if (mParameters.Has("skin_model_part_inner_initial_name")) {
-        skin_model_part_inner_initial_name = mParameters["skin_model_part_inner_initial_name"].GetString();
+    std::string skin_model_part_inner_initial_name = mParameters["skin_model_part_inner_initial_name"].GetString();
+    std::string skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
 
-        KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_inner_initial_name)) 
-                     << "The skin_model_part '" << skin_model_part_inner_initial_name << "' was not created in the model.\n" 
-                     << "Check the reading of the mdpa file in the import mdpa modeler."<< std::endl;
-    }
-    if (mParameters.Has("skin_model_part_outer_initial_name")) {
-        skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
+    // Create the surrogate sub model parts inner and outer
+    ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");
+    ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");
 
-        KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(skin_model_part_outer_initial_name)) 
-                     << "The skin_model_part '" << skin_model_part_outer_initial_name << "' was not created in the model.\n" 
-                     << "Check the reading of the mdpa file in the import mdpa modeler."<< std::endl;
-    }
-
-    // Create the surrogate sub model parts inner and outer 
-    // TO DO: When CreateSurrogateBoundary with Volume is implemented
-    // ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
-    // ModelPart& surrogate_sub_model_part_outer = iga_model_part.CreateSubModelPart("surrogate_outer");
-
-    // If there is not neither skin_inner nor skin_outer throw an error since you are using the sbm modeler
+    // If there is not neither skin_inner nor skin_outer throw a warning since you are using the sbm modeler
     if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
         
         // Create the breps for the outer sbm boundary
@@ -239,9 +224,9 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
     }
 
     // Set the value of the knot vectors
-    iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
-    iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
-    iga_model_part.SetValue(KNOT_VECTOR_W, unique_knot_vector_w);
+    r_iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
+    r_iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
+    r_iga_model_part.SetValue(KNOT_VECTOR_W, unique_knot_vector_w);
 
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
