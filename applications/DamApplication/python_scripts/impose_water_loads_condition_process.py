@@ -35,10 +35,10 @@ class ImposeWaterLoadsConditionProcess(KratosMultiphysics.Process):
 
             self.components_process_list.append(KratosDam.DamWestergaardConditionLoadProcess(model_part, settings))
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
 
         for component in self.components_process_list:
-            component.ExecuteInitialize()
+            component.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
 

@@ -24,19 +24,18 @@ class StrategyWrapper
 public:
     virtual ~StrategyWrapper() = default;
 
-    [[nodiscard]] virtual std::size_t GetNumberOfIterations() const                 = 0;
-    [[nodiscard]] virtual double      GetEndTime() const                            = 0;
-    virtual void                      SetEndTime(double EndTime)                    = 0;
-    [[nodiscard]] virtual double      GetTimeIncrement() const                      = 0;
-    virtual void                      SetTimeIncrement(double TimeIncrement)        = 0;
-    [[nodiscard]] virtual std::size_t GetStepNumber() const                         = 0;
-    virtual void                      IncrementStepNumber()                         = 0;
-    virtual void                      CloneTimeStep()                               = 0;
-    virtual void                      RestorePositionsAndDOFVectorToStartOfStep()   = 0;
-    virtual void                      SaveTotalDisplacementFieldAtStartOfTimeLoop() = 0;
-    virtual void                      AccumulateTotalDisplacementField()            = 0;
-    virtual void                      ComputeIncrementalDisplacementField()         = 0;
-    virtual void                      OutputProcess()                               = 0;
+    [[nodiscard]] virtual std::size_t GetNumberOfIterations() const               = 0;
+    [[nodiscard]] virtual double      GetEndTime() const                          = 0;
+    virtual void                      SetEndTime(double EndTime)                  = 0;
+    [[nodiscard]] virtual double      GetTimeIncrement() const                    = 0;
+    virtual void                      SetTimeIncrement(double TimeIncrement)      = 0;
+    [[nodiscard]] virtual std::size_t GetStepNumber() const                       = 0;
+    virtual void                      IncrementStepNumber()                       = 0;
+    virtual void                      CloneTimeStep()                             = 0;
+    virtual void                      RestorePositionsAndDOFVectorToStartOfStep() = 0;
+    virtual void                      AccumulateTotalDisplacementField()          = 0;
+    virtual void                      ComputeIncrementalDisplacementField()       = 0;
+    virtual void                      OutputProcess()                             = 0;
 
     virtual void                               Initialize()             = 0;
     virtual void                               InitializeOutput()       = 0;
