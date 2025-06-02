@@ -2,6 +2,10 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
+
+
 import csv, os
 
 try:
@@ -13,24 +17,25 @@ except ImportError:
 class TestNLOPTOptimizer(kratos_unittest.TestCase):
     def test_MMA_optimizer(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
-            with open("optimization_parameters.json", "r") as file_input:
-                parameters = Kratos.Parameters(file_input.read())
-            model = Kratos.Model()
-            analysis = OptimizationAnalysis(model, parameters)
-            analysis.Run()
-            optimization_log_filename = "summary.csv"
-            # Testing
-            with open(optimization_log_filename, 'r') as csvfile:
-                reader = csv.reader(csvfile, delimiter=',')
-                last_line = None
-                for i, row in enumerate(reader):
-                    if i == 13:
-                        last_line = row
+                with open("optimization_parameters.json", "r") as file_input:
+                    parameters = Kratos.Parameters(file_input.read())
 
-                resulting_mass = float(last_line[1].strip())
-                self.assertAlmostEqual(resulting_mass, 542.0733237,2)
+                model = Kratos.Model()
+                analysis = OptimizationAnalysis(model, parameters)
+                analysis.Run()
 
-            os.remove(optimization_log_filename)
+                CompareTwoFilesCheckProcess(Kratos.Parameters("""
+                {
+                    "reference_file_name"   : "summary_orig.csv",
+                    "output_file_name"      : "summary.csv",
+                    "remove_output_file"    : true,
+                    "comparison_type"       : "deterministic"
+                }""")).Execute()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            DeleteFileIfExisting("Structure.time")
 
 if __name__ == "__main__":
     kratos_unittest.main()

@@ -55,7 +55,7 @@ public:
 
     CoordinatesArrayType& Coordinates() const override
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(mpGeom) << "Members are not intitialized!" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpGeom) << "Members are not initialized!" << std::endl;
         // return mpGeom->Center(); // check why not compiling...
         KRATOS_ERROR << "not implemented, needs checking" << std::endl;
     }

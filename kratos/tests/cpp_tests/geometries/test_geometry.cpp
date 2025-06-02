@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:     BSD License
+//               Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //                   Vicente Mataix Ferrandiz
@@ -60,6 +60,8 @@ namespace Testing {
           return "GI_EXTENDED_GAUSS_4";
         case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 :
           return "GI_EXTENDED_GAUSS_5";
+        case GeometryData::IntegrationMethod::GI_LOBATTO_1 :
+          return "GI_LOBATTO_1";
         case GeometryData::IntegrationMethod::NumberOfIntegrationMethods :
           return "NumberOfIntegrationMethods";
       };

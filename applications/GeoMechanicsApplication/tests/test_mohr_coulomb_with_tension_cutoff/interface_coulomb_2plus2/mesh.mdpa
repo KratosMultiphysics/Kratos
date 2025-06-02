@@ -1,0 +1,77 @@
+Begin Table 1 TIME X_DISPLACEMENT
+  0.0  0.0
+  2.0  0.0
+  4.0  -0.1
+End Table
+
+Begin Table 2 TIME NORMAL_LOAD
+  0.0  0.0
+  2.0  600.0
+  4.0  600.0
+End Table
+
+Begin Properties 1
+End Properties
+
+
+Begin Nodes
+  1  2.0000000000 0.0000000000 0.0000000000
+  2  3.0000000000 0.0000000000 0.0000000000
+ 11  2.0000000000 0.0000000000 0.0000000000
+ 12  3.0000000000 0.0000000000 0.0000000000
+End Nodes
+
+
+Begin Elements Geo_ULineInterfacePlaneStrainElement2Plus2N
+  1  1   1   2  11  12
+End Elements
+
+Begin Conditions UPwNormalFaceLoadCondition2D2N
+  1  1   12   11
+End Conditions
+
+
+Begin SubModelPart Interfaces
+  Begin SubModelPartNodes
+      1
+      2
+     11
+     12
+  End SubModelPartNodes
+  Begin SubModelPartElements
+      1
+  End SubModelPartElements
+End SubModelPart
+
+
+Begin SubModelPart FixedNodes
+  Begin SubModelPartNodes
+      1
+      2
+  End SubModelPartNodes
+End SubModelPart
+
+
+Begin SubModelPart LoadedSide
+  Begin SubModelPartNodes
+     11
+     12
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+     1
+  End SubModelPartConditions
+  Begin SubModelPartTables
+    1
+    2
+  End SubModelPartTables  
+End SubModelPart
+
+
+Begin SubModelPart AllNodes
+  Begin SubModelPartNodes
+      1
+      2
+     11
+     12
+  End SubModelPartNodes
+End SubModelPart

@@ -12,6 +12,8 @@
 
 #include "element_utilities.hpp"
 
+#include <cstddef>
+
 namespace Kratos
 {
 
@@ -29,11 +31,41 @@ void GeoElementUtilities::FillArray1dOutput(array_1d<double, 3>& rOutputValue, c
     rOutputValue[2] = ComputedValue[2];
 }
 
+int GeoElementUtilities::CheckPropertyExistsAndIsNotNegative(const Variable<double>& rVariable,
+                                                             const Element::PropertiesType& rProp)
+{
+    KRATOS_ERROR_IF_NOT(rProp.Has(rVariable))
+        << rVariable.Name() << " does not exist in the properties with Id: " << rProp.Id() << std::endl;
+    KRATOS_ERROR_IF(rProp[rVariable] < 0.0)
+        << rVariable.Name() << " has an invalid negative value (" << rProp[rVariable]
+        << ") in the properties with Id: " << rProp.Id() << std::endl;
+    return 0;
+}
+
+void GeoElementUtilities::CheckPermeabilityProperties(const Element::PropertiesType& rProp, size_t Dimension)
+{
+    CheckPropertyExistsAndIsNotNegative(PERMEABILITY_XX, rProp);
+    if (Dimension > 1) {
+        CheckPropertyExistsAndIsNotNegative(PERMEABILITY_YY, rProp);
+        CheckPropertyExistsAndIsNotNegative(PERMEABILITY_XY, rProp);
+    }
+    if (Dimension > 2) {
+        CheckPropertyExistsAndIsNotNegative(PERMEABILITY_ZZ, rProp);
+        CheckPropertyExistsAndIsNotNegative(PERMEABILITY_YZ, rProp);
+        CheckPropertyExistsAndIsNotNegative(PERMEABILITY_ZX, rProp);
+    }
+}
+
 void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                                  const Element::PropertiesType& Prop)
 {
     // 1D
-    rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
+    if (Prop[RETENTION_LAW] == "PressureFilterLaw") {
+        const double equivalent_radius_square = Prop[CROSS_AREA] / Globals::Pi;
+        rPermeabilityMatrix(0, 0)             = equivalent_radius_square * 0.125;
+    } else {
+        rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
+    }
 }
 
 void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
@@ -63,6 +95,29 @@ void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   
 
     rPermeabilityMatrix(2, 0) = Prop[PERMEABILITY_ZX];
     rPermeabilityMatrix(0, 2) = rPermeabilityMatrix(2, 0);
+}
+
+Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension)
+{
+    switch (Dimension) {
+    case 1: {
+        BoundedMatrix<double, 1, 1> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
+    }
+    case 2: {
+        BoundedMatrix<double, 2, 2> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
+    }
+    case 3: {
+        BoundedMatrix<double, 3, 3> result;
+        FillPermeabilityMatrix(result, Prop);
+        return result;
+    }
+    default:
+        KRATOS_ERROR << "Dimension " << Dimension << " is not supported" << std::endl;
+    }
 }
 
 void GeoElementUtilities::InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
@@ -470,6 +525,7 @@ std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoin
     };
 
     auto result = std::vector<Vector>{};
+    result.reserve(rIntegrationPoints.size());
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
                    evaluate_shape_function_values);
 

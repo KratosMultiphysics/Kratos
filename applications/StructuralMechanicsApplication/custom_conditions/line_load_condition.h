@@ -60,7 +60,7 @@ public:
     /// We define the base class BaseLoadCondition
     typedef BaseLoadCondition BaseType;
 
-    /// Dfinition of the index type
+    /// Definition of the index type
     typedef BaseType::IndexType IndexType;
 
     /// Definition of the size type

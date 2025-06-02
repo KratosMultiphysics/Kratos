@@ -62,7 +62,7 @@ namespace Kratos
 /**
  * @todo Rewrite this documentation
  * This class implements a stabilized formulation based on the
- * Variational Multiscale framework. The the subscales can be modeled
+ * Variational Multiscale framework. The subscales can be modeled
  * using either Algebraic Subgird Scales (ASGS) or Orthogonal Subscales (OSS).
  * In the case of OSS, the projection terms are treated explicitly (computed
  * using the results of the previous iteration) and the subscales are not
@@ -146,7 +146,7 @@ public:
      */
     DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, const GeometryData::IntegrationMethod ThisIntegrationMethod);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -199,7 +199,7 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
 
-    /// Initialize containters for subscales on integration points.
+    /// Initialize containers for subscales on integration points.
     void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
@@ -211,7 +211,7 @@ public:
 
     /// Calculate a new value for the velocity subscale.
     /**
-     * @param rCurrentProcessInfo ProcessInfo instance containig the time step as DELTA_TIME
+     * @param rCurrentProcessInfo ProcessInfo instance containing the time step as DELTA_TIME
      */
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 

@@ -46,7 +46,7 @@ class DamNodalYoungModulusProcess : public Process
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                         : false,
+                "constrained"                                      : false,
                 "Young_Modulus_1"                                  : 10.0,
                 "Young_Modulus_2"                                  : 60.0,
                 "Young_Modulus_3"                                  : 50.0,
@@ -63,11 +63,11 @@ class DamNodalYoungModulusProcess : public Process
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["is_fixed"].GetBool();
+        mIsFixed = rParameters["constrained"].GetBool();
         mYoung1 = rParameters["Young_Modulus_1"].GetDouble();
         mYoung2 = rParameters["Young_Modulus_2"].GetDouble();
         mYoung3 = rParameters["Young_Modulus_3"].GetDouble();
@@ -89,7 +89,7 @@ class DamNodalYoungModulusProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
 
         KRATOS_TRY;

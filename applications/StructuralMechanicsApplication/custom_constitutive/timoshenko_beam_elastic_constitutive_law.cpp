@@ -68,6 +68,12 @@ int TimoshenkoBeamElasticConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))       << "CROSS_AREA is not defined in the properties"    << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(AREA_EFFECTIVE_Y)) << "AREA_EFFECTIVE_Y is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))              << "I33 is not defined in the properties"            << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[YOUNG_MODULUS] > 0.0)    << "The YOUNG_MODULUS value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[CROSS_AREA] > 0.0)       << "The CROSS_AREA value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[I33] > 0.0)              << "The I33 value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[AREA_EFFECTIVE_Y] > 0.0) << "The AREA_EFFECTIVE_Y value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF    (rMaterialProperties[POISSON_RATIO] < 0.0)    << "The POISSON_RATIO value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[POISSON_RATIO] < 0.5)    << "The POISSON_RATIO cannot be greater than or equal 0.5." << std::endl;
     return 0;
 }
 
@@ -103,6 +109,7 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
     const auto& r_cl_law_options = rValues.GetOptions();
     auto &r_material_properties = rValues.GetMaterialProperties();
     auto &r_strain_vector = rValues.GetStrainVector();
+    AddInitialStrainVectorContribution(r_strain_vector);
     const auto strain_size = GetStrainSize();
 
     const double axial_strain = r_strain_vector[0]; // E_l
@@ -129,11 +136,17 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
         r_generalized_stress_vector[1] = EI * curvature;     // M
         r_generalized_stress_vector[2] = GAs * shear_strain; // V
 
+        AddInitialStressVectorContribution(r_generalized_stress_vector);
+
+        if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
+            r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
+        }
+
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
             if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
                 r_stress_derivatives.resize(strain_size, strain_size, false);
-            noalias(r_stress_derivatives) = ZeroMatrix(strain_size, strain_size);
+            r_stress_derivatives.clear();
 
             r_stress_derivatives(0, 0) = EA;  // dN_dEl
             r_stress_derivatives(1, 1) = EI;  // dM_dkappa
