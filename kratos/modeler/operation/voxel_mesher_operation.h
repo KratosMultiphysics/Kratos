@@ -55,7 +55,23 @@ protected:
 
     ModelPart& CreateAndGetModelPart(const std::string& rFullName) const;
 
-    const CartesianMeshColors& GetMeshColors() const;
+    CartesianMeshColors& GetMeshColors() const;
+
+    const array_1d<std::size_t, 3> &GetNumberOfDivisions() const;
+
+    std::vector<double>& GetKeyPlanes(std::size_t Direction) const {
+        return mrModeler.mKeyPlanes[Direction];
+    }
+
+    std::size_t GetNodeIndex(
+        std::size_t I, 
+        std::size_t J, 
+        std::size_t K) const;
+
+    VoxelMeshGeneratorModeler::CartesianNodalData& GetNodalData(
+        std::size_t I, 
+        std::size_t J, 
+        std::size_t K) const; 
 
     std::size_t CalculateCenterOfElementPosition(double Coordinate, int ThisDimension) const;
 

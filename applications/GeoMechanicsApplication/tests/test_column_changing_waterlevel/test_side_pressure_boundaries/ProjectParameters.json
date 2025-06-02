@@ -203,24 +203,11 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Gravity_load",
                     "variable_name": "VOLUME_ACCELERATION",
-                    "active": [
-                        false,
-                        true,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        -9.81,
-                        0.0
-                    ],
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "active": [false, true, false],
+                    "value": [0.0, -9.81, 0.0],
+                    "table": [0, 0, 0]
                 }
             }
-        ],
-        "auxiliar_process_list": []
+        ]
     }
 }

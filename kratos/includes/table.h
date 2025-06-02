@@ -5,14 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_TABLE_H_INCLUDED )
-#define  KRATOS_TABLE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -865,7 +864,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TABLE_H_INCLUDED  defined 
-
-

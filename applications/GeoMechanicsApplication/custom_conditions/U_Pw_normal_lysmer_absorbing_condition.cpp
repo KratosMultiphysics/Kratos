@@ -15,6 +15,7 @@
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/linear_nodal_extrapolator.h"
 
 namespace Kratos
 {
@@ -29,7 +30,7 @@ Condition::Pointer UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Create(IndexTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix,
                                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     ElementMatrixType stiffness_matrix;
@@ -40,8 +41,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixT
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLhsMatrix,
-                                                                        VectorType& rRightHandSideVector,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix& rLhsMatrix,
+                                                                        Vector& rRightHandSideVector,
                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     this->CalculateLeftHandSide(rLhsMatrix, rCurrentProcessInfo);
@@ -53,7 +54,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMatrix(ElementMatrixType& rStiffnessMatrix,
                                                                                      const ProcessInfo& rCurrentProcessInfo)
 {
-    // Previous definitions
     GeometryType& r_geom = this->GetGeometry();
 
     GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
@@ -79,7 +79,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
     BoundedMatrix<double, TDim, N_DOF> aux_abs_k_matrix;
     rStiffnessMatrix = ZeroMatrix(N_DOF, N_DOF);
 
-    // Loop over integration points
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
         // calculate
         absorbing_variables.Ec = 0.0;
@@ -95,7 +94,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         // Compute weighting coefficient for integration
-        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set stiffness part of absorbing matrix
@@ -105,24 +104,23 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector& rRightHandSideVector,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     ElementMatrixType stiffness_matrix;
 
     this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    MatrixType global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+    Matrix global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
     GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
 
     this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix& rDampingMatrix,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
-    // Previous definitions
     GeometryType& r_geom = this->GetGeometry();
 
     GeometryData::IntegrationMethod r_integration_method = this->GetIntegrationMethod();
@@ -147,7 +145,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     BoundedMatrix<double, TDim, N_DOF> aux_abs_matrix;
     ElementMatrixType                  abs_matrix = ZeroMatrix(N_DOF, N_DOF);
 
-    // Loop over integration points
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
         // calculate
         absorbing_variables.rho = 0.0;
@@ -167,7 +164,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         // Compute weighting coefficient for integration
-        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        double integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set damping part of absorbing matrix
@@ -262,47 +259,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateNodalStiffnessMatrix
 template <unsigned int TDim, unsigned int TNumNodes>
 Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement)
 {
-    const GeometryData::IntegrationMethod integration_method_neighbour =
-        rNeighbourElement.GetIntegrationMethod();
-    const GeometryType& r_neighbour_geom    = rNeighbourElement.GetGeometry();
-    const IndexType     num_nodes_neighbour = r_neighbour_geom.size();
-    const IndexType     num_g_points_neighbour =
-        r_neighbour_geom.IntegrationPointsNumber(integration_method_neighbour);
-
-    Matrix extrapolation_matrix = ZeroMatrix(num_nodes_neighbour, num_g_points_neighbour);
-
-    // Calculate extrapolation matrix for 2d elements
-    if constexpr (TDim == 2) {
-        if (num_nodes_neighbour == 3) {
-            GeoElementUtilities::CalculateExtrapolationMatrixTriangle(extrapolation_matrix,
-                                                                      integration_method_neighbour);
-            return extrapolation_matrix;
-        }
-        if (num_nodes_neighbour == 4) {
-            GeoElementUtilities::CalculateExtrapolationMatrixQuad(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
-        }
-    }
-    // Calculate extrapolation matrix for 3d elements
-    if constexpr (TDim == 3) {
-        if (num_nodes_neighbour == 4) {
-            GeoElementUtilities::CalculateExtrapolationMatrixTetra(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
-        }
-        if (num_nodes_neighbour == 8) {
-            GeoElementUtilities::CalculateExtrapolationMatrixHexa(extrapolation_matrix, integration_method_neighbour);
-            return extrapolation_matrix;
-        }
-    }
-
-    // if no extrapolation matrix is implemented, take average values at gauss points
-    const double averaging_factor = 1.0 / num_g_points_neighbour;
-    for (unsigned int node = 0; node < num_nodes_neighbour; ++node) {
-        for (unsigned int g_point = 0; g_point < num_g_points_neighbour; ++g_point) {
-            extrapolation_matrix(node, g_point) = averaging_factor;
-        }
-    }
-    return extrapolation_matrix;
+    LinearNodalExtrapolator extrapolator;
+    return extrapolator.CalculateElementExtrapolationMatrix(
+        rNeighbourElement.GetGeometry(), rNeighbourElement.GetIntegrationMethod());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -393,8 +352,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetVariables(NormalLysmerAbso
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                                                                      const MatrixType& rStiffnessMatrix)
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(Vector& rRightHandSideVector,
+                                                                      const Matrix& rStiffnessMatrix)
 {
     rRightHandSideVector = ZeroVector(CONDITION_SIZE);
 
@@ -405,7 +364,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateAndAddRHS(VectorType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::AddLHS(MatrixType& rLeftHandSideMatrix,
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::AddLHS(Matrix& rLeftHandSideMatrix,
                                                           const ElementMatrixType& rUUMatrix)
 {
     // assemble left hand side vector
@@ -459,27 +418,11 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix2DLine
     }
 }
 
-template <>
-void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix,
-                                                                const Element::GeometryType& rGeom)
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix3DTriangle(
+    DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom)
 {
-    // Line_2d_2
-    CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
-}
-
-template <>
-void UPwLysmerAbsorbingCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix,
-                                                                const Element::GeometryType& rGeom)
-{
-    // Line_2d_3
-    CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
-}
-
-template <>
-void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
-                                                                const Element::GeometryType& rGeom)
-{
-    ////triangle_3d_3
+    // triangle_3d_3
     array_1d<double, 3> p_mid_0;
     array_1d<double, 3> p_mid_1;
     noalias(p_mid_0) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(1));
@@ -522,9 +465,34 @@ void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<do
     rRotationMatrix(2, 2) = v_z[2];
 }
 
-template <>
-void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix,
-                                                                const Element::GeometryType& rGeom)
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix(
+    BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& rGeom)
+{
+    const auto geometry_family = this->GetGeometry().GetGeometryFamily();
+
+    if constexpr (TDim == 2) {
+        if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Linear) {
+            CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
+        } else {
+            KRATOS_ERROR << "Rotation matrix for geometry type: " << rGeom.Name()
+                         << " is not implemented." << std::endl;
+        }
+    } else {
+        if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Triangle) {
+            CalculateRotationMatrix3DTriangle(rRotationMatrix, rGeom);
+        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral) {
+            CalculateRotationMatrix3DQuad(rRotationMatrix, rGeom);
+        } else {
+            KRATOS_ERROR << "Rotation matrix for geometry type: " << rGeom.Name()
+                         << " is not implemented." << std::endl;
+        }
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRotationMatrix3DQuad(DimensionMatrixType& rRotationMatrix,
+                                                                                 const Element::GeometryType& rGeom)
 {
     // Quadrilateral_3d_4
     array_1d<double, 3>        p_mid_0;
@@ -575,9 +543,18 @@ std::string UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Info() const
     return "UPwLysmerAbsorbingCondition";
 }
 
+// 2 noded line
 template class UPwLysmerAbsorbingCondition<2, 2>;
+
+// 3 noded line
 template class UPwLysmerAbsorbingCondition<2, 3>;
+
+// first order triangle, quad
 template class UPwLysmerAbsorbingCondition<3, 3>;
 template class UPwLysmerAbsorbingCondition<3, 4>;
+
+// second order triangle, quad
+template class UPwLysmerAbsorbingCondition<3, 6>;
+template class UPwLysmerAbsorbingCondition<3, 8>;
 
 } // Namespace Kratos.

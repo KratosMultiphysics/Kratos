@@ -285,7 +285,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
 }
 
 // This function creates the wake surface automatically by shedding it from the
-// trailing edge in the dicretion of the free stream velocity (mWakeDirection).
+// trailing edge in the direction of the free stream velocity (mWakeDirection).
 // The user can decide how much distance is to be shedded and the element size
 // of the wake surface in the wake direction. Note that the element size in span
 // direction is predetermined by the size of the conditions constituting the

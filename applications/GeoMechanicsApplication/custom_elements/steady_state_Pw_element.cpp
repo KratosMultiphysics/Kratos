@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
 
@@ -24,7 +25,8 @@ Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType        
                                                                PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes),
-                                                     pProperties, this->GetStressStatePolicy().Clone()));
+                                                     pProperties, this->GetStressStatePolicy().Clone(),
+                                                     this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -32,8 +34,9 @@ Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType        
                                                                GeometryType::Pointer pGeom,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new SteadyStatePwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new SteadyStatePwElement(NewId, pGeom, pProperties,
+                                                     this->GetStressStatePolicy().Clone(),
+                                                     this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -44,8 +47,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType&   Geom = this->GetGeometry();
 
-    if (Geom.DomainSize() < 1.0e-15)
-        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(Geom.DomainSize(), this->Id());
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
@@ -122,7 +124,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     // Verify that the constitutive law has the correct dimension
 
     // Check constitutive law
-    if (mRetentionLawVector.size() > 0) {
+    if (!mRetentionLawVector.empty()) {
         return mRetentionLawVector[0]->Check(Prop, rCurrentProcessInfo);
     }
 
@@ -149,8 +151,6 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     // Element variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
@@ -191,10 +191,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                ElementVariables& rVariables)
 {
-    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+    noalias(rLeftHandSideMatrix) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
         rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
-    rLeftHandSideMatrix += permeability_matrix;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -203,7 +202,6 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
                                                                unsigned int      GPoint)
 {
     KRATOS_TRY;
-
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
