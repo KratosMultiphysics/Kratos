@@ -288,23 +288,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
-    {
-        KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
-
-        auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
-
-        auto result = std::vector<double>{};
-        result.reserve(rFluidPressures.size());
-        std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(),
-                       rFluidPressures.begin(), std::back_inserter(result),
-                       [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
-            retention_law_params.SetFluidPressure(FluidPressure);
-            return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
-        });
-        return result;
-    }
-
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override
