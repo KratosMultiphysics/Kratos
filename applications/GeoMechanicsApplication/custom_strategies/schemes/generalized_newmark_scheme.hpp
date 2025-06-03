@@ -192,22 +192,21 @@ protected:
         }
     }
 
-private:
     void PredictVariables(const ModelPart& rModelPart)
     {
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) { PredictVariablesForNode(rNode); });
     }
 
-    void PredictVariablesForNode(Node& rNode)
+    virtual void PredictVariablesForNode(Node& rNode)
     {
-        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
-            if (!rNode.SolutionStepsDataHas(r_first_order_scalar_variable.instance)) continue;
-            PredictFirstOrderScalarVariableForNode(rNode, r_first_order_scalar_variable);
-        }
-
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
-            PredictSecondOrderVectorVariableForNode(rNode, r_second_order_vector_variable);
+            this->PredictSecondOrderVectorVariableForNode(rNode, r_second_order_vector_variable);
+        }
+
+        for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+            if (!rNode.SolutionStepsDataHas(r_first_order_scalar_variable.instance)) continue;
+            this->PredictFirstOrderScalarVariableForNode(rNode, r_first_order_scalar_variable);
         }
     }
 
