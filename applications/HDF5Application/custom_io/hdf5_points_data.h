@@ -48,8 +48,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using IndexType = unsigned int;
-
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(PointsData);
 
