@@ -66,15 +66,6 @@ public:
 
     ///@}
 
-private:
-    ///@name Private Member Variables
-    ///@{
-
-    File::Pointer mpFile;
-
-    std::string mPathPrefix;
-
-    ///@}
 }; // class VertexContainerCoordinateIO
 
 /** IO class for writing variables of a set of vertices
