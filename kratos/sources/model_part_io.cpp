@@ -653,10 +653,7 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
         }
         (*mpStream) << "\n";
         (*mpStream) << "\t" << it_constraint_begin->Id() << "\t";
-        (*mpStream) << slave_dofs[0]->Id() << "\t";
-        for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-            (*mpStream) << master_dofs[i]->Id() << "\t";
-        }
+
         // We write the constant vector (we consider that the first value is just one value)
         (*mpStream) << constant_vector[0] << "\t";
 
@@ -668,7 +665,14 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
                 (*mpStream) << ",\t";
             }
         }
-        (*mpStream) << "]\n";
+        (*mpStream) << "]\t";
+
+        // Write connectivity. First we write the slave dof, then the master dofs
+        (*mpStream) << slave_dofs[0]->Id() << "\t";
+        for (IndexType i = 0; i < number_of_master_dofs; ++i) {
+            (*mpStream) << master_dofs[i]->Id() << "\t";
+        }
+        (*mpStream) << "\n";
 
         // Now we iterate over all the constraints
         for(std::size_t i = 1; i < rConstraintContainer.size(); i++) {
@@ -684,11 +688,9 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
                 // We get the transformation matrix and the constant vector
                 it_const_current->CalculateLocalSystem(transformation_matrix, constant_vector, current_process_info);
 
+                // Write the constraint id
                 (*mpStream) << "\t" << it_const_current->Id() << "\t";
-                (*mpStream) << slave_dofs[0]->Id() << "\t";
-                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-                    (*mpStream) << master_dofs[i]->Id() << "\t";
-                }
+
                 // We write the constant vector (we consider that the first value is just one value)
                 (*mpStream) << constant_vector[0] << "\t";
 
@@ -700,7 +702,14 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
                         (*mpStream) << ",\t";
                     }
                 }
-                (*mpStream) << "]\n";
+                (*mpStream) << "]\t";
+
+                // Write connectivity. First we write the slave dof, then the master dofs
+                (*mpStream) << slave_dofs[0]->Id() << "\t";
+                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
+                    (*mpStream) << master_dofs[i]->Id() << "\t";
+                }
+                (*mpStream) << "\n";
             } else {
                 // End previous constraint
                 (*mpStream) << "End Constraints" << "\n\n";
@@ -746,10 +755,7 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
                 }
                 (*mpStream) << "\n";
                 (*mpStream) << "\t" << it_const_current->Id() << "\t";
-                (*mpStream) << slave_dofs[0]->Id() << "\t";
-                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
-                    (*mpStream) << master_dofs[i]->Id() << "\t";
-                }
+
                 // We write the constant vector (we consider that the first value is just one value)
                 (*mpStream) << constant_vector[0] << "\t";
 
@@ -761,7 +767,14 @@ void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rCo
                         (*mpStream) << ",\t";
                     }
                 }
-                (*mpStream) << "]\n";
+                (*mpStream) << "]\t";
+
+                // Write connectivity. First we write the slave dof, then the master dofs
+                (*mpStream) << slave_dofs[0]->Id() << "\t";
+                for (IndexType i = 0; i < number_of_master_dofs; ++i) {
+                    (*mpStream) << master_dofs[i]->Id() << "\t";
+                }
+                (*mpStream) << "\n";
             }
         }
 
@@ -2459,11 +2472,18 @@ void ModelPartIO::ReadConstraintsBlock(
 
         // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
         std::getline(*mpStream, current_line);
-        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "[");
+        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "]");
 
-        // If it is 1x0 the count will be 1 (id constraint) + 1 (id node) + 1 (constant vector) = 3
-        // If the count is greater than 3, it means that the constraint is 1xN and all the variables are the same
-        number_of_master_dofs = count - 3;
+        // Use a string stream to easily extract tokens
+        std::size_t count_total = 0;
+        std::istringstream iss(current_line);
+        std::string token;
+        while (iss >> token) {
+            count_total++;
+        }
+
+        // The number of master dofs is the total count minus the count of the slave variable minus one (for the slave variable itself), minus the token which is the end of the block ("]")
+        number_of_master_dofs = count_total - count - 1 - 1;
 
         // The more general case is when the connectivity is 1xN, and all the variables are the same
         master_variables.resize(number_of_master_dofs);
@@ -2504,15 +2524,30 @@ void ModelPartIO::ReadConstraintsBlock(
         // Constraint id
         ExtractValue(word, id);
 
-        // Slave node pointer
-        ReadWord(word); // Reading the node id;
+        // Read the constant vector
+        ReadWord(word);
+        ExtractValue(word, constant_vector[0]);
+
+        // Retrieve the line
+        std::getline(*mpStream, current_line);
+        std::istringstream iss(current_line);
+        std::vector<std::string> words;
+
+        // Tokenize the string
+        while (iss >> word) {
+            words.push_back(word);
+        }
+        const std::size_t number_of_words = words.size();
+
+        // Read the slave node id
+        word = words[number_of_words - number_of_master_dofs - 1];
         ExtractValue(word, node_id);
         p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
 
         // Then we retrieve the master nodes
         temp_master_nodes.clear();
         for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-            ReadWord(word); // Reading the node id;
+            word = words[number_of_words - number_of_master_dofs - i];
             ExtractValue(word, node_id);
             temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
         }
@@ -2531,12 +2566,12 @@ void ModelPartIO::ReadConstraintsBlock(
             }
         }
 
-        // Read the constant vector
-        ReadWord(word);
-        ExtractValue(word, constant_vector[0]);
-
         // Read the relation matrix
-        std::getline(*mpStream, current_line);
+        current_line = "";
+        for (std::size_t i = 0; i < number_of_words - number_of_master_dofs - 2; ++i) {
+            current_line += words[i] + " ";
+        }
+        current_line += words[number_of_words - number_of_master_dofs - 2];
         const auto weights = StringUtilities::StringToVector<double>(current_line);
         KRATOS_ERROR_IF_NOT(weights.size() == 0 || weights.size() == number_of_master_dofs) << "The number of weights read is not equal to the number of master dofs. Another option is that the weights are not read at all. Line: " << current_line << std::endl;
         for (SizeType j = 0; j < number_of_master_dofs; j++) {
