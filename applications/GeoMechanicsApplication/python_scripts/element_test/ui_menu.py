@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-from ui_builder import build_ui_from_model
+from ui_builder import GeotechTestUI
 from ui_udsm_parser import udsm_parser
 
 
@@ -31,7 +31,7 @@ def create_menu():
         for widget in main_frame.winfo_children():
             widget.destroy()
 
-        build_ui_from_model(root, main_frame, dll_path, model_dict)
+        GeotechTestUI(root, main_frame, test_name="Triaxial", dll_path=dll_path, model_dict=model_dict)
 
     def load_linear_elastic():
         model_dict = {
@@ -44,7 +44,7 @@ def create_menu():
         for widget in main_frame.winfo_children():
             widget.destroy()
 
-        build_ui_from_model(root, main_frame, dll_path=None, model_dict=model_dict)
+        GeotechTestUI(root, main_frame, test_name="Triaxial", dll_path=None, model_dict=model_dict)
 
 
     def handle_model_source_selection(event):
