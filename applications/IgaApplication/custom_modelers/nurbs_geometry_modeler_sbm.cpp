@@ -166,8 +166,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
     std::string skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
 
     // Create the surrogate sub model parts inner and outer
-    ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");
-    ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");
+    // ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");  // uncomment this line (next PR) 
+    // ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");  // uncomment this line (next PR)
 
     // If there is not neither skin_inner nor skin_outer throw a warning since you are using the sbm modeler
     if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
