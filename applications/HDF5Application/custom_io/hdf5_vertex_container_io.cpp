@@ -44,8 +44,9 @@ VertexContainerCoordinateIO::VertexContainerCoordinateIO(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(Settings["prefix"].GetString().back() == '/')
-        << "The prefix for vertex coordinates assumed to be a group hence no need to have an ending \"\\\" [ prefix = \""
+    const std::string prefix = Settings["prefix"].Get<std::string>();
+    KRATOS_ERROR_IF(!prefix.empty() && prefix.back() == '/')
+        << "The prefix for vertex coordinates assumed to be a group hence no need to have an ending \"/\" [ prefix = \""
         << Settings["prefix"].GetString() << "\" ].\n";
 
     KRATOS_CATCH("");
