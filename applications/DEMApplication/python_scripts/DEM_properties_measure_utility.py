@@ -35,7 +35,7 @@ class DEMPropertiesMeasureUtility:
             if self.DEM_parameters["ContactMeshOption"].GetBool():
                 measured_fabric_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateFabricTensorWithinSphere(self.contact_model_part, radius, [center_x, center_y, center_z])
                 measured_fabric_tensor = np.array(measured_fabric_tensor)
-                deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
+                deviatoric_tensor = 15/2 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
                 second_invariant_of_deviatoric_tensor = (0.5 * np.sum(deviatoric_tensor * deviatoric_tensor))**0.5
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
                 return eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor
