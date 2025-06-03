@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -13,8 +13,6 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 #include <unordered_set>
 
 // External includes
@@ -90,6 +88,9 @@ public:
     /// Geometry container type within ModelPart
     using GeometryContainerType = typename ModelPart::GeometryContainerType;
 
+    /// The geometry map type within ModelPart
+    using GeometriesMapType = typename ModelPart::GeometriesMapType;
+
     /// Elements container type within MeshType
     using ElementsContainerType = typename MeshType::ElementsContainerType;
 
@@ -114,17 +115,21 @@ public:
     /// Graph type definition
     using GraphType = DenseMatrix<int>;
 
-    // auxiliary struct containg information about the partitioning of the entities in a ModelPart
+    // Auxiliary struct containing information about the partitioning of the entities in a ModelPart
     struct PartitioningInfo
     {
         GraphType Graph;
-        PartitionIndicesType NodesPartitions; // partition where the Node is local
-        PartitionIndicesType ElementsPartitions; // partition where the Element is local
-        PartitionIndicesType ConditionsPartitions; // partition where the Condition is local
-        PartitionIndicesContainerType NodesAllPartitions; // partitions, in which the Node is present (local & ghost)
-        PartitionIndicesContainerType ElementsAllPartitions; // partitions, in which the Element is present (local & ghost)
-        PartitionIndicesContainerType ConditionsAllPartitions; // partitions, in which the Condition is present (local & ghost)
-    };
+        PartitionIndicesType NodesPartitions;                   // Partition where the Node is local
+        PartitionIndicesType ElementsPartitions;                // Partition where the Element is local
+        PartitionIndicesType ConditionsPartitions;              // Partition where the Condition is local
+        PartitionIndicesType ConstraintsPartitions;             // Partition where the MasterSlaveConstraint is local
+        PartitionIndicesType GeometriesPartitions;              // Partition where the Geometry is local
+        PartitionIndicesContainerType NodesAllPartitions;       // Partitions, in which the Node is present (local & ghost)
+        PartitionIndicesContainerType ElementsAllPartitions;    // Partitions, in which the Element is present (local & ghost)
+        PartitionIndicesContainerType ConditionsAllPartitions;  // Partitions, in which the Condition is present (local & ghost)
+        PartitionIndicesContainerType ConstraintsAllPartitions; // Partitions, in which the MasterSlaveConstraint is present (local & ghost)
+        PartitionIndicesContainerType GeometriesAllPartitions;  // Partitions, in which the Geometry is present (local & ghost)
+    };;
 
     ///@}
     ///@name Life Cycle
@@ -383,7 +388,17 @@ public:
         MasterSlaveConstraintContainerType& rConstraintContainer
         )
     {
-        KRATOS_ERROR << "Calling base class method (ReadNewConstraint). Please check the definition of derived class" << std::endl;
+        KRATOS_ERROR << "Calling base class method (ReadConstraints). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method reads the constraints connectivities
+     * @param rConditionsConnectivities The constraints connectivities
+     * @return The number of constraints
+     */
+    virtual std::size_t ReadConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadConstraintsConnectivities). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -618,20 +633,80 @@ public:
         KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl;
     }
 
+    /**
+     * @brief Virtual method to read element and condition IDs from a sub-model part.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rModelPartName The name of the sub-model part to read from.
+     * @param rElementsIds Set to store element IDs.
+     * @param rConditionsIds Set to store condition IDs.
+     */
     virtual void ReadSubModelPartElementsAndConditionsIds(
         std::string const& rModelPartName,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds)
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds
+        )
     {
         KRATOS_ERROR << "Calling base class method (ReadSubModelPartElementsAndConditionsIds). Please check the definition of derived class" << std::endl;
     }
 
+    /**
+     * @brief Virtual method to read element, condition, master-slave constraint, and geometry IDs from a sub-model part.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rModelPartName The name of the sub-model part to read from.
+     * @param rElementsIds Set to store element IDs.
+     * @param rConditionsIds Set to store condition IDs.
+     * @param rConstraintIds Set to store master-slave constraint IDs.
+     * @param rGeometriesIds Set to store geometry IDs.
+     */
+    virtual void ReadSubModelPartEntitiesIds(
+        std::string const& rModelPartName,
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds,
+        std::unordered_set<SizeType>& rConstraintIds,
+        std::unordered_set<SizeType>& rGeometriesIds
+        )
+    {
+        KRATOS_WARNING("IO") << " The method ReadSubModelPartEntitiesIds with Constraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
+        return ReadSubModelPartElementsAndConditionsIds(rModelPartName, rElementsIds, rConditionsIds);
+    }
+
+    /**
+     * @brief Virtual method to read nodal graph from entities list.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rAuxConnectivities Container of connectivities.
+     * @param rElementsIds Set of element IDs.
+     * @param rConditionsIds Set of condition IDs.
+     * @return The size of the nodal graph.
+     */
     virtual std::size_t ReadNodalGraphFromEntitiesList(
         ConnectivitiesContainerType& rAuxConnectivities,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds)
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds
+        )
     {
         KRATOS_ERROR << "Calling base class method (ReadNodalGraphFromEntitiesList). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief Virtual method to read nodal graph from entities list including master-slave constraints and geometries.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rAuxConnectivities Container of connectivities.
+     * @param rElementsIds Set of element IDs.
+     * @param rConditionsIds Set of condition IDs.
+     * @param rConstraintIds Set of master-slave constraint IDs.
+     * @param rGeometriesIds Set of geometry IDs.
+     * @return The size of the nodal graph.
+     */
+    virtual std::size_t ReadNodalGraphFromEntitiesList(
+        ConnectivitiesContainerType& rAuxConnectivities,
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds,
+        std::unordered_set<SizeType>& rConstraintIds,
+        std::unordered_set<SizeType>& rGeometriesIds
+        )
+    {
+        KRATOS_WARNING("IO") << " The method ReadNodalGraphFromEntitiesList with Constraint and Geometries is not implemented. Only the elements and conditions are read." << std::endl;
+        return ReadNodalGraphFromEntitiesList(rAuxConnectivities, rElementsIds, rConditionsIds);
     }
 
     ///@}
