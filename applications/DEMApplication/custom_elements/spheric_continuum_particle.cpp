@@ -5,6 +5,7 @@
 
 #include "spheric_continuum_particle.h"
 #include <cmath>
+#include <random>
 
 namespace Kratos {
 
@@ -254,18 +255,24 @@ namespace Kratos {
         //TODO: temporary code 
         bool do_adjust_bond_contact_area = true;
         if (do_adjust_bond_contact_area) {
-            const double bond_contact_area_scale_factor = 1.5;
-            const double bond_contact_mean_area_old = 5736e-12;
-            const double bond_contact_mean_area_new = 2365e-12;
-            bond_contact_area = bond_contact_area_scale_factor * (bond_contact_area - bond_contact_mean_area_old) + bond_contact_mean_area_new;
             
-            if (bond_contact_area < 0.0) {
-                bond_contact_area *= -1.0;
-            }
+            const double lognormal_median = 2365e-12;
+            const double lognormal_std_dev = 0.8;
+            double upper_bound = 1.0e-8; // This is the upper bound for the bond contact area
 
-            const double bond_contact_area_small_percentage = 0.08;
+            double mu = std::log(lognormal_median);
+
+            std::random_device rd;
+            std::mt19937 gen(rd());
+
+            std::lognormal_distribution<> lognorm(mu, lognormal_std_dev);
+            do {
+                bond_contact_area = lognorm(gen);
+            } while (bond_contact_area > upper_bound);
+
+            const double bond_contact_area_small_percentage = 0.12;
             const double bond_contact_area_small_minimum = 1.0e-12;
-            const double bond_contact_area_small_maximum = 5.0e-11;
+            const double bond_contact_area_small_maximum = 1.0e-10;
 
             if ((static_cast<double>(rand()) / RAND_MAX) < bond_contact_area_small_percentage) {
                 bond_contact_area = static_cast<double>(rand()) / RAND_MAX * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
