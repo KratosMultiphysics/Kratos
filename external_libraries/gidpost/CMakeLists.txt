@@ -15,14 +15,14 @@ project (gidpost)
 # set( GP_VERSION ${GP_VERSION_MAJOR}.${GP_VERSION_MINOR} )
 
 # Find zlib
-find_package(ZLIB REQUIRED)
+# find_package(ZLIB REQUIRED)
 if(ZLIB_FOUND)
     message(STATUS "Found ZLIB: ${ZLIB_INCLUDE_DIRS}")
     include_directories(${ZLIB_INCLUDE_DIRS})
 endif()
 
 # Find hdf5
-find_package(HDF5 REQUIRED COMPONENTS C HL)
+find_package(HDF5 COMPONENTS C HL)
 if(HDF5_FOUND)
     message(STATUS "Found HDF5: ${HDF5_INCLUDE_DIRS}")
     include_directories(${HDF5_INCLUDE_DIRS})
