@@ -10,6 +10,7 @@ from ui_logger import init_log_widget, log_message, clear_log
 from ui_udsm_parser import input_parameters_format_to_unicode
 import traceback
 
+
 class GeotechTestUI:
     def __init__(self, root, parent_frame, test_name, dll_path, model_dict):
         self.root = root
@@ -97,7 +98,8 @@ class GeotechTestUI:
             "Initial effective cell pressure |σ'₃₃|", "Maximum Strain |εᵧᵧ|", "Number of steps", "Duration"
         ], ["100", "10", "100", "1.0"])})
 
-        ttk.Button(self.button_frame, text="Run Calculation", command=self._run_simulation).pack(pady=5)
+        self.run_button = ttk.Button(self.button_frame, text="Run Calculation", command=self._run_simulation)
+        self.run_button.pack(pady=5)
 
     def _create_entries(self, frame, title, labels, units, defaults):
         widgets = {}
@@ -141,8 +143,10 @@ class GeotechTestUI:
 
     def _run_simulation(self):
         clear_log()
-        log_message("Starting triaxial calculation...", "info")
+        log_message("Starting triaxial calculation... Please wait...", "info")
+        log_message("Validating input...", "info")
         self.root.update_idletasks()
+        self.run_button.config(state="disabled")
 
         try:
             umat_params = [e.get() for e in self.entry_widgets.values()]
@@ -159,6 +163,10 @@ class GeotechTestUI:
                 cohesion_phi_indices = (int(self.cohesion_var.get()), int(self.phi_var.get()))
 
             index = self.model_dict["model_name"].index(self.model_var.get()) + 1 if self.dll_path else -2
+
+            log_message("Calculating...", "info")
+            self.root.update_idletasks()
+
             figs = run_triaxial_simulation(
                 dll_path=self.dll_path or "",
                 index=index,
@@ -172,6 +180,9 @@ class GeotechTestUI:
             render_plots(figs, self.axes, self.canvas)
             log_message("Simulation completed successfully.", "info")
 
-        except Exception as e:
+        except Exception:
             log_message("An error occurred during simulation:", "error")
             log_message(traceback.format_exc(), "error")
+
+        finally:
+            self.run_button.config(state="normal")
