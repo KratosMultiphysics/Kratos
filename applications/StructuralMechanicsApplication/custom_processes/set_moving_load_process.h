@@ -113,9 +113,6 @@ private:
     ModelPart& mrModelPart;
     Parameters mParameters;
 
-    // vector of sorted conditions
-    std::vector<Condition> mSortedConditions;
-
     // vector of the ids of the sorted conditions
     std::vector<IndexType> mSortedConditionsIds;
 
@@ -160,13 +157,11 @@ private:
     std::vector<Condition> FindEndConditions();
 
     /**
-     * \brief Sorts conditions vector. Sorts conditions in the direction of the moving load. The sorting starts from the first condition. Repeated nodes
-     * ares searched in the conditions vector. If a node is repeated, it means the condition is connected to the previous condition. 
-     * \param rUnsortedConditions container of the unsorted conditions within the model part
-     * \param rFirstCondition first condition in the to be sorted conditions vector
-     * \return vector of sorted conditions
+     * \brief Sorts condition ids vector. Sorts the condition ids in the direction of the moving load. The sorting starts from the first condition. 
+     * Repeated nodes are searched in the conditions vector. If a node is repeated, it means the condition is connected to the previous condition. 
+     * \param rFirstCondition first condition in the to be sorted condition ids vector
      */
-    std::vector<Condition> SortConditions(ModelPart::ConditionsContainerType& rUnsortedConditions, Condition& rFirstCondition);
+    void SortConditionIds(Condition& rFirstCondition);
 
     /**
      * \brief Check if conditions points are to be flipped in the direction of the moving load. The points are sorted based on the x-coordinates; if the x-coordinates are equal,
