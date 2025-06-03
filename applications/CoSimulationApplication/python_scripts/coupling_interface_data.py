@@ -89,11 +89,11 @@ class CouplingInterfaceData(BaseCouplingInterfaceData):
         # dimensionality of the data
         if self.is_scalar_variable:
             if self.dimension != -1:
-                self._RaiseException('"dimension" cannot be specifed for scalar variables!')
+                self._RaiseException('"dimension" cannot be specified for scalar variables!')
             self.dimension = 1 # needed in other places, e.g. for "Size"
         else:
             if self.dimension < 1:
-                self._RaiseException('"dimension" has to be specifed for vector variables!')
+                self._RaiseException('"dimension" has to be specified for vector variables!')
             else:
                 if self.variable_type == "Array" and self.dimension not in [1,2,3]:
                     self._RaiseException('"dimension" can only be 1,2,3 when using variables of type "Array"')

@@ -12,6 +12,7 @@
 #pragma once
 
 // System includes
+#include <variant>
 
 // External includes
 
@@ -23,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
+#include "includes/node.h"
 #include "response_functions/adjoint_response_function.h"
 
 // Application includes
@@ -31,7 +33,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) Sensor: public AdjointResponseFunction, public DataValueContainer
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) Sensor: public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -39,18 +41,60 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(Sensor);
 
+    using ContainerExpressionType = std::variant<
+                                        ContainerExpression<ModelPart::NodesContainerType>::Pointer,
+                                        ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
+                                        ContainerExpression<ModelPart::ElementsContainerType>::Pointer
+                                        >;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
+
+    /**
+     * @brief Construct a new Sensor object
+     * @details         This construct a new sensor with a given name, weigh and a node. The node
+     *                  position should reflect the location of the sensor. It does not have to necessarily
+     *                  coincide with a mesh node. Usually these nodes are created in a separate model part
+     *                  and not as a part of the mesh.
+     * @param rName     Name of the sensor. Needs to be unique.
+     * @param pNode     Node which represents the location of the sensor and data value container.
+     * @param Weight    Weight of the sensor.
+     */
     Sensor(
         const std::string& rName,
-        const Point& rLocation,
+        Node::Pointer pNode,
         const double Weight);
 
     /// Destructor.
     ~Sensor() = default;
+
+    ///@}
+    ///@name Static operations
+    ///@{
+
+    /**
+     * @brief Creates a new sensor attached to a domain model part given.
+     * @details This static method is used to construct the sensors on a domain model part
+     *          with settings passed in using SensorParameters.
+     *
+     * @param rDomainModelPart      Domain model part, from which sensor will compute its values, sensitivities, etc.
+     * @param rSensorModelPart      Model part, which will be used to create the node for the new sensor. This node will be having the location of the sensor.
+     * @param Id                    Id of the created sensor.
+     * @param SensorParameters      Parameters required to construct the sensor.
+     * @return Sensor::Pointer      A new sensor.
+     */
+    static Sensor::Pointer Create(
+        ModelPart& rDomainModelPart,
+        ModelPart& rSensorModelPart,
+        const IndexType Id,
+        Parameters SensorParameters)
+    {
+        KRATOS_ERROR << "Trying to create a default \"Sensor\" which is not allowed. Please create specific sensor." << std::endl;
+        return Sensor::Pointer();
+    }
 
     ///@}
     ///@name Operations
@@ -65,11 +109,7 @@ public:
      *
      * @return const Parameters
      */
-    virtual const Parameters GetSensorParameters() const
-    {
-        KRATOS_ERROR << "Calling base class Sensor::GetSensorParameters. Please implement it in the derrived class.";
-        return Parameters(R"({})" );
-    }
+    virtual Parameters GetSensorParameters() const;
 
     /**
      * @brief Calculate the current value of the sensor using the given model part.
@@ -94,7 +134,7 @@ public:
      *
      * @return Point
      */
-    Point GetLocation() const;
+    Node::Pointer GetNode() const;
 
     /**
      * @brief Get the Weight of the sensor.
@@ -120,135 +160,47 @@ public:
     /**
      * @brief Adds given container expression
      *
-     * @throws If an expression is found already under the given name in the respective TContainerType container.
-     *
-     * @tparam TContainerType       Type of the container expression.
-     * @param rExpressionName       Name of the container expression.
-     * @param pContainerExpression  Container expression to be added.
-     */
-    template<class TContainerType>
-    void AddContainerExpression(
-        const std::string& rExpressionName,
-        typename ContainerExpression<TContainerType>::Pointer pContainerExpression);
-
-    /**
-     * @brief Adds a given nodal expression under the given name.
      * @throws If an expression is found already under the given name.
      *
-     * @param rExpressionName       Name of the nodal expression.
-     * @param pNodalExpression      Nodal expression to be added.
+     * @param rExpressionName       Name of the container expression.
+     * @param pContainerExpression  Container expression pointer to be added.
      */
-    void AddNodalExpression(
+    void AddContainerExpression(
         const std::string& rExpressionName,
-        ContainerExpression<ModelPart::NodesContainerType>::Pointer pNodalExpression);
+        ContainerExpressionType pContainerExpression);
 
     /**
      * @brief Get the Nodal Expression for specified expression name
      *
-     * @throws If the @ref rExpressionName is not found in the map of nodal expressions.
+     * @throws If the @ref rExpressionName is not found in the map of container expressions.
      *
-     * @param rExpressionName                                                Expression name
-     * @return ContainerExpression<ModelPart::NodesContainerType>::Pointer   Nodal container expression
+     * @param rExpressionName            Expression name
+     * @return ContainerExpressionType   Container expression
      */
-    ContainerExpression<ModelPart::NodesContainerType>::Pointer GetNodalExpression(const std::string& rExpressionName) const;
+    ContainerExpressionType GetContainerExpression(const std::string& rExpressionName) const;
 
     /**
-     * @brief Get the Nodal Expressions map
+     * @brief Get the Container Expressions map
      *
-     * @return std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer>   Nodal container expressions map
+     * @return std::unordered_map<std::string, ContainerExpressionType>   Container expressions map
      */
-    std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> GetNodalExpressionsMap() const;
+    std::unordered_map<std::string, ContainerExpressionType> GetContainerExpressionsMap() const;
 
     /**
-     * @brief Adds a given condition expression under the given name.
-     * @throws If an expression is found already under the given name.
-     *
-     * @param rExpressionName           Name of the condition expression.
-     * @param pConditionExpression      Condition expression to be added.
-     */
-    void AddConditionExpression(
-        const std::string& rExpressionName,
-        ContainerExpression<ModelPart::ConditionsContainerType>::Pointer pConditionExpression);
-
-    /**
-     * @brief Get the Condition Expression for specified expression name
-     *
-     * @throws If the @ref rExpressionName is not found in the map of condition expressions.
-     *
-     * @param rExpressionName                                                     Expression name
-     * @return ContainerExpression<ModelPart::ConditionsContainerType>::Pointer   Condition container expression
-     */
-    ContainerExpression<ModelPart::ConditionsContainerType>::Pointer GetConditionExpression(const std::string& rExpressionName) const;
-
-    /**
-     * @brief Get the condition Expressions map
-     *
-     * @return std::unordered_map<std::string, ContainerExpression<ModelPart::ConditionsContainerType>::Pointer>   Condition container expressions map
-     */
-    std::unordered_map<std::string, ContainerExpression<ModelPart::ConditionsContainerType>::Pointer> GetConditionExpressionsMap() const;
-
-    /**
-     * @brief Adds a given element expression under the given name.
-     * @throws If an expression is found already under the given name.
-     *
-     * @param rExpressionName           Name of the element expression.
-     * @param pElementExpression      Element expression to be added.
-     */
-    void AddElementExpression(
-        const std::string& rExpressionName,
-        ContainerExpression<ModelPart::ElementsContainerType>::Pointer pElementExpression);
-
-    /**
-     * @brief Get the Element Expression for specified expression name
-     *
-     * @throws If the @ref rExpressionName is not found in the map of element expressions.
-     *
-     * @param rExpressionName                                                    Expression name
-     * @return ContainerExpression<ModelPart::ElementsContainerType>::Pointer    Element container expression
-     */
-    ContainerExpression<ModelPart::ElementsContainerType>::Pointer GetElementExpression(const std::string& rExpressionName) const;
-
-    /**
-     * @brief Get the element expressions map
-     *
-     * @return std::unordered_map<std::string, ContainerExpression<ModelPart::ElementsContainerType>::Pointer>   Element container expressions map
-     */
-    std::unordered_map<std::string, ContainerExpression<ModelPart::ElementsContainerType>::Pointer> GetElementExpressionsMap() const;
-
-    /**
-     * @brief Get the list of variable names in the specification.
-     *
-     * @return std::vector<std::string>     List of variable names in the specification.
-     */
-    std::vector<std::string> GetDataVariableNames() const;
-
-    /**
-     * @brief Clear nodal expressions from the sensos.
+     * @brief Clear container expressions from the sensors.
      *
      */
-    void ClearNodalExpressions();
-
-    /**
-     * @brief Clear condition expressions from the sensor.
-     *
-     */
-    void ClearConditionExpressions();
-
-    /**
-     * @brief Clear element expressions from the sensor.
-     *
-     */
-    void ClearElementExpressions();
+    void ClearContainerExpressions();
 
     ///@}
     ///@name Input and output
     ///@{
 
-    std::string Info() const override;
+    virtual std::string Info() const;
 
-    void PrintInfo(std::ostream& rOStream) const override;
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-    void PrintData(std::ostream& rOStream) const override;
+    virtual void PrintData(std::ostream& rOStream) const;
 
     ///@}
 
@@ -258,17 +210,13 @@ private:
 
     const std::string mName;
 
-    const Point mLocation;
+    Node::Pointer mpNode;
 
     const double mWeight;
 
     double mSensorValue;
 
-    std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mNodalExpressions;
-
-    std::unordered_map<std::string, ContainerExpression<ModelPart::ConditionsContainerType>::Pointer> mConditionExpressions;
-
-    std::unordered_map<std::string, ContainerExpression<ModelPart::ElementsContainerType>::Pointer> mElementExpressions;
+    std::unordered_map<std::string, ContainerExpressionType> mContainerExpressions;
 
     ///@}
 };

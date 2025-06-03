@@ -84,25 +84,8 @@ namespace Kratos
 class ModelPart;
 class VariableData;
 template <class TDataType> class Variable;
-//  template <class TDataType> class KratosComponents;
 
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -199,8 +182,12 @@ public:
     {
         msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,Create<TDataType>));
         msRegisteredObjectsName.insert(RegisteredObjectsNameContainerType::value_type(typeid(TDataType).name(), rName));
-	//std::cout<<" REGISTERED OBJECT "<<rName<<" TypeID "<<typeid (TDataType).name()<<std::endl;
-	//msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
+    }
+
+    static void Deregister(const std::string& rName)
+    {
+        msRegisteredObjects.erase(rName);
+        msRegisteredObjectsName.erase(rName);
     }
 
     template<class TDataType>
@@ -225,8 +212,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = Kratos::shared_ptr<TDataType>(new TDataType);
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = this->MakeShared<TDataType>();
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -270,8 +262,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -315,8 +312,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = Kratos::unique_ptr<TDataType>(new TDataType);
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = Kratos::unique_ptr<TDataType>(new TDataType);
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -360,8 +362,13 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue) {
-                        pValue = new TDataType;
+                    if constexpr (!std::is_abstract_v<TDataType>) {
+                        if(!pValue) {
+                            pValue = new TDataType;
+                        }
+                    }
+                    else {
+                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                     }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -401,17 +408,11 @@ public:
     template<class TDataType>
     void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
     {
-        // This is for testing. I have to change it. Pooyan.
-        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
-//    read(*pValue);
     }
 
     template<class TDataType>
     void load(std::string const & rTag, WeakPointerVector<TDataType>& pValue)
     {
-        // This is for testing. I have to change it. Pooyan.
-        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
-//    read(*pValue);
     }
 
     template<class TDataType>
@@ -442,7 +443,6 @@ public:
 
         for(SizeType i = 0 ; i < size ; i++)
             load("E", rObject[i]);
-//    read(rObject);
     }
 
     template<class TDataType>
@@ -457,7 +457,6 @@ public:
 
         for(SizeType i = 0 ; i < size ; i++)
             load("E", rObject[i]);
-//    read(rObject);
     }
 
 
@@ -489,10 +488,8 @@ public:
     void load(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
     {
         load_trace_point(rTag);
-	//rObject = array_1d<TDataType, TDimension>(); //it generates a warnning --> commented 23/09/2015 <--
         for(SizeType i = 0 ; i < TDimension ; i++)
             load("E", rObject[i]);
-//    read(rObject);
     }
 
     template<class TFirstType, class TSecondType>
@@ -510,7 +507,6 @@ public:
 
         for(SizeType i = 0 ; i < TDimension ; ++i)
             load("E", rObject[i]);
-//    read(rObject);
     }
 
     template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
@@ -528,6 +524,7 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(long)
     KRATOS_SERIALIZATION_DIRECT_LOAD(double)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(float)
     KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned long)
     KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::string)
@@ -539,15 +536,16 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
-	KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<double>)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<double>)
+    KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<float>)
 
-	template<class TDataType, std::size_t TDataSize>
-	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
-	{
-		save_trace_point(rTag);
-		for (SizeType i = 0; i < TDataSize; i++)
-			save("E", rObject[i]);
-	}
+    template<class TDataType, std::size_t TDataSize>
+    void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
+    {
+        save_trace_point(rTag);
+        for (SizeType i = 0; i < TDataSize; i++)
+            save("E", rObject[i]);
+    }
 
     template<class TDataType>
     void save(std::string const & rTag, std::vector<TDataType> const& rObject)
@@ -569,7 +567,6 @@ public:
 
         for(SizeType i = 0 ; i < size ; i++)
             save("E", SaveType(rObject[i]));
-//    write(rObject);
     }
 
     template<class TDataType>
@@ -582,7 +579,6 @@ public:
 
         for(SizeType i = 0 ; i < size ; i++)
             save("E", rObject[i]);
-//    write(rObject);
     }
 
     template<class TDataType, std::size_t TDimension>
@@ -591,8 +587,6 @@ public:
         save_trace_point(rTag);
         for(SizeType i = 0 ; i < TDimension ; i++)
             save("E", rObject[i]);
-
-//    write(rObject);
     }
 
     template<class TKeyType, class TDataType>
@@ -675,14 +669,11 @@ public:
     bool IsDerived(TDataType * pValue)
     {
       if (strcmp(typeid(TDataType).name(), typeid(*pValue).name()) != 0) {
-	return true;
+        return true;
       }
       else {
-	return false;
+        return false;
       }
-      // bool is_derived = (typeid(TDataType) != typeid(*pValue));
-//    std::cout << "for TDataType : " << typeid(TDataType).name() << " and *pValue type : " << typeid(*pValue).name() << " is derived : " << is_derived << std::endl;
-      //return is_derived;
     }
 
 
@@ -711,25 +702,16 @@ public:
     template<class TDataType>
     void save(std::string const & rTag, Kratos::weak_ptr<TDataType> pValue)
     {
-        // This is for testing. I have to implement it. Pooyan.
-        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
-//    write(*pValue);
     }
 
     template<class TDataType>
     void save(std::string const & rTag, Kratos::WeakPointerVector<TDataType> pValue)
     {
-        // This is for testing. I have to implement it. Pooyan.
-        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
-//    write(*pValue);
     }
 
     template<class TDataType>
     void save(std::string const & rTag, Kratos::shared_ptr<const TDataType> pValue)
     {
-        // This is for testing. I have to change it. Pooyan.
-//          save_trace_point(rTag);
-//    write(*pValue);
         save(rTag, pValue.get());
     }
 
@@ -755,7 +737,6 @@ public:
 
         for(SizeType i = 0 ; i < TDimension ; ++i)
             save("E", rObject[i]);
-//    write(rObject);
     }
 
     template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
@@ -766,13 +747,13 @@ public:
         for(SizeType i = 0 ; i < TDimension1 ; ++i)
             for(SizeType j = 0 ; j < TDimension2 ; ++j)
                 save("E", rObject(i,j));
-//    write(rObject);
     }
 
     KRATOS_SERIALIZATION_DIRECT_SAVE(bool)
     KRATOS_SERIALIZATION_DIRECT_SAVE(int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(long)
     KRATOS_SERIALIZATION_DIRECT_SAVE(double)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(float)
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned long)
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::string)
@@ -784,7 +765,8 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::size_t)
 #endif
-	KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<double>)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<double>)
+    KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<float>)
 
 
     template<class TDataType>
@@ -1081,7 +1063,6 @@ private:
         }
     }
 
-
     template<class TMapType>
     void save_associative_container(std::string const & rTag, TMapType const& rObject)
     {
@@ -1093,32 +1074,6 @@ private:
         for(auto& i : rObject)
             save("E", i);
     }
-
-
-
-//        void read(bool& rData)
-//        {
-//            int temp;
-//            read(temp);
-//            rData = temp << 1;
-//
-//         }
-//
-//        void write(bool& rData)
-//        {
-//            int temp(rData);
-//            write(temp);
-//        }
-//
-//        void read(std::string& rValue)
-//        {
-//            *mpBuffer >> rValue;
-//        }
-//
-//        void write(std::string& rValue)
-//        {
-//            *mpBuffer << rValue;
-//        }
 
     void read(PointerType& rValue)
     {
@@ -1268,35 +1223,6 @@ private:
         KRATOS_SERIALIZER_MODE_END
     }
 
-//        template<class TDataType, std::size_t TDimenasion>
-//        void read(array_1d<TDataType, TDimenasion>& rData)
-//        {
-//            read(rData.begin(), rData.end());
-//        }
-//
-//        template<class TDataType, std::size_t TDimension>
-//        void write(array_1d<TDataType, TDimension> const& rData)
-//        {
-//           write(rData.begin(), rData.end());
-//        }
-//
-//        template<class TDataType>
-//        void read(DenseVector<TDataType>& rData)
-//        {
-//            std::size_t size;
-//            *mpBuffer >> size;
-//            rData.resize(size,false);
-//
-//            read(rData.begin(), rData.end());
-//        }
-//
-//        template<class TDataType>
-//        void write(DenseVector<TDataType> const& rData)
-//        {
-//            *mpBuffer << rData.size() << std::endl;
-//            write(rData.begin(), rData.end());
-//        }
-
     template<class TDataType>
     void read(DenseMatrix<TDataType>& rData)
     {
@@ -1408,6 +1334,17 @@ private:
     /// Sets the pointer of the stream buffer at the end
     void SeekEnd();
 
+    template <typename T>
+    std::shared_ptr<T> MakeShared()
+    {
+        if constexpr (std::is_default_constructible_v<T>)
+        {
+            return std::make_shared<T>();
+        } else {
+            return std::shared_ptr<T>(new T);
+        }
+    }
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -1432,47 +1369,6 @@ private:
 
 }; // Class Serializer
 
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-//   template<class TDataType>
-//   inline Serializer& operator >> (Serializer& rThis, TDataType& rObject)
-//   {
-//     rThis.load(rObject);
-
-//     return rThis;
-//   }
-
-
-//   template<class TDataType>
-//   inline Serializer& operator << (Serializer& rThis, TDataType& rObject)
-//   {
-//     rThis.save(rObject, KRATOS_VERSION);
-
-//     return rThis;
-//   }
-/// input stream function
-//   inline std::istream& operator >> (std::istream& rIStream,
-//                  Serializer& rThis);
-
-/// output stream function
-//   inline std::ostream& operator << (std::ostream& rOStream,
-//                  const Serializer& rThis)
-//     {
-//       rThis.PrintInfo(rOStream);
-//       rOStream << std::endl;
-//       rThis.PrintData(rOStream);
-
-//       return rOStream;
-//     }
 ///@}
 
 }  // namespace Kratos.

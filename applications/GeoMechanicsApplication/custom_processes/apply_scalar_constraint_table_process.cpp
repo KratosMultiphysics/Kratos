@@ -11,7 +11,7 @@
 //                   Marjan Fathian
 //
 #include "apply_scalar_constraint_table_process.h"
-#include "apply_component_table_process.hpp"
+#include "apply_component_table_process.h"
 #include "apply_constant_interpolate_line_pressure_process.hpp"
 #include "apply_constant_phreatic_line_pressure_process.hpp"
 #include "apply_constant_phreatic_surface_pressure_process.hpp"
@@ -185,6 +185,8 @@ void ApplyScalarConstraintTableProcess::ExecuteInitializeSolutionStep()
 {
     mProcess->ExecuteInitializeSolutionStep();
 }
+
+void ApplyScalarConstraintTableProcess::ExecuteFinalize() { mProcess->ExecuteFinalize(); }
 
 std::string ApplyScalarConstraintTableProcess::Info() const
 {

@@ -75,7 +75,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline volumes
+    /// Constructor for B-Spline volumes
     NurbsVolumeGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
@@ -95,8 +95,8 @@ public:
         CheckAndFitKnotVectors();
     }
 
-    /// Attention: Weigths are not yet implemented!
-    /// Conctructor for NURBS volumes
+    /// Attention: Weights are not yet implemented!
+    /// Constructor for NURBS volumes
     // NurbsVolumeGeometry(
     //     const PointsArrayType& rThisPoints,
     //     const SizeType PolynomialDegreeU,
@@ -644,7 +644,7 @@ public:
      * @brief Computes jacobian matrix at the given coordinates.
      * @param rCoordinates Coordinates to be evaluated.
      * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
-     * @todo Refactor such that addional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
+     * @todo Refactor such that additional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
      *       find the correct knotspans and to set the shape_function_member variables 'mFirstNonzeroControlPointU,-V,-W'.
      * @note This function is only required to compute e.g. the volume of the geometry. During an IGA-Analysis the corresponding function
      *       of the base class is called.
@@ -709,7 +709,7 @@ public:
         // Makes sure we use assembly Option 2 in CreateQuadraturePointGeometries().
         IntegrationInfo integration_info(
             { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1, PolynomialDegreeW() + 1 },
-            { IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS });
+            { IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM });
 
         this->CreateQuadraturePointGeometries(
             rResultGeometries,
@@ -817,7 +817,7 @@ public:
                 this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
         }
         // Option 2: A list of QuadraturePointGeometry is created, one for each integration points.
-        else if ( IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS == rIntegrationInfo.GetQuadratureMethod(0) ) {
+        else if ( IntegrationInfo::QuadratureMethod::CUSTOM == rIntegrationInfo.GetQuadratureMethod(0) ) {
             // Shape function container.
             NurbsVolumeShapeFunction shape_function_container(
                 mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, NumberOfShapeFunctionDerivatives);

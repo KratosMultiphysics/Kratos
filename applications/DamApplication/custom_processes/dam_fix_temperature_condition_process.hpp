@@ -48,7 +48,7 @@ class DamFixTemperatureConditionProcess : public Process
             {
                 "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name"   : "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"        : false,
+                "constrained"     : false,
                 "value"           : 0.0,
                 "table"           : 0,
                 "interval":[
@@ -62,11 +62,11 @@ class DamFixTemperatureConditionProcess : public Process
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["is_fixed"].GetBool();
+        mIsFixed = rParameters["constrained"].GetBool();
         mTemperature = rParameters["value"].GetDouble();
 
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
@@ -90,7 +90,7 @@ class DamFixTemperatureConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
 
         KRATOS_TRY;

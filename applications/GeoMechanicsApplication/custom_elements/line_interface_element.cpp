@@ -10,6 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 #include "line_interface_element.h"
+
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
@@ -24,49 +25,16 @@ using namespace Kratos;
 
 // The functions in this anonymous namespace are not specific to interface elements and
 // will be moved to a utility module.
-
-using IntegrationCoefficientCalculatorType =
-    std::function<double(const Geo::IntegrationPointType&, double, const Geometry<Node>&)>;
-
-std::vector<double> CalculateIntegrationCoefficients(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                                     const Geometry<Node>& rGeometry,
-                                                     const std::vector<double>& rDeterminantsOfJacobians,
-                                                     const IntegrationCoefficientCalculatorType& rIntegrationCoefficientCalculator)
+Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                           const Geometry<Node>& rGeometry)
 {
-    auto calculate_integration_coefficient = [&rGeometry, &rIntegrationCoefficientCalculator](
-                                                 const auto& rIntegrationPoint, auto DetJ) {
-        return rIntegrationCoefficientCalculator(rIntegrationPoint, DetJ, rGeometry);
-    };
-    auto result = std::vector<double>{};
-    result.reserve(rIntegrationPoints.size());
-    std::ranges::transform(rIntegrationPoints, rDeterminantsOfJacobians, std::back_inserter(result),
-                           calculate_integration_coefficient);
-
-    return result;
-}
-
-std::vector<double> CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                                                        const Geometry<Node>& rGeometry)
-{
-    auto result = std::vector<double>{};
-    result.reserve(rIntegrationPoints.size());
-    std::ranges::transform(rIntegrationPoints, std::back_inserter(result), [&rGeometry](const auto& rIntegrationPoint) {
+    auto result = Vector(rIntegrationPoints.size());
+    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), result.begin(),
+                   [&rGeometry](const auto& rIntegrationPoint) {
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
     });
 
     return result;
-}
-
-std::vector<double> CalculateIntegrationCoefficients(
-    const Geo::IntegrationPointVectorType& rIntegrationPoints,
-    const Geometry<Node>&                  rGeometry,
-    const std::function<double(const Geo::IntegrationPointType&, double, const Geometry<Node>&)>& rIntegrationCoefficientCalculator)
-{
-    const auto determinants_of_jacobian =
-        CalculateDeterminantsOfJacobiansAtIntegrationPoints(rIntegrationPoints, rGeometry);
-
-    return CalculateIntegrationCoefficients(rIntegrationPoints, rGeometry, determinants_of_jacobian,
-                                            rIntegrationCoefficientCalculator);
 }
 
 std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
@@ -194,18 +162,10 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
 
-    if (rCurrentProcessInfo[IS_RESTARTED] &&
-        mConstitutiveLaws.size() == shape_function_values_at_integration_points.size()) {
-        for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
-            mConstitutiveLaws[i]->InitializeMaterial(
-                GetProperties(), GetGeometry(), shape_function_values_at_integration_points[i]);
-        }
-    } else {
-        mConstitutiveLaws.clear();
-        for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
-            mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
-            mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
-        }
+    mConstitutiveLaws.clear();
+    for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
+        mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
+        mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
     }
 }
 
@@ -262,15 +222,10 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
 
 std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() const
 {
-    auto calculate_integration_coefficient = [p_policy = mStressStatePolicy.get()](
-                                                 const auto& rIntegrationPoint, auto DetJ, const auto& rGeometry) {
-        return p_policy->CalculateIntegrationCoefficient(rIntegrationPoint, DetJ, rGeometry);
-    };
-
-    auto result = ::CalculateIntegrationCoefficients(
-        mIntegrationScheme->GetIntegrationPoints(), GetGeometry(), calculate_integration_coefficient);
-
-    return result;
+    const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
+        mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
+    return mIntegrationCoefficientsCalculator.Run<>(mIntegrationScheme->GetIntegrationPoints(),
+                                                    determinants_of_jacobian, this);
 }
 
 std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()

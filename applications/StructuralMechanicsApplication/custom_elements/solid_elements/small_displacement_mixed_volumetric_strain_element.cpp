@@ -1430,7 +1430,7 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
         KRATOS_CHECK_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
     }
 
-    // Check if the density is provided for the calculation of the intertial terms and dynamic subscales
+    // Check if the density is provided for the calculation of the inertial terms and dynamic subscales
     if (mIsDynamic) {
         const auto& r_prop = GetProperties();
         KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY needs to be provided for the calculation of dynamic subscales!" << std::endl;
