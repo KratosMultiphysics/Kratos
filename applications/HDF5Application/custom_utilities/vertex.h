@@ -75,7 +75,7 @@ public:
 
     /** Interpolate the requested variable
      *  @param rVariable variable to interpolate
-     *  @param rVariableGetter is an object having a method GetValue(const Vertex&, const Variable<TValue>&, TLS&)
+     *  @param rVariableGetter is an object having a method @ref GetValue(const Vertex&, const Variable<TValue>&, TLS&)
      *  @note throws an exception if the vertex was not located successfully upon construction
      */
     template <class TValue, class TVariableGetterType>
