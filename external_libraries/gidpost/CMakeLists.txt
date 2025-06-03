@@ -11,6 +11,14 @@ set( GIDPOST_SOURCES
      )
 ##gidpostfor.c gidpostforAPI.c
 
+# Remove Unity ofr gidpost
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/gidpost.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/gidpostInt.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/gidpostHash.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/hashtab.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/recycle.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/lookupa.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+
 add_definitions(-DNDEBUG)
 message("WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)")
 add_definitions( -DUSE_CONST )
